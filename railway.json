@@ -1,0 +1,31 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "infrastructure/docker/Dockerfile.api"
+  },
+  "deploy": {
+    "numReplicas": 1,
+    "healthcheckPath": "/health",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10
+  },
+  "services": [
+    {
+      "name": "api",
+      "source": {
+        "repo": "https://github.com/seu-usuario/cidadao-ai"
+      },
+      "build": {
+        "builder": "DOCKERFILE",
+        "dockerfilePath": "infrastructure/docker/Dockerfile.api"
+      },
+      "deploy": {
+        "numReplicas": 1,
+        "healthcheckPath": "/health",
+        "restartPolicyType": "ON_FAILURE",
+        "restartPolicyMaxRetries": 10
+      }
+    }
+  ]
+}

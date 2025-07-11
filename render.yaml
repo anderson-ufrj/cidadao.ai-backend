@@ -1,0 +1,41 @@
+services:
+  # API Backend
+  - type: web
+    name: cidadao-api
+    env: docker
+    dockerfilePath: ./infrastructure/docker/Dockerfile.api
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cidadao-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: cidadao-redis
+          type: redis
+          property: connectionString
+      - key: JWT_SECRET_KEY
+        generateValue: true
+    healthCheckPath: /health
+    
+  # PostgreSQL Database
+  - type: pserv
+    name: cidadao-db
+    databaseName: cidadao_ai
+    plan: free
+    
+  # Redis Cache
+  - type: redis
+    name: cidadao-redis
+    plan: free
+    
+  # Static Site (Frontend)
+  - type: web
+    name: cidadao-frontend
+    env: static
+    buildCommand: echo "No build needed"
+    staticPublishPath: ./frontend
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
