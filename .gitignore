@@ -232,3 +232,8 @@ scripts/simple_*.py
 
 # API testing outputs
 api_test_results.json
+
+# Internal reports and analysis (confidential)
+RELATORIO_*.md
+*_EXECUTIVO.md
+analise_*.md
