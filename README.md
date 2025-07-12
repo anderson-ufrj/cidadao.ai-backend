@@ -1,13 +1,27 @@
+---
+title: Cidadao AI
+emoji: 🏛️
+colorFrom: blue
+colorTo: green
+sdk: gradio
+sdk_version: "4.44.1"
+app_file: app.py
+pinned: false
+license: mit
+short_description: AI transparency for Brazilian public spending data
+---
+
 # 🔍 Cidadão.AI
 
 > **"O que Brasília esconde, nossa IA revela."**
 
 [![Python](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
-[![License](https://img.shields.io/badge/license-Proprietary-red.svg)](LICENSE)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 [![Powered by LangChain](https://img.shields.io/badge/Powered%20by-LangChain-green.svg)](https://langchain.com/)
 [![API Status](https://img.shields.io/badge/API-Complete-brightgreen.svg)](#-api-endpoints)
+[![Hugging Face Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/neural-thinker/cidadao-ai)
 
 **Sistema multi-agente de IA com API REST completa** que transforma dados brutos do Portal da Transparência em investigações inteligentes, democratizando o acesso à informação pública através de processamento de linguagem natural de última geração.
 
@@ -212,9 +226,9 @@ cidadao investigate "sua primeira investigação"
 
 ## 🔒 Licença
 
-Software proprietário. Todos os direitos reservados © 2025 Anderson H. Silva.
+Este projeto está licenciado sob a licença MIT - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
-Para licenciamento comercial ou parcerias: andersonhs27@gmail.com
+Para parcerias e colaborações: andersonhs27@gmail.com
 
 ## 🤝 Sobre o Autor
 
