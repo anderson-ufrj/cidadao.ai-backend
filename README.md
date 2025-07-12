@@ -1,5 +1,5 @@
 ---
-title: CidadãoGPT - Análise de Transparência Pública
+title: Cidadão.AI - Análise de Transparência Pública
 emoji: 🔍
 colorFrom: blue
 colorTo: green
@@ -10,13 +10,13 @@ pinned: true
 license: mit
 ---
 
-# 🇧🇷 CidadãoGPT - Análise de Transparência Pública
+# 🇧🇷 Cidadão.AI - Análise de Transparência Pública
 
 **Democratizando o acesso aos dados governamentais brasileiros através de IA**
 
 ## 🎯 O que é?
 
-CidadãoGPT é um sistema de inteligência artificial especializado em analisar documentos públicos brasileiros para:
+Cidadão.AI é um sistema de inteligência artificial especializado em analisar documentos públicos brasileiros para:
 
 - 🔍 **Detectar Anomalias**: Identifica padrões suspeitos em contratos e licitações
 - 💰 **Avaliar Riscos Financeiros**: Analisa valores e identifica possíveis superfaturamentos  

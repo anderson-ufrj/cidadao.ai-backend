@@ -1,5 +1,5 @@
 """
-Pipeline de Treinamento para CidadãoGPT
+Pipeline de Treinamento para Cidadão.AI
 
 Sistema completo de fine-tuning especializado para dados de transparência pública brasileira.
 Inspirado nas técnicas do Kimi K2, mas otimizado para análise governamental.
@@ -25,7 +25,7 @@ from sklearn.metrics import accuracy_score, precision_recall_fscore_support, con
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from .cidadao_model import CidadaoGPTForTransparency, CidadaoModelConfig, create_cidadao_model
+from .cidadao_model import CidadaoAIForTransparency, CidadaoModelConfig, create_cidadao_model
 
 logger = logging.getLogger(__name__)
 
@@ -246,11 +246,11 @@ class TransparencyDataset(Dataset):
 
 
 class CidadaoTrainer:
-    """Trainer especializado para CidadãoGPT"""
+    """Trainer especializado para Cidadão.AI"""
     
     def __init__(
         self,
-        model: CidadaoGPTForTransparency,
+        model: CidadaoAIForTransparency,
         tokenizer: AutoTokenizer,
         config: TrainingConfig
     ):
@@ -299,7 +299,7 @@ class CidadaoTrainer:
     ):
         """Executar treinamento completo"""
         
-        logger.info("🚀 Iniciando treinamento do CidadãoGPT")
+        logger.info("🚀 Iniciando treinamento do Cidadão.AI")
         
         # Preparar data loaders
         train_loader = DataLoader(
@@ -715,7 +715,7 @@ class CidadaoTrainer:
 def create_training_pipeline(
     data_path: str,
     config: Optional[TrainingConfig] = None
-) -> Tuple[CidadaoGPTForTransparency, CidadaoTrainer]:
+) -> Tuple[CidadaoAIForTransparency, CidadaoTrainer]:
     """
     Criar pipeline de treinamento completo
     
@@ -730,7 +730,7 @@ def create_training_pipeline(
     if config is None:
         config = TrainingConfig()
     
-    logger.info("🏗️ Criando pipeline de treinamento CidadãoGPT")
+    logger.info("🏗️ Criando pipeline de treinamento Cidadão.AI")
     
     # Criar modelo
     model = create_cidadao_model(
@@ -807,7 +807,7 @@ if __name__ == "__main__":
         config=config
     )
     
-    print("🤖 CidadãoGPT Training Pipeline criado com sucesso!")
+    print("🤖 Cidadão.AI Training Pipeline criado com sucesso!")
     print(f"📊 Modelo: {config.model_size}")
     print(f"🎯 Tarefas especializadas: {config.specialized_tasks}")
     print(f"💾 Diretório de saída: {config.output_dir}")

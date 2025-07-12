@@ -1,5 +1,5 @@
 """
-API de Deployment para CidadãoGPT
+API de Deployment para Cidadão.AI
 
 Interface completa para servir o modelo especializado em transparência pública.
 Similar ao padrão Kimi K2, mas otimizado para análise governamental brasileira.
@@ -22,7 +22,7 @@ import tempfile
 import pandas as pd
 from io import StringIO
 
-from .cidadao_model import CidadaoGPTForTransparency, create_cidadao_model
+from .cidadao_model import CidadaoAIForTransparency, create_cidadao_model
 from .training_pipeline import TransparencyDataset
 from transformers import AutoTokenizer
 
@@ -61,7 +61,7 @@ class BatchAnalysisRequest(BaseModel):
 
 
 class ChatRequest(BaseModel):
-    """Request para chat com CidadãoGPT"""
+    """Request para chat com Cidadão.AI"""
     
     messages: List[Dict[str, str]] = Field(..., description="Histórico de mensagens")
     temperature: float = Field(default=0.6, ge=0.0, le=2.0)
@@ -119,12 +119,12 @@ class ModelInfoResponse(BaseModel):
 
 # === GERENCIADOR DE MODELO ===
 
-class CidadaoGPTManager:
-    """Gerenciador do modelo CidadãoGPT"""
+class CidadaoAIManager:
+    """Gerenciador do modelo Cidadão.AI"""
     
     def __init__(self, model_path: Optional[str] = None):
         self.model_path = model_path
-        self.model: Optional[CidadaoGPTForTransparency] = None
+        self.model: Optional[CidadaoAIForTransparency] = None
         self.tokenizer: Optional[AutoTokenizer] = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.loaded = False
@@ -142,11 +142,11 @@ class CidadaoGPTManager:
     async def load_model(self):
         """Carregar modelo"""
         try:
-            logger.info("🤖 Carregando CidadãoGPT...")
+            logger.info("🤖 Carregando Cidadão.AI...")
             
             if self.model_path and Path(self.model_path).exists():
                 # Carregar modelo treinado
-                self.model = CidadaoGPTForTransparency.load_model(self.model_path)
+                self.model = CidadaoAIForTransparency.load_model(self.model_path)
                 logger.info(f"✅ Modelo carregado de {self.model_path}")
             else:
                 # Carregar modelo base
@@ -322,7 +322,7 @@ class CidadaoGPTManager:
                     message=response_message,
                     tools_used=["transparency_analysis"],
                     confidence=analysis_result.confidence,
-                    sources=["Portal da Transparência", "CidadãoGPT Analysis"]
+                    sources=["Portal da Transparência", "Cidadão.AI Analysis"]
                 )
             else:
                 # Resposta geral do chatbot
@@ -451,12 +451,12 @@ class CidadaoGPTManager:
         message_lower = message.lower()
         
         if any(word in message_lower for word in ["olá", "oi", "bom dia", "boa tarde"]):
-            return ("Olá! Sou o CidadãoGPT, seu assistente de IA especializado em transparência pública brasileira. "
+            return ("Olá! Sou o Cidadão.AI, seu assistente de IA especializado em transparência pública brasileira. "
                    "Posso ajudar você a analisar contratos, detectar anomalias e verificar conformidade legal. "
                    "Como posso ajudá-lo hoje?")
         
         elif any(word in message_lower for word in ["ajuda", "help", "como"]):
-            return ("🤖 **CidadãoGPT - Suas Funcionalidades**\n\n"
+            return ("🤖 **Cidadão.AI - Suas Funcionalidades**\n\n"
                    "• 🔍 **Análise de Anomalias**: Detectar padrões suspeitos em contratos\n"
                    "• 💰 **Análise Financeira**: Avaliar riscos em gastos públicos\n"
                    "• ⚖️ **Conformidade Legal**: Verificar adequação às normas\n"
@@ -520,7 +520,7 @@ class CidadaoGPTManager:
         total_params = sum(p.numel() for p in self.model.parameters())
         
         return ModelInfoResponse(
-            model_name="CidadãoGPT",
+            model_name="Cidadão.AI",
             version="1.0.0",
             specialization=["anomaly_detection", "financial_analysis", "legal_compliance"],
             total_parameters=total_params,
@@ -536,7 +536,7 @@ class CidadaoGPTManager:
 # === APLICAÇÃO FASTAPI ===
 
 # Instância global do gerenciador
-model_manager = CidadaoGPTManager()
+model_manager = CidadaoAIManager()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -549,7 +549,7 @@ async def lifespan(app: FastAPI):
 
 # Criar aplicação FastAPI
 app = FastAPI(
-    title="CidadãoGPT API",
+    title="Cidadão.AI API",
     description="API de IA especializada em análise de transparência pública brasileira",
     version="1.0.0",
     lifespan=lifespan
@@ -571,7 +571,7 @@ app.add_middleware(
 async def root():
     """Endpoint raiz com informações da API"""
     return {
-        "name": "CidadãoGPT API",
+        "name": "Cidadão.AI API",
         "version": "1.0.0",
         "description": "API de IA especializada em transparência pública brasileira",
         "docs": "/docs",
@@ -625,10 +625,10 @@ async def batch_analyze(request: BatchAnalysisRequest):
     
     return results
 
-@app.post("/chat", response_model=ChatResponse, summary="Chat com CidadãoGPT")
+@app.post("/chat", response_model=ChatResponse, summary="Chat com Cidadão.AI")
 async def chat_completion(request: ChatRequest):
     """
-    Conversar com o CidadãoGPT sobre transparência pública
+    Conversar com o Cidadão.AI sobre transparência pública
     
     - **messages**: Histórico de mensagens
     - **temperature**: Criatividade da resposta

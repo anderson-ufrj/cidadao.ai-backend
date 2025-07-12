@@ -21,18 +21,18 @@ base_model: gpt2
 pipeline_tag: text-classification
 ---
 
-# 🤖 CidadãoGPT
+# 🤖 Cidadão.AI
 
 > **Modelo de IA especializado em análise de transparência pública brasileira**
 
-![CidadãoGPT](https://img.shields.io/badge/CidadãoGPT-1.0-blue)
+![Cidadão.AI](https://img.shields.io/badge/Cidadão.AI-1.0-blue)
 ![Hugging Face](https://img.shields.io/badge/🤗%20Hugging%20Face-Model-yellow)
 ![Language](https://img.shields.io/badge/Language-Portuguese-green)
 ![License](https://img.shields.io/badge/License-MIT-blue)
 
 ## 📋 Descrição
 
-O **CidadãoGPT** é um modelo transformer multi-tarefa especificamente projetado e treinado para análise de transparência pública no Brasil. Inspirado na arquitetura do Kimi K2, mas otimizado para detectar anomalias, avaliar riscos financeiros e verificar conformidade legal em dados governamentais brasileiros.
+O **Cidadão.AI** é um modelo transformer multi-tarefa especificamente projetado e treinado para análise de transparência pública no Brasil. Inspirado na arquitetura do Kimi K2, mas otimizado para detectar anomalias, avaliar riscos financeiros e verificar conformidade legal em dados governamentais brasileiros.
 
 ### 🎯 Características Principais
 
@@ -118,7 +118,7 @@ print("⚖️ Conformidade Legal:", resultado["legal"]["label"])
 
 | Modelo | F1 Score | Especialização | Explicabilidade |
 |--------|----------|----------------|------------------|
-| **CidadãoGPT** | **88.9%** | ✅ **Especializado** | ✅ **Completa** |
+| **Cidadão.AI** | **88.9%** | ✅ **Especializado** | ✅ **Completa** |
 | GPT-4 (general) | 72.4% | ❌ Limitada | ⚠️ Básica |
 | Claude Sonnet | 69.8% | ❌ Limitada | ⚠️ Básica |
 | BERT-base | 65.3% | ❌ Genérico | ❌ Nenhuma |
@@ -287,8 +287,8 @@ print(f"Detecção de Corrupção: {results.corruption_detection_ability:.1%}")
 ## 📄 Citação
 
 ```bibtex
-@misc{cidadaogpt2024,
-  title={CidadãoGPT: Specialized AI Model for Brazilian Public Transparency Analysis},
+@misc{cidadaoai2024,
+  title={Cidadão.AI: Specialized AI Model for Brazilian Public Transparency Analysis},
   author={Silva, Anderson Henrique},
   year={2024},
   publisher={Hugging Face},
@@ -314,7 +314,7 @@ Este modelo está licenciado sob a **MIT License**. Veja [LICENSE](https://githu
 
 <div align="center">
 
-**🤖 CidadãoGPT - Democratizando a transparência pública com IA**
+**🤖 Cidadão.AI - Democratizando a transparência pública com IA**
 
 [![Hugging Face](https://huggingface.co/datasets/huggingface/badges/resolve/main/model-on-hf-sm.svg)](https://huggingface.co/neural-thinker/cidadao-gpt)
 

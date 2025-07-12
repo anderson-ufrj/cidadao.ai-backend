@@ -1,5 +1,5 @@
 """
-CidadãoGPT - Modelo de IA Especializado para Transparência Pública Brasileira
+Cidadão.AI - Modelo de IA Especializado para Transparência Pública Brasileira
 
 Inspirado no Kimi K2, este modelo é otimizado especificamente para:
 - Análise de gastos públicos
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CidadaoModelConfig:
-    """Configuração do modelo CidadãoGPT"""
+    """Configuração do modelo Cidadão.AI"""
     
     # Arquitetura base
     base_model_name: str = "microsoft/DialoGPT-medium"  # Modelo base para fine-tuning
@@ -220,9 +220,9 @@ class LegalReasoningHead(nn.Module):
         }
 
 
-class CidadaoGPTModel(nn.Module):
+class CidadaoAIModel(nn.Module):
     """
-    CidadãoGPT - Modelo de IA especializado para transparência pública brasileira
+    Cidadão.AI - Modelo de IA especializado para transparência pública brasileira
     
     Características principais:
     - Fine-tuned para dados governamentais brasileiros
@@ -323,13 +323,13 @@ class CidadaoGPTModel(nn.Module):
         return outputs
 
 
-class CidadaoGPTForTransparency(nn.Module):
+class CidadaoAIForTransparency(nn.Module):
     """Wrapper para treinamento e inferência completa"""
     
     def __init__(self, config: CidadaoModelConfig):
         super().__init__()
         self.config = config
-        self.model = CidadaoGPTModel(config)
+        self.model = CidadaoAIModel(config)
         
         # Métricas de transparência
         self.transparency_metrics = {
@@ -585,9 +585,9 @@ class CidadaoGPTForTransparency(nn.Module):
 def create_cidadao_model(
     specialized_tasks: List[str] = None,
     model_size: str = "medium"
-) -> CidadaoGPTForTransparency:
+) -> CidadaoAIForTransparency:
     """
-    Criar modelo CidadãoGPT com configurações otimizadas
+    Criar modelo Cidadão.AI com configurações otimizadas
     
     Args:
         specialized_tasks: Lista de tarefas ['anomaly', 'financial', 'legal', 'all']
@@ -631,12 +631,12 @@ def create_cidadao_model(
         config.enable_financial_analysis = "financial" in specialized_tasks
         config.enable_legal_reasoning = "legal" in specialized_tasks
     
-    return CidadaoGPTForTransparency(config)
+    return CidadaoAIForTransparency(config)
 
 
 if __name__ == "__main__":
     # Exemplo de uso
-    print("🤖 Criando CidadãoGPT - Modelo especializado para transparência pública")
+    print("🤖 Criando Cidadão.AI - Modelo especializado para transparência pública")
     
     model = create_cidadao_model(
         specialized_tasks=["all"],

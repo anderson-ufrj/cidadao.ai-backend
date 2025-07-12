@@ -484,7 +484,7 @@ class ObservabilityManager:
         """Health check dos modelos ML"""
         
         try:
-            # Check if CidadãoGPT is available
+            # Check if Cidadão.AI is available
             from ..ml.hf_integration import get_cidadao_manager
             
             manager = get_cidadao_manager()

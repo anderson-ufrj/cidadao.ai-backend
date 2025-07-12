@@ -1,8 +1,8 @@
-# 🤖 CidadãoGPT - Modelo de IA Especializado para Transparência Pública
+# 🤖 Cidadão.AI - Modelo de IA Especializado para Transparência Pública
 
 > **Inspirado no Kimi K2, mas otimizado especificamente para análise de transparência governamental brasileira**
 
-![CidadãoGPT](https://img.shields.io/badge/CidadãoGPT-1.0.0-blue)
+![Cidadão.AI](https://img.shields.io/badge/Cidadão.AI-1.0.0-blue)
 ![Python](https://img.shields.io/badge/Python-3.11+-green)
 ![PyTorch](https://img.shields.io/badge/PyTorch-2.0+-red)
 ![Status](https://img.shields.io/badge/Status-Production%20Ready-brightgreen)
@@ -21,11 +21,11 @@
 
 ## 🎯 Visão Geral
 
-O **CidadãoGPT** é um modelo de inteligência artificial especificamente projetado e treinado para análise de transparência pública brasileira. Inspirado na arquitetura avançada do Kimi K2, mas com foco total em detectar anomalias, avaliar riscos financeiros e verificar conformidade legal em dados governamentais.
+O **Cidadão.AI** é um modelo de inteligência artificial especificamente projetado e treinado para análise de transparência pública brasileira. Inspirado na arquitetura avançada do Kimi K2, mas com foco total em detectar anomalias, avaliar riscos financeiros e verificar conformidade legal em dados governamentais.
 
 ### 🌟 Principais Diferenciais
 
-| Aspecto | Modelos Gerais (GPT-4, Claude) | **CidadãoGPT** |
+| Aspecto | Modelos Gerais (GPT-4, Claude) | **Cidadão.AI** |
 |---------|--------------------------------|----------------|
 | **Especialização** | Conhecimento geral | 🎯 **100% focado em transparência pública** |
 | **Dados de Treinamento** | Internet geral | 📊 **Portal da Transparência + dados governamentais** |
@@ -51,7 +51,7 @@ Linguagens: Português (PT-BR) otimizado
 
 ```python
 # Estrutura do modelo
-CidadãoGPT/
+Cidadão.AI/
 ├── Base Transformer (1B params)
 │   ├── Multi-Head Attention
 │   ├── Feed Forward Networks
@@ -328,7 +328,7 @@ python -m src.ml.transparency_benchmark --model-path ./models/cidadao-gpt
 
 | Modelo | F1 Score | Especialização | Explicabilidade |
 |--------|----------|----------------|------------------|
-| **CidadãoGPT** | **88.9%** | ✅ **Total** | ✅ **Completa** |
+| **Cidadão.AI** | **88.9%** | ✅ **Total** | ✅ **Completa** |
 | GPT-4 (general) | 72.4% | ❌ Limitada | ⚠️ Básica |
 | Claude Sonnet | 69.8% | ❌ Limitada | ⚠️ Básica |
 | Modelo baseado em regras | 65.3% | ✅ Boa | ❌ Nenhuma |
@@ -537,8 +537,8 @@ Este projeto está licenciado sob a **MIT License** - veja [LICENSE](LICENSE) pa
 ### Citação Acadêmica
 
 ```bibtex
-@software{cidadaogpt2024,
-  title={CidadãoGPT: Specialized AI Model for Brazilian Public Transparency Analysis},
+@software{cidadaoai2024,
+  title={Cidadão.AI: Specialized AI Model for Brazilian Public Transparency Analysis},
   author={Silva, Anderson Henrique},
   year={2024},
   url={https://github.com/anderson-ufrj/cidadao.ai},
@@ -563,7 +563,7 @@ Este projeto está licenciado sob a **MIT License** - veja [LICENSE](LICENSE) pa
 
 <div align="center">
 
-**🤖 CidadãoGPT - Transformando transparência pública com IA especializada**
+**🤖 Cidadão.AI - Transformando transparência pública com IA especializada**
 
 [![Hugging Face](https://img.shields.io/badge/🤗%20Hugging%20Face-Spaces-yellow)](https://huggingface.co/spaces/neural-thinker/cidadao-ai)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-black)](https://github.com/anderson-ufrj/cidadao.ai)

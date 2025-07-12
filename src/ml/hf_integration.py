@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Integração completa entre CidadãoGPT e Hugging Face Hub
+Integração completa entre Cidadão.AI e Hugging Face Hub
 
 Este módulo facilita a integração entre o modelo especializado
 e a biblioteca transformers do Hugging Face.
@@ -22,7 +22,7 @@ import json
 sys.path.append(str(Path(__file__).parent.parent))
 
 from src.ml.hf_cidadao_model import (
-    CidadaoGPTConfig, CidadaoGPTModel,
+    CidadaoAIConfig, CidadaoAIModel,
     TransparencyAnalysisPipeline,
     create_cidadao_pipeline,
     analyze_transparency
@@ -31,7 +31,7 @@ from src.ml.hf_cidadao_model import (
 logger = logging.getLogger(__name__)
 
 
-class CidadaoGPTHubManager:
+class CidadaoAIHubManager:
     """Gerenciador de integração com Hugging Face Hub"""
     
     def __init__(
@@ -56,7 +56,7 @@ class CidadaoGPTHubManager:
         """Carregar modelo do Hugging Face Hub"""
         
         try:
-            logger.info(f"🔄 Carregando CidadãoGPT de {self.model_name}...")
+            logger.info(f"🔄 Carregando Cidadão.AI de {self.model_name}...")
             
             # Carregar configuração
             self.config = AutoConfig.from_pretrained(
@@ -138,7 +138,7 @@ class CidadaoGPTHubManager:
         analysis_type: str = "complete",
         return_all_scores: bool = False
     ) -> Dict:
-        """Analisar texto usando modelo CidadãoGPT"""
+        """Analisar texto usando modelo Cidadão.AI"""
         
         if not self.model:
             raise RuntimeError("Modelo não carregado. Execute load_from_hub() primeiro.")
@@ -295,13 +295,13 @@ _global_manager = None
 def get_cidadao_manager(
     model_name: str = "neural-thinker/cidadao-gpt",
     force_reload: bool = False
-) -> CidadaoGPTHubManager:
+) -> CidadaoAIHubManager:
     """Obter instância global do manager"""
     
     global _global_manager
     
     if _global_manager is None or force_reload:
-        _global_manager = CidadaoGPTHubManager(model_name)
+        _global_manager = CidadaoAIHubManager(model_name)
         success = _global_manager.load_from_hub()
         
         if not success:
@@ -320,11 +320,11 @@ def quick_analyze(text: str, model_name: str = "neural-thinker/cidadao-gpt") -> 
 if __name__ == "__main__":
     # Demonstração de uso
     
-    print("🤖 Testando integração CidadãoGPT + Hugging Face")
+    print("🤖 Testando integração Cidadão.AI + Hugging Face")
     print("=" * 60)
     
     # Criar manager
-    manager = CidadaoGPTHubManager()
+    manager = CidadaoAIHubManager()
     
     # Carregar modelo
     success = manager.load_from_hub()

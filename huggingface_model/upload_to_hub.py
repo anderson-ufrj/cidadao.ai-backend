@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script para upload do CidadãoGPT para o Hugging Face Hub
+Script para upload do Cidadão.AI para o Hugging Face Hub
 
 Este script configura e faz upload do modelo especializado em transparência
 pública para o repositório do Hugging Face.
@@ -20,16 +20,16 @@ from transformers import AutoTokenizer
 sys.path.append(str(Path(__file__).parent.parent))
 
 from src.ml.hf_cidadao_model import (
-    CidadaoGPTConfig, CidadaoGPTModel,
-    CidadaoGPTForAnomalyDetection,
-    CidadaoGPTForFinancialAnalysis,
-    CidadaoGPTForLegalCompliance
+    CidadaoAIConfig, CidadaoAIModel,
+    CidadaoAIForAnomalyDetection,
+    CidadaoAIForFinancialAnalysis,
+    CidadaoAIForLegalCompliance
 )
 
 logger = logging.getLogger(__name__)
 
 
-class CidadaoGPTHubUploader:
+class CidadaoAIHubUploader:
     """Gerenciador de upload para Hugging Face Hub"""
     
     def __init__(
@@ -69,12 +69,12 @@ class CidadaoGPTHubUploader:
             logger.error(f"❌ Erro na autenticação: {e}")
             return False
 
-    def create_model_config(self) -> CidadaoGPTConfig:
+    def create_model_config(self) -> CidadaoAIConfig:
         """Criar configuração do modelo"""
         
         logger.info("🔧 Criando configuração do modelo...")
         
-        config = CidadaoGPTConfig(
+        config = CidadaoAIConfig(
             # Configurações base
             vocab_size=50257,
             hidden_size=768,
@@ -104,20 +104,20 @@ class CidadaoGPTHubUploader:
             num_legal_labels=2,
             
             # Metadados do modelo
-            architectures=["CidadaoGPTModel"],
+            architectures=["CidadaoAIModel"],
             model_type="cidadao-gpt",
         )
         
         logger.info(f"✅ Configuração criada: {config.hidden_size}H-{config.num_hidden_layers}L")
         return config
 
-    def create_or_load_model(self, config: CidadaoGPTConfig) -> CidadaoGPTModel:
+    def create_or_load_model(self, config: CidadaoAIConfig) -> CidadaoAIModel:
         """Criar ou carregar modelo"""
         
         if self.local_model_path and Path(self.local_model_path).exists():
             logger.info(f"📂 Carregando modelo de {self.local_model_path}")
             try:
-                model = CidadaoGPTModel.from_pretrained(self.local_model_path)
+                model = CidadaoAIModel.from_pretrained(self.local_model_path)
                 logger.info("✅ Modelo carregado com sucesso")
                 return model
             except Exception as e:
@@ -125,7 +125,7 @@ class CidadaoGPTHubUploader:
                 logger.info("🔄 Criando modelo novo...")
         
         logger.info("🆕 Criando modelo novo...")
-        model = CidadaoGPTModel(config)
+        model = CidadaoAIModel(config)
         
         # Inicializar com pesos aleatórios (em produção, use pesos treinados)
         logger.warning("⚠️ Usando pesos aleatórios - substitua por modelo treinado!")
@@ -180,7 +180,7 @@ tags:
 pipeline_tag: text-classification
 ---
 
-# CidadãoGPT
+# Cidadão.AI
 
 Modelo especializado em análise de transparência pública brasileira.
 
@@ -195,7 +195,7 @@ tokenizer = AutoTokenizer.from_pretrained("neural-thinker/cidadao-gpt")
 """
         return model_card
 
-    def save_model_files(self, model: CidadaoGPTModel, tokenizer, config: CidadaoGPTConfig):
+    def save_model_files(self, model: CidadaoAIModel, tokenizer, config: CidadaoAIConfig):
         """Salvar arquivos do modelo"""
         
         logger.info("💾 Salvando arquivos do modelo...")
@@ -259,7 +259,7 @@ tokenizer = AutoTokenizer.from_pretrained("neural-thinker/cidadao-gpt")
         # Arquivo de exemplo de uso
         example_code = '''
 """
-Exemplo de uso do CidadãoGPT
+Exemplo de uso do Cidadão.AI
 """
 
 from transformers import AutoModel, AutoTokenizer
@@ -368,7 +368,7 @@ if __name__ == "__main__":
                 repo_id=self.model_name,
                 token=self.hub_token,
                 repo_type="model",
-                commit_message="🤖 Upload CidadãoGPT - Modelo especializado em transparência pública brasileira"
+                commit_message="🤖 Upload Cidadão.AI - Modelo especializado em transparência pública brasileira"
             )
             
             logger.info(f"🎉 Upload concluído com sucesso!")
@@ -381,7 +381,7 @@ if __name__ == "__main__":
     def run_full_upload(self):
         """Executar processo completo de upload"""
         
-        logger.info("🚀 Iniciando processo de upload do CidadãoGPT para Hugging Face Hub")
+        logger.info("🚀 Iniciando processo de upload do Cidadão.AI para Hugging Face Hub")
         
         try:
             # 1. Autenticação
@@ -450,7 +450,7 @@ def main():
     
     import argparse
     
-    parser = argparse.ArgumentParser(description="Upload CidadãoGPT para Hugging Face Hub")
+    parser = argparse.ArgumentParser(description="Upload Cidadão.AI para Hugging Face Hub")
     parser.add_argument("--model-name", default="neural-thinker/cidadao-gpt", help="Nome do modelo no Hub")
     parser.add_argument("--local-path", help="Caminho para modelo local treinado")
     parser.add_argument("--token", help="Token do Hugging Face")
@@ -459,7 +459,7 @@ def main():
     args = parser.parse_args()
     
     # Criar uploader
-    uploader = CidadaoGPTHubUploader(
+    uploader = CidadaoAIHubUploader(
         model_name=args.model_name,
         local_model_path=args.local_path,
         hub_token=args.token

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Aplicação Streamlit para Hugging Face Spaces
-CidadãoGPT - Análise de Transparência Pública
+Cidadão.AI - Análise de Transparência Pública
 """
 
 import streamlit as st
@@ -17,7 +17,7 @@ import json
 
 # Configuração da página
 st.set_page_config(
-    page_title="🇧🇷 CidadãoGPT - Análise de Transparência",
+    page_title="🇧🇷 Cidadão.AI - Análise de Transparência",
     page_icon="🔍",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -70,7 +70,7 @@ def load_model():
     try:
         model_name = "neural-thinker/cidadao-gpt"
         
-        with st.spinner("🤖 Carregando CidadãoGPT..."):
+        with st.spinner("🤖 Carregando Cidadão.AI..."):
             tokenizer = AutoTokenizer.from_pretrained(model_name)
             model = AutoModel.from_pretrained(model_name)
             
@@ -247,7 +247,7 @@ def main():
     """Função principal da aplicação"""
     
     # Header
-    st.markdown('<h1 class="main-header">🇧🇷 CidadãoGPT</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">🇧🇷 Cidadão.AI</h1>', unsafe_allow_html=True)
     st.markdown('<p style="text-align: center; font-size: 1.2rem; color: #666;">Análise Inteligente de Transparência Pública Brasileira</p>', unsafe_allow_html=True)
     
     # Sidebar
@@ -256,7 +256,7 @@ def main():
         
         st.markdown("### 📊 Sobre o Modelo")
         st.info("""
-        **CidadãoGPT** é um modelo de IA especializado em análise de transparência pública, 
+        **Cidadão.AI** é um modelo de IA especializado em análise de transparência pública, 
         treinado para detectar anomalias, avaliar riscos financeiros e verificar conformidade legal 
         em documentos governamentais brasileiros.
         """)
@@ -516,7 +516,7 @@ def main():
     st.markdown("---")
     st.markdown("""
     <div style="text-align: center; color: #666; margin-top: 2rem;">
-        <p>🤖 <strong>CidadãoGPT</strong> - Democratizando o Acesso à Transparência Pública</p>
+        <p>🤖 <strong>Cidadão.AI</strong> - Democratizando o Acesso à Transparência Pública</p>
         <p>Desenvolvido com ❤️ para fortalecer a democracia brasileira</p>
         <p>⚠️ <em>Ferramenta de apoio - Resultados devem ser validados por especialistas</em></p>
     </div>

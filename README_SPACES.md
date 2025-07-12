@@ -1,5 +1,5 @@
 ---
-title: CidadãoGPT - Análise de Transparência Pública
+title: Cidadão.AI - Análise de Transparência Pública
 emoji: 🤖
 colorFrom: blue
 colorTo: purple
@@ -22,18 +22,18 @@ language:
 - pt
 ---
 
-# 🤖 CidadãoGPT - Análise de Transparência Pública
+# 🤖 Cidadão.AI - Análise de Transparência Pública
 
 > **Primeiro modelo de IA especializado em análise de transparência pública brasileira**
 
-## 🎯 O que é o CidadãoGPT?
+## 🎯 O que é o Cidadão.AI?
 
-O CidadãoGPT é um modelo transformer especializado, inspirado no Kimi K2, mas 100% focado em analisar dados governamentais brasileiros. Ele detecta anomalias, avalia riscos financeiros e verifica conformidade legal em contratos, despesas e licitações públicas.
+O Cidadão.AI é um modelo transformer especializado, inspirado no Kimi K2, mas 100% focado em analisar dados governamentais brasileiros. Ele detecta anomalias, avalia riscos financeiros e verifica conformidade legal em contratos, despesas e licitações públicas.
 
 ## 🚀 Como usar
 
 1. **Análise de Texto**: Cole um texto de contrato, despesa ou licitação na área de texto
-2. **Clique em Analisar**: O CidadãoGPT irá processar e fornecer análise especializada
+2. **Clique em Analisar**: O Cidadão.AI irá processar e fornecer análise especializada
 3. **Veja os Resultados**: Receba análise de anomalias, risco financeiro e conformidade legal
 
 ## 🎯 Capacidades

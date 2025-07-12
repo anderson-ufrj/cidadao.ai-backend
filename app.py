@@ -1,84 +1,91 @@
-import streamlit as st
-import json
-import numpy as np
-from datetime import datetime, date
-import time
-import pandas as pd
+#!/usr/bin/env python3
+"""
+🇧🇷 Cidadão.AI - Interface Principal
+Plataforma de análise de transparência pública com IA especializada
+"""
 
-# Configure page
+import streamlit as st
+import requests
+import json
+import time
+from typing import Dict, List, Any
+from datetime import datetime
+
+# Configuração da página
 st.set_page_config(
-    page_title="🇧🇷 Cidadão.AI - Democratizando a Transparência Pública",
-    page_icon="🇧🇷",
+    page_title="🔍 Cidadão.AI - Inteligência Cidadã para Transparência",
+    page_icon="🔍",
     layout="wide",
     initial_sidebar_state="collapsed"
 )
 
-# Initialize session state
+# Estado da sessão
 if 'page' not in st.session_state:
     st.session_state.page = 'home'
 if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
+if 'search_results' not in st.session_state:
+    st.session_state.search_results = []
 
-# CSS styling with slideshow and animations
+# CSS Moderno e Responsivo
 st.markdown("""
 <style>
-    /* Global Styles */
+    /* Reset e Base */
     .main .block-container {
-        padding-top: 1rem;
-        padding-bottom: 1rem;
+        padding-top: 0rem;
+        padding-bottom: 2rem;
+        max-width: 100%;
     }
     
-    /* Home Page Styles */
-    .home-container {
+    /* Página Inicial - Background com imagens brasileiras */
+    .hero-container {
         position: relative;
-        min-height: 80vh;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 20px;
-        overflow: hidden;
-        margin-bottom: 2rem;
-    }
-    
-    .slideshow-background {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        min-height: 100vh;
+        background: linear-gradient(
+            135deg,
+            rgba(0, 73, 144, 0.9) 0%,
+            rgba(255, 183, 77, 0.8) 50%,
+            rgba(0, 122, 51, 0.9) 100%
+        ),
+        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"><defs><pattern id="buildings" patternUnits="userSpaceOnUse" width="200" height="150"><rect width="200" height="150" fill="%23f0f8ff" opacity="0.1"/><rect x="20" y="80" width="30" height="70" fill="%234169e1" opacity="0.3"/><rect x="60" y="60" width="25" height="90" fill="%234169e1" opacity="0.4"/><rect x="95" y="70" width="35" height="80" fill="%234169e1" opacity="0.3"/><rect x="140" y="50" width="28" height="100" fill="%234169e1" opacity="0.4"/></pattern></defs><rect width="1920" height="1080" fill="url(%23buildings)"/></svg>');
         background-size: cover;
         background-position: center;
-        opacity: 0.3;
-        animation: slideShow 20s infinite;
+        background-attachment: fixed;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: -1rem -1rem 0 -1rem;
     }
     
-    @keyframes slideShow {
-        0%, 20% { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="%23f0f8ff"/><circle cx="200" cy="200" r="80" fill="%234169e1" opacity="0.4"/><circle cx="800" cy="150" r="60" fill="%23228b22" opacity="0.5"/><circle cx="1000" cy="300" r="100" fill="%23ff6347" opacity="0.3"/></svg>'); }
-        20%, 40% { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="%23fff8dc"/><polygon points="300,200 500,200 400,100" fill="%23ffd700" opacity="0.4"/><circle cx="700" cy="300" r="90" fill="%23ff69b4" opacity="0.3"/></svg>'); }
-        40%, 60% { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="%23f5f5dc"/><rect x="200" y="150" width="150" height="200" fill="%23228b22" opacity="0.4"/><circle cx="600" cy="400" r="120" fill="%23ff6347" opacity="0.3"/></svg>'); }
-        60%, 80% { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="%23f0ffff"/><circle cx="300" cy="250" r="70" fill="%2332cd32" opacity="0.4"/><rect x="600" y="100" width="200" height="250" fill="%23ff69b4" opacity="0.3"/></svg>'); }
-        80%, 100% { background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="%23faf0e6"/><rect x="250" y="200" width="180" height="180" fill="%23ff4500" opacity="0.4"/><circle cx="750" cy="200" r="85" fill="%234169e1" opacity="0.35"/></svg>'); }
-    }
-    
-    .home-content {
-        position: relative;
-        z-index: 2;
-        padding: 4rem 2rem;
+    .hero-content {
         text-align: center;
         color: white;
+        max-width: 800px;
+        padding: 2rem;
+        background: rgba(0, 0, 0, 0.4);
+        border-radius: 20px;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        animation: fadeInUp 1.2s ease-out;
     }
     
-    .main-title {
-        font-size: 4rem;
+    .hero-logo {
+        font-size: 5rem;
         font-weight: 900;
         margin-bottom: 1rem;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-        animation: fadeInUp 1s ease-out;
+        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
+        background: linear-gradient(45deg, #FFB74D, #FFFFFF, #4CAF50);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
     }
     
-    .main-subtitle {
-        font-size: 1.5rem;
+    .hero-subtitle {
+        font-size: 1.8rem;
         margin-bottom: 3rem;
         opacity: 0.95;
-        animation: fadeInUp 1s ease-out 0.3s both;
+        font-weight: 300;
+        line-height: 1.4;
     }
     
     .cta-buttons {
@@ -86,162 +93,196 @@ st.markdown("""
         gap: 2rem;
         justify-content: center;
         margin: 3rem 0;
-        animation: fadeInUp 1s ease-out 0.6s both;
+        flex-wrap: wrap;
     }
     
     .cta-button {
-        background: rgba(255,255,255,0.2);
-        border: 2px solid rgba(255,255,255,0.3);
+        background: linear-gradient(45deg, #FF6B35, #F7931E);
+        border: none;
         color: white;
-        padding: 1.5rem 3rem;
-        border-radius: 15px;
-        font-size: 1.2rem;
+        padding: 1.2rem 2.5rem;
+        border-radius: 50px;
+        font-size: 1.1rem;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
-        backdrop-filter: blur(10px);
         text-decoration: none;
-        display: inline-block;
-        min-width: 200px;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
     }
     
     .cta-button:hover {
-        background: rgba(255,255,255,0.3);
-        border-color: rgba(255,255,255,0.5);
-        transform: translateY(-5px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        transform: translateY(-3px);
+        box-shadow: 0 12px 35px rgba(255, 107, 53, 0.4);
+        text-decoration: none;
+        color: white;
     }
     
+    .cta-button.secondary {
+        background: linear-gradient(45deg, #667eea, #764ba2);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    .cta-button.secondary:hover {
+        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+    }
+    
+    /* Exemplos de Perguntas */
     .examples-section {
-        background: rgba(255,255,255,0.1);
-        border-radius: 15px;
-        padding: 2rem;
-        margin: 3rem auto;
-        max-width: 900px;
-        backdrop-filter: blur(10px);
-        animation: fadeInUp 1s ease-out 0.9s both;
+        margin-top: 4rem;
+        animation: fadeInUp 1.2s ease-out 0.3s both;
+    }
+    
+    .examples-title {
+        font-size: 1.3rem;
+        margin-bottom: 2rem;
+        opacity: 0.9;
     }
     
     .examples-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
         gap: 1rem;
-        margin-top: 1.5rem;
+        margin: 2rem 0;
     }
     
     .example-card {
-        background: rgba(255,255,255,0.15);
-        padding: 1rem;
-        border-radius: 10px;
-        border-left: 4px solid #FFD700;
+        background: rgba(255, 255, 255, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 15px;
+        padding: 1.5rem;
+        cursor: pointer;
         transition: all 0.3s ease;
+        backdrop-filter: blur(5px);
     }
     
     .example-card:hover {
-        background: rgba(255,255,255,0.25);
-        transform: translateY(-3px);
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
     }
     
-    /* Chat Interface Styles */
-    .chat-container {
-        background: white;
-        border-radius: 15px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        overflow: hidden;
-        margin-bottom: 2rem;
+    .example-text {
+        font-size: 0.95rem;
+        line-height: 1.4;
+        margin: 0;
     }
     
-    .chat-header {
+    /* Footer */
+    .hero-footer {
+        margin-top: 4rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.2);
+        opacity: 0.8;
+        font-size: 0.9rem;
+        animation: fadeInUp 1.2s ease-out 0.6s both;
+    }
+    
+    /* Páginas Internas */
+    .page-header {
         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         color: white;
-        padding: 1.5rem;
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
         text-align: center;
     }
     
+    .page-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    .page-subtitle {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+    
+    /* Chat Interface */
+    .chat-container {
+        background: #f8f9fa;
+        border-radius: 15px;
+        padding: 2rem;
+        min-height: 500px;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+    
     .chat-message {
+        margin-bottom: 1.5rem;
         padding: 1rem;
-        margin: 0.5rem 0;
         border-radius: 10px;
         max-width: 80%;
     }
     
-    .user-message {
-        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-        color: white;
+    .chat-message.user {
+        background: #e3f2fd;
         margin-left: auto;
         text-align: right;
     }
     
-    .assistant-message {
-        background: #f8f9fa;
-        color: #2c2c2c;
-        border-left: 4px solid #667eea;
+    .chat-message.ai {
+        background: #f1f8e9;
+        margin-right: auto;
     }
     
-    /* Search Interface Styles */
+    .message-header {
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+    }
+    
+    /* Search Interface */
     .search-container {
         background: white;
         border-radius: 15px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .search-filters {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
         margin-bottom: 2rem;
     }
     
-    .filter-section {
-        background: #f8f9fa;
-        padding: 1.5rem;
-        border-radius: 10px;
-        margin-bottom: 1.5rem;
-    }
-    
     .result-card {
-        background: #f8f9fa;
-        border: 1px solid #e9ecef;
+        background: white;
+        border: 1px solid #e0e0e0;
         border-radius: 10px;
         padding: 1.5rem;
-        margin: 1rem 0;
+        margin-bottom: 1rem;
         transition: all 0.3s ease;
     }
     
     .result-card:hover {
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
         transform: translateY(-2px);
     }
     
-    .risk-badge {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
+    .result-title {
+        font-size: 1.1rem;
         font-weight: 600;
-        color: white;
-        margin-left: 1rem;
+        color: #1976d2;
+        margin-bottom: 0.5rem;
     }
     
-    .risk-high { background-color: #dc3545; }
-    .risk-medium { background-color: #ffc107; }
-    .risk-low { background-color: #28a745; }
-    
-    /* Footer Styles */
-    .footer {
-        background: #2c2c2c;
-        color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        text-align: center;
-        margin-top: 3rem;
+    .result-meta {
+        font-size: 0.85rem;
+        color: #666;
+        margin-bottom: 1rem;
     }
     
-    .credits {
-        background: rgba(77,166,255,0.1);
-        border: 1px solid rgba(77,166,255,0.3);
-        border-radius: 10px;
-        padding: 1rem;
-        margin-top: 1rem;
-        font-size: 0.9rem;
+    .result-value {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2e7d32;
     }
     
-    /* Animations */
+    /* Animações */
     @keyframes fadeInUp {
         from {
             opacity: 0;
@@ -253,499 +294,450 @@ st.markdown("""
         }
     }
     
-    @keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
-    }
-    
-    .floating {
-        animation: float 6s ease-in-out infinite;
-    }
-    
-    /* Responsive */
+    /* Responsividade */
     @media (max-width: 768px) {
-        .main-title { font-size: 2.5rem; }
-        .cta-buttons { flex-direction: column; align-items: center; }
-        .cta-button { width: 100%; max-width: 300px; }
-        .examples-grid { grid-template-columns: 1fr; }
+        .hero-logo {
+            font-size: 3rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+        }
+        
+        .cta-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .examples-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .hero-container {
+            background-attachment: scroll;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
 
 def render_home_page():
-    """Render the home page with slideshow and navigation buttons"""
+    """Renderizar página inicial com novo design"""
     
     st.markdown("""
-    <div class="home-container">
-        <div class="slideshow-background"></div>
-        <div class="home-content">
-            <h1 class="main-title floating">Cidadão.AI</h1>
-            <p class="main-subtitle">
-                Democratizando o acesso aos dados de transparência pública brasileira através de inteligência artificial
-            </p>
+    <div class="hero-container">
+        <div class="hero-content">
+            <div class="hero-logo">cidadão.ai</div>
+            <div class="hero-subtitle">
+                Inteligência cidadã para uma nova era de transparência pública
+            </div>
+            
+            <div class="cta-buttons">
+                <button class="cta-button" onclick="window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'search'}, '*')">
+                    🔍 Busca Avançada
+                </button>
+                <button class="cta-button secondary" onclick="window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'chat'}, '*')">
+                    💬 Converse com a IA
+                </button>
+            </div>
             
             <div class="examples-section">
-                <h3>💡 Exemplos do que você pode perguntar:</h3>
+                <div class="examples-title">
+                    💡 Exemplos de perguntas para começar:
+                </div>
                 <div class="examples-grid">
-                    <div class="example-card">
-                        <strong>📋 "Temos contratos duplicados em 2025?"</strong>
-                        <p>Identifica contratos com características similares</p>
+                    <div class="example-card" onclick="window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'example1'}, '*')">
+                        <p class="example-text">
+                            "Quanto foi gasto com educação no estado de SP em 2023?"
+                        </p>
                     </div>
-                    <div class="example-card">
-                        <strong>💰 "Quanto foi o gasto com saúde em 2024?"</strong>
-                        <p>Analisa despesas totais do setor de saúde</p>
+                    <div class="example-card" onclick="window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'example2'}, '*')">
+                        <p class="example-text">
+                            "Qual o histórico de contratos da empresa X com o governo?"
+                        </p>
                     </div>
-                    <div class="example-card">
-                        <strong>🏛️ "Quanto Minas Gerais recebeu de repasse?"</strong>
-                        <p>Calcula transferências federais para o estado</p>
+                    <div class="example-card" onclick="window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'example3'}, '*')">
+                        <p class="example-text">
+                            "Mostre licitações suspeitas acima de R$ 10 milhões em 2024"
+                        </p>
                     </div>
-                    <div class="example-card">
-                        <strong>⚠️ "Contratos suspeitos acima de R$ 10 milhões"</strong>
-                        <p>Detecta anomalias em contratos de alto valor</p>
-                    </div>
-                    <div class="example-card">
-                        <strong>📊 "Quais fornecedores receberam mais dinheiro?"</strong>
-                        <p>Ranking de empresas por volume de contratos</p>
-                    </div>
-                    <div class="example-card">
-                        <strong>🔍 "Analise padrões no Ministério da Educação"</strong>
-                        <p>Identifica tendências e irregularidades em órgãos</p>
+                    <div class="example-card" onclick="window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'example4'}, '*')">
+                        <p class="example-text">
+                            "Analise os gastos com saúde durante a pandemia"
+                        </p>
                     </div>
                 </div>
             </div>
+            
+            <div class="hero-footer">
+                <p>🏛️ <strong>Cidadão.AI</strong> - Transformando dados públicos em transparência cidadã</p>
+                <p>Desenvolvido com ❤️ para fortalecer a democracia brasileira</p>
+                <p style="margin-top: 1rem; font-size: 0.8rem;">
+                    👨‍💻 <strong>Créditos:</strong> Anderson Henrique da Silva | 🤖 AI Assistant: Claude Code
+                </p>
+            </div>
         </div>
     </div>
     """, unsafe_allow_html=True)
-    
-    # Navigation buttons
-    col1, col2, col3 = st.columns([1, 1, 1])
-    
-    with col2:
-        st.markdown("""
-        <div class="cta-buttons">
-        """, unsafe_allow_html=True)
-        
-        if st.button("🤖 Chatbot Inteligente", key="nav_chatbot", help="Converse com a IA sobre transparência pública"):
-            st.session_state.page = 'chatbot'
-            st.rerun()
-            
-        if st.button("🔍 Consulta Avançada", key="nav_search", help="Sistema avançado de busca e filtros"):
-            st.session_state.page = 'search'
-            st.rerun()
-            
-        st.markdown("</div>", unsafe_allow_html=True)
 
-def render_chatbot_page():
-    """Render the chatbot interface"""
+def render_search_page():
+    """Página de busca avançada funcional"""
     
-    # Header with navigation
-    col1, col2, col3 = st.columns([1, 3, 1])
-    with col1:
-        if st.button("← Voltar", key="back_from_chat"):
-            st.session_state.page = 'home'
-            st.rerun()
-    with col2:
-        st.markdown("""
-        <div class="chat-header">
-            <h2>🤖 CidadãoGPT - Chatbot Inteligente</h2>
-            <p>Converse comigo sobre transparência pública brasileira</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col3:
-        if st.button("🔍 Consulta Avançada", key="nav_to_search"):
-            st.session_state.page = 'search'
-            st.rerun()
+    st.markdown("""
+    <div class="page-header">
+        <div class="page-title">🔍 Busca Avançada</div>
+        <div class="page-subtitle">Encontre informações específicas nos dados governamentais</div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Chat interface
-    st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-    
-    # Chat history
-    if not st.session_state.chat_history:
-        st.markdown("""
-        <div style="text-align: center; padding: 2rem; color: #666;">
-            <h3>🇧🇷 Bem-vindo ao CidadãoGPT!</h3>
-            <p>Sou uma IA especializada em análise de transparência pública brasileira.</p>
-            <p>Posso ajudar você a investigar gastos públicos, detectar anomalias e entender como os recursos do governo estão sendo utilizados.</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    # Display chat history
-    for message in st.session_state.chat_history:
-        if message['role'] == 'user':
-            st.markdown(f"""
-            <div class="chat-message user-message">
-                <strong>Você:</strong> {message['content']}
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown(f"""
-            <div class="chat-message assistant-message">
-                <strong>🤖 CidadãoGPT:</strong><br>{message['content']}
-            </div>
-            """, unsafe_allow_html=True)
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Quick suggestions
-    if not st.session_state.chat_history:
-        st.markdown("### 💡 Sugestões rápidas:")
+    with st.container():
+        st.markdown('<div class="search-container">', unsafe_allow_html=True)
+        
+        # Filtros de pesquisa
+        st.subheader("🔧 Filtros de Pesquisa")
+        
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            if st.button("Gastos com saúde 2024", key="sugg1"):
-                handle_chat_input("Quanto foi gasto com saúde em 2024?")
+            search_type = st.selectbox(
+                "📋 Tipo de Dados",
+                ["Contratos", "Despesas", "Licitações", "Convênios", "Fornecedores"]
+            )
+            
+            year = st.selectbox(
+                "📅 Ano",
+                [2024, 2023, 2022, 2021, 2020, 2019]
+            )
+        
         with col2:
-            if st.button("Contratos suspeitos", key="sugg2"):
-                handle_chat_input("Encontre contratos suspeitos acima de R$ 10 milhões")
+            organ = st.selectbox(
+                "🏛️ Órgão",
+                ["Todos", "Ministério da Saúde", "Ministério da Educação", 
+                 "Ministério da Defesa", "Ministério da Justiça"]
+            )
+            
+            min_value = st.number_input(
+                "💰 Valor Mínimo (R$)",
+                min_value=0,
+                value=100000,
+                step=10000
+            )
+        
         with col3:
-            if st.button("Análise por estado", key="sugg3"):
-                handle_chat_input("Quanto Minas Gerais recebeu de repasse federal?")
-    
-    # Chat input
-    user_input = st.text_input(
-        "Digite sua pergunta sobre transparência pública:",
-        placeholder="Ex: Temos contratos duplicados em 2025?",
-        key="chat_input"
-    )
-    
-    col1, col2 = st.columns([4, 1])
-    with col2:
-        if st.button("Enviar 📤", key="send_chat"):
-            if user_input:
-                handle_chat_input(user_input)
-
-def handle_chat_input(user_input):
-    """Handle chat input and generate response"""
-    
-    # Add user message
-    st.session_state.chat_history.append({
-        'role': 'user',
-        'content': user_input
-    })
-    
-    # Generate AI response
-    response = generate_ai_response(user_input)
-    
-    # Add AI response
-    st.session_state.chat_history.append({
-        'role': 'assistant',
-        'content': response
-    })
-    
-    # Clear input and rerun
-    st.session_state.chat_input = ""
-    st.rerun()
-
-def generate_ai_response(user_input):
-    """Generate contextual AI responses about Brazilian transparency"""
-    
-    message = user_input.lower()
-    
-    if "contrato" in message and ("duplicado" in message or "2025" in message):
-        return """🔍 **Análise de Contratos Duplicados em 2025**
-
-Realizei uma busca nos dados do Portal da Transparência e encontrei:
-
-• **Contratos similares detectados**: 47 casos suspeitos  
-• **Valor total envolvido**: R$ 342,5 milhões  
-• **Principais órgãos**: Ministério da Saúde (18 casos), Ministério da Educação (12 casos)
-
-**Padrões identificados:**
-- Mesmo objeto contratual com fornecedores diferentes
-- Valores muito próximos em datas similares  
-- Especificações técnicas idênticas
-
-*Recomendo uma investigação mais detalhada nos contratos do Ministério da Saúde para equipamentos médicos.*"""
-    
-    elif "gasto" in message and "saúde" in message:
-        return """💰 **Gastos com Saúde em 2024**
-
-**Total executado**: R$ 234,7 bilhões
-
-**Distribuição por categoria:**
-• Atenção Básica: R$ 89,2 bi (38%)
-• Média/Alta Complexidade: R$ 76,4 bi (32,5%)
-• Vigilância em Saúde: R$ 34,1 bi (14,5%)
-• Assistência Farmacêutica: R$ 21,8 bi (9,3%)
-• Gestão e outros: R$ 13,2 bi (5,7%)
-
-**Comparação com 2023**: ⬆️ Aumento de 8,4%
-
-*Os dados são baseados no Sistema Integrado de Administração Financeira (SIAFI).*"""
-    
-    elif "minas gerais" in message or "repasse" in message:
-        return """🏛️ **Repasses Federais para Minas Gerais**
-
-**Total em 2024**: R$ 67,3 bilhões
-
-**Principais transferências:**
-• **Fundo de Participação dos Estados**: R$ 18,7 bi
-• **SUS - Saúde**: R$ 12,4 bi  
-• **FUNDEB - Educação**: R$ 15,2 bi
-• **Segurança Pública**: R$ 3,8 bi
-• **Infraestrutura e Desenvolvimento**: R$ 8,9 bi
-• **Programas Sociais**: R$ 5,1 bi
-
-**Crescimento vs 2023**: ⬆️ +12,3%
-
-*Valores atualizados conforme Tesouro Nacional e Portal da Transparência.*"""
-    
-    elif "fornecedor" in message and ("10 milhões" in message or "10 milhoes" in message):
-        return """🏢 **Fornecedores com Contratos > R$ 10 Milhões**
-
-**Top 10 em 2024:**
-
-1. **Construtora Alpha S.A.** - R$ 2,8 bi (47 contratos ativos)
-2. **TechMed Equipamentos** - R$ 1,9 bi (23 contratos - alguns suspeitos ⚠️)
-3. **EduSistemas Ltda** - R$ 1,4 bi (31 contratos)
-4. **Pharma Distribuidora** - R$ 1,2 bi (89 contratos)
-5. **Consultoria Omega** - R$ 890 mi (12 contratos - alta concentração ⚠️)
-
-**🚨 Alertas detectados:**
-- TechMed: valores 40% acima da média
-- Consultoria Omega: poucos contratos, valores altos
-- 3 empresas criadas em 2023 com contratos milionários
-
-*Análise baseada em algoritmos de detecção de anomalias.*"""
-    
-    else:
-        return f"""Entendi sua pergunta sobre **{user_input}**. 
-
-Para uma análise mais precisa, preciso de informações adicionais:
-
-• **Período específico** que deseja analisar
-• **Órgão ou ministério** de interesse  
-• **Valor mínimo** dos contratos
-• **Tipo de análise** (anomalias, tendências, comparações)
-
-**Posso ajudar com:**
-🔍 Detecção de irregularidades
-📊 Análise de padrões de gastos
-🏛️ Comparações entre órgãos
-💰 Investigação de valores suspeitos
-📈 Tendências históricas
-
-*Você gostaria que eu foque em algum aspecto específico?*"""
-
-def render_search_page():
-    """Render the advanced search interface"""
-    
-    # Header with navigation
-    col1, col2, col3 = st.columns([1, 3, 1])
-    with col1:
-        if st.button("← Voltar", key="back_from_search"):
-            st.session_state.page = 'home'
-            st.rerun()
-    with col2:
-        st.markdown("""
-        <div class="chat-header">
-            <h2>🔍 Consulta Avançada</h2>
-            <p>Sistema avançado de busca e análise de dados públicos</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col3:
-        if st.button("🤖 Chatbot", key="nav_to_chat"):
-            st.session_state.page = 'chatbot'
-            st.rerun()
-    
-    st.markdown('<div class="search-container">', unsafe_allow_html=True)
-    
-    # Filters section
-    st.markdown('<div class="filter-section">', unsafe_allow_html=True)
-    st.markdown("### ⚙️ Filtros de Busca")
-    
-    col1, col2, col3, col4 = st.columns(4)
-    
-    with col1:
-        data_type = st.selectbox(
-            "Tipo de Dados",
-            ["Contratos", "Despesas", "Convênios", "Licitações", "Servidores", "Empresas Sancionadas"]
-        )
-    
-    with col2:
-        organ = st.selectbox(
-            "Órgão/Ministério",
-            ["Todos os órgãos", "Ministério da Educação", "Ministério da Saúde", "Ministério da Fazenda", 
-             "Ministério da Agricultura", "Ministério da Defesa", "Ministério da Justiça"]
-        )
-    
-    with col3:
-        state = st.selectbox(
-            "Estado",
-            ["Todos os estados", "São Paulo", "Rio de Janeiro", "Minas Gerais", "Rio Grande do Sul", 
-             "Paraná", "Santa Catarina", "Bahia", "Goiás", "Pernambuco", "Ceará"]
-        )
-    
-    with col4:
-        year = st.selectbox(
-            "Ano",
-            [2024, 2023, 2022, 2021, 2020, 2019]
-        )
-    
-    col1, col2 = st.columns(2)
-    with col1:
-        min_value = st.number_input("Valor Mínimo (R$)", min_value=0, value=0, step=1000)
-    with col2:
-        max_value = st.number_input("Valor Máximo (R$)", min_value=0, value=100000000, step=1000000)
-    
-    # Anomaly filters
-    st.markdown("**Tipos de Anomalia:**")
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        superfaturamento = st.checkbox("Superfaturamento")
-    with col2:
-        direcionamento = st.checkbox("Direcionamento")
-    with col3:
-        duplicacao = st.checkbox("Duplicação")
-    with col4:
-        emergencial = st.checkbox("Emergencial Suspeito")
-    
-    search_text = st.text_input("Busca por Texto", placeholder="Ex: equipamentos médicos")
-    
-    st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Search button
-    if st.button("🔍 Buscar", type="primary", use_container_width=True):
-        with st.spinner("🤖 Analisando dados do Portal da Transparência..."):
-            progress_bar = st.progress(0)
-            for i in range(100):
-                time.sleep(0.01)
-                progress_bar.progress(i + 1)
+            state = st.selectbox(
+                "🗺️ Estado",
+                ["Todos", "SP", "RJ", "MG", "RS", "PR", "SC", "BA", "GO", "DF"]
+            )
             
-            # Generate mock results
-            results = generate_search_results(data_type, organ, state, year, min_value, max_value)
+            max_value = st.number_input(
+                "💰 Valor Máximo (R$)",
+                min_value=0,
+                value=10000000,
+                step=100000
+            )
+        
+        # Campo de busca textual
+        search_query = st.text_input(
+            "🔍 Termo de Busca",
+            placeholder="Digite palavras-chave, nome de empresa, CNPJ...",
+            help="Busque por termos específicos nos documentos"
+        )
+        
+        # Botão de busca
+        if st.button("🔍 Buscar", type="primary", use_container_width=True):
+            with st.spinner("🔄 Buscando dados..."):
+                time.sleep(2)  # Simular processamento
+                results = generate_search_results(search_type, year, organ, min_value, max_value, search_query)
+                st.session_state.search_results = results
+        
+        # Exibir resultados
+        if st.session_state.search_results:
+            st.subheader(f"📊 Resultados da Busca ({len(st.session_state.search_results)} encontrados)")
             
-            # Display results
-            display_search_results(results)
-    
-    st.markdown('</div>', unsafe_allow_html=True)
+            for i, result in enumerate(st.session_state.search_results):
+                st.markdown(f"""
+                <div class="result-card">
+                    <div class="result-title">{result['title']}</div>
+                    <div class="result-meta">
+                        📅 {result['date']} | 🏛️ {result['organ']} | 📍 {result['location']}
+                    </div>
+                    <div style="margin: 1rem 0;">
+                        {result['description']}
+                    </div>
+                    <div class="result-value">💰 {result['value']}</div>
+                </div>
+                """, unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
 
-def generate_search_results(data_type, organ, state, year, min_value, max_value):
-    """Generate mock search results based on filters"""
+def render_chat_page():
+    """Página de chat com IA melhorada"""
     
-    results = []
+    st.markdown("""
+    <div class="page-header">
+        <div class="page-title">💬 Chat com Cidadão.AI</div>
+        <div class="page-subtitle">Converse em linguagem natural sobre transparência pública</div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    if data_type == "Contratos":
-        results = [
-            {
-                "id": "CT-2024-001",
-                "title": "Aquisição de Equipamentos Médicos",
-                "value": 15750000,
-                "date": "2024-03-15",
-                "organ": "Ministério da Saúde",
-                "vendor": "MedTech Solutions Ltda",
-                "risk": "Alto",
-                "anomalies": ["Superfaturamento", "Direcionamento"],
-                "description": "Contrato para aquisição de 150 ventiladores pulmonares com preço 40% acima da média de mercado."
-            },
-            {
-                "id": "CT-2024-002", 
-                "title": "Obras de Infraestrutura Escolar",
-                "value": 8900000,
-                "date": "2024-02-20",
-                "organ": "Ministério da Educação",
-                "vendor": "Construtora Alpha S.A.",
-                "risk": "Médio",
-                "anomalies": ["Emergencial"],
-                "description": "Reforma de 25 escolas públicas com contratação emergencial questionável."
-            },
-            {
-                "id": "CT-2024-003",
-                "title": "Sistema de Gestão Integrada", 
-                "value": 12300000,
-                "date": "2024-01-10",
-                "organ": "Ministério da Fazenda",
-                "vendor": "TechSoft Informática",
-                "risk": "Baixo",
-                "anomalies": [],
-                "description": "Desenvolvimento de sistema de gestão financeira com processo regular."
-            }
-        ]
+    # Chat interface
+    chat_container = st.container()
     
-    # Filter results based on criteria
+    with chat_container:
+        st.markdown('<div class="chat-container">', unsafe_allow_html=True)
+        
+        # Exibir histórico do chat
+        for message in st.session_state.chat_history:
+            role_class = "user" if message['role'] == 'user' else "ai"
+            role_name = "👤 Você" if message['role'] == 'user' else "🤖 Cidadão.AI"
+            
+            st.markdown(f"""
+            <div class="chat-message {role_class}">
+                <div class="message-header">{role_name}</div>
+                <div>{message['content']}</div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        # Mensagem inicial se não há histórico
+        if not st.session_state.chat_history:
+            st.markdown("""
+            <div class="chat-message ai">
+                <div class="message-header">🤖 Cidadão.AI</div>
+                <div>
+                    Olá! Sou o Cidadão.AI, sua assistente especializada em transparência pública. 
+                    Posso ajudar você a:
+                    <ul>
+                        <li>🔍 Encontrar contratos e licitações específicas</li>
+                        <li>📊 Analisar gastos públicos por área ou período</li>
+                        <li>⚖️ Verificar conformidade legal de processos</li>
+                        <li>🚨 Detectar possíveis irregularidades</li>
+                    </ul>
+                    Como posso ajudar você hoje?
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+        
+        st.markdown('</div>', unsafe_allow_html=True)
+    
+    # Input do usuário
+    col1, col2 = st.columns([6, 1])
+    
+    with col1:
+        user_input = st.text_input(
+            "💬 Digite sua pergunta:",
+            placeholder="Ex: Quais foram os maiores contratos do Ministério da Saúde em 2023?",
+            key="chat_input"
+        )
+    
+    with col2:
+        send_button = st.button("📤 Enviar", type="primary")
+    
+    # Processar entrada do usuário
+    if send_button and user_input:
+        # Adicionar mensagem do usuário
+        st.session_state.chat_history.append({
+            'role': 'user',
+            'content': user_input,
+            'timestamp': datetime.now()
+        })
+        
+        # Gerar resposta da IA
+        with st.spinner("🤖 Cidadão.AI está pensando..."):
+            time.sleep(1.5)  # Simular processamento
+            ai_response = generate_ai_response(user_input)
+            
+            st.session_state.chat_history.append({
+                'role': 'assistant',
+                'content': ai_response,
+                'timestamp': datetime.now()
+            })
+        
+        # Rerun para atualizar o chat
+        st.rerun()
+
+def generate_search_results(search_type: str, year: int, organ: str, min_value: int, max_value: int, query: str) -> List[Dict]:
+    """Gerar resultados de busca simulados"""
+    
+    # Dados simulados mais realistas
+    sample_results = [
+        {
+            'title': f'Contrato para aquisição de equipamentos médicos - {organ}',
+            'date': f'{year}-03-15',
+            'organ': organ if organ != "Todos" else "Ministério da Saúde",
+            'location': 'Brasília/DF',
+            'description': 'Aquisição de 500 ventiladores pulmonares para unidades hospitalares da rede pública federal.',
+            'value': 'R$ 2.350.000,00'
+        },
+        {
+            'title': f'Licitação para serviços de TI - {organ}',
+            'date': f'{year}-07-22',
+            'organ': organ if organ != "Todos" else "Ministério da Educação",
+            'location': 'São Paulo/SP',
+            'description': 'Prestação de serviços de desenvolvimento e manutenção de sistemas educacionais.',
+            'value': 'R$ 1.875.000,00'
+        },
+        {
+            'title': f'Convênio para pesquisa científica - {organ}',
+            'date': f'{year}-01-10',
+            'organ': organ if organ != "Todos" else "Ministério da Ciência e Tecnologia",
+            'location': 'Rio de Janeiro/RJ',
+            'description': 'Desenvolvimento de pesquisas em inteligência artificial aplicada à saúde pública.',
+            'value': 'R$ 950.000,00'
+        }
+    ]
+    
+    # Filtrar por valor
     filtered_results = []
-    for result in results:
-        if result["value"] >= min_value and result["value"] <= max_value:
-            if organ == "Todos os órgãos" or organ in result["organ"]:
-                filtered_results.append(result)
+    for result in sample_results:
+        value_num = float(result['value'].replace('R$ ', '').replace('.', '').replace(',', '.'))
+        if min_value <= value_num <= max_value:
+            filtered_results.append(result)
     
     return filtered_results
 
-def display_search_results(results):
-    """Display search results"""
+def generate_ai_response(user_input: str) -> str:
+    """Gerar resposta da IA baseada na entrada do usuário"""
     
-    if not results:
-        st.warning("Nenhum resultado encontrado. Tente ajustar os filtros.")
-        return
+    user_input_lower = user_input.lower()
     
-    st.success(f"✅ {len(results)} resultados encontrados")
-    
-    # Quick stats
-    total_value = sum(r["value"] for r in results)
-    high_risk = len([r for r in results if r["risk"] == "Alto"])
-    with_anomalies = len([r for r in results if r["anomalies"]])
-    
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        st.metric("💰 Valor Total", f"R$ {total_value:,.0f}".replace(",", "."))
-    with col2:
-        st.metric("⚠️ Alto Risco", high_risk)
-    with col3:
-        st.metric("🚨 Com Anomalias", with_anomalies)
-    with col4:
-        st.metric("📊 Total Registros", len(results))
-    
-    # Results
-    for result in results:
-        st.markdown(f"""
-        <div class="result-card">
-            <h4>{result['title']} 
-                <span class="risk-badge risk-{result['risk'].lower()}">{result['risk']} Risco</span>
-            </h4>
-            <p><strong>ID:</strong> {result['id']} | <strong>Órgão:</strong> {result['organ']}</p>
-            <p><strong>Valor:</strong> R$ {result['value']:,.0f} | <strong>Data:</strong> {result['date']}</p>
-            <p><strong>Fornecedor:</strong> {result['vendor']}</p>
-            <p>{result['description']}</p>
-            {f"<p><strong>⚠️ Anomalias:</strong> {', '.join(result['anomalies'])}</p>" if result['anomalies'] else ""}
-        </div>
-        """.replace(",", "."), unsafe_allow_html=True)
+    # Respostas contextuais baseadas em palavras-chave
+    if any(word in user_input_lower for word in ['educação', 'escola', 'ensino', 'universidade']):
+        return """📚 **Análise de Gastos com Educação**
 
-def render_footer():
-    """Render footer with credits"""
-    
-    st.markdown("""
-    <div class="footer">
-        <h3>👨‍💻 Desenvolvedor</h3>
-        <p><strong>Anderson Henrique da Silva</strong> - Engenheiro de Software Senior</p>
-        <p>🇧🇷 Cada análise é um ato de cidadania</p>
-        
-        <div class="credits">
-            <p><strong>🤖 Desenvolvido com Claude Code</strong></p>
-            <p>Sistema criado com assistência da IA Claude Code da Anthropic, demonstrando a colaboração 
-            entre engenharia humana e inteligência artificial para fortalecer a democracia brasileira.</p>
-        </div>
-        
-        <div style="margin-top: 1rem; font-size: 0.9rem; opacity: 0.8;">
-            <p>📚 <a href="docs/documentation.html" style="color: #FFD700;">Documentação Completa</a> | 
-            💻 <a href="https://github.com/anderson-ufrj/cidadao.ai" style="color: #FFD700;">Código Fonte</a> | 
-            🤗 <a href="https://huggingface.co/spaces/neural-thinker/cidadao-ai" style="color: #FFD700;">Demo Online</a></p>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+Com base nos dados do Portal da Transparência, posso te ajudar com informações sobre:
+
+🏫 **Ministério da Educação (2023)**:
+- Orçamento total: R$ 132,4 bilhões
+- Principais programas: FUNDEB, ProUni, FIES
+- Contratos de maior valor: infraestrutura universitária
+
+📊 **Indicadores relevantes**:
+- Gasto por aluno: R$ 6.227 (ensino fundamental)
+- Universidades federais: 69 instituições
+- Bolsas de estudo: 2,1 milhões de beneficiários
+
+Gostaria de saber mais detalhes sobre algum aspecto específico?"""
+
+    elif any(word in user_input_lower for word in ['saúde', 'hospital', 'sus', 'médico']):
+        return """🏥 **Análise de Gastos com Saúde**
+
+Analisando os dados do SUS e Ministério da Saúde:
+
+💉 **Ministério da Saúde (2023)**:
+- Orçamento SUS: R$ 198,2 bilhões
+- Principais áreas: atenção básica, hospitalar, vigilância
+- Contratos emergenciais: equipamentos COVID-19
+
+🔍 **Possíveis irregularidades detectadas**:
+- 15 contratos sem licitação acima de R$ 10 milhões
+- 3 fornecedores com concentração > 80% dos contratos
+- Variação de preços entre estados: até 300%
+
+⚠️ **Recomendação**: Investigar contratos emergenciais de 2020-2022 para possível superfaturamento.
+
+Quer que eu detalhe alguma irregularidade específica?"""
+
+    elif any(word in user_input_lower for word in ['contrato', 'licitação', 'irregularidade', 'suspeito']):
+        return """🔍 **Análise de Contratos e Licitações**
+
+Detectei alguns padrões que merecem atenção:
+
+🚨 **Alertas de Risco Alto**:
+- 47 contratos emergenciais sem justificativa adequada
+- 12 empresas recém-criadas com contratos > R$ 5 milhões
+- Variação de preços: 150-400% para produtos similares
+
+📋 **Contratos Suspeitos (últimos 6 meses)**:
+1. Empresa ABC LTDA - R$ 25 milhões (criada há 2 meses)
+2. Fornecedor XYZ - R$ 18 milhões (preço 300% acima da média)
+3. Serviços DEF - R$ 12 milhões (sem comprovação técnica)
+
+⚖️ **Status Legal**: 5 processos em análise pelo TCU
+
+Gostaria que eu investigue algum contrato específico?"""
+
+    elif any(word in user_input_lower for word in ['quanto', 'valor', 'gasto', 'orçamento']):
+        return """💰 **Análise de Gastos Públicos**
+
+Aqui estão os dados consolidados que encontrei:
+
+📊 **Orçamento Federal 2023**:
+- Total: R$ 5,07 trilhões
+- Gastos obrigatórios: 93,2%
+- Investimentos: 2,1%
+- Custeio: 4,7%
+
+🏛️ **Maiores Órgãos por Gasto**:
+1. INSS: R$ 713 bilhões (benefícios previdenciários)
+2. Ministério da Saúde: R$ 198 bilhões
+3. Ministério da Educação: R$ 132 bilhões
+4. Ministério da Defesa: R$ 126 bilhões
+
+📈 **Comparação com 2022**: Aumento de 7,3% em termos reais
+
+Sobre qual área específica você gostaria de mais detalhes?"""
+
+    else:
+        return """🤖 **Cidadão.AI - Assistente de Transparência**
+
+Entendi sua pergunta! Posso ajudar você com:
+
+🔍 **Análises Disponíveis**:
+- Contratos e licitações por valor, órgão ou período
+- Gastos públicos por área (saúde, educação, segurança)
+- Detecção de irregularidades e padrões suspeitos
+- Fornecedores e histórico de contratações
+- Comparações entre estados e municípios
+
+💡 **Exemplos de perguntas**:
+- "Mostre os maiores contratos do Ministério X em 2023"
+- "Há irregularidades nos gastos com educação?"
+- "Qual empresa mais recebeu recursos públicos?"
+
+Como posso refinar minha análise para você?"""
 
 def main():
-    """Main application"""
+    """Função principal da aplicação"""
     
-    # Page routing
+    # Controle de navegação via JavaScript
+    st.markdown("""
+    <script>
+    window.addEventListener('message', function(event) {
+        if (event.data.type === 'streamlit:setComponentValue') {
+            const value = event.data.value;
+            if (value === 'search') {
+                window.parent.postMessage({type: 'streamlit:setKey', key: 'nav_action', value: 'search'}, '*');
+            } else if (value === 'chat') {
+                window.parent.postMessage({type: 'streamlit:setKey', key: 'nav_action', value: 'chat'}, '*');
+            } else if (value.startsWith('example')) {
+                window.parent.postMessage({type: 'streamlit:setKey', key: 'nav_action', value: 'chat'}, '*');
+            }
+        }
+    });
+    </script>
+    """, unsafe_allow_html=True)
+    
+    # Navegação por botões
+    col1, col2, col3 = st.columns([1, 1, 1])
+    
+    with col1:
+        if st.button("🏠 Início", use_container_width=True):
+            st.session_state.page = 'home'
+    
+    with col2:
+        if st.button("🔍 Busca Avançada", use_container_width=True):
+            st.session_state.page = 'search'
+    
+    with col3:
+        if st.button("💬 Chat IA", use_container_width=True):
+            st.session_state.page = 'chat'
+    
+    # Renderizar página correspondente
     if st.session_state.page == 'home':
         render_home_page()
-    elif st.session_state.page == 'chatbot':
-        render_chatbot_page()
     elif st.session_state.page == 'search':
         render_search_page()
-    
-    # Footer (always shown)
-    render_footer()
+    elif st.session_state.page == 'chat':
+        render_chat_page()
 
 if __name__ == "__main__":
     main()

@@ -1,5 +1,5 @@
 """
-Pipeline de Dados do Portal da Transparência para CidadãoGPT
+Pipeline de Dados do Portal da Transparência para Cidadão.AI
 
 Sistema completo de coleta, processamento e preparação de dados 
 do Portal da Transparência para treinamento do modelo especializado.
@@ -722,7 +722,7 @@ class TransparencyDataProcessor:
         """Gerar relatório dos dados processados"""
         
         report = []
-        report.append("# 📊 Relatório de Processamento de Dados - CidadãoGPT\n")
+        report.append("# 📊 Relatório de Processamento de Dados - Cidadão.AI\n")
         
         # Estatísticas gerais
         report.append("## 📈 Estatísticas Gerais\n")
@@ -802,7 +802,7 @@ async def run_data_pipeline(config: Optional[DataPipelineConfig] = None) -> Dict
     if config is None:
         config = DataPipelineConfig()
     
-    logger.info("🚀 Iniciando pipeline de dados CidadãoGPT")
+    logger.info("🚀 Iniciando pipeline de dados Cidadão.AI")
     
     processor = TransparencyDataProcessor(config)
     

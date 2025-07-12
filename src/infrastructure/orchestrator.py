@@ -25,7 +25,7 @@ from .agent_pool import get_agent_pool_manager, cleanup_agent_pool, AgentPoolMan
 # Import ML components
 try:
     from ..ml.advanced_pipeline import get_ml_pipeline_manager, MLPipelineManager
-    from ..ml.hf_integration import get_cidadao_manager, CidadaoGPTHubManager
+    from ..ml.hf_integration import get_cidadao_manager, CidadaoAIHubManager
     ML_AVAILABLE = True
 except ImportError:
     ML_AVAILABLE = False
@@ -557,10 +557,10 @@ class CidadaoAIOrchestrator:
         return await agent_pool.get_task_result(task_id, timeout)
     
     async def analyze_with_ml(self, text: str) -> Dict[str, Any]:
-        """Analisar texto usando CidadãoGPT"""
+        """Analisar texto usando Cidadão.AI"""
         
         if "cidadao_gpt" not in self.components:
-            raise Exception("CidadãoGPT não disponível")
+            raise Exception("Cidadão.AI não disponível")
         
         cidadao_manager = self.components["cidadao_gpt"]
         return cidadao_manager.analyze_text(text)

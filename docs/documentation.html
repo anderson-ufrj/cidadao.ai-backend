@@ -1592,9 +1592,169 @@ pytest tests/integration/test_basic_api.py::TestBasicAPIFunctionality -v</code><
                     </table>
                 </section>
 
-                <!-- Continue with other English sections... -->
-                <!-- Note: For brevity, I'm including just the overview and architecture sections in English -->
-                <!-- The complete implementation would include all sections translated -->
+                <!-- Como Usar Section -->
+                <section id="como-usar-en" class="content-section">
+                    <h1>🚀 How to Use</h1>
+                    
+                    <h2>Quick Start</h2>
+                    <p>The Cidadão.AI platform can be used in several ways:</p>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-icon">🌐</span>
+                            <h3 class="card-title">Web Interface (Recommended)</h3>
+                        </div>
+                        <ol>
+                            <li>Access: <a href="https://huggingface.co/spaces/neural-thinker/cidadao-ai" target="_blank">Hugging Face Spaces</a></li>
+                            <li>Choose between "Advanced Search" or "Chat with AI"</li>
+                            <li>Use example questions or type your own queries</li>
+                            <li>Analyze the results and export if needed</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-icon">💻</span>
+                            <h3 class="card-title">Run Locally</h3>
+                        </div>
+                        <h4>Environment Setup</h4>
+                        <pre><code># Clone the repository
+git clone https://github.com/anderson-ufrj/cidadao.ai
+cd cidadao.ai
+
+# Create virtual environment
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# or
+venv\Scripts\activate  # Windows
+
+# Install dependencies
+pip install -e ".[dev]"</code></pre>
+                        
+                        <h4>Configuration</h4>
+                        <pre><code># Copy environment file
+cp .env.example .env
+
+# Edit .env with your API keys
+# Required:
+# - GROQ_API_KEY (for LLM)
+# - TRANSPARENCY_API_KEY (Portal da Transparência)</code></pre>
+                        
+                        <h4>Run the Application</h4>
+                        <pre><code># Streamlit Interface
+streamlit run app.py
+
+# or FastAPI Backend
+make run-dev
+# or
+uvicorn src.api.app:app --reload --host 0.0.0.0 --port 8000</code></pre>
+                    </div>
+                    
+                    <h2>Example Queries</h2>
+                    <p>Try these example queries to get started:</p>
+                    
+                    <div class="info-box info">
+                        <strong>🔍 Search Examples:</strong>
+                        <ul>
+                            <li>"How much was spent on education in SP state in 2023?"</li>
+                            <li>"What is the contract history of company X with the government?"</li>
+                            <li>"Show suspicious bids above R$ 10 million in 2024"</li>
+                            <li>"Analyze health spending during the pandemic"</li>
+                        </ul>
+                    </div>
+                </section>
+                
+                <!-- Deployment Section -->
+                <section id="deployment-en" class="content-section">
+                    <h1>🚀 Deployment</h1>
+                    
+                    <h2>Production Deployment</h2>
+                    <p>Several deployment options are available for production use:</p>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-icon">🐳</span>
+                            <h3 class="card-title">Docker Deployment</h3>
+                        </div>
+                        <pre><code># Build and run with Docker Compose
+make docker-up
+
+# Or manually
+docker-compose -f docker-compose.prod.yml up -d</code></pre>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-icon">☸️</span>
+                            <h3 class="card-title">Kubernetes Deployment</h3>
+                        </div>
+                        <pre><code># Apply Kubernetes manifests
+kubectl apply -f infrastructure/kubernetes/
+
+# Check deployment status
+kubectl get pods -n cidadao-ai</code></pre>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-icon">🤗</span>
+                            <h3 class="card-title">Hugging Face Spaces</h3>
+                        </div>
+                        <p>The platform is already deployed and available at:</p>
+                        <ul>
+                            <li><strong>Main App:</strong> <a href="https://huggingface.co/spaces/neural-thinker/cidadao-ai" target="_blank">https://huggingface.co/spaces/neural-thinker/cidadao-ai</a></li>
+                            <li><strong>Model:</strong> <a href="https://huggingface.co/neural-thinker/cidadao-gpt" target="_blank">https://huggingface.co/neural-thinker/cidadao-gpt</a></li>
+                        </ul>
+                    </div>
+                </section>
+                
+                <!-- Contributing Section -->
+                <section id="contribuir-en" class="content-section">
+                    <h1>🤝 Contributing</h1>
+                    
+                    <h2>How to Contribute</h2>
+                    <p>We welcome contributions to improve government transparency in Brazil!</p>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-icon">🛠️</span>
+                            <h3 class="card-title">Development Workflow</h3>
+                        </div>
+                        <ol>
+                            <li>Fork the repository on GitHub</li>
+                            <li>Create a feature branch: <code>git checkout -b feature/amazing-feature</code></li>
+                            <li>Make your changes following our coding standards</li>
+                            <li>Run tests: <code>make test</code></li>
+                            <li>Run linting: <code>make lint</code></li>
+                            <li>Commit changes: <code>git commit -m "feat: add amazing feature"</code></li>
+                            <li>Push to branch: <code>git push origin feature/amazing-feature</code></li>
+                            <li>Open a Pull Request</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-icon">📝</span>
+                            <h3 class="card-title">Code Standards</h3>
+                        </div>
+                        <ul>
+                            <li><strong>Python:</strong> Follow PEP 8, use type hints</li>
+                            <li><strong>Testing:</strong> Minimum 80% coverage for new code</li>
+                            <li><strong>Documentation:</strong> Update docs for new features</li>
+                            <li><strong>Commits:</strong> Use conventional commit format</li>
+                        </ul>
+                    </div>
+                    
+                    <h2>Areas for Contribution</h2>
+                    <ul>
+                        <li>🔍 <strong>New Data Sources:</strong> Integration with additional government APIs</li>
+                        <li>🤖 <strong>ML Models:</strong> Improved anomaly detection algorithms</li>
+                        <li>🎨 <strong>UI/UX:</strong> Enhanced user interface and experience</li>
+                        <li>📚 <strong>Documentation:</strong> Tutorials, guides, and examples</li>
+                        <li>🧪 <strong>Testing:</strong> Additional test coverage and scenarios</li>
+                        <li>🌐 <strong>Internationalization:</strong> Support for other languages</li>
+                    </ul>
+                </section>
             </div>
         </main>
     </div>

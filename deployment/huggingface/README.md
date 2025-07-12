@@ -26,9 +26,9 @@ widget:
   example_title: "Análise de Despesas"
 ---
 
-# 🇧🇷 CidadãoGPT
+# 🇧🇷 Cidadão.AI
 
-**CidadãoGPT** é um modelo de linguagem especializado em análise de transparência pública brasileira, desenvolvido para democratizar o acesso aos dados governamentais e fortalecer a accountability democrática.
+**Cidadão.AI** é um modelo de linguagem especializado em análise de transparência pública brasileira, desenvolvido para democratizar o acesso aos dados governamentais e fortalecer a accountability democrática.
 
 ## 🎯 Objetivo
 

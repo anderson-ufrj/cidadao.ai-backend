@@ -1,5 +1,5 @@
 """
-CidadãoGPT - Hugging Face Transformers Integration
+Cidadão.AI - Hugging Face Transformers Integration
 
 Modelo especializado em transparência pública brasileira
 compatível com a biblioteca transformers do Hugging Face.
@@ -21,9 +21,9 @@ from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
-class CidadaoGPTConfig(PretrainedConfig):
+class CidadaoAIConfig(PretrainedConfig):
     """
-    Configuração do CidadãoGPT para Hugging Face
+    Configuração do Cidadão.AI para Hugging Face
     """
     
     model_type = "cidadao-gpt"
@@ -103,16 +103,16 @@ class CidadaoGPTConfig(PretrainedConfig):
         self.num_legal_labels = num_legal_labels
 
 
-class CidadaoGPTModel(PreTrainedModel):
+class CidadaoAIModel(PreTrainedModel):
     """
-    Modelo base CidadãoGPT compatível com Hugging Face
+    Modelo base Cidadão.AI compatível com Hugging Face
     """
     
-    config_class = CidadaoGPTConfig
+    config_class = CidadaoAIConfig
     base_model_prefix = "cidadao_gpt"
     supports_gradient_checkpointing = True
     
-    def __init__(self, config: CidadaoGPTConfig):
+    def __init__(self, config: CidadaoAIConfig):
         super().__init__(config)
         
         self.config = config
@@ -284,15 +284,15 @@ class CidadaoGPTModel(PreTrainedModel):
         return BaseModelOutput(**result)
 
 
-class CidadaoGPTForAnomalyDetection(PreTrainedModel):
-    """Modelo CidadãoGPT especializado para detecção de anomalias"""
+class CidadaoAIForAnomalyDetection(PreTrainedModel):
+    """Modelo Cidadão.AI especializado para detecção de anomalias"""
     
-    config_class = CidadaoGPTConfig
+    config_class = CidadaoAIConfig
     
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_anomaly_labels
-        self.cidadao_gpt = CidadaoGPTModel(config)
+        self.cidadao_gpt = CidadaoAIModel(config)
         
     def forward(
         self,
@@ -320,15 +320,15 @@ class CidadaoGPTForAnomalyDetection(PreTrainedModel):
         )
 
 
-class CidadaoGPTForFinancialAnalysis(PreTrainedModel):
-    """Modelo CidadãoGPT especializado para análise financeira"""
+class CidadaoAIForFinancialAnalysis(PreTrainedModel):
+    """Modelo Cidadão.AI especializado para análise financeira"""
     
-    config_class = CidadaoGPTConfig
+    config_class = CidadaoAIConfig
     
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_financial_labels
-        self.cidadao_gpt = CidadaoGPTModel(config)
+        self.cidadao_gpt = CidadaoAIModel(config)
         
     def forward(
         self,
@@ -356,15 +356,15 @@ class CidadaoGPTForFinancialAnalysis(PreTrainedModel):
         )
 
 
-class CidadaoGPTForLegalCompliance(PreTrainedModel):
-    """Modelo CidadãoGPT especializado para conformidade legal"""
+class CidadaoAIForLegalCompliance(PreTrainedModel):
+    """Modelo Cidadão.AI especializado para conformidade legal"""
     
-    config_class = CidadaoGPTConfig
+    config_class = CidadaoAIConfig
     
     def __init__(self, config):
         super().__init__(config)
         self.num_labels = config.num_legal_labels
-        self.cidadao_gpt = CidadaoGPTModel(config)
+        self.cidadao_gpt = CidadaoAIModel(config)
         
     def forward(
         self,
@@ -482,8 +482,8 @@ class TransparencyAnalysisPipeline(Pipeline):
 # Registro dos modelos no AutoModel
 from transformers import AutoConfig, AutoModel
 
-AutoConfig.register("cidadao-gpt", CidadaoGPTConfig)
-AutoModel.register(CidadaoGPTConfig, CidadaoGPTModel)
+AutoConfig.register("cidadao-gpt", CidadaoAIConfig)
+AutoModel.register(CidadaoAIConfig, CidadaoAIModel)
 
 
 def create_cidadao_pipeline(
@@ -492,7 +492,7 @@ def create_cidadao_pipeline(
     **kwargs
 ) -> TransparencyAnalysisPipeline:
     """
-    Criar pipeline CidadãoGPT
+    Criar pipeline Cidadão.AI
     
     Args:
         model_name_or_path: Nome do modelo no HF Hub ou caminho local
@@ -537,7 +537,7 @@ if __name__ == "__main__":
     # Exemplo de uso
     
     # Criar configuração
-    config = CidadaoGPTConfig(
+    config = CidadaoAIConfig(
         vocab_size=50257,
         hidden_size=768,
         num_hidden_layers=12,
@@ -548,9 +548,9 @@ if __name__ == "__main__":
     )
     
     # Criar modelo
-    model = CidadaoGPTModel(config)
+    model = CidadaoAIModel(config)
     
-    print(f"✅ Modelo CidadãoGPT criado com {sum(p.numel() for p in model.parameters()):,} parâmetros")
+    print(f"✅ Modelo Cidadão.AI criado com {sum(p.numel() for p in model.parameters()):,} parâmetros")
     print(f"🎯 Tarefas habilitadas: Anomalias, Financeiro, Legal")
     
     # Teste básico

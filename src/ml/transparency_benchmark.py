@@ -22,8 +22,8 @@ from sklearn.metrics import (
 )
 import time
 
-from .cidadao_model import CidadaoGPTForTransparency
-from .model_api import CidadaoGPTManager, TransparencyAnalysisRequest
+from .cidadao_model import CidadaoAIForTransparency
+from .model_api import CidadaoAIManager, TransparencyAnalysisRequest
 
 logger = logging.getLogger(__name__)
 
@@ -346,7 +346,7 @@ class TransparencyBenchmarkSuite:
 
     async def run_full_benchmark(
         self, 
-        model: CidadaoGPTForTransparency
+        model: CidadaoAIForTransparency
     ) -> BenchmarkResults:
         """Executar benchmark completo"""
         
@@ -381,7 +381,7 @@ class TransparencyBenchmarkSuite:
         # Criar resultado final
         results = BenchmarkResults(
             benchmark_name=self.config.benchmark_name,
-            model_name="CidadãoGPT",
+            model_name="Cidadão.AI",
             timestamp=start_time.isoformat(),
             task_metrics=task_results,
             overall_accuracy=overall_metrics["accuracy"],
@@ -409,7 +409,7 @@ class TransparencyBenchmarkSuite:
 
     async def _benchmark_task(
         self, 
-        model: CidadaoGPTForTransparency, 
+        model: CidadaoAIForTransparency, 
         task_name: str
     ) -> TaskMetrics:
         """Executar benchmark para uma tarefa específica"""
@@ -421,7 +421,7 @@ class TransparencyBenchmarkSuite:
         processing_times = []
         
         # Criar manager para API
-        manager = CidadaoGPTManager()
+        manager = CidadaoAIManager()
         manager.model = model
         manager.loaded = True
         
@@ -875,7 +875,7 @@ class TransparencyBenchmarkSuite:
             width = 0.35
             
             ax.bar(x - width/2, baseline_f1s, width, label='Baseline', alpha=0.7)
-            ax.bar(x + width/2, current_f1s, width, label='CidadãoGPT', alpha=0.7)
+            ax.bar(x + width/2, current_f1s, width, label='Cidadão.AI', alpha=0.7)
             
             ax.set_xlabel('Modelos')
             ax.set_ylabel('F1 Score')
@@ -913,7 +913,7 @@ async def run_transparency_benchmark(
     
     # Carregar modelo
     if model_path:
-        model = CidadaoGPTForTransparency.load_model(model_path)
+        model = CidadaoAIForTransparency.load_model(model_path)
     else:
         from .cidadao_model import create_cidadao_model
         model = create_cidadao_model(["all"], "medium")
