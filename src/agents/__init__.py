@@ -1,6 +1,6 @@
 """
 Module: agents
-Description: Multi-agent system for Cidadão.AI
+Description: Multi-agent system for Cidadao.AI
 Author: Anderson H. Silva
 Date: 2025-01-24
 License: Proprietary - All rights reserved
@@ -25,6 +25,9 @@ from .master_agent import (
     InvestigationResult,
     MasterAgent,
 )
+from .investigator_agent import InvestigatorAgent
+from .analyst_agent import AnalystAgent
+from .reporter_agent import ReporterAgent
 
 __all__ = [
     # Base classes
@@ -37,6 +40,10 @@ __all__ = [
     "MasterAgent",
     "InvestigationPlan",
     "InvestigationResult",
+    # Specialized Agents
+    "InvestigatorAgent",
+    "AnalystAgent",
+    "ReporterAgent",
     # Memory Agent
     "ContextMemoryAgent",
     "MemoryEntry",

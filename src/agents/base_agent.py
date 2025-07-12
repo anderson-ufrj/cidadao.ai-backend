@@ -273,8 +273,15 @@ class BaseAgent(ABC):
         Returns:
             Dictionary with message and response history
         """
-        messages = self._message_history[-limit:] if limit else self._message_history
-        responses = self._response_history[-limit:] if limit else self._response_history
+        if limit is None:
+            messages = self._message_history
+            responses = self._response_history
+        elif limit == 0:
+            messages = []
+            responses = []
+        else:
+            messages = self._message_history[-limit:]
+            responses = self._response_history[-limit:]
         
         return {
             "messages": [msg.model_dump() for msg in messages],
@@ -361,14 +368,13 @@ class ReflectiveAgent(BaseAgent):
                 current_result = await self.process(message, context)
             else:
                 # Modify message based on reflection feedback
-                reflected_message = AgentMessage(
-                    **message.model_dump(),
-                    payload={
-                        **message.payload,
-                        "reflection_feedback": current_result.metadata.get("reflection", {}),
-                        "reflection_iteration": reflection_count,
-                    }
-                )
+                message_data = message.model_dump()
+                message_data["payload"] = {
+                    **message.payload,
+                    "reflection_feedback": current_result.metadata.get("reflection", {}),
+                    "reflection_iteration": reflection_count,
+                }
+                reflected_message = AgentMessage(**message_data)
                 current_result = await self.process(reflected_message, context)
             
             # Reflect on the result

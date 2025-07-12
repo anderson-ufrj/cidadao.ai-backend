@@ -59,6 +59,11 @@ class ReflectionError(AgentError):
     pass
 
 
+class DataAnalysisError(AgentError):
+    """Raised when data analysis fails."""
+    pass
+
+
 # Investigation exceptions
 class InvestigationError(CidadaoAIError):
     """Base exception for investigation errors."""
