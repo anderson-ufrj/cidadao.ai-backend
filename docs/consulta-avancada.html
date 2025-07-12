@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta Avançada - Cidadão.AI</title>
+    <meta name="description" content="Sistema avançado de consulta e análise de dados de transparência pública">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #0066cc;
+            --secondary-color: #4da6ff;
+            --accent-color: #00aa44;
+            --warning-color: #ff6b35;
+            --error-color: #e74c3c;
+            --success-color: #27ae60;
+            --info-color: #3498db;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: #e9ecef;
+            --text-primary: #2c2c2c;
+            --text-secondary: #6c757d;
+            --text-muted: #adb5bd;
+            --border: #dee2e6;
+            --border-focus: #86b7fe;
+            --shadow: 0 2px 10px rgba(0,0,0,0.08);
+            --shadow-hover: 0 4px 20px rgba(0,0,0,0.12);
+            --shadow-focus: 0 0 0 3px rgba(0,102,204,0.1);
+            --border-radius: 8px;
+            --border-radius-lg: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-primary);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow);
+        }
+
+        .header-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+            padding: 0.5rem 1rem;
+            border-radius: var(--border-radius);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-outline:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        /* Main Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 2rem;
+            padding: 2rem 0;
+            min-height: calc(100vh - 80px);
+        }
+
+        /* Filters Sidebar */
+        .filters-sidebar {
+            background: var(--bg-primary);
+            border-radius: var(--border-radius-lg);
+            padding: 1.5rem;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+            box-shadow: var(--shadow);
+        }
+
+        .filters-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .filter-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .filter-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid var(--border);
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            transition: var(--transition);
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: var(--bg-primary);
+            box-shadow: var(--shadow-focus);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 0.75rem center;
+            background-size: 1rem;
+        }
+
+        .date-range {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .value-range {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: 1rem;
+            height: 1rem;
+            accent-color: var(--primary-color);
+        }
+
+        .checkbox-item label {
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            padding: 0.75rem 1rem;
+            border-radius: var(--border-radius);
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-tertiary);
+            border-color: var(--text-secondary);
+        }
+
+        /* Results Area */
+        .results-area {
+            background: var(--bg-primary);
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .results-header {
+            background: var(--bg-tertiary);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .results-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .results-count {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .results-meta {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .results-actions {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .view-toggle {
+            display: flex;
+            background: var(--bg-primary);
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .view-btn {
+            background: none;
+            border: none;
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-secondary);
+        }
+
+        .view-btn.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .sort-select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: var(--border-radius);
+            background: var(--bg-primary);
+            font-size: 0.85rem;
+        }
+
+        /* Results Content */
+        .results-content {
+            padding: 2rem;
+            min-height: 400px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-secondary);
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0.5;
+        }
+
+        .empty-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-description {
+            font-size: 0.95rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Loading State */
+        .loading-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .spinner {
+            width: 3rem;
+            height: 3rem;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        /* Results Table */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .results-table th,
+        .results-table td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .results-table th {
+            background: var(--bg-secondary);
+            font-weight: 600;
+            color: var(--text-primary);
+            position: sticky;
+            top: 0;
+        }
+
+        .results-table td {
+            color: var(--text-primary);
+        }
+
+        .results-table tr:hover {
+            background: var(--bg-secondary);
+        }
+
+        /* Results Cards */
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .result-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary-color);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.25rem;
+        }
+
+        .card-subtitle {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .card-badge {
+            background: var(--primary-color);
+            color: white;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .card-badge.warning {
+            background: var(--warning-color);
+        }
+
+        .card-badge.success {
+            background: var(--success-color);
+        }
+
+        .card-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+        }
+
+        .meta-item {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .meta-label {
+            color: var(--text-secondary);
+        }
+
+        .meta-value {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .card-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Quick Stats */
+        .quick-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Animations */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+
+            .filters-sidebar {
+                position: relative;
+                top: 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                gap: 1rem;
+                align-items: stretch;
+            }
+
+            .header-actions {
+                justify-content: center;
+            }
+
+            .results-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .results-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .quick-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .value-range,
+            .date-range {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="header-title">
+                    <span>🔍</span>
+                    <span>Consulta Avançada</span>
+                </div>
+                <div class="header-actions">
+                    <a href="chatbot.html" class="btn-outline">
+                        <span>🤖</span>
+                        <span>Chatbot</span>
+                    </a>
+                    <a href="index.html" class="btn-outline">
+                        <span>🏠</span>
+                        <span>Início</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="main-layout">
+            <!-- Filters Sidebar -->
+            <aside class="filters-sidebar">
+                <h2 class="filters-title">
+                    <span>⚙️</span>
+                    <span>Filtros de Busca</span>
+                </h2>
+
+                <form id="searchForm">
+                    <!-- Tipo de Dados -->
+                    <div class="filter-group">
+                        <label class="filter-label">Tipo de Dados</label>
+                        <select class="form-control form-select" name="dataType">
+                            <option value="contratos">Contratos</option>
+                            <option value="despesas">Despesas</option>
+                            <option value="convenios">Convênios</option>
+                            <option value="licitacoes">Licitações</option>
+                            <option value="servidores">Servidores</option>
+                            <option value="empresas-sancionadas">Empresas Sancionadas</option>
+                        </select>
+                    </div>
+
+                    <!-- Período -->
+                    <div class="filter-group">
+                        <label class="filter-label">Período</label>
+                        <div class="date-range">
+                            <input type="date" class="form-control" name="startDate" placeholder="De">
+                            <input type="date" class="form-control" name="endDate" placeholder="Até">
+                        </div>
+                    </div>
+
+                    <!-- Valor -->
+                    <div class="filter-group">
+                        <label class="filter-label">Faixa de Valor (R$)</label>
+                        <div class="value-range">
+                            <input type="number" class="form-control" name="minValue" placeholder="Mínimo" step="0.01">
+                            <input type="number" class="form-control" name="maxValue" placeholder="Máximo" step="0.01">
+                        </div>
+                    </div>
+
+                    <!-- Órgão -->
+                    <div class="filter-group">
+                        <label class="filter-label">Órgão/Ministério</label>
+                        <select class="form-control form-select" name="organ">
+                            <option value="">Todos os órgãos</option>
+                            <option value="26000">Ministério da Educação</option>
+                            <option value="36000">Ministério da Saúde</option>
+                            <option value="25000">Ministério da Fazenda</option>
+                            <option value="39000">Ministério da Agricultura</option>
+                            <option value="35000">Ministério de Minas e Energia</option>
+                            <option value="52000">Ministério da Defesa</option>
+                            <option value="30000">Ministério da Justiça</option>
+                            <option value="44000">Ministério do Meio Ambiente</option>
+                        </select>
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="filter-group">
+                        <label class="filter-label">Estado</label>
+                        <select class="form-control form-select" name="state">
+                            <option value="">Todos os estados</option>
+                            <option value="SP">São Paulo</option>
+                            <option value="RJ">Rio de Janeiro</option>
+                            <option value="MG">Minas Gerais</option>
+                            <option value="RS">Rio Grande do Sul</option>
+                            <option value="PR">Paraná</option>
+                            <option value="SC">Santa Catarina</option>
+                            <option value="BA">Bahia</option>
+                            <option value="GO">Goiás</option>
+                            <option value="PE">Pernambuco</option>
+                            <option value="CE">Ceará</option>
+                        </select>
+                    </div>
+
+                    <!-- Tipos de Anomalia -->
+                    <div class="filter-group">
+                        <label class="filter-label">Tipos de Anomalia</label>
+                        <div class="checkbox-group">
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="superfaturamento" name="anomalies" value="superfaturamento">
+                                <label for="superfaturamento">Superfaturamento</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="direcionamento" name="anomalies" value="direcionamento">
+                                <label for="direcionamento">Direcionamento</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="duplicacao" name="anomalies" value="duplicacao">
+                                <label for="duplicacao">Duplicação</label>
+                            </div>
+                            <div class="checkbox-item">
+                                <input type="checkbox" id="emergencial" name="anomalies" value="emergencial">
+                                <label for="emergencial">Emergencial Suspeito</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Busca por Texto -->
+                    <div class="filter-group">
+                        <label class="filter-label">Busca por Texto</label>
+                        <input type="text" class="form-control" name="searchText" placeholder="Ex: equipamentos médicos">
+                    </div>
+
+                    <!-- CNPJ/CPF -->
+                    <div class="filter-group">
+                        <label class="filter-label">CNPJ/CPF</label>
+                        <input type="text" class="form-control" name="document" placeholder="Ex: 12.345.678/0001-90">
+                    </div>
+
+                    <!-- Buttons -->
+                    <button type="submit" class="btn-primary">
+                        <span>🔍</span>
+                        <span>Buscar</span>
+                    </button>
+                    
+                    <button type="button" class="btn-secondary" onclick="clearFilters()">
+                        Limpar Filtros
+                    </button>
+                </form>
+            </aside>
+
+            <!-- Results Area -->
+            <main class="results-area">
+                <div class="results-header">
+                    <div class="results-info">
+                        <div class="results-count" id="resultsCount">
+                            Configure os filtros e clique em "Buscar"
+                        </div>
+                        <div class="results-meta" id="resultsMeta">
+                            Sistema pronto para consulta
+                        </div>
+                    </div>
+                    <div class="results-actions">
+                        <div class="view-toggle">
+                            <button class="view-btn active" onclick="setView('cards')" data-view="cards">
+                                📋 Cards
+                            </button>
+                            <button class="view-btn" onclick="setView('table')" data-view="table">
+                                📊 Tabela
+                            </button>
+                        </div>
+                        <select class="sort-select" id="sortSelect" onchange="sortResults()">
+                            <option value="value-desc">Maior Valor</option>
+                            <option value="value-asc">Menor Valor</option>
+                            <option value="date-desc">Mais Recente</option>
+                            <option value="date-asc">Mais Antigo</option>
+                            <option value="risk-desc">Maior Risco</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="results-content" id="resultsContent">
+                    <!-- Empty State -->
+                    <div class="empty-state">
+                        <div class="empty-icon">🔍</div>
+                        <div class="empty-title">Pronto para consultar</div>
+                        <div class="empty-description">
+                            Configure os filtros no painel lateral e clique em "Buscar" para começar sua investigação nos dados de transparência pública.
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        let currentView = 'cards';
+        let currentResults = [];
+        let isSearching = false;
+
+        // Set current date as default
+        document.addEventListener('DOMContentLoaded', function() {
+            const endDate = document.querySelector('input[name="endDate"]');
+            const startDate = document.querySelector('input[name="startDate"]');
+            
+            const today = new Date();
+            const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+            
+            endDate.value = today.toISOString().split('T')[0];
+            startDate.value = lastYear.toISOString().split('T')[0];
+        });
+
+        // Form submission
+        document.getElementById('searchForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!isSearching) {
+                performSearch();
+            }
+        });
+
+        // Perform search
+        function performSearch() {
+            isSearching = true;
+            
+            // Show loading state
+            showLoadingState();
+            
+            // Simulate API call
+            setTimeout(() => {
+                const formData = new FormData(document.getElementById('searchForm'));
+                const filters = Object.fromEntries(formData.entries());
+                
+                // Generate mock results based on filters
+                currentResults = generateMockResults(filters);
+                
+                // Display results
+                displayResults();
+                
+                isSearching = false;
+            }, 1500 + Math.random() * 2000);
+        }
+
+        // Show loading state
+        function showLoadingState() {
+            const resultsContent = document.getElementById('resultsContent');
+            const resultsCount = document.getElementById('resultsCount');
+            const resultsMeta = document.getElementById('resultsMeta');
+            
+            resultsCount.textContent = 'Buscando...';
+            resultsMeta.textContent = 'Analisando dados do Portal da Transparência';
+            
+            resultsContent.innerHTML = `
+                <div class="loading-state">
+                    <div class="spinner"></div>
+                    <div style="font-weight: 600; margin-bottom: 0.5rem;">Processando consulta...</div>
+                    <div style="color: var(--text-secondary); font-size: 0.9rem;">
+                        Aplicando filtros e detectando anomalias
+                    </div>
+                </div>
+            `;
+        }
+
+        // Generate mock results
+        function generateMockResults(filters) {
+            const dataType = filters.dataType || 'contratos';
+            const organ = filters.organ || '';
+            const hasAnomalies = filters.anomalies;
+            
+            const mockData = {
+                contratos: [
+                    {
+                        id: 'CT-2024-001',
+                        title: 'Aquisição de Equipamentos Médicos',
+                        value: 15750000,
+                        date: '2024-03-15',
+                        organ: 'Ministério da Saúde',
+                        vendor: 'MedTech Solutions Ltda',
+                        risk: 'alto',
+                        anomalies: ['superfaturamento', 'direcionamento'],
+                        description: 'Contrato para aquisição de 150 ventiladores pulmonares com preço 40% acima da média de mercado.'
+                    },
+                    {
+                        id: 'CT-2024-002',
+                        title: 'Obras de Infraestrutura Escolar',
+                        value: 8900000,
+                        date: '2024-02-20',
+                        organ: 'Ministério da Educação',
+                        vendor: 'Construtora Alpha S.A.',
+                        risk: 'medio',
+                        anomalies: ['emergencial'],
+                        description: 'Reforma de 25 escolas públicas com contratação emergencial questionável.'
+                    },
+                    {
+                        id: 'CT-2024-003',
+                        title: 'Sistema de Gestão Integrada',
+                        value: 12300000,
+                        date: '2024-01-10',
+                        organ: 'Ministério da Fazenda',
+                        vendor: 'TechSoft Informática',
+                        risk: 'baixo',
+                        anomalies: [],
+                        description: 'Desenvolvimento de sistema de gestão financeira com processo regular.'
+                    },
+                    {
+                        id: 'CT-2024-004',
+                        title: 'Consultoria em Segurança Pública',
+                        value: 25800000,
+                        date: '2024-04-05',
+                        organ: 'Ministério da Justiça',
+                        vendor: 'Consultoria Omega Ltda',
+                        risk: 'alto',
+                        anomalies: ['superfaturamento', 'duplicacao'],
+                        description: 'Serviços de consultoria com valor significativamente acima do praticado no mercado.'
+                    },
+                    {
+                        id: 'CT-2024-005',
+                        title: 'Material de Escritório',
+                        value: 450000,
+                        date: '2024-05-12',
+                        organ: 'Ministério da Educação',
+                        vendor: 'Papelaria Central',
+                        risk: 'baixo',
+                        anomalies: [],
+                        description: 'Aquisição de material de escritório para órgãos federais.'
+                    }
+                ],
+                despesas: [
+                    {
+                        id: 'DP-2024-001',
+                        title: 'Despesas com Pessoal - Ativos',
+                        value: 45000000,
+                        date: '2024-03-01',
+                        organ: 'Ministério da Saúde',
+                        vendor: 'N/A',
+                        risk: 'medio',
+                        anomalies: ['duplicacao'],
+                        description: 'Pagamento de servidores com possíveis duplicações no sistema.'
+                    }
+                ]
+            };
+
+            let results = mockData[dataType] || [];
+            
+            // Apply filters
+            if (organ) {
+                results = results.filter(item => item.organ.includes(getOrganName(organ)));
+            }
+            
+            if (hasAnomalies) {
+                results = results.filter(item => item.anomalies.length > 0);
+            }
+            
+            return results;
+        }
+
+        // Get organ name by code
+        function getOrganName(code) {
+            const organs = {
+                '26000': 'Ministério da Educação',
+                '36000': 'Ministério da Saúde',
+                '25000': 'Ministério da Fazenda',
+                '30000': 'Ministério da Justiça',
+                '52000': 'Ministério da Defesa'
+            };
+            return organs[code] || '';
+        }
+
+        // Display results
+        function displayResults() {
+            const resultsCount = document.getElementById('resultsCount');
+            const resultsMeta = document.getElementById('resultsMeta');
+            
+            resultsCount.textContent = `${currentResults.length} resultados encontrados`;
+            resultsMeta.textContent = `Última atualização: ${new Date().toLocaleString('pt-BR')}`;
+            
+            if (currentResults.length === 0) {
+                showEmptyResults();
+            } else {
+                showQuickStats();
+                if (currentView === 'cards') {
+                    showCardsView();
+                } else {
+                    showTableView();
+                }
+            }
+        }
+
+        // Show empty results
+        function showEmptyResults() {
+            const resultsContent = document.getElementById('resultsContent');
+            resultsContent.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🚫</div>
+                    <div class="empty-title">Nenhum resultado encontrado</div>
+                    <div class="empty-description">
+                        Tente ajustar os filtros ou expandir os critérios de busca para encontrar mais resultados.
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show quick stats
+        function showQuickStats() {
+            const totalValue = currentResults.reduce((sum, item) => sum + item.value, 0);
+            const highRiskCount = currentResults.filter(item => item.risk === 'alto').length;
+            const anomaliesCount = currentResults.filter(item => item.anomalies.length > 0).length;
+            
+            return `
+                <div class="quick-stats fade-in">
+                    <div class="stat-card">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-value">${formatCurrency(totalValue)}</div>
+                        <div class="stat-label">Valor Total</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⚠️</div>
+                        <div class="stat-value">${highRiskCount}</div>
+                        <div class="stat-label">Alto Risco</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">🚨</div>
+                        <div class="stat-value">${anomaliesCount}</div>
+                        <div class="stat-label">Com Anomalias</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-value">${currentResults.length}</div>
+                        <div class="stat-label">Total de Registros</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show cards view
+        function showCardsView() {
+            const resultsContent = document.getElementById('resultsContent');
+            const statsHtml = showQuickStats();
+            
+            const cardsHtml = currentResults.map(item => `
+                <div class="result-card fade-in" onclick="showItemDetails('${item.id}')">
+                    <div class="card-header">
+                        <div>
+                            <div class="card-title">${item.title}</div>
+                            <div class="card-subtitle">${item.id} • ${item.organ}</div>
+                        </div>
+                        <div class="card-badge ${item.risk}">${getRiskLabel(item.risk)}</div>
+                    </div>
+                    
+                    <div class="card-meta">
+                        <div class="meta-item">
+                            <span class="meta-label">Valor:</span>
+                            <span class="meta-value">${formatCurrency(item.value)}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Data:</span>
+                            <span class="meta-value">${formatDate(item.date)}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Fornecedor:</span>
+                            <span class="meta-value">${item.vendor}</span>
+                        </div>
+                        <div class="meta-item">
+                            <span class="meta-label">Anomalias:</span>
+                            <span class="meta-value">${item.anomalies.length}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="card-description">${item.description}</div>
+                    
+                    ${item.anomalies.length > 0 ? `
+                        <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--warning-color);">
+                            <strong>⚠️ Anomalias:</strong> ${item.anomalies.map(a => getAnomalyLabel(a)).join(', ')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+            
+            resultsContent.innerHTML = statsHtml + `
+                <div class="results-grid">
+                    ${cardsHtml}
+                </div>
+            `;
+        }
+
+        // Show table view
+        function showTableView() {
+            const resultsContent = document.getElementById('resultsContent');
+            const statsHtml = showQuickStats();
+            
+            const tableHtml = `
+                <table class="results-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Título</th>
+                            <th>Valor</th>
+                            <th>Data</th>
+                            <th>Órgão</th>
+                            <th>Fornecedor</th>
+                            <th>Risco</th>
+                            <th>Anomalias</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${currentResults.map(item => `
+                            <tr onclick="showItemDetails('${item.id}')" style="cursor: pointer;">
+                                <td>${item.id}</td>
+                                <td>${item.title}</td>
+                                <td><strong>${formatCurrency(item.value)}</strong></td>
+                                <td>${formatDate(item.date)}</td>
+                                <td>${item.organ}</td>
+                                <td>${item.vendor}</td>
+                                <td><span class="card-badge ${item.risk}">${getRiskLabel(item.risk)}</span></td>
+                                <td>${item.anomalies.length > 0 ? `⚠️ ${item.anomalies.length}` : '✅ 0'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+            
+            resultsContent.innerHTML = statsHtml + tableHtml;
+        }
+
+        // Utility functions
+        function formatCurrency(value) {
+            return new Intl.NumberFormat('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(value);
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleDateString('pt-BR');
+        }
+
+        function getRiskLabel(risk) {
+            const labels = {
+                'alto': 'Alto Risco',
+                'medio': 'Médio Risco',
+                'baixo': 'Baixo Risco'
+            };
+            return labels[risk] || risk;
+        }
+
+        function getAnomalyLabel(anomaly) {
+            const labels = {
+                'superfaturamento': 'Superfaturamento',
+                'direcionamento': 'Direcionamento',
+                'duplicacao': 'Duplicação',
+                'emergencial': 'Emergencial Suspeito'
+            };
+            return labels[anomaly] || anomaly;
+        }
+
+        // View toggle
+        function setView(view) {
+            currentView = view;
+            
+            document.querySelectorAll('.view-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-view="${view}"]`).classList.add('active');
+            
+            if (currentResults.length > 0) {
+                if (view === 'cards') {
+                    showCardsView();
+                } else {
+                    showTableView();
+                }
+            }
+        }
+
+        // Sort results
+        function sortResults() {
+            const sortValue = document.getElementById('sortSelect').value;
+            
+            currentResults.sort((a, b) => {
+                switch (sortValue) {
+                    case 'value-desc':
+                        return b.value - a.value;
+                    case 'value-asc':
+                        return a.value - b.value;
+                    case 'date-desc':
+                        return new Date(b.date) - new Date(a.date);
+                    case 'date-asc':
+                        return new Date(a.date) - new Date(b.date);
+                    case 'risk-desc':
+                        const riskOrder = { 'alto': 3, 'medio': 2, 'baixo': 1 };
+                        return riskOrder[b.risk] - riskOrder[a.risk];
+                    default:
+                        return 0;
+                }
+            });
+            
+            if (currentResults.length > 0) {
+                displayResults();
+            }
+        }
+
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('searchForm').reset();
+            
+            // Reset to default dates
+            const endDate = document.querySelector('input[name="endDate"]');
+            const startDate = document.querySelector('input[name="startDate"]');
+            
+            const today = new Date();
+            const lastYear = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate());
+            
+            endDate.value = today.toISOString().split('T')[0];
+            startDate.value = lastYear.toISOString().split('T')[0];
+            
+            // Clear results
+            currentResults = [];
+            const resultsContent = document.getElementById('resultsContent');
+            const resultsCount = document.getElementById('resultsCount');
+            const resultsMeta = document.getElementById('resultsMeta');
+            
+            resultsCount.textContent = 'Configure os filtros e clique em "Buscar"';
+            resultsMeta.textContent = 'Sistema pronto para consulta';
+            
+            resultsContent.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <div class="empty-title">Filtros limpos</div>
+                    <div class="empty-description">
+                        Configure novos critérios de busca e clique em "Buscar" para iniciar uma nova consulta.
+                    </div>
+                </div>
+            `;
+        }
+
+        // Show item details
+        function showItemDetails(itemId) {
+            const item = currentResults.find(r => r.id === itemId);
+            if (!item) return;
+            
+            alert(`Detalhes do item: ${itemId}\n\n${item.description}\n\nEm um sistema real, isso abriria uma página detalhada com mais informações, análises e possibilidade de gerar relatórios.`);
+        }
+    </script>
+</body>
+</html>

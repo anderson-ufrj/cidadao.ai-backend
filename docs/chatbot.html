@@ -1,0 +1,948 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CidadãoGPT - Chatbot Inteligente</title>
+    <meta name="description" content="Converse com a IA especializada em transparência pública brasileira">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #0066cc;
+            --secondary-color: #4da6ff;
+            --accent-color: #00aa44;
+            --warning-color: #ff6b35;
+            --error-color: #e74c3c;
+            --success-color: #27ae60;
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-chat: #f5f5f5;
+            --text-primary: #2c2c2c;
+            --text-secondary: #6c757d;
+            --border: #e9ecef;
+            --shadow: 0 2px 10px rgba(0,0,0,0.1);
+            --shadow-hover: 0 4px 20px rgba(0,0,0,0.15);
+            --border-radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-secondary: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 1200px;
+            margin: 0 auto;
+            background: var(--bg-primary);
+            box-shadow: var(--shadow);
+        }
+
+        /* Header */
+        .chat-header {
+            background: var(--gradient-primary);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 100;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .bot-avatar {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .bot-info h1 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .bot-status {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            background: #27ae60;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .action-button {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .action-button:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        /* Chat Messages Area */
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 2rem;
+            background: var(--bg-chat);
+            scroll-behavior: smooth;
+        }
+
+        .message {
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 1rem;
+            max-width: 800px;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+            margin-left: auto;
+        }
+
+        .message-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .message.assistant .message-avatar {
+            background: var(--gradient-primary);
+            color: white;
+        }
+
+        .message.user .message-avatar {
+            background: var(--gradient-secondary);
+            color: white;
+        }
+
+        .message-content {
+            background: white;
+            padding: 1rem 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            position: relative;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        .message.user .message-content {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .message-content::before {
+            content: '';
+            position: absolute;
+            top: 1rem;
+            width: 0;
+            height: 0;
+            border: 8px solid transparent;
+        }
+
+        .message.assistant .message-content::before {
+            left: -16px;
+            border-right-color: white;
+        }
+
+        .message.user .message-content::before {
+            right: -16px;
+            border-left-color: var(--primary-color);
+        }
+
+        .message-text {
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-top: 0.5rem;
+        }
+
+        /* Loading Message */
+        .typing-indicator {
+            display: flex;
+            gap: 0.3rem;
+            padding: 0.5rem 0;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--text-secondary);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        /* Chat Input */
+        .chat-input-container {
+            background: white;
+            border-top: 1px solid var(--border);
+            padding: 1.5rem 2rem;
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 1rem;
+            align-items: flex-end;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .chat-input {
+            flex: 1;
+            border: 2px solid var(--border);
+            border-radius: var(--border-radius);
+            padding: 1rem 1.5rem;
+            font-size: 1rem;
+            resize: none;
+            min-height: 50px;
+            max-height: 120px;
+            font-family: inherit;
+            transition: var(--transition);
+            background: var(--bg-secondary);
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: white;
+            box-shadow: 0 0 0 3px rgba(0,102,204,0.1);
+        }
+
+        .send-button {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            min-width: 100px;
+            justify-content: center;
+        }
+
+        .send-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Suggestions */
+        .suggestions-container {
+            margin-bottom: 1rem;
+        }
+
+        .suggestions-title {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.75rem;
+            font-weight: 500;
+        }
+
+        .suggestions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+        }
+
+        .suggestion-chip {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: var(--transition);
+            color: var(--text-primary);
+        }
+
+        .suggestion-chip:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            transform: translateY(-1px);
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            text-align: center;
+            padding: 3rem 2rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .welcome-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .welcome-subtitle {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .welcome-examples {
+            text-align: left;
+            background: white;
+            border-radius: var(--border-radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+        }
+
+        .welcome-examples h4 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+        }
+
+        .example-list {
+            list-style: none;
+        }
+
+        .example-list li {
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .example-list li:last-child {
+            border-bottom: none;
+        }
+
+        .example-list li:hover {
+            color: var(--primary-color);
+            padding-left: 0.5rem;
+        }
+
+        .example-list li::before {
+            content: '💬';
+            margin-right: 0.5rem;
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: translateY(0); }
+            30% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .chat-header {
+                padding: 1rem;
+            }
+
+            .chat-messages {
+                padding: 1rem;
+            }
+
+            .chat-input-container {
+                padding: 1rem;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .header-actions {
+                display: none;
+            }
+
+            .welcome-message {
+                padding: 2rem 1rem;
+            }
+        }
+
+        /* Dark mode (future implementation) */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg-primary: #1a1a1a;
+                --bg-secondary: #2d2d2d;
+                --bg-chat: #252525;
+                --text-primary: #ffffff;
+                --text-secondary: #b0b0b0;
+                --border: #404040;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <!-- Header -->
+        <header class="chat-header">
+            <div class="header-left">
+                <div class="bot-avatar">🤖</div>
+                <div class="bot-info">
+                    <h1>CidadãoGPT</h1>
+                    <div class="bot-status">
+                        <div class="status-indicator"></div>
+                        <span>IA especializada em transparência pública</span>
+                    </div>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="action-button" onclick="clearChat()">
+                    🗑️ Limpar Chat
+                </button>
+                <button class="action-button" onclick="window.location.href='index.html'">
+                    🏠 Início
+                </button>
+            </div>
+        </header>
+
+        <!-- Messages Area -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                <div class="welcome-icon">🇧🇷</div>
+                <h2 class="welcome-title">Bem-vindo ao CidadãoGPT!</h2>
+                <p class="welcome-subtitle">
+                    Sou uma IA especializada em análise de transparência pública brasileira. 
+                    Posso ajudar você a investigar gastos públicos, detectar anomalias e entender 
+                    como os recursos do governo estão sendo utilizados.
+                </p>
+                
+                <div class="welcome-examples">
+                    <h4>💡 Exemplos do que você pode perguntar:</h4>
+                    <ul class="example-list">
+                        <li onclick="sendExampleMessage(this.textContent.replace('💬 ', ''))">Temos contratos duplicados em 2025?</li>
+                        <li onclick="sendExampleMessage(this.textContent.replace('💬 ', ''))">Quanto foi o gasto com saúde em 2024?</li>
+                        <li onclick="sendExampleMessage(this.textContent.replace('💬 ', ''))">Quanto Minas Gerais recebeu de repasse federal?</li>
+                        <li onclick="sendExampleMessage(this.textContent.replace('💬 ', ''))">Quais fornecedores receberam mais de R$ 10 milhões?</li>
+                        <li onclick="sendExampleMessage(this.textContent.replace('💬 ', ''))">Analise padrões suspeitos no Ministério da Educação</li>
+                        <li onclick="sendExampleMessage(this.textContent.replace('💬 ', ''))">Contratos emergenciais sem licitação em 2024</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="chat-input-container">
+            <div class="suggestions-container" id="suggestionsContainer">
+                <div class="suggestions-title">💡 Sugestões rápidas:</div>
+                <div class="suggestions">
+                    <div class="suggestion-chip" onclick="sendSuggestion(this.textContent)">Gastos com saúde 2024</div>
+                    <div class="suggestion-chip" onclick="sendSuggestion(this.textContent)">Contratos suspeitos</div>
+                    <div class="suggestion-chip" onclick="sendSuggestion(this.textContent)">Análise por estado</div>
+                    <div class="suggestion-chip" onclick="sendSuggestion(this.textContent)">Fornecedores recorrentes</div>
+                </div>
+            </div>
+            
+            <div class="chat-input-wrapper">
+                <textarea 
+                    id="chatInput" 
+                    class="chat-input" 
+                    placeholder="Digite sua pergunta sobre transparência pública..." 
+                    rows="1"
+                    onkeydown="handleKeyDown(event)"
+                    oninput="autoResize(this)"
+                ></textarea>
+                <button id="sendButton" class="send-button" onclick="sendMessage()">
+                    <span>Enviar</span>
+                    <span>📤</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isTyping = false;
+        let messageHistory = [];
+
+        // Auto-resize textarea
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
+        }
+
+        // Handle keyboard shortcuts
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // Send message function
+        function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            
+            if (!message || isTyping) return;
+            
+            // Add user message
+            addMessage('user', message);
+            input.value = '';
+            input.style.height = 'auto';
+            
+            // Hide suggestions after first message
+            hideSuggestions();
+            
+            // Simulate bot response
+            simulateBotResponse(message);
+        }
+
+        // Send example message
+        function sendExampleMessage(message) {
+            const input = document.getElementById('chatInput');
+            input.value = message;
+            sendMessage();
+        }
+
+        // Send suggestion
+        function sendSuggestion(suggestion) {
+            const input = document.getElementById('chatInput');
+            input.value = suggestion;
+            sendMessage();
+        }
+
+        // Add message to chat
+        function addMessage(sender, text, isTyping = false) {
+            const messagesContainer = document.getElementById('chatMessages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            const avatar = document.createElement('div');
+            avatar.className = 'message-avatar';
+            avatar.textContent = sender === 'user' ? 'U' : '🤖';
+            
+            const content = document.createElement('div');
+            content.className = 'message-content';
+            
+            if (isTyping) {
+                const typingIndicator = document.createElement('div');
+                typingIndicator.className = 'typing-indicator';
+                typingIndicator.innerHTML = '<div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>';
+                content.appendChild(typingIndicator);
+                messageDiv.id = 'typing-message';
+            } else {
+                const messageText = document.createElement('div');
+                messageText.className = 'message-text';
+                messageText.innerHTML = formatMessage(text);
+                
+                const messageTime = document.createElement('div');
+                messageTime.className = 'message-time';
+                messageTime.textContent = new Date().toLocaleTimeString('pt-BR', { 
+                    hour: '2-digit', 
+                    minute: '2-digit' 
+                });
+                
+                content.appendChild(messageText);
+                content.appendChild(messageTime);
+            }
+            
+            messageDiv.appendChild(avatar);
+            messageDiv.appendChild(content);
+            messagesContainer.appendChild(messageDiv);
+            
+            // Scroll to bottom
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Store in history
+            if (!isTyping) {
+                messageHistory.push({ sender, text, timestamp: new Date() });
+            }
+        }
+
+        // Format message with basic markdown-like formatting
+        function formatMessage(text) {
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/`(.*?)`/g, '<code style="background: rgba(0,102,204,0.1); padding: 2px 4px; border-radius: 4px;">$1</code>')
+                .replace(/\n/g, '<br>');
+        }
+
+        // Simulate bot response
+        function simulateBotResponse(userMessage) {
+            isTyping = true;
+            const sendButton = document.getElementById('sendButton');
+            sendButton.disabled = true;
+            sendButton.innerHTML = '<span>Pensando...</span><span>🤔</span>';
+            
+            // Add typing indicator
+            addMessage('assistant', '', true);
+            
+            // Simulate thinking time
+            setTimeout(() => {
+                // Remove typing indicator
+                const typingMessage = document.getElementById('typing-message');
+                if (typingMessage) {
+                    typingMessage.remove();
+                }
+                
+                // Generate response based on user message
+                const response = generateBotResponse(userMessage);
+                addMessage('assistant', response);
+                
+                isTyping = false;
+                sendButton.disabled = false;
+                sendButton.innerHTML = '<span>Enviar</span><span>📤</span>';
+            }, 1500 + Math.random() * 2000);
+        }
+
+        // Generate contextual bot responses
+        function generateBotResponse(userMessage) {
+            const message = userMessage.toLowerCase();
+            
+            if (message.includes('contrato') && (message.includes('duplicado') || message.includes('2025'))) {
+                return `🔍 **Análise de Contratos Duplicados em 2025**
+
+Realizei uma busca nos dados do Portal da Transparência e encontrei:
+
+• **Contratos similares detectados**: 47 casos suspeitos
+• **Valor total envolvido**: R$ 342,5 milhões  
+• **Principais órgãos**: Ministério da Saúde (18 casos), Ministério da Educação (12 casos)
+
+**Padrões identificados:**
+- Mesmo objeto contratual com fornecedores diferentes
+- Valores muito próximos em datas similares
+- Especificações técnicas idênticas
+
+*Recomendo uma investigação mais detalhada nos contratos do Ministério da Saúde para equipamentos médicos.*`;
+            }
+            
+            if (message.includes('gasto') && message.includes('saúde') && message.includes('2024')) {
+                return `💰 **Gastos com Saúde em 2024**
+
+**Total executado**: R$ 234,7 bilhões
+
+**Distribuição por categoria:**
+• Atenção Básica: R$ 89,2 bi (38%)
+• Média/Alta Complexidade: R$ 76,4 bi (32,5%)
+• Vigilância em Saúde: R$ 34,1 bi (14,5%)
+• Assistência Farmacêutica: R$ 21,8 bi (9,3%)
+• Gestão e outros: R$ 13,2 bi (5,7%)
+
+**Comparação com 2023**: ⬆️ Aumento de 8,4%
+
+**Destaques**:
+- Maior investimento em equipamentos hospitalares
+- Expansão de programas de vacinação
+- Ampliação da rede de atenção básica
+
+*Os dados são baseados no Sistema Integrado de Administração Financeira (SIAFI).*`;
+            }
+            
+            if (message.includes('minas gerais') || (message.includes('mg') && message.includes('repasse'))) {
+                return `🏛️ **Repasses Federais para Minas Gerais**
+
+**Total em 2024**: R$ 67,3 bilhões
+
+**Principais transferências:**
+• **Fundo de Participação dos Estados**: R$ 18,7 bi
+• **SUS - Saúde**: R$ 12,4 bi  
+• **FUNDEB - Educação**: R$ 15,2 bi
+• **Segurança Pública**: R$ 3,8 bi
+• **Infraestrutura e Desenvolvimento**: R$ 8,9 bi
+• **Programas Sociais**: R$ 5,1 bi
+• **Outros**: R$ 3,2 bi
+
+**Crescimento vs 2023**: ⬆️ +12,3%
+
+**Municípios que mais receberam**:
+1. Belo Horizonte: R$ 4,2 bi
+2. Uberlândia: R$ 890 mi
+3. Contagem: R$ 780 mi
+
+*Valores atualizados conforme Tesouro Nacional e Portal da Transparência.*`;
+            }
+            
+            if (message.includes('fornecedor') && message.includes('10 milhões')) {
+                return `🏢 **Fornecedores com Contratos > R$ 10 Milhões**
+
+**Top 10 em 2024:**
+
+1. **Construtora Alpha S.A.** - R$ 2,8 bi
+   - Obras de infraestrutura
+   - 47 contratos ativos
+
+2. **TechMed Equipamentos** - R$ 1,9 bi  
+   - Equipamentos hospitalares
+   - 23 contratos (alguns suspeitos ⚠️)
+
+3. **EduSistemas Ltda** - R$ 1,4 bi
+   - Sistemas educacionais
+   - 31 contratos
+
+4. **Pharma Distribuidora** - R$ 1,2 bi
+   - Medicamentos e insumos
+   - 89 contratos
+
+5. **Consultoria Omega** - R$ 890 mi
+   - Serviços de consultoria
+   - 12 contratos (alta concentração ⚠️)
+
+**🚨 Alertas detectados:**
+- TechMed: valores 40% acima da média
+- Consultoria Omega: poucos contratos, valores altos
+- 3 empresas criadas em 2023 com contratos milionários
+
+*Análise baseada em algoritmos de detecção de anomalias.*`;
+            }
+            
+            if (message.includes('educação') && (message.includes('padrão') || message.includes('suspeito'))) {
+                return `📚 **Análise de Padrões - Ministério da Educação**
+
+**🔍 Anomalias Detectadas:**
+
+**Contratos de Material Escolar:**
+• 8 contratos similares com empresas diferentes
+• Mesmo fornecedor de papel com preços variando 35%
+• Concentração de 70% dos contratos em 3 empresas
+
+**Obras de Infraestrutura:**
+• 23 obras paralisadas (R$ 450 mi comprometidos)
+• Aditivos contratuais acima de 50% em 12 casos
+• Empresas do mesmo grupo empresarial competindo
+
+**Tecnologia Educacional:**
+• Software educativo: preço 280% acima do mercado
+• Tablets para estudantes: licitação direcionada (suspeita)
+• Manutenção de sistemas: contratos sobrepostos
+
+**📊 Métricas de Risco:**
+- **Alto risco**: 15 contratos (R$ 234 mi)
+- **Médio risco**: 43 contratos (R$ 789 mi)  
+- **Baixo risco**: 127 contratos (R$ 1,2 bi)
+
+*Recomendo auditoria especial nos contratos de tecnologia educacional.*`;
+            }
+            
+            if (message.includes('emergencial') || message.includes('licitação')) {
+                return `⚠️ **Contratos Emergenciais sem Licitação - 2024**
+
+**Total identificado**: 1.247 contratos
+
+**Valor total**: R$ 45,8 bilhões
+
+**Por órgão:**
+• Ministério da Saúde: 423 contratos (R$ 23,1 bi)
+• Ministério da Defesa: 198 contratos (R$ 8,7 bi)
+• Ministério da Educação: 156 contratos (R$ 4,9 bi)
+• DNIT: 89 contratos (R$ 3,2 bi)
+• Outros: 381 contratos (R$ 5,9 bi)
+
+**🚨 Situações suspeitas:**
+- **Emergências recorrentes**: 67 fornecedores com mais de 5 contratos emergenciais
+- **Justificativas genéricas**: 234 casos sem detalhamento adequado
+- **Sobrepreço identificado**: 89 contratos com valores 50%+ acima do mercado
+- **Prorrogações excessivas**: 156 contratos prorrogados por mais de 2 anos
+
+**Casos críticos**:
+1. Empresa XYZ: 23 emergências em 12 meses
+2. Fornecedor ABC: contratos sempre na véspera do vencimento
+3. Consórcio DEF: mesmo objeto em 8 órgãos diferentes
+
+*Base legal: Lei 14.133/2021 - Nova Lei de Licitações*`;
+            }
+            
+            // Default response for other queries
+            const responses = [
+                `Entendi sua pergunta sobre **${userMessage}**. 
+
+Para uma análise mais precisa, preciso de algumas informações adicionais:
+
+• **Período específico** que deseja analisar
+• **Órgão ou ministério** de interesse  
+• **Valor mínimo** dos contratos
+• **Tipo de análise** (anomalias, tendências, comparações)
+
+Posso ajudar com:
+🔍 Detecção de irregularidades
+📊 Análise de padrões de gastos
+🏛️ Comparações entre órgãos
+💰 Investigação de valores suspeitos
+📈 Tendências históricas`,
+
+                `Excelente pergunta! Vou analisar os dados disponíveis sobre **${userMessage}**.
+
+**Status da análise**: ✅ Processando dados do Portal da Transparência
+
+**Fontes consultadas**:
+• SIAFI - Sistema Integrado de Administração Financeira
+• Portal da Transparência do Governo Federal  
+• Base de dados de Contratos Públicos
+• Cadastro de Empresas Sancionadas
+
+**Próximos passos**:
+1. Aplicar algoritmos de detecção de anomalias
+2. Cruzar dados entre diferentes bases
+3. Gerar relatório com explicações em português
+
+*Você gostaria que eu foque em algum aspecto específico desta análise?*`,
+
+                `Sua consulta sobre **${userMessage}** é muito relevante para a transparência pública! 
+
+**💡 Dica**: Para análises mais detalhadas, tente perguntas como:
+
+• "Analise gastos com [área] em [período]"
+• "Quais fornecedores receberam mais de [valor]?"  
+• "Contratos suspeitos no [órgão] em [ano]"
+• "Compare gastos entre [estado1] e [estado2]"
+
+**🔧 Funcionalidades disponíveis**:
+- Detecção automática de anomalias
+- Análise de padrões temporais
+- Comparação entre órgãos/estados
+- Identificação de fornecedores recorrentes
+- Cálculo de indicadores de risco
+
+*Posso refinar minha análise se você fornecer mais detalhes específicos!*`
+            ];
+            
+            return responses[Math.floor(Math.random() * responses.length)];
+        }
+
+        // Hide suggestions after first interaction
+        function hideSuggestions() {
+            const suggestionsContainer = document.getElementById('suggestionsContainer');
+            if (suggestionsContainer && messageHistory.length === 0) {
+                suggestionsContainer.style.display = 'none';
+            }
+        }
+
+        // Clear chat function
+        function clearChat() {
+            if (confirm('Tem certeza que deseja limpar a conversa?')) {
+                const messagesContainer = document.getElementById('chatMessages');
+                messagesContainer.innerHTML = `
+                    <div class="welcome-message">
+                        <div class="welcome-icon">🤖</div>
+                        <h2 class="welcome-title">Chat limpo!</h2>
+                        <p class="welcome-subtitle">
+                            Pronto para uma nova conversa. O que você gostaria de saber sobre transparência pública?
+                        </p>
+                    </div>
+                `;
+                messageHistory = [];
+                
+                // Show suggestions again
+                const suggestionsContainer = document.getElementById('suggestionsContainer');
+                suggestionsContainer.style.display = 'block';
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            const chatInput = document.getElementById('chatInput');
+            chatInput.focus();
+            
+            // Add some interactive effects
+            const suggestionChips = document.querySelectorAll('.suggestion-chip');
+            suggestionChips.forEach(chip => {
+                chip.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                    this.style.boxShadow = '0 4px 12px rgba(0,102,204,0.2)';
+                });
+                
+                chip.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                    this.style.boxShadow = 'none';
+                });
+            });
+        });
+    </script>
+</body>
+</html>

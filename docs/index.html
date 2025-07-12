@@ -3,60 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cidadão.AI - Documentação Oficial</title>
-    <meta name="description" content="Documentação completa da plataforma Cidadão.AI - IA para transparência governamental brasileira">
-    <meta name="keywords" content="inteligência artificial, transparência, governo, brasil, dados públicos">
+    <title>Cidadão.AI - Democratizando a Transparência Pública</title>
+    <meta name="description" content="Sistema de IA para análise inteligente de dados governamentais brasileiros">
+    <meta name="keywords" content="transparência, governo, inteligência artificial, dados públicos, brasil">
     <meta name="author" content="Anderson Henrique da Silva">
     
     <!-- Favicon -->
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🤖</text></svg>">
-    
-    <!-- Open Graph -->
-    <meta property="og:title" content="Cidadão.AI - Documentação">
-    <meta property="og:description" content="Plataforma de IA para análise de transparência governamental brasileira">
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://huggingface.co/spaces/neural-thinker/cidadao-ai">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🇧🇷</text></svg>">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            /* Light Theme */
-            --bg-primary: #ffffff;
-            --bg-secondary: #f8f9fa;
-            --bg-sidebar: #f8f9fa;
-            --bg-hover: #e9ecef;
-            --text-primary: #212529;
-            --text-secondary: #6c757d;
-            --text-accent: #0066cc;
-            --border: #dee2e6;
-            --border-hover: #ced4da;
-            --shadow: 0 2px 4px rgba(0,0,0,0.1);
-            --shadow-lg: 0 4px 12px rgba(0,0,0,0.15);
-            
-            /* Dark Theme */
-            --bg-primary-dark: #1a1a1a;
-            --bg-secondary-dark: #2d2d2d;
-            --bg-sidebar-dark: #252525;
-            --bg-hover-dark: #3a3a3a;
-            --text-primary-dark: #ffffff;
-            --text-secondary-dark: #b0b0b0;
-            --text-accent-dark: #4da6ff;
-            --border-dark: #404040;
-            --border-hover-dark: #555555;
-            --shadow-dark: 0 2px 4px rgba(0,0,0,0.3);
-            --shadow-lg-dark: 0 4px 12px rgba(0,0,0,0.4);
-            
-            /* Typography */
-            --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
-            --font-mono: 'JetBrains Mono', 'SF Mono', Monaco, 'Cascadia Code', monospace;
-            
-            /* Layout */
-            --sidebar-width: 280px;
-            --header-height: 60px;
+            --primary-color: #0066cc;
+            --secondary-color: #4da6ff;
+            --accent-color: #00aa44;
+            --warning-color: #ff6b35;
+            --dark-bg: #1a1a1a;
+            --light-bg: #ffffff;
+            --text-dark: #2c2c2c;
+            --text-light: #ffffff;
+            --shadow: 0 10px 30px rgba(0,0,0,0.1);
+            --shadow-hover: 0 20px 40px rgba(0,0,0,0.15);
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --border-radius: 16px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         * {
@@ -66,1759 +42,570 @@
         }
 
         body {
-            font-family: var(--font-family);
-            background: var(--bg-primary);
-            color: var(--text-primary);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+            background: var(--light-bg);
+            color: var(--text-dark);
             line-height: 1.6;
-            transition: all 0.3s ease;
+            overflow-x: hidden;
         }
 
-        body.dark {
-            --bg-primary: var(--bg-primary-dark);
-            --bg-secondary: var(--bg-secondary-dark);
-            --bg-sidebar: var(--bg-sidebar-dark);
-            --bg-hover: var(--bg-hover-dark);
-            --text-primary: var(--text-primary-dark);
-            --text-secondary: var(--text-secondary-dark);
-            --text-accent: var(--text-accent-dark);
-            --border: var(--border-dark);
-            --border-hover: var(--border-hover-dark);
-            --shadow: var(--shadow-dark);
-            --shadow-lg: var(--shadow-lg-dark);
+        .hero-section {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
 
-        /* Header */
-        .header {
-            position: fixed;
+        /* Slideshow Background */
+        .slideshow-container {
+            position: absolute;
             top: 0;
             left: 0;
-            right: 0;
-            height: var(--header-height);
-            background: var(--bg-primary);
-            border-bottom: 1px solid var(--border);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 0 24px;
-            z-index: 1000;
-            box-shadow: var(--shadow);
+            width: 100%;
+            height: 100%;
+            z-index: -2;
         }
 
-        .header-title {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 2s ease-in-out;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
         }
 
-        .header-controls {
-            display: flex;
-            align-items: center;
-            gap: 16px;
+        .slide.active {
+            opacity: 1;
         }
 
-        .theme-toggle {
-            background: none;
-            border: 1px solid var(--border);
-            padding: 8px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            color: var(--text-primary);
-            font-size: 14px;
-            transition: all 0.2s ease;
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0,102,204,0.8) 0%, rgba(77,166,255,0.6) 100%);
+            z-index: 1;
         }
 
-        .theme-toggle:hover {
-            background: var(--bg-hover);
-            border-color: var(--border-hover);
+        /* Government Entity Backgrounds */
+        .slide.ministerio-saude {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="%23f0f8ff"/><circle cx="200" cy="200" r="80" fill="%234169e1" opacity="0.3"/><circle cx="800" cy="150" r="60" fill="%23228b22" opacity="0.4"/><circle cx="1000" cy="300" r="100" fill="%23ff6347" opacity="0.2"/><rect x="100" y="600" width="200" height="150" fill="%2332cd32" opacity="0.3"/><rect x="900" y="500" width="250" height="200" fill="%23ff4500" opacity="0.25"/></svg>');
         }
 
-        .lang-toggle {
-            background: var(--text-accent);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.2s ease;
+        .slide.ministerio-educacao {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="%23fff8dc"/><polygon points="300,200 500,200 400,100" fill="%23ffd700" opacity="0.4"/><circle cx="700" cy="300" r="90" fill="%23ff69b4" opacity="0.3"/><rect x="150" y="450" width="180" height="120" fill="%234169e1" opacity="0.35"/><rect x="850" y="250" width="200" height="300" fill="%2332cd32" opacity="0.3"/></svg>');
         }
 
-        .lang-toggle:hover {
-            opacity: 0.9;
+        .slide.receita-federal {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="%23f5f5dc"/><rect x="200" y="150" width="150" height="200" fill="%23228b22" opacity="0.4"/><circle cx="600" cy="400" r="120" fill="%23ff6347" opacity="0.3"/><polygon points="900,100 1100,100 1000,250" fill="%234169e1" opacity="0.35"/><rect x="50" y="550" width="300" height="100" fill="%23ffd700" opacity="0.4"/></svg>');
         }
 
-        /* Layout */
-        .container {
-            display: flex;
-            margin-top: var(--header-height);
-            min-height: calc(100vh - var(--header-height));
+        .slide.cgu {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="%23f0ffff"/><circle cx="300" cy="250" r="70" fill="%2332cd32" opacity="0.4"/><rect x="600" y="100" width="200" height="250" fill="%23ff69b4" opacity="0.3"/><polygon points="950,200 1050,300 850,300" fill="%23ffd700" opacity="0.4"/><circle cx="150" cy="600" r="100" fill="%234169e1" opacity="0.3"/></svg>');
         }
 
-        .sidebar {
-            width: var(--sidebar-width);
-            background: var(--bg-sidebar);
-            border-right: 1px solid var(--border);
-            position: fixed;
-            height: calc(100vh - var(--header-height));
-            overflow-y: auto;
-            z-index: 100;
+        .slide.tcu {
+            background-image: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800"><rect width="1200" height="800" fill="%23faf0e6"/><rect x="250" y="200" width="180" height="180" fill="%23ff4500" opacity="0.4"/><circle cx="750" cy="200" r="85" fill="%234169e1" opacity="0.35"/><polygon points="500,500 650,450 650,550" fill="%2332cd32" opacity="0.4"/><rect x="900" y="450" width="200" height="150" fill="%23ff69b4" opacity="0.3"/></svg>');
         }
 
-        .sidebar-nav {
-            padding: 24px 0;
+        /* Overlay */
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(0,102,204,0.1) 0%, rgba(77,166,255,0.05) 100%);
+            z-index: -1;
         }
 
-        .nav-section {
-            margin-bottom: 32px;
-        }
-
-        .nav-section-title {
-            font-size: 12px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-secondary);
-            padding: 0 24px 12px;
-        }
-
-        .nav-item {
-            display: block;
-            padding: 12px 24px;
-            color: var(--text-primary);
-            text-decoration: none;
-            font-size: 14px;
-            font-weight: 500;
-            border-left: 3px solid transparent;
-            transition: all 0.2s ease;
-        }
-
-        .nav-item:hover {
-            background: var(--bg-hover);
-            color: var(--text-accent);
-        }
-
-        .nav-item.active {
-            background: var(--bg-hover);
-            color: var(--text-accent);
-            border-left-color: var(--text-accent);
-        }
-
-        .main-content {
-            flex: 1;
-            margin-left: var(--sidebar-width);
-            padding: 32px 48px;
-            max-width: calc(100vw - var(--sidebar-width));
-        }
-
-        .content-section {
-            display: none;
+        /* Main Content */
+        .hero-content {
+            text-align: center;
             max-width: 800px;
+            padding: 0 2rem;
+            z-index: 2;
+            animation: fadeInUp 1s ease-out;
         }
 
-        .content-section.active {
-            display: block;
+        .hero-title {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            color: var(--text-light);
+            margin-bottom: 1rem;
+            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
+            letter-spacing: -0.02em;
+            line-height: 1.1;
         }
 
-        .section-title {
-            font-size: 32px;
+        .hero-subtitle {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            color: rgba(255,255,255,0.9);
+            margin-bottom: 3rem;
+            font-weight: 400;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.2);
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-bottom: 4rem;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1.25rem 2.5rem;
+            background: var(--gradient-1);
+            color: var(--text-light);
+            text-decoration: none;
+            border-radius: var(--border-radius);
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: var(--transition);
+            box-shadow: var(--shadow);
+            border: 2px solid transparent;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .cta-button:hover::before {
+            left: 100%;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-hover);
+            scale: 1.02;
+        }
+
+        .cta-button.secondary {
+            background: var(--gradient-3);
+        }
+
+        .cta-button .emoji {
+            font-size: 1.3rem;
+        }
+
+        /* Examples Section */
+        .examples-section {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            margin: 0 2rem;
+            box-shadow: var(--shadow);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .examples-title {
+            font-size: 1.5rem;
             font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 16px;
-            line-height: 1.2;
-        }
-
-        .section-subtitle {
-            font-size: 18px;
-            color: var(--text-secondary);
-            margin-bottom: 32px;
-            line-height: 1.5;
-        }
-
-        .content-block {
-            margin-bottom: 32px;
-        }
-
-        .content-block h3 {
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 16px;
-        }
-
-        .content-block h4 {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 12px;
-        }
-
-        .content-block p {
-            color: var(--text-primary);
-            margin-bottom: 16px;
-            line-height: 1.7;
-        }
-
-        .content-block ul, .content-block ol {
-            margin-left: 24px;
-            margin-bottom: 16px;
-        }
-
-        .content-block li {
-            color: var(--text-primary);
-            margin-bottom: 8px;
-            line-height: 1.6;
-        }
-
-        .code-block {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 16px;
-            font-family: var(--font-mono);
-            font-size: 14px;
-            color: var(--text-primary);
-            overflow-x: auto;
-            margin: 16px 0;
-        }
-
-        .highlight-box {
-            background: var(--bg-secondary);
-            border-left: 4px solid var(--text-accent);
-            padding: 20px;
-            border-radius: 8px;
-            margin: 24px 0;
-        }
-
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 24px;
-            margin: 24px 0;
-        }
-
-        .feature-card {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            transition: all 0.2s ease;
-        }
-
-        .feature-card:hover {
-            box-shadow: var(--shadow-lg);
-            border-color: var(--border-hover);
-        }
-
-        .feature-icon {
-            font-size: 24px;
-            margin-bottom: 12px;
-        }
-
-        .feature-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-
-        .feature-description {
-            color: var(--text-secondary);
-            font-size: 14px;
-            line-height: 1.6;
-        }
-
-        .credits {
-            background: var(--bg-secondary);
-            border-radius: 12px;
-            padding: 24px;
-            margin: 32px 0;
+            color: var(--text-dark);
+            margin-bottom: 1.5rem;
             text-align: center;
         }
 
-        .credits h4 {
-            color: var(--text-primary);
-            margin-bottom: 16px;
+        .examples-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
         }
 
-        .social-links {
-            display: flex;
-            justify-content: center;
-            gap: 16px;
-            flex-wrap: wrap;
+        .example-card {
+            background: var(--light-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border: 1px solid rgba(0,102,204,0.1);
+            transition: var(--transition);
         }
 
-        .social-link {
-            color: var(--text-accent);
+        .example-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.12);
+        }
+
+        .example-icon {
+            font-size: 2rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .example-question {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 0.95rem;
+        }
+
+        .example-description {
+            color: var(--text-dark);
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+
+        /* Footer */
+        .footer-section {
+            background: var(--dark-bg);
+            color: var(--text-light);
+            padding: 3rem 2rem 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        .footer-section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+
+        .footer-link {
+            color: rgba(255,255,255,0.8);
             text-decoration: none;
-            padding: 8px 16px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            font-size: 14px;
-            transition: all 0.2s ease;
-        }
-
-        .social-link:hover {
-            background: var(--bg-hover);
-            border-color: var(--text-accent);
-        }
-
-        /* Language Content */
-        .lang-content {
-            display: none;
-        }
-
-        .lang-content.active {
+            transition: var(--transition);
             display: block;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-link:hover {
+            color: var(--secondary-color);
+        }
+
+        .footer-credits {
+            border-top: 1px solid rgba(255,255,255,0.1);
+            padding-top: 2rem;
+            margin-top: 2rem;
+        }
+
+        .claude-credit {
+            background: rgba(77,166,255,0.1);
+            border: 1px solid rgba(77,166,255,0.3);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+            font-size: 0.9rem;
+            color: rgba(255,255,255,0.9);
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(40px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .floating {
+            animation: float 6s ease-in-out infinite;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .sidebar {
-                transform: translateX(-100%);
-                transition: transform 0.3s ease;
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+                gap: 1rem;
             }
 
-            .sidebar.mobile-open {
-                transform: translateX(0);
+            .cta-button {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
             }
 
-            .main-content {
-                margin-left: 0;
-                padding: 24px 20px;
-                max-width: 100vw;
+            .examples-section {
+                margin: 0 1rem;
+                padding: 1.5rem;
             }
 
-            .header-title {
-                font-size: 18px;
+            .footer-section {
+                padding: 2rem 1rem 1rem;
             }
+        }
 
-            .section-title {
-                font-size: 24px;
-            }
+        /* Loading animation for slideshow */
+        .slide-loader {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 0.5rem;
+            z-index: 3;
+        }
 
-            .feature-grid {
-                grid-template-columns: 1fr;
-            }
+        .slide-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .slide-dot.active {
+            background: var(--text-light);
+            transform: scale(1.2);
         }
     </style>
 </head>
 <body>
-    <!-- Header -->
-    <header class="header">
-        <div class="header-title">
-            <span>🤖</span>
-            <span data-lang="pt">Cidadão.AI - Documentação</span>
-            <span data-lang="en" style="display: none;">Cidadão.AI - Documentation</span>
+    <main class="hero-section">
+        <!-- Slideshow Background -->
+        <div class="slideshow-container">
+            <div class="slide ministerio-saude active"></div>
+            <div class="slide ministerio-educacao"></div>
+            <div class="slide receita-federal"></div>
+            <div class="slide cgu"></div>
+            <div class="slide tcu"></div>
         </div>
-        <div class="header-controls">
-            <button class="theme-toggle" onclick="toggleTheme()">
-                <span class="theme-icon">🌙</span>
-            </button>
-            <button class="lang-toggle" onclick="toggleLanguage()">
-                <span data-lang="pt">EN</span>
-                <span data-lang="en" style="display: none;">PT</span>
-            </button>
-        </div>
-    </header>
-
-    <div class="container">
-        <!-- Sidebar -->
-        <nav class="sidebar">
-            <div class="sidebar-nav">
-                <!-- Portuguese Navigation -->
-                <div class="lang-content active" data-lang="pt">
-                    <div class="nav-section">
-                        <div class="nav-section-title">Início</div>
-                        <a href="#overview" class="nav-item active" onclick="showSection('overview')">Visão Geral</a>
-                        <a href="#features" class="nav-item" onclick="showSection('features')">Funcionalidades</a>
-                        <a href="#architecture" class="nav-item" onclick="showSection('architecture')">Arquitetura</a>
+        
+        <!-- Overlay -->
+        <div class="hero-overlay"></div>
+        
+        <!-- Main Content -->
+        <div class="hero-content">
+            <h1 class="hero-title floating">Cidadão.AI</h1>
+            <p class="hero-subtitle">
+                Democratizando o acesso aos dados de transparência pública brasileira através de inteligência artificial
+            </p>
+            
+            <!-- Call-to-Action Buttons -->
+            <div class="cta-buttons">
+                <a href="chatbot.html" class="cta-button">
+                    <span class="emoji">🤖</span>
+                    <span>Chatbot Inteligente</span>
+                </a>
+                <a href="consulta-avancada.html" class="cta-button secondary">
+                    <span class="emoji">🔍</span>
+                    <span>Consulta Avançada</span>
+                </a>
+            </div>
+            
+            <!-- Examples Section -->
+            <div class="examples-section">
+                <h2 class="examples-title">💡 Exemplos do que você pode perguntar</h2>
+                
+                <div class="examples-grid">
+                    <div class="example-card">
+                        <div class="example-icon">📋</div>
+                        <div class="example-question">"Temos contratos duplicados em 2025?"</div>
+                        <div class="example-description">Identifica contratos com características similares que podem indicar duplicação</div>
                     </div>
-                    <div class="nav-section">
-                        <div class="nav-section-title">Desenvolvimento</div>
-                        <a href="#installation" class="nav-item" onclick="showSection('installation')">Instalação</a>
-                        <a href="#usage" class="nav-item" onclick="showSection('usage')">Como Usar</a>
-                        <a href="#api" class="nav-item" onclick="showSection('api')">API Reference</a>
-                        <a href="#technical" class="nav-item" onclick="showSection('technical')">Detalhes Técnicos</a>
+                    
+                    <div class="example-card">
+                        <div class="example-icon">💰</div>
+                        <div class="example-question">"Quanto foi o gasto com saúde em 2024?"</div>
+                        <div class="example-description">Analisa despesas totais do setor de saúde no período especificado</div>
                     </div>
-                    <div class="nav-section">
-                        <div class="nav-section-title">Recursos</div>
-                        <a href="#examples" class="nav-item" onclick="showSection('examples')">Exemplos</a>
-                        <a href="#deployment" class="nav-item" onclick="showSection('deployment')">Deploy</a>
-                        <a href="#contributing" class="nav-item" onclick="showSection('contributing')">Contribuir</a>
-                        <a href="#credits" class="nav-item" onclick="showSection('credits')">Créditos</a>
+                    
+                    <div class="example-card">
+                        <div class="example-icon">🏛️</div>
+                        <div class="example-question">"Quanto Minas Gerais recebeu de repasse?"</div>
+                        <div class="example-description">Calcula transferências federais para o estado especificado</div>
                     </div>
-                </div>
-
-                <!-- English Navigation -->
-                <div class="lang-content" data-lang="en">
-                    <div class="nav-section">
-                        <div class="nav-section-title">Getting Started</div>
-                        <a href="#overview" class="nav-item active" onclick="showSection('overview')">Overview</a>
-                        <a href="#features" class="nav-item" onclick="showSection('features')">Features</a>
-                        <a href="#architecture" class="nav-item" onclick="showSection('architecture')">Architecture</a>
+                    
+                    <div class="example-card">
+                        <div class="example-icon">⚠️</div>
+                        <div class="example-question">"Contratos suspeitos acima de R$ 10 milhões"</div>
+                        <div class="example-description">Detecta anomalias em contratos de alto valor usando IA</div>
                     </div>
-                    <div class="nav-section">
-                        <div class="nav-section-title">Development</div>
-                        <a href="#installation" class="nav-item" onclick="showSection('installation')">Installation</a>
-                        <a href="#usage" class="nav-item" onclick="showSection('usage')">Usage</a>
-                        <a href="#api" class="nav-item" onclick="showSection('api')">API Reference</a>
-                        <a href="#technical" class="nav-item" onclick="showSection('technical')">Technical Details</a>
+                    
+                    <div class="example-card">
+                        <div class="example-icon">📊</div>
+                        <div class="example-question">"Quais fornecedores receberam mais dinheiro?"</div>
+                        <div class="example-description">Ranking de empresas por volume de contratos governamentais</div>
                     </div>
-                    <div class="nav-section">
-                        <div class="nav-section-title">Resources</div>
-                        <a href="#examples" class="nav-item" onclick="showSection('examples')">Examples</a>
-                        <a href="#deployment" class="nav-item" onclick="showSection('deployment')">Deployment</a>
-                        <a href="#contributing" class="nav-item" onclick="showSection('contributing')">Contributing</a>
-                        <a href="#credits" class="nav-item" onclick="showSection('credits')">Credits</a>
+                    
+                    <div class="example-card">
+                        <div class="example-icon">🔍</div>
+                        <div class="example-question">"Analise padrões no Ministério da Educação"</div>
+                        <div class="example-description">Identifica tendências e irregularidades em órgãos específicos</div>
                     </div>
                 </div>
             </div>
-        </nav>
+        </div>
+        
+        <!-- Slide Indicators -->
+        <div class="slide-loader">
+            <div class="slide-dot active" onclick="setSlide(0)"></div>
+            <div class="slide-dot" onclick="setSlide(1)"></div>
+            <div class="slide-dot" onclick="setSlide(2)"></div>
+            <div class="slide-dot" onclick="setSlide(3)"></div>
+            <div class="slide-dot" onclick="setSlide(4)"></div>
+        </div>
+    </main>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            <!-- Overview Section -->
-            <section id="overview" class="content-section active">
-                <!-- Portuguese Content -->
-                <div class="lang-content active" data-lang="pt">
-                    <h1 class="section-title">Cidadão.AI</h1>
-                    <p class="section-subtitle">Plataforma de IA para democratização do acesso aos dados de transparência pública brasileira</p>
-                    
-                    <div class="content-block">
-                        <p>O <strong>Cidadão.AI</strong> é uma plataforma revolucionária que utiliza inteligência artificial para transformar dados brutos de gastos públicos brasileiros em investigações inteligentes através de processamento de linguagem natural.</p>
-                        
-                        <div class="highlight-box">
-                            <h4>🎯 Missão</h4>
-                            <p>Democratizar o acesso à informação pública, permitindo que qualquer cidadão possa investigar e compreender como os recursos públicos estão sendo utilizados através de uma interface simples e intuitiva.</p>
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🚀 Status Atual</h3>
-                        <p><strong>API Completa</strong> - Sistema multi-agente completo com API REST abrangente implementada e pronta para produção.</p>
-                        
-                        <div class="feature-grid">
-                            <div class="feature-card">
-                                <div class="feature-icon">✅</div>
-                                <div class="feature-title">Backend Implementado</div>
-                                <div class="feature-description">Python 3.11+, FastAPI, LangChain, PostgreSQL, Redis, Celery</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">🤖</div>
-                                <div class="feature-title">IA/ML Operacional</div>
-                                <div class="feature-description">Múltiplos provedores LLM, detecção de anomalias, análise explicável</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">🔄</div>
-                                <div class="feature-title">Frontend em Desenvolvimento</div>
-                                <div class="feature-description">Interface web interativa em desenvolvimento ativo</div>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Footer -->
+    <footer class="footer-section">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div>
+                    <h3 class="footer-section-title">📚 Documentação</h3>
+                    <a href="documentation.html" class="footer-link">Documentação Completa</a>
+                    <a href="documentation.html#api" class="footer-link">API Reference</a>
+                    <a href="documentation.html#examples" class="footer-link">Exemplos de Uso</a>
+                    <a href="documentation.html#installation" class="footer-link">Como Instalar</a>
                 </div>
-
-                <!-- English Content -->
-                <div class="lang-content" data-lang="en">
-                    <h1 class="section-title">Cidadão.AI</h1>
-                    <p class="section-subtitle">AI-powered platform for democratizing access to Brazilian public transparency data</p>
-                    
-                    <div class="content-block">
-                        <p><strong>Cidadão.AI</strong> is a revolutionary platform that uses artificial intelligence to transform raw Brazilian public spending data into intelligent investigations through natural language processing.</p>
-                        
-                        <div class="highlight-box">
-                            <h4>🎯 Mission</h4>
-                            <p>Democratize access to public information, allowing any citizen to investigate and understand how public resources are being used through a simple and intuitive interface.</p>
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🚀 Current Status</h3>
-                        <p><strong>API Complete</strong> - Full multi-agent system with comprehensive REST API implemented and production-ready.</p>
-                        
-                        <div class="feature-grid">
-                            <div class="feature-card">
-                                <div class="feature-icon">✅</div>
-                                <div class="feature-title">Backend Implemented</div>
-                                <div class="feature-description">Python 3.11+, FastAPI, LangChain, PostgreSQL, Redis, Celery</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">🤖</div>
-                                <div class="feature-title">AI/ML Operational</div>
-                                <div class="feature-description">Multiple LLM providers, anomaly detection, explainable analysis</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">🔄</div>
-                                <div class="feature-title">Frontend in Development</div>
-                                <div class="feature-description">Interactive web interface under active development</div>
-                            </div>
-                        </div>
-                    </div>
+                
+                <div>
+                    <h3 class="footer-section-title">🔗 Links Úteis</h3>
+                    <a href="https://github.com/anderson-ufrj/cidadao.ai" class="footer-link">Código Fonte</a>
+                    <a href="https://huggingface.co/spaces/neural-thinker/cidadao-ai" class="footer-link">Demo Online</a>
+                    <a href="https://portaldatransparencia.gov.br" class="footer-link">Portal da Transparência</a>
+                    <a href="documentation.html#contributing" class="footer-link">Contribuir</a>
                 </div>
-            </section>
-
-            <!-- Features Section -->
-            <section id="features" class="content-section">
-                <!-- Portuguese Content -->
-                <div class="lang-content active" data-lang="pt">
-                    <h1 class="section-title">Funcionalidades</h1>
-                    <p class="section-subtitle">Recursos avançados para análise de transparência pública</p>
-                    
-                    <div class="feature-grid">
-                        <div class="feature-card">
-                            <div class="feature-icon">🕵️</div>
-                            <div class="feature-title">Investigação Inteligente</div>
-                            <div class="feature-description">Detecção automática de anomalias em contratos, despesas e convênios governamentais com explicações em português.</div>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">📊</div>
-                            <div class="feature-title">Análise de Padrões</div>
-                            <div class="feature-description">Identificação de correlações e tendências em dados de gastos públicos usando algoritmos avançados de ML.</div>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">📈</div>
-                            <div class="feature-title">Relatórios Automatizados</div>
-                            <div class="feature-description">Geração de relatórios em linguagem natural em múltiplos formatos (Markdown, HTML, JSON).</div>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">🔍</div>
-                            <div class="feature-title">Busca Semântica</div>
-                            <div class="feature-description">Sistema de busca inteligente que compreende consultas em linguagem natural.</div>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">⚡</div>
-                            <div class="feature-title">Streaming em Tempo Real</div>
-                            <div class="feature-description">Resultados de investigações transmitidos em tempo real via Server-Sent Events.</div>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">🛡️</div>
-                            <div class="feature-title">Sistema de Auditoria</div>
-                            <div class="feature-description">Trilha de auditoria imutável com hash chains para transparência completa.</div>
-                        </div>
-                    </div>
+                
+                <div>
+                    <h3 class="footer-section-title">👨‍💻 Desenvolvedor</h3>
+                    <a href="https://github.com/anderson-ufrj" class="footer-link">GitHub</a>
+                    <a href="https://linkedin.com/in/anderson-henrique-silva" class="footer-link">LinkedIn</a>
+                    <a href="https://huggingface.co/neural-thinker" class="footer-link">Hugging Face</a>
+                    <a href="mailto:andersonhs27@gmail.com" class="footer-link">Email</a>
                 </div>
-
-                <!-- English Content -->
-                <div class="lang-content" data-lang="en">
-                    <h1 class="section-title">Features</h1>
-                    <p class="section-subtitle">Advanced capabilities for public transparency analysis</p>
-                    
-                    <div class="feature-grid">
-                        <div class="feature-card">
-                            <div class="feature-icon">🕵️</div>
-                            <div class="feature-title">Intelligent Investigation</div>
-                            <div class="feature-description">Automatic anomaly detection in government contracts, expenses, and agreements with explanations in Portuguese.</div>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">📊</div>
-                            <div class="feature-title">Pattern Analysis</div>
-                            <div class="feature-description">Identification of correlations and trends in public spending data using advanced ML algorithms.</div>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">📈</div>
-                            <div class="feature-title">Automated Reports</div>
-                            <div class="feature-description">Natural language report generation in multiple formats (Markdown, HTML, JSON).</div>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">🔍</div>
-                            <div class="feature-title">Semantic Search</div>
-                            <div class="feature-description">Intelligent search system that understands natural language queries.</div>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">⚡</div>
-                            <div class="feature-title">Real-time Streaming</div>
-                            <div class="feature-description">Investigation results streamed in real-time via Server-Sent Events.</div>
-                        </div>
-                        <div class="feature-card">
-                            <div class="feature-icon">🛡️</div>
-                            <div class="feature-title">Audit System</div>
-                            <div class="feature-description">Immutable audit trail with hash chains for complete transparency.</div>
-                        </div>
-                    </div>
+            </div>
+            
+            <div class="footer-credits">
+                <p><strong>Anderson Henrique da Silva</strong> - Engenheiro de Software</p>
+                <p>🇧🇷 Cada análise é um ato de cidadania</p>
+                
+                <div class="claude-credit">
+                    <p>🤖 <strong>Desenvolvido com Claude Code</strong></p>
+                    <p>Sistema criado com assistência da IA Claude Code da Anthropic, demonstrando a colaboração entre engenharia humana e inteligência artificial para fortalecer a democracia brasileira.</p>
                 </div>
-            </section>
-
-            <!-- Architecture Section -->
-            <section id="architecture" class="content-section">
-                <!-- Portuguese Content -->
-                <div class="lang-content active" data-lang="pt">
-                    <h1 class="section-title">Arquitetura</h1>
-                    <p class="section-subtitle">Sistema multi-agente sofisticado para análise de transparência</p>
-                    
-                    <div class="content-block">
-                        <h3>🏗️ Visão Geral</h3>
-                        <p>O sistema é construído como uma arquitetura multi-agente sofisticada, onde cada agente tem responsabilidades específicas e trabalha em conjunto para fornecer análises abrangentes.</p>
-                        
-                        <div class="highlight-box">
-                            <h4>Agentes Principais</h4>
-                            <ul>
-                                <li><strong>MasterAgent</strong>: Orquestra investigações com planejamento e reflexão</li>
-                                <li><strong>ContextMemoryAgent</strong>: Gerencia memória episódica, semântica e conversacional</li>
-                                <li><strong>SemanticRouter</strong>: Roteamento inteligente de consultas para agentes apropriados</li>
-                                <li><strong>InvestigatorAgent</strong>: Detecta anomalias com IA explicável</li>
-                                <li><strong>AnalystAgent</strong>: Correlaciona dados e identifica padrões</li>
-                                <li><strong>ReporterAgent</strong>: Gera relatórios em linguagem natural</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🔧 Stack Tecnológico</h3>
-                        <div class="feature-grid">
-                            <div class="feature-card">
-                                <div class="feature-icon">🐍</div>
-                                <div class="feature-title">Backend</div>
-                                <div class="feature-description">Python 3.11+, FastAPI, LangChain, Celery para processamento assíncrono</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">🗄️</div>
-                                <div class="feature-title">Dados</div>
-                                <div class="feature-description">PostgreSQL, Redis, FAISS/ChromaDB para armazenamento vetorial</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">🤖</div>
-                                <div class="feature-title">IA/ML</div>
-                                <div class="feature-description">Hugging Face, Groq, Together AI, SHAP/LIME para IA explicável</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- English Content -->
-                <div class="lang-content" data-lang="en">
-                    <h1 class="section-title">Architecture</h1>
-                    <p class="section-subtitle">Sophisticated multi-agent system for transparency analysis</p>
-                    
-                    <div class="content-block">
-                        <h3>🏗️ Overview</h3>
-                        <p>The system is built as a sophisticated multi-agent architecture, where each agent has specific responsibilities and works together to provide comprehensive analysis.</p>
-                        
-                        <div class="highlight-box">
-                            <h4>Core Agents</h4>
-                            <ul>
-                                <li><strong>MasterAgent</strong>: Orchestrates investigations with planning and reflection</li>
-                                <li><strong>ContextMemoryAgent</strong>: Manages episodic, semantic, and conversational memory</li>
-                                <li><strong>SemanticRouter</strong>: Intelligent query routing to appropriate agents</li>
-                                <li><strong>InvestigatorAgent</strong>: Detects anomalies with explainable AI</li>
-                                <li><strong>AnalystAgent</strong>: Correlates data and identifies patterns</li>
-                                <li><strong>ReporterAgent</strong>: Generates natural language reports</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🔧 Technology Stack</h3>
-                        <div class="feature-grid">
-                            <div class="feature-card">
-                                <div class="feature-icon">🐍</div>
-                                <div class="feature-title">Backend</div>
-                                <div class="feature-description">Python 3.11+, FastAPI, LangChain, Celery for async processing</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">🗄️</div>
-                                <div class="feature-title">Data</div>
-                                <div class="feature-description">PostgreSQL, Redis, FAISS/ChromaDB for vector storage</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">🤖</div>
-                                <div class="feature-title">AI/ML</div>
-                                <div class="feature-description">Hugging Face, Groq, Together AI, SHAP/LIME for explainable AI</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Installation Section -->
-            <section id="installation" class="content-section">
-                <!-- Portuguese Content -->
-                <div class="lang-content active" data-lang="pt">
-                    <h1 class="section-title">Instalação</h1>
-                    <p class="section-subtitle">Configure o ambiente de desenvolvimento</p>
-                    
-                    <div class="content-block">
-                        <h3>📋 Pré-requisitos</h3>
-                        <ul>
-                            <li>Python 3.11 ou superior</li>
-                            <li>Git</li>
-                            <li>Docker e Docker Compose (opcional)</li>
-                            <li>Chave da API do Portal da Transparência</li>
-                        </ul>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🚀 Instalação Rápida</h3>
-                        <div class="code-block">
-# Clone o repositório
-git clone https://github.com/anderson-ufrj/cidadao.ai
-cd cidadao.ai
-
-# Crie e ative o ambiente virtual
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# ou
-venv\Scripts\activate     # Windows
-
-# Instale as dependências
-pip install -e ".[dev]"
-
-# Configure as variáveis de ambiente
-cp .env.example .env
-# Edite .env com suas chaves de API
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🐳 Usando Docker</h3>
-                        <div class="code-block">
-# Iniciar serviços de desenvolvimento
-make docker-up
-
-# Parar serviços
-make docker-down
-                        </div>
-                    </div>
-                </div>
-
-                <!-- English Content -->
-                <div class="lang-content" data-lang="en">
-                    <h1 class="section-title">Installation</h1>
-                    <p class="section-subtitle">Set up your development environment</p>
-                    
-                    <div class="content-block">
-                        <h3>📋 Prerequisites</h3>
-                        <ul>
-                            <li>Python 3.11 or higher</li>
-                            <li>Git</li>
-                            <li>Docker and Docker Compose (optional)</li>
-                            <li>Portal da Transparência API key</li>
-                        </ul>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🚀 Quick Install</h3>
-                        <div class="code-block">
-# Clone the repository
-git clone https://github.com/anderson-ufrj/cidadao.ai
-cd cidadao.ai
-
-# Create and activate virtual environment
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# or
-venv\Scripts\activate     # Windows
-
-# Install dependencies
-pip install -e ".[dev]"
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your API keys
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🐳 Using Docker</h3>
-                        <div class="code-block">
-# Start development services
-make docker-up
-
-# Stop services
-make docker-down
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Usage Section -->
-            <section id="usage" class="content-section">
-                <!-- Portuguese Content -->
-                <div class="lang-content active" data-lang="pt">
-                    <h1 class="section-title">Como Usar</h1>
-                    <p class="section-subtitle">Guia prático para usar a plataforma</p>
-                    
-                    <div class="content-block">
-                        <h3>💻 Interface Web</h3>
-                        <div class="code-block">
-# Executar a interface Gradio
-python app.py
-
-# Ou usar uvicorn para desenvolvimento
-uvicorn src.api.app:app --reload
-                        </div>
-                        <p>Acesse <code>http://localhost:7860</code> para a interface principal ou <code>http://localhost:8000</code> para a API.</p>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🔧 CLI Commands</h3>
-                        <div class="code-block">
-# Investigar gastos suspeitos
-cidadao investigate "contratos acima de 1 milhão no ministério da saúde"
-
-# Analisar padrões organizacionais
-cidadao analyze --org "26000" --year 2024
-
-# Gerar relatórios
-cidadao report --format pdf --investigation-id 123
-
-# Monitorar anomalias em tempo real
-cidadao watch --threshold 0.8
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>📊 Exemplos de Uso</h3>
-                        <div class="feature-grid">
-                            <div class="feature-card">
-                                <div class="feature-icon">🔍</div>
-                                <div class="feature-title">Investigação de Contratos</div>
-                                <div class="feature-description">"Encontre contratos suspeitos no Ministério da Educação em 2024"</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">📈</div>
-                                <div class="feature-title">Análise de Tendências</div>
-                                <div class="feature-description">"Analise o crescimento de gastos com saúde nos últimos 5 anos"</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">🏢</div>
-                                <div class="feature-title">Perfil de Fornecedores</div>
-                                <div class="feature-description">"Investigar padrões de contratação da empresa X"</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- English Content -->
-                <div class="lang-content" data-lang="en">
-                    <h1 class="section-title">Usage</h1>
-                    <p class="section-subtitle">Practical guide to using the platform</p>
-                    
-                    <div class="content-block">
-                        <h3>💻 Web Interface</h3>
-                        <div class="code-block">
-# Run Gradio interface
-python app.py
-
-# Or use uvicorn for development
-uvicorn src.api.app:app --reload
-                        </div>
-                        <p>Access <code>http://localhost:7860</code> for the main interface or <code>http://localhost:8000</code> for the API.</p>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🔧 CLI Commands</h3>
-                        <div class="code-block">
-# Investigate suspicious spending
-cidadao investigate "contracts above 1 million in ministry of health"
-
-# Analyze organizational patterns
-cidadao analyze --org "26000" --year 2024
-
-# Generate reports
-cidadao report --format pdf --investigation-id 123
-
-# Monitor anomalies in real-time
-cidadao watch --threshold 0.8
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>📊 Usage Examples</h3>
-                        <div class="feature-grid">
-                            <div class="feature-card">
-                                <div class="feature-icon">🔍</div>
-                                <div class="feature-title">Contract Investigation</div>
-                                <div class="feature-description">"Find suspicious contracts in Ministry of Education in 2024"</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">📈</div>
-                                <div class="feature-title">Trend Analysis</div>
-                                <div class="feature-description">"Analyze health spending growth over the last 5 years"</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">🏢</div>
-                                <div class="feature-title">Vendor Profiling</div>
-                                <div class="feature-description">"Investigate contracting patterns of company X"</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Technical Details Section -->
-            <section id="technical" class="content-section">
-                <!-- Portuguese Content -->
-                <div class="lang-content active" data-lang="pt">
-                    <h1 class="section-title">Detalhes Técnicos</h1>
-                    <p class="section-subtitle">Implementação técnica e arquitetura interna</p>
-                    
-                    <div class="content-block">
-                        <h3>🏗️ Arquitetura Multi-Agente</h3>
-                        <p>O sistema implementa um padrão de arquitetura multi-agente onde cada agente possui responsabilidades específicas:</p>
-                        
-                        <div class="highlight-box">
-                            <h4>Fluxo de Processamento</h4>
-                            <ol>
-                                <li><strong>SemanticRouter</strong> analisa a consulta e determina o agente apropriado</li>
-                                <li><strong>MasterAgent</strong> orquestra a investigação com planejamento estratégico</li>
-                                <li><strong>InvestigatorAgent</strong> executa detecção de anomalias usando algoritmos ML</li>
-                                <li><strong>AnalystAgent</strong> realiza análise de correlação e identificação de padrões</li>
-                                <li><strong>ReporterAgent</strong> gera relatórios em linguagem natural</li>
-                                <li><strong>ContextMemoryAgent</strong> mantém contexto entre interações</li>
-                            </ol>
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🔍 Algoritmos de Detecção de Anomalias</h3>
-                        <div class="feature-grid">
-                            <div class="feature-card">
-                                <div class="feature-icon">📊</div>
-                                <div class="feature-title">Análise Estatística</div>
-                                <div class="feature-description">Detecção de outliers usando Z-score, IQR e métodos de distribuição</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">🧠</div>
-                                <div class="feature-title">Machine Learning</div>
-                                <div class="feature-description">Isolation Forest, Local Outlier Factor e One-Class SVM</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">🔗</div>
-                                <div class="feature-title">Análise de Grafos</div>
-                                <div class="feature-description">Detecção de padrões suspeitos em redes de contratos</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🛠️ Sistema de Memória</h3>
-                        <div class="code-block">
-# Estrutura da Memória Dual
-├── Memória Episódica (Redis)
-│   ├── Sessões de investigação
-│   ├── Contexto conversacional
-│   └── Estado temporário dos agentes
-│
-└── Memória Semântica (ChromaDB)
-    ├── Embeddings de documentos
-    ├── Padrões históricos detectados
-    └── Base de conhecimento de anomalias
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>⚡ Otimizações de Performance</h3>
-                        <ul>
-                            <li><strong>Rate Limiting Inteligente</strong>: Algoritmo sliding window para respeitar limites da API</li>
-                            <li><strong>Cache Multinível</strong>: Redis para dados temporários, ChromaDB para embeddings</li>
-                            <li><strong>Processamento Assíncrono</strong>: Celery para tarefas de longa duração</li>
-                            <li><strong>Streaming de Resultados</strong>: Server-Sent Events para atualizações em tempo real</li>
-                            <li><strong>Pooling de Conexões</strong>: Gerenciamento eficiente de conexões HTTP</li>
-                        </ul>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🔐 Segurança e Auditoria</h3>
-                        <div class="highlight-box">
-                            <h4>Trilha de Auditoria Blockchain-Style</h4>
-                            <p>Cada investigação é registrada com:</p>
-                            <ul>
-                                <li>Hash SHA-256 da investigação</li>
-                                <li>Hash do bloco anterior</li>
-                                <li>Timestamp criptográfico</li>
-                                <li>Assinatura digital do resultado</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- English Content -->
-                <div class="lang-content" data-lang="en">
-                    <h1 class="section-title">Technical Details</h1>
-                    <p class="section-subtitle">Technical implementation and internal architecture</p>
-                    
-                    <div class="content-block">
-                        <h3>🏗️ Multi-Agent Architecture</h3>
-                        <p>The system implements a multi-agent architecture pattern where each agent has specific responsibilities:</p>
-                        
-                        <div class="highlight-box">
-                            <h4>Processing Flow</h4>
-                            <ol>
-                                <li><strong>SemanticRouter</strong> analyzes the query and determines the appropriate agent</li>
-                                <li><strong>MasterAgent</strong> orchestrates the investigation with strategic planning</li>
-                                <li><strong>InvestigatorAgent</strong> executes anomaly detection using ML algorithms</li>
-                                <li><strong>AnalystAgent</strong> performs correlation analysis and pattern identification</li>
-                                <li><strong>ReporterAgent</strong> generates natural language reports</li>
-                                <li><strong>ContextMemoryAgent</strong> maintains context between interactions</li>
-                            </ol>
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🔍 Anomaly Detection Algorithms</h3>
-                        <div class="feature-grid">
-                            <div class="feature-card">
-                                <div class="feature-icon">📊</div>
-                                <div class="feature-title">Statistical Analysis</div>
-                                <div class="feature-description">Outlier detection using Z-score, IQR and distribution methods</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">🧠</div>
-                                <div class="feature-title">Machine Learning</div>
-                                <div class="feature-description">Isolation Forest, Local Outlier Factor and One-Class SVM</div>
-                            </div>
-                            <div class="feature-card">
-                                <div class="feature-icon">🔗</div>
-                                <div class="feature-title">Graph Analysis</div>
-                                <div class="feature-description">Detection of suspicious patterns in contract networks</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🛠️ Memory System</h3>
-                        <div class="code-block">
-# Dual Memory Structure
-├── Episodic Memory (Redis)
-│   ├── Investigation sessions
-│   ├── Conversational context
-│   └── Temporary agent state
-│
-└── Semantic Memory (ChromaDB)
-    ├── Document embeddings
-    ├── Historical detected patterns
-    └── Anomaly knowledge base
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>⚡ Performance Optimizations</h3>
-                        <ul>
-                            <li><strong>Intelligent Rate Limiting</strong>: Sliding window algorithm to respect API limits</li>
-                            <li><strong>Multi-level Caching</strong>: Redis for temporary data, ChromaDB for embeddings</li>
-                            <li><strong>Asynchronous Processing</strong>: Celery for long-running tasks</li>
-                            <li><strong>Result Streaming</strong>: Server-Sent Events for real-time updates</li>
-                            <li><strong>Connection Pooling</strong>: Efficient HTTP connection management</li>
-                        </ul>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🔐 Security and Auditing</h3>
-                        <div class="highlight-box">
-                            <h4>Blockchain-Style Audit Trail</h4>
-                            <p>Each investigation is recorded with:</p>
-                            <ul>
-                                <li>SHA-256 hash of the investigation</li>
-                                <li>Hash of the previous block</li>
-                                <li>Cryptographic timestamp</li>
-                                <li>Digital signature of the result</li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- API Section -->
-            <section id="api" class="content-section">
-                <!-- Portuguese Content -->
-                <div class="lang-content active" data-lang="pt">
-                    <h1 class="section-title">API Reference</h1>
-                    <p class="section-subtitle">Documentação completa da API REST</p>
-                    
-                    <div class="content-block">
-                        <h3>🔑 Autenticação</h3>
-                        <div class="code-block">
-# JWT Token
-Authorization: Bearer &lt;jwt_token&gt;
-
-# API Key
-X-API-Key: &lt;api_key&gt;
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>📋 Endpoints Principais</h3>
-                        
-                        <h4>🔍 Investigações</h4>
-                        <div class="code-block">
-POST /api/v1/investigations
-GET  /api/v1/investigations/{id}
-GET  /api/v1/investigations/{id}/stream
-GET  /api/v1/investigations/user/{user_id}
-                        </div>
-
-                        <h4>📊 Análises</h4>
-                        <div class="code-block">
-POST /api/v1/analysis/trends
-POST /api/v1/analysis/vendors
-POST /api/v1/analysis/correlations
-POST /api/v1/analysis/organizations
-                        </div>
-
-                        <h4>📈 Relatórios</h4>
-                        <div class="code-block">
-POST /api/v1/reports/executive
-POST /api/v1/reports/detailed
-POST /api/v1/reports/investigation/{id}
-GET  /api/v1/reports/{id}/download
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>💡 Exemplo de Uso</h3>
-                        <div class="code-block">
-import httpx
-
-async with httpx.AsyncClient() as client:
-    # Iniciar investigação
-    response = await client.post(
-        "http://localhost:8000/api/v1/investigations",
-        json={
-            "query": "contratos suspeitos ministério saúde 2024",
-            "filters": {
-                "orgao": "36000",
-                "ano": 2024,
-                "valor_minimo": 1000000
-            }
-        },
-        headers={"Authorization": "Bearer &lt;token&gt;"}
-    )
-    
-    investigation = response.json()
-    print(f"Investigação iniciada: {investigation['id']}")
-                        </div>
-                    </div>
-                </div>
-
-                <!-- English Content -->
-                <div class="lang-content" data-lang="en">
-                    <h1 class="section-title">API Reference</h1>
-                    <p class="section-subtitle">Complete REST API documentation</p>
-                    
-                    <div class="content-block">
-                        <h3>🔑 Authentication</h3>
-                        <div class="code-block">
-# JWT Token
-Authorization: Bearer &lt;jwt_token&gt;
-
-# API Key
-X-API-Key: &lt;api_key&gt;
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>📋 Main Endpoints</h3>
-                        
-                        <h4>🔍 Investigations</h4>
-                        <div class="code-block">
-POST /api/v1/investigations
-GET  /api/v1/investigations/{id}
-GET  /api/v1/investigations/{id}/stream
-GET  /api/v1/investigations/user/{user_id}
-                        </div>
-
-                        <h4>📊 Analysis</h4>
-                        <div class="code-block">
-POST /api/v1/analysis/trends
-POST /api/v1/analysis/vendors
-POST /api/v1/analysis/correlations
-POST /api/v1/analysis/organizations
-                        </div>
-
-                        <h4>📈 Reports</h4>
-                        <div class="code-block">
-POST /api/v1/reports/executive
-POST /api/v1/reports/detailed
-POST /api/v1/reports/investigation/{id}
-GET  /api/v1/reports/{id}/download
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>💡 Usage Example</h3>
-                        <div class="code-block">
-import httpx
-
-async with httpx.AsyncClient() as client:
-    # Start investigation
-    response = await client.post(
-        "http://localhost:8000/api/v1/investigations",
-        json={
-            "query": "suspicious contracts ministry health 2024",
-            "filters": {
-                "orgao": "36000",
-                "ano": 2024,
-                "valor_minimo": 1000000
-            }
-        },
-        headers={"Authorization": "Bearer &lt;token&gt;"}
-    )
-    
-    investigation = response.json()
-    print(f"Investigation started: {investigation['id']}")
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Examples Section -->
-            <section id="examples" class="content-section">
-                <!-- Portuguese Content -->
-                <div class="lang-content active" data-lang="pt">
-                    <h1 class="section-title">Exemplos</h1>
-                    <p class="section-subtitle">Casos de uso práticos e exemplos de investigação</p>
-                    
-                    <div class="content-block">
-                        <h3>🏥 Investigação: Contratos de Saúde Suspeitos</h3>
-                        <div class="highlight-box">
-                            <h4>Cenário</h4>
-                            <p>Investigar contratos do Ministério da Saúde em 2024 que possam apresentar irregularidades.</p>
-                        </div>
-                        
-                        <div class="code-block">
-# Via CLI
-cidadao investigate "contratos ministério saúde 2024 acima 10 milhões"
-
-# Via Interface Web
-"Analise contratos do Ministério da Saúde em 2024 acima de R$ 10 milhões 
- procurando por padrões suspeitos de superfaturamento ou direcionamento"
-                        </div>
-                        
-                        <p><strong>Resultados esperados:</strong></p>
-                        <ul>
-                            <li>Detecção de contratos com valores discrepantes</li>
-                            <li>Identificação de fornecedores recorrentes</li>
-                            <li>Análise de prazos de execução anômalos</li>
-                            <li>Relatório com explicações em português</li>
-                        </ul>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>📊 Análise: Padrões de Gastos por Região</h3>
-                        <div class="code-block">
-# Análise comparativa de gastos
-cidadao analyze --type "regional_spending" --year 2024 --category "educacao"
-
-# Query natural
-"Compare os gastos com educação entre as regiões Norte e Sudeste em 2024"
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🏢 Monitoramento: Fornecedor Específico</h3>
-                        <div class="code-block">
-# Monitoramento contínuo
-cidadao watch --vendor "12345678000195" --alert-threshold 0.8
-
-# Investigação histórica
-"Analise todos os contratos da empresa CNPJ 12.345.678/0001-95 
- nos últimos 3 anos procurando por padrões irregulares"
-                        </div>
-                    </div>
-                </div>
-
-                <!-- English Content -->
-                <div class="lang-content" data-lang="en">
-                    <h1 class="section-title">Examples</h1>
-                    <p class="section-subtitle">Practical use cases and investigation examples</p>
-                    
-                    <div class="content-block">
-                        <h3>🏥 Investigation: Suspicious Health Contracts</h3>
-                        <div class="highlight-box">
-                            <h4>Scenario</h4>
-                            <p>Investigate Ministry of Health contracts in 2024 that may present irregularities.</p>
-                        </div>
-                        
-                        <div class="code-block">
-# Via CLI
-cidadao investigate "ministry health contracts 2024 above 10 million"
-
-# Via Web Interface
-"Analyze Ministry of Health contracts in 2024 above R$ 10 million 
- looking for suspicious patterns of overpricing or bid rigging"
-                        </div>
-                        
-                        <p><strong>Expected results:</strong></p>
-                        <ul>
-                            <li>Detection of contracts with discrepant values</li>
-                            <li>Identification of recurring vendors</li>
-                            <li>Analysis of anomalous execution deadlines</li>
-                            <li>Report with explanations in Portuguese</li>
-                        </ul>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>📊 Analysis: Regional Spending Patterns</h3>
-                        <div class="code-block">
-# Comparative spending analysis
-cidadao analyze --type "regional_spending" --year 2024 --category "education"
-
-# Natural query
-"Compare education spending between North and Southeast regions in 2024"
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🏢 Monitoring: Specific Vendor</h3>
-                        <div class="code-block">
-# Continuous monitoring
-cidadao watch --vendor "12345678000195" --alert-threshold 0.8
-
-# Historical investigation
-"Analyze all contracts from company CNPJ 12.345.678/0001-95 
- in the last 3 years looking for irregular patterns"
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Deployment Section -->
-            <section id="deployment" class="content-section">
-                <!-- Portuguese Content -->
-                <div class="lang-content active" data-lang="pt">
-                    <h1 class="section-title">Deploy</h1>
-                    <p class="section-subtitle">Opções de implantação para produção</p>
-                    
-                    <div class="content-block">
-                        <h3>🌐 Hugging Face Spaces</h3>
-                        <p>Hospedagem gratuita para demonstração:</p>
-                        <div class="code-block">
-# Configuração automática via Git
-git push origin main
-
-# Link direto
-https://huggingface.co/spaces/neural-thinker/cidadao-ai
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🐳 Docker Production</h3>
-                        <div class="code-block">
-# Build da imagem de produção
-docker build -f Dockerfile.prod -t cidadao-ai:latest .
-
-# Docker Compose para produção
-docker-compose -f docker-compose.prod.yml up -d
-
-# Com scaling automático
-docker-compose -f docker-compose.prod.yml up -d --scale api=3
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>☸️ Kubernetes</h3>
-                        <div class="code-block">
-# Deploy no cluster K8s
-kubectl apply -f infrastructure/k8s/
-
-# Monitoramento
-kubectl get pods -n cidadao-ai
-kubectl logs -f deployment/cidadao-api -n cidadao-ai
-
-# Scaling horizontal
-kubectl scale deployment cidadao-api --replicas=5 -n cidadao-ai
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>⚡ Variáveis de Ambiente</h3>
-                        <div class="code-block">
-# Essenciais para produção
-TRANSPARENCY_API_KEY=sua_chave_api
-DATABASE_URL=postgresql://user:pass@host:5432/db
-REDIS_URL=redis://host:6379/0
-
-# Opcional - Multiple LLM providers
-GROQ_API_KEY=sua_chave_groq
-TOGETHER_API_KEY=sua_chave_together
-HUGGINGFACE_API_KEY=sua_chave_hf
-
-# Security
-JWT_SECRET_KEY=chave_secreta_jwt
-API_RATE_LIMIT=100
-                        </div>
-                    </div>
-                </div>
-
-                <!-- English Content -->
-                <div class="lang-content" data-lang="en">
-                    <h1 class="section-title">Deployment</h1>
-                    <p class="section-subtitle">Production deployment options</p>
-                    
-                    <div class="content-block">
-                        <h3>🌐 Hugging Face Spaces</h3>
-                        <p>Free hosting for demonstration:</p>
-                        <div class="code-block">
-# Automatic setup via Git
-git push origin main
-
-# Direct link
-https://huggingface.co/spaces/neural-thinker/cidadao-ai
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🐳 Docker Production</h3>
-                        <div class="code-block">
-# Build production image
-docker build -f Dockerfile.prod -t cidadao-ai:latest .
-
-# Docker Compose for production
-docker-compose -f docker-compose.prod.yml up -d
-
-# With automatic scaling
-docker-compose -f docker-compose.prod.yml up -d --scale api=3
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>☸️ Kubernetes</h3>
-                        <div class="code-block">
-# Deploy to K8s cluster
-kubectl apply -f infrastructure/k8s/
-
-# Monitoring
-kubectl get pods -n cidadao-ai
-kubectl logs -f deployment/cidadao-api -n cidadao-ai
-
-# Horizontal scaling
-kubectl scale deployment cidadao-api --replicas=5 -n cidadao-ai
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>⚡ Environment Variables</h3>
-                        <div class="code-block">
-# Essential for production
-TRANSPARENCY_API_KEY=your_api_key
-DATABASE_URL=postgresql://user:pass@host:5432/db
-REDIS_URL=redis://host:6379/0
-
-# Optional - Multiple LLM providers
-GROQ_API_KEY=your_groq_key
-TOGETHER_API_KEY=your_together_key
-HUGGINGFACE_API_KEY=your_hf_key
-
-# Security
-JWT_SECRET_KEY=jwt_secret_key
-API_RATE_LIMIT=100
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Contributing Section -->
-            <section id="contributing" class="content-section">
-                <!-- Portuguese Content -->
-                <div class="lang-content active" data-lang="pt">
-                    <h1 class="section-title">Contribuir</h1>
-                    <p class="section-subtitle">Como contribuir para o projeto</p>
-                    
-                    <div class="content-block">
-                        <h3>🤝 Como Contribuir</h3>
-                        <ol>
-                            <li>Faça um fork do repositório</li>
-                            <li>Crie uma branch para sua feature (<code>git checkout -b feature/AmazingFeature</code>)</li>
-                            <li>Commit suas mudanças (<code>git commit -m 'Add some AmazingFeature'</code>)</li>
-                            <li>Push para a branch (<code>git push origin feature/AmazingFeature</code>)</li>
-                            <li>Abra um Pull Request</li>
-                        </ol>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>📋 Diretrizes de Desenvolvimento</h3>
-                        <ul>
-                            <li><strong>Código:</strong> Siga PEP 8 e use type hints</li>
-                            <li><strong>Testes:</strong> Mantenha cobertura > 80%</li>
-                            <li><strong>Documentação:</strong> Docstrings em português e inglês</li>
-                            <li><strong>Commits:</strong> Mensagens descritivas em português</li>
-                        </ul>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🧪 Executar Testes</h3>
-                        <div class="code-block">
-# Todos os testes
-make test
-
-# Testes específicos
-pytest tests/test_agents.py -v
-
-# Com cobertura
-pytest --cov=src tests/
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>✅ Checklist de PR</h3>
-                        <ul>
-                            <li>[ ] Código formatado com <code>black</code> e <code>isort</code></li>
-                            <li>[ ] Linting sem erros (<code>make lint</code>)</li>
-                            <li>[ ] Testes passando (<code>make test</code>)</li>
-                            <li>[ ] Documentação atualizada</li>
-                            <li>[ ] Changelog atualizado</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- English Content -->
-                <div class="lang-content" data-lang="en">
-                    <h1 class="section-title">Contributing</h1>
-                    <p class="section-subtitle">How to contribute to the project</p>
-                    
-                    <div class="content-block">
-                        <h3>🤝 How to Contribute</h3>
-                        <ol>
-                            <li>Fork the repository</li>
-                            <li>Create a feature branch (<code>git checkout -b feature/AmazingFeature</code>)</li>
-                            <li>Commit your changes (<code>git commit -m 'Add some AmazingFeature'</code>)</li>
-                            <li>Push to the branch (<code>git push origin feature/AmazingFeature</code>)</li>
-                            <li>Open a Pull Request</li>
-                        </ol>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>📋 Development Guidelines</h3>
-                        <ul>
-                            <li><strong>Code:</strong> Follow PEP 8 and use type hints</li>
-                            <li><strong>Tests:</strong> Maintain coverage > 80%</li>
-                            <li><strong>Documentation:</strong> Docstrings in Portuguese and English</li>
-                            <li><strong>Commits:</strong> Descriptive messages in Portuguese</li>
-                        </ul>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🧪 Running Tests</h3>
-                        <div class="code-block">
-# All tests
-make test
-
-# Specific tests
-pytest tests/test_agents.py -v
-
-# With coverage
-pytest --cov=src tests/
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>✅ PR Checklist</h3>
-                        <ul>
-                            <li>[ ] Code formatted with <code>black</code> and <code>isort</code></li>
-                            <li>[ ] Linting without errors (<code>make lint</code>)</li>
-                            <li>[ ] Tests passing (<code>make test</code>)</li>
-                            <li>[ ] Documentation updated</li>
-                            <li>[ ] Changelog updated</li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Credits Section -->
-            <section id="credits" class="content-section">
-                <!-- Portuguese Content -->
-                <div class="lang-content active" data-lang="pt">
-                    <h1 class="section-title">Créditos</h1>
-                    <p class="section-subtitle">Reconhecimentos e informações do desenvolvedor</p>
-                    
-                    <div class="credits">
-                        <h4>👨‍💻 Desenvolvedor Principal</h4>
-                        <p><strong>Anderson Henrique da Silva</strong></p>
-                        <p><em>Desenvolvimento assistido por IA Claude Code</em></p>
-                        
-                        <div class="social-links">
-                            <a href="https://huggingface.co/neural-thinker" class="social-link">🤗 Hugging Face</a>
-                            <a href="https://github.com/anderson-ufrj" class="social-link">💻 GitHub</a>
-                            <a href="https://linkedin.com/in/anderson-henrique-silva" class="social-link">💼 LinkedIn</a>
-                            <a href="https://twitter.com/neuralthinkerbr" class="social-link">🐦 Twitter</a>
-                            <a href="https://instagram.com/neuralthinkerbr" class="social-link">📸 Instagram</a>
-                            <a href="https://youtube.com/@NeuralThinkerBR" class="social-link">📹 YouTube</a>
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🙏 Agradecimentos</h3>
-                        <ul>
-                            <li><strong>Portal da Transparência</strong> - Pelos dados públicos abertos</li>
-                            <li><strong>Comunidade Python/FastAPI</strong> - Pelas ferramentas incríveis</li>
-                            <li><strong>Hugging Face</strong> - Pela plataforma e modelos de IA</li>
-                            <li><strong>LangChain</strong> - Pelo framework de LLM</li>
-                            <li><strong>Anthropic Claude</strong> - Pela assistência no desenvolvimento</li>
-                        </ul>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>📄 Licença</h3>
-                        <p>Este projeto está licenciado sob a Licença MIT - veja o arquivo <code>LICENSE</code> para detalhes.</p>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🚀 Projetos Relacionados</h3>
-                        <ul>
-                            <li><a href="https://github.com/anderson-ufrj/cidadao.ai">Repositório Principal</a></li>
-                            <li><a href="https://huggingface.co/spaces/neural-thinker/cidadao-ai">Demo no Hugging Face</a></li>
-                            <li><a href="https://portaldatransparencia.gov.br">Portal da Transparência</a></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- English Content -->
-                <div class="lang-content" data-lang="en">
-                    <h1 class="section-title">Credits</h1>
-                    <p class="section-subtitle">Acknowledgments and developer information</p>
-                    
-                    <div class="credits">
-                        <h4>👨‍💻 Lead Developer</h4>
-                        <p><strong>Anderson Henrique da Silva</strong></p>
-                        <p><em>AI-assisted development with Claude Code</em></p>
-                        
-                        <div class="social-links">
-                            <a href="https://huggingface.co/neural-thinker" class="social-link">🤗 Hugging Face</a>
-                            <a href="https://github.com/anderson-ufrj" class="social-link">💻 GitHub</a>
-                            <a href="https://linkedin.com/in/anderson-henrique-silva" class="social-link">💼 LinkedIn</a>
-                            <a href="https://twitter.com/neuralthinkerbr" class="social-link">🐦 Twitter</a>
-                            <a href="https://instagram.com/neuralthinkerbr" class="social-link">📸 Instagram</a>
-                            <a href="https://youtube.com/@NeuralThinkerBR" class="social-link">📹 YouTube</a>
-                        </div>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🙏 Acknowledgments</h3>
-                        <ul>
-                            <li><strong>Portal da Transparência</strong> - For open public data</li>
-                            <li><strong>Python/FastAPI Community</strong> - For amazing tools</li>
-                            <li><strong>Hugging Face</strong> - For the platform and AI models</li>
-                            <li><strong>LangChain</strong> - For the LLM framework</li>
-                            <li><strong>Anthropic Claude</strong> - For development assistance</li>
-                        </ul>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>📄 License</h3>
-                        <p>This project is licensed under the MIT License - see the <code>LICENSE</code> file for details.</p>
-                    </div>
-
-                    <div class="content-block">
-                        <h3>🚀 Related Projects</h3>
-                        <ul>
-                            <li><a href="https://github.com/anderson-ufrj/cidadao.ai">Main Repository</a></li>
-                            <li><a href="https://huggingface.co/spaces/neural-thinker/cidadao-ai">Hugging Face Demo</a></li>
-                            <li><a href="https://portaldatransparencia.gov.br">Portal da Transparência</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
-        </main>
-    </div>
+            </div>
+        </div>
+    </footer>
 
     <script>
-        // Theme Management
-        let currentTheme = 'light';
-        let currentLang = 'pt';
+        // Slideshow Management
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.slide-dot');
+        const slideInterval = 5000; // 5 seconds
 
-        function toggleTheme() {
-            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
-            document.body.classList.toggle('dark', currentTheme === 'dark');
+        function showSlide(index) {
+            // Hide all slides
+            slides.forEach(slide => slide.classList.remove('active'));
+            dots.forEach(dot => dot.classList.remove('active'));
             
-            const themeIcon = document.querySelector('.theme-icon');
-            themeIcon.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
-            
-            localStorage.setItem('theme', currentTheme);
+            // Show current slide
+            slides[index].classList.add('active');
+            dots[index].classList.add('active');
         }
 
-        function toggleLanguage() {
-            currentLang = currentLang === 'pt' ? 'en' : 'pt';
-            
-            // Update language content visibility
-            const langContents = document.querySelectorAll('.lang-content');
-            langContents.forEach(content => {
-                const isActive = content.getAttribute('data-lang') === currentLang;
-                content.classList.toggle('active', isActive);
-                content.style.display = isActive ? 'block' : 'none';
-            });
-            
-            // Update language toggle button
-            const langToggles = document.querySelectorAll('[data-lang]');
-            langToggles.forEach(toggle => {
-                const isActive = toggle.getAttribute('data-lang') === currentLang;
-                toggle.style.display = isActive ? 'inline' : 'none';
-            });
-            
-            localStorage.setItem('language', currentLang);
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
         }
 
-        function showSection(sectionId) {
-            // Hide all sections
-            const sections = document.querySelectorAll('.content-section');
-            sections.forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Show selected section
-            const targetSection = document.getElementById(sectionId);
-            if (targetSection) {
-                targetSection.classList.add('active');
-            }
-            
-            // Update navigation
-            const navItems = document.querySelectorAll('.nav-item');
-            navItems.forEach(item => {
-                item.classList.remove('active');
-            });
-            
-            const activeNavItems = document.querySelectorAll(`[href="#${sectionId}"]`);
-            activeNavItems.forEach(item => {
-                item.classList.add('active');
-            });
-            
-            // Smooth scroll to top of content
-            document.querySelector('.main-content').scrollTop = 0;
+        function setSlide(index) {
+            currentSlide = index;
+            showSlide(currentSlide);
         }
 
-        // Initialize on page load
+        // Auto-advance slideshow
+        setInterval(nextSlide, slideInterval);
+
+        // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            // Restore theme
-            const savedTheme = localStorage.getItem('theme');
-            if (savedTheme) {
-                currentTheme = savedTheme;
-                document.body.classList.toggle('dark', currentTheme === 'dark');
-                const themeIcon = document.querySelector('.theme-icon');
-                themeIcon.textContent = currentTheme === 'dark' ? '☀️' : '🌙';
-            }
+            showSlide(0);
             
-            // Restore language
-            const savedLang = localStorage.getItem('language');
-            if (savedLang && savedLang !== currentLang) {
-                currentLang = savedLang;
-                toggleLanguage();
-            }
-            
-            // Initialize navigation
-            showSection('overview');
+            // Add some interaction effects
+            const ctaButtons = document.querySelectorAll('.cta-button');
+            ctaButtons.forEach(button => {
+                button.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-4px) scale(1.02)';
+                });
+                
+                button.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0) scale(1)';
+                });
+            });
+
+            // Example cards interaction
+            const exampleCards = document.querySelectorAll('.example-card');
+            exampleCards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.background = 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.background = 'var(--light-bg)';
+                });
+            });
         });
 
-        // Mobile menu toggle (for future mobile optimization)
-        function toggleMobileMenu() {
-            const sidebar = document.querySelector('.sidebar');
-            sidebar.classList.toggle('mobile-open');
-        }
-
-        // Keyboard navigation
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey || e.metaKey) {
-                switch(e.key) {
-                    case 'd':
-                        e.preventDefault();
-                        toggleTheme();
-                        break;
-                    case 'l':
-                        e.preventDefault();
-                        toggleLanguage();
-                        break;
+        // Smooth scrolling for internal links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
                 }
+            });
+        });
+
+        // Add keyboard navigation
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') {
+                currentSlide = currentSlide > 0 ? currentSlide - 1 : slides.length - 1;
+                showSlide(currentSlide);
+            } else if (e.key === 'ArrowRight') {
+                nextSlide();
             }
         });
     </script>
