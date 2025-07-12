@@ -1,6 +1,6 @@
 ---
 title: CidadãoGPT - Análise de Transparência Pública
-emoji: 🇧🇷
+emoji: 🔍
 colorFrom: blue
 colorTo: green
 sdk: streamlit
