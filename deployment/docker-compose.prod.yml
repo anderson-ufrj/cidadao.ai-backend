@@ -1,0 +1,298 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: cidadao-postgres
+    environment:
+      POSTGRES_DB: cidadao_ai
+      POSTGRES_USER: ${POSTGRES_USER:-cidadao_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    ports:
+      - "5432:5432"
+    networks:
+      - cidadao-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cidadao_user} -d cidadao_ai"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Redis Cluster Node 1
+  redis-node-1:
+    image: redis:7-alpine
+    container_name: cidadao-redis-1
+    command: redis-server --port 7000 --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --appendonly yes
+    ports:
+      - "7000:7000"
+    volumes:
+      - redis_data_1:/data
+    networks:
+      - cidadao-network
+    restart: unless-stopped
+
+  # Redis Cluster Node 2
+  redis-node-2:
+    image: redis:7-alpine
+    container_name: cidadao-redis-2
+    command: redis-server --port 7001 --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --appendonly yes
+    ports:
+      - "7001:7001"
+    volumes:
+      - redis_data_2:/data
+    networks:
+      - cidadao-network
+    restart: unless-stopped
+
+  # Redis Cluster Node 3
+  redis-node-3:
+    image: redis:7-alpine
+    container_name: cidadao-redis-3
+    command: redis-server --port 7002 --cluster-enabled yes --cluster-config-file nodes.conf --cluster-node-timeout 5000 --appendonly yes
+    ports:
+      - "7002:7002"
+    volumes:
+      - redis_data_3:/data
+    networks:
+      - cidadao-network
+    restart: unless-stopped
+
+  # Jaeger for Distributed Tracing
+  jaeger:
+    image: jaegertracing/all-in-one:1.45
+    container_name: cidadao-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "14268:14268"  # Jaeger collector HTTP
+      - "14250:14250"  # Jaeger collector gRPC
+    networks:
+      - cidadao-network
+    restart: unless-stopped
+
+  # Prometheus for Metrics
+  prometheus:
+    image: prom/prometheus:v2.44.0
+    container_name: cidadao-prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - cidadao-network
+    restart: unless-stopped
+
+  # Grafana for Dashboards
+  grafana:
+    image: grafana/grafana:9.5.2
+    container_name: cidadao-grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD}
+      GF_INSTALL_PLUGINS: grafana-piechart-panel
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - cidadao-network
+    restart: unless-stopped
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:1.24-alpine
+    container_name: cidadao-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./ssl:/etc/ssl/certs:ro
+      - nginx_logs:/var/log/nginx
+    networks:
+      - cidadao-network
+    depends_on:
+      - cidadao-api
+      - cidadao-web
+    restart: unless-stopped
+
+  # Main API Application
+  cidadao-api:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile.api
+      args:
+        - ENVIRONMENT=production
+    container_name: cidadao-api
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-cidadao_user}:${POSTGRES_PASSWORD}@postgres:5432/cidadao_ai
+      - REDIS_NODES=redis-node-1:7000,redis-node-2:7001,redis-node-3:7002
+      - JAEGER_ENDPOINT=http://jaeger:14268/api/traces
+      - PROMETHEUS_PORT=8000
+      - TRANSPARENCY_API_KEY=${TRANSPARENCY_API_KEY}
+      - HUGGINGFACE_HUB_TOKEN=${HUGGINGFACE_HUB_TOKEN}
+      - SECRET_KEY=${SECRET_KEY}
+    ports:
+      - "8001:8001"  # API
+      - "8000:8000"  # Metrics
+    volumes:
+      - ./models:/app/models
+      - ./logs:/app/logs
+    networks:
+      - cidadao-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis-node-1:
+        condition: service_started
+      redis-node-2:
+        condition: service_started
+      redis-node-3:
+        condition: service_started
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+          cpus: '2.0'
+        reservations:
+          memory: 2G
+          cpus: '1.0'
+
+  # Web Interface
+  cidadao-web:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile.web
+      args:
+        - ENVIRONMENT=production
+    container_name: cidadao-web
+    environment:
+      - ENVIRONMENT=production
+      - API_BASE_URL=http://cidadao-api:8001
+    ports:
+      - "7860:7860"
+    networks:
+      - cidadao-network
+    depends_on:
+      - cidadao-api
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7860"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Background Workers
+  cidadao-worker:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile.worker
+      args:
+        - ENVIRONMENT=production
+    container_name: cidadao-worker
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-cidadao_user}:${POSTGRES_PASSWORD}@postgres:5432/cidadao_ai
+      - REDIS_NODES=redis-node-1:7000,redis-node-2:7001,redis-node-3:7002
+      - TRANSPARENCY_API_KEY=${TRANSPARENCY_API_KEY}
+      - HUGGINGFACE_HUB_TOKEN=${HUGGINGFACE_HUB_TOKEN}
+    volumes:
+      - ./models:/app/models
+      - ./logs:/app/logs
+    networks:
+      - cidadao-network
+    depends_on:
+      - postgres
+      - redis-node-1
+      - redis-node-2
+      - redis-node-3
+    restart: unless-stopped
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
+        reservations:
+          memory: 1G
+          cpus: '0.5'
+
+  # ML Training Service
+  cidadao-ml:
+    build:
+      context: ..
+      dockerfile: deployment/Dockerfile.ml
+      args:
+        - ENVIRONMENT=production
+    container_name: cidadao-ml
+    environment:
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER:-cidadao_user}:${POSTGRES_PASSWORD}@postgres:5432/cidadao_ai
+      - REDIS_NODES=redis-node-1:7000,redis-node-2:7001,redis-node-3:7002
+      - HUGGINGFACE_HUB_TOKEN=${HUGGINGFACE_HUB_TOKEN}
+      - MLFLOW_TRACKING_URI=sqlite:///app/models/mlflow.db
+    volumes:
+      - ./models:/app/models
+      - ./data:/app/data
+      - ./logs:/app/logs
+    networks:
+      - cidadao-network
+    depends_on:
+      - postgres
+      - redis-node-1
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+          cpus: '4.0'
+        reservations:
+          memory: 4G
+          cpus: '2.0'
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data_1:
+    driver: local
+  redis_data_2:
+    driver: local
+  redis_data_3:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  nginx_logs:
+    driver: local
+
+networks:
+  cidadao-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
