@@ -4,11 +4,11 @@ emoji: 🏛️
 colorFrom: blue
 colorTo: green
 sdk: gradio
-sdk_version: 4.19.0
+sdk_version: 4.44.1
 app_file: app.py
 pinned: true
 license: mit
-short_description: Plataforma de transparência pública que usa IA para detectar anomalias em gastos governamentais brasileiros
+short_description: IA para detectar anomalias em gastos públicos brasileiros
 ---
 
 # 🏛️ Cidadão.AI

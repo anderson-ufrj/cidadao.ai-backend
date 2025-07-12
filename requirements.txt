@@ -1,17 +1,13 @@
 # Requirements for Hugging Face Spaces
 # Gradio is pre-installed, no need to include it
 
-# Core dependencies
-pydantic>=2.0.0
-python-dotenv>=1.0.0
+# Core dependencies for API integration
 httpx>=0.25.0
+asyncio
+
+# Data processing
 pandas>=2.0.0
 numpy>=1.24.0
-
-# For future integration with full system
-# groq>=0.4.0
-# together>=0.2.0
-# transformers>=4.35.0
 
 # Utilities
 python-dateutil>=2.8.2

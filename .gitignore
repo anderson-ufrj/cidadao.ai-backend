@@ -223,6 +223,8 @@ prometheus_data/
 
 # Claude
 .claude
+CLAUDE.md
+
 
 # Test scripts with API keys (keep only in local development)
 scripts/test_*.py
