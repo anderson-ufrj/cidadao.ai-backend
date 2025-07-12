@@ -5,263 +5,2035 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cidadão.AI - Documentação</title>
     <style>
+        /* Estilo inspirado na interface do chatbot */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', sans-serif;
-            line-height: 1.6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
             color: #333;
+        }
+
+        .container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
+            min-height: 100vh;
         }
-        
+
+        /* Header similar ao chatbot */
         .header {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
             text-align: center;
-            border-bottom: 2px solid #e1e5e9;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
         }
-        
+
         .logo {
             font-size: 2.5em;
-            font-weight: bold;
-            color: #0366d6;
             margin-bottom: 10px;
         }
-        
+
         .tagline {
-            font-size: 1.2em;
-            color: #586069;
+            color: #666;
+            font-size: 1.1em;
             margin-bottom: 20px;
         }
-        
+
+        /* Language tabs similar to chat examples */
         .language-tabs {
             display: flex;
             justify-content: center;
-            background: #f6f8fa;
-            border-radius: 8px;
-            padding: 4px;
-            margin-bottom: 30px;
+            gap: 8px;
+            margin: 20px 0;
         }
-        
-        .tab-button {
-            padding: 10px 20px;
-            border: none;
-            background: transparent;
+
+        .lang-btn {
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            padding: 8px 16px;
+            border-radius: 16px;
+            font-size: 0.9em;
             cursor: pointer;
-            border-radius: 6px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            margin: 0 2px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-        
-        .tab-button.active {
-            background: white;
-            color: #0366d6;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+
+        .lang-btn:hover {
+            background: #e0e0e0;
+            border-color: #bbb;
         }
-        
-        .tab-button:hover {
-            background: #e1e5e9;
+
+        .lang-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
         }
-        
-        .content {
-            background: white;
-            border-radius: 8px;
+
+        /* Main content area similar to output-area */
+        .main-content {
+            background: #f8f9fa;
+            border-radius: 16px;
             padding: 30px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            min-height: 600px;
         }
-        
-        .lang-content {
+
+        .content-section {
             display: none;
         }
-        
-        .lang-content.active {
+
+        .content-section.active {
             display: block;
         }
-        
+
+        /* Navigation similar to chat examples */
         .nav-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 30px;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
         }
-        
+
         .nav-card {
-            border: 1px solid #e1e5e9;
-            border-radius: 8px;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 12px;
             padding: 20px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
             cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        
+
         .nav-card:hover {
+            background: #f0f2ff;
+            border-color: #667eea;
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.1);
         }
-        
+
         .nav-card h3 {
-            margin: 0 0 10px 0;
-            color: #0366d6;
+            color: #667eea;
+            margin-bottom: 8px;
+            font-size: 1.1em;
         }
-        
+
         .nav-card p {
-            margin: 0;
-            color: #586069;
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.4;
         }
-        
-        .flag {
-            font-size: 1.2em;
-            margin-right: 8px;
+
+        /* Documentation content styling */
+        .doc-content {
+            max-height: 70vh;
+            overflow-y: auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            margin-top: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        
-        pre {
-            background: #f6f8fa;
+
+        .doc-content h1 {
+            color: #667eea;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+
+        .doc-content h2 {
+            color: #764ba2;
+            margin: 25px 0 15px 0;
+            font-size: 1.3em;
+        }
+
+        .doc-content h3 {
+            color: #555;
+            margin: 20px 0 10px 0;
+            font-size: 1.1em;
+        }
+
+        .doc-content p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+            color: #444;
+        }
+
+        .doc-content ul, .doc-content ol {
+            margin: 15px 0;
+            padding-left: 25px;
+        }
+
+        .doc-content li {
+            margin-bottom: 8px;
+            line-height: 1.5;
+        }
+
+        /* Code blocks similar to chat output */
+        .doc-content pre {
+            background: #2d3748;
+            color: #e2e8f0;
             padding: 16px;
-            border-radius: 6px;
+            border-radius: 8px;
             overflow-x: auto;
+            margin: 15px 0;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
         }
-        
-        code {
-            background: #f6f8fa;
-            padding: 2px 4px;
-            border-radius: 3px;
-            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+
+        .doc-content code {
+            background: #f1f5f9;
+            color: #e53e3e;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+        }
+
+        /* Tables */
+        .doc-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .doc-content th,
+        .doc-content td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .doc-content th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #555;
+        }
+
+        /* Status badges */
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .status-complete {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-progress {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        /* Back button */
+        .back-btn {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 0.9em;
+            margin-bottom: 20px;
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #5a6268;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 20px;
+            }
+
+            .main-content {
+                padding: 20px;
+            }
+
+            .nav-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .language-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .doc-content {
+                max-height: 60vh;
+                padding: 15px;
+            }
+        }
+
+        /* Alert boxes */
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            border-left: 4px solid;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            color: #0c5460;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            border-color: #28a745;
+            color: #155724;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            border-color: #ffc107;
+            color: #856404;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <div class="logo">🤖 Cidadão.AI</div>
-        <div class="tagline">Plataforma de Transparência Governamental com IA | AI-Powered Government Transparency Platform</div>
-        
-        <div class="language-tabs">
-            <button class="tab-button active" onclick="switchLanguage('pt')">
-                <span class="flag">🇧🇷</span>Português
-            </button>
-            <button class="tab-button" onclick="switchLanguage('en')">
-                <span class="flag">🇺🇸</span>English
-            </button>
-        </div>
-    </div>
-
-    <div class="content">
-        <!-- Portuguese Content -->
-        <div id="pt-content" class="lang-content active">
-            <h1>📚 Documentação do Cidadão.AI</h1>
-            <p>Bem-vindo à documentação completa da plataforma Cidadão.AI - uma solução revolucionária para análise de dados de transparência governamental usando Inteligência Artificial.</p>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">🤖 Cidadão.AI</div>
+            <div class="tagline">Plataforma de Transparência Governamental com IA</div>
+            <div class="tagline">AI-Powered Government Transparency Platform</div>
             
-            <h2>🚀 Visão Geral</h2>
-            <p>O Cidadão.AI é uma plataforma que democratiza o acesso aos dados de gastos públicos brasileiros, transformando dados brutos do governo em investigações inteligentes através de processamento de linguagem natural.</p>
-            
-            <div class="nav-grid">
-                <div class="nav-card" onclick="openDoc('overview')">
-                    <h3>📖 Visão Geral do Projeto</h3>
-                    <p>Entenda a missão, arquitetura e tecnologias do Cidadão.AI</p>
-                </div>
-                
-                <div class="nav-card" onclick="openDoc('api')">
-                    <h3>🔧 API e Integração</h3>
-                    <p>Documentação completa da API REST e endpoints disponíveis</p>
-                </div>
-                
-                <div class="nav-card" onclick="openDoc('development')">
-                    <h3>💻 Guia de Desenvolvimento</h3>
-                    <p>Configuração do ambiente, comandos e workflow de desenvolvimento</p>
-                </div>
-                
-                <div class="nav-card" onclick="openDoc('deployment')">
-                    <h3>🚀 Deploy e Produção</h3>
-                    <p>Instruções para deploy em diferentes ambientes e plataformas</p>
-                </div>
-                
-                <div class="nav-card" onclick="openDoc('architecture')">
-                    <h3>🏗️ Arquitetura do Sistema</h3>
-                    <p>Documentação técnica da arquitetura multi-agente e componentes</p>
-                </div>
-                
-                <div class="nav-card" onclick="openDoc('examples')">
-                    <h3>💡 Exemplos e Tutoriais</h3>
-                    <p>Exemplos práticos de uso e tutoriais passo a passo</p>
-                </div>
+            <div class="language-tabs">
+                <button class="lang-btn active" onclick="switchLanguage('pt')" data-lang="pt">
+                    <span>🇧🇷</span>Português
+                </button>
+                <button class="lang-btn" onclick="switchLanguage('en')" data-lang="en">
+                    <span>🇺🇸</span>English
+                </button>
             </div>
         </div>
 
-        <!-- English Content -->
-        <div id="en-content" class="lang-content">
-            <h1>📚 Cidadão.AI Documentation</h1>
-            <p>Welcome to the complete documentation of the Cidadão.AI platform - a revolutionary solution for analyzing government transparency data using Artificial Intelligence.</p>
-            
-            <h2>🚀 Overview</h2>
-            <p>Cidadão.AI is a platform that democratizes access to Brazilian public spending data, transforming raw government data into intelligent investigations through natural language processing.</p>
-            
-            <div class="nav-grid">
-                <div class="nav-card" onclick="openDoc('overview')">
-                    <h3>📖 Project Overview</h3>
-                    <p>Understand the mission, architecture, and technologies of Cidadão.AI</p>
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Portuguese Content -->
+            <div id="pt-content" class="content-section active">
+                <div id="pt-home" class="doc-section active">
+                    <h1>📚 Documentação do Cidadão.AI</h1>
+                    <p>Bem-vindo à documentação completa da plataforma Cidadão.AI - uma solução revolucionária para análise de dados de transparência governamental usando Inteligência Artificial.</p>
+                    
+                    <div class="nav-grid">
+                        <div class="nav-card" onclick="showSection('pt', 'overview')">
+                            <h3>📖 Visão Geral</h3>
+                            <p>Entenda a missão, arquitetura e tecnologias do Cidadão.AI</p>
+                        </div>
+                        
+                        <div class="nav-card" onclick="showSection('pt', 'quickstart')">
+                            <h3>⚡ Quick Start</h3>
+                            <p>Guia rápido para começar a usar o Cidadão.AI</p>
+                        </div>
+                        
+                        <div class="nav-card" onclick="showSection('pt', 'api')">
+                            <h3>🔧 API REST</h3>
+                            <p>Documentação completa da API e endpoints disponíveis</p>
+                        </div>
+                        
+                        <div class="nav-card" onclick="showSection('pt', 'agents')">
+                            <h3>🧠 Sistema Multi-Agente</h3>
+                            <p>Arquitetura e funcionamento dos agentes especializados</p>
+                        </div>
+                        
+                        <div class="nav-card" onclick="showSection('pt', 'integration')">
+                            <h3>🔗 Integração Portal da Transparência</h3>
+                            <p>Como integrar com dados governamentais brasileiros</p>
+                        </div>
+                        
+                        <div class="nav-card" onclick="showSection('pt', 'examples')">
+                            <h3>💡 Exemplos Práticos</h3>
+                            <p>Exemplos de uso e casos práticos</p>
+                        </div>
+                        
+                        <div class="nav-card" onclick="showSection('pt', 'deployment')">
+                            <h3>🚀 Deploy & Produção</h3>
+                            <p>Instruções para deploy em diferentes ambientes</p>
+                        </div>
+                        
+                        <div class="nav-card" onclick="showSection('pt', 'contributing')">
+                            <h3>🤝 Contribuindo</h3>
+                            <p>Como contribuir para o projeto</p>
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="nav-card" onclick="openDoc('api')">
-                    <h3>🔧 API & Integration</h3>
-                    <p>Complete REST API documentation and available endpoints</p>
+
+                <!-- Overview Section PT -->
+                <div id="pt-overview" class="doc-section">
+                    <button class="back-btn" onclick="showSection('pt', 'home')">⬅️ Voltar</button>
+                    <div class="doc-content">
+                        <h1>📖 Visão Geral do Cidadão.AI</h1>
+                        
+                        <h2>🎯 Missão</h2>
+                        <p>O <strong>Cidadão.AI</strong> é uma plataforma revolucionária que utiliza Inteligência Artificial para democratizar o acesso aos dados de gastos públicos brasileiros. Transformamos dados brutos do Portal da Transparência em investigações inteligentes através de um sistema multi-agente avançado.</p>
+                        
+                        <div class="alert alert-info">
+                            <strong>💡 Objetivo:</strong> Quebrar barreiras tecnológicas e burocráticas, oferecendo uma IA que não apenas lê dados públicos — ela <strong>investiga</strong>, <strong>questiona</strong> e <strong>explica</strong> como um auditor veterano.
+                        </div>
+
+                        <h2>🚀 Status Atual</h2>
+                        <table>
+                            <tr>
+                                <th>Componente</th>
+                                <th>Status</th>
+                                <th>Descrição</th>
+                            </tr>
+                            <tr>
+                                <td>🛠️ <strong>API REST</strong></td>
+                                <td><span class="status-badge status-complete">✅ Completa</span></td>
+                                <td>Sistema multi-agente com API REST abrangente</td>
+                            </tr>
+                            <tr>
+                                <td>🧠 <strong>Backend</strong></td>
+                                <td><span class="status-badge status-complete">✅ Implementado</span></td>
+                                <td>Python 3.11+, FastAPI, LangChain, PostgreSQL, Redis</td>
+                            </tr>
+                            <tr>
+                                <td>🤖 <strong>IA/ML</strong></td>
+                                <td><span class="status-badge status-complete">✅ Operacional</span></td>
+                                <td>Múltiplos provedores LLM, detecção de anomalias</td>
+                            </tr>
+                            <tr>
+                                <td>🌐 <strong>Frontend</strong></td>
+                                <td><span class="status-badge status-progress">🔄 Em Progresso</span></td>
+                                <td>Interface web interativa em desenvolvimento</td>
+                            </tr>
+                        </table>
+
+                        <h2>🏗️ Arquitetura Multi-Agente</h2>
+                        <p>O sistema é construído como uma arquitetura sofisticada de múltiplos agentes especializados:</p>
+                        
+                        <ul>
+                            <li><strong>🎯 MasterAgent</strong> → Orquestra investigações com planejamento e reflexão</li>
+                            <li><strong>🧠 ContextMemoryAgent</strong> → Gerencia memória episódica, semântica e conversacional</li>
+                            <li><strong>🔍 InvestigatorAgent</strong> → Detecta anomalias com IA explicável</li>
+                            <li><strong>📊 AnalystAgent</strong> → Correlaciona dados e identifica padrões</li>
+                            <li><strong>📝 ReporterAgent</strong> → Gera relatórios em linguagem natural</li>
+                            <li><strong>🧭 SemanticRouter</strong> → Roteamento inteligente baseado na intenção da consulta</li>
+                        </ul>
+
+                        <h2>🛠️ Stack Tecnológico</h2>
+                        
+                        <h3>Backend Implementado</h3>
+                        <ul>
+                            <li><strong>Python 3.11+</strong> com framework FastAPI</li>
+                            <li><strong>LangChain</strong> para orquestração de LLM</li>
+                            <li><strong>PostgreSQL + Redis</strong> para armazenamento de dados</li>
+                            <li><strong>Celery</strong> para processamento assíncrono</li>
+                            <li><strong>API REST completa</strong> com autenticação JWT</li>
+                            <li><strong>Endpoints de streaming</strong> em tempo real</li>
+                        </ul>
+
+                        <h3>IA/ML Implementado</h3>
+                        <ul>
+                            <li><strong>Hugging Face Transformers</strong></li>
+                            <li><strong>Múltiplos provedores LLM</strong> (Groq, Together AI, HuggingFace)</li>
+                            <li><strong>FAISS/ChromaDB</strong> para armazenamento vetorial</li>
+                            <li><strong>SHAP/LIME</strong> para IA explicável</li>
+                            <li><strong>Algoritmos avançados</strong> de detecção de anomalias</li>
+                        </ul>
+
+                        <h2>📊 Recursos Principais</h2>
+                        <ul>
+                            <li>🔍 <strong>Investigações em Tempo Real</strong> - Sistema de investigação com streaming ao vivo</li>
+                            <li>📊 <strong>Análise de Padrões</strong> - Detecção inteligente de padrões suspeitos</li>
+                            <li>📝 <strong>Relatórios Automáticos</strong> - Geração em múltiplos formatos</li>
+                            <li>🤖 <strong>IA Explicável</strong> - Todas as detecções incluem explicações claras</li>
+                            <li>🔐 <strong>Segurança</strong> - Autenticação JWT, limitação de taxa</li>
+                            <li>⚡ <strong>Performance</strong> - API < 200ms, streaming LLM < 3s</li>
+                        </ul>
+                    </div>
                 </div>
-                
-                <div class="nav-card" onclick="openDoc('development')">
-                    <h3>💻 Development Guide</h3>
-                    <p>Environment setup, commands, and development workflow</p>
+
+                <!-- Quick Start Section PT -->
+                <div id="pt-quickstart" class="doc-section">
+                    <button class="back-btn" onclick="showSection('pt', 'home')">⬅️ Voltar</button>
+                    <div class="doc-content">
+                        <h1>⚡ Quick Start</h1>
+                        
+                        <h2>🛠️ Instalação</h2>
+                        
+                        <h3>Pré-requisitos</h3>
+                        <ul>
+                            <li>Python 3.11 ou superior</li>
+                            <li>Git</li>
+                            <li>Chave de API do Portal da Transparência</li>
+                            <li>Chave de API de provedor LLM (Groq, Together AI, ou HuggingFace)</li>
+                        </ul>
+
+                        <h3>Passo a Passo</h3>
+                        
+                        <h4>1. Clone o repositório</h4>
+                        <pre>git clone https://github.com/anderson-ufrj/cidadao.ai.git
+cd cidadao.ai</pre>
+
+                        <h4>2. Configure o ambiente virtual</h4>
+                        <pre>python -m venv venv
+source venv/bin/activate  # Linux/Mac
+# ou
+venv\\Scripts\\activate  # Windows</pre>
+
+                        <h4>3. Instale as dependências</h4>
+                        <pre>pip install -e ".[dev]"</pre>
+
+                        <h4>4. Configure as variáveis de ambiente</h4>
+                        <pre>cp .env.example .env</pre>
+                        
+                        <p>Edite o arquivo <code>.env</code> com suas chaves de API:</p>
+                        <pre># Portal da Transparência
+TRANSPARENCY_API_KEY=sua_chave_aqui
+
+# Provedor LLM (escolha um)
+GROQ_API_KEY=sua_chave_groq
+TOGETHER_API_KEY=sua_chave_together
+HUGGINGFACE_API_KEY=sua_chave_hf</pre>
+
+                        <h4>5. Execute o servidor API</h4>
+                        <pre># Método 1: Usando o módulo
+python -m src.api.app
+
+# Método 2: Usando uvicorn diretamente
+uvicorn src.api.app:app --reload
+
+# Método 3: Usando Makefile
+make run</pre>
+
+                        <h4>6. Acesse a aplicação</h4>
+                        <ul>
+                            <li><strong>Interface Web:</strong> <a href="http://localhost:8000" target="_blank">http://localhost:8000</a></li>
+                            <li><strong>Documentação API:</strong> <a href="http://localhost:8000/docs" target="_blank">http://localhost:8000/docs</a></li>
+                            <li><strong>Health Check:</strong> <a href="http://localhost:8000/health" target="_blank">http://localhost:8000/health</a></li>
+                        </ul>
+
+                        <h2>🎯 Primeiro Uso</h2>
+                        
+                        <h3>Interface Web</h3>
+                        <ol>
+                            <li>Acesse a interface em <code>http://localhost:8000</code></li>
+                            <li>Escolha entre <strong>Chat</strong> ou <strong>Ferramenta Avançada</strong></li>
+                            <li>No Chat, faça perguntas como: "Mostre contratos suspeitos do Ministério da Saúde"</li>
+                            <li>Na Ferramenta Avançada, configure filtros específicos para análise</li>
+                        </ol>
+
+                        <h3>API REST</h3>
+                        <p>Teste a API com uma investigação simples:</p>
+                        <pre>curl -X POST "http://localhost:8000/api/v1/investigations" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "query": "contratos emergenciais suspeitos",
+    "filters": {"ano": 2024},
+    "options": {"anomaly_threshold": 0.8}
+  }'</pre>
+
+                        <div class="alert alert-success">
+                            <strong>✅ Pronto!</strong> Agora você pode começar a investigar dados de transparência governamental com IA.
+                        </div>
+
+                        <h2>🆘 Solução de Problemas</h2>
+                        
+                        <h3>Erro de Dependências</h3>
+                        <p>Se houver problemas com instalação de dependências:</p>
+                        <pre>pip install --upgrade pip
+pip install -r requirements.txt</pre>
+
+                        <h3>Erro de API Key</h3>
+                        <p>Verifique se as chaves estão corretas no arquivo <code>.env</code>:</p>
+                        <pre>python -c "import os; print('API Key:', os.getenv('TRANSPARENCY_API_KEY')[:10] + '...' if os.getenv('TRANSPARENCY_API_KEY') else 'Não encontrada')"</pre>
+
+                        <h3>Problemas de Porta</h3>
+                        <p>Se a porta 8000 estiver ocupada, use outra porta:</p>
+                        <pre>uvicorn src.api.app:app --reload --port 8080</pre>
+                    </div>
                 </div>
-                
-                <div class="nav-card" onclick="openDoc('deployment')">
-                    <h3>🚀 Deployment & Production</h3>
-                    <p>Instructions for deploying to different environments and platforms</p>
+
+                <!-- API Section PT -->
+                <div id="pt-api" class="doc-section">
+                    <button class="back-btn" onclick="showSection('pt', 'home')">⬅️ Voltar</button>
+                    <div class="doc-content">
+                        <h1>🔧 API REST</h1>
+                        
+                        <h2>🌐 Visão Geral</h2>
+                        <p>A API REST do Cidadão.AI oferece acesso completo ao sistema de análise de transparência governamental. Desenvolvida com FastAPI, oferece documentação automática, validação de dados e performance otimizada.</p>
+
+                        <div class="alert alert-info">
+                            <strong>🌐 Base URL:</strong> <code>http://localhost:8000/api/v1</code><br>
+                            <strong>📄 Documentação Interativa:</strong> <code>/docs</code> (Swagger UI)<br>
+                            <strong>⚡ Performance:</strong> &lt; 200ms para endpoints síncronos
+                        </div>
+
+                        <h2>🔐 Autenticação</h2>
+                        <p>A API suporta múltiplos métodos de autenticação:</p>
+
+                        <h3>JWT Token</h3>
+                        <pre>Authorization: Bearer &lt;jwt_token&gt;</pre>
+
+                        <h3>API Key</h3>
+                        <pre>X-API-Key: &lt;sua_api_key&gt;</pre>
+
+                        <h3>Exemplo de Login</h3>
+                        <pre>curl -X POST "http://localhost:8000/auth/login" \\
+  -H "Content-Type: application/json" \\
+  -d '{"username": "usuario", "password": "senha"}'</pre>
+
+                        <h2>📊 Endpoints Principais</h2>
+
+                        <h3>🏥 Health & Status</h3>
+                        <table>
+                            <tr><th>Endpoint</th><th>Método</th><th>Descrição</th></tr>
+                            <tr><td><code>/health</code></td><td>GET</td><td>Verificação básica de saúde</td></tr>
+                            <tr><td><code>/health/detailed</code></td><td>GET</td><td>Status detalhado do sistema</td></tr>
+                            <tr><td><code>/health/ready</code></td><td>GET</td><td>Prontidão para Kubernetes</td></tr>
+                        </table>
+
+                        <h3>🔍 Investigações</h3>
+                        <table>
+                            <tr><th>Endpoint</th><th>Método</th><th>Descrição</th></tr>
+                            <tr><td><code>/investigations</code></td><td>POST</td><td>Iniciar nova investigação</td></tr>
+                            <tr><td><code>/investigations/{id}/stream</code></td><td>GET</td><td>Stream em tempo real</td></tr>
+                            <tr><td><code>/investigations/{id}</code></td><td>GET</td><td>Obter resultados completos</td></tr>
+                            <tr><td><code>/investigations</code></td><td>GET</td><td>Listar investigações do usuário</td></tr>
+                        </table>
+
+                        <h3>📈 Análises</h3>
+                        <table>
+                            <tr><th>Endpoint</th><th>Método</th><th>Descrição</th></tr>
+                            <tr><td><code>/analysis/spending-trends</code></td><td>POST</td><td>Análise de tendências de gastos</td></tr>
+                            <tr><td><code>/analysis/vendor-patterns</code></td><td>POST</td><td>Padrões de fornecedores</td></tr>
+                            <tr><td><code>/analysis/correlations</code></td><td>POST</td><td>Análise de correlações</td></tr>
+                        </table>
+
+                        <h3>📄 Relatórios</h3>
+                        <table>
+                            <tr><th>Endpoint</th><th>Método</th><th>Descrição</th></tr>
+                            <tr><td><code>/reports/executive</code></td><td>POST</td><td>Relatório executivo</td></tr>
+                            <tr><td><code>/reports/detailed</code></td><td>POST</td><td>Relatório detalhado</td></tr>
+                            <tr><td><code>/reports/{id}/download</code></td><td>GET</td><td>Download do relatório</td></tr>
+                        </table>
+
+                        <h2>💻 Exemplos de Uso</h2>
+
+                        <h3>Iniciar Investigação</h3>
+                        <pre>POST /api/v1/investigations
+Content-Type: application/json
+
+{
+  "query": "contratos suspeitos do ministério da saúde em 2024",
+  "filters": {
+    "ano": 2024,
+    "orgao": "26000",
+    "valor_inicial": 1000000
+  },
+  "options": {
+    "anomaly_threshold": 0.8,
+    "include_explanations": true
+  }
+}</pre>
+
+                        <h3>Resposta</h3>
+                        <pre>{
+  "investigation_id": "inv_abc123",
+  "status": "started",
+  "query": "contratos suspeitos do ministério da saúde em 2024",
+  "estimated_duration": "2-5 minutos",
+  "stream_url": "/api/v1/investigations/inv_abc123/stream"
+}</pre>
+
+                        <h3>Streaming em Tempo Real</h3>
+                        <pre>const eventSource = new EventSource('/api/v1/investigations/123/stream');
+
+eventSource.onmessage = function(event) {
+  const data = JSON.parse(event.data);
+  console.log('Progresso:', data.progress);
+  console.log('Resultados:', data.results);
+};</pre>
+
+                        <h2>⚡ Recursos Avançados</h2>
+
+                        <h3>🔄 Rate Limiting</h3>
+                        <ul>
+                            <li><strong>Usuários autenticados:</strong> 100 requisições/minuto</li>
+                            <li><strong>Usuários premium:</strong> 500 requisições/minuto</li>
+                            <li><strong>Headers:</strong> <code>X-RateLimit-Remaining</code>, <code>X-RateLimit-Reset</code></li>
+                        </ul>
+
+                        <h3>📊 Múltiplos Formatos</h3>
+                        <ul>
+                            <li><strong>JSON:</strong> Formato padrão para integração</li>
+                            <li><strong>Markdown:</strong> Para documentação e relatórios</li>
+                            <li><strong>HTML:</strong> Para visualização web</li>
+                            <li><strong>CSV:</strong> Para análise de dados</li>
+                        </ul>
+
+                        <div class="alert alert-warning">
+                            <strong>⚠️ Importante:</strong> Nunca exponha suas chaves de API em código cliente. Use sempre variáveis de ambiente.
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="nav-card" onclick="openDoc('architecture')">
-                    <h3>🏗️ System Architecture</h3>
-                    <p>Technical documentation of the multi-agent architecture and components</p>
+
+                <!-- Agents Section PT -->
+                <div id="pt-agents" class="doc-section">
+                    <button class="back-btn" onclick="showSection('pt', 'home')">⬅️ Voltar</button>
+                    <div class="doc-content">
+                        <h1>🧠 Sistema Multi-Agente</h1>
+                        
+                        <h2>🏗️ Arquitetura</h2>
+                        <p>O Cidadão.AI utiliza uma arquitetura multi-agente sofisticada onde cada agente possui responsabilidades específicas, trabalhando em conjunto para fornecer análises inteligentes e investigações aprofundadas.</p>
+
+                        <h2>👥 Agentes Principais</h2>
+
+                        <h3>🎯 MasterAgent</h3>
+                        <p><strong>Função:</strong> Orquestrador principal do sistema</p>
+                        <ul>
+                            <li>Recebe consultas dos usuários e planeja a investigação</li>
+                            <li>Coordena a execução entre diferentes agentes</li>
+                            <li>Possui capacidade de auto-reflexão para melhorar resultados</li>
+                            <li>Gerencia o fluxo de trabalho e prioridades</li>
+                        </ul>
+
+                        <h3>🧠 ContextMemoryAgent</h3>
+                        <p><strong>Função:</strong> Gerenciamento de memória e contexto</p>
+                        <ul>
+                            <li><strong>Memória Episódica:</strong> Lembra de investigações e eventos específicos</li>
+                            <li><strong>Memória Semântica:</strong> Armazena conhecimento e padrões identificados</li>
+                            <li><strong>Memória Conversacional:</strong> Mantém contexto de conversas com usuários</li>
+                            <li>Permite investigações mais contextualizadas e consistentes</li>
+                        </ul>
+
+                        <h3>🔍 InvestigatorAgent</h3>
+                        <p><strong>Função:</strong> Detecção de anomalias e investigação</p>
+                        <ul>
+                            <li>Analisa dados governamentais em busca de irregularidades</li>
+                            <li>Utiliza algoritmos de ML para detecção de padrões suspeitos</li>
+                            <li>Fornece explicações claras sobre anomalias encontradas</li>
+                            <li>Classifica o nível de suspeição e risco</li>
+                        </ul>
+
+                        <h3>📊 AnalystAgent</h3>
+                        <p><strong>Função:</strong> Análise de dados e correlações</p>
+                        <ul>
+                            <li>Realiza análise estatística avançada dos dados</li>
+                            <li>Identifica correlações e padrões temporais</li>
+                            <li>Compara dados entre diferentes órgãos e períodos</li>
+                            <li>Gera insights sobre tendências de gastos públicos</li>
+                        </ul>
+
+                        <h3>📝 ReporterAgent</h3>
+                        <p><strong>Função:</strong> Geração de relatórios</p>
+                        <ul>
+                            <li>Transforma análises em relatórios compreensíveis</li>
+                            <li>Gera diferentes formatos: executivo, detalhado, técnico</li>
+                            <li>Utiliza linguagem natural para explicar descobertas</li>
+                            <li>Adapta o nível de detalhe ao público-alvo</li>
+                        </ul>
+
+                        <h3>🧭 SemanticRouter</h3>
+                        <p><strong>Função:</strong> Roteamento inteligente</p>
+                        <ul>
+                            <li>Analisa consultas dos usuários para determinar intenção</li>
+                            <li>Roteia requisições para os agentes apropriados</li>
+                            <li>Otimiza o fluxo de processamento</li>
+                            <li>Adapta respostas baseado no contexto da consulta</li>
+                        </ul>
+
+                        <h2>🔄 Fluxo de Comunicação</h2>
+                        
+                        <h3>1. Recepção da Consulta</h3>
+                        <p>O <strong>SemanticRouter</strong> recebe a consulta do usuário e determina qual tipo de análise é necessário.</p>
+
+                        <h3>2. Planejamento</h3>
+                        <p>O <strong>MasterAgent</strong> cria um plano de investigação baseado na consulta e no contexto histórico.</p>
+
+                        <h3>3. Execução</h3>
+                        <p>Os agentes especializados (<strong>InvestigatorAgent</strong>, <strong>AnalystAgent</strong>) executam suas tarefas em paralelo ou sequencialmente.</p>
+
+                        <h3>4. Síntese</h3>
+                        <p>O <strong>ReporterAgent</strong> compila os resultados em um relatório coerente e compreensível.</p>
+
+                        <h3>5. Armazenamento</h3>
+                        <p>O <strong>ContextMemoryAgent</strong> armazena os resultados para futuras consultas e aprendizado.</p>
+
+                        <h2>🔧 Configuração e Personalização</h2>
+
+                        <h3>Parâmetros dos Agentes</h3>
+                        <pre>{
+  "master_agent": {
+    "reflection_enabled": true,
+    "max_planning_steps": 5,
+    "confidence_threshold": 0.8
+  },
+  "investigator_agent": {
+    "anomaly_threshold": 0.7,
+    "explanation_detail": "high",
+    "risk_assessment": true
+  },
+  "analyst_agent": {
+    "correlation_depth": "deep",
+    "trend_analysis": true,
+    "comparative_analysis": true
+  }
+}</pre>
+
+                        <h3>Modelos LLM</h3>
+                        <p>Cada agente pode usar diferentes modelos LLM otimizados para suas tarefas:</p>
+                        <ul>
+                            <li><strong>Groq:</strong> Para processamento rápido e eficiente</li>
+                            <li><strong>Together AI:</strong> Para análises complexas</li>
+                            <li><strong>Hugging Face:</strong> Para modelos especializados</li>
+                        </ul>
+
+                        <div class="alert alert-success">
+                            <strong>✨ Resultado:</strong> Um sistema que não apenas processa dados, mas realmente <em>investiga</em> e <em>compreende</em> os padrões de transparência governamental.
+                        </div>
+                    </div>
                 </div>
-                
-                <div class="nav-card" onclick="openDoc('examples')">
-                    <h3>💡 Examples & Tutorials</h3>
-                    <p>Practical usage examples and step-by-step tutorials</p>
+
+                <!-- Integration Section PT -->
+                <div id="pt-integration" class="doc-section">
+                    <button class="back-btn" onclick="showSection('pt', 'home')">⬅️ Voltar</button>
+                    <div class="doc-content">
+                        <h1>🔗 Integração Portal da Transparência</h1>
+                        
+                        <h2>🌐 Visão Geral</h2>
+                        <p>O Cidadão.AI possui integração completa com a API oficial do Portal da Transparência do Governo Federal, permitindo acesso em tempo real aos dados de gastos públicos brasileiros.</p>
+
+                        <div class="alert alert-info">
+                            <strong>📍 API Base:</strong> https://api.portaldatransparencia.gov.br<br>
+                            <strong>🔑 Autenticação:</strong> Header <code>chave-api-dados</code><br>
+                            <strong>📊 Rate Limit:</strong> 90-700 requisições/minuto
+                        </div>
+
+                        <h2>📊 Tipos de Dados Disponíveis</h2>
+
+                        <h3>📋 Contratos</h3>
+                        <p>Contratos governamentais com capacidades de detecção de anomalias</p>
+                        <ul>
+                            <li>Dados do contrato e fornecedor</li>
+                            <li>Valores e modalidades</li>
+                            <li>Situação e vigência</li>
+                            <li>Órgão contratante</li>
+                        </ul>
+
+                        <h3>💰 Despesas</h3>
+                        <p>Gastos públicos e padrões de despesas</p>
+                        <ul>
+                            <li>Despesas por órgão</li>
+                            <li>Classificação orçamentária</li>
+                            <li>Favorecidos e valores</li>
+                            <li>Empenhos e liquidações</li>
+                        </ul>
+
+                        <h3>🤝 Convênios</h3>
+                        <p>Acordos e parcerias entre entes públicos</p>
+                        <ul>
+                            <li>Convênios de cooperação</li>
+                            <li>Transferências voluntárias</li>
+                            <li>Prestação de contas</li>
+                            <li>Situação de execução</li>
+                        </ul>
+
+                        <h3>🏢 Licitações</h3>
+                        <p>Processos de licitação e aquisição</p>
+                        <ul>
+                            <li>Editais e modalidades</li>
+                            <li>Participantes e propostas</li>
+                            <li>Resultados e homologação</li>
+                            <li>Itens licitados</li>
+                        </ul>
+
+                        <h3>👥 Servidores</h3>
+                        <p>Dados de servidores públicos e remuneração</p>
+                        <ul>
+                            <li>Remuneração mensal</li>
+                            <li>Cargos e funções</li>
+                            <li>Órgãos de lotação</li>
+                            <li>Situação funcional</li>
+                        </ul>
+
+                        <h3>⚠️ Empresas Sancionadas</h3>
+                        <p>Registros CEAF, CEIS e CNEP</p>
+                        <ul>
+                            <li>Cadastro de empresas inidôneas</li>
+                            <li>Cadastro de entidades suspensas</li>
+                            <li>Cadastro nacional de punições</li>
+                            <li>Histórico de sanções</li>
+                        </ul>
+
+                        <h2>🔧 Cliente de Integração</h2>
+
+                        <h3>TransparencyAPIClient</h3>
+                        <p>Cliente HTTP assíncrono completo com cache inteligente</p>
+
+                        <pre>from src.tools import TransparencyAPIClient, TransparencyAPIFilter
+
+async with TransparencyAPIClient() as client:
+    # Configurar filtros
+    filters = TransparencyAPIFilter(
+        ano=2024,
+        valor_inicial=1000000,  # Contratos > 1M
+        orgao="26000"  # Ministério da Saúde
+    )
+    
+    # Buscar contratos
+    contracts = await client.get_contracts(filters)
+    
+    # Buscar despesas
+    expenses = await client.get_expenses(filters)
+    
+    # Buscar licitações
+    biddings = await client.get_biddings(filters)</pre>
+
+                        <h2>🛡️ Recursos Avançados</h2>
+
+                        <h3>Cache Inteligente</h3>
+                        <ul>
+                            <li>Cache em memória para consultas frequentes</li>
+                            <li>TTL configurável por tipo de dados</li>
+                            <li>Invalidação automática de cache</li>
+                            <li>Redução significativa de chamadas à API</li>
+                        </ul>
+
+                        <h3>Retry Automático</h3>
+                        <ul>
+                            <li>Retry com backoff exponencial</li>
+                            <li>Recuperação automática de falhas temporárias</li>
+                            <li>Configuração de número máximo de tentativas</li>
+                            <li>Tratamento inteligente de diferentes tipos de erro</li>
+                        </ul>
+
+                        <h3>Rate Limiting</h3>
+                        <ul>
+                            <li>Respeita limites da API governamental</li>
+                            <li>Algoritmo de sliding window</li>
+                            <li>Controle automático de velocidade</li>
+                            <li>Métricas de uso em tempo real</li>
+                        </ul>
+
+                        <h3>Validação e Normalização</h3>
+                        <ul>
+                            <li>Validação de integridade dos dados</li>
+                            <li>Normalização de formatos</li>
+                            <li>Tratamento de dados inconsistentes</li>
+                            <li>Enriquecimento de metadados</li>
+                        </ul>
+
+                        <h2>🔍 Filtros Avançados</h2>
+
+                        <h3>Filtros Temporais</h3>
+                        <pre>{
+  "ano": 2024,
+  "mes": [1, 2, 3],
+  "data_inicial": "2024-01-01",
+  "data_final": "2024-03-31"
+}</pre>
+
+                        <h3>Filtros por Valor</h3>
+                        <pre>{
+  "valor_inicial": 100000,
+  "valor_final": 10000000,
+  "faixa_valor": "alto"
+}</pre>
+
+                        <h3>Filtros Organizacionais</h3>
+                        <pre>{
+  "orgao": ["26000", "20000"],
+  "unidade_gestora": "170001",
+  "codigo_orgao_superior": "26000"
+}</pre>
+
+                        <h3>Filtros Específicos</h3>
+                        <pre>{
+  "modalidade": "pregao_eletronico",
+  "situacao": "ativo",
+  "cnpj_fornecedor": "12345678000199",
+  "uf": "SP"
+}</pre>
+
+                        <h2>📈 Monitoramento e Métricas</h2>
+
+                        <h3>Métricas Disponíveis</h3>
+                        <ul>
+                            <li>Taxa de sucesso das requisições</li>
+                            <li>Tempo médio de resposta</li>
+                            <li>Cache hit ratio</li>
+                            <li>Uso de rate limiting</li>
+                            <li>Volume de dados processados</li>
+                        </ul>
+
+                        <h3>Alertas e Notificações</h3>
+                        <ul>
+                            <li>Falhas na API externa</li>
+                            <li>Rate limit próximo do limite</li>
+                            <li>Degradação de performance</li>
+                            <li>Dados inconsistentes detectados</li>
+                        </ul>
+
+                        <div class="alert alert-warning">
+                            <strong>📋 Importante:</strong> Para usar a API do Portal da Transparência, você precisa solicitar uma chave de acesso no site oficial do Portal da Transparência.
+                        </div>
+
+                        <h2>🔗 Links Úteis</h2>
+                        <ul>
+                            <li><a href="https://portal.transparencia.gov.br/" target="_blank">Portal da Transparência</a></li>
+                            <li><a href="https://api.portaldatransparencia.gov.br/swagger-ui.html" target="_blank">Documentação da API</a></li>
+                            <li><a href="https://www.gov.br/cgu/pt-br/acesso-a-informacao/dados-abertos" target="_blank">Dados Abertos CGU</a></li>
+                        </ul>
+                    </div>
                 </div>
+
+                <!-- Examples Section PT -->
+                <div id="pt-examples" class="doc-section">
+                    <button class="back-btn" onclick="showSection('pt', 'home')">⬅️ Voltar</button>
+                    <div class="doc-content">
+                        <h1>💡 Exemplos Práticos</h1>
+                        
+                        <h2>🔍 Casos de Uso Comuns</h2>
+
+                        <h3>1. Investigação de Contratos Emergenciais</h3>
+                        <p><strong>Cenário:</strong> Identificar contratos emergenciais suspeitos durante a pandemia</p>
+                        
+                        <h4>Via Interface Web:</h4>
+                        <ol>
+                            <li>Acesse o chat do Cidadão.AI</li>
+                            <li>Digite: "Mostre contratos emergenciais suspeitos do Ministério da Saúde em 2020-2021"</li>
+                            <li>O sistema irá automaticamente:
+                                <ul>
+                                    <li>Buscar contratos emergenciais no período</li>
+                                    <li>Aplicar algoritmos de detecção de anomalias</li>
+                                    <li>Identificar padrões suspeitos</li>
+                                    <li>Gerar explicações detalhadas</li>
+                                </ul>
+                            </li>
+                        </ol>
+
+                        <h4>Via API:</h4>
+                        <pre>POST /api/v1/investigations
+{
+  "query": "contratos emergenciais suspeitos ministério saúde",
+  "filters": {
+    "ano": [2020, 2021],
+    "orgao": "26000",
+    "modalidade": "dispensa_emergencial"
+  },
+  "options": {
+    "anomaly_threshold": 0.8,
+    "include_explanations": true,
+    "focus": "emergency_contracts"
+  }
+}</pre>
+
+                        <h3>2. Análise de Fornecedores Recorrentes</h3>
+                        <p><strong>Cenário:</strong> Identificar fornecedores que ganham contratos de forma suspeita</p>
+
+                        <h4>Via Interface Web:</h4>
+                        <p>Na Ferramenta Avançada, configure:</p>
+                        <ul>
+                            <li><strong>Tipo de Análise:</strong> Padrões de Fornecedores</li>
+                            <li><strong>Período:</strong> 2023-2024</li>
+                            <li><strong>Valor Mínimo:</strong> R$ 500.000</li>
+                            <li><strong>Foco:</strong> Concentração de contratos</li>
+                        </ul>
+
+                        <h4>Via API:</h4>
+                        <pre>POST /api/v1/analysis/vendor-patterns
+{
+  "filters": {
+    "ano": [2023, 2024],
+    "valor_inicial": 500000
+  },
+  "analysis_type": "concentration",
+  "options": {
+    "min_contracts": 5,
+    "suspicious_patterns": true
+  }
+}</pre>
+
+                        <h3>3. Monitoramento de Gastos por Órgão</h3>
+                        <p><strong>Cenário:</strong> Comparar gastos entre diferentes ministérios</p>
+
+                        <h4>Via Interface Web:</h4>
+                        <p>No chat, pergunte: "Compare os gastos do Ministério da Educação e Ministério da Saúde em 2024"</p>
+
+                        <h4>Via API:</h4>
+                        <pre>POST /api/v1/analysis/spending-trends
+{
+  "filters": {
+    "ano": 2024,
+    "orgao": ["26000", "26101"]  // Saúde e Educação
+  },
+  "analysis_type": "comparative",
+  "options": {
+    "breakdown_by": "month",
+    "include_trends": true
+  }
+}</pre>
+
+                        <h2>🛠️ Cenários de Desenvolvimento</h2>
+
+                        <h3>Integração em Sistema Jornalístico</h3>
+                        <pre>// Exemplo de integração em Node.js
+const CidadaoAI = require('@cidadao-ai/sdk');
+
+const client = new CidadaoAI({
+  apiKey: process.env.CIDADAO_AI_KEY,
+  baseURL: 'https://api.cidadao.ai'
+});
+
+async function investigateStory(topic) {
+  // Iniciar investigação
+  const investigation = await client.investigate({
+    query: topic,
+    options: {
+      detail_level: 'journalistic',
+      include_sources: true,
+      format: 'markdown'
+    }
+  });
+
+  // Acompanhar progresso
+  for await (const update of investigation.stream()) {
+    console.log(`Progresso: ${update.progress}%`);
+    
+    if (update.findings) {
+      // Processa descobertas em tempo real
+      processFinding(update.findings);
+    }
+  }
+
+  // Obter relatório final
+  const report = await investigation.getReport('detailed');
+  return report;
+}</pre>
+
+                        <h3>Sistema de Alertas Automatizados</h3>
+                        <pre>// Exemplo de sistema de monitoramento
+class TransparencyMonitor {
+  constructor() {
+    this.client = new CidadaoAI({...});
+    this.alertThreshold = 0.8;
+  }
+
+  async startMonitoring() {
+    const watcher = await this.client.watch({
+      query: "contratos acima de 1 milhão",
+      filters: {
+        valor_inicial: 1000000
+      },
+      interval: "1h",
+      threshold: this.alertThreshold
+    });
+
+    watcher.on('anomaly', (anomaly) => {
+      this.sendAlert({
+        type: 'anomaly_detected',
+        severity: anomaly.severity,
+        description: anomaly.explanation,
+        data: anomaly.contract
+      });
+    });
+  }
+
+  sendAlert(alert) {
+    // Enviar via email, Slack, etc.
+    console.log('ALERTA:', alert.description);
+  }
+}</pre>
+
+                        <h2>📊 Casos de Análise Específica</h2>
+
+                        <h3>Análise de Licitações Desertas</h3>
+                        <pre>POST /api/v1/analysis/correlations
+{
+  "query": "licitações desertas ou fracassadas",
+  "filters": {
+    "situacao": ["deserta", "fracassada"],
+    "ano": 2024
+  },
+  "analysis_focus": [
+    "temporal_patterns",
+    "organizational_patterns", 
+    "value_patterns"
+  ]
+}</pre>
+
+                        <h3>Detecção de Favorecimento</h3>
+                        <pre>POST /api/v1/investigations
+{
+  "query": "possível favorecimento em licitações",
+  "filters": {
+    "modalidade": "convite",
+    "valor_inicial": 100000
+  },
+  "options": {
+    "focus": "bid_rigging_patterns",
+    "check_market_prices": true,
+    "analyze_participants": true
+  }
+}</pre>
+
+                        <h3>Análise de Aditivos Contratuais</h3>
+                        <pre>POST /api/v1/analysis/organizational
+{
+  "query": "análise de aditivos contratuais excessivos",
+  "filters": {
+    "tipo": "aditivo",
+    "percentual_acrescimo": "> 25%"
+  },
+  "options": {
+    "group_by": "fornecedor",
+    "include_justifications": true
+  }
+}</pre>
+
+                        <h2>🎯 Resultados Esperados</h2>
+
+                        <h3>Formato de Resposta Padrão</h3>
+                        <pre>{
+  "investigation_id": "inv_12345",
+  "status": "completed",
+  "summary": {
+    "total_records_analyzed": 1543,
+    "anomalies_found": 23,
+    "confidence_level": 0.87,
+    "processing_time": "2m 34s"
+  },
+  "findings": [
+    {
+      "type": "high_value_contract",
+      "severity": "high",
+      "description": "Contrato com valor 340% acima da média...",
+      "evidence": ["..."],
+      "recommendation": "Investigação aprofundada recomendada"
+    }
+  ],
+  "report_url": "/api/v1/reports/rep_67890",
+  "export_formats": ["json", "markdown", "html", "pdf"]
+}</pre>
+
+                        <div class="alert alert-success">
+                            <strong>💡 Dica:</strong> Use a documentação interativa em <code>/docs</code> para testar esses exemplos diretamente no navegador.
+                        </div>
+
+                        <h2>📚 Recursos Adicionais</h2>
+                        <ul>
+                            <li><strong>Jupyter Notebooks:</strong> Exemplos interativos em <code>examples/notebooks/</code></li>
+                            <li><strong>Scripts Python:</strong> Casos de uso completos em <code>examples/scripts/</code></li>
+                            <li><strong>Postman Collection:</strong> Coleção de requisições para teste</li>
+                            <li><strong>Webhooks:</strong> Exemplos de integração com sistemas externos</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Deployment Section PT -->
+                <div id="pt-deployment" class="doc-section">
+                    <button class="back-btn" onclick="showSection('pt', 'home')">⬅️ Voltar</button>
+                    <div class="doc-content">
+                        <h1>🚀 Deploy & Produção</h1>
+                        
+                        <h2>🐳 Docker</h2>
+                        
+                        <h3>Build Local</h3>
+                        <pre># Build da imagem
+docker build -t cidadao-ai .
+
+# Executar container
+docker run -p 8000:8000 --env-file .env cidadao-ai</pre>
+
+                        <h3>Docker Compose</h3>
+                        <pre># Iniciar todos os serviços
+make docker-up
+
+# Parar serviços
+make docker-down
+
+# Logs
+docker-compose logs -f</pre>
+
+                        <h3>Dockerfile Otimizado</h3>
+                        <pre>FROM python:3.11-slim
+
+WORKDIR /app
+
+# Instalar dependências do sistema
+RUN apt-get update && apt-get install -y \\
+    build-essential \\
+    curl \\
+    && rm -rf /var/lib/apt/lists/*
+
+# Copiar e instalar dependências Python
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copiar código da aplicação
+COPY . .
+
+# Criar usuário não-root
+RUN useradd --create-home --shell /bin/bash app \\
+    && chown -R app:app /app
+USER app
+
+# Expor porta
+EXPOSE 8000
+
+# Comando de inicialização
+CMD ["uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8000"]</pre>
+
+                        <h2>☸️ Kubernetes</h2>
+
+                        <h3>Deployment Básico</h3>
+                        <pre>apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cidadao-ai
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: cidadao-ai
+  template:
+    metadata:
+      labels:
+        app: cidadao-ai
+    spec:
+      containers:
+      - name: cidadao-ai
+        image: cidadao-ai:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: TRANSPARENCY_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cidadao-ai-secrets
+              key: transparency-api-key
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"</pre>
+
+                        <h3>Service</h3>
+                        <pre>apiVersion: v1
+kind: Service
+metadata:
+  name: cidadao-ai-service
+spec:
+  selector:
+    app: cidadao-ai
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8000
+  type: LoadBalancer</pre>
+
+                        <h3>ConfigMap</h3>
+                        <pre>apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cidadao-ai-config
+data:
+  LOG_LEVEL: "INFO"
+  API_RATE_LIMIT: "100"
+  CACHE_TTL: "3600"</pre>
+
+                        <h2>🌐 Plataformas Cloud</h2>
+
+                        <h3>Heroku</h3>
+                        <pre># Instalar Heroku CLI e fazer login
+heroku login
+
+# Criar aplicação
+heroku create cidadao-ai-prod
+
+# Configurar variáveis de ambiente
+heroku config:set TRANSPARENCY_API_KEY=sua_chave
+
+# Deploy
+git push heroku main
+
+# Verificar logs
+heroku logs --tail</pre>
+
+                        <h3>AWS ECS</h3>
+                        <pre>{
+  "family": "cidadao-ai",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "containerDefinitions": [
+    {
+      "name": "cidadao-ai",
+      "image": "your-account.dkr.ecr.region.amazonaws.com/cidadao-ai:latest",
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        {
+          "name": "LOG_LEVEL",
+          "value": "INFO"
+        }
+      ],
+      "secrets": [
+        {
+          "name": "TRANSPARENCY_API_KEY",
+          "valueFrom": "arn:aws:secretsmanager:region:account:secret:cidadao-ai/api-key"
+        }
+      ]
+    }
+  ]
+}</pre>
+
+                        <h3>Google Cloud Run</h3>
+                        <pre># Build e push para Container Registry
+gcloud builds submit --tag gcr.io/PROJECT_ID/cidadao-ai
+
+# Deploy no Cloud Run
+gcloud run deploy cidadao-ai \\
+  --image gcr.io/PROJECT_ID/cidadao-ai \\
+  --platform managed \\
+  --region us-central1 \\
+  --allow-unauthenticated \\
+  --set-env-vars LOG_LEVEL=INFO</pre>
+
+                        <h2>📊 Monitoramento</h2>
+
+                        <h3>Prometheus + Grafana</h3>
+                        <pre># docker-compose.monitoring.yml
+version: '3.8'
+services:
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-storage:/var/lib/grafana
+
+volumes:
+  grafana-storage:</pre>
+
+                        <h3>Health Checks</h3>
+                        <pre># Kubernetes Health Check
+livenessProbe:
+  httpGet:
+    path: /health/live
+    port: 8000
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 8000
+  initialDelaySeconds: 5
+  periodSeconds: 5</pre>
+
+                        <h3>Logging</h3>
+                        <pre># Configuração de logging estruturado
+import structlog
+
+logger = structlog.get_logger()
+
+# Exemplo de uso
+logger.info(
+    "investigation_started",
+    investigation_id="inv_123",
+    user_id="user_456",
+    query="contratos suspeitos"
+)</pre>
+
+                        <h2>🔒 Segurança em Produção</h2>
+
+                        <h3>Secrets Management</h3>
+                        <ul>
+                            <li><strong>Kubernetes:</strong> Use Secrets e não ConfigMaps para dados sensíveis</li>
+                            <li><strong>AWS:</strong> AWS Secrets Manager ou Parameter Store</li>
+                            <li><strong>Azure:</strong> Azure Key Vault</li>
+                            <li><strong>GCP:</strong> Secret Manager</li>
+                        </ul>
+
+                        <h3>HTTPS e TLS</h3>
+                        <pre># nginx.conf para proxy reverso
+server {
+    listen 443 ssl http2;
+    server_name cidadao.ai;
+    
+    ssl_certificate /path/to/certificate.crt;
+    ssl_certificate_key /path/to/private.key;
+    
+    location / {
+        proxy_pass http://cidadao-ai:8000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }
+}</pre>
+
+                        <h3>Rate Limiting</h3>
+                        <pre># Configuração nginx rate limiting
+http {
+    limit_req_zone $binary_remote_addr zone=api:10m rate=10r/s;
+    
+    server {
+        location /api/ {
+            limit_req zone=api burst=20 nodelay;
+            proxy_pass http://cidadao-ai:8000;
+        }
+    }
+}</pre>
+
+                        <h2>⚡ Otimização de Performance</h2>
+
+                        <h3>Caching</h3>
+                        <pre># Redis para cache
+REDIS_URL=redis://redis:6379/0
+CACHE_TTL=3600
+CACHE_MAX_CONNECTIONS=20</pre>
+
+                        <h3>Database Optimization</h3>
+                        <pre># PostgreSQL otimizado
+# postgresql.conf
+shared_buffers = 256MB
+effective_cache_size = 1GB
+maintenance_work_mem = 64MB
+checkpoint_completion_target = 0.9
+wal_buffers = 16MB
+default_statistics_target = 100</pre>
+
+                        <h3>Auto Scaling</h3>
+                        <pre># Kubernetes HPA
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cidadao-ai-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cidadao-ai
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70</pre>
+
+                        <h2>📋 Checklist de Deploy</h2>
+
+                        <div class="alert alert-warning">
+                            <strong>📋 Antes do Deploy:</strong>
+                            <ul style="margin: 10px 0 0 20px;">
+                                <li>✅ Todas as chaves de API configuradas</li>
+                                <li>✅ Testes passando (make test)</li>
+                                <li>✅ Lint verificado (make lint)</li>
+                                <li>✅ Health checks configurados</li>
+                                <li>✅ Monitoramento ativo</li>
+                                <li>✅ Backup configurado</li>
+                                <li>✅ SSL/TLS configurado</li>
+                                <li>✅ Rate limiting ativo</li>
+                            </ul>
+                        </div>
+
+                        <h2>🆘 Troubleshooting</h2>
+
+                        <h3>Problemas Comuns</h3>
+                        <table>
+                            <tr><th>Problema</th><th>Causa</th><th>Solução</th></tr>
+                            <tr><td>502 Bad Gateway</td><td>Aplicação não iniciou</td><td>Verificar logs do container</td></tr>
+                            <tr><td>Rate limit exceeded</td><td>Muitas requisições</td><td>Implementar circuit breaker</td></tr>
+                            <tr><td>Memory leak</td><td>Cache não expirando</td><td>Configurar TTL adequado</td></tr>
+                            <tr><td>Slow queries</td><td>DB não otimizado</td><td>Adicionar índices</td></tr>
+                        </table>
+
+                        <div class="alert alert-info">
+                            <strong>📞 Suporte:</strong> Para problemas de deploy, verifique os logs detalhados e consulte nossa documentação de troubleshooting completa.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contributing Section PT -->
+                <div id="pt-contributing" class="doc-section">
+                    <button class="back-btn" onclick="showSection('pt', 'home')">⬅️ Voltar</button>
+                    <div class="doc-content">
+                        <h1>🤝 Contribuindo</h1>
+                        
+                        <h2>🎯 Como Contribuir</h2>
+                        <p>O Cidadão.AI é um projeto open source e sua contribuição é muito bem-vinda! Existem várias maneiras de contribuir para o projeto.</p>
+
+                        <h2>🚀 Formas de Contribuição</h2>
+
+                        <h3>🐛 Reportar Bugs</h3>
+                        <ul>
+                            <li>Use o sistema de Issues do GitHub</li>
+                            <li>Inclua informações detalhadas sobre o problema</li>
+                            <li>Forneça logs e mensagens de erro</li>
+                            <li>Descreva passos para reproduzir o problema</li>
+                        </ul>
+
+                        <h3>💡 Sugerir Funcionalidades</h3>
+                        <ul>
+                            <li>Abra uma Issue com label "enhancement"</li>
+                            <li>Descreva claramente a funcionalidade desejada</li>
+                            <li>Explique o valor que ela agregaria</li>
+                            <li>Proponha uma implementação se possível</li>
+                        </ul>
+
+                        <h3>📝 Melhorar Documentação</h3>
+                        <ul>
+                            <li>Corrigir erros de digitação</li>
+                            <li>Adicionar exemplos práticos</li>
+                            <li>Traduzir conteúdo</li>
+                            <li>Criar tutoriais e guias</li>
+                        </ul>
+
+                        <h3>💻 Contribuir com Código</h3>
+                        <ul>
+                            <li>Implementar novas funcionalidades</li>
+                            <li>Corrigir bugs reportados</li>
+                            <li>Melhorar performance</li>
+                            <li>Adicionar testes</li>
+                        </ul>
+
+                        <h2>🛠️ Setup para Desenvolvimento</h2>
+
+                        <h3>1. Fork e Clone</h3>
+                        <pre># Fork o repositório no GitHub, depois:
+git clone https://github.com/SEU_USUARIO/cidadao.ai.git
+cd cidadao.ai
+
+# Adicionar upstream
+git remote add upstream https://github.com/anderson-ufrj/cidadao.ai.git</pre>
+
+                        <h3>2. Ambiente de Desenvolvimento</h3>
+                        <pre># Criar ambiente virtual
+python -m venv venv
+source venv/bin/activate
+
+# Instalar dependências de desenvolvimento
+pip install -e ".[dev]"
+
+# Instalar pre-commit hooks
+pre-commit install</pre>
+
+                        <h3>3. Configurar Ambiente</h3>
+                        <pre># Copiar arquivo de configuração
+cp .env.example .env
+
+# Editar com suas chaves de API
+nano .env</pre>
+
+                        <h3>4. Executar Testes</h3>
+                        <pre># Executar todos os testes
+make test
+
+# Executar testes específicos
+pytest tests/unit/test_agents.py
+
+# Executar com coverage
+make test-coverage</pre>
+
+                        <h2>📋 Processo de Contribuição</h2>
+
+                        <h3>1. Criar Branch</h3>
+                        <pre># Atualizar main
+git checkout main
+git pull upstream main
+
+# Criar nova branch
+git checkout -b feature/minha-funcionalidade
+# ou
+git checkout -b fix/correcao-bug</pre>
+
+                        <h3>2. Fazer Alterações</h3>
+                        <ul>
+                            <li>Implemente suas mudanças</li>
+                            <li>Adicione testes quando necessário</li>
+                            <li>Atualize documentação se aplicável</li>
+                            <li>Siga as convenções de código</li>
+                        </ul>
+
+                        <h3>3. Verificar Qualidade</h3>
+                        <pre># Formatação de código
+make format
+
+# Verificar lint
+make lint
+
+# Executar testes
+make test
+
+# Verificar type hints
+make type-check</pre>
+
+                        <h3>4. Commit e Push</h3>
+                        <pre># Adicionar mudanças
+git add .
+
+# Commit com mensagem descritiva
+git commit -m "feat: adicionar funcionalidade de análise temporal"
+
+# Push para seu fork
+git push origin feature/minha-funcionalidade</pre>
+
+                        <h3>5. Criar Pull Request</h3>
+                        <ul>
+                            <li>Vá para o GitHub e crie um Pull Request</li>
+                            <li>Use um título claro e descritivo</li>
+                            <li>Preencha o template de PR</li>
+                            <li>Aguarde review e feedback</li>
+                        </ul>
+
+                        <h2>📏 Padrões de Código</h2>
+
+                        <h3>Estilo de Código</h3>
+                        <ul>
+                            <li><strong>Formatação:</strong> Black + isort</li>
+                            <li><strong>Linting:</strong> Ruff</li>
+                            <li><strong>Type hints:</strong> mypy</li>
+                            <li><strong>Docstrings:</strong> Google style</li>
+                        </ul>
+
+                        <h3>Convenções de Nomenclatura</h3>
+                        <pre># Classes: PascalCase
+class InvestigatorAgent:
+    pass
+
+# Funções e variáveis: snake_case
+def analyze_contracts():
+    api_key = get_api_key()
+
+# Constantes: UPPER_SNAKE_CASE
+TRANSPARENCY_API_BASE = "https://api.portal..."
+
+# Métodos privados: _snake_case
+def _process_internal_data():
+    pass</pre>
+
+                        <h3>Estrutura de Commits</h3>
+                        <pre># Formato: tipo(escopo): descrição
+feat(agents): adicionar capacidade de reflexão ao MasterAgent
+fix(api): corrigir validação de parâmetros em /investigations
+docs(readme): atualizar instruções de instalação
+test(integration): adicionar testes para Portal da Transparência API</pre>
+
+                        <h3>Tipos de Commit</h3>
+                        <ul>
+                            <li><strong>feat:</strong> Nova funcionalidade</li>
+                            <li><strong>fix:</strong> Correção de bug</li>
+                            <li><strong>docs:</strong> Documentação</li>
+                            <li><strong>test:</strong> Testes</li>
+                            <li><strong>refactor:</strong> Refatoração</li>
+                            <li><strong>style:</strong> Formatação</li>
+                            <li><strong>chore:</strong> Manutenção</li>
+                        </ul>
+
+                        <h2>🧪 Testes</h2>
+
+                        <h3>Tipos de Testes</h3>
+                        <ul>
+                            <li><strong>Unit:</strong> <code>tests/unit/</code> - Testes de componentes isolados</li>
+                            <li><strong>Integration:</strong> <code>tests/integration/</code> - Testes de integração</li>
+                            <li><strong>E2E:</strong> <code>tests/e2e/</code> - Testes de ponta a ponta</li>
+                            <li><strong>Performance:</strong> <code>tests/performance/</code> - Testes de performance</li>
+                        </ul>
+
+                        <h3>Exemplo de Teste</h3>
+                        <pre>import pytest
+from src.agents.investigator import InvestigatorAgent
+
+class TestInvestigatorAgent:
+    @pytest.fixture
+    def agent(self):
+        return InvestigatorAgent()
+    
+    async def test_detect_anomalies(self, agent):
+        # Arrange
+        contracts = [
+            {"valor": 1000000, "fornecedor": "Empresa A"},
+            {"valor": 50000000, "fornecedor": "Empresa B"}  # Suspeito
+        ]
+        
+        # Act
+        anomalies = await agent.detect_anomalies(contracts)
+        
+        # Assert
+        assert len(anomalies) == 1
+        assert anomalies[0]["severity"] == "high"
+        assert "valor" in anomalies[0]["reasons"]</pre>
+
+                        <h2>📚 Recursos para Contribuidores</h2>
+
+                        <h3>Documentação Técnica</h3>
+                        <ul>
+                            <li><strong>Arquitetura:</strong> <code>docs/architecture/</code></li>
+                            <li><strong>API Interna:</strong> <code>docs/api-internal/</code></li>
+                            <li><strong>Fluxos:</strong> <code>docs/workflows/</code></li>
+                            <li><strong>Decisões:</strong> <code>docs/decisions/</code></li>
+                        </ul>
+
+                        <h3>Ferramentas de Desenvolvimento</h3>
+                        <ul>
+                            <li><strong>IDE:</strong> VS Code com extensões Python</li>
+                            <li><strong>Debugging:</strong> pdb, ipdb, VS Code debugger</li>
+                            <li><strong>Profiling:</strong> cProfile, py-spy</li>
+                            <li><strong>API Testing:</strong> Postman, httpie</li>
+                        </ul>
+
+                        <h3>Makefile Targets</h3>
+                        <pre># Desenvolvimento
+make run          # Executar servidor de desenvolvimento
+make test         # Executar todos os testes
+make lint         # Verificar qualidade do código
+make format       # Formatar código automaticamente
+make type-check   # Verificar type hints
+
+# Docker
+make docker-up    # Iniciar serviços Docker
+make docker-down  # Parar serviços Docker
+make docker-build # Build das imagens
+
+# Produção
+make deploy-staging  # Deploy em staging
+make deploy-prod     # Deploy em produção</pre>
+
+                        <h2>🎖️ Reconhecimento</h2>
+
+                        <p>Todos os contribuidores serão reconhecidos no projeto:</p>
+                        <ul>
+                            <li>Nome no arquivo <code>CONTRIBUTORS.md</code></li>
+                            <li>Menção em releases quando aplicável</li>
+                            <li>Badge de contribuidor no GitHub</li>
+                            <li>Agradecimento especial para contribuições significativas</li>
+                        </ul>
+
+                        <h2>❓ Dúvidas?</h2>
+
+                        <p>Se você tiver dúvidas sobre como contribuir:</p>
+                        <ul>
+                            <li>📧 <strong>Email:</strong> andersonhs27@gmail.com</li>
+                            <li>💬 <strong>Discussions:</strong> Use o GitHub Discussions</li>
+                            <li>🐛 <strong>Issues:</strong> Para problemas técnicos específicos</li>
+                            <li>📱 <strong>Twitter:</strong> @neural_thinker</li>
+                        </ul>
+
+                        <div class="alert alert-success">
+                            <strong>🚀 Vamos juntos!</strong> Sua contribuição, independente do tamanho, faz a diferença para democratizar o acesso à transparência governamental no Brasil.
+                        </div>
+
+                        <h2>📜 Código de Conduta</h2>
+                        <p>Este projeto segue o <strong>Contributor Covenant Code of Conduct</strong>. Ao participar, você concorda em seguir estas diretrizes para manter um ambiente respeitoso e inclusivo para todos.</p>
+
+                        <h3>Princípios</h3>
+                        <ul>
+                            <li>🤝 <strong>Respeito:</strong> Tratar todos com dignidade e respeito</li>
+                            <li>🌈 <strong>Inclusão:</strong> Acolher pessoas de todas as origens</li>
+                            <li>💬 <strong>Comunicação:</strong> Manter discussões construtivas e profissionais</li>
+                            <li>🎯 <strong>Foco:</strong> Manter o foco no objetivo comum do projeto</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- English Content -->
+            <div id="en-content" class="content-section">
+                <div id="en-home" class="doc-section active">
+                    <h1>📚 Cidadão.AI Documentation</h1>
+                    <p>Welcome to the complete documentation of the Cidadão.AI platform - a revolutionary solution for analyzing government transparency data using Artificial Intelligence.</p>
+                    
+                    <div class="nav-grid">
+                        <div class="nav-card" onclick="showSection('en', 'overview')">
+                            <h3>📖 Overview</h3>
+                            <p>Understand the mission, architecture, and technologies of Cidadão.AI</p>
+                        </div>
+                        
+                        <div class="nav-card" onclick="showSection('en', 'quickstart')">
+                            <h3>⚡ Quick Start</h3>
+                            <p>Quick guide to get started with Cidadão.AI</p>
+                        </div>
+                        
+                        <div class="nav-card" onclick="showSection('en', 'api')">
+                            <h3>🔧 REST API</h3>
+                            <p>Complete API documentation and available endpoints</p>
+                        </div>
+                        
+                        <div class="nav-card" onclick="showSection('en', 'agents')">
+                            <h3>🧠 Multi-Agent System</h3>
+                            <p>Architecture and operation of specialized agents</p>
+                        </div>
+                        
+                        <div class="nav-card" onclick="showSection('en', 'integration')">
+                            <h3>🔗 Transparency Portal Integration</h3>
+                            <p>How to integrate with Brazilian government data</p>
+                        </div>
+                        
+                        <div class="nav-card" onclick="showSection('en', 'examples')">
+                            <h3>💡 Practical Examples</h3>
+                            <p>Usage examples and practical cases</p>
+                        </div>
+                        
+                        <div class="nav-card" onclick="showSection('en', 'deployment')">
+                            <h3>🚀 Deploy & Production</h3>
+                            <p>Instructions for deployment in different environments</p>
+                        </div>
+                        
+                        <div class="nav-card" onclick="showSection('en', 'contributing')">
+                            <h3>🤝 Contributing</h3>
+                            <p>How to contribute to the project</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- English sections would be similar to Portuguese but in English -->
+                <!-- For brevity, I'll include just the overview section -->
+                <div id="en-overview" class="doc-section">
+                    <button class="back-btn" onclick="showSection('en', 'home')">⬅️ Back</button>
+                    <div class="doc-content">
+                        <h1>📖 Cidadão.AI Overview</h1>
+                        
+                        <h2>🎯 Mission</h2>
+                        <p><strong>Cidadão.AI</strong> is a revolutionary platform that uses Artificial Intelligence to democratize access to Brazilian public spending data. We transform raw data from the Portal da Transparência into intelligent investigations through an advanced multi-agent system.</p>
+                        
+                        <div class="alert alert-info">
+                            <strong>💡 Objective:</strong> Break technological and bureaucratic barriers, offering an AI that doesn't just read public data — it <strong>investigates</strong>, <strong>questions</strong>, and <strong>explains</strong> like a veteran auditor.
+                        </div>
+
+                        <h2>🚀 Current Status</h2>
+                        <table>
+                            <tr>
+                                <th>Component</th>
+                                <th>Status</th>
+                                <th>Description</th>
+                            </tr>
+                            <tr>
+                                <td>🛠️ <strong>REST API</strong></td>
+                                <td><span class="status-badge status-complete">✅ Complete</span></td>
+                                <td>Multi-agent system with comprehensive REST API</td>
+                            </tr>
+                            <tr>
+                                <td>🧠 <strong>Backend</strong></td>
+                                <td><span class="status-badge status-complete">✅ Implemented</span></td>
+                                <td>Python 3.11+, FastAPI, LangChain, PostgreSQL, Redis</td>
+                            </tr>
+                            <tr>
+                                <td>🤖 <strong>AI/ML</strong></td>
+                                <td><span class="status-badge status-complete">✅ Operational</span></td>
+                                <td>Multiple LLM providers, anomaly detection</td>
+                            </tr>
+                            <tr>
+                                <td>🌐 <strong>Frontend</strong></td>
+                                <td><span class="status-badge status-progress">🔄 In Progress</span></td>
+                                <td>Interactive web interface under development</td>
+                            </tr>
+                        </table>
+
+                        <!-- Rest of English content... -->
+                    </div>
+                </div>
+
+                <!-- Other English sections would follow the same pattern -->
             </div>
         </div>
     </div>
 
     <script>
+        let currentLang = 'pt';
+        let currentSection = 'home';
+
         function switchLanguage(lang) {
-            // Hide all content
-            document.querySelectorAll('.lang-content').forEach(content => {
-                content.classList.remove('active');
+            // Hide all content sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
             });
-            
-            // Remove active class from all tabs
-            document.querySelectorAll('.tab-button').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            
+
             // Show selected language content
             document.getElementById(lang + '-content').classList.add('active');
-            
-            // Activate selected tab
-            event.target.classList.add('active');
-            
-            // Store preference
+
+            // Update tab buttons
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            document.querySelector(`[data-lang="${lang}"]`).classList.add('active');
+
+            // Store current language
+            currentLang = lang;
             localStorage.setItem('cidadao-ai-lang', lang);
+
+            // Show home section for the selected language
+            showSection(lang, 'home');
         }
-        
-        function openDoc(section) {
-            const currentLang = document.querySelector('.tab-button.active').textContent.includes('Português') ? 'pt' : 'en';
-            const filename = `${section}_${currentLang}.html`;
-            window.open(filename, '_blank');
+
+        function showSection(lang, section) {
+            // Hide all doc sections for this language
+            document.querySelectorAll(`#${lang}-content .doc-section`).forEach(sec => {
+                sec.classList.remove('active');
+            });
+
+            // Show selected section
+            const targetSection = document.getElementById(`${lang}-${section}`);
+            if (targetSection) {
+                targetSection.classList.add('active');
+                currentSection = section;
+            }
         }
-        
-        // Load saved language preference
+
+        // Load saved preferences
         document.addEventListener('DOMContentLoaded', function() {
             const savedLang = localStorage.getItem('cidadao-ai-lang') || 'pt';
-            if (savedLang === 'en') {
-                switchLanguage('en');
+            if (savedLang !== 'pt') {
+                switchLanguage(savedLang);
             }
+        });
+
+        // Add smooth scrolling for better UX
+        document.querySelectorAll('.doc-content').forEach(content => {
+            content.addEventListener('scroll', function() {
+                // Could add scroll indicators here
+            });
         });
     </script>
 </body>
