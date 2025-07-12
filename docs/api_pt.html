@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API e Integração - Cidadão.AI</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔧 API e Integração - Cidadão.AI</h1>
+            <div class="language-switch">
+                <a href="api_en.html" class="lang-link">🇺🇸 English</a>
+            </div>
+        </div>
+
+        <nav class="breadcrumb">
+            <a href="index.html">📚 Documentação</a> > <span>🔧 API e Integração</span>
+        </nav>
+
+        <main>
+            <h2>🚀 Visão Geral da API</h2>
+            <p>A API REST do Cidadão.AI oferece acesso completo ao sistema de análise de transparência governamental. Desenvolvida com FastAPI, oferece documentação automática, validação de dados e performance otimizada.</p>
+
+            <div class="alert info">
+                <strong>🌐 Base URL:</strong> <code>https://api.cidadao.ai/api/v1</code><br>
+                <strong>📄 Documentação Interativa:</strong> <code>/docs</code> (Swagger UI)<br>
+                <strong>⚡ Performance:</strong> &lt; 200ms para endpoints síncronos
+            </div>
+
+            <h2>🔐 Autenticação</h2>
+            <p>A API suporta múltiplos métodos de autenticação:</p>
+
+            <h3>JWT Token</h3>
+            <pre><code>Authorization: Bearer &lt;jwt_token&gt;</code></pre>
+
+            <h3>API Key</h3>
+            <pre><code>X-API-Key: &lt;sua_api_key&gt;</code></pre>
+
+            <h3>Exemplo de Autenticação</h3>
+            <pre><code>curl -X POST "https://api.cidadao.ai/auth/login" \
+     -H "Content-Type: application/json" \
+     -d '{"username": "usuario", "password": "senha"}'</code></pre>
+
+            <h2>📊 Endpoints Principais</h2>
+
+            <h3>🏥 Health & Status</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Método</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/health</code></td>
+                        <td>GET</td>
+                        <td>Verificação básica de saúde</td>
+                    </tr>
+                    <tr>
+                        <td><code>/health/detailed</code></td>
+                        <td>GET</td>
+                        <td>Status detalhado do sistema</td>
+                    </tr>
+                    <tr>
+                        <td><code>/health/ready</code></td>
+                        <td>GET</td>
+                        <td>Prontidão para Kubernetes</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>🔍 Investigações</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Método</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/investigations</code></td>
+                        <td>POST</td>
+                        <td>Iniciar nova investigação</td>
+                    </tr>
+                    <tr>
+                        <td><code>/investigations/{id}/stream</code></td>
+                        <td>GET</td>
+                        <td>Stream em tempo real da investigação</td>
+                    </tr>
+                    <tr>
+                        <td><code>/investigations/{id}</code></td>
+                        <td>GET</td>
+                        <td>Obter resultados completos</td>
+                    </tr>
+                    <tr>
+                        <td><code>/investigations</code></td>
+                        <td>GET</td>
+                        <td>Listar investigações do usuário</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>📈 Análises</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Método</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/analysis/spending-trends</code></td>
+                        <td>POST</td>
+                        <td>Análise de tendências de gastos</td>
+                    </tr>
+                    <tr>
+                        <td><code>/analysis/vendor-patterns</code></td>
+                        <td>POST</td>
+                        <td>Padrões de fornecedores</td>
+                    </tr>
+                    <tr>
+                        <td><code>/analysis/correlations</code></td>
+                        <td>POST</td>
+                        <td>Análise de correlações</td>
+                    </tr>
+                    <tr>
+                        <td><code>/analysis/organizational</code></td>
+                        <td>POST</td>
+                        <td>Comportamento organizacional</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>📄 Relatórios</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Método</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/reports/executive</code></td>
+                        <td>POST</td>
+                        <td>Relatório executivo</td>
+                    </tr>
+                    <tr>
+                        <td><code>/reports/detailed</code></td>
+                        <td>POST</td>
+                        <td>Relatório detalhado</td>
+                    </tr>
+                    <tr>
+                        <td><code>/reports/investigation/{id}</code></td>
+                        <td>GET</td>
+                        <td>Relatório de investigação</td>
+                    </tr>
+                    <tr>
+                        <td><code>/reports/{id}/download</code></td>
+                        <td>GET</td>
+                        <td>Download do relatório</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>🌊 Streaming em Tempo Real</h2>
+            <p>A API oferece endpoints de streaming usando Server-Sent Events (SSE) para atualizações em tempo real:</p>
+
+            <h3>Exemplo de Streaming de Investigação</h3>
+            <pre><code>const eventSource = new EventSource('/api/v1/investigations/123/stream');
+
+eventSource.onmessage = function(event) {
+    const data = JSON.parse(event.data);
+    console.log('Progresso:', data.progress);
+    console.log('Status:', data.status);
+    console.log('Resultados:', data.results);
+};
+
+eventSource.addEventListener('complete', function(event) {
+    console.log('Investigação concluída!');
+    eventSource.close();
+});</code></pre>
+
+            <h2>📝 Exemplos de Uso</h2>
+
+            <h3>Iniciar Investigação</h3>
+            <pre><code>POST /api/v1/investigations
+Content-Type: application/json
+Authorization: Bearer &lt;token&gt;
+
+{
+    "query": "contratos suspeitos do ministério da saúde em 2024",
+    "filters": {
+        "ano": 2024,
+        "orgao": "26000",
+        "valor_inicial": 1000000
+    },
+    "options": {
+        "anomaly_threshold": 0.8,
+        "include_explanations": true,
+        "output_format": "markdown"
+    }
+}</code></pre>
+
+            <h3>Resposta de Investigação</h3>
+            <pre><code>{
+    "investigation_id": "inv_abc123",
+    "status": "started",
+    "query": "contratos suspeitos do ministério da saúde em 2024",
+    "created_at": "2024-01-15T10:30:00Z",
+    "estimated_duration": "2-5 minutos",
+    "stream_url": "/api/v1/investigations/inv_abc123/stream"
+}</code></pre>
+
+            <h3>Análise de Padrões</h3>
+            <pre><code>POST /api/v1/analysis/vendor-patterns
+Content-Type: application/json
+Authorization: Bearer &lt;token&gt;
+
+{
+    "data_source": "contracts",
+    "filters": {
+        "ano": 2024,
+        "orgao": "26000"
+    },
+    "analysis_type": "frequency_patterns",
+    "include_explanations": true
+}</code></pre>
+
+            <h2>⚡ Recursos Avançados</h2>
+
+            <h3>🔄 Rate Limiting</h3>
+            <p>A API implementa limitação inteligente de taxa:</p>
+            <ul>
+                <li><strong>Usuários autenticados:</strong> 100 requisições/minuto</li>
+                <li><strong>Usuários premium:</strong> 500 requisições/minuto</li>
+                <li><strong>Headers de resposta:</strong> <code>X-RateLimit-Remaining</code>, <code>X-RateLimit-Reset</code></li>
+            </ul>
+
+            <h3>📊 Múltiplos Formatos</h3>
+            <p>Suporte para múltiplos formatos de resposta:</p>
+            <ul>
+                <li><strong>JSON:</strong> Formato padrão para integração</li>
+                <li><strong>Markdown:</strong> Para documentação e relatórios</li>
+                <li><strong>HTML:</strong> Para visualização web</li>
+                <li><strong>CSV/Excel:</strong> Para análise de dados</li>
+            </ul>
+
+            <h3>🔍 Filtros Avançados</h3>
+            <pre><code>{
+    "filters": {
+        "ano": 2024,
+        "mes": [1, 2, 3],
+        "orgao": ["26000", "20000"],
+        "valor_inicial": 100000,
+        "valor_final": 10000000,
+        "modalidade": "pregao_eletronico",
+        "situacao": "ativo",
+        "cnpj_fornecedor": "12345678000199"
+    }
+}</code></pre>
+
+            <h2>🔗 Integração com Portal da Transparência</h2>
+            <p>A API integra-se automaticamente com o Portal da Transparência:</p>
+
+            <div class="api-info">
+                <h3>✨ Recursos de Integração</h3>
+                <ul>
+                    <li><strong>Cache Inteligente:</strong> Reduz chamadas desnecessárias à API governamental</li>
+                    <li><strong>Retry Automático:</strong> Recuperação automática de falhas temporárias</li>
+                    <li><strong>Rate Limiting:</strong> Respeita limites da API governamental</li>
+                    <li><strong>Normalização:</strong> Padroniza dados de diferentes fontes</li>
+                    <li><strong>Validação:</strong> Verifica integridade dos dados recebidos</li>
+                </ul>
+            </div>
+
+            <h2>🔧 SDKs e Bibliotecas</h2>
+
+            <h3>Python SDK</h3>
+            <pre><code>from cidadao_ai import CidadaoAI
+
+client = CidadaoAI(api_key="sua_api_key")
+
+# Iniciar investigação
+investigation = await client.investigate(
+    "contratos suspeitos de emergência",
+    filters={"ano": 2024}
+)
+
+# Acompanhar progresso
+async for update in investigation.stream():
+    print(f"Progresso: {update.progress}%")
+    
+# Obter resultados
+results = await investigation.get_results()</code></pre>
+
+            <h3>JavaScript SDK</h3>
+            <pre><code>import { CidadaoAI } from '@cidadao-ai/sdk';
+
+const client = new CidadaoAI({ apiKey: 'sua_api_key' });
+
+// Iniciar investigação
+const investigation = await client.investigate({
+    query: 'contratos suspeitos de emergência',
+    filters: { ano: 2024 }
+});
+
+// Streaming em tempo real
+investigation.onUpdate((update) => {
+    console.log(`Progresso: ${update.progress}%`);
+});</code></pre>
+
+            <h2>📊 Monitoramento e Métricas</h2>
+            <p>A API oferece endpoints para monitoramento:</p>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Endpoint</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>/metrics</code></td>
+                        <td>Métricas Prometheus</td>
+                    </tr>
+                    <tr>
+                        <td><code>/stats/usage</code></td>
+                        <td>Estatísticas de uso da API</td>
+                    </tr>
+                    <tr>
+                        <td><code>/stats/performance</code></td>
+                        <td>Métricas de performance</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h2>🔒 Segurança</h2>
+
+            <div class="alert warning">
+                <strong>⚠️ Importante:</strong> Nunca exponha suas chaves de API em código cliente. Use sempre variáveis de ambiente ou serviços de gestão de secrets.
+            </div>
+
+            <h3>Boas Práticas</h3>
+            <ul>
+                <li>✅ Use HTTPS para todas as requisições</li>
+                <li>✅ Armazene tokens de forma segura</li>
+                <li>✅ Implemente timeout nas requisições</li>
+                <li>✅ Valide todas as respostas da API</li>
+                <li>✅ Use rate limiting do lado cliente</li>
+                <li>✅ Monitore logs de auditoria</li>
+            </ul>
+
+            <h2>🆘 Suporte e Troubleshooting</h2>
+
+            <h3>Códigos de Erro Comuns</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Descrição</th>
+                        <th>Solução</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>401</td>
+                        <td>Não autorizado</td>
+                        <td>Verifique token/API key</td>
+                    </tr>
+                    <tr>
+                        <td>429</td>
+                        <td>Rate limit excedido</td>
+                        <td>Aguarde ou upgrade do plano</td>
+                    </tr>
+                    <tr>
+                        <td>422</td>
+                        <td>Dados inválidos</td>
+                        <td>Verifique formato dos dados</td>
+                    </tr>
+                    <tr>
+                        <td>503</td>
+                        <td>Serviço indisponível</td>
+                        <td>Tente novamente mais tarde</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="alert info">
+                <strong>🎯 Dica:</strong> Use a documentação interativa em <code>/docs</code> para testar endpoints diretamente no navegador.
+            </div>
+        </main>
+
+        <footer>
+            <nav class="doc-nav">
+                <a href="overview_pt.html" class="nav-btn">⬅️ Visão Geral</a>
+                <a href="development_pt.html" class="nav-btn">Guia de Desenvolvimento ➡️</a>
+            </nav>
+        </footer>
+    </div>
+</body>
+</html>
