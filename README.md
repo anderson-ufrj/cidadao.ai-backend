@@ -104,3 +104,5 @@ MIT License - Use livremente para fortalecer a democracia!
 **🇧🇷 Cada análise é um ato de cidadania**
 
 *Ajude a combater a corrupção com tecnologia!*
+
+<!-- Force HF Spaces rebuild -->
