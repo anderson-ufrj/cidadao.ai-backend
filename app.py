@@ -1,5 +1,6 @@
 """
 Cidadao.AI - Interface Principal com Chat e Ferramenta Avancada
+Integrado com CidadãoGPT do Hugging Face Hub
 """
 
 import gradio as gr
@@ -10,6 +11,19 @@ from datetime import datetime
 from typing import List, Dict, Any, Tuple
 import json
 import re
+import sys
+from pathlib import Path
+
+# Adicionar src ao path para importações
+sys.path.append(str(Path(__file__).parent / "src"))
+
+# Importar integração com Hugging Face
+try:
+    from src.ml.hf_integration import get_cidadao_manager, CidadaoGPTHubManager
+    HF_INTEGRATION_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ Aviso: Integração com HF não disponível: {e}")
+    HF_INTEGRATION_AVAILABLE = False
 
 # Tentar multiplas formas de obter a API key
 API_KEY = None
@@ -19,6 +33,17 @@ for key_name in ["TRANSPARENCY_API_KEY", "API_KEY", "PORTAL_API_KEY"]:
         break
 
 TRANSPARENCY_API_BASE = "https://api.portaldatransparencia.gov.br/api-de-dados"
+
+# Inicializar CidadãoGPT Manager
+cidadao_manager = None
+if HF_INTEGRATION_AVAILABLE:
+    try:
+        print("🤖 Inicializando CidadãoGPT...")
+        cidadao_manager = get_cidadao_manager()
+        print("✅ CidadãoGPT carregado com sucesso!")
+    except Exception as e:
+        print(f"❌ Erro ao carregar CidadãoGPT: {e}")
+        cidadao_manager = None
 
 # CSS customizado
 custom_css = """
@@ -248,30 +273,66 @@ def format_currency(value: float) -> str:
     """Formata valor monetario."""
     return f"R$ {value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
 
+async def analyze_with_cidadao_gpt(text: str) -> Dict[str, Any]:
+    """Analisar texto usando CidadãoGPT para detecção de anomalias"""
+    
+    if not cidadao_manager:
+        return {
+            "analysis_available": False,
+            "message": "CidadãoGPT não disponível. Análise baseada em regras será usada."
+        }
+    
+    try:
+        result = cidadao_manager.analyze_text(text, analysis_type="complete")
+        
+        return {
+            "analysis_available": True,
+            "anomaly": result.get("anomaly", {}),
+            "financial": result.get("financial", {}),
+            "legal": result.get("legal", {}),
+            "confidence": max(
+                result.get("anomaly", {}).get("score", 0),
+                result.get("financial", {}).get("score", 0),
+                result.get("legal", {}).get("score", 0)
+            ),
+            "summary": f"Análise CidadãoGPT: {result.get('anomaly', {}).get('label', 'N/A')} | "
+                      f"Risco: {result.get('financial', {}).get('label', 'N/A')} | "
+                      f"Legal: {result.get('legal', {}).get('label', 'N/A')}"
+        }
+    except Exception as e:
+        return {
+            "analysis_available": False,
+            "message": f"Erro na análise CidadãoGPT: {str(e)}"
+        }
+
 async def generate_chat_response(
     message: str,
     chat_history: List[Tuple[str, str]],
     api_key: str
 ) -> str:
-    """Gera resposta inteligente para o chat."""
+    """Gera resposta inteligente para o chat com análise CidadãoGPT."""
     
     # Casos especiais de saudacao
     greetings = ["ola", "oi", "bom dia", "boa tarde", "boa noite", "hey", "hi"]
     if any(greet in message.lower() for greet in greetings):
-        return """🇧🇷 **Bem-vindo a Revolucao Digital da Transparencia!**
+        cidadao_status = "✅ CidadãoGPT Ativo" if cidadao_manager else "⚠️ CidadãoGPT Indisponível"
+        
+        return f"""🇧🇷 **Bem-vindo a Revolucao Digital da Transparencia!**
 
-Sou o assistente do Cidadao.AI - a primeira IA brasileira que democratiza o acesso aos gastos publicos!
+Sou o assistente do Cidadao.AI - powered by CidadãoGPT, o primeiro modelo de IA especializado em transparência pública brasileira!
+
+🤖 **Status do Sistema:** {cidadao_status}
 
 🎯 **O que posso fazer por voce:**
-• **Investigar contratos**: "Maiores contratos suspeitos de 2024"
-• **Analisar despesas**: "Gastos com saude ultrapassaram o orcamento?"
-• **Detectar anomalias**: "Procure superfaturamento em obras publicas"
-• **Comparar dados**: "Compare gastos entre ministerios"
-• **Monitorar licitacoes**: "Empresas que mais vendem para o governo"
+• **Detectar Anomalias**: "Analise este contrato de R$ 50 milhões sem licitação"
+• **Avaliar Riscos**: "Este fornecedor é confiável para obras hospitalares?"
+• **Verificar Legalidade**: "Esta dispensa de licitação está correta?"
+• **Investigar Padrões**: "Procure superfaturamento em equipamentos médicos"
+• **Analisar Tendências**: "Gastos com saúde aumentaram este ano?"
 
-💡 **Fale naturalmente comigo - como faria com um amigo especialista em transparencia!**
+💡 **Fale naturalmente comigo - como faria com um especialista em transparência!**
 
-🔥 **Agora voce tem o poder de fiscalizar. Como posso ajudar voce hoje?**"""
+🔥 **Agora você tem o poder de fiscalizar com IA especializada. Como posso ajudar você hoje?**"""
     
     # Analisar intencao
     intent = await analyze_user_intent(message)
@@ -369,7 +430,7 @@ Ou pergunte de outra forma!"""
     
     # Adicionar analise se solicitada
     if intent['type'] == 'anomaly':
-        response += analyze_anomalies(data, intent['data_source'])
+        response += await analyze_anomalies(data, intent['data_source'])
     elif intent['type'] == 'ranking':
         response += create_ranking(data, intent['data_source'])
     
@@ -428,10 +489,66 @@ def format_generic_response(data: List[Dict], data_type: str) -> str:
     
     return response
 
-def analyze_anomalies(data: List[Dict], data_type: str) -> str:
-    """Analisa anomalias nos dados."""
-    response = "\n\n**🔍 Analise de Anomalias:**\n\n"
+async def analyze_anomalies(data: List[Dict], data_type: str) -> str:
+    """Analisa anomalias nos dados usando CidadãoGPT + análise estatística."""
+    response = "\n\n**🔍 Análise de Anomalias CidadãoGPT:**\n\n"
     
+    anomalias_found = []
+    cidadao_analysis = []
+    
+    # Análise com CidadãoGPT se disponível
+    if cidadao_manager and data_type == "Contratos":
+        for i, contract in enumerate(data[:3]):  # Analisar primeiros 3 contratos
+            # Criar texto descritivo do contrato
+            valor = contract.get('valor', contract.get('valorInicial', 0))
+            objeto = contract.get('objeto', 'Objeto não especificado')
+            fornecedor = contract.get('nomeRazaoSocialFornecedor', 'N/A')
+            modalidade = contract.get('modalidadeLicitacao', 'N/A')
+            
+            contract_text = f"""
+            Contrato de {objeto} no valor de R$ {valor:,.2f}.
+            Fornecedor: {fornecedor}.
+            Modalidade: {modalidade}.
+            """.strip()
+            
+            try:
+                analysis = await analyze_with_cidadao_gpt(contract_text)
+                if analysis["analysis_available"]:
+                    cidadao_analysis.append({
+                        "contract_index": i,
+                        "analysis": analysis,
+                        "contract": contract
+                    })
+            except Exception as e:
+                continue
+    
+    # Mostrar resultados CidadãoGPT
+    if cidadao_analysis:
+        response += "🤖 **Análise Especializada CidadãoGPT:**\n\n"
+        
+        for item in cidadao_analysis:
+            analysis = item["analysis"]
+            contract = item["contract"]
+            
+            anomaly_level = analysis.get("anomaly", {}).get("label", "Normal")
+            financial_risk = analysis.get("financial", {}).get("label", "Baixo")
+            legal_compliance = analysis.get("legal", {}).get("label", "Conforme")
+            confidence = analysis.get("confidence", 0)
+            
+            # Determinar emoji baseado no risco
+            risk_emoji = "🔴" if anomaly_level == "Anômalo" else ("🟡" if anomaly_level == "Suspeito" else "🟢")
+            
+            response += f"{risk_emoji} **Contrato {item['contract_index'] + 1}**\n"
+            response += f"   • **Anomalia**: {anomaly_level}\n"
+            response += f"   • **Risco Financeiro**: {financial_risk}\n"
+            response += f"   • **Conformidade Legal**: {legal_compliance}\n"
+            response += f"   • **Confiança**: {confidence:.1%}\n"
+            response += f"   • **Valor**: {format_currency(contract.get('valor', 0))}\n\n"
+            
+            if anomaly_level in ["Suspeito", "Anômalo"]:
+                anomalias_found.append(contract)
+    
+    # Análise estatística tradicional
     if data_type == "Contratos":
         valores = []
         for contract in data:
@@ -443,15 +560,22 @@ def analyze_anomalies(data: List[Dict], data_type: str) -> str:
             media = sum(valores) / len(valores)
             desvio = (sum((x - media) ** 2 for x in valores) / len(valores)) ** 0.5
             
-            anomalias = [v for v in valores if v > media + 2 * desvio]
+            statistical_anomalies = [v for v in valores if v > media + 2 * desvio]
             
-            if anomalias:
-                response += f"⚠️ **Detectei {len(anomalias)} possiveis anomalias:**\n"
-                response += f"• Valores significativamente acima da media\n"
-                response += f"• Media: {format_currency(media)}\n"
-                response += f"• Maior anomalia: {format_currency(max(anomalias))}\n"
+            response += "📊 **Análise Estatística Complementar:**\n"
+            if statistical_anomalies:
+                response += f"⚠️ {len(statistical_anomalies)} valores estatisticamente anômalos\n"
+                response += f"• Média: {format_currency(media)}\n"
+                response += f"• Maior valor: {format_currency(max(statistical_anomalies))}\n"
             else:
-                response += "✅ Nao detectei anomalias significativas nos valores.\n"
+                response += "✅ Distribuição de valores dentro do padrão estatístico\n"
+    
+    # Resumo final
+    if anomalias_found:
+        response += f"\n🚨 **ALERTA**: {len(anomalias_found)} contratos com indicadores de risco detectados pelo CidadãoGPT!\n"
+        response += "**Recomendação**: Investigação mais detalhada necessária.\n"
+    elif cidadao_analysis:
+        response += "\n✅ **CidadãoGPT**: Nenhuma anomalia grave detectada nos contratos analisados.\n"
     
     return response
 
