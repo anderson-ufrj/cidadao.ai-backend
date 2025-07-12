@@ -94,13 +94,21 @@ fi
 # Build and start services
 echo -e "${YELLOW}🏗️  Building and starting services...${NC}"
 
+# Build Docker images
+echo -e "${YELLOW}📦 Building API image...${NC}"
+docker build -t cidadao-ai:latest -f deployment/Dockerfile .
+
+echo -e "${YELLOW}👷 Building worker image...${NC}"
+docker build -t cidadao-ai-worker:latest -f deployment/Dockerfile.worker .
+
+echo -e "${YELLOW}🤖 Building ML service image...${NC}"
+docker build -t cidadao-ai-ml:latest -f deployment/Dockerfile.ml .
+
 if [ "${DEPLOY_ENV}" = "production" ]; then
-    docker-compose -f docker-compose.prod.yml down
-    docker-compose -f docker-compose.prod.yml build --no-cache
-    docker-compose -f docker-compose.prod.yml up -d
+    docker-compose -f deployment/docker-compose.prod.yml down
+    docker-compose -f deployment/docker-compose.prod.yml up -d
 else
     docker-compose down
-    docker-compose build --no-cache
     docker-compose up -d
 fi
 

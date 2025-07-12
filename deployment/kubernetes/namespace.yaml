@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cidadao-ai
+  labels:
+    name: cidadao-ai
+    environment: production
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cidadao-config
+  namespace: cidadao-ai
+data:
+  ENVIRONMENT: "production"
+  LOG_LEVEL: "INFO"
+  POSTGRES_HOST: "postgres-service"
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "cidadao_ai"
+  REDIS_HOST: "redis-cluster"
+  REDIS_PORT: "7000"
+  API_HOST: "0.0.0.0"
+  API_PORT: "8000"
+  WORKERS: "4"
+  MAX_CONNECTIONS: "100"
+  CACHE_TTL: "3600"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: cidadao-secrets
+  namespace: cidadao-ai
+type: Opaque
+stringData:
+  POSTGRES_USER: "cidadao_user"
+  POSTGRES_PASSWORD: "CHANGE_IN_PRODUCTION"
+  REDIS_PASSWORD: "CHANGE_IN_PRODUCTION"
+  JWT_SECRET: "CHANGE_IN_PRODUCTION"
+  API_SECRET_KEY: "CHANGE_IN_PRODUCTION"
+  GROQ_API_KEY: "CHANGE_IN_PRODUCTION"
+  TOGETHER_API_KEY: "CHANGE_IN_PRODUCTION"
+  HUGGINGFACE_TOKEN: "CHANGE_IN_PRODUCTION"
+  TRANSPARENCY_API_KEY: "CHANGE_IN_PRODUCTION"

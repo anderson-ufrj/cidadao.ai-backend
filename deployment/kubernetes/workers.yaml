@@ -1,0 +1,209 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cidadao-workers
+  namespace: cidadao-ai
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: cidadao-workers
+  template:
+    metadata:
+      labels:
+        app: cidadao-workers
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - until nc -z postgres-service 5432; do echo waiting for db; sleep 2; done;
+      - name: wait-for-redis
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - until nc -z redis-cluster 7000; do echo waiting for redis; sleep 2; done;
+      containers:
+      - name: worker
+        image: cidadao-ai-worker:latest
+        env:
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: cidadao-config
+              key: ENVIRONMENT
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: cidadao-config
+              key: POSTGRES_HOST
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: cidadao-config
+              key: POSTGRES_PORT
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: cidadao-config
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: cidadao-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cidadao-secrets
+              key: POSTGRES_PASSWORD
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: cidadao-config
+              key: REDIS_HOST
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cidadao-secrets
+              key: REDIS_PASSWORD
+        - name: GROQ_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cidadao-secrets
+              key: GROQ_API_KEY
+        - name: TRANSPARENCY_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: cidadao-secrets
+              key: TRANSPARENCY_API_KEY
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi"
+            cpu: "2000m"
+        volumeMounts:
+        - name: logs
+          mountPath: /app/logs
+        - name: models
+          mountPath: /app/models
+      volumes:
+      - name: logs
+        emptyDir: {}
+      - name: models
+        emptyDir: {}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cidadao-ml
+  namespace: cidadao-ai
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cidadao-ml
+  template:
+    metadata:
+      labels:
+        app: cidadao-ml
+    spec:
+      initContainers:
+      - name: wait-for-db
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - until nc -z postgres-service 5432; do echo waiting for db; sleep 2; done;
+      - name: wait-for-redis
+        image: busybox:1.35
+        command:
+        - sh
+        - -c
+        - until nc -z redis-cluster 7000; do echo waiting for redis; sleep 2; done;
+      containers:
+      - name: ml-service
+        image: cidadao-ai-ml:latest
+        env:
+        - name: ENVIRONMENT
+          valueFrom:
+            configMapKeyRef:
+              name: cidadao-config
+              key: ENVIRONMENT
+        - name: POSTGRES_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: cidadao-config
+              key: POSTGRES_HOST
+        - name: POSTGRES_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: cidadao-config
+              key: POSTGRES_PORT
+        - name: POSTGRES_DB
+          valueFrom:
+            configMapKeyRef:
+              name: cidadao-config
+              key: POSTGRES_DB
+        - name: POSTGRES_USER
+          valueFrom:
+            secretKeyRef:
+              name: cidadao-secrets
+              key: POSTGRES_USER
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cidadao-secrets
+              key: POSTGRES_PASSWORD
+        - name: REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: cidadao-config
+              key: REDIS_HOST
+        - name: REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cidadao-secrets
+              key: REDIS_PASSWORD
+        - name: HUGGINGFACE_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: cidadao-secrets
+              key: HUGGINGFACE_TOKEN
+        ports:
+        - containerPort: 5000
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2000m"
+          limits:
+            memory: "8Gi"
+            cpu: "4000m"
+        volumeMounts:
+        - name: models
+          mountPath: /app/models
+        - name: experiments
+          mountPath: /app/experiments
+      volumes:
+      - name: models
+        emptyDir: {}
+      - name: experiments
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cidadao-ml-service
+  namespace: cidadao-ai
+spec:
+  selector:
+    app: cidadao-ml
+  ports:
+  - port: 5000
+    targetPort: 5000
+  type: ClusterIP
