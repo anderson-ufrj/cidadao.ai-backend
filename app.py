@@ -243,26 +243,21 @@ def create_interface():
                 with gr.Column():
                     data_type = gr.Radio(
                         label="Tipo de Dados",
-                        choices=["Contratos", "Despesas", "Licitações"],
-                        value="Contratos"
+                        choices=["Contratos", "Despesas", "Licitações"]
                     )
                     
                     year = gr.Number(
-                        label="Ano",
-                        value=2024
+                        label="Ano"
                     )
                     
                     search_term = gr.Textbox(
-                        label="Termo de Busca",
-                        placeholder="Digite sua busca..."
+                        label="Termo de Busca"
                     )
                     
-                    search_btn = gr.Button("🔍 Buscar", variant="primary")
+                    search_btn = gr.Button("🔍 Buscar")
                 
                 with gr.Column():
-                    results = gr.HTML(
-                        value="<p>Configure os parâmetros e clique em 'Buscar'</p>"
-                    )
+                    results = gr.HTML()
             
             search_btn.click(
                 fn=search_data,
@@ -274,8 +269,8 @@ def create_interface():
         with gr.Tab("💬 Chat com IA"):
             gr.Markdown("## Chat com IA")
             
-            chatbot = gr.Chatbot(height=400)
-            msg = gr.Textbox(placeholder="Digite sua mensagem...")
+            chatbot = gr.Chatbot()
+            msg = gr.Textbox()
             
             def respond(message, history):
                 if message:
