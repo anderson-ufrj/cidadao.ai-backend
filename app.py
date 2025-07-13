@@ -259,11 +259,11 @@ def create_interface():
                 with gr.Column():
                     results = gr.HTML()
             
-            search_btn.click(
-                fn=search_data,
-                inputs=[data_type, year, search_term],
-                outputs=results
-            )
+            # search_btn.click(
+            #     fn=search_data,
+            #     inputs=[data_type, year, search_term],
+            #     outputs=results
+            # )
         
         # Aba de chat
         with gr.Tab("💬 Chat com IA"):
@@ -272,13 +272,13 @@ def create_interface():
             chatbot = gr.Chatbot()
             msg = gr.Textbox()
             
-            def respond(message, history):
-                if message:
-                    response = f"Você perguntou: '{message}'. Esta é uma demonstração do chat!"
-                    history.append([message, response])
-                return history, ""
-            
-            msg.submit(respond, inputs=[msg, chatbot], outputs=[chatbot, msg])
+            # def respond(message, history):
+            #     if message:
+            #         response = f"Você perguntou: '{message}'. Esta é uma demonstração do chat!"
+            #         history.append([message, response])
+            #     return history, ""
+            # 
+            # msg.submit(respond, inputs=[msg, chatbot], outputs=[chatbot, msg])
     
     return app
 
