@@ -237,3 +237,11 @@ api_test_results.json
 RELATORIO_*.md
 *_EXECUTIVO.md
 analise_*.md
+
+# Hugging Face specific files and deployment artifacts
+README_HF*.md
+README_SPACE*.md
+requirements_hf*.txt
+app_transparency_api.py
+test_api_*.py
+.env.example

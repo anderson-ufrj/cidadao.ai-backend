@@ -1,743 +1,791 @@
 #!/usr/bin/env python3
 """
-🇧🇷 Cidadão.AI - Interface Principal
-Plataforma de análise de transparência pública com IA especializada
+🇧🇷 Cidadão.AI - Interface da API de Transparência para Hugging Face Spaces
+Sistema de consulta segura aos dados do Portal da Transparência
 """
 
-import streamlit as st
-import requests
+import gradio as gr
+import os
+import asyncio
 import json
-import time
-from typing import Dict, List, Any
 from datetime import datetime
+from typing import List, Dict, Any, Optional
+import logging
 
-# Configuração da página
-st.set_page_config(
-    page_title="🔍 Cidadão.AI - Inteligência Cidadã para Transparência",
-    page_icon="🔍",
-    layout="wide",
-    initial_sidebar_state="collapsed"
-)
+# Import direto para evitar problemas de path no Hugging Face
+import httpx
+from pydantic import BaseModel, Field
 
-# Estado da sessão
-if 'page' not in st.session_state:
-    st.session_state.page = 'home'
-if 'chat_history' not in st.session_state:
-    st.session_state.chat_history = []
-if 'search_results' not in st.session_state:
-    st.session_state.search_results = []
+# Configurar logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-# CSS Moderno e Responsivo
-st.markdown("""
-<style>
-    /* Reset e Base */
-    .main .block-container {
-        padding-top: 0rem;
-        padding-bottom: 2rem;
-        max-width: 100%;
-    }
+# Configuração segura das variáveis de ambiente
+TRANSPARENCY_API_KEY = os.getenv("TRANSPARENCY_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+# CSS moderno e profissional
+custom_css = """
+/* Estilo moderno para o Cidadão.AI */
+.gradio-container {
+    max-width: 1400px !important;
+    margin: auto !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Header principal */
+.main-header {
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, #0049A0 0%, #FFB74D 50%, #00873D 100%);
+    color: white;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 32px rgba(0, 73, 160, 0.3);
+}
+
+.main-title {
+    font-size: 3rem;
+    font-weight: 900;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* Cards de resultados */
+.result-card {
+    background: white;
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #0049A0;
+}
+
+.error-card {
+    background: #ffebee;
+    border-left-color: #d32f2f;
+}
+
+.success-card {
+    background: #e8f5e9;
+    border-left-color: #4caf50;
+}
+
+/* Tabelas de dados */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+}
+
+.data-table th {
+    background: #f5f5f5;
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 2px solid #ddd;
+    font-weight: 600;
+}
+
+.data-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #eee;
+}
+
+.data-table tr:hover {
+    background: #f9f9f9;
+}
+
+/* Botões de filtro */
+.filter-button {
+    background: #e3f2fd;
+    border: 1px solid #2196f3;
+    border-radius: 20px;
+    padding: 0.5rem 1rem;
+    margin: 0.25rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-button:hover {
+    background: #2196f3;
+    color: white;
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-active {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.status-error {
+    background: #ffebee;
+    color: #c62828;
+}
+
+/* Loading animation */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #0049A0;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+"""
+
+class SimplifiedTransparencyAPI:
+    """Cliente simplificado para a API do Portal da Transparência"""
     
-    /* Página Inicial - Background com imagens brasileiras */
-    .hero-container {
-        position: relative;
-        min-height: 100vh;
-        background: linear-gradient(
-            135deg,
-            rgba(0, 73, 144, 0.9) 0%,
-            rgba(255, 183, 77, 0.8) 50%,
-            rgba(0, 122, 51, 0.9) 100%
-        ),
-        url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080"><defs><pattern id="buildings" patternUnits="userSpaceOnUse" width="200" height="150"><rect width="200" height="150" fill="%23f0f8ff" opacity="0.1"/><rect x="20" y="80" width="30" height="70" fill="%234169e1" opacity="0.3"/><rect x="60" y="60" width="25" height="90" fill="%234169e1" opacity="0.4"/><rect x="95" y="70" width="35" height="80" fill="%234169e1" opacity="0.3"/><rect x="140" y="50" width="28" height="100" fill="%234169e1" opacity="0.4"/></pattern></defs><rect width="1920" height="1080" fill="url(%23buildings)"/></svg>');
-        background-size: cover;
-        background-position: center;
-        background-attachment: fixed;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: -1rem -1rem 0 -1rem;
-    }
-    
-    .hero-content {
-        text-align: center;
-        color: white;
-        max-width: 800px;
-        padding: 2rem;
-        background: rgba(0, 0, 0, 0.4);
-        border-radius: 20px;
-        backdrop-filter: blur(10px);
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        animation: fadeInUp 1.2s ease-out;
-    }
-    
-    .hero-logo {
-        font-size: 5rem;
-        font-weight: 900;
-        margin-bottom: 1rem;
-        text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.5);
-        background: linear-gradient(45deg, #FFB74D, #FFFFFF, #4CAF50);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
-    
-    .hero-subtitle {
-        font-size: 1.8rem;
-        margin-bottom: 3rem;
-        opacity: 0.95;
-        font-weight: 300;
-        line-height: 1.4;
-    }
-    
-    .cta-buttons {
-        display: flex;
-        gap: 2rem;
-        justify-content: center;
-        margin: 3rem 0;
-        flex-wrap: wrap;
-    }
-    
-    .cta-button {
-        background: linear-gradient(45deg, #FF6B35, #F7931E);
-        border: none;
-        color: white;
-        padding: 1.2rem 2.5rem;
-        border-radius: 50px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
-    }
-    
-    .cta-button:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 12px 35px rgba(255, 107, 53, 0.4);
-        text-decoration: none;
-        color: white;
-    }
-    
-    .cta-button.secondary {
-        background: linear-gradient(45deg, #667eea, #764ba2);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-    }
-    
-    .cta-button.secondary:hover {
-        box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
-    }
-    
-    /* Exemplos de Perguntas */
-    .examples-section {
-        margin-top: 4rem;
-        animation: fadeInUp 1.2s ease-out 0.3s both;
-    }
-    
-    .examples-title {
-        font-size: 1.3rem;
-        margin-bottom: 2rem;
-        opacity: 0.9;
-    }
-    
-    .examples-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 1rem;
-        margin: 2rem 0;
-    }
-    
-    .example-card {
-        background: rgba(255, 255, 255, 0.1);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 15px;
-        padding: 1.5rem;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        backdrop-filter: blur(5px);
-    }
-    
-    .example-card:hover {
-        background: rgba(255, 255, 255, 0.2);
-        transform: translateY(-2px);
-    }
-    
-    .example-text {
-        font-size: 0.95rem;
-        line-height: 1.4;
-        margin: 0;
-    }
-    
-    /* Footer */
-    .hero-footer {
-        margin-top: 4rem;
-        padding-top: 2rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.2);
-        opacity: 0.8;
-        font-size: 0.9rem;
-        animation: fadeInUp 1.2s ease-out 0.6s both;
-    }
-    
-    /* Páginas Internas */
-    .page-header {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        text-align: center;
-    }
-    
-    .page-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 0.5rem;
-    }
-    
-    .page-subtitle {
-        font-size: 1.1rem;
-        opacity: 0.9;
-    }
-    
-    /* Chat Interface */
-    .chat-container {
-        background: #f8f9fa;
-        border-radius: 15px;
-        padding: 2rem;
-        min-height: 500px;
-        max-height: 600px;
-        overflow-y: auto;
-    }
-    
-    .chat-message {
-        margin-bottom: 1.5rem;
-        padding: 1rem;
-        border-radius: 10px;
-        max-width: 80%;
-    }
-    
-    .chat-message.user {
-        background: #e3f2fd;
-        margin-left: auto;
-        text-align: right;
-    }
-    
-    .chat-message.ai {
-        background: #f1f8e9;
-        margin-right: auto;
-    }
-    
-    .message-header {
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        font-size: 0.9rem;
-    }
-    
-    /* Search Interface */
-    .search-container {
-        background: white;
-        border-radius: 15px;
-        padding: 2rem;
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-    }
-    
-    .search-filters {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 1rem;
-        margin-bottom: 2rem;
-    }
-    
-    .result-card {
-        background: white;
-        border: 1px solid #e0e0e0;
-        border-radius: 10px;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-        transition: all 0.3s ease;
-    }
-    
-    .result-card:hover {
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
-    }
-    
-    .result-title {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: #1976d2;
-        margin-bottom: 0.5rem;
-    }
-    
-    .result-meta {
-        font-size: 0.85rem;
-        color: #666;
-        margin-bottom: 1rem;
-    }
-    
-    .result-value {
-        font-size: 1.2rem;
-        font-weight: 700;
-        color: #2e7d32;
-    }
-    
-    /* Animações */
-    @keyframes fadeInUp {
-        from {
-            opacity: 0;
-            transform: translateY(30px);
-        }
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-    
-    /* Responsividade */
-    @media (max-width: 768px) {
-        .hero-logo {
-            font-size: 3rem;
-        }
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+        self.base_url = "https://api.portaldatransparencia.gov.br"
+        self.header_key = "chave-api-dados"
+        self.client = httpx.AsyncClient(timeout=30.0)
         
-        .hero-subtitle {
-            font-size: 1.3rem;
-        }
-        
-        .cta-buttons {
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .examples-grid {
-            grid-template-columns: 1fr;
-        }
-        
-        .hero-container {
-            background-attachment: scroll;
-        }
-    }
-</style>
-""", unsafe_allow_html=True)
-
-def render_home_page():
-    """Renderizar página inicial com novo design"""
+    async def __aenter__(self):
+        return self
     
-    st.markdown("""
-    <div class="hero-container">
-        <div class="hero-content">
-            <div class="hero-logo">cidadão.ai</div>
-            <div class="hero-subtitle">
-                Inteligência cidadã para uma nova era de transparência pública
-            </div>
-            
-            <div class="cta-buttons">
-                <button class="cta-button" onclick="window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'search'}, '*')">
-                    🔍 Busca Avançada
-                </button>
-                <button class="cta-button secondary" onclick="window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'chat'}, '*')">
-                    💬 Converse com a IA
-                </button>
-            </div>
-            
-            <div class="examples-section">
-                <div class="examples-title">
-                    💡 Exemplos de perguntas para começar:
-                </div>
-                <div class="examples-grid">
-                    <div class="example-card" onclick="window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'example1'}, '*')">
-                        <p class="example-text">
-                            "Quanto foi gasto com educação no estado de SP em 2023?"
-                        </p>
-                    </div>
-                    <div class="example-card" onclick="window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'example2'}, '*')">
-                        <p class="example-text">
-                            "Qual o histórico de contratos da empresa X com o governo?"
-                        </p>
-                    </div>
-                    <div class="example-card" onclick="window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'example3'}, '*')">
-                        <p class="example-text">
-                            "Mostre licitações suspeitas acima de R$ 10 milhões em 2024"
-                        </p>
-                    </div>
-                    <div class="example-card" onclick="window.parent.postMessage({type: 'streamlit:setComponentValue', value: 'example4'}, '*')">
-                        <p class="example-text">
-                            "Analise os gastos com saúde durante a pandemia"
-                        </p>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="hero-footer">
-                <p>🏛️ <strong>Cidadão.AI</strong> - Transformando dados públicos em transparência cidadã</p>
-                <p>Desenvolvido com ❤️ para fortalecer a democracia brasileira</p>
-                <p style="margin-top: 1rem; font-size: 0.8rem;">
-                    👨‍💻 <strong>Créditos:</strong> Anderson Henrique da Silva | 🤖 AI Assistant: Claude Code
-                </p>
-            </div>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-def render_search_page():
-    """Página de busca avançada funcional"""
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.client.aclose()
     
-    st.markdown("""
-    <div class="page-header">
-        <div class="page-title">🔍 Busca Avançada</div>
-        <div class="page-subtitle">Encontre informações específicas nos dados governamentais</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    with st.container():
-        st.markdown('<div class="search-container">', unsafe_allow_html=True)
-        
-        # Filtros de pesquisa
-        st.subheader("🔧 Filtros de Pesquisa")
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            search_type = st.selectbox(
-                "📋 Tipo de Dados",
-                ["Contratos", "Despesas", "Licitações", "Convênios", "Fornecedores"]
-            )
-            
-            year = st.selectbox(
-                "📅 Ano",
-                [2024, 2023, 2022, 2021, 2020, 2019]
-            )
-        
-        with col2:
-            organ = st.selectbox(
-                "🏛️ Órgão",
-                ["Todos", "Ministério da Saúde", "Ministério da Educação", 
-                 "Ministério da Defesa", "Ministério da Justiça"]
-            )
-            
-            min_value = st.number_input(
-                "💰 Valor Mínimo (R$)",
-                min_value=0,
-                value=100000,
-                step=10000
-            )
-        
-        with col3:
-            state = st.selectbox(
-                "🗺️ Estado",
-                ["Todos", "SP", "RJ", "MG", "RS", "PR", "SC", "BA", "GO", "DF"]
-            )
-            
-            max_value = st.number_input(
-                "💰 Valor Máximo (R$)",
-                min_value=0,
-                value=10000000,
-                step=100000
-            )
-        
-        # Campo de busca textual
-        search_query = st.text_input(
-            "🔍 Termo de Busca",
-            placeholder="Digite palavras-chave, nome de empresa, CNPJ...",
-            help="Busque por termos específicos nos documentos"
-        )
-        
-        # Botão de busca
-        if st.button("🔍 Buscar", type="primary", use_container_width=True):
-            with st.spinner("🔄 Buscando dados..."):
-                time.sleep(2)  # Simular processamento
-                results = generate_search_results(search_type, year, organ, min_value, max_value, search_query)
-                st.session_state.search_results = results
-        
-        # Exibir resultados
-        if st.session_state.search_results:
-            st.subheader(f"📊 Resultados da Busca ({len(st.session_state.search_results)} encontrados)")
-            
-            for i, result in enumerate(st.session_state.search_results):
-                st.markdown(f"""
-                <div class="result-card">
-                    <div class="result-title">{result['title']}</div>
-                    <div class="result-meta">
-                        📅 {result['date']} | 🏛️ {result['organ']} | 📍 {result['location']}
-                    </div>
-                    <div style="margin: 1rem 0;">
-                        {result['description']}
-                    </div>
-                    <div class="result-value">💰 {result['value']}</div>
-                </div>
-                """, unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-
-def render_chat_page():
-    """Página de chat com IA melhorada"""
-    
-    st.markdown("""
-    <div class="page-header">
-        <div class="page-title">💬 Chat com Cidadão.AI</div>
-        <div class="page-subtitle">Converse em linguagem natural sobre transparência pública</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
-    # Chat interface
-    chat_container = st.container()
-    
-    with chat_container:
-        st.markdown('<div class="chat-container">', unsafe_allow_html=True)
-        
-        # Exibir histórico do chat
-        for message in st.session_state.chat_history:
-            role_class = "user" if message['role'] == 'user' else "ai"
-            role_name = "👤 Você" if message['role'] == 'user' else "🤖 Cidadão.AI"
-            
-            st.markdown(f"""
-            <div class="chat-message {role_class}">
-                <div class="message-header">{role_name}</div>
-                <div>{message['content']}</div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        # Mensagem inicial se não há histórico
-        if not st.session_state.chat_history:
-            st.markdown("""
-            <div class="chat-message ai">
-                <div class="message-header">🤖 Cidadão.AI</div>
-                <div>
-                    Olá! Sou o Cidadão.AI, sua assistente especializada em transparência pública. 
-                    Posso ajudar você a:
-                    <ul>
-                        <li>🔍 Encontrar contratos e licitações específicas</li>
-                        <li>📊 Analisar gastos públicos por área ou período</li>
-                        <li>⚖️ Verificar conformidade legal de processos</li>
-                        <li>🚨 Detectar possíveis irregularidades</li>
-                    </ul>
-                    Como posso ajudar você hoje?
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-        
-        st.markdown('</div>', unsafe_allow_html=True)
-    
-    # Input do usuário
-    col1, col2 = st.columns([6, 1])
-    
-    with col1:
-        user_input = st.text_input(
-            "💬 Digite sua pergunta:",
-            placeholder="Ex: Quais foram os maiores contratos do Ministério da Saúde em 2023?",
-            key="chat_input"
-        )
-    
-    with col2:
-        send_button = st.button("📤 Enviar", type="primary")
-    
-    # Processar entrada do usuário
-    if send_button and user_input:
-        # Adicionar mensagem do usuário
-        st.session_state.chat_history.append({
-            'role': 'user',
-            'content': user_input,
-            'timestamp': datetime.now()
-        })
-        
-        # Gerar resposta da IA
-        with st.spinner("🤖 Cidadão.AI está pensando..."):
-            time.sleep(1.5)  # Simular processamento
-            ai_response = generate_ai_response(user_input)
-            
-            st.session_state.chat_history.append({
-                'role': 'assistant',
-                'content': ai_response,
-                'timestamp': datetime.now()
-            })
-        
-        # Rerun para atualizar o chat
-        st.rerun()
-
-def generate_search_results(search_type: str, year: int, organ: str, min_value: int, max_value: int, query: str) -> List[Dict]:
-    """Gerar resultados de busca simulados"""
-    
-    # Dados simulados mais realistas
-    sample_results = [
-        {
-            'title': f'Contrato para aquisição de equipamentos médicos - {organ}',
-            'date': f'{year}-03-15',
-            'organ': organ if organ != "Todos" else "Ministério da Saúde",
-            'location': 'Brasília/DF',
-            'description': 'Aquisição de 500 ventiladores pulmonares para unidades hospitalares da rede pública federal.',
-            'value': 'R$ 2.350.000,00'
-        },
-        {
-            'title': f'Licitação para serviços de TI - {organ}',
-            'date': f'{year}-07-22',
-            'organ': organ if organ != "Todos" else "Ministério da Educação",
-            'location': 'São Paulo/SP',
-            'description': 'Prestação de serviços de desenvolvimento e manutenção de sistemas educacionais.',
-            'value': 'R$ 1.875.000,00'
-        },
-        {
-            'title': f'Convênio para pesquisa científica - {organ}',
-            'date': f'{year}-01-10',
-            'organ': organ if organ != "Todos" else "Ministério da Ciência e Tecnologia",
-            'location': 'Rio de Janeiro/RJ',
-            'description': 'Desenvolvimento de pesquisas em inteligência artificial aplicada à saúde pública.',
-            'value': 'R$ 950.000,00'
-        }
-    ]
-    
-    # Filtrar por valor
-    filtered_results = []
-    for result in sample_results:
-        value_num = float(result['value'].replace('R$ ', '').replace('.', '').replace(',', '.'))
-        if min_value <= value_num <= max_value:
-            filtered_results.append(result)
-    
-    return filtered_results
-
-def generate_ai_response(user_input: str) -> str:
-    """Gerar resposta da IA baseada na entrada do usuário"""
-    
-    user_input_lower = user_input.lower()
-    
-    # Respostas contextuais baseadas em palavras-chave
-    if any(word in user_input_lower for word in ['educação', 'escola', 'ensino', 'universidade']):
-        return """📚 **Análise de Gastos com Educação**
-
-Com base nos dados do Portal da Transparência, posso te ajudar com informações sobre:
-
-🏫 **Ministério da Educação (2023)**:
-- Orçamento total: R$ 132,4 bilhões
-- Principais programas: FUNDEB, ProUni, FIES
-- Contratos de maior valor: infraestrutura universitária
-
-📊 **Indicadores relevantes**:
-- Gasto por aluno: R$ 6.227 (ensino fundamental)
-- Universidades federais: 69 instituições
-- Bolsas de estudo: 2,1 milhões de beneficiários
-
-Gostaria de saber mais detalhes sobre algum aspecto específico?"""
-
-    elif any(word in user_input_lower for word in ['saúde', 'hospital', 'sus', 'médico']):
-        return """🏥 **Análise de Gastos com Saúde**
-
-Analisando os dados do SUS e Ministério da Saúde:
-
-💉 **Ministério da Saúde (2023)**:
-- Orçamento SUS: R$ 198,2 bilhões
-- Principais áreas: atenção básica, hospitalar, vigilância
-- Contratos emergenciais: equipamentos COVID-19
-
-🔍 **Possíveis irregularidades detectadas**:
-- 15 contratos sem licitação acima de R$ 10 milhões
-- 3 fornecedores com concentração > 80% dos contratos
-- Variação de preços entre estados: até 300%
-
-⚠️ **Recomendação**: Investigar contratos emergenciais de 2020-2022 para possível superfaturamento.
-
-Quer que eu detalhe alguma irregularidade específica?"""
-
-    elif any(word in user_input_lower for word in ['contrato', 'licitação', 'irregularidade', 'suspeito']):
-        return """🔍 **Análise de Contratos e Licitações**
-
-Detectei alguns padrões que merecem atenção:
-
-🚨 **Alertas de Risco Alto**:
-- 47 contratos emergenciais sem justificativa adequada
-- 12 empresas recém-criadas com contratos > R$ 5 milhões
-- Variação de preços: 150-400% para produtos similares
-
-📋 **Contratos Suspeitos (últimos 6 meses)**:
-1. Empresa ABC LTDA - R$ 25 milhões (criada há 2 meses)
-2. Fornecedor XYZ - R$ 18 milhões (preço 300% acima da média)
-3. Serviços DEF - R$ 12 milhões (sem comprovação técnica)
-
-⚖️ **Status Legal**: 5 processos em análise pelo TCU
-
-Gostaria que eu investigue algum contrato específico?"""
-
-    elif any(word in user_input_lower for word in ['quanto', 'valor', 'gasto', 'orçamento']):
-        return """💰 **Análise de Gastos Públicos**
-
-Aqui estão os dados consolidados que encontrei:
-
-📊 **Orçamento Federal 2023**:
-- Total: R$ 5,07 trilhões
-- Gastos obrigatórios: 93,2%
-- Investimentos: 2,1%
-- Custeio: 4,7%
-
-🏛️ **Maiores Órgãos por Gasto**:
-1. INSS: R$ 713 bilhões (benefícios previdenciários)
-2. Ministério da Saúde: R$ 198 bilhões
-3. Ministério da Educação: R$ 132 bilhões
-4. Ministério da Defesa: R$ 126 bilhões
-
-📈 **Comparação com 2022**: Aumento de 7,3% em termos reais
-
-Sobre qual área específica você gostaria de mais detalhes?"""
-
-    else:
-        return """🤖 **Cidadão.AI - Assistente de Transparência**
-
-Entendi sua pergunta! Posso ajudar você com:
-
-🔍 **Análises Disponíveis**:
-- Contratos e licitações por valor, órgão ou período
-- Gastos públicos por área (saúde, educação, segurança)
-- Detecção de irregularidades e padrões suspeitos
-- Fornecedores e histórico de contratações
-- Comparações entre estados e municípios
-
-💡 **Exemplos de perguntas**:
-- "Mostre os maiores contratos do Ministério X em 2023"
-- "Há irregularidades nos gastos com educação?"
-- "Qual empresa mais recebeu recursos públicos?"
-
-Como posso refinar minha análise para você?"""
-
-def main():
-    """Função principal da aplicação"""
-    
-    # Controle de navegação via JavaScript
-    st.markdown("""
-    <script>
-    window.addEventListener('message', function(event) {
-        if (event.data.type === 'streamlit:setComponentValue') {
-            const value = event.data.value;
-            if (value === 'search') {
-                window.parent.postMessage({type: 'streamlit:setKey', key: 'nav_action', value: 'search'}, '*');
-            } else if (value === 'chat') {
-                window.parent.postMessage({type: 'streamlit:setKey', key: 'nav_action', value: 'chat'}, '*');
-            } else if (value.startsWith('example')) {
-                window.parent.postMessage({type: 'streamlit:setKey', key: 'nav_action', value: 'chat'}, '*');
+    async def search_contracts(self, filters: Dict[str, Any]) -> Dict[str, Any]:
+        """Buscar contratos"""
+        try:
+            headers = {
+                self.header_key: self.api_key,
+                "Content-Type": "application/json"
             }
-        }
-    });
-    </script>
-    """, unsafe_allow_html=True)
+            
+            # Converter filtros para formato da API
+            params = {}
+            if filters.get("ano"):
+                params["ano"] = filters["ano"]
+            if filters.get("mes"):
+                params["mes"] = filters["mes"]
+            if filters.get("orgao"):
+                params["codigoOrgao"] = filters["orgao"]
+            if filters.get("valor_min"):
+                params["valorInicial"] = filters["valor_min"]
+            if filters.get("valor_max"):
+                params["valorFinal"] = filters["valor_max"]
+            
+            params["pagina"] = filters.get("pagina", 1)
+            params["tamanhoPagina"] = min(filters.get("tamanho", 10), 50)
+            
+            response = await self.client.get(
+                f"{self.base_url}/api-de-dados/contratos",
+                params=params,
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return {"success": True, "data": response.json()}
+            else:
+                return {"success": False, "error": f"Erro {response.status_code}: {response.text}"}
+                
+        except Exception as e:
+            return {"success": False, "error": str(e)}
     
-    # Navegação por botões
-    col1, col2, col3 = st.columns([1, 1, 1])
+    async def search_expenses(self, filters: Dict[str, Any]) -> Dict[str, Any]:
+        """Buscar despesas"""
+        try:
+            headers = {
+                self.header_key: self.api_key,
+                "Content-Type": "application/json"
+            }
+            
+            params = {}
+            if filters.get("ano"):
+                params["ano"] = filters["ano"]
+            if filters.get("mes"):
+                params["mes"] = filters["mes"]
+            if filters.get("orgao"):
+                params["codigoOrgao"] = filters["orgao"]
+            
+            params["pagina"] = filters.get("pagina", 1)
+            params["tamanhoPagina"] = min(filters.get("tamanho", 10), 50)
+            
+            response = await self.client.get(
+                f"{self.base_url}/api-de-dados/despesas",
+                params=params,
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return {"success": True, "data": response.json()}
+            else:
+                return {"success": False, "error": f"Erro {response.status_code}: {response.text}"}
+                
+        except Exception as e:
+            return {"success": False, "error": str(e)}
     
-    with col1:
-        if st.button("🏠 Início", use_container_width=True):
-            st.session_state.page = 'home'
-    
-    with col2:
-        if st.button("🔍 Busca Avançada", use_container_width=True):
-            st.session_state.page = 'search'
-    
-    with col3:
-        if st.button("💬 Chat IA", use_container_width=True):
-            st.session_state.page = 'chat'
-    
-    # Renderizar página correspondente
-    if st.session_state.page == 'home':
-        render_home_page()
-    elif st.session_state.page == 'search':
-        render_search_page()
-    elif st.session_state.page == 'chat':
-        render_chat_page()
+    async def search_biddings(self, filters: Dict[str, Any]) -> Dict[str, Any]:
+        """Buscar licitações"""
+        try:
+            headers = {
+                self.header_key: self.api_key,
+                "Content-Type": "application/json"
+            }
+            
+            params = {}
+            if filters.get("ano"):
+                params["ano"] = filters["ano"]
+            if filters.get("orgao"):
+                params["codigoOrgao"] = filters["orgao"]
+            if filters.get("modalidade"):
+                params["modalidade"] = filters["modalidade"]
+            
+            params["pagina"] = filters.get("pagina", 1)
+            params["tamanhoPagina"] = min(filters.get("tamanho", 10), 50)
+            
+            response = await self.client.get(
+                f"{self.base_url}/api-de-dados/licitacoes",
+                params=params,
+                headers=headers
+            )
+            
+            if response.status_code == 200:
+                return {"success": True, "data": response.json()}
+            else:
+                return {"success": False, "error": f"Erro {response.status_code}: {response.text}"}
+                
+        except Exception as e:
+            return {"success": False, "error": str(e)}
 
+def format_currency(value: float) -> str:
+    """Formatar valor em moeda brasileira"""
+    try:
+        return f"R$ {value:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+    except:
+        return "R$ 0,00"
+
+def format_date(date_str: str) -> str:
+    """Formatar data para padrão brasileiro"""
+    try:
+        if "T" in date_str:
+            date_str = date_str.split("T")[0]
+        parts = date_str.split("-")
+        return f"{parts[2]}/{parts[1]}/{parts[0]}"
+    except:
+        return date_str
+
+async def search_transparency_data(
+    data_type: str,
+    year: Optional[int],
+    month: Optional[int],
+    org_code: str,
+    min_value: Optional[float],
+    max_value: Optional[float],
+    page_size: int
+):
+    """Buscar dados da API de transparência"""
+    
+    if not TRANSPARENCY_API_KEY:
+        return """
+        <div class="result-card error-card">
+            <h3>❌ API Key não configurada</h3>
+            <p>Para usar a API do Portal da Transparência, configure a variável <code>TRANSPARENCY_API_KEY</code> no ambiente.</p>
+            <p><strong>Como obter a chave:</strong></p>
+            <ol>
+                <li>Acesse <a href="https://portaldatransparencia.gov.br/api-de-dados" target="_blank">Portal da Transparência - API</a></li>
+                <li>Faça o cadastro gratuito</li>
+                <li>Copie sua chave de API</li>
+                <li>Configure como variável de ambiente no Hugging Face Spaces</li>
+            </ol>
+        </div>
+        """
+    
+    try:
+        # Preparar filtros
+        filters = {
+            "ano": year,
+            "mes": month,
+            "orgao": org_code if org_code else None,
+            "valor_min": min_value,
+            "valor_max": max_value,
+            "pagina": 1,
+            "tamanho": page_size
+        }
+        
+        # Remover None values
+        filters = {k: v for k, v in filters.items() if v is not None}
+        
+        # Criar cliente da API
+        async with SimplifiedTransparencyAPI(TRANSPARENCY_API_KEY) as api:
+            # Buscar dados conforme o tipo
+            if data_type == "Contratos":
+                result = await api.search_contracts(filters)
+            elif data_type == "Despesas":
+                result = await api.search_expenses(filters)
+            elif data_type == "Licitações":
+                result = await api.search_biddings(filters)
+            else:
+                return "<div class='result-card error-card'>❌ Tipo de dados inválido</div>"
+        
+        if not result["success"]:
+            return f"""
+            <div class="result-card error-card">
+                <h3>❌ Erro na consulta</h3>
+                <p>{result['error']}</p>
+            </div>
+            """
+        
+        # Processar e formatar resultados
+        data = result["data"]
+        
+        if isinstance(data, list):
+            items = data
+            total = len(data)
+        else:
+            items = data.get("data", data.get("items", []))
+            total = data.get("meta", {}).get("total", len(items))
+        
+        if not items:
+            return """
+            <div class="result-card">
+                <h3>📭 Nenhum resultado encontrado</h3>
+                <p>Tente ajustar os filtros da sua busca.</p>
+            </div>
+            """
+        
+        # Criar HTML com os resultados
+        html = f"""
+        <div class="result-card success-card">
+            <h3>✅ {total} resultados encontrados</h3>
+            <p>Mostrando até {len(items)} registros</p>
+        </div>
+        """
+        
+        # Formatar conforme o tipo de dados
+        if data_type == "Contratos":
+            html += format_contracts_table(items)
+        elif data_type == "Despesas":
+            html += format_expenses_table(items)
+        elif data_type == "Licitações":
+            html += format_biddings_table(items)
+        
+        return html
+        
+    except Exception as e:
+        logger.error(f"Erro ao buscar dados: {str(e)}")
+        return f"""
+        <div class="result-card error-card">
+            <h3>❌ Erro inesperado</h3>
+            <p>{str(e)}</p>
+        </div>
+        """
+
+def format_contracts_table(items: List[Dict]) -> str:
+    """Formatar tabela de contratos"""
+    html = """
+    <div class="result-card">
+        <h4>📄 Contratos Encontrados</h4>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Contratado</th>
+                    <th>Objeto</th>
+                    <th>Valor</th>
+                    <th>Data</th>
+                    <th>Órgão</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
+    
+    for item in items[:20]:  # Limitar a 20 itens
+        numero = item.get("numero", "N/A")
+        contratado = item.get("nomeContratado", item.get("contratado", {}).get("nome", "N/A"))
+        objeto = item.get("objeto", "N/A")[:100] + "..."
+        valor = format_currency(item.get("valorTotal", item.get("valor", 0)))
+        data = format_date(item.get("dataAssinatura", item.get("data", "")))
+        orgao = item.get("orgao", {}).get("nome", item.get("nomeOrgao", "N/A"))
+        
+        html += f"""
+        <tr>
+            <td>{numero}</td>
+            <td>{contratado}</td>
+            <td>{objeto}</td>
+            <td><strong>{valor}</strong></td>
+            <td>{data}</td>
+            <td>{orgao}</td>
+        </tr>
+        """
+    
+    html += """
+            </tbody>
+        </table>
+    </div>
+    """
+    
+    return html
+
+def format_expenses_table(items: List[Dict]) -> str:
+    """Formatar tabela de despesas"""
+    html = """
+    <div class="result-card">
+        <h4>💰 Despesas Encontradas</h4>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Documento</th>
+                    <th>Favorecido</th>
+                    <th>Descrição</th>
+                    <th>Valor</th>
+                    <th>Data</th>
+                    <th>Órgão</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
+    
+    for item in items[:20]:
+        documento = item.get("documento", "N/A")
+        favorecido = item.get("nomeFavorecido", item.get("favorecido", {}).get("nome", "N/A"))
+        descricao = item.get("descricao", "N/A")[:100] + "..."
+        valor = format_currency(item.get("valor", 0))
+        data = format_date(item.get("data", item.get("dataDocumento", "")))
+        orgao = item.get("orgao", {}).get("nome", item.get("nomeOrgao", "N/A"))
+        
+        html += f"""
+        <tr>
+            <td>{documento}</td>
+            <td>{favorecido}</td>
+            <td>{descricao}</td>
+            <td><strong>{valor}</strong></td>
+            <td>{data}</td>
+            <td>{orgao}</td>
+        </tr>
+        """
+    
+    html += """
+            </tbody>
+        </table>
+    </div>
+    """
+    
+    return html
+
+def format_biddings_table(items: List[Dict]) -> str:
+    """Formatar tabela de licitações"""
+    html = """
+    <div class="result-card">
+        <h4>🏛️ Licitações Encontradas</h4>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Modalidade</th>
+                    <th>Objeto</th>
+                    <th>Valor Estimado</th>
+                    <th>Data</th>
+                    <th>Órgão</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
+    
+    for item in items[:20]:
+        numero = item.get("numero", "N/A")
+        modalidade = item.get("modalidade", {}).get("descricao", item.get("modalidadeDescricao", "N/A"))
+        objeto = item.get("objeto", "N/A")[:100] + "..."
+        valor = format_currency(item.get("valorEstimado", item.get("valor", 0)))
+        data = format_date(item.get("dataPublicacao", item.get("data", "")))
+        orgao = item.get("orgao", {}).get("nome", item.get("nomeOrgao", "N/A"))
+        
+        html += f"""
+        <tr>
+            <td>{numero}</td>
+            <td>{modalidade}</td>
+            <td>{objeto}</td>
+            <td><strong>{valor}</strong></td>
+            <td>{data}</td>
+            <td>{orgao}</td>
+        </tr>
+        """
+    
+    html += """
+            </tbody>
+        </table>
+    </div>
+    """
+    
+    return html
+
+def analyze_with_ai(data_html: str, query: str) -> str:
+    """Analisar dados com IA (se disponível)"""
+    if not GROQ_API_KEY:
+        return """
+        <div class="result-card">
+            <h4>🤖 Análise IA não disponível</h4>
+            <p>Configure a variável <code>GROQ_API_KEY</code> para habilitar análise com IA.</p>
+        </div>
+        """
+    
+    # Aqui você pode implementar a análise com Groq
+    # Por enquanto, retorna uma mensagem padrão
+    return """
+    <div class="result-card">
+        <h4>🤖 Análise com IA</h4>
+        <p>Funcionalidade em desenvolvimento...</p>
+    </div>
+    """
+
+def create_transparency_interface():
+    """Interface principal do Gradio para API de Transparência"""
+    
+    with gr.Blocks(css=custom_css, title="Cidadão.AI - API Transparência") as app:
+        
+        # Header
+        gr.HTML("""
+        <div class="main-header">
+            <div class="main-title">🇧🇷 Cidadão.AI - API de Transparência</div>
+            <div class="main-subtitle">Consulte dados do Portal da Transparência do Governo Federal</div>
+        </div>
+        """)
+        
+        # Status da API
+        api_status = "✅ API Configurada" if TRANSPARENCY_API_KEY else "❌ API não configurada"
+        ai_status = "✅ IA Habilitada" if GROQ_API_KEY else "⚠️ IA não configurada"
+        
+        gr.HTML(f"""
+        <div class="result-card">
+            <h3>📊 Status do Sistema</h3>
+            <p><span class="status-badge {'status-active' if TRANSPARENCY_API_KEY else 'status-error'}">{api_status}</span>
+               <span class="status-badge {'status-active' if GROQ_API_KEY else 'status-error'}">{ai_status}</span></p>
+        </div>
+        """)
+        
+        with gr.Tabs():
+            # Aba de Consulta
+            with gr.Tab("🔍 Consultar Dados"):
+                with gr.Row():
+                    with gr.Column(scale=1):
+                        gr.Markdown("### 🎯 Filtros de Busca")
+                        
+                        data_type = gr.Radio(
+                            label="Tipo de Dados",
+                            choices=["Contratos", "Despesas", "Licitações"],
+                            value="Contratos"
+                        )
+                        
+                        with gr.Row():
+                            year = gr.Number(
+                                label="Ano",
+                                value=2024,
+                                precision=0,
+                                minimum=2010,
+                                maximum=2025
+                            )
+                            
+                            month = gr.Number(
+                                label="Mês (opcional)",
+                                precision=0,
+                                minimum=1,
+                                maximum=12
+                            )
+                        
+                        org_code = gr.Textbox(
+                            label="Código do Órgão (opcional)",
+                            placeholder="Ex: 26000 (MEC)",
+                            info="Deixe vazio para buscar todos"
+                        )
+                        
+                        gr.Markdown("**Exemplos de códigos:**")
+                        gr.Markdown("""
+                        - 26000: Ministério da Educação
+                        - 36000: Ministério da Saúde  
+                        - 52000: Ministério da Defesa
+                        - 20000: Presidência da República
+                        """)
+                        
+                        with gr.Row():
+                            min_value = gr.Number(
+                                label="Valor Mínimo (R$)",
+                                minimum=0
+                            )
+                            
+                            max_value = gr.Number(
+                                label="Valor Máximo (R$)",
+                                minimum=0
+                            )
+                        
+                        page_size = gr.Slider(
+                            label="Quantidade de Resultados",
+                            minimum=5,
+                            maximum=50,
+                            value=10,
+                            step=5
+                        )
+                        
+                        search_btn = gr.Button(
+                            "🔍 Buscar Dados",
+                            variant="primary",
+                            scale=2
+                        )
+                    
+                    with gr.Column(scale=2):
+                        gr.Markdown("### 📊 Resultados")
+                        
+                        results_output = gr.HTML(
+                            value="""
+                            <div class="result-card">
+                                <h3>👋 Bem-vindo ao Cidadão.AI</h3>
+                                <p>Use os filtros ao lado para buscar dados do Portal da Transparência.</p>
+                                <p><strong>Tipos de dados disponíveis:</strong></p>
+                                <ul>
+                                    <li>📄 <strong>Contratos</strong>: Contratos firmados pelo governo</li>
+                                    <li>💰 <strong>Despesas</strong>: Gastos e pagamentos realizados</li>
+                                    <li>🏛️ <strong>Licitações</strong>: Processos de compra pública</li>
+                                </ul>
+                            </div>
+                            """
+                        )
+                
+                # Conectar busca
+                search_btn.click(
+                    fn=lambda *args: asyncio.run(search_transparency_data(*args)),
+                    inputs=[
+                        data_type, year, month, org_code,
+                        min_value, max_value, page_size
+                    ],
+                    outputs=[results_output]
+                )
+            
+            # Aba de Análise com IA
+            with gr.Tab("🤖 Análise com IA"):
+                gr.Markdown("""
+                ### 🧠 Análise Inteligente de Dados
+                
+                Cole os dados obtidos na aba anterior e faça perguntas específicas sobre eles.
+                """)
+                
+                with gr.Row():
+                    with gr.Column():
+                        data_input = gr.Textbox(
+                            label="Dados para Análise",
+                            placeholder="Cole aqui os dados da consulta anterior...",
+                            lines=10
+                        )
+                        
+                        query_input = gr.Textbox(
+                            label="Sua Pergunta",
+                            placeholder="Ex: Identifique contratos suspeitos ou valores acima da média",
+                            lines=3
+                        )
+                        
+                        analyze_btn = gr.Button("🤖 Analisar com IA", variant="primary")
+                    
+                    with gr.Column():
+                        ai_output = gr.HTML(
+                            label="Análise da IA",
+                            value="""
+                            <div class="result-card">
+                                <h4>🤖 Aguardando dados...</h4>
+                                <p>Cole os dados e faça uma pergunta para receber análise inteligente.</p>
+                            </div>
+                            """
+                        )
+                
+                analyze_btn.click(
+                    fn=analyze_with_ai,
+                    inputs=[data_input, query_input],
+                    outputs=[ai_output]
+                )
+            
+            # Aba de Documentação
+            with gr.Tab("📚 Documentação"):
+                gr.Markdown("""
+                ## 📖 Como usar a API de Transparência
+                
+                ### 🔑 Configuração Inicial
+                
+                1. **Obtenha sua chave de API**:
+                   - Acesse [Portal da Transparência - API](https://portaldatransparencia.gov.br/api-de-dados)
+                   - Faça o cadastro gratuito
+                   - Copie sua chave de API
+                
+                2. **Configure no Hugging Face Spaces**:
+                   - Vá em Settings → Repository secrets
+                   - Adicione `TRANSPARENCY_API_KEY` com sua chave
+                   - Reinicie o Space
+                
+                ### 📊 Tipos de Dados Disponíveis
+                
+                **Contratos**: Informações sobre contratos firmados pelo governo federal
+                - Número do contrato
+                - Empresa contratada
+                - Objeto do contrato
+                - Valor total
+                - Data de assinatura
+                
+                **Despesas**: Gastos e pagamentos realizados
+                - Documento de pagamento
+                - Favorecido
+                - Descrição da despesa
+                - Valor pago
+                - Data do pagamento
+                
+                **Licitações**: Processos de compra pública
+                - Número da licitação
+                - Modalidade (Pregão, Concorrência, etc.)
+                - Objeto licitado
+                - Valor estimado
+                - Data de publicação
+                
+                ### 🎯 Dicas de Uso
+                
+                - Use filtros específicos para reduzir o volume de dados
+                - Códigos de órgão podem ser encontrados no Portal da Transparência
+                - Valores devem ser informados sem pontos ou vírgulas
+                - A API tem limite de requisições por minuto
+                
+                ### 🔗 Links Úteis
+                
+                - [Portal da Transparência](https://portaldatransparencia.gov.br)
+                - [Documentação da API](https://portaldatransparencia.gov.br/api-de-dados)
+                - [Código no GitHub](https://github.com/anderson-ufrj/cidadao.ai)
+                """)
+        
+        # Footer
+        gr.HTML("""
+        <div class="footer-credits">
+            <p><strong>🤖 Cidadão.AI</strong> - Democratizando o acesso aos dados públicos</p>
+            <p>Desenvolvido por Anderson Henrique da Silva | 🇧🇷 Feito para o Brasil</p>
+        </div>
+        """)
+    
+    return app
+
+# Executar aplicação
 if __name__ == "__main__":
-    main()
+    logger.info("🚀 Iniciando Cidadão.AI - API de Transparência...")
+    
+    if TRANSPARENCY_API_KEY:
+        logger.info("✅ API do Portal da Transparência configurada")
+    else:
+        logger.warning("⚠️ API key não configurada - funcionalidade limitada")
+    
+    app = create_transparency_interface()
+    
+    app.launch(
+        server_name="0.0.0.0",
+        server_port=7860,
+        share=False,
+        show_error=True
+    )
