@@ -110,8 +110,8 @@ body {
 /* Hero Section corrigida */
 .hero-section {
     position: relative;
-    height: 100vh;
-    max-height: 800px;
+    height: 80vh;
+    max-height: 700px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -148,13 +148,18 @@ body {
     z-index: 2;
     max-width: 800px;
     padding: 3rem 2rem;
-    background: var(--card-bg);
+    background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
     border-radius: 24px;
-    border: 1px solid var(--border-color);
-    box-shadow: 0 25px 50px var(--shadow-color);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
     text-align: center;
     animation: fadeInUp 0.8s ease-out;
+}
+
+[data-theme="dark"] .hero-content {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 @keyframes fadeInUp {
@@ -182,15 +187,17 @@ body {
 .hero-subtitle {
     font-size: 1.5rem;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: #ffffff;
     margin-bottom: 1rem;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.7);
 }
 
 .hero-description {
     font-size: 1.1rem;
-    color: var(--text-muted);
+    color: #f8f9fa;
     margin-bottom: 2rem;
     line-height: 1.7;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
 /* Botões de ação */
@@ -597,8 +604,8 @@ def create_footer():
         <p>Democratizando o acesso aos dados públicos brasileiros</p>
         
         <div class="footer-links">
-            <a href="/docs/documentation.html" target="_blank" class="footer-link">
-                📚 Documentação
+            <a href="docs/documentation.html" target="_blank" class="footer-link">
+                📚 Documentação Técnica Completa
             </a>
             <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="footer-link">
                 💻 GitHub
@@ -609,7 +616,7 @@ def create_footer():
         </div>
         
         <p style="margin-top: 2rem; opacity: 0.8;">
-            Desenvolvido por Anderson Henrique da Silva<br>
+            <strong>Desenvolvido por:</strong> Anderson Henrique da Silva<br>
             © 2024 Cidadão.AI - MIT License
         </p>
     </div>
