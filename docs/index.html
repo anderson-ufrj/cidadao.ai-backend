@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="pt-BR" id="html-root">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cidadão.AI - Documentação Técnica Completa</title>
+    <meta name="description" content="Documentação técnica completa da plataforma Cidadão.AI - Sistema de IA multi-agente para transparência governamental brasileira">
+    <meta name="keywords" content="inteligência artificial, transparência, governo, brasil, dados públicos, multi-agent, API, REST, machine learning, research">
+    <meta name="author" content="Anderson Henrique da Silva">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Portuguese">
+    <meta name="revisit-after" content="7 days">
+    
+    <!-- Canonical URL for GitHub Pages -->
+    <link rel="canonical" href="https://anderson-ufrj.github.io/cidadao.ai/docs/">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Cidadão.AI - Documentação Técnica Completa">
+    <meta property="og:description" content="Sistema de IA multi-agente para análise de transparência governamental brasileira - Documentação técnica completa">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://anderson-ufrj.github.io/cidadao.ai/docs/">
+    <meta property="og:site_name" content="Cidadão.AI">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:locale:alternate" content="en_US">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Cidadão.AI - Documentação Técnica">
+    <meta name="twitter:description" content="Sistema de IA multi-agente para transparência governamental brasileira">
+    <meta name="twitter:creator" content="@anderson_ufrj">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Crimson+Text:wght@400;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
+    
+    <!-- Math rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    
+    <!-- Highlight.js for code syntax -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+    
+    <!-- Mermaid for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    
+    <style>
+        :root {
+            /* Light Theme */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-sidebar: #f8fafc;
+            --bg-hover: #e2e8f0;
+            --bg-code: #f8fafc;
+            --bg-accent: #3b82f6;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #64748b;
+            --text-accent: #1e40af;
+            --text-muted: #94a3b8;
+            --text-code: #1e293b;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --border-hover: #cbd5e1;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            
+            /* Status Colors */
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-error: #ef4444;
+            --color-info: #3b82f6;
+            --color-neutral: #6b7280;
+            
+            /* Brazilian Colors */
+            --brazil-green: #009639;
+            --brazil-yellow: #ffdf00;
+            --brazil-blue: #002776;
+            
+            /* Typography Scale */
+            --text-xs: 0.75rem;
+            --text-sm: 0.875rem;
+            --text-base: 1rem;
+            --text-lg: 1.125rem;
+            --text-xl: 1.25rem;
+            --text-2xl: 1.5rem;
+            --text-3xl: 1.875rem;
+            --text-4xl: 2.25rem;
+            --text-5xl: 3rem;
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-sidebar: #1e293b;
+            --bg-hover: #334155;
+            --bg-code: #1e293b;
+            --bg-accent: #3b82f6;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --text-accent: #60a5fa;
+            --text-muted: #64748b;
+            --text-code: #e2e8f0;
+            --border: #334155;
+            --border-light: #475569;
+            --border-hover: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .logo-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+            margin-top: 0.25rem;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .control-button {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            background-color: var(--bg-primary);
+            color: var(--text-secondary);
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .control-button:hover {
+            background-color: var(--bg-hover);
+            border-color: var(--border-hover);
+        }
+
+        .control-button.active {
+            background-color: var(--bg-accent);
+            color: white;
+            border-color: var(--bg-accent);
+        }
+
+        .language-selector {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .lang-flag {
+            font-size: 1rem;
+            min-width: 2.5rem;
+            padding: 0.5rem 0.25rem;
+        }
+
+        .lang-flag.active {
+            background-color: var(--brazil-green);
+            border-color: var(--brazil-green);
+            transform: scale(1.1);
+        }
+
+        /* Navigation */
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .nav-link.active {
+            background-color: var(--bg-accent);
+            color: white;
+        }
+
+        .nav-link.loading {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 320px;
+            flex: 1;
+            padding: 2rem 3rem;
+            max-width: calc(100% - 320px);
+        }
+
+        .content-section {
+            display: none;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .section-description {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Loading States */
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--bg-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        [data-theme="dark"] .error-message {
+            background-color: #1f1917;
+            border-color: #451a03;
+            color: #fed7aa;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 280px;
+            }
+            
+            .main-content {
+                margin-left: 280px;
+                max-width: calc(100% - 280px);
+                padding: 1.5rem 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+                padding: 1rem;
+            }
+            
+            .mobile-menu-button {
+                display: block;
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                z-index: 1001;
+                background-color: var(--bg-accent);
+                color: white;
+                border: none;
+                padding: 0.75rem;
+                border-radius: 0.375rem;
+                cursor: pointer;
+            }
+        }
+
+        .mobile-menu-button {
+            display: none;
+        }
+
+        /* Progress Indicator */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--border-light);
+            z-index: 9999;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--brazil-green), var(--brazil-yellow), var(--brazil-blue));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Academic Styling */
+        .academic-header {
+            background: linear-gradient(135deg, var(--brazil-blue), var(--brazil-green));
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .academic-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .academic-subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .academic-meta {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Error message styling */
+        .error-message {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        [data-theme="dark"] .error-message {
+            background-color: #7f1d1d;
+            border-color: #dc2626;
+        }
+
+        .error-message h3 {
+            color: #dc2626;
+            margin-bottom: 1rem;
+        }
+
+        [data-theme="dark"] .error-message h3 {
+            color: #fca5a5;
+        }
+
+        .error-help {
+            background-color: #fffbeb;
+            border: 1px solid #fed7aa;
+            border-radius: 0.375rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+
+        [data-theme="dark"] .error-help {
+            background-color: #451a03;
+            border-color: #fb923c;
+        }
+
+        .error-help h4 {
+            color: #92400e;
+            margin-bottom: 1rem;
+        }
+
+        [data-theme="dark"] .error-help h4 {
+            color: #fed7aa;
+        }
+
+        .error-help ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .error-help li {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .error-help code {
+            background-color: var(--bg-code);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-button" id="mobileMenuButton">☰</button>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🔍</span>
+                <div>
+                    <div class="logo-text">Cidadão.AI</div>
+                    <div class="logo-subtitle">Documentação Técnica</div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="control-button" id="themeToggle" title="Toggle Dark/Light Theme">🌓</button>
+                <div class="language-selector">
+                    <button class="control-button lang-flag active" id="langPT" title="Português" data-lang="pt-BR">🇧🇷</button>
+                    <button class="control-button lang-flag" id="langEN" title="English" data-lang="en">🇬🇧</button>
+                </div>
+                <button class="control-button" id="printMode" title="Print Mode">🖨️</button>
+            </div>
+
+            <!-- Navigation -->
+            <div class="nav-section">
+                <div class="nav-section-title">FUNDAMENTALS</div>
+                <div class="nav-links">
+                    <a href="#" class="nav-link active" data-section="overview">📊 Overview & Introduction</a>
+                    <a href="#" class="nav-link" data-section="theoretical-foundations">🧮 Theoretical Foundations</a>
+                    <a href="#" class="nav-link" data-section="literature-review">📚 Literature Review</a>
+                    <a href="#" class="nav-link" data-section="methodology">🔬 Research Methodology</a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">ARCHITECTURE</div>
+                <div class="nav-links">
+                    <a href="#" class="nav-link" data-section="system-architecture">🏗️ System Architecture</a>
+                    <a href="#" class="nav-link" data-section="multi-agent-system">🤖 Multi-Agent System</a>
+                    <a href="#" class="nav-link" data-section="algorithms">⚙️ Algorithms & Models</a>
+                    <a href="#" class="nav-link" data-section="data-pipeline">📊 Data Pipeline</a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">IMPLEMENTATION</div>
+                <div class="nav-links">
+                    <a href="#" class="nav-link" data-section="technical-implementation">💻 Technical Implementation</a>
+                    <a href="#" class="nav-link" data-section="api-reference">🔌 API Reference</a>
+                    <a href="#" class="nav-link" data-section="security">🔒 Security Framework</a>
+                    <a href="#" class="nav-link" data-section="performance">⚡ Performance Analysis</a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">EVALUATION</div>
+                <div class="nav-links">
+                    <a href="#" class="nav-link" data-section="experimental-design">🧪 Experimental Design</a>
+                    <a href="#" class="nav-link" data-section="benchmarks">📈 Benchmarks & Results</a>
+                    <a href="#" class="nav-link" data-section="case-studies">📋 Case Studies</a>
+                    <a href="#" class="nav-link" data-section="validation">✅ Validation & Testing</a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">RESEARCH</div>
+                <div class="nav-links">
+                    <a href="#" class="nav-link" data-section="contributions">🏆 Contributions</a>
+                    <a href="#" class="nav-link" data-section="limitations">⚠️ Limitations & Scope</a>
+                    <a href="#" class="nav-link" data-section="future-work">🚀 Future Research</a>
+                    <a href="#" class="nav-link" data-section="conclusion">📝 Conclusion</a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">APPENDICES</div>
+                <div class="nav-links">
+                    <a href="#" class="nav-link" data-section="mathematical-proofs">📐 Mathematical Proofs</a>
+                    <a href="#" class="nav-link" data-section="code-examples">💾 Code Examples</a>
+                    <a href="#" class="nav-link" data-section="datasets">📊 Datasets & Metrics</a>
+                    <a href="#" class="nav-link" data-section="bibliography">📖 Bibliography</a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Academic Header -->
+            <header class="academic-header">
+                <h1 class="academic-title">Cidadão.AI</h1>
+                <p class="academic-subtitle">Sistema Multi-Agente de Inteligência Artificial para Análise de Transparência Pública Brasileira</p>
+                <p class="academic-meta">Documentação Técnica Completa | Versão 1.0 | 2025</p>
+            </header>
+
+            <!-- Content Sections -->
+            <div id="content-container">
+                <!-- Overview Section (Default) -->
+                <section id="overview" class="content-section active">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                    </div>
+                </section>
+
+                <!-- Other sections will be loaded dynamically -->
+                <section id="theoretical-foundations" class="content-section"></section>
+                <section id="literature-review" class="content-section"></section>
+                <section id="methodology" class="content-section"></section>
+                <section id="system-architecture" class="content-section"></section>
+                <section id="multi-agent-system" class="content-section"></section>
+                <section id="algorithms" class="content-section"></section>
+                <section id="data-pipeline" class="content-section"></section>
+                <section id="technical-implementation" class="content-section"></section>
+                <section id="api-reference" class="content-section"></section>
+                <section id="security" class="content-section"></section>
+                <section id="performance" class="content-section"></section>
+                <section id="experimental-design" class="content-section"></section>
+                <section id="benchmarks" class="content-section"></section>
+                <section id="case-studies" class="content-section"></section>
+                <section id="validation" class="content-section"></section>
+                <section id="contributions" class="content-section"></section>
+                <section id="limitations" class="content-section"></section>
+                <section id="future-work" class="content-section"></section>
+                <section id="conclusion" class="content-section"></section>
+                <section id="mathematical-proofs" class="content-section"></section>
+                <section id="code-examples" class="content-section"></section>
+                <section id="datasets" class="content-section"></section>
+                <section id="bibliography" class="content-section"></section>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            // Initialize syntax highlighting
+            hljs.highlightAll();
+            
+            // Initialize Mermaid
+            mermaid.initialize({ 
+                theme: 'default',
+                startOnLoad: true 
+            });
+
+            // Set default language to Portuguese
+            const savedLang = localStorage.getItem('cidadao-ai-lang') || 'pt-BR';
+            setLanguage(savedLang);
+
+            // Load default section
+            loadSection('overview');
+
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Setup theme toggle
+            setupThemeToggle();
+            
+            // Setup mobile menu
+            setupMobileMenu();
+        }
+
+        function setupEventListeners() {
+            // Navigation links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    if (section) {
+                        loadSection(section);
+                        setActiveNavLink(this);
+                    }
+                });
+            });
+
+            // Language selectors
+            document.getElementById('langPT').addEventListener('click', () => setLanguage('pt-BR'));
+            document.getElementById('langEN').addEventListener('click', () => setLanguage('en'));
+            
+            // Print mode
+            document.getElementById('printMode').addEventListener('click', enterPrintMode);
+        }
+
+        function setupThemeToggle() {
+            const themeToggle = document.getElementById('themeToggle');
+            const htmlRoot = document.getElementById('html-root');
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('cidadao-ai-theme') || 'light';
+            htmlRoot.setAttribute('data-theme', savedTheme);
+            
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = htmlRoot.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                htmlRoot.setAttribute('data-theme', newTheme);
+                localStorage.setItem('cidadao-ai-theme', newTheme);
+                
+                // Update mermaid theme
+                if (newTheme === 'dark') {
+                    mermaid.initialize({ theme: 'dark' });
+                } else {
+                    mermaid.initialize({ theme: 'default' });
+                }
+            });
+        }
+
+        function setupMobileMenu() {
+            const mobileMenuButton = document.getElementById('mobileMenuButton');
+            const sidebar = document.getElementById('sidebar');
+            
+            mobileMenuButton.addEventListener('click', function() {
+                sidebar.classList.toggle('open');
+            });
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+                        sidebar.classList.remove('open');
+                    }
+                }
+            });
+        }
+
+        async function loadSection(sectionName) {
+            const section = document.getElementById(sectionName);
+            if (!section) return;
+
+            // Show loading spinner
+            section.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+            
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            
+            // Show current section
+            section.classList.add('active');
+            
+            // Update progress
+            updateProgress(sectionName);
+
+            try {
+                let content = '';
+                
+                // Determine the base path for GitHub Pages and local development
+                let basePath = './';
+                
+                // GitHub Pages detection
+                if (window.location.hostname === 'anderson-ufrj.github.io' && 
+                    window.location.pathname.includes('/cidadao.ai/')) {
+                    basePath = '/cidadao.ai/docs/';
+                }
+                // Local development with subfolder
+                else if (window.location.pathname.includes('/docs/')) {
+                    basePath = './';
+                }
+                
+                // Check if running locally (file://) or on server
+                if (window.location.protocol === 'file:') {
+                    // For local file access, use XMLHttpRequest
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('GET', `sections/${sectionName}.html`, false);
+                    try {
+                        xhr.send();
+                        if (xhr.status === 200 || xhr.status === 0) {
+                            content = xhr.responseText;
+                        } else {
+                            throw new Error(`Local file not found: ${sectionName}.html`);
+                        }
+                    } catch (localError) {
+                        throw new Error(`Cannot load local file: ${localError.message}`);
+                    }
+                } else {
+                    // Use fetch for server-hosted files (GitHub Pages, local server, etc.)
+                    const sectionUrl = `${basePath}sections/${sectionName}.html`;
+                    const response = await fetch(sectionUrl);
+                    
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status} - URL: ${sectionUrl}`);
+                    }
+                    
+                    content = await response.text();
+                }
+                
+                section.innerHTML = content;
+                
+                // Re-initialize components
+                reinitializeComponents(section);
+                
+            } catch (error) {
+                console.error('Error loading section:', error);
+                section.innerHTML = `
+                    <div class="error-message">
+                        <h3>❌ Erro ao carregar seção</h3>
+                        <p>Não foi possível carregar o conteúdo da seção "${sectionName}". Verifique se o arquivo existe.</p>
+                        <p><strong>Erro:</strong> ${error.message}</p>
+                        <div class="error-help">
+                            <h4>💡 Como resolver:</h4>
+                            <ul>
+                                <li><strong>Para uso local:</strong> Execute um servidor web simples: <code>python -m http.server 8000</code></li>
+                                <li><strong>Para desenvolvimento:</strong> Use uma extensão "Live Server" no VS Code</li>
+                                <li><strong>Para visualização online:</strong> Acesse via Hugging Face Spaces</li>
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function reinitializeComponents(container) {
+            // Re-highlight code blocks
+            container.querySelectorAll('pre code').forEach(block => {
+                hljs.highlightElement(block);
+            });
+            
+            // Re-render math
+            if (window.MathJax) {
+                MathJax.typesetPromise([container]);
+            }
+            
+            // Re-render mermaid diagrams
+            container.querySelectorAll('.mermaid').forEach(element => {
+                mermaid.init(undefined, element);
+            });
+        }
+
+        function setActiveNavLink(activeLink) {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            activeLink.classList.add('active');
+        }
+
+        function updateProgress(sectionName) {
+            const sections = [
+                'overview', 'theoretical-foundations', 'literature-review', 'methodology',
+                'system-architecture', 'multi-agent-system', 'algorithms', 'data-pipeline',
+                'technical-implementation', 'api-reference', 'security', 'performance',
+                'experimental-design', 'benchmarks', 'case-studies', 'validation',
+                'contributions', 'limitations', 'future-work', 'conclusion',
+                'mathematical-proofs', 'code-examples', 'datasets', 'bibliography'
+            ];
+            
+            const currentIndex = sections.indexOf(sectionName);
+            const progress = ((currentIndex + 1) / sections.length) * 100;
+            
+            document.querySelector('.progress-fill').style.width = `${progress}%`;
+        }
+
+        function setLanguage(lang) {
+            document.documentElement.lang = lang;
+            localStorage.setItem('cidadao-ai-lang', lang);
+            
+            // Update flag buttons
+            document.querySelectorAll('.lang-flag').forEach(btn => btn.classList.remove('active'));
+            if (lang === 'pt-BR') {
+                document.getElementById('langPT').classList.add('active');
+            } else {
+                document.getElementById('langEN').classList.add('active');
+            }
+            
+            // Update text elements
+            updateLanguageElements(lang);
+        }
+
+        function updateLanguageElements(lang) {
+            document.querySelectorAll('[data-pt][data-en]').forEach(element => {
+                if (lang === 'pt-BR') {
+                    element.textContent = element.getAttribute('data-pt');
+                } else {
+                    element.textContent = element.getAttribute('data-en');
+                }
+            });
+        }
+
+        function enterPrintMode() {
+            window.print();
+        }
+
+        // Analytics (placeholder)
+        function trackEvent(eventName, properties = {}) {
+            console.log('Event tracked:', eventName, properties);
+            // Future: Send to analytics service
+        }
+        
+        // Track page load
+        trackEvent('documentation_loaded', {
+            theme: document.getElementById('html-root').getAttribute('data-theme'),
+            language: document.documentElement.lang,
+            timestamp: new Date().toISOString()
+        });
+    </script>
+</body>
+</html>

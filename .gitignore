@@ -247,4 +247,10 @@ README_SPACE*.md
 requirements_hf*.txt
 app_transparency_api.py
 test_api_*.py
-.env.example
+.env.example# Arquivos redundantes e desnecessários
+.old/
+*.old
+*_backup.*
+*_old.*
+temp_*
+backup_*

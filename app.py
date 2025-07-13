@@ -502,7 +502,7 @@ def create_landing_page():
             
             <div class="footer-content">
                 <div class="footer-links">
-                    <a href="docs/documentation.html" target="_blank" class="footer-link">
+                    <a href="https://anderson-ufrj.github.io/cidadao.ai/" target="_blank" class="footer-link">
                         📚 Documentação
                     </a>
                     <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="footer-link">

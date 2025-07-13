@@ -545,7 +545,7 @@ pytest tests/security/ -v
 
 ### 🌐 **Aplicações e Serviços**
 - 🚀 **Aplicação Principal**: [Hugging Face Spaces](https://huggingface.co/spaces/neural-thinker/cidadao-ai)
-- 🤖 **Modelo Especializado**: [Cidadão-GPT](https://huggingface.co/neural-thinker/cidadao-gpt)
+- 🤖 **Modelo Especializado**: [CidadãoGPT](https://huggingface.co/neural-thinker/cidadao-gpt)
 - 💻 **Código Fonte**: [GitHub Repository](https://github.com/anderson-ufrj/cidadao.ai)
 - 📚 **Documentação Técnica**: [Manual Completo](./docs/documentation.html)
 - 📄 **Paper Científico**: [ArXiv](https://arxiv.org/abs/placeholder) *(em preparação)*
