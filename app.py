@@ -153,12 +153,12 @@ def create_landing_page():
             </p>
             
             <div class="action-buttons">
-                <button class="btn btn-primary" onclick="document.querySelector('button[id*=\"search\"]').click()">
+                <div class="btn btn-primary" style="display: inline-block;">
                     🔍 Busca Avançada
-                </button>
-                <button class="btn btn-secondary" onclick="document.querySelector('button[id*=\"chat\"]').click()">
+                </div>
+                <div class="btn btn-secondary" style="display: inline-block;">
                     💬 Chat com IA
-                </button>
+                </div>
             </div>
             
             <div class="footer-content">
@@ -249,8 +249,7 @@ def create_interface():
                     
                     year = gr.Number(
                         label="Ano",
-                        value=2024,
-                        precision=0
+                        value=2024
                     )
                     
                     search_term = gr.Textbox(
