@@ -26,29 +26,167 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # CSS moderno e profissional
 custom_css = """
-/* Estilo moderno para o Cidadão.AI */
-.gradio-container {
-    max-width: 1400px !important;
-    margin: auto !important;
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+/* Reset e configurações globais */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-/* Header principal */
-.main-header {
-    text-align: center;
-    padding: 2rem;
-    background: linear-gradient(135deg, #0049A0 0%, #FFB74D 50%, #00873D 100%);
+.gradio-container {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Página inicial com background profissional */
+.hero-section {
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(
+        rgba(0, 0, 0, 0.4),
+        rgba(0, 0, 0, 0.6)
+    ),
+    url('https://upload.wikimedia.org/wikipedia/commons/e/e3/Congresso_Nacional_-_Brasília_-_panorama.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
     color: white;
+    text-align: center;
+}
+
+.hero-content {
+    max-width: 800px;
+    padding: 3rem 2rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 1.2s ease-out;
+}
+
+.hero-logo {
+    font-size: 4rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, #FFD700, #FFFFFF, #32CD32);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    letter-spacing: -2px;
+}
+
+.hero-subtitle {
+    font-size: 1.4rem;
+    margin-bottom: 1rem;
+    opacity: 0.95;
+    font-weight: 300;
+    line-height: 1.6;
+}
+
+.hero-description {
+    font-size: 1.1rem;
+    margin-bottom: 3rem;
+    opacity: 0.9;
+    line-height: 1.8;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.hero-buttons {
+    display: flex;
+    gap: 1.5rem;
+    justify-content: center;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+}
+
+.hero-btn {
+    background: linear-gradient(135deg, #1565C0, #1976D2);
+    border: none;
+    color: white;
+    padding: 1rem 2rem;
+    border-radius: 50px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 8px 25px rgba(21, 101, 192, 0.4);
+    min-width: 200px;
+    justify-content: center;
+}
+
+.hero-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 35px rgba(21, 101, 192, 0.6);
+    background: linear-gradient(135deg, #1976D2, #2196F3);
+}
+
+.hero-btn.secondary {
+    background: linear-gradient(135deg, #388E3C, #4CAF50);
+    box-shadow: 0 8px 25px rgba(56, 142, 60, 0.4);
+}
+
+.hero-btn.secondary:hover {
+    background: linear-gradient(135deg, #4CAF50, #66BB6A);
+    box-shadow: 0 12px 35px rgba(56, 142, 60, 0.6);
+}
+
+.hero-footer {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    opacity: 0.8;
+}
+
+.hero-footer a {
+    color: #FFD700;
+    text-decoration: none;
+    margin: 0 1rem;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.hero-footer a:hover {
+    color: #FFFFFF;
+}
+
+/* Páginas internas - design limpo */
+.internal-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    background: linear-gradient(135deg, #1565C0, #1976D2);
+    color: white;
+    padding: 2rem;
     border-radius: 15px;
     margin-bottom: 2rem;
-    box-shadow: 0 8px 32px rgba(0, 73, 160, 0.3);
+    text-align: center;
 }
 
-.main-title {
-    font-size: 3rem;
-    font-weight: 900;
+.page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
     margin-bottom: 0.5rem;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.page-subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
 }
 
 /* Cards de resultados */
@@ -144,6 +282,67 @@ custom_css = """
 @keyframes spin {
     0% { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .hero-logo {
+        font-size: 2.5rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.2rem;
+    }
+    
+    .hero-description {
+        font-size: 1rem;
+    }
+    
+    .hero-buttons {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+    }
+    
+    .hero-btn {
+        width: 80%;
+    }
+    
+    .hero-content {
+        margin: 1rem;
+        padding: 2rem 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .hero-section {
+        background-attachment: scroll;
+    }
+    
+    .hero-content {
+        margin: 0.5rem;
+        padding: 1.5rem 1rem;
+    }
+    
+    .hero-footer {
+        font-size: 0.9rem;
+    }
+    
+    .hero-footer a {
+        display: block;
+        margin: 0.5rem 0;
+    }
 }
 """
 
@@ -549,13 +748,32 @@ def analyze_with_ai(data_html: str, query: str) -> str:
 def create_transparency_interface():
     """Interface principal do Gradio para API de Transparência"""
     
-    with gr.Blocks(css=custom_css, title="Cidadão.AI - API Transparência") as app:
+    with gr.Blocks(css=custom_css, title="Cidadão.AI - Transparência Pública") as app:
         
-        # Header
+        # Hero Section - Landing Page
         gr.HTML("""
-        <div class="main-header">
-            <div class="main-title">🇧🇷 Cidadão.AI - API de Transparência</div>
-            <div class="main-subtitle">Consulte dados do Portal da Transparência do Governo Federal</div>
+        <div class="hero-section">
+            <div class="hero-content">
+                <div class="hero-logo">Cidadão.AI</div>
+                <div class="hero-subtitle">Bem-vindo ao Cidadão.AI</div>
+                <div class="hero-description">
+                    Democratizando o acesso aos dados públicos brasileiros através da inteligência artificial. 
+                    Consulte contratos, despesas e licitações do governo federal de forma simples e transparente.
+                </div>
+                <div class="hero-buttons">
+                    <button class="hero-btn" onclick="document.querySelector('[data-testid=\\\"tab-🔍 Consultar Dados\\\"]').click()">
+                        🔍 Busca Avançada com IA
+                    </button>
+                    <button class="hero-btn secondary" onclick="document.querySelector('[data-testid=\\\"tab-🤖 Análise com IA\\\"]').click()">
+                        🤖 Converse com nosso Modelo
+                    </button>
+                </div>
+                <div class="hero-footer">
+                    <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank">📖 Documentação Técnica</a>
+                    <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank">💻 Repositório GitHub</a>
+                    <a href="#credits" onclick="document.querySelector('[data-testid=\\\"tab-📚 Documentação\\\"]').click()">👨‍💻 Créditos</a>
+                </div>
+            </div>
         </div>
         """)
         
