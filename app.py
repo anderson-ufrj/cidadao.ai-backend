@@ -259,11 +259,11 @@ def create_interface():
                 with gr.Column():
                     results = gr.HTML()
             
-            # search_btn.click(
-            #     fn=search_data,
-            #     inputs=[data_type, year, search_term],
-            #     outputs=results
-            # )
+            search_btn.click(
+                fn=search_data,
+                inputs=[data_type, year, search_term],
+                outputs=results
+            )
         
         # Aba de chat
         with gr.Tab("💬 Chat com IA"):
