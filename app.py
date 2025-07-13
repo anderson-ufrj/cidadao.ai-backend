@@ -1,131 +1,70 @@
 #!/usr/bin/env python3
 """
-🇧🇷 Cidadão.AI - Interface Profissional com Temas
+🇧🇷 Cidadão.AI - Landing Page Fixa
 Sistema de consulta aos dados do Portal da Transparência
 """
 
 import gradio as gr
 import os
 import time
-import json
-import random
-from datetime import datetime
 
 # Configurar variáveis de ambiente
 TRANSPARENCY_API_KEY = os.getenv("TRANSPARENCY_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# CSS com tema claro/escuro e correções
+# CSS FORÇADO para impedir scroll
 custom_css = """
-/* Variáveis de tema */
+/* RESET TOTAL - FORÇA GRADIO A OBEDECER */
+* {
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
+}
+
+/* FORÇA HTML/BODY SEM SCROLL */
+html, body, #root, .gradio-container, .main, .block, .contain {
+    height: 100vh !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* FORÇA CONTAINER PRINCIPAL */
+.gradio-container {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+}
+
+/* VARIÁVEIS DE TEMA */
 :root {
-    /* Tema Claro */
     --bg-primary: #ffffff;
-    --bg-secondary: #f8f9fa;
-    --bg-tertiary: #e9ecef;
     --text-primary: #212529;
-    --text-secondary: #495057;
-    --text-muted: #6c757d;
-    --border-color: #dee2e6;
-    --shadow-color: rgba(0, 0, 0, 0.1);
-    --overlay-dark: rgba(0, 0, 0, 0.6);
-    --overlay-light: rgba(255, 255, 255, 0.9);
-    --card-bg: rgba(255, 255, 255, 0.95);
-    --btn-primary-bg: #0066cc;
-    --btn-primary-hover: #0052a3;
-    --btn-secondary-bg: rgba(255, 255, 255, 0.2);
-    --btn-secondary-hover: rgba(255, 255, 255, 0.3);
+    --btn-primary: #0066cc;
 }
 
 [data-theme="dark"] {
-    /* Tema Escuro */
     --bg-primary: #1a1a2e;
-    --bg-secondary: #16213e;
-    --bg-tertiary: #0f3460;
     --text-primary: #f8f9fa;
-    --text-secondary: #e9ecef;
-    --text-muted: #adb5bd;
-    --border-color: #495057;
-    --shadow-color: rgba(0, 0, 0, 0.3);
-    --overlay-dark: rgba(0, 0, 0, 0.8);
-    --overlay-light: rgba(0, 0, 0, 0.85);
-    --card-bg: rgba(22, 33, 62, 0.95);
-    --btn-primary-bg: #0066cc;
-    --btn-primary-hover: #0077dd;
-    --btn-secondary-bg: rgba(255, 255, 255, 0.15);
-    --btn-secondary-hover: rgba(255, 255, 255, 0.25);
+    --btn-primary: #0077dd;
 }
 
-/* Reset e base */
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+/* LANDING PAGE ÚNICA */
+.landing-page {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    overflow: hidden !important;
+    z-index: 1000 !important;
 }
 
-html, body {
-    height: 100vh;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-    line-height: 1.6;
-    color: var(--text-primary);
-    background-color: var(--bg-primary);
-    transition: background-color 0.3s ease, color 0.3s ease;
-}
-
-/* Container principal */
-.main-container {
-    height: 100vh;
-    width: 100vw;
-    position: fixed;
-    top: 0;
-    left: 0;
-    overflow: hidden;
-}
-
-/* Theme toggle */
-.theme-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1000;
-    background: var(--card-bg);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px var(--shadow-color);
-}
-
-.theme-toggle:hover {
-    transform: scale(1.1);
-    box-shadow: 0 6px 20px var(--shadow-color);
-}
-
-/* Hero Section corrigida */
-.hero-section {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-}
-
+/* BACKGROUND COM SLIDESHOW */
 .hero-background {
     position: absolute;
     top: 0;
@@ -135,9 +74,10 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    transition: opacity 1s ease-in-out;
+    transition: background-image 1s ease-in-out;
 }
 
+/* OVERLAY ESCURO */
 .hero-overlay {
     position: absolute;
     top: 0;
@@ -146,14 +86,20 @@ body {
     height: 100%;
     background: linear-gradient(
         to bottom,
-        var(--overlay-dark) 0%,
-        var(--overlay-dark) 100%
+        rgba(0, 0, 0, 0.6) 0%,
+        rgba(0, 0, 0, 0.7) 100%
     );
 }
 
+/* CONTEÚDO PRINCIPAL */
 .hero-content {
-    position: relative;
-    z-index: 2;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+    z-index: 10;
     max-width: 800px;
     padding: 3rem 2rem;
     background: rgba(255, 255, 255, 0.1);
@@ -161,35 +107,18 @@ body {
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
-    text-align: center;
-    animation: fadeInUp 0.8s ease-out;
 }
 
-[data-theme="dark"] .hero-content {
-    background: rgba(0, 0, 0, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
+/* TÍTULOS */
 .hero-title {
     font-size: 3.5rem;
     font-weight: 800;
     margin-bottom: 1rem;
-    background: linear-gradient(135deg, #FFD700, #32CD32, #0066cc);
+    background: linear-gradient(135deg, #FFD700, #FFFFFF, #32CD32);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    letter-spacing: -1px;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .hero-subtitle {
@@ -208,147 +137,90 @@ body {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
-/* Botões de ação */
+/* BOTÕES */
 .action-buttons {
     display: flex;
     gap: 1rem;
     justify-content: center;
     flex-wrap: wrap;
+    margin-bottom: 2rem;
 }
 
 .btn {
-    padding: 0.875rem 2rem;
+    padding: 1rem 2rem;
     border-radius: 50px;
     font-size: 1rem;
     font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border: none;
-    outline: none;
 }
 
 .btn-primary {
-    background: var(--btn-primary-bg);
+    background: #0066cc;
     color: white;
     box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
 }
 
 .btn-primary:hover {
-    background: var(--btn-primary-hover);
+    background: #0052a3;
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
 }
 
 .btn-secondary {
-    background: var(--btn-secondary-bg);
+    background: rgba(255, 255, 255, 0.2);
     color: white;
     border: 2px solid rgba(255, 255, 255, 0.3);
     backdrop-filter: blur(10px);
 }
 
 .btn-secondary:hover {
-    background: var(--btn-secondary-hover);
+    background: rgba(255, 255, 255, 0.3);
     transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.5);
 }
 
-/* Features Section */
-.features-section {
-    background: var(--bg-secondary);
-    padding: 4rem 2rem;
-    transition: background-color 0.3s ease;
-}
-
-.features-container {
-    max-width: 1200px;
-    margin: 0 auto;
-}
-
-.features-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    text-align: center;
-    margin-bottom: 3rem;
-    color: var(--text-primary);
-}
-
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-}
-
-.feature-card {
-    background: var(--card-bg);
-    padding: 2rem;
-    border-radius: 16px;
-    box-shadow: 0 4px 15px var(--shadow-color);
-    transition: all 0.3s ease;
-    border: 1px solid var(--border-color);
-}
-
-.feature-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px var(--shadow-color);
-}
-
-.feature-icon {
-    font-size: 2.5rem;
-    margin-bottom: 1rem;
-}
-
-.feature-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
-}
-
-.feature-description {
-    color: var(--text-secondary);
-    line-height: 1.6;
-}
-
-/* Status Section */
-.status-section {
-    padding: 3rem 2rem;
-    background: var(--bg-primary);
-}
-
-.status-container {
-    max-width: 800px;
-    margin: 0 auto;
-}
-
-.status-card {
-    background: linear-gradient(135deg, #667eea, #764ba2);
+/* THEME TOGGLE */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1001;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.5rem;
     color: white;
-    padding: 2rem;
-    border-radius: 16px;
-    text-align: center;
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
 }
 
-.status-card.active {
-    background: linear-gradient(135deg, #4CAF50, #45a049);
-    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+.theme-toggle:hover {
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.3);
 }
 
-/* Footer fixo */
-.footer-section {
-    position: absolute;
+/* FOOTER FIXO */
+.footer-fixed {
+    position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(0, 0, 0, 0.7);
+    background: rgba(0, 0, 0, 0.8);
     color: white;
     padding: 1rem 2rem;
     text-align: center;
-    z-index: 10;
+    z-index: 1001;
     backdrop-filter: blur(10px);
 }
 
@@ -357,82 +229,53 @@ body {
     justify-content: center;
     gap: 2rem;
     flex-wrap: wrap;
-    margin: 0.5rem 0;
+    margin-bottom: 0.5rem;
 }
 
 .footer-link {
     color: white;
     text-decoration: none;
     font-weight: 500;
-    transition: color 0.3s ease;
     font-size: 0.9rem;
+    transition: color 0.3s ease;
 }
 
 .footer-link:hover {
     color: #FFD700;
 }
 
-/* Responsividade */
+/* RESPONSIVO */
 @media (max-width: 768px) {
-    .hero-title {
-        font-size: 2.5rem;
-    }
-    
-    .hero-subtitle {
-        font-size: 1.25rem;
-    }
-    
-    .hero-description {
-        font-size: 1rem;
-    }
-    
-    .hero-content {
-        padding: 2rem 1.5rem;
+    .hero-title { font-size: 2.5rem; }
+    .hero-subtitle { font-size: 1.25rem; }
+    .hero-content { 
+        padding: 2rem 1.5rem; 
         margin: 0 1rem;
     }
-    
-    .action-buttons {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .btn {
-        width: 100%;
-        justify-content: center;
-    }
-    
-    .features-title {
-        font-size: 2rem;
-    }
-    
-    .footer-links {
-        flex-direction: column;
-        gap: 1rem;
-    }
+    .action-buttons { flex-direction: column; }
+    .btn { width: 100%; max-width: 280px; }
+    .footer-links { flex-direction: column; gap: 1rem; }
 }
 
-/* Scrollbar personalizada */
-::-webkit-scrollbar {
-    width: 12px;
-}
-
-::-webkit-scrollbar-track {
-    background: var(--bg-secondary);
-}
-
-::-webkit-scrollbar-thumb {
-    background: var(--text-muted);
-    border-radius: 6px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-    background: var(--text-secondary);
+/* FORÇA ESCONDER ELEMENTOS DO GRADIO */
+.gradio-container > div:not(.landing-page) {
+    display: none !important;
 }
 """
 
-# JavaScript para tema e slideshow
+# JavaScript para funcionalidades
 custom_js = """
 <script>
+// Lista de imagens de fundo
+const slides = [
+    'https://upload.wikimedia.org/wikipedia/commons/e/e3/Congresso_Nacional_-_Brasília_-_panorama.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Palácio_da_Alvorada_-_Brasília.jpg/1200px-Palácio_da_Alvorada_-_Brasília.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Supremo_Tribunal_Federal_do_Brasil.jpg/1200px-Supremo_Tribunal_Federal_do_Brasil.jpg',
+    'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Palácio_do_Planalto_-_Brasília_2.jpg/1200px-Palácio_do_Planalto_-_Brasília_2.jpg'
+];
+
+let currentSlide = 0;
+
 // Sistema de tema
 function initTheme() {
     const savedTheme = localStorage.getItem('theme') || 'light';
@@ -456,15 +299,6 @@ function updateThemeIcon(theme) {
 }
 
 // Slideshow de imagens
-const slides = [
-    'https://upload.wikimedia.org/wikipedia/commons/e/e3/Congresso_Nacional_-_Brasília_-_panorama.jpg',
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Palácio_da_Alvorada_-_Brasília.jpg/1200px-Palácio_da_Alvorada_-_Brasília.jpg',
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1f/Supremo_Tribunal_Federal_do_Brasil.jpg/1200px-Supremo_Tribunal_Federal_do_Brasil.jpg',
-    'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Palácio_do_Planalto_-_Brasília_2.jpg/1200px-Palácio_do_Planalto_-_Brasília_2.jpg'
-];
-
-let currentSlide = 0;
-
 function changeBackground() {
     const heroBackground = document.querySelector('.hero-background');
     if (heroBackground) {
@@ -473,20 +307,25 @@ function changeBackground() {
     }
 }
 
-// Navegação suave para abas
-function scrollToTab(tabName) {
-    const tabButton = Array.from(document.querySelectorAll('button')).find(
-        btn => btn.textContent.includes(tabName)
-    );
-    if (tabButton) {
-        tabButton.click();
-        window.scrollTo({ top: 600, behavior: 'smooth' });
-    }
+// Forçar estrutura fixa
+function forceFixedLayout() {
+    // Remove scroll de todos os elementos
+    document.body.style.overflow = 'hidden';
+    document.documentElement.style.overflow = 'hidden';
+    
+    // Força altura fixa
+    const containers = document.querySelectorAll('.gradio-container, .main, .block, .contain');
+    containers.forEach(el => {
+        el.style.height = '100vh';
+        el.style.maxHeight = '100vh';
+        el.style.overflow = 'hidden';
+    });
 }
 
-// Inicializar quando o DOM carregar
+// Inicializar quando carregar
 document.addEventListener('DOMContentLoaded', function() {
     initTheme();
+    forceFixedLayout();
     
     // Configurar slideshow
     const heroBackground = document.querySelector('.hero-background');
@@ -495,239 +334,73 @@ document.addEventListener('DOMContentLoaded', function() {
         setInterval(changeBackground, 5000);
     }
     
-    // Adicionar event listeners aos botões
-    document.querySelectorAll('.btn-primary').forEach(btn => {
-        btn.addEventListener('click', () => scrollToTab('Busca Avançada'));
-    });
-    
-    document.querySelectorAll('.btn-secondary').forEach(btn => {
-        btn.addEventListener('click', () => scrollToTab('Chat com IA'));
-    });
+    // Reforçar layout a cada segundo
+    setInterval(forceFixedLayout, 1000);
 });
+
+// Reforçar ao redimensionar
+window.addEventListener('resize', forceFixedLayout);
 </script>
 """
 
-def create_hero_section():
-    """Criar a seção hero com tema e slideshow"""
+def create_landing_page():
+    """Landing page fixa e única"""
     return f"""
-    <div class="main-container">
+    <div class="landing-page">
         <div class="theme-toggle" onclick="toggleTheme()">🌙</div>
         
-        <div class="hero-section">
-            <div class="hero-background"></div>
-            <div class="hero-overlay"></div>
-            
-            <div class="hero-content">
-                <h1 class="hero-title">Cidadão.AI</h1>
-                <h2 class="hero-subtitle">Portal da Transparência Inteligente</h2>
-                <p class="hero-description">
-                    Democratizando o acesso aos dados públicos brasileiros através da inteligência artificial.
-                    Consulte contratos, licitações e gastos governamentais de forma simples e transparente.
-                </p>
-                <div class="action-buttons">
-                    <button class="btn btn-primary">
-                        🔍 Busca Avançada com IA
-                    </button>
-                    <button class="btn btn-secondary">
-                        💬 Converse com nosso Modelo
-                    </button>
-                </div>
-            </div>
-            
-            <div class="footer-section">
-                <div class="footer-links">
-                    <a href="docs/documentation.html" target="_blank" class="footer-link">
-                        📚 Documentação Técnica
-                    </a>
-                    <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="footer-link">
-                        💻 GitHub
-                    </a>
-                    <a href="https://portaldatransparencia.gov.br" target="_blank" class="footer-link">
-                        🔗 Portal da Transparência
-                    </a>
-                </div>
-                <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; opacity: 0.9;">
-                    <strong>Desenvolvido por:</strong> Anderson Henrique da Silva | © 2024 Cidadão.AI
-                </p>
-            </div>
-        </div>
-    </div>
-    """
-
-def create_features_section():
-    """Criar seção de funcionalidades"""
-    return """
-    <div class="features-section">
-        <div class="features-container">
-            <h2 class="features-title">Nossos Recursos</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">📊</div>
-                    <h3 class="feature-title">Análise de Contratos</h3>
-                    <p class="feature-description">
-                        Análise inteligente de contratos públicos com detecção de irregularidades.
-                    </p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">💰</div>
-                    <h3 class="feature-title">Monitoramento de Gastos</h3>
-                    <p class="feature-description">
-                        Acompanhamento em tempo real das despesas públicas federais.
-                    </p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🎯</div>
-                    <h3 class="feature-title">Licitações Inteligentes</h3>
-                    <p class="feature-description">
-                        Análise de processos licitatórios com identificação de riscos.
-                    </p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">⚖️</div>
-                    <h3 class="feature-title">Conformidade Legal</h3>
-                    <p class="feature-description">
-                        Verificação automática com a legislação brasileira vigente.
-                    </p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">🤖</div>
-                    <h3 class="feature-title">IA Especializada</h3>
-                    <p class="feature-description">
-                        Modelo treinado para transparência pública brasileira.
-                    </p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon">📈</div>
-                    <h3 class="feature-title">Relatórios Executivos</h3>
-                    <p class="feature-description">
-                        Geração automática de relatórios com insights relevantes.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-    """
-
-def create_status_section():
-    """Criar seção de status"""
-    api_status = "✅ Conectado" if TRANSPARENCY_API_KEY else "❌ Não configurado"
-    ai_status = "✅ Ativo" if GROQ_API_KEY else "⚠️ Limitado"
-    
-    return f"""
-    <div class="status-section">
-        <div class="status-container">
-            <div class="status-card {'active' if TRANSPARENCY_API_KEY else ''}">
-                <h3>📊 Status do Sistema</h3>
-                <p><strong>Portal da Transparência:</strong> {api_status}</p>
-                <p><strong>Modelo de IA:</strong> {ai_status}</p>
-                <p><strong>Base de Dados:</strong> 2.1T+ em contratos analisados</p>
-                <p><strong>Última Atualização:</strong> Tempo real</p>
-            </div>
-        </div>
-    </div>
-    """
-
-def create_footer():
-    """Criar rodapé"""
-    return """
-    <div class="footer-section">
-        <h3>🇧🇷 Cidadão.AI</h3>
-        <p>Democratizando o acesso aos dados públicos brasileiros</p>
+        <div class="hero-background"></div>
+        <div class="hero-overlay"></div>
         
-        <div class="footer-links">
-            <a href="docs/documentation.html" target="_blank" class="footer-link">
-                📚 Documentação Técnica Completa
-            </a>
-            <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="footer-link">
-                💻 GitHub
-            </a>
-            <a href="https://portaldatransparencia.gov.br" target="_blank" class="footer-link">
-                🔗 Portal da Transparência
-            </a>
+        <div class="hero-content">
+            <h1 class="hero-title">Cidadão.AI</h1>
+            <h2 class="hero-subtitle">Portal da Transparência Inteligente</h2>
+            <p class="hero-description">
+                Democratizando o acesso aos dados públicos brasileiros através da inteligência artificial.
+                Consulte contratos, licitações e gastos governamentais de forma simples e transparente.
+            </p>
+            <div class="action-buttons">
+                <button class="btn btn-primary">
+                    🔍 Busca Avançada com IA
+                </button>
+                <button class="btn btn-secondary">
+                    💬 Converse com nosso Modelo
+                </button>
+            </div>
         </div>
         
-        <p style="margin-top: 2rem; opacity: 0.8;">
-            <strong>Desenvolvido por:</strong> Anderson Henrique da Silva<br>
-            © 2024 Cidadão.AI - MIT License
-        </p>
-    </div>
-    """
-
-def search_transparency_data(data_type, year, org_code, search_term):
-    """Buscar dados de transparência"""
-    time.sleep(1)  # Simular processamento
-    
-    if not TRANSPARENCY_API_KEY:
-        return """
-        <div style="background: #fee; padding: 1rem; border-radius: 8px; border-left: 4px solid #f44;">
-            <h3>⚠️ API não configurada</h3>
-            <p>Configure a variável TRANSPARENCY_API_KEY para usar dados reais.</p>
+        <div class="footer-fixed">
+            <div class="footer-links">
+                <a href="docs/documentation.html" target="_blank" class="footer-link">
+                    📚 Documentação Técnica
+                </a>
+                <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="footer-link">
+                    💻 GitHub
+                </a>
+                <a href="https://portaldatransparencia.gov.br" target="_blank" class="footer-link">
+                    🔗 Portal da Transparência
+                </a>
+            </div>
+            <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; opacity: 0.9;">
+                <strong>Desenvolvido por:</strong> Anderson Henrique da Silva | © 2024 Cidadão.AI
+            </p>
         </div>
-        """
-    
-    # Dados simulados para demonstração
-    results = {
-        "Contratos": [
-            {"numero": "001/2024", "empresa": "Tech Solutions", "valor": "R$ 2.500.000", "objeto": "Sistema de TI"},
-            {"numero": "002/2024", "empresa": "Construtora XYZ", "valor": "R$ 5.800.000", "objeto": "Reforma predial"}
-        ],
-        "Despesas": [
-            {"documento": "2024NE000123", "favorecido": "Empresa ABC", "valor": "R$ 450.000", "descricao": "Material"},
-            {"documento": "2024NE000124", "favorecido": "Fornecedor XYZ", "valor": "R$ 780.000", "descricao": "Equipamentos"}
-        ],
-        "Licitações": [
-            {"numero": "PE001/2024", "modalidade": "Pregão", "valor": "R$ 3.200.000", "objeto": "Veículos"},
-            {"numero": "CC002/2024", "modalidade": "Concorrência", "valor": "R$ 15.000.000", "objeto": "Obra"}
-        ]
-    }
-    
-    data = results.get(data_type, [])
-    
-    if search_term:
-        data = [item for item in data if search_term.lower() in str(item).lower()]
-    
-    html = f"""
-    <div style="background: var(--card-bg); padding: 1.5rem; border-radius: 8px; margin: 1rem 0;">
-        <h3>✅ {len(data)} resultados encontrados</h3>
-        <p>Dados do Portal da Transparência - {data_type} em {year}</p>
     </div>
     """
-    
-    if data_type == "Contratos":
-        html += """<table style="width: 100%; margin-top: 1rem;">
-        <tr style="background: var(--bg-secondary);">
-            <th style="padding: 0.75rem; text-align: left;">Número</th>
-            <th style="padding: 0.75rem; text-align: left;">Empresa</th>
-            <th style="padding: 0.75rem; text-align: left;">Valor</th>
-            <th style="padding: 0.75rem; text-align: left;">Objeto</th>
-        </tr>"""
-        for item in data:
-            html += f"""
-            <tr>
-                <td style="padding: 0.75rem;">{item['numero']}</td>
-                <td style="padding: 0.75rem;">{item['empresa']}</td>
-                <td style="padding: 0.75rem;"><strong>{item['valor']}</strong></td>
-                <td style="padding: 0.75rem;">{item['objeto']}</td>
-            </tr>"""
-        html += "</table>"
-    
-    return html
 
 def create_interface():
-    """Interface principal - Landing Page apenas"""
+    """Interface com estrutura fixa forçada"""
     
-    with gr.Blocks(css=custom_css, title="Cidadão.AI", theme=gr.themes.Soft()) as app:
-        
-        # Injetar JavaScript
+    with gr.Blocks(css=custom_css, title="Cidadão.AI") as app:
+        # JavaScript primeiro
         gr.HTML(custom_js)
-        
-        # Landing Page única e fixa
-        gr.HTML(create_hero_section())
+        # Landing page única
+        gr.HTML(create_landing_page())
     
     return app
 
 # Executar aplicação
 if __name__ == "__main__":
-    print("🚀 Iniciando Cidadão.AI com tema claro/escuro...")
+    print("🚀 Iniciando Cidadão.AI - Landing Page Fixa...")
     app = create_interface()
     app.launch()
