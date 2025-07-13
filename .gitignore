@@ -230,7 +230,7 @@ CLAUDE.md
 scripts/test_*.py
 scripts/simple_*.py
 
-# API testing outputs
+# API testing outputscomo
 api_test_results.json
 
 # Internal reports and analysis (confidential)
