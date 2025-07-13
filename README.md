@@ -1,6 +1,6 @@
 ---
 title: Cidadão.AI - Transparência Pública
-emoji: 🇧🇷
+emoji: 🔍
 colorFrom: green
 colorTo: yellow
 sdk: gradio
