@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-🇧🇷 Cidadão.AI - Landing Page Fixa
+🇧🇷 Cidadão.AI - Landing Page Otimizada para Gradio
 Sistema de consulta aos dados do Portal da Transparência
 """
 
@@ -12,35 +12,9 @@ import time
 TRANSPARENCY_API_KEY = os.getenv("TRANSPARENCY_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-# CSS FORÇADO para impedir scroll
+# CSS otimizado para Gradio
 custom_css = """
-/* RESET TOTAL - FORÇA GRADIO A OBEDECER */
-* {
-    margin: 0 !important;
-    padding: 0 !important;
-    box-sizing: border-box !important;
-}
-
-/* FORÇA HTML/BODY SEM SCROLL */
-html, body, #root, .gradio-container, .main, .block, .contain {
-    height: 100vh !important;
-    max-height: 100vh !important;
-    overflow: hidden !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-
-/* FORÇA CONTAINER PRINCIPAL */
-.gradio-container {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    overflow: hidden !important;
-}
-
-/* VARIÁVEIS DE TEMA */
+/* Variáveis de tema */
 :root {
     --bg-primary: #ffffff;
     --text-primary: #212529;
@@ -53,53 +27,61 @@ html, body, #root, .gradio-container, .main, .block, .contain {
     --btn-primary: #0077dd;
 }
 
-/* LANDING PAGE ÚNICA */
-.landing-page {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100vw !important;
-    height: 100vh !important;
-    overflow: hidden !important;
-    z-index: 1000 !important;
+/* Container principal do Gradio */
+.gradio-container {
+    max-height: 100vh;
+    overflow-y: auto;
 }
 
-/* BACKGROUND COM SLIDESHOW */
-.hero-background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
+/* Landing page dentro do Gradio */
+.landing-page {
+    min-height: 95vh;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(
+        rgba(0, 0, 0, 0.6),
+        rgba(0, 0, 0, 0.7)
+    );
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
-    transition: background-image 1s ease-in-out;
-}
-
-/* OVERLAY ESCURO */
-.hero-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0.6) 0%,
-        rgba(0, 0, 0, 0.7) 100%
-    );
-}
-
-/* CONTEÚDO PRINCIPAL */
-.hero-content {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    text-align: center;
+    background-attachment: fixed;
     color: white;
-    z-index: 10;
+    text-align: center;
+    overflow: hidden;
+    margin: 0;
+    padding: 2rem;
+}
+
+/* Theme toggle */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.5rem;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.3);
+}
+
+/* Conteúdo principal */
+.hero-content {
     max-width: 800px;
     padding: 3rem 2rem;
     background: rgba(255, 255, 255, 0.1);
@@ -107,9 +89,26 @@ html, body, #root, .gradio-container, .main, .block, .contain {
     border-radius: 24px;
     border: 1px solid rgba(255, 255, 255, 0.2);
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    animation: fadeInUp 0.8s ease-out;
 }
 
-/* TÍTULOS */
+[data-theme="dark"] .hero-content {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Títulos */
 .hero-title {
     font-size: 3.5rem;
     font-weight: 800;
@@ -137,7 +136,7 @@ html, body, #root, .gradio-container, .main, .block, .contain {
     text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.7);
 }
 
-/* BOTÕES */
+/* Botões */
 .action-buttons {
     display: flex;
     gap: 1rem;
@@ -184,44 +183,11 @@ html, body, #root, .gradio-container, .main, .block, .contain {
     transform: translateY(-2px);
 }
 
-/* THEME TOGGLE */
-.theme-toggle {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1001;
-    background: rgba(255, 255, 255, 0.2);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    border-radius: 50%;
-    width: 50px;
-    height: 50px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 1.5rem;
-    color: white;
-    transition: all 0.3s ease;
-}
-
-.theme-toggle:hover {
-    transform: scale(1.1);
-    background: rgba(255, 255, 255, 0.3);
-}
-
-/* FOOTER FIXO */
-.footer-fixed {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.8);
-    color: white;
-    padding: 1rem 2rem;
-    text-align: center;
-    z-index: 1001;
-    backdrop-filter: blur(10px);
+/* Footer */
+.footer-content {
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .footer-links {
@@ -229,7 +195,7 @@ html, body, #root, .gradio-container, .main, .block, .contain {
     justify-content: center;
     gap: 2rem;
     flex-wrap: wrap;
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 .footer-link {
@@ -244,22 +210,29 @@ html, body, #root, .gradio-container, .main, .block, .contain {
     color: #FFD700;
 }
 
-/* RESPONSIVO */
+/* Responsivo */
 @media (max-width: 768px) {
-    .hero-title { font-size: 2.5rem; }
-    .hero-subtitle { font-size: 1.25rem; }
+    .hero-title { 
+        font-size: 2.5rem; 
+    }
+    .hero-subtitle { 
+        font-size: 1.25rem; 
+    }
     .hero-content { 
         padding: 2rem 1.5rem; 
         margin: 0 1rem;
     }
-    .action-buttons { flex-direction: column; }
-    .btn { width: 100%; max-width: 280px; }
-    .footer-links { flex-direction: column; gap: 1rem; }
-}
-
-/* FORÇA ESCONDER ELEMENTOS DO GRADIO */
-.gradio-container > div:not(.landing-page) {
-    display: none !important;
+    .action-buttons { 
+        flex-direction: column; 
+    }
+    .btn { 
+        width: 100%; 
+        max-width: 280px; 
+    }
+    .footer-links { 
+        flex-direction: column; 
+        gap: 1rem; 
+    }
 }
 """
 
@@ -300,57 +273,51 @@ function updateThemeIcon(theme) {
 
 // Slideshow de imagens
 function changeBackground() {
-    const heroBackground = document.querySelector('.hero-background');
-    if (heroBackground) {
+    const landingPage = document.querySelector('.landing-page');
+    if (landingPage) {
         currentSlide = (currentSlide + 1) % slides.length;
-        heroBackground.style.backgroundImage = `url('${slides[currentSlide]}')`;
+        landingPage.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('${slides[currentSlide]}')`;
     }
 }
 
-// Forçar estrutura fixa
-function forceFixedLayout() {
-    // Remove scroll de todos os elementos
-    document.body.style.overflow = 'hidden';
-    document.documentElement.style.overflow = 'hidden';
-    
-    // Força altura fixa
-    const containers = document.querySelectorAll('.gradio-container, .main, .block, .contain');
-    containers.forEach(el => {
-        el.style.height = '100vh';
-        el.style.maxHeight = '100vh';
-        el.style.overflow = 'hidden';
+// Navegação para abas
+function showTab(tabName) {
+    const tabs = document.querySelectorAll('.tab-nav button');
+    tabs.forEach(tab => {
+        if (tab.textContent.includes(tabName)) {
+            tab.click();
+        }
     });
 }
 
 // Inicializar quando carregar
 document.addEventListener('DOMContentLoaded', function() {
     initTheme();
-    forceFixedLayout();
     
     // Configurar slideshow
-    const heroBackground = document.querySelector('.hero-background');
-    if (heroBackground && slides.length > 0) {
-        heroBackground.style.backgroundImage = `url('${slides[0]}')`;
+    const landingPage = document.querySelector('.landing-page');
+    if (landingPage && slides.length > 0) {
+        landingPage.style.backgroundImage = `linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.7)), url('${slides[0]}')`;
         setInterval(changeBackground, 5000);
     }
     
-    // Reforçar layout a cada segundo
-    setInterval(forceFixedLayout, 1000);
+    // Event listeners para botões
+    document.querySelectorAll('.btn-primary').forEach(btn => {
+        btn.addEventListener('click', () => showTab('Busca Avançada'));
+    });
+    
+    document.querySelectorAll('.btn-secondary').forEach(btn => {
+        btn.addEventListener('click', () => showTab('Chat com IA'));
+    });
 });
-
-// Reforçar ao redimensionar
-window.addEventListener('resize', forceFixedLayout);
 </script>
 """
 
 def create_landing_page():
-    """Landing page fixa e única"""
+    """Landing page otimizada para Gradio"""
     return f"""
     <div class="landing-page">
         <div class="theme-toggle" onclick="toggleTheme()">🌙</div>
-        
-        <div class="hero-background"></div>
-        <div class="hero-overlay"></div>
         
         <div class="hero-content">
             <h1 class="hero-title">Cidadão.AI</h1>
@@ -359,6 +326,7 @@ def create_landing_page():
                 Democratizando o acesso aos dados públicos brasileiros através da inteligência artificial.
                 Consulte contratos, licitações e gastos governamentais de forma simples e transparente.
             </p>
+            
             <div class="action-buttons">
                 <button class="btn btn-primary">
                     🔍 Busca Avançada com IA
@@ -367,40 +335,197 @@ def create_landing_page():
                     💬 Converse com nosso Modelo
                 </button>
             </div>
-        </div>
-        
-        <div class="footer-fixed">
-            <div class="footer-links">
-                <a href="docs/documentation.html" target="_blank" class="footer-link">
-                    📚 Documentação Técnica
-                </a>
-                <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="footer-link">
-                    💻 GitHub
-                </a>
-                <a href="https://portaldatransparencia.gov.br" target="_blank" class="footer-link">
-                    🔗 Portal da Transparência
-                </a>
+            
+            <div class="footer-content">
+                <div class="footer-links">
+                    <a href="docs/documentation.html" target="_blank" class="footer-link">
+                        📚 Documentação Técnica
+                    </a>
+                    <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="footer-link">
+                        💻 GitHub
+                    </a>
+                    <a href="https://portaldatransparencia.gov.br" target="_blank" class="footer-link">
+                        🔗 Portal da Transparência
+                    </a>
+                </div>
+                <p style="margin: 1rem 0 0 0; font-size: 0.8rem; opacity: 0.9;">
+                    <strong>Desenvolvido por:</strong> Anderson Henrique da Silva | © 2024 Cidadão.AI
+                </p>
             </div>
-            <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; opacity: 0.9;">
-                <strong>Desenvolvido por:</strong> Anderson Henrique da Silva | © 2024 Cidadão.AI
-            </p>
         </div>
     </div>
     """
 
-def create_interface():
-    """Interface com estrutura fixa forçada"""
+def search_transparency_data(data_type, year, org_code, search_term):
+    """Buscar dados simulados"""
+    time.sleep(1)
     
-    with gr.Blocks(css=custom_css, title="Cidadão.AI") as app:
-        # JavaScript primeiro
+    if not TRANSPARENCY_API_KEY:
+        return """
+        <div style="background: #fee; padding: 1rem; border-radius: 8px; border-left: 4px solid #f44;">
+            <h3>⚠️ API não configurada</h3>
+            <p>Configure a variável TRANSPARENCY_API_KEY para usar dados reais.</p>
+        </div>
+        """
+    
+    # Dados simulados
+    results = {
+        "Contratos": [
+            {"numero": "001/2024", "empresa": "Tech Solutions", "valor": "R$ 2.500.000", "objeto": "Sistema de TI"},
+            {"numero": "002/2024", "empresa": "Construtora XYZ", "valor": "R$ 5.800.000", "objeto": "Reforma predial"}
+        ],
+        "Despesas": [
+            {"documento": "2024NE000123", "favorecido": "Empresa ABC", "valor": "R$ 450.000", "descricao": "Material"},
+            {"documento": "2024NE000124", "favorecido": "Fornecedor XYZ", "valor": "R$ 780.000", "descricao": "Equipamentos"}
+        ],
+        "Licitações": [
+            {"numero": "PE001/2024", "modalidade": "Pregão", "valor": "R$ 3.200.000", "objeto": "Veículos"},
+            {"numero": "CC002/2024", "modalidade": "Concorrência", "valor": "R$ 15.000.000", "objeto": "Obra"}
+        ]
+    }
+    
+    data = results.get(data_type, [])
+    
+    if search_term:
+        data = [item for item in data if search_term.lower() in str(item).lower()]
+    
+    html = f"""
+    <div style="background: white; padding: 1.5rem; border-radius: 8px; margin: 1rem 0; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h3>✅ {len(data)} resultados encontrados</h3>
+        <p>Dados do Portal da Transparência - {data_type} em {year}</p>
+    </div>
+    """
+    
+    if data and data_type == "Contratos":
+        html += """<table style="width: 100%; margin-top: 1rem; border-collapse: collapse;">
+        <tr style="background: #f5f5f5;">
+            <th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Número</th>
+            <th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Empresa</th>
+            <th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Valor</th>
+            <th style="padding: 0.75rem; text-align: left; border: 1px solid #ddd;">Objeto</th>
+        </tr>"""
+        for item in data:
+            html += f"""
+            <tr>
+                <td style="padding: 0.75rem; border: 1px solid #ddd;">{item['numero']}</td>
+                <td style="padding: 0.75rem; border: 1px solid #ddd;">{item['empresa']}</td>
+                <td style="padding: 0.75rem; border: 1px solid #ddd;"><strong>{item['valor']}</strong></td>
+                <td style="padding: 0.75rem; border: 1px solid #ddd;">{item['objeto']}</td>
+            </tr>"""
+        html += "</table>"
+    
+    return html
+
+def chat_with_ai(message, history):
+    """Chat simulado com IA"""
+    if not message:
+        return history
+    
+    # Resposta simulada
+    response = f"Você perguntou sobre: '{message}'. Esta é uma demonstração do chat com IA especializada em transparência pública. Em breve, terei acesso a dados reais para ajudá-lo!"
+    
+    history.append([message, response])
+    return history
+
+def create_interface():
+    """Interface principal do Gradio"""
+    
+    with gr.Blocks(css=custom_css, title="Cidadão.AI", theme=gr.themes.Soft()) as app:
+        
+        # JavaScript
         gr.HTML(custom_js)
-        # Landing page única
-        gr.HTML(create_landing_page())
+        
+        # Landing page como primeira aba
+        with gr.Tab("🏠 Cidadão.AI", id="home"):
+            gr.HTML(create_landing_page())
+        
+        # Aba de busca
+        with gr.Tab("🔍 Busca Avançada com IA", id="search"):
+            gr.Markdown("## Sistema de Busca Inteligente")
+            gr.Markdown("Configure os parâmetros abaixo para buscar dados do Portal da Transparência:")
+            
+            with gr.Row():
+                with gr.Column(scale=1):
+                    data_type = gr.Radio(
+                        label="Tipo de Dados",
+                        choices=["Contratos", "Despesas", "Licitações"],
+                        value="Contratos"
+                    )
+                    
+                    year = gr.Number(
+                        label="Ano",
+                        value=2024,
+                        precision=0
+                    )
+                    
+                    org_code = gr.Textbox(
+                        label="Código do Órgão (opcional)",
+                        placeholder="Ex: 26000"
+                    )
+                    
+                    search_term = gr.Textbox(
+                        label="Termo de Busca",
+                        placeholder="Digite sua busca..."
+                    )
+                    
+                    search_btn = gr.Button("🔍 Buscar", variant="primary")
+                
+                with gr.Column(scale=2):
+                    results = gr.HTML(
+                        value="""
+                        <div style="background: #f8f9fa; padding: 2rem; border-radius: 8px; text-align: center;">
+                            <h3>🚀 Pronto para buscar</h3>
+                            <p>Configure os parâmetros ao lado e clique em "Buscar" para ver os resultados.</p>
+                        </div>
+                        """
+                    )
+            
+            search_btn.click(
+                fn=search_transparency_data,
+                inputs=[data_type, year, org_code, search_term],
+                outputs=results
+            )
+        
+        # Aba de chat
+        with gr.Tab("💬 Chat com IA Especializada", id="chat"):
+            gr.Markdown("## Converse com o Cidadão-GPT")
+            gr.Markdown("Faça perguntas em linguagem natural sobre transparência pública:")
+            
+            chatbot = gr.Chatbot(
+                height=400,
+                placeholder="💭 Pergunte algo como: 'Quais foram os maiores contratos de 2024?' ou 'Mostre gastos suspeitos do Ministério da Saúde'"
+            )
+            
+            with gr.Row():
+                msg = gr.Textbox(
+                    placeholder="Digite sua pergunta sobre transparência pública...",
+                    label="Sua mensagem",
+                    scale=4
+                )
+                send_btn = gr.Button("📤 Enviar", variant="primary", scale=1)
+            
+            gr.Markdown("⚠️ **Nota:** Este é um ambiente de demonstração com respostas simuladas.")
+            
+            def respond_and_clear(message, history):
+                new_history = chat_with_ai(message, history)
+                return new_history, ""
+            
+            send_btn.click(
+                fn=respond_and_clear,
+                inputs=[msg, chatbot],
+                outputs=[chatbot, msg]
+            )
+            
+            msg.submit(
+                fn=respond_and_clear,
+                inputs=[msg, chatbot],
+                outputs=[chatbot, msg]
+            )
     
     return app
 
 # Executar aplicação
 if __name__ == "__main__":
-    print("🚀 Iniciando Cidadão.AI - Landing Page Fixa...")
+    print("🚀 Iniciando Cidadão.AI - Otimizado para Gradio...")
     app = create_interface()
     app.launch()
