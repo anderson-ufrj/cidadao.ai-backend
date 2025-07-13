@@ -283,7 +283,7 @@ def create_interface():
                     history.append([message, response])
                 return history, ""
             
-            msg.submit(respond, [msg, chatbot], [chatbot, msg])
+            msg.submit(respond, inputs=[msg, chatbot], outputs=[chatbot, msg])
     
     return app
 
