@@ -64,8 +64,10 @@ custom_css = """
 }
 
 html, body {
-    height: 100%;
-    overflow-x: hidden;
+    height: 100vh;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
 }
 
 body {
@@ -78,8 +80,12 @@ body {
 
 /* Container principal */
 .main-container {
-    min-height: 100vh;
-    position: relative;
+    height: 100vh;
+    width: 100vw;
+    position: fixed;
+    top: 0;
+    left: 0;
+    overflow: hidden;
 }
 
 /* Theme toggle */
@@ -109,9 +115,11 @@ body {
 
 /* Hero Section corrigida */
 .hero-section {
-    position: relative;
-    height: 80vh;
-    max-height: 700px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -330,13 +338,18 @@ body {
     box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
 }
 
-/* Footer */
+/* Footer fixo */
 .footer-section {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
-    padding: 3rem 2rem;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 1rem 2rem;
     text-align: center;
-    transition: background-color 0.3s ease;
+    z-index: 10;
+    backdrop-filter: blur(10px);
 }
 
 .footer-links {
@@ -344,18 +357,19 @@ body {
     justify-content: center;
     gap: 2rem;
     flex-wrap: wrap;
-    margin: 2rem 0;
+    margin: 0.5rem 0;
 }
 
 .footer-link {
-    color: var(--text-secondary);
+    color: white;
     text-decoration: none;
     font-weight: 500;
     transition: color 0.3s ease;
+    font-size: 0.9rem;
 }
 
 .footer-link:hover {
-    color: var(--btn-primary-bg);
+    color: #FFD700;
 }
 
 /* Responsividade */
@@ -505,19 +519,36 @@ def create_hero_section():
             
             <div class="hero-content">
                 <h1 class="hero-title">Cidadão.AI</h1>
-                <h2 class="hero-subtitle">Bem-vindo ao Portal da Transparência Inteligente</h2>
+                <h2 class="hero-subtitle">Portal da Transparência Inteligente</h2>
                 <p class="hero-description">
                     Democratizando o acesso aos dados públicos brasileiros através da inteligência artificial.
                     Consulte contratos, licitações e gastos governamentais de forma simples e transparente.
                 </p>
                 <div class="action-buttons">
-                    <button class="btn btn-primary" onclick="scrollToTab('Busca Avançada')">
+                    <button class="btn btn-primary">
                         🔍 Busca Avançada com IA
                     </button>
-                    <button class="btn btn-secondary" onclick="scrollToTab('Chat com IA')">
+                    <button class="btn btn-secondary">
                         💬 Converse com nosso Modelo
                     </button>
                 </div>
+            </div>
+            
+            <div class="footer-section">
+                <div class="footer-links">
+                    <a href="docs/documentation.html" target="_blank" class="footer-link">
+                        📚 Documentação Técnica
+                    </a>
+                    <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="footer-link">
+                        💻 GitHub
+                    </a>
+                    <a href="https://portaldatransparencia.gov.br" target="_blank" class="footer-link">
+                        🔗 Portal da Transparência
+                    </a>
+                </div>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.8rem; opacity: 0.9;">
+                    <strong>Desenvolvido por:</strong> Anderson Henrique da Silva | © 2024 Cidadão.AI
+                </p>
             </div>
         </div>
     </div>
@@ -683,75 +714,15 @@ def search_transparency_data(data_type, year, org_code, search_term):
     return html
 
 def create_interface():
-    """Interface principal com tema e navegação melhorada"""
+    """Interface principal - Landing Page apenas"""
     
     with gr.Blocks(css=custom_css, title="Cidadão.AI", theme=gr.themes.Soft()) as app:
         
         # Injetar JavaScript
         gr.HTML(custom_js)
         
-        # Hero Section
+        # Landing Page única e fixa
         gr.HTML(create_hero_section())
-        
-        # Features Section
-        gr.HTML(create_features_section())
-        
-        # Status Section
-        gr.HTML(create_status_section())
-        
-        # Interface de busca
-        with gr.Tab("🔍 Busca Avançada com IA"):
-            gr.Markdown("### Sistema de Busca Inteligente")
-            
-            with gr.Row():
-                with gr.Column(scale=1):
-                    data_type = gr.Radio(
-                        label="Tipo de Dados",
-                        choices=["Contratos", "Despesas", "Licitações"],
-                        value="Contratos"
-                    )
-                    
-                    year = gr.Number(
-                        label="Ano",
-                        value=2024,
-                        precision=0
-                    )
-                    
-                    org_code = gr.Textbox(
-                        label="Código do Órgão (opcional)",
-                        placeholder="Ex: 26000"
-                    )
-                    
-                    search_term = gr.Textbox(
-                        label="Termo de Busca",
-                        placeholder="Digite sua busca..."
-                    )
-                    
-                    search_btn = gr.Button("🔍 Buscar", variant="primary")
-                
-                with gr.Column(scale=2):
-                    results = gr.HTML()
-            
-            search_btn.click(
-                fn=search_transparency_data,
-                inputs=[data_type, year, org_code, search_term],
-                outputs=results
-            )
-        
-        with gr.Tab("💬 Chat com IA Especializada"):
-            gr.Markdown("### Converse com o Cidadão-GPT")
-            
-            chatbot = gr.Chatbot(height=400)
-            msg = gr.Textbox(
-                placeholder="Faça uma pergunta sobre transparência pública...",
-                label="Sua mensagem"
-            )
-            send = gr.Button("Enviar", variant="primary")
-            
-            gr.Markdown("⚠️ **Nota:** Chat em modo demonstração")
-        
-        # Footer
-        gr.HTML(create_footer())
     
     return app
 
