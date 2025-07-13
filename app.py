@@ -272,13 +272,19 @@ def create_interface():
             chatbot = gr.Chatbot()
             msg = gr.Textbox()
             
-            # def respond(message, history):
-            #     if message:
-            #         response = f"Você perguntou: '{message}'. Esta é uma demonstração do chat!"
-            #         history.append([message, response])
-            #     return history, ""
-            # 
-            # msg.submit(respond, inputs=[msg, chatbot], outputs=[chatbot, msg])
+            def chat_fn(message, history):
+                if message:
+                    history = history or []
+                    response = f"Você perguntou: '{message}'. Esta é uma demonstração do chat!"
+                    history.append([message, response])
+                    return history, ""
+                return history, ""
+            
+            msg.submit(
+                fn=chat_fn,
+                inputs=[msg, chatbot], 
+                outputs=[chatbot, msg]
+            )
     
     return app
 
