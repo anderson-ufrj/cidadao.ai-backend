@@ -184,6 +184,9 @@ models/
 *.pth
 *.onnx
 
+# Frontend assets (use online images for HF compatibility)
+frontend/static/img/slides/
+
 # Vector stores
 *.faiss
 *.index
