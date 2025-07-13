@@ -1,10 +1,10 @@
 ---
-title: Cidadão.AI - Análise de Transparência Pública
-emoji: 🔍
-colorFrom: blue
-colorTo: green
-sdk: streamlit
-sdk_version: 1.29.0
+title: Cidadão.AI - Transparência Pública
+emoji: 🇧🇷
+colorFrom: green
+colorTo: yellow
+sdk: gradio
+sdk_version: 4.44.1
 app_file: app.py
 pinned: true
 license: mit
