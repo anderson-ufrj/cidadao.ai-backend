@@ -294,14 +294,14 @@ print(f"Detecção de Corrupção: {results.corruption_detection_ability:.1%}")
   publisher={Hugging Face},
   journal={Hugging Face Model Hub},
   howpublished={\url{https://huggingface.co/neural-thinker/cidadao-gpt}},
-  note={AI-assisted development with Claude Code}
+  note={Multi-agent AI system for transparency analysis}
 }
 ```
 
 ## 📞 Contato
 
 - 👨‍💻 **Desenvolvedor**: Anderson Henrique da Silva
-- 📧 **Email**: anderson@cidadao.ai
+- 📧 **Email**: andersonhs27@gmail.com
 - 🤗 **Hugging Face**: [neural-thinker](https://huggingface.co/neural-thinker)
 - 💻 **GitHub**: [anderson-ufrj](https://github.com/anderson-ufrj)
 - 💼 **LinkedIn**: [anderson-henrique-silva](https://linkedin.com/in/anderson-henrique-silva)
