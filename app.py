@@ -21,19 +21,19 @@ custom_css = """
     --primary-blue: #0052CC;
     --accent-gold: #DAA520;
     --background-light: #FAFBFC;
-    --background-dark: #0A0E13;
+    --background-dark: #0D1117;
     --surface-light: #FFFFFF;
-    --surface-dark: #1C2128;
+    --surface-dark: #161B22;
     --text-primary-light: #1F2937;
-    --text-primary-dark: #F9FAFB;
+    --text-primary-dark: #F0F6FC;
     --text-secondary-light: #6B7280;
-    --text-secondary-dark: #D1D5DB;
+    --text-secondary-dark: #8B949E;
     --border-light: #E5E7EB;
-    --border-dark: #374151;
+    --border-dark: #21262D;
     --glass-light: rgba(255, 255, 255, 0.1);
-    --glass-dark: rgba(0, 0, 0, 0.2);
+    --glass-dark: rgba(255, 255, 255, 0.05);
     --shadow-light: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-dark: 0 10px 25px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    --shadow-dark: 0 10px 25px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
 }
 
 [data-theme="light"] {
@@ -64,6 +64,16 @@ body, .gradio-container {
     background: var(--bg-primary) !important;
     color: var(--text-primary) !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body[data-theme="light"], .gradio-container[data-theme="light"] {
+    background: var(--background-light) !important;
+    color: var(--text-primary-light) !important;
+}
+
+body[data-theme="dark"], .gradio-container[data-theme="dark"] {
+    background: var(--background-dark) !important;
+    color: var(--text-primary-dark) !important;
 }
 
 /* Header com toggle de tema */
@@ -398,32 +408,63 @@ def create_landing_page():
         function toggleTheme() {
             const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            // Apply theme to document root
             document.documentElement.setAttribute('data-theme', newTheme);
+            
+            // Apply theme to body and gradio container
+            document.body.setAttribute('data-theme', newTheme);
+            const gradioContainer = document.querySelector('.gradio-container');
+            if (gradioContainer) {
+                gradioContainer.setAttribute('data-theme', newTheme);
+            }
+            
+            // Save theme preference
             localStorage.setItem('theme', newTheme);
             
             // Update toggle text
-            const toggle = document.querySelector('.theme-toggle');
-            if (toggle) {
-                toggle.textContent = newTheme === 'light' ? '🌙 Dark' : '☀️ Light';
-            }
+            const toggles = document.querySelectorAll('.theme-toggle');
+            toggles.forEach(toggle => {
+                toggle.textContent = newTheme === 'light' ? '🌙 Modo Escuro' : '☀️ Modo Claro';
+            });
         }
         
         // Set initial theme
-        document.addEventListener('DOMContentLoaded', function() {
+        function initTheme() {
             const savedTheme = localStorage.getItem('theme') || 'light';
-            document.documentElement.setAttribute('data-theme', savedTheme);
             
-            const toggle = document.querySelector('.theme-toggle');
-            if (toggle) {
-                toggle.textContent = savedTheme === 'light' ? '🌙 Dark' : '☀️ Light';
-                toggle.addEventListener('click', toggleTheme);
+            // Apply to all relevant elements
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            document.body.setAttribute('data-theme', savedTheme);
+            
+            const gradioContainer = document.querySelector('.gradio-container');
+            if (gradioContainer) {
+                gradioContainer.setAttribute('data-theme', savedTheme);
             }
-        });
+            
+            // Update toggle buttons
+            const toggles = document.querySelectorAll('.theme-toggle');
+            toggles.forEach(toggle => {
+                toggle.textContent = savedTheme === 'light' ? '🌙 Modo Escuro' : '☀️ Modo Claro';
+                toggle.addEventListener('click', toggleTheme);
+            });
+        }
+        
+        // Initialize when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initTheme);
+        } else {
+            initTheme();
+        }
+        
+        // Also try to initialize after a short delay for Gradio
+        setTimeout(initTheme, 100);
+        setTimeout(initTheme, 500);
     </script>
     
     <div class="header">
         <div class="logo">🇧🇷 Cidadão.AI</div>
-        <button class="theme-toggle" onclick="toggleTheme()">🌙 Dark</button>
+        <button class="theme-toggle" onclick="toggleTheme()">🌙 Modo Escuro</button>
     </div>
     
     <div class="landing-page">
@@ -462,10 +503,10 @@ def create_landing_page():
             <div class="footer-content">
                 <div class="footer-links">
                     <a href="docs/documentation.html" target="_blank" class="footer-link">
-                        📚 Documentação Técnica
+                        📚 Documentação
                     </a>
                     <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="footer-link">
-                        💻 Código Fonte
+                        💻 GitHub
                     </a>
                     <a href="https://portaldatransparencia.gov.br" target="_blank" class="footer-link">
                         🏛️ Portal Oficial
@@ -475,8 +516,15 @@ def create_landing_page():
                     </a>
                 </div>
                 <div class="footer-credit">
-                    <strong>Desenvolvido por Anderson Henrique da Silva</strong> • © 2024 Cidadão.AI<br>
-                    <em>Fortalecendo a democracia brasileira através da tecnologia</em>
+                    <div style="margin-bottom: 1rem;">
+                        <strong>Desenvolvido por Anderson Henrique da Silva</strong> • © 2024 Cidadão.AI<br>
+                        <em>Fortalecendo a democracia brasileira através da tecnologia</em>
+                    </div>
+                    <div style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; font-size: 0.8rem; opacity: 0.7;">
+                        <span>🔗 Use via API</span>
+                        <span>⚡ Built with Gradio</span>
+                        <span>🚀 Powered by Hugging Face</span>
+                    </div>
                 </div>
             </div>
         </div>
