@@ -795,15 +795,9 @@
                 
                 // Check if we're on GitHub Pages
                 if (window.location.hostname === 'anderson-ufrj.github.io') {
-                    // We're on GitHub Pages - check if we're in a subdirectory
-                    if (window.location.pathname.includes('/cidadao.ai/')) {
-                        // We need to go up one level if we're in /docs/
-                        if (window.location.pathname.endsWith('/docs/') || window.location.pathname.endsWith('/docs/index.html')) {
-                            basePath = './';
-                        } else {
-                            basePath = '/cidadao.ai/docs/';
-                        }
-                    }
+                    // We're on GitHub Pages with the cidadao.ai repository
+                    // Since we're serving from the /docs folder as root, use relative paths
+                    basePath = './';
                 }
                 
                 for (const sectionName of importantSections) {
@@ -919,15 +913,10 @@
                     
                     // Check if we're on GitHub Pages
                     if (window.location.hostname === 'anderson-ufrj.github.io') {
-                        // We're on GitHub Pages - check if we're in a subdirectory
-                        if (window.location.pathname.includes('/cidadao.ai/')) {
-                            // We need to go up one level if we're in /docs/
-                            if (window.location.pathname.endsWith('/docs/') || window.location.pathname.endsWith('/docs/index.html')) {
-                                basePath = './';
-                            } else {
-                                basePath = '/cidadao.ai/docs/';
-                            }
-                        }
+                        // We're on GitHub Pages with the cidadao.ai repository
+                        // The URL structure is: https://anderson-ufrj.github.io/cidadao.ai/
+                        // Since we're serving from the /docs folder as root, use relative paths
+                        basePath = './';
                     }
                     
                     // Check if running locally (file://) or on server
@@ -987,12 +976,8 @@
                     try {
                         // Use the same base path logic
                         let basePath = './';
-                        if (window.location.hostname === 'anderson-ufrj.github.io' && window.location.pathname.includes('/cidadao.ai/')) {
-                            if (window.location.pathname.endsWith('/docs/') || window.location.pathname.endsWith('/docs/index.html')) {
-                                basePath = './';
-                            } else {
-                                basePath = '/cidadao.ai/docs/';
-                            }
+                        if (window.location.hostname === 'anderson-ufrj.github.io') {
+                            basePath = './';
                         }
                         const fallbackResponse = await fetch(`${basePath}sections/overview.html`);
                         if (fallbackResponse.ok) {
