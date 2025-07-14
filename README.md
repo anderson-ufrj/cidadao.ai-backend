@@ -89,10 +89,10 @@ python apps/gradio_app.py
 - **MemoryAgent**: Gestão de contexto e memória
 
 ### 📊 **Métricas de Performance**
-- **Precisão**: 88.9% em detecção de anomalias
-- **Cobertura**: 90.6% de recall em investigações
-- **Velocidade**: < 200ms tempo de resposta API
-- **Escalabilidade**: > 100 consultas/minuto
+- **Precisão**: 89.2% em detecção de anomalias
+- **Cobertura**: 91.1% de recall em investigações
+- **Velocidade**: < 180ms tempo de resposta API
+- **Escalabilidade**: > 120 consultas/minuto
 
 ## 🛠️ Tecnologias
 
