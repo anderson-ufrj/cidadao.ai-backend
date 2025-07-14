@@ -520,7 +520,7 @@ Como posso ajudar você hoje?"""]],
         gr.HTML("""
         <div class="footer-credits">
             <p><strong>🤖 Cidadão.AI</strong> - Democratizando a transparência pública com IA</p>
-            <p>👨‍💻 Desenvolvido por <strong>Anderson Henrique da Silva</strong> | 🤖 AI Assistant: Claude Code</p>
+            <p>👨‍💻 Desenvolvido por <strong>Anderson Henrique da Silva</strong></p>
             <p>📄 <strong>Licença:</strong> MIT | 🇧🇷 <strong>Feito com ❤️ para o Brasil</strong></p>
         </div>
         """)

@@ -254,3 +254,11 @@ test_api_*.py
 *_old.*
 temp_*
 backup_*
+
+# Arquivos organizados (agora em suas pastas específicas)
+app_*.py
+README_*.md
+requirements_*.txt
+docker-compose.*.yml
+test_*.py
+setup_*.py
