@@ -444,6 +444,7 @@ Insira um documento ou texto ao lado e clique em "Analisar" para receber:
 
 Como posso ajudar você hoje?"""]],
                     height=500,
+                    type="tuples",
                     elem_classes=["chat-container"]
                 )
                 
@@ -541,10 +542,7 @@ if __name__ == "__main__":
     app = create_main_interface()
     
     # Configurar e lançar
-    app.queue(
-        concurrency_count=5,
-        max_size=20
-    )
+    app.queue(max_size=20)
     
     app.launch(
         server_name="0.0.0.0",
