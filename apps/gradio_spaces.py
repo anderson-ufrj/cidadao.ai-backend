@@ -534,7 +534,7 @@ Como posso ajudar você hoje?"""}],
 
 # Criar e lançar aplicação
 if __name__ == "__main__":
-    logger.info("🚀 Iniciando Cidadão.AI para Hugging Face Spaces...")
+    logger.info("🚀 Iniciando Cidadão.AI v2.0 para Hugging Face Spaces...")
     
     # Verificar configuração
     if GROQ_API_KEY:
