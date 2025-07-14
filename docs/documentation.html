@@ -904,6 +904,128 @@
         ::-webkit-scrollbar-thumb:hover {
             background: var(--text-tertiary);
         }
+        
+        /* Section Navigation Buttons */
+        .section-navigation {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-top: 3rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border-light);
+        }
+        
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.5rem;
+            background-color: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            min-height: 4rem;
+            flex: 1;
+            max-width: 300px;
+        }
+        
+        .nav-btn:hover {
+            background-color: var(--bg-hover);
+            border-color: var(--text-accent);
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .nav-btn:active {
+            transform: translateY(0);
+        }
+        
+        .prev-btn {
+            justify-content: flex-start;
+        }
+        
+        .next-btn {
+            justify-content: flex-end;
+            margin-left: auto;
+        }
+        
+        .nav-icon {
+            font-size: 1.25rem;
+            color: var(--text-accent);
+            transition: transform 0.2s ease;
+        }
+        
+        .nav-btn:hover .nav-icon {
+            transform: translateX(2px);
+        }
+        
+        .prev-btn:hover .nav-icon {
+            transform: translateX(-2px);
+        }
+        
+        .nav-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+        }
+        
+        .next-btn .nav-text {
+            align-items: flex-end;
+        }
+        
+        .nav-label {
+            font-size: 0.75rem;
+            color: var(--text-tertiary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+        
+        .nav-title {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            line-height: 1.2;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .section-navigation {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+            
+            .nav-btn {
+                max-width: none;
+                flex: none;
+            }
+            
+            .next-btn {
+                margin-left: 0;
+            }
+            
+            .nav-text {
+                align-items: center !important;
+                text-align: center;
+            }
+        }
+        
+        /* Dark theme adjustments */
+        [data-theme="dark"] .nav-btn {
+            background-color: var(--bg-tertiary);
+            border-color: var(--border-dark);
+        }
+        
+        [data-theme="dark"] .nav-btn:hover {
+            background-color: var(--bg-hover);
+            border-color: var(--text-accent);
+        }
     </style>
 </head>
 <body>
@@ -1508,6 +1630,118 @@
             language: currentLang,
             timestamp: new Date().toISOString()
         });
+        
+        // Navigation functions for next/previous section buttons
+        const sectionOrder = [
+            'overview', 'objectives', 'features', 'architecture', 'patterns', 
+            'components', 'agents', 'coordination', 'communication', 'ml-pipeline', 
+            'models', 'training', 'api-reference', 'integrations', 'webhooks', 
+            'deployment', 'monitoring', 'security', 'roadmap', 'contributing', 'changelog'
+        ];
+        
+        function goToNextSection(currentSectionId) {
+            const currentIndex = sectionOrder.indexOf(currentSectionId);
+            if (currentIndex >= 0 && currentIndex < sectionOrder.length - 1) {
+                const nextSectionId = sectionOrder[currentIndex + 1];
+                const nextSection = document.getElementById(nextSectionId);
+                if (nextSection) {
+                    nextSection.scrollIntoView({ behavior: 'smooth' });
+                    trackEvent('navigation_next', { from: currentSectionId, to: nextSectionId });
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        function goToPreviousSection(currentSectionId) {
+            const currentIndex = sectionOrder.indexOf(currentSectionId);
+            if (currentIndex > 0) {
+                const prevSectionId = sectionOrder[currentIndex - 1];
+                const prevSection = document.getElementById(prevSectionId);
+                if (prevSection) {
+                    prevSection.scrollIntoView({ behavior: 'smooth' });
+                    trackEvent('navigation_prev', { from: currentSectionId, to: prevSectionId });
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        function getSectionTitle(sectionId) {
+            const titles = {
+                'overview': 'Visão Geral',
+                'objectives': 'Objetivos',
+                'features': 'Funcionalidades',
+                'architecture': 'Arquitetura',
+                'patterns': 'Padrões de Design',
+                'components': 'Componentes',
+                'agents': 'Sistema Multi-Agente',
+                'coordination': 'Coordenação',
+                'communication': 'Comunicação',
+                'ml-pipeline': 'Pipeline ML',
+                'models': 'Modelos',
+                'training': 'Treinamento',
+                'api-reference': 'Referência da API',
+                'integrations': 'Integrações',
+                'webhooks': 'Webhooks',
+                'deployment': 'Deploy & DevOps',
+                'monitoring': 'Monitoramento',
+                'security': 'Segurança',
+                'roadmap': 'Roadmap',
+                'contributing': 'Contribuindo',
+                'changelog': 'Changelog'
+            };
+            return titles[sectionId] || 'Seção';
+        }
+        
+        // Add navigation buttons to each section
+        function addNavigationButtons() {
+            sectionOrder.forEach((sectionId, index) => {
+                const section = document.getElementById(sectionId);
+                if (!section) return;
+                
+                const navContainer = document.createElement('div');
+                navContainer.className = 'section-navigation';
+                
+                let buttonsHtml = '';
+                
+                // Previous button
+                if (index > 0) {
+                    const prevSectionId = sectionOrder[index - 1];
+                    const prevTitle = getSectionTitle(prevSectionId);
+                    buttonsHtml += `
+                        <button class="nav-btn prev-btn" onclick="goToPreviousSection('${sectionId}')" title="Ir para ${prevTitle}">
+                            <span class="nav-icon">←</span>
+                            <span class="nav-text">
+                                <span class="nav-label">Anterior</span>
+                                <span class="nav-title">${prevTitle}</span>
+                            </span>
+                        </button>
+                    `;
+                }
+                
+                // Next button
+                if (index < sectionOrder.length - 1) {
+                    const nextSectionId = sectionOrder[index + 1];
+                    const nextTitle = getSectionTitle(nextSectionId);
+                    buttonsHtml += `
+                        <button class="nav-btn next-btn" onclick="goToNextSection('${sectionId}')" title="Ir para ${nextTitle}">
+                            <span class="nav-text">
+                                <span class="nav-label">Próximo</span>
+                                <span class="nav-title">${nextTitle}</span>
+                            </span>
+                            <span class="nav-icon">→</span>
+                        </button>
+                    `;
+                }
+                
+                navContainer.innerHTML = buttonsHtml;
+                section.appendChild(navContainer);
+            });
+        }
+        
+        // Initialize navigation buttons
+        addNavigationButtons();
     </script>
 </body>
 </html>
