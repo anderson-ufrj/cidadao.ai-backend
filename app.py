@@ -247,7 +247,7 @@ Por favor, forneça uma análise completa seguindo o formato estabelecido."""
     except Exception as e:
         return f"❌ **Erro na análise**: {str(e)}\n\nTente novamente em alguns instantes."
 
-def chat_with_ai(message: str, history: List[List[str]]) -> Tuple[str, List[List[str]]]:
+def chat_with_ai(message: str, history: List[Dict]) -> Tuple[str, List[Dict]]:
     """
     Chat conversacional com a IA
     """
@@ -286,10 +286,12 @@ LIMITAÇÕES:
         # Construir contexto do histórico
         context_messages = []
         
-        # Adicionar histórico recente (últimas 5 mensagens)
-        for user_msg, ai_msg in history[-5:]:
-            context_messages.append(f"Usuário: {user_msg}")
-            context_messages.append(f"Cidadão.AI: {ai_msg}")
+        # Adicionar histórico recente (últimas 10 mensagens)
+        for msg in history[-10:]:
+            if msg["role"] == "user":
+                context_messages.append(f"Usuário: {msg['content']}")
+            elif msg["role"] == "assistant":
+                context_messages.append(f"Cidadão.AI: {msg['content']}")
         
         # Preparar prompt com contexto
         if context_messages:
@@ -310,13 +312,15 @@ Resposta:"""
         ai_response = call_groq_api(full_prompt, system_prompt)
         
         # Atualizar histórico
-        history.append([message, ai_response])
+        history.append({"role": "user", "content": message})
+        history.append({"role": "assistant", "content": ai_response})
         
         return "", history
         
     except Exception as e:
         error_msg = f"❌ Erro: {str(e)}"
-        history.append([message, error_msg])
+        history.append({"role": "user", "content": message})
+        history.append({"role": "assistant", "content": error_msg})
         return "", history
 
 def get_status_info() -> Tuple[str, str]:
@@ -428,7 +432,7 @@ Insira um documento ou texto ao lado e clique em "Analisar" para receber:
                 
                 chatbot = gr.Chatbot(
                     label="Conversa com Cidadão.AI",
-                    value=[[None, """👋 Olá! Sou o **Cidadão.AI**, sua assistente especializada em transparência pública brasileira.
+                    value=[{"role": "assistant", "content": """👋 Olá! Sou o **Cidadão.AI**, sua assistente especializada em transparência pública brasileira.
 
 🔍 **Posso ajudar você com:**
 - Análise de contratos e licitações
@@ -442,9 +446,9 @@ Insira um documento ou texto ao lado e clique em "Analisar" para receber:
 - "Quais são os limites para dispensa de licitação?"
 - "O que caracteriza uma licitação suspeita?"
 
-Como posso ajudar você hoje?"""]],
+Como posso ajudar você hoje?"""}],
                     height=500,
-                    type="tuples",
+                    type="messages",
                     elem_classes=["chat-container"]
                 )
                 
