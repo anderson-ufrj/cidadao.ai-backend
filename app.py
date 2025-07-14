@@ -188,6 +188,18 @@ def chat_with_ai(message: str, history: List[Dict]) -> Tuple[str, List[Dict]]:
     """
     Chat conversacional com a IA
     """
+    # Inicializar história se vazia
+    if not history:
+        history = [{"role": "assistant", "content": """👋 Olá! Sou o **Cidadão.AI**, sua assistente especializada em transparência pública brasileira.
+
+🔍 **Posso ajudar você com:**
+- Análise de contratos e licitações
+- Explicação de dados do Portal da Transparência  
+- Detecção de irregularidades
+- Orientações sobre compliance público
+
+Como posso ajudar você hoje?"""}]
+    
     if not message.strip():
         return "", history
     
@@ -204,7 +216,7 @@ def chat_with_ai(message: str, history: List[Dict]) -> Tuple[str, List[Dict]]:
             elif msg["role"] == "assistant":
                 context_messages.append(f"Cidadão.AI: {msg['content']}")
         
-        if context_messages:
+        if len(context_messages) > 1:  # Mais que só a mensagem inicial
             context = "\\n".join(context_messages)
             full_prompt = f"""CONTEXTO DA CONVERSA:
 {context}
@@ -213,11 +225,9 @@ NOVA PERGUNTA: {message}
 
 Responda como Cidadão.AI, mantendo o contexto da conversa:"""
         else:
-            full_prompt = f"""Olá! Sou o Cidadão.AI. Como posso ajudar você com transparência pública?
+            full_prompt = f"""PERGUNTA: {message}
 
-PERGUNTA: {message}
-
-Resposta:"""
+Responda como Cidadão.AI, assistente de transparência pública:"""
         
         ai_response = call_groq_api(full_prompt, system_prompt)
         
@@ -314,15 +324,6 @@ Insira um documento ou texto ao lado e clique em "Analisar" para receber anális
                 
                 chatbot = gr.Chatbot(
                     label="Conversa com Cidadão.AI",
-                    value=[{"role": "assistant", "content": """👋 Olá! Sou o **Cidadão.AI**, sua assistente especializada em transparência pública brasileira.
-
-🔍 **Posso ajudar você com:**
-- Análise de contratos e licitações
-- Explicação de dados do Portal da Transparência  
-- Detecção de irregularidades
-- Orientações sobre compliance público
-
-Como posso ajudar você hoje?"""}],
                     height=500,
                     type="messages",
                     elem_classes=["chat-container"]
