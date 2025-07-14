@@ -513,6 +513,52 @@
             font-family: 'JetBrains Mono', monospace;
             font-size: 0.875rem;
         }
+
+        .error-debug {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 0.875rem;
+        }
+
+        [data-theme="dark"] .error-debug {
+            background-color: #1e293b;
+            border-color: #475569;
+        }
+
+        .error-debug h4 {
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .error-debug ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .error-debug li {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .error-debug code {
+            background-color: var(--bg-code);
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+        }
+
+        .retry-button {
+            transition: all 0.2s;
+        }
+
+        .retry-button:hover {
+            background-color: var(--text-accent) !important;
+            transform: translateY(-1px);
+        }
     </style>
 </head>
 <body>
@@ -531,78 +577,78 @@
                 <span class="logo-icon">🔍</span>
                 <div>
                     <div class="logo-text">Cidadão.AI</div>
-                    <div class="logo-subtitle">Documentação Técnica</div>
+                    <div class="logo-subtitle" data-pt="Documentação Técnica" data-en="Technical Documentation">Documentação Técnica</div>
                 </div>
             </div>
 
             <!-- Controls -->
             <div class="controls">
-                <button class="control-button" id="themeToggle" title="Toggle Dark/Light Theme">🌓</button>
+                <button class="control-button" id="themeToggle" title="Alternar Tema Claro/Escuro" data-title-pt="Alternar Tema Claro/Escuro" data-title-en="Toggle Dark/Light Theme">🌓</button>
                 <div class="language-selector">
                     <button class="control-button lang-flag active" id="langPT" title="Português" data-lang="pt-BR">🇧🇷</button>
                     <button class="control-button lang-flag" id="langEN" title="English" data-lang="en">🇬🇧</button>
                 </div>
-                <button class="control-button" id="printMode" title="Print Mode">🖨️</button>
+                <button class="control-button" id="printMode" title="Modo de Impressão" data-title-pt="Modo de Impressão" data-title-en="Print Mode">🖨️</button>
             </div>
 
             <!-- Navigation -->
             <div class="nav-section">
-                <div class="nav-section-title">FUNDAMENTALS</div>
+                <div class="nav-section-title" data-pt="FUNDAMENTOS" data-en="FUNDAMENTALS">FUNDAMENTOS</div>
                 <div class="nav-links">
-                    <a href="#" class="nav-link active" data-section="overview">📊 Overview & Introduction</a>
-                    <a href="#" class="nav-link" data-section="theoretical-foundations">🧮 Theoretical Foundations</a>
-                    <a href="#" class="nav-link" data-section="literature-review">📚 Literature Review</a>
-                    <a href="#" class="nav-link" data-section="methodology">🔬 Research Methodology</a>
+                    <a href="#" class="nav-link active" data-section="overview"><span>📊</span> <span data-pt="Visão Geral e Introdução" data-en="Overview & Introduction">Visão Geral e Introdução</span></a>
+                    <a href="#" class="nav-link" data-section="theoretical-foundations"><span>🧮</span> <span data-pt="Fundamentos Teóricos" data-en="Theoretical Foundations">Fundamentos Teóricos</span></a>
+                    <a href="#" class="nav-link" data-section="literature-review"><span>📚</span> <span data-pt="Revisão da Literatura" data-en="Literature Review">Revisão da Literatura</span></a>
+                    <a href="#" class="nav-link" data-section="methodology"><span>🔬</span> <span data-pt="Metodologia de Pesquisa" data-en="Research Methodology">Metodologia de Pesquisa</span></a>
                 </div>
             </div>
 
             <div class="nav-section">
-                <div class="nav-section-title">ARCHITECTURE</div>
+                <div class="nav-section-title" data-pt="ARQUITETURA" data-en="ARCHITECTURE">ARQUITETURA</div>
                 <div class="nav-links">
-                    <a href="#" class="nav-link" data-section="system-architecture">🏗️ System Architecture</a>
-                    <a href="#" class="nav-link" data-section="multi-agent-system">🤖 Multi-Agent System</a>
-                    <a href="#" class="nav-link" data-section="algorithms">⚙️ Algorithms & Models</a>
-                    <a href="#" class="nav-link" data-section="data-pipeline">📊 Data Pipeline</a>
+                    <a href="#" class="nav-link" data-section="system-architecture"><span>🏗️</span> <span data-pt="Arquitetura do Sistema" data-en="System Architecture">Arquitetura do Sistema</span></a>
+                    <a href="#" class="nav-link" data-section="multi-agent-system"><span>🤖</span> <span data-pt="Sistema Multi-Agente" data-en="Multi-Agent System">Sistema Multi-Agente</span></a>
+                    <a href="#" class="nav-link" data-section="algorithms"><span>⚙️</span> <span data-pt="Algoritmos e Modelos" data-en="Algorithms & Models">Algoritmos e Modelos</span></a>
+                    <a href="#" class="nav-link" data-section="data-pipeline"><span>📊</span> <span data-pt="Pipeline de Dados" data-en="Data Pipeline">Pipeline de Dados</span></a>
                 </div>
             </div>
 
             <div class="nav-section">
-                <div class="nav-section-title">IMPLEMENTATION</div>
+                <div class="nav-section-title" data-pt="IMPLEMENTAÇÃO" data-en="IMPLEMENTATION">IMPLEMENTAÇÃO</div>
                 <div class="nav-links">
-                    <a href="#" class="nav-link" data-section="technical-implementation">💻 Technical Implementation</a>
-                    <a href="#" class="nav-link" data-section="api-reference">🔌 API Reference</a>
-                    <a href="#" class="nav-link" data-section="security">🔒 Security Framework</a>
-                    <a href="#" class="nav-link" data-section="performance">⚡ Performance Analysis</a>
+                    <a href="#" class="nav-link" data-section="technical-implementation"><span>💻</span> <span data-pt="Implementação Técnica" data-en="Technical Implementation">Implementação Técnica</span></a>
+                    <a href="#" class="nav-link" data-section="api-reference"><span>🔌</span> <span data-pt="Referência da API" data-en="API Reference">Referência da API</span></a>
+                    <a href="#" class="nav-link" data-section="security"><span>🔒</span> <span data-pt="Framework de Segurança" data-en="Security Framework">Framework de Segurança</span></a>
+                    <a href="#" class="nav-link" data-section="performance"><span>⚡</span> <span data-pt="Análise de Performance" data-en="Performance Analysis">Análise de Performance</span></a>
                 </div>
             </div>
 
             <div class="nav-section">
-                <div class="nav-section-title">EVALUATION</div>
+                <div class="nav-section-title" data-pt="AVALIAÇÃO" data-en="EVALUATION">AVALIAÇÃO</div>
                 <div class="nav-links">
-                    <a href="#" class="nav-link" data-section="experimental-design">🧪 Experimental Design</a>
-                    <a href="#" class="nav-link" data-section="benchmarks">📈 Benchmarks & Results</a>
-                    <a href="#" class="nav-link" data-section="case-studies">📋 Case Studies</a>
-                    <a href="#" class="nav-link" data-section="validation">✅ Validation & Testing</a>
+                    <a href="#" class="nav-link" data-section="experimental-design"><span>🧪</span> <span data-pt="Design Experimental" data-en="Experimental Design">Design Experimental</span></a>
+                    <a href="#" class="nav-link" data-section="benchmarks"><span>📈</span> <span data-pt="Benchmarks e Resultados" data-en="Benchmarks & Results">Benchmarks e Resultados</span></a>
+                    <a href="#" class="nav-link" data-section="case-studies"><span>📋</span> <span data-pt="Estudos de Caso" data-en="Case Studies">Estudos de Caso</span></a>
+                    <a href="#" class="nav-link" data-section="validation"><span>✅</span> <span data-pt="Validação e Testes" data-en="Validation & Testing">Validação e Testes</span></a>
                 </div>
             </div>
 
             <div class="nav-section">
-                <div class="nav-section-title">RESEARCH</div>
+                <div class="nav-section-title" data-pt="PESQUISA" data-en="RESEARCH">PESQUISA</div>
                 <div class="nav-links">
-                    <a href="#" class="nav-link" data-section="contributions">🏆 Contributions</a>
-                    <a href="#" class="nav-link" data-section="limitations">⚠️ Limitations & Scope</a>
-                    <a href="#" class="nav-link" data-section="future-work">🚀 Future Research</a>
-                    <a href="#" class="nav-link" data-section="conclusion">📝 Conclusion</a>
+                    <a href="#" class="nav-link" data-section="contributions"><span>🏆</span> <span data-pt="Contribuições" data-en="Contributions">Contribuições</span></a>
+                    <a href="#" class="nav-link" data-section="limitations"><span>⚠️</span> <span data-pt="Limitações e Escopo" data-en="Limitations & Scope">Limitações e Escopo</span></a>
+                    <a href="#" class="nav-link" data-section="future-work"><span>🚀</span> <span data-pt="Pesquisa Futura" data-en="Future Research">Pesquisa Futura</span></a>
+                    <a href="#" class="nav-link" data-section="conclusion"><span>📝</span> <span data-pt="Conclusão" data-en="Conclusion">Conclusão</span></a>
                 </div>
             </div>
 
             <div class="nav-section">
-                <div class="nav-section-title">APPENDICES</div>
+                <div class="nav-section-title" data-pt="APÊNCIDES" data-en="APPENDICES">APÊNCIDES</div>
                 <div class="nav-links">
-                    <a href="#" class="nav-link" data-section="mathematical-proofs">📐 Mathematical Proofs</a>
-                    <a href="#" class="nav-link" data-section="code-examples">💾 Code Examples</a>
-                    <a href="#" class="nav-link" data-section="datasets">📊 Datasets & Metrics</a>
-                    <a href="#" class="nav-link" data-section="bibliography">📖 Bibliography</a>
+                    <a href="#" class="nav-link" data-section="mathematical-proofs"><span>📐</span> <span data-pt="Provas Matemáticas" data-en="Mathematical Proofs">Provas Matemáticas</span></a>
+                    <a href="#" class="nav-link" data-section="code-examples"><span>💾</span> <span data-pt="Exemplos de Código" data-en="Code Examples">Exemplos de Código</span></a>
+                    <a href="#" class="nav-link" data-section="datasets"><span>📊</span> <span data-pt="Datasets e Métricas" data-en="Datasets & Metrics">Datasets e Métricas</span></a>
+                    <a href="#" class="nav-link" data-section="bibliography"><span>📖</span> <span data-pt="Bibliografia" data-en="Bibliography">Bibliografia</span></a>
                 </div>
             </div>
         </nav>
@@ -612,8 +658,8 @@
             <!-- Academic Header -->
             <header class="academic-header">
                 <h1 class="academic-title">Cidadão.AI</h1>
-                <p class="academic-subtitle">Sistema Multi-Agente de Inteligência Artificial para Análise de Transparência Pública Brasileira</p>
-                <p class="academic-meta">Documentação Técnica Completa | Versão 1.0 | 2025</p>
+                <p class="academic-subtitle" data-pt="Sistema Multi-Agente de Inteligência Artificial para Análise de Transparência Pública Brasileira" data-en="Multi-Agent Artificial Intelligence System for Brazilian Public Transparency Analysis">Sistema Multi-Agente de Inteligência Artificial para Análise de Transparência Pública Brasileira</p>
+                <p class="academic-meta" data-pt="Documentação Técnica Completa | Versão 1.0 | 2025" data-en="Complete Technical Documentation | Version 1.0 | 2025">Documentação Técnica Completa | Versão 1.0 | 2025</p>
             </header>
 
             <!-- Content Sections -->
@@ -673,8 +719,11 @@
             const savedLang = localStorage.getItem('cidadao-ai-lang') || 'pt-BR';
             setLanguage(savedLang);
 
-            // Load default section
-            loadSection('overview');
+            // Load default section with retry logic
+            loadSectionWithRetry('overview');
+
+            // Preload important sections in background
+            preloadImportantSections();
 
             // Setup event listeners
             setupEventListeners();
@@ -693,7 +742,7 @@
                     e.preventDefault();
                     const section = this.getAttribute('data-section');
                     if (section) {
-                        loadSection(section);
+                        loadSectionWithRetry(section);
                         setActiveNavLink(this);
                     }
                 });
@@ -731,6 +780,77 @@
             });
         }
 
+        async function preloadImportantSections() {
+            const importantSections = [
+                'theoretical-foundations',
+                'methodology', 
+                'system-architecture',
+                'literature-review'
+            ];
+            
+            // Delay preloading to not interfere with initial load
+            setTimeout(async () => {
+                // Determine the correct base path for GitHub Pages or local
+                let basePath = './';
+                
+                // Check if we're on GitHub Pages
+                if (window.location.hostname === 'anderson-ufrj.github.io') {
+                    // We're on GitHub Pages - check if we're in a subdirectory
+                    if (window.location.pathname.includes('/cidadao.ai/')) {
+                        // We need to go up one level if we're in /docs/
+                        if (window.location.pathname.endsWith('/docs/') || window.location.pathname.endsWith('/docs/index.html')) {
+                            basePath = './';
+                        } else {
+                            basePath = '/cidadao.ai/docs/';
+                        }
+                    }
+                }
+                
+                for (const sectionName of importantSections) {
+                    try {
+                        const response = await fetch(`${basePath}sections/${sectionName}.html`);
+                        if (response.ok) {
+                            const content = await response.text();
+                            // Store in a simple cache
+                            if (!window.sectionCache) window.sectionCache = {};
+                            window.sectionCache[sectionName] = content;
+                            console.log(`✅ Preloaded: ${sectionName}`);
+                        updatePreloadStatus(sectionName, 'success');
+                        }
+                    } catch (error) {
+                        console.warn(`⚠️ Failed to preload: ${sectionName}`, error.message);
+                    }
+                    // Small delay between preloads
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }, 2000); // Wait 2 seconds after initial load
+        }
+
+        function updatePreloadStatus(sectionName, status) {
+            // Find the nav link for this section and add a visual indicator
+            const navLink = document.querySelector(`[data-section="${sectionName}"]`);
+            if (navLink) {
+                if (status === 'success') {
+                    navLink.style.position = 'relative';
+                    if (!navLink.querySelector('.preload-indicator')) {
+                        const indicator = document.createElement('span');
+                        indicator.className = 'preload-indicator';
+                        indicator.innerHTML = '●';
+                        indicator.style.cssText = `
+                            position: absolute;
+                            right: 0.5rem;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            color: var(--brazil-green);
+                            font-size: 0.75rem;
+                            opacity: 0.7;
+                        `;
+                        navLink.appendChild(indicator);
+                    }
+                }
+            }
+        }
+
         function setupMobileMenu() {
             const mobileMenuButton = document.getElementById('mobileMenuButton');
             const sidebar = document.getElementById('sidebar');
@@ -747,6 +867,27 @@
                     }
                 }
             });
+        }
+
+        async function loadSectionWithRetry(sectionName, maxRetries = 3, delay = 1000) {
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    await loadSection(sectionName);
+                    return; // Success, exit retry loop
+                } catch (error) {
+                    console.warn(`Attempt ${attempt}/${maxRetries} failed for section ${sectionName}:`, error.message);
+                    
+                    if (attempt === maxRetries) {
+                        // Last attempt failed, let loadSection handle the error display
+                        await loadSection(sectionName);
+                        return;
+                    }
+                    
+                    // Wait before retry
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 1.5; // Exponential backoff
+                }
+            }
         }
 
         async function loadSection(sectionName) {
@@ -768,44 +909,68 @@
             try {
                 let content = '';
                 
-                // Determine the base path for GitHub Pages and local development
-                let basePath = './';
-                
-                // GitHub Pages detection
-                if (window.location.hostname === 'anderson-ufrj.github.io' && 
-                    window.location.pathname.includes('/cidadao.ai/')) {
-                    basePath = '/cidadao.ai/docs/';
-                }
-                // Local development with subfolder
-                else if (window.location.pathname.includes('/docs/')) {
-                    basePath = './';
-                }
-                
-                // Check if running locally (file://) or on server
-                if (window.location.protocol === 'file:') {
-                    // For local file access, use XMLHttpRequest
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('GET', `sections/${sectionName}.html`, false);
-                    try {
-                        xhr.send();
-                        if (xhr.status === 200 || xhr.status === 0) {
-                            content = xhr.responseText;
-                        } else {
-                            throw new Error(`Local file not found: ${sectionName}.html`);
-                        }
-                    } catch (localError) {
-                        throw new Error(`Cannot load local file: ${localError.message}`);
-                    }
+                // Check cache first
+                if (window.sectionCache && window.sectionCache[sectionName]) {
+                    console.log(`📦 Loading from cache: ${sectionName}`);
+                    content = window.sectionCache[sectionName];
                 } else {
-                    // Use fetch for server-hosted files (GitHub Pages, local server, etc.)
-                    const sectionUrl = `${basePath}sections/${sectionName}.html`;
-                    const response = await fetch(sectionUrl);
+                    // Determine the correct base path for GitHub Pages or local
+                    let basePath = './';
                     
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status} - URL: ${sectionUrl}`);
+                    // Check if we're on GitHub Pages
+                    if (window.location.hostname === 'anderson-ufrj.github.io') {
+                        // We're on GitHub Pages - check if we're in a subdirectory
+                        if (window.location.pathname.includes('/cidadao.ai/')) {
+                            // We need to go up one level if we're in /docs/
+                            if (window.location.pathname.endsWith('/docs/') || window.location.pathname.endsWith('/docs/index.html')) {
+                                basePath = './';
+                            } else {
+                                basePath = '/cidadao.ai/docs/';
+                            }
+                        }
                     }
                     
-                    content = await response.text();
+                    // Check if running locally (file://) or on server
+                    if (window.location.protocol === 'file:') {
+                        // For local file access, use XMLHttpRequest
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('GET', `sections/${sectionName}.html`, false);
+                        try {
+                            xhr.send();
+                            if (xhr.status === 200 || xhr.status === 0) {
+                                content = xhr.responseText;
+                            } else {
+                                throw new Error(`Local file not found: ${sectionName}.html`);
+                            }
+                        } catch (localError) {
+                            throw new Error(`Cannot load local file: ${localError.message}`);
+                        }
+                    } else {
+                        // Use fetch for server-hosted files (GitHub Pages, local server, etc.)
+                        const sectionUrl = `${basePath}sections/${sectionName}.html`;
+                        
+                        // Debug logging
+                        console.log('Loading section:', {
+                            sectionName,
+                            basePath,
+                            sectionUrl,
+                            currentURL: window.location.href,
+                            hostname: window.location.hostname,
+                            pathname: window.location.pathname
+                        });
+                        
+                        const response = await fetch(sectionUrl);
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status} - URL: ${sectionUrl}`);
+                        }
+                        
+                        content = await response.text();
+                        
+                        // Cache the content for future use
+                        if (!window.sectionCache) window.sectionCache = {};
+                        window.sectionCache[sectionName] = content;
+                    }
                 }
                 
                 section.innerHTML = content;
@@ -815,18 +980,67 @@
                 
             } catch (error) {
                 console.error('Error loading section:', error);
+                
+                // Try to load a fallback section if the requested one fails
+                if (sectionName !== 'overview') {
+                    console.log('Attempting to load fallback section: overview');
+                    try {
+                        // Use the same base path logic
+                        let basePath = './';
+                        if (window.location.hostname === 'anderson-ufrj.github.io' && window.location.pathname.includes('/cidadao.ai/')) {
+                            if (window.location.pathname.endsWith('/docs/') || window.location.pathname.endsWith('/docs/index.html')) {
+                                basePath = './';
+                            } else {
+                                basePath = '/cidadao.ai/docs/';
+                            }
+                        }
+                        const fallbackResponse = await fetch(`${basePath}sections/overview.html`);
+                        if (fallbackResponse.ok) {
+                            const fallbackContent = await fallbackResponse.text();
+                            section.innerHTML = `
+                                <div class="error-message">
+                                    <h3>⚠️ Seção temporariamente indisponível</h3>
+                                    <p>A seção "${sectionName}" está sendo processada. Exibindo conteúdo alternativo.</p>
+                                    <p><small><strong>Debug:</strong> ${error.message}</small></p>
+                                    <br>
+                                    <button onclick="window.location.reload()" class="retry-button">🔄 Tentar novamente</button>
+                                </div>
+                                <hr>
+                                ${fallbackContent}
+                            `;
+                            reinitializeComponents(section);
+                            return;
+                        }
+                    } catch (fallbackError) {
+                        console.error('Fallback also failed:', fallbackError);
+                    }
+                }
+                
                 section.innerHTML = `
                     <div class="error-message">
                         <h3>❌ Erro ao carregar seção</h3>
                         <p>Não foi possível carregar o conteúdo da seção "${sectionName}". Verifique se o arquivo existe.</p>
                         <p><strong>Erro:</strong> ${error.message}</p>
+                        <div class="error-debug">
+                            <h4>🔍 Informações de Debug:</h4>
+                            <ul>
+                                <li><strong>URL atual:</strong> <code>${window.location.href}</code></li>
+                                <li><strong>Hostname:</strong> <code>${window.location.hostname}</code></li>
+                                <li><strong>Protocolo:</strong> <code>${window.location.protocol}</code></li>
+                                <li><strong>Caminho:</strong> <code>${window.location.pathname}</code></li>
+                                <li><strong>URL da seção:</strong> <code>./sections/${sectionName}.html</code></li>
+                                <li><strong>Timestamp:</strong> <code>${new Date().toISOString()}</code></li>
+                            </ul>
+                        </div>
                         <div class="error-help">
                             <h4>💡 Como resolver:</h4>
                             <ul>
-                                <li><strong>Para uso local:</strong> Execute um servidor web simples: <code>python -m http.server 8000</code></li>
-                                <li><strong>Para desenvolvimento:</strong> Use uma extensão "Live Server" no VS Code</li>
-                                <li><strong>Para visualização online:</strong> Acesse via Hugging Face Spaces</li>
+                                <li><strong>GitHub Pages:</strong> Aguarde alguns minutos para o deploy completar</li>
+                                <li><strong>Para uso local:</strong> Execute <code>python -m http.server 8000</code></li>
+                                <li><strong>Para desenvolvimento:</strong> Use extensão "Live Server" no VS Code</li>
+                                <li><strong>Cache:</strong> Tente <kbd>Ctrl+F5</kbd> para forçar reload</li>
                             </ul>
+                            <button onclick="window.location.reload()" class="retry-button" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--bg-accent); color: white; border: none; border-radius: 0.25rem; cursor: pointer;">🔄 Recarregar Página</button>
                         </div>
                     </div>
                 `;
@@ -890,6 +1104,7 @@
         }
 
         function updateLanguageElements(lang) {
+            // Update text content
             document.querySelectorAll('[data-pt][data-en]').forEach(element => {
                 if (lang === 'pt-BR') {
                     element.textContent = element.getAttribute('data-pt');
@@ -897,6 +1112,17 @@
                     element.textContent = element.getAttribute('data-en');
                 }
             });
+            
+            // Update tooltips (title attribute)
+            document.querySelectorAll('[data-title-pt][data-title-en]').forEach(element => {
+                if (lang === 'pt-BR') {
+                    element.setAttribute('title', element.getAttribute('data-title-pt'));
+                } else {
+                    element.setAttribute('title', element.getAttribute('data-title-en'));
+                }
+            });
+            
+            // Nav section titles are already handled by the first query selector
         }
 
         function enterPrintMode() {
