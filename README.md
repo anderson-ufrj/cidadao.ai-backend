@@ -7,7 +7,7 @@ sdk: gradio
 sdk_version: 5.0.0
 app_file: app.py
 pinned: true
-license: mit
+license: other
 language: pt
 tags:
 - transparency
@@ -42,7 +42,7 @@ widget:
 
 # 🇧🇷 Cidadão.AI - Plataforma de Inteligência para Transparência Pública
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: All Rights Reserved](https://img.shields.io/badge/License-All%20Rights%20Reserved-red.svg)](./LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.104.1-green.svg)](https://fastapi.tiangolo.com)
 [![Gradio](https://img.shields.io/badge/Gradio-4.44.1-orange.svg)](https://gradio.app)
@@ -579,8 +579,8 @@ pytest tests/security/ -v
 
 ## 📄 Licença e Citação
 
-### 📜 **Licença MIT**
-Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](LICENSE) para detalhes completos.
+### 📜 **Licença - Todos os Direitos Reservados**
+Este projeto está licenciado sob **Todos os Direitos Reservados** - veja o arquivo [LICENSE](LICENSE) para detalhes completos.
 
 ### 📚 **Como Citar**
 ```bibtex
@@ -604,7 +604,7 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 [![Hugging Face](https://img.shields.io/badge/🤗%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/neural-thinker/cidadao-ai)
 [![Model](https://img.shields.io/badge/🤖%20Model-Cidadão--GPT-purple)](https://huggingface.co/neural-thinker/cidadao-gpt)
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-black)](https://github.com/anderson-ufrj/cidadao.ai)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
+[![License](https://img.shields.io/badge/License-All%20Rights%20Reserved-red)](LICENSE)
 [![Python](https://img.shields.io/badge/Python-3.11+-blue)](https://python.org)
 
 ### *"A transparência é a luz que ilumina os caminhos da democracia"*

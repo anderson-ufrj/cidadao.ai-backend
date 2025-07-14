@@ -559,6 +559,197 @@
             background-color: var(--text-accent) !important;
             transform: translateY(-1px);
         }
+
+        /* Credits Button */
+        .credits-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--brazil-blue), var(--brazil-green));
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .credits-button:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .credits-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Credits Modal */
+        .credits-modal {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 350px;
+            max-height: 500px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            box-shadow: var(--shadow-xl);
+            z-index: 1001;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .credits-modal.open {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .credits-header {
+            background: linear-gradient(135deg, var(--brazil-blue), var(--brazil-green));
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .credits-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .credits-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-left: auto;
+            padding: 5px;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .credits-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .credits-content {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .credits-section {
+            margin-bottom: 20px;
+        }
+
+        .credits-section h4 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .credits-info {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .credits-info p {
+            margin: 5px 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .credits-info strong {
+            color: var(--text-primary);
+        }
+
+        .credits-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .credits-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .credits-link:hover {
+            background: var(--bg-accent);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .ifsul-logo {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+
+        .license-badge {
+            background: linear-gradient(135deg, var(--brazil-yellow), var(--brazil-green));
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        /* Mobile responsiveness for credits */
+        @media (max-width: 768px) {
+            .credits-modal {
+                width: calc(100vw - 40px);
+                right: 20px;
+                left: 20px;
+                bottom: 80px;
+            }
+            
+            .credits-button {
+                bottom: 15px;
+                right: 15px;
+                width: 45px;
+                height: 45px;
+                font-size: 1.3rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -699,6 +890,96 @@
         </main>
     </div>
 
+    <!-- Credits Button and Modal -->
+    <button class="credits-button" id="creditsButton" title="Sobre o Projeto">ℹ️</button>
+    
+    <div class="credits-modal" id="creditsModal">
+        <div class="credits-header">
+            <span>🎓</span>
+            <h3 data-pt="Sobre o Projeto" data-en="About the Project">Sobre o Projeto</h3>
+            <button class="credits-close" id="creditsClose">×</button>
+        </div>
+        
+        <div class="credits-content">
+            <!-- Developer Section -->
+            <div class="credits-section">
+                <h4>👨‍💻 <span data-pt="Desenvolvedor" data-en="Developer">Desenvolvedor</span></h4>
+                <div class="credits-info">
+                    <p><strong>Anderson Henrique da Silva</strong></p>
+                    <p data-pt="Bacharelado em Ciência da Computação" data-en="Bachelor in Computer Science">Bacharelado em Ciência da Computação</p>
+                    <p data-pt="IFSuldeminas Campus Muzambinho" data-en="IFSuldeminas Campus Muzambinho">IFSuldeminas Campus Muzambinho</p>
+                    
+                    <div class="credits-links">
+                        <a href="https://github.com/anderson-ufrj" target="_blank" class="credits-link">
+                            <span>🐙</span> GitHub
+                        </a>
+                        <a href="https://www.linkedin.com/in/anderson-h-silva95" target="_blank" class="credits-link">
+                            <span>💼</span> LinkedIn
+                        </a>
+                        <a href="mailto:andersonhs27@gmail.com" class="credits-link">
+                            <span>📧</span> Email
+                        </a>
+                        <a href="https://twitter.com/neural_thinker" target="_blank" class="credits-link">
+                            <span>🐦</span> Twitter
+                        </a>
+                        <a href="https://instagram.com/andhenrique_" target="_blank" class="credits-link">
+                            <span>📸</span> Instagram
+                        </a>
+                        <a href="https://facebook.com/andersonhs95" target="_blank" class="credits-link">
+                            <span>📘</span> Facebook
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Institution Section -->
+            <div class="credits-section">
+                <h4>🏛️ <span data-pt="Instituição" data-en="Institution">Instituição</span></h4>
+                <div class="credits-info">
+                    <img src="https://portal.muz.ifsuldeminas.edu.br/images/logo.png" alt="IFSuldeminas Logo" class="ifsul-logo" onerror="this.style.display='none'">
+                    <p><strong>Instituto Federal do Sul de Minas Gerais</strong></p>
+                    <p data-pt="Campus Muzambinho" data-en="Campus Muzambinho">Campus Muzambinho</p>
+                    <p data-pt="Curso: Bacharelado em Ciência da Computação" data-en="Course: Bachelor in Computer Science">Curso: Bacharelado em Ciência da Computação</p>
+                </div>
+            </div>
+
+            <!-- Project Section -->
+            <div class="credits-section">
+                <h4>🔍 <span data-pt="Projeto" data-en="Project">Projeto</span></h4>
+                <div class="credits-info">
+                    <p><strong>Cidadão.AI</strong></p>
+                    <p data-pt="Sistema Multi-Agente de IA para Transparência Pública" data-en="Multi-Agent AI System for Public Transparency">Sistema Multi-Agente de IA para Transparência Pública</p>
+                    
+                    <div class="credits-links">
+                        <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="credits-link">
+                            <span>📦</span> <span data-pt="Repositório" data-en="Repository">Repositório</span>
+                        </a>
+                        <a href="https://huggingface.co/spaces/neural-thinker/cidadao-ai" target="_blank" class="credits-link">
+                            <span>🤗</span> <span data-pt="Demo Online" data-en="Online Demo">Demo Online</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- License Section -->
+            <div class="credits-section">
+                <h4>📄 <span data-pt="Licença" data-en="License">Licença</span></h4>
+                <div class="license-badge">
+                    <span data-pt="Todos os direitos reservados" data-en="All rights reserved">Todos os direitos reservados</span>
+                </div>
+            </div>
+
+            <!-- Version Section -->
+            <div class="credits-section">
+                <h4>🏷️ <span data-pt="Versão" data-en="Version">Versão</span></h4>
+                <div class="credits-info">
+                    <p><strong>v1.0.0</strong></p>
+                    <p data-pt="Última atualização: Janeiro 2025" data-en="Last update: January 2025">Última atualização: Janeiro 2025</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
@@ -733,6 +1014,9 @@
             
             // Setup mobile menu
             setupMobileMenu();
+            
+            // Setup credits modal
+            setupCreditsModal();
         }
 
         function setupEventListeners() {
@@ -776,6 +1060,34 @@
                     mermaid.initialize({ theme: 'dark' });
                 } else {
                     mermaid.initialize({ theme: 'default' });
+                }
+            });
+        }
+
+        function setupCreditsModal() {
+            const creditsButton = document.getElementById('creditsButton');
+            const creditsModal = document.getElementById('creditsModal');
+            const creditsClose = document.getElementById('creditsClose');
+            
+            creditsButton.addEventListener('click', function() {
+                creditsModal.classList.add('open');
+            });
+            
+            creditsClose.addEventListener('click', function() {
+                creditsModal.classList.remove('open');
+            });
+            
+            // Close modal when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!creditsModal.contains(e.target) && !creditsButton.contains(e.target)) {
+                    creditsModal.classList.remove('open');
+                }
+            });
+            
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && creditsModal.classList.contains('open')) {
+                    creditsModal.classList.remove('open');
                 }
             });
         }
