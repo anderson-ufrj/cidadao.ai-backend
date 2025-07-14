@@ -379,7 +379,6 @@ if __name__ == "__main__":
         server_name="0.0.0.0",
         server_port=7860,
         share=False,
-        enable_queue=True,
         show_error=True,
         favicon_path=None,
         auth=None
