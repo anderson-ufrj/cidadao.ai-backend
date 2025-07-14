@@ -1,3 +1,45 @@
+---
+title: Cidadão.AI - Transparência Pública
+emoji: 🔍
+colorFrom: green
+colorTo: yellow
+sdk: gradio
+sdk_version: 5.0.0
+app_file: app.py
+pinned: true
+license: other
+language: pt
+tags:
+- transparency
+- government
+- corruption-detection
+- anomaly-detection
+- brazilian-government
+- public-spending
+- accountability
+- financial-analysis
+- legal-compliance
+- brazilian-public-data
+pipeline_tag: text-classification
+library_name: transformers
+base_model: gpt2
+datasets:
+- portal-da-transparencia
+- custom
+metrics:
+- accuracy
+- f1
+- precision
+- recall
+widget:
+- text: "Contrato emergencial no valor de R$ 25.000.000,00 para aquisição de equipamentos médicos dispensando licitação. Fornecedor: Empresa XYZ LTDA."
+  example_title: "Análise de Contrato Público"
+- text: "Despesa com diárias de viagem para servidor público em valor de R$ 150.000,00 para participação em evento internacional."
+  example_title: "Análise de Despesas"
+- text: "Licitação para compra de materiais de escritório no valor de R$ 50.000,00 com processo regular"
+  example_title: "Análise de Licitação"
+---
+
 # 🇧🇷 Cidadão.AI - Plataforma de Transparência Pública
 
 [![License: All Rights Reserved](https://img.shields.io/badge/License-All%20Rights%20Reserved-red.svg)](./LICENSE)
@@ -14,7 +56,7 @@ O **Cidadão.AI** é uma plataforma inovadora que utiliza inteligência artifici
 
 ### 🌐 **Aplicação Online**
 - **🤗 Hugging Face Spaces**: [cidadao-ai](https://huggingface.co/spaces/neural-thinker/cidadao-ai)
-- **📚 Documentação**: [Documentação Técnica](https://anderson-ufrj.github.io/cidadao.ai/docs/)
+- **📚 Documentação Técnica**: [anderson-ufrj.github.io/cidadao.ai](https://anderson-ufrj.github.io/cidadao.ai/)
 - **💻 Repositório**: [GitHub](https://github.com/anderson-ufrj/cidadao.ai)
 
 ### 🔧 **Instalação Local**
@@ -83,7 +125,7 @@ python apps/gradio_app.py
 - [🔌 Referência da API](docs/api-reference.md)
 
 ### **Documentação Completa**
-- [📚 Documentação Técnica Completa](https://anderson-ufrj.github.io/cidadao.ai/docs/)
+- [📚 Documentação Técnica Completa](https://anderson-ufrj.github.io/cidadao.ai/)
 
 ## 🧪 Testes
 
@@ -171,6 +213,6 @@ Este projeto está sob licença **Todos os Direitos Reservados**. Veja o arquivo
 
 ## 🇧🇷 Feito com ❤️ para fortalecer a democracia brasileira
 
-**🚀 [Experimente Agora](https://huggingface.co/spaces/neural-thinker/cidadao-ai) | 📚 [Documentação](https://anderson-ufrj.github.io/cidadao.ai/docs/) | 💻 [Código](https://github.com/anderson-ufrj/cidadao.ai)**
+**🚀 [Experimente Agora](https://huggingface.co/spaces/neural-thinker/cidadao-ai) | 📚 [Documentação](https://anderson-ufrj.github.io/cidadao.ai/) | 💻 [Código](https://github.com/anderson-ufrj/cidadao.ai)**
 
 </div>
