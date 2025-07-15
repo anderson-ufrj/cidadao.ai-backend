@@ -297,5 +297,84 @@ window.navigateToChat = navigateToChat;
 window.removeGradioFooter = removeGradioFooter;
 
 // Initialize app when script loads
-console.log('Cidadão.AI JavaScript loaded');
-initializeApp();
+console.log('🚀 Cidadão.AI JavaScript loaded');
+console.log('🔍 SHERLOCK: Checking if functions are accessible...');
+console.log('🔍 toggleTheme exists?', typeof toggleTheme);
+console.log('🔍 initTheme exists?', typeof initTheme);
+
+// Try to initialize immediately
+try {
+    initializeApp();
+    console.log('✅ SHERLOCK: initializeApp() executed successfully');
+} catch (error) {
+    console.error('❌ SHERLOCK: Error in initializeApp():', error);
+}
+
+// Add a manual test function
+window.testDarkMode = function() {
+    console.log('🧪 SHERLOCK: Manual test function called');
+    document.body.style.backgroundColor = '#0F172A';
+    document.body.style.color = '#F1F5F9';
+    console.log('🧪 SHERLOCK: Manual dark mode applied');
+};
+
+// Enhanced event listener with multiple attempts
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎯 SHERLOCK: DOM loaded, searching for buttons...');
+    
+    // Function to attach event listeners
+    function attachEventListeners() {
+        const buttons = document.querySelectorAll('.theme-toggle');
+        console.log('🎯 SHERLOCK: Found theme toggle buttons:', buttons.length);
+        
+        buttons.forEach((button, index) => {
+            console.log(`🎯 SHERLOCK: Button ${index}:`, button);
+            console.log(`🎯 SHERLOCK: Button ${index} onclick:`, button.onclick);
+            
+            // Remove existing onclick to avoid conflicts
+            button.removeAttribute('onclick');
+            
+            // Add direct event listener as primary method
+            button.addEventListener('click', function(e) {
+                console.log('🎯 SHERLOCK: Direct click event fired!');
+                e.preventDefault();
+                e.stopPropagation();
+                toggleTheme();
+            });
+            
+            // Also set onclick as backup
+            button.onclick = function(e) {
+                console.log('🎯 SHERLOCK: Onclick backup fired!');
+                e.preventDefault();
+                e.stopPropagation();
+                toggleTheme();
+            };
+        });
+    }
+    
+    // Try multiple times with different delays
+    setTimeout(attachEventListeners, 100);
+    setTimeout(attachEventListeners, 500);
+    setTimeout(attachEventListeners, 1000);
+    setTimeout(attachEventListeners, 2000);
+    setTimeout(attachEventListeners, 3000);
+    
+    // Also use MutationObserver to catch dynamically added buttons
+    const observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach(function(node) {
+                    if (node.nodeType === 1 && (node.classList.contains('theme-toggle') || node.querySelector('.theme-toggle'))) {
+                        console.log('🎯 SHERLOCK: New theme toggle button detected!');
+                        setTimeout(attachEventListeners, 100);
+                    }
+                });
+            }
+        });
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+});

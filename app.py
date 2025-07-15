@@ -179,8 +179,8 @@ def create_landing_page():
         </div>
     </div>
     
-    <!-- Modal de Créditos Aprimorado -->
-    <div id="creditsModal" class="modal-overlay" onclick="handleModalClick(event)" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 2000; justify-content: center; align-items: center;">
+    <!-- Modal de Créditos Centralizado -->
+    <div id="creditsModal" class="modal-overlay" onclick="handleModalClick(event)" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); z-index: 2000; justify-content: center; align-items: center;">
         <div class="modal-content" style="background: var(--bg-primary); border-radius: 20px; padding: 2.5rem; max-width: 700px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); position: relative;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <h2 style="color: var(--text-primary); margin: 0; font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
