@@ -249,6 +249,7 @@ app_transparency_api.py
 test_api_*.py
 .env.example# Arquivos redundantes e desnecessários
 .old/
+.mockups/
 *.old
 *_backup.*
 *_old.*
