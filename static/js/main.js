@@ -263,20 +263,124 @@ function handleHelpModalClick(event) {
 
 // Navigation functions
 function navigateToTab(tabName) {
-    const tabs = document.querySelectorAll('.gradio-container .tabs button');
-    tabs.forEach((tab, index) => {
-        if (tab.textContent.includes(tabName)) {
-            tab.click();
+    console.log('🧭 Navigating to tab:', tabName);
+    
+    // Tentar múltiplos seletores para encontrar as abas do Gradio
+    const selectors = [
+        '.gradio-container .tab-nav button',
+        '.gradio-container [role="tab"]',
+        '.gradio-container .tabs button',
+        '.gradio-container button[role="tab"]',
+        '.gr-tab-nav button'
+    ];
+    
+    for (const selector of selectors) {
+        const tabs = document.querySelectorAll(selector);
+        console.log(`🔍 Found ${tabs.length} tabs with selector: ${selector}`);
+        
+        for (const tab of tabs) {
+            console.log('📝 Tab text:', tab.textContent);
+            if (tab.textContent.includes(tabName)) {
+                console.log('✅ Found matching tab, clicking...');
+                tab.click();
+                return true;
+            }
         }
-    });
+    }
+    
+    console.log('❌ No matching tab found for:', tabName);
+    return false;
 }
 
 function navigateToAdvanced() {
-    navigateToTab('Consulta Avançada');
+    console.log('🎯 Navigate to Advanced called');
+    
+    // Tentar imediatamente
+    if (navigateToTab('Consulta Avançada') || navigateToTab('🔍 Consulta Avançada') || navigateToTab('Avançada')) {
+        return;
+    }
+    
+    // Se não encontrou, aguardar o Gradio carregar
+    console.log('⏳ Waiting for Gradio to load...');
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    const tryNavigate = () => {
+        attempts++;
+        console.log(`🔄 Attempt ${attempts}/${maxAttempts}`);
+        
+        if (navigateToTab('Consulta Avançada') || navigateToTab('🔍 Consulta Avançada') || navigateToTab('Avançada')) {
+            console.log('✅ Navigation successful!');
+            return;
+        }
+        
+        if (attempts < maxAttempts) {
+            setTimeout(tryNavigate, 500);
+        } else {
+            console.log('❌ Navigation failed after all attempts');
+        }
+    };
+    
+    setTimeout(tryNavigate, 500);
 }
 
 function navigateToChat() {
-    navigateToTab('Pergunte ao Modelo');
+    console.log('💬 Navigate to Chat called');
+    
+    // Tentar imediatamente
+    if (navigateToTab('Pergunte ao Modelo') || navigateToTab('💬 Pergunte ao Modelo') || navigateToTab('Modelo')) {
+        return;
+    }
+    
+    // Se não encontrou, aguardar o Gradio carregar
+    console.log('⏳ Waiting for Gradio to load...');
+    let attempts = 0;
+    const maxAttempts = 10;
+    
+    const tryNavigate = () => {
+        attempts++;
+        console.log(`🔄 Attempt ${attempts}/${maxAttempts}`);
+        
+        if (navigateToTab('Pergunte ao Modelo') || navigateToTab('💬 Pergunte ao Modelo') || navigateToTab('Modelo')) {
+            console.log('✅ Navigation successful!');
+            return;
+        }
+        
+        if (attempts < maxAttempts) {
+            setTimeout(tryNavigate, 500);
+        } else {
+            console.log('❌ Navigation failed after all attempts');
+        }
+    };
+    
+    setTimeout(tryNavigate, 500);
+}
+
+// Debug function to inspect tab structure
+function debugTabs() {
+    console.log('🔍 DEBUGGING TABS STRUCTURE');
+    
+    const allButtons = document.querySelectorAll('button');
+    console.log(`Found ${allButtons.length} buttons total`);
+    
+    allButtons.forEach((button, index) => {
+        if (button.textContent.includes('Consulta') || button.textContent.includes('Pergunte') || button.textContent.includes('Cidadão')) {
+            console.log(`Button ${index}:`, {
+                text: button.textContent,
+                classes: button.className,
+                role: button.getAttribute('role'),
+                parent: button.parentElement?.className
+            });
+        }
+    });
+    
+    // Tentar encontrar container das abas
+    const gradioContainer = document.querySelector('.gradio-container');
+    if (gradioContainer) {
+        console.log('Gradio container found');
+        const tabs = gradioContainer.querySelectorAll('[role="tab"], .tab, .tab-nav button, button');
+        console.log(`Found ${tabs.length} potential tabs in gradio container`);
+    }
 }
 
 // Global functions accessible from anywhere
@@ -295,6 +399,7 @@ window.handleHelpModalClick = handleHelpModalClick;
 window.navigateToAdvanced = navigateToAdvanced;
 window.navigateToChat = navigateToChat;
 window.removeGradioFooter = removeGradioFooter;
+window.debugTabs = debugTabs;
 
 // Initialize app when script loads
 console.log('🚀 Cidadão.AI JavaScript loaded');
