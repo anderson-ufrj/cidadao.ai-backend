@@ -184,13 +184,13 @@ Por favor, forneça uma análise completa seguindo o formato estabelecido."""
     except Exception as e:
         return f"❌ **Erro na análise**: {str(e)}\\n\\nTente novamente em alguns instantes."
 
-def chat_with_ai(message: str, history: List[Dict]) -> Tuple[str, List[Dict]]:
+def chat_with_ai(message: str, history: List[List[str]]) -> Tuple[str, List[List[str]]]:
     """
-    Chat conversacional com a IA
+    Chat conversacional com a IA - Formato Gradio compatível
     """
     # Inicializar história se vazia
     if not history:
-        history = [{"role": "assistant", "content": """👋 Olá! Sou o **Cidadão.AI**, sua assistente especializada em transparência pública brasileira.
+        welcome_msg = """👋 Olá! Sou o **Cidadão.AI**, sua assistente especializada em transparência pública brasileira.
 
 🔍 **Posso ajudar você com:**
 - Análise de contratos e licitações
@@ -198,7 +198,8 @@ def chat_with_ai(message: str, history: List[Dict]) -> Tuple[str, List[Dict]]:
 - Detecção de irregularidades
 - Orientações sobre compliance público
 
-Como posso ajudar você hoje?"""}]
+Como posso ajudar você hoje?"""
+        history = [["", welcome_msg]]
     
     if not message.strip():
         return "", history
@@ -207,16 +208,14 @@ Como posso ajudar você hoje?"""}]
     system_prompt = """Você é o Cidadão.AI, assistente especializada em transparência pública brasileira."""
 
     try:
+        # Construir contexto do histórico (formato [user, assistant])
         context_messages = []
+        for chat_pair in history[-5:]:  # Últimas 5 conversas
+            if len(chat_pair) >= 2 and chat_pair[0]:  # Se tem pergunta do usuário
+                context_messages.append(f"Usuário: {chat_pair[0]}")
+                context_messages.append(f"Cidadão.AI: {chat_pair[1]}")
         
-        # Adicionar histórico recente
-        for msg in history[-10:]:
-            if msg["role"] == "user":
-                context_messages.append(f"Usuário: {msg['content']}")
-            elif msg["role"] == "assistant":
-                context_messages.append(f"Cidadão.AI: {msg['content']}")
-        
-        if len(context_messages) > 1:  # Mais que só a mensagem inicial
+        if len(context_messages) > 2:  # Mais que só a mensagem inicial
             context = "\\n".join(context_messages)
             full_prompt = f"""CONTEXTO DA CONVERSA:
 {context}
@@ -231,16 +230,14 @@ Responda como Cidadão.AI, assistente de transparência pública:"""
         
         ai_response = call_groq_api(full_prompt, system_prompt)
         
-        # Atualizar histórico
-        history.append({"role": "user", "content": message})
-        history.append({"role": "assistant", "content": ai_response})
+        # Adicionar nova conversa no formato [user, assistant]
+        history.append([message, ai_response])
         
         return "", history
         
     except Exception as e:
         error_msg = f"❌ Erro: {str(e)}"
-        history.append({"role": "user", "content": message})
-        history.append({"role": "assistant", "content": error_msg})
+        history.append([message, error_msg])
         return "", history
 
 def get_status_info() -> Tuple[str, str]:
@@ -325,7 +322,6 @@ Insira um documento ou texto ao lado e clique em "Analisar" para receber anális
                 chatbot = gr.Chatbot(
                     label="Conversa com Cidadão.AI",
                     height=500,
-                    type="messages",
                     elem_classes=["chat-container"]
                 )
                 
