@@ -102,12 +102,47 @@ def search_data(data_type, year, search_term):
         </div>
         """
     
-    # Header simples
+    # Header do dashboard com resultados
     html = f"""
-    <div style="padding: 1.5rem;">
-        <h3 style="margin-bottom: 1.5rem;">Resultados da busca</h3>
-        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Busca por: "{search_term}" - {data_type} ({year})</p>
-        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Encontrados: {len(results)} registros</p>
+    <div class="dashboard-results">
+        <div class="results-header">
+            <h3>📊 Resultados da Investigação</h3>
+            <div class="search-info">
+                <div class="search-badge">
+                    <span class="badge-icon">🔍</span>
+                    <span>"{search_term}"</span>
+                </div>
+                <div class="search-meta">
+                    <span>{data_type} • {year} • {len(results)} registros</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="results-summary">
+            <div class="summary-card">
+                <div class="summary-icon">📈</div>
+                <div class="summary-content">
+                    <h4>Registros Encontrados</h4>
+                    <p>{len(results)}</p>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon">💰</div>
+                <div class="summary-content">
+                    <h4>Valor Total</h4>
+                    <p>Calculando...</p>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon">🏢</div>
+                <div class="summary-content">
+                    <h4>Empresas Únicas</h4>
+                    <p>Analisando...</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="results-content">
     """
     
     # Processar resultados reais da API
@@ -125,23 +160,67 @@ def search_data(data_type, year, search_term):
             valor_fmt = str(valor)
         
         html += f"""
-        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
-            <h4 style="color: var(--primary-blue); margin: 0 0 0.5rem 0;">{data_type} #{numero}</h4>
-            <p><strong>Empresa/Favorecido:</strong> {empresa}</p>
-            <p><strong>Valor:</strong> {valor_fmt}</p>
-            <p><strong>Objeto:</strong> {objeto[:100]}{'...' if len(str(objeto)) > 100 else ''}</p>
-            <details style="margin-top: 0.5rem;">
-                <summary style="cursor: pointer; color: var(--primary-blue);">Ver dados completos</summary>
-                <pre style="background: var(--bg-secondary); padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.8rem;">{json.dumps(item, indent=2, ensure_ascii=False)}</pre>
-            </details>
+        <div class="result-card">
+            <div class="result-header">
+                <div class="result-title">
+                    <h4>{data_type} #{numero}</h4>
+                    <span class="result-badge">Público</span>
+                </div>
+                <div class="result-value">{valor_fmt}</div>
+            </div>
+            
+            <div class="result-body">
+                <div class="result-field">
+                    <strong>Empresa/Favorecido:</strong>
+                    <span>{empresa}</span>
+                </div>
+                <div class="result-field">
+                    <strong>Objeto:</strong>
+                    <span>{objeto[:150]}{'...' if len(str(objeto)) > 150 else ''}</span>
+                </div>
+            </div>
+            
+            <div class="result-actions">
+                <button class="btn-action" onclick="analyzeRecord('{numero}')">
+                    <span>🔍</span> Analisar
+                </button>
+                <details class="result-details">
+                    <summary>💾 Dados Técnicos</summary>
+                    <pre class="json-data">{json.dumps(item, indent=2, ensure_ascii=False)}</pre>
+                </details>
+            </div>
         </div>
         """
     
     html += """
+        </div>
     </div>
     """
     
     return html
+
+def create_advanced_search_page():
+    """Página de consulta avançada baseada no mockup 2"""
+    return """
+    <div class="header">
+        <div class="logo">
+            <span style="font-size: 2rem;">🇧🇷</span>
+            <span class="logo-text">Cidadão.AI</span>
+        </div>
+        <div class="header-actions">
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn-2">
+                <span>🌙</span> Modo Escuro
+            </button>
+        </div>
+    </div>
+    
+    <div class="advanced-search-container">
+        <div class="page-title">
+            <h1>🔍 Consulta Avançada</h1>
+            <p>Dashboard inteligente para investigação de dados públicos</p>
+        </div>
+    </div>
+    """
 
 def create_landing_page():
     """Landing page baseada no mockup 1"""
@@ -444,34 +523,34 @@ def create_interface():
         
         # Aba de consulta avançada
         with gr.Tab("🔍 Consulta Avançada"):
-            gr.HTML("""
-                <div class="header">
-                    <div class="logo">
-                        <span style="font-size: 2rem;">🇧🇷</span>
-                        <span class="logo-text">Cidadão.AI</span>
-                    </div>
-                    <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn-2">
-                        <span>🌙</span> Modo Escuro
-                    </button>
-                </div>
-                <div style="padding-top: 100px;">
-                    <h2 style="text-align: center; margin-bottom: 2rem;">Consulta Avançada</h2>
-                </div>
-            """)
+            gr.HTML(create_advanced_search_page())
             
             with gr.Row():
+                # Sidebar lateral com menu e filtros
                 with gr.Column(scale=1):
                     gr.HTML("""
-                    <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color);">
-                        <h3 style="margin-bottom: 1.5rem;">Filtros</h3>
+                    <div class="sidebar-container">
+                        <div class="sidebar-header">
+                            <h3>🎛️ Painel de Controle</h3>
+                        </div>
+                        
+                        <div class="sidebar-section">
+                            <h4>📊 Tipo de Análise</h4>
+                        </div>
                     </div>
                     """)
                     
                     data_type = gr.Radio(
-                        label="Tipo de Dados",
+                        label="Fonte de Dados",
                         choices=["Contratos Públicos", "Despesas Orçamentárias", "Licitações e Pregões"],
                         value="Contratos Públicos"
                     )
+                    
+                    gr.HTML("""
+                    <div class="sidebar-section">
+                        <h4>📅 Período</h4>
+                    </div>
+                    """)
                     
                     year = gr.Number(
                         label="Ano",
@@ -480,20 +559,65 @@ def create_interface():
                         maximum=2024
                     )
                     
+                    gr.HTML("""
+                    <div class="sidebar-section">
+                        <h4>🔍 Busca</h4>
+                    </div>
+                    """)
+                    
                     search_term = gr.Textbox(
-                        label="Busca",
-                        placeholder="Digite sua consulta...",
-                        lines=2
+                        label="Termo de Busca",
+                        placeholder="Ex: 'contrato suspeito', 'empresa XYZ'...",
+                        lines=3
                     )
                     
-                    search_btn = gr.Button("Buscar", variant="primary")
+                    search_btn = gr.Button("🚀 Iniciar Investigação", variant="primary", size="lg")
                 
-                with gr.Column(scale=2):
+                # Dashboard central
+                with gr.Column(scale=3):
+                    gr.HTML("""
+                    <div class="dashboard-container">
+                        <div class="dashboard-header">
+                            <h2>📈 Dashboard de Análise</h2>
+                            <p>Área principal para visualização dos resultados da investigação</p>
+                        </div>
+                    </div>
+                    """)
+                    
                     results = gr.HTML(
                         value="""
-                        <div style="background: var(--bg-secondary); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); min-height: 400px;">
-                            <h3 style="margin-bottom: 1.5rem;">Resultados</h3>
-                            <p style="color: var(--text-secondary);">Digite uma consulta e clique em "Buscar" para ver os resultados</p>
+                        <div class="dashboard-main">
+                            <div class="dashboard-welcome">
+                                <div class="welcome-icon">🎯</div>
+                                <h3>Bem-vindo ao Dashboard de Transparência</h3>
+                                <p>Configure os filtros na lateral e inicie sua investigação para ver os resultados aqui.</p>
+                                
+                                <div class="dashboard-stats">
+                                    <div class="stat-card">
+                                        <div class="stat-icon">📊</div>
+                                        <div class="stat-content">
+                                            <h4>Dados Disponíveis</h4>
+                                            <p>Portal da Transparência</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="stat-card">
+                                        <div class="stat-icon">🤖</div>
+                                        <div class="stat-content">
+                                            <h4>IA Especializada</h4>
+                                            <p>Análise Inteligente</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="stat-card">
+                                        <div class="stat-icon">📈</div>
+                                        <div class="stat-content">
+                                            <h4>Relatórios</h4>
+                                            <p>Insights Automatizados</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         """
                     )
