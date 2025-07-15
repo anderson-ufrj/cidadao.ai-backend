@@ -10,6 +10,8 @@ import json
 import time
 import os
 import logging
+import asyncio
+import httpx
 from typing import List, Dict, Any, Tuple, Optional
 from datetime import datetime
 
@@ -20,6 +22,7 @@ logger = logging.getLogger(__name__)
 # Configuração da API
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 HF_TOKEN = os.getenv("HF_TOKEN")
+TRANSPARENCY_API_KEY = os.getenv("TRANSPARENCY_API_KEY")
 
 # CSS moderno com cores verde vibrante + amarelo dourado
 custom_css = """
@@ -449,6 +452,33 @@ body {
 }
 """
 
+async def call_transparency_api(endpoint: str, params: dict = None) -> dict:
+    """
+    Chamada para a API do Portal da Transparência
+    """
+    if not TRANSPARENCY_API_KEY:
+        return {"error": "API Key não configurada"}
+    
+    try:
+        base_url = "https://api.portaldatransparencia.gov.br/api-de-dados"
+        url = f"{base_url}/{endpoint}"
+        
+        headers = {
+            "chave-api-dados": TRANSPARENCY_API_KEY,
+            "Content-Type": "application/json"
+        }
+        
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=headers, params=params or {}, timeout=30)
+            
+            if response.status_code == 200:
+                return {"success": True, "data": response.json()}
+            else:
+                return {"error": f"Erro na API: {response.status_code} - {response.text}"}
+                
+    except Exception as e:
+        return {"error": f"Erro de conexão: {str(e)}"}
+
 def call_groq_api(message: str, system_prompt: str = None) -> str:
     """
     Chamada para a API do Groq
@@ -478,7 +508,7 @@ def call_groq_api(message: str, system_prompt: str = None) -> str:
         })
         
         data = {
-            "model": "mixtral-8x7b-32768",
+            "model": "meta-llama/llama-3.1-8b-instant",
             "messages": messages,
             "temperature": 0.7,
             "max_tokens": 2048,
@@ -500,19 +530,25 @@ def chatbot():
     """
     Função para abrir o chatbot
     """
-    return gr.update(visible=False), gr.update(visible=True)
+    return gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)
 
 def dashboard():
     """
     Função para abrir o dashboard
     """
-    return gr.update(visible=False), gr.update(visible=True)
+    return gr.update(visible=False), gr.update(visible=True), gr.update(visible=False)
+
+def api_portal():
+    """
+    Função para abrir a API do portal
+    """
+    return gr.update(visible=False), gr.update(visible=False), gr.update(visible=True)
 
 def back_to_home():
     """
     Função para voltar à landing page
     """
-    return gr.update(visible=True), gr.update(visible=False)
+    return gr.update(visible=True), gr.update(visible=False), gr.update(visible=False)
 
 def analyze_transparency_text(text: str) -> str:
     """
@@ -605,14 +641,128 @@ Responda como Cidadão.AI:"""
         history.append([message, error_msg])
         return "", history
 
+def query_transparency_api(query_type: str, param1: str = "", param2: str = "", param3: str = "") -> str:
+    """
+    Consulta à API do Portal da Transparência
+    """
+    if not TRANSPARENCY_API_KEY:
+        return "❌ **API Key não configurada**\n\nConfigure a chave TRANSPARENCY_API_KEY no ambiente."
+    
+    try:
+        # Executar consulta assíncrona
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        
+        params = {}
+        endpoint = ""
+        
+        if query_type == "contratos":
+            endpoint = "contratos"
+            if param1:  # Código do órgão
+                params["codigoOrgao"] = param1
+            if param2:  # Ano
+                params["ano"] = param2
+            params["tamanhoPagina"] = "10"
+            
+        elif query_type == "despesas":
+            endpoint = "despesas"
+            if param1:  # Código do órgão
+                params["codigoOrgao"] = param1
+            if param2:  # Ano
+                params["ano"] = param2
+            if param3:  # Mês
+                params["mes"] = param3
+            params["tamanhoPagina"] = "10"
+            
+        elif query_type == "licitacoes":
+            endpoint = "licitacoes"
+            if param1:  # Código do órgão
+                params["codigoOrgao"] = param1
+            if param2:  # Ano
+                params["ano"] = param2
+            params["tamanhoPagina"] = "10"
+            
+        elif query_type == "servidores":
+            endpoint = "servidores"
+            if param1:  # Nome do servidor
+                params["nome"] = param1
+            if param2:  # Órgão
+                params["orgao"] = param2
+            params["tamanhoPagina"] = "10"
+        
+        # Fazer chamada à API
+        result = loop.run_until_complete(call_transparency_api(endpoint, params))
+        loop.close()
+        
+        if "error" in result:
+            return f"❌ **Erro na consulta**: {result['error']}"
+        
+        data = result.get("data", [])
+        if not data:
+            return "ℹ️ **Nenhum resultado encontrado**\n\nTente ajustar os parâmetros de busca."
+        
+        # Formatar resultados
+        formatted_result = f"✅ **Consulta realizada com sucesso!**\n\n"
+        formatted_result += f"🔍 **Tipo**: {query_type.capitalize()}\n"
+        formatted_result += f"📊 **Resultados encontrados**: {len(data)}\n\n"
+        
+        # Exibir primeiros resultados
+        for i, item in enumerate(data[:5], 1):
+            formatted_result += f"### 📋 **Resultado {i}**\n"
+            
+            if query_type == "contratos":
+                formatted_result += f"**Objeto**: {item.get('objeto', 'N/A')}\n"
+                formatted_result += f"**Fornecedor**: {item.get('fornecedor', {}).get('nome', 'N/A')}\n"
+                formatted_result += f"**Valor**: R$ {item.get('valor', 'N/A')}\n"
+                formatted_result += f"**Data**: {item.get('dataAssinatura', 'N/A')}\n"
+                
+            elif query_type == "despesas":
+                formatted_result += f"**Favorecido**: {item.get('favorecido', {}).get('nome', 'N/A')}\n"
+                formatted_result += f"**Valor**: R$ {item.get('valor', 'N/A')}\n"
+                formatted_result += f"**Data**: {item.get('data', 'N/A')}\n"
+                formatted_result += f"**Função**: {item.get('funcao', {}).get('nome', 'N/A')}\n"
+                
+            elif query_type == "licitacoes":
+                formatted_result += f"**Objeto**: {item.get('objeto', 'N/A')}\n"
+                formatted_result += f"**Modalidade**: {item.get('modalidade', {}).get('nome', 'N/A')}\n"
+                formatted_result += f"**Valor**: R$ {item.get('valor', 'N/A')}\n"
+                formatted_result += f"**Data**: {item.get('dataAbertura', 'N/A')}\n"
+                
+            elif query_type == "servidores":
+                formatted_result += f"**Nome**: {item.get('nome', 'N/A')}\n"
+                formatted_result += f"**Órgão**: {item.get('orgao', {}).get('nome', 'N/A')}\n"
+                formatted_result += f"**Cargo**: {item.get('cargo', 'N/A')}\n"
+                formatted_result += f"**Remuneração**: R$ {item.get('remuneracao', 'N/A')}\n"
+            
+            formatted_result += "\n---\n\n"
+        
+        if len(data) > 5:
+            formatted_result += f"*... e mais {len(data) - 5} resultados encontrados*\n\n"
+        
+        formatted_result += "💡 **Dica**: Refine sua busca para obter resultados mais específicos."
+        
+        return formatted_result
+        
+    except Exception as e:
+        return f"❌ **Erro inesperado**: {str(e)}\n\nTente novamente em alguns instantes."
+
 def get_status_info() -> str:
     """
     Status do sistema
     """
+    status_parts = []
+    
     if GROQ_API_KEY:
-        return "Sistema Online - IA Ativa"
+        status_parts.append("IA Ativa")
     else:
-        return "Sistema Online - IA Limitada"
+        status_parts.append("IA Limitada")
+    
+    if TRANSPARENCY_API_KEY:
+        status_parts.append("API Transparência Ativa")
+    else:
+        status_parts.append("API Transparência Limitada")
+    
+    return f"Sistema Online - {' | '.join(status_parts)}"
 
 def create_main_interface():
     """
@@ -644,6 +794,7 @@ def create_main_interface():
             with gr.Column():
                 chat_btn = gr.Button("🧠 Conversar com nosso modelo", elem_classes=["primary-button", "btn-chat"], size="lg")
                 dashboard_btn = gr.Button("📊 Ferramenta de análise avançada", elem_classes=["primary-button", "btn-dashboard"], size="lg")
+                api_btn = gr.Button("🔍 Consultar API Portal da Transparência", elem_classes=["primary-button", "btn-dashboard"], size="lg")
             
             # Seção de recursos
             gr.HTML("""
@@ -749,6 +900,119 @@ def create_main_interface():
             
             back_btn_2 = gr.Button("← Voltar ao Início", variant="secondary")
         
+        # API Portal da Transparência Interface
+        with gr.Column(visible=False) as api_interface:
+            gr.HTML("""
+            <div style="text-align: center; padding: 2rem;">
+                <h2 style="color: #16a34a; margin-bottom: 1rem;">🔍 API Portal da Transparência</h2>
+                <p style="color: #6b7280;">Consulte dados reais do governo brasileiro em tempo real</p>
+            </div>
+            """)
+            
+            with gr.Tabs():
+                with gr.Tab("📋 Contratos"):
+                    gr.Markdown("""
+                    ### Consultar Contratos Públicos
+                    Busque contratos governamentais por órgão e período.
+                    """)
+                    
+                    with gr.Row():
+                        contracts_organ = gr.Textbox(
+                            label="Código do Órgão",
+                            placeholder="Ex: 20000 (Presidência da República)",
+                            value="20000"
+                        )
+                        contracts_year = gr.Textbox(
+                            label="Ano",
+                            placeholder="Ex: 2024",
+                            value="2024"
+                        )
+                    
+                    contracts_btn = gr.Button("🔍 Consultar Contratos", variant="primary")
+                    contracts_output = gr.Markdown(
+                        label="Resultados",
+                        value="### 📊 Pronto para consultar contratos\n\nDigite o código do órgão e ano para buscar contratos públicos."
+                    )
+                
+                with gr.Tab("💰 Despesas"):
+                    gr.Markdown("""
+                    ### Consultar Despesas Públicas
+                    Busque despesas governamentais por órgão, ano e mês.
+                    """)
+                    
+                    with gr.Row():
+                        expenses_organ = gr.Textbox(
+                            label="Código do Órgão",
+                            placeholder="Ex: 20000",
+                            value="20000"
+                        )
+                        expenses_year = gr.Textbox(
+                            label="Ano",
+                            placeholder="Ex: 2024",
+                            value="2024"
+                        )
+                        expenses_month = gr.Textbox(
+                            label="Mês",
+                            placeholder="Ex: 01",
+                            value="01"
+                        )
+                    
+                    expenses_btn = gr.Button("💰 Consultar Despesas", variant="primary")
+                    expenses_output = gr.Markdown(
+                        label="Resultados",
+                        value="### 📊 Pronto para consultar despesas\n\nDigite o código do órgão, ano e mês para buscar despesas públicas."
+                    )
+                
+                with gr.Tab("🏛️ Licitações"):
+                    gr.Markdown("""
+                    ### Consultar Licitações
+                    Busque licitações públicas por órgão e período.
+                    """)
+                    
+                    with gr.Row():
+                        biddings_organ = gr.Textbox(
+                            label="Código do Órgão",
+                            placeholder="Ex: 20000",
+                            value="20000"
+                        )
+                        biddings_year = gr.Textbox(
+                            label="Ano",
+                            placeholder="Ex: 2024",
+                            value="2024"
+                        )
+                    
+                    biddings_btn = gr.Button("🏛️ Consultar Licitações", variant="primary")
+                    biddings_output = gr.Markdown(
+                        label="Resultados",
+                        value="### 📊 Pronto para consultar licitações\n\nDigite o código do órgão e ano para buscar licitações públicas."
+                    )
+                
+                with gr.Tab("👥 Servidores"):
+                    gr.Markdown("""
+                    ### Consultar Servidores Públicos
+                    Busque informações sobre servidores públicos federais.
+                    """)
+                    
+                    with gr.Row():
+                        servers_name = gr.Textbox(
+                            label="Nome do Servidor",
+                            placeholder="Ex: João Silva",
+                            value=""
+                        )
+                        servers_organ = gr.Textbox(
+                            label="Órgão",
+                            placeholder="Ex: Presidência da República",
+                            value=""
+                        )
+                    
+                    servers_btn = gr.Button("👥 Consultar Servidores", variant="primary")
+                    servers_output = gr.Markdown(
+                        label="Resultados",
+                        value="### 📊 Pronto para consultar servidores\n\nDigite o nome do servidor ou órgão para buscar informações."
+                    )
+            
+            back_btn_3 = gr.Button("← Voltar ao Início", variant="secondary")
+        
         # Botão flutuante de docs
         gr.HTML("""
         <a href="https://docs.cidadao.ai" class="docs-button" target="_blank" title="Documentação">
@@ -760,25 +1024,37 @@ def create_main_interface():
         chat_btn.click(
             chatbot,
             inputs=[],
-            outputs=[landing, chatbot_interface]
+            outputs=[landing, chatbot_interface, api_interface]
         )
         
         dashboard_btn.click(
             dashboard,
             inputs=[],
-            outputs=[landing, dashboard_interface]
+            outputs=[landing, dashboard_interface, api_interface]
+        )
+        
+        api_btn.click(
+            api_portal,
+            inputs=[],
+            outputs=[landing, dashboard_interface, api_interface]
         )
         
         back_btn_1.click(
             back_to_home,
             inputs=[],
-            outputs=[landing, chatbot_interface]
+            outputs=[landing, chatbot_interface, api_interface]
         )
         
         back_btn_2.click(
             back_to_home,
             inputs=[],
-            outputs=[landing, dashboard_interface]
+            outputs=[landing, dashboard_interface, api_interface]
+        )
+        
+        back_btn_3.click(
+            back_to_home,
+            inputs=[],
+            outputs=[landing, dashboard_interface, api_interface]
         )
         
         send_btn.click(
@@ -797,6 +1073,31 @@ def create_main_interface():
             analyze_transparency_text,
             inputs=[text_input],
             outputs=[analysis_output]
+        )
+        
+        # Conectar eventos da API
+        contracts_btn.click(
+            query_transparency_api,
+            inputs=[gr.State("contratos"), contracts_organ, contracts_year],
+            outputs=[contracts_output]
+        )
+        
+        expenses_btn.click(
+            query_transparency_api,
+            inputs=[gr.State("despesas"), expenses_organ, expenses_year, expenses_month],
+            outputs=[expenses_output]
+        )
+        
+        biddings_btn.click(
+            query_transparency_api,
+            inputs=[gr.State("licitacoes"), biddings_organ, biddings_year],
+            outputs=[biddings_output]
+        )
+        
+        servers_btn.click(
+            query_transparency_api,
+            inputs=[gr.State("servidores"), servers_name, servers_organ],
+            outputs=[servers_output]
         )
     
     return app
