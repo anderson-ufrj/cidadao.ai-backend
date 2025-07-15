@@ -379,40 +379,173 @@ body, .gradio-container {
 /* Botão de ajuda flutuante */
 .help-button {
     position: fixed;
-    bottom: 2rem;
-    right: 2rem;
-    width: 60px;
-    height: 60px;
-    background: var(--primary-blue);
+    bottom: 20px;
+    right: 20px;
+    width: 65px;
+    height: 65px;
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
     border: none;
     border-radius: 50%;
+    color: white;
+    font-size: 2rem;
     cursor: pointer;
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 1.5rem;
-    color: white;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-    transition: all 0.3s ease;
-    z-index: 1500;
 }
 
 .help-button:hover {
     transform: scale(1.1);
-    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+    box-shadow: var(--shadow-xl);
 }
 
 .help-button:active {
     transform: scale(0.95);
 }
 
+/* Modal de ajuda em formato de balão */
+.help-modal {
+    position: fixed;
+    bottom: 95px;
+    right: 20px;
+    width: 400px;
+    max-height: 550px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    box-shadow: var(--shadow-xl);
+    z-index: 1001;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: all 0.3s ease;
+    pointer-events: none;
+    overflow: hidden;
+    display: none;
+}
+
+.help-modal.open {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+    display: block;
+}
+
+.help-modal-header {
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+    color: white;
+    padding: 15px 20px;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.help-modal-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.help-modal-close {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-left: auto;
+    padding: 5px;
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.help-modal-close:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.help-modal-content {
+    padding: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.help-section {
+    margin-bottom: 20px;
+}
+
+.help-section h4 {
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    font-size: 1rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.help-info {
+    background: var(--bg-secondary);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.help-info p {
+    margin: 5px 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.help-info strong {
+    color: var(--text-primary);
+}
+
+.help-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.help-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 12px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    color: var(--primary-blue);
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.help-link:hover {
+    background: var(--primary-blue);
+    color: white;
+    transform: translateY(-1px);
+}
+
 @media (max-width: 768px) {
     .help-button {
-        width: 50px;
-        height: 50px;
-        bottom: 1rem;
-        right: 1rem;
-        font-size: 1.25rem;
+        width: 55px;
+        height: 55px;
+        bottom: 15px;
+        right: 15px;
+        font-size: 1.5rem;
+    }
+    
+    .help-modal {
+        bottom: 80px;
+        right: 15px;
+        width: 350px;
     }
 }
 """
@@ -641,26 +774,38 @@ def create_landing_page():
             }
         }
         
-        // Help button functionality
-        function showHelpModal() {
+        // Help button functionality - formato balão
+        function toggleHelpModal() {
             const modal = document.getElementById('helpModal');
             if (modal) {
-                modal.style.display = 'flex';
-                document.body.style.overflow = 'hidden';
+                const isOpen = modal.classList.contains('open');
+                if (isOpen) {
+                    modal.classList.remove('open');
+                    setTimeout(() => {
+                        modal.style.display = 'none';
+                    }, 300);
+                } else {
+                    modal.style.display = 'block';
+                    setTimeout(() => {
+                        modal.classList.add('open');
+                    }, 10);
+                }
             }
         }
         
         function hideHelpModal() {
             const modal = document.getElementById('helpModal');
             if (modal) {
-                modal.style.display = 'none';
-                document.body.style.overflow = 'auto';
+                modal.classList.remove('open');
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 300);
             }
         }
         
         // Close help modal when clicking outside
         function handleHelpModalClick(event) {
-            if (event.target.classList.contains('help-modal-overlay')) {
+            if (event.target === event.currentTarget) {
                 hideHelpModal();
             }
         }
@@ -668,7 +813,7 @@ def create_landing_page():
         window.showCreditsModal = showCreditsModal;
         window.hideCreditsModal = hideCreditsModal;
         window.handleModalClick = handleModalClick;
-        window.showHelpModal = showHelpModal;
+        window.toggleHelpModal = toggleHelpModal;
         window.hideHelpModal = hideHelpModal;
         window.handleHelpModalClick = handleHelpModalClick;
         
@@ -783,81 +928,90 @@ def create_landing_page():
     </div>
     
     <!-- Botão de ajuda flutuante -->
-    <button class="help-button" onclick="showHelpModal()" title="Sobre o Projeto">
+    <button class="help-button" onclick="toggleHelpModal()" title="Sobre o Projeto">
         ❓
     </button>
     
-    <!-- Modal de Ajuda/Sobre o Projeto -->
-    <div id="helpModal" class="help-modal-overlay" onclick="handleHelpModalClick(event)" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 2000; justify-content: center; align-items: center;">
-        <div class="modal-content" style="background: var(--bg-primary); border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-xl); border: 1px solid var(--border-color);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h2 style="color: var(--text-primary); margin: 0; font-size: 1.5rem; font-weight: 600;">📊 Sobre o Projeto</h2>
-                <button onclick="hideHelpModal()" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); padding: 0.5rem;">×</button>
-            </div>
-            
-            <div style="color: var(--text-secondary); line-height: 1.6;">
-                <div style="margin-bottom: 1.5rem;">
-                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.125rem;">🇧🇷 Desenvolvedor</h3>
-                    <p style="margin-bottom: 0.5rem;"><strong>Anderson Henrique da Silva</strong></p>
-                    <p style="margin-bottom: 0.5rem;">Bacharelado em Ciência da Computação</p>
-                    <p style="margin-bottom: 1rem; font-size: 0.9rem;">IFSuldeminas Campus Muzambinho</p>
-                </div>
-                
-                <div style="margin-bottom: 1.5rem;">
-                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🔗 Links do Desenvolvedor</h4>
-                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
-                        <a href="https://github.com/anderson-ufrj" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <span>👨‍💻</span> GitHub
+    <!-- Modal de Ajuda em formato de balão -->
+    <div id="helpModal" class="help-modal" onclick="handleHelpModalClick(event)">
+        <div class="help-modal-header">
+            <span>🎓</span>
+            <h3>Sobre o Projeto</h3>
+            <button class="help-modal-close" onclick="hideHelpModal()">×</button>
+        </div>
+        
+        <div class="help-modal-content">
+            <!-- Developer Section -->
+            <div class="help-section">
+                <h4>👨‍💻 Desenvolvedor</h4>
+                <div class="help-info">
+                    <p><strong>Anderson Henrique da Silva</strong></p>
+                    <p>Bacharelado em Ciência da Computação</p>
+                    <p>IFSuldeminas Campus Muzambinho</p>
+                    
+                    <div class="help-links">
+                        <a href="https://github.com/anderson-ufrj" target="_blank" class="help-link">
+                            <span>🐙</span> GitHub
                         </a>
-                        <a href="https://www.linkedin.com/in/anderson-h-silva95/" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <a href="https://www.linkedin.com/in/anderson-h-silva95/" target="_blank" class="help-link">
                             <span>💼</span> LinkedIn
                         </a>
-                        <a href="https://x.com/neural_thinker" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <a href="mailto:andersonhs27@gmail.com" class="help-link">
+                            <span>📧</span> Email
+                        </a>
+                        <a href="https://x.com/neural_thinker" target="_blank" class="help-link">
                             <span>🐦</span> Twitter
                         </a>
-                        <a href="https://www.instagram.com/andhenrique_/" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <a href="https://www.instagram.com/andhenrique_/" target="_blank" class="help-link">
                             <span>📸</span> Instagram
                         </a>
                     </div>
                 </div>
-                
-                <div style="margin-bottom: 1.5rem;">
-                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">📧 Contato</h4>
-                    <a href="mailto:andersonhs27@gmail.com" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem;">
-                        <span>📧</span> andersonhs27@gmail.com
-                    </a>
-                </div>
-                
-                <div style="margin-bottom: 1.5rem;">
-                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🎓 Instituição</h4>
-                    <a href="https://cursos.muz.ifsuldeminas.edu.br/ciencia-da-computacao" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem;">
-                        <span>🏫</span> Ciência da Computação - IFSuldeminas
-                    </a>
-                </div>
-                
-                <div style="margin-bottom: 1.5rem;">
-                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🔍 Projeto</h4>
-                    <p style="margin-bottom: 0.5rem; font-size: 0.9rem;">Sistema Multi-Agente de IA para Transparência Pública</p>
-                    <div style="display: grid; grid-template-columns: 1fr; gap: 0.5rem;">
-                        <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <span>📚</span> Repositório do Projeto
-                        </a>
-                        <a href="https://anderson-ufrj.github.io/cidadao.ai/" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
-                            <span>📖</span> Documentação Técnica
+            </div>
+
+            <!-- Institution Section -->
+            <div class="help-section">
+                <h4>🏛️ Instituição</h4>
+                <div class="help-info">
+                    <p><strong>Instituto Federal do Sul de Minas Gerais</strong></p>
+                    <p>Campus Muzambinho</p>
+                    <p>Curso: Bacharelado em Ciência da Computação</p>
+                    
+                    <div class="help-links">
+                        <a href="https://cursos.muz.ifsuldeminas.edu.br/ciencia-da-computacao" target="_blank" class="help-link">
+                            <span>🏫</span> Curso
                         </a>
                     </div>
                 </div>
-                
-                <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; border-left: 4px solid var(--primary-green); margin-bottom: 1rem;">
-                    <p style="margin: 0; font-size: 0.875rem; font-weight: 500;">
-                        <strong>Versão:</strong> v1.0.0 | <strong>Licença:</strong> Todos os direitos reservados
-                    </p>
+            </div>
+
+            <!-- Project Section -->
+            <div class="help-section">
+                <h4>🔍 Projeto</h4>
+                <div class="help-info">
+                    <p><strong>Cidadão.AI</strong></p>
+                    <p>Sistema Multi-Agente de IA para Transparência Pública</p>
+                    
+                    <div class="help-links">
+                        <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="help-link">
+                            <span>📦</span> Repositório
+                        </a>
+                        <a href="https://anderson-ufrj.github.io/cidadao.ai/" target="_blank" class="help-link">
+                            <span>📖</span> Documentação
+                        </a>
+                        <a href="https://huggingface.co/spaces/neural-thinker/cidadao.ia" target="_blank" class="help-link">
+                            <span>🤗</span> Demo Online
+                        </a>
+                    </div>
                 </div>
-                
-                <div style="text-align: center; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                    <p style="font-size: 0.875rem; color: var(--text-tertiary); margin: 0;">
-                        Trabalho de Conclusão de Curso - 2025
-                    </p>
+            </div>
+
+            <!-- Version Section -->
+            <div class="help-section">
+                <h4>🏷️ Versão</h4>
+                <div class="help-info">
+                    <p><strong>v1.0.0</strong> | Todos os direitos reservados</p>
+                    <p style="font-size: 0.8rem; margin-top: 10px;">Trabalho de Conclusão de Curso - 2025</p>
                 </div>
             </div>
         </div>
