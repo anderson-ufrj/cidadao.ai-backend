@@ -835,9 +835,14 @@ def create_landing_page():
                 <div style="margin-bottom: 1.5rem;">
                     <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🔍 Projeto</h4>
                     <p style="margin-bottom: 0.5rem; font-size: 0.9rem;">Sistema Multi-Agente de IA para Transparência Pública</p>
-                    <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem;">
-                        <span>📚</span> Repositório do Projeto
-                    </a>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 0.5rem;">
+                        <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>📚</span> Repositório do Projeto
+                        </a>
+                        <a href="https://anderson-ufrj.github.io/cidadao.ai/" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>📖</span> Documentação Técnica
+                        </a>
+                    </div>
                 </div>
                 
                 <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; border-left: 4px solid var(--primary-green); margin-bottom: 1rem;">
