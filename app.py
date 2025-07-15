@@ -375,6 +375,46 @@ body, .gradio-container {
 .hero-description { animation-delay: 0.3s; }
 .action-buttons { animation-delay: 0.4s; }
 .stats-section { animation-delay: 0.5s; }
+
+/* Botão de ajuda flutuante */
+.help-button {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    background: var(--primary-blue);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    transition: all 0.3s ease;
+    z-index: 1500;
+}
+
+.help-button:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.4);
+}
+
+.help-button:active {
+    transform: scale(0.95);
+}
+
+@media (max-width: 768px) {
+    .help-button {
+        width: 50px;
+        height: 50px;
+        bottom: 1rem;
+        right: 1rem;
+        font-size: 1.25rem;
+    }
+}
 """
 
 async def call_transparency_api(endpoint, params=None):
@@ -601,9 +641,19 @@ def create_landing_page():
             }
         }
         
+        // Help button functionality
+        function showHelpInfo() {
+            alert('🤖 Cidadão.AI - Ajuda\\n\\n' +
+                  '• Use a "Consulta Avançada" para buscar dados específicos\\n' +
+                  '• Experimente "Pergunte ao Modelo" para análises inteligentes\\n' +
+                  '• Clique em "Créditos" para mais informações sobre o projeto\\n\\n' +
+                  'Precisa de mais ajuda? Visite nossa documentação técnica!');
+        }
+        
         window.showCreditsModal = showCreditsModal;
         window.hideCreditsModal = hideCreditsModal;
         window.handleModalClick = handleModalClick;
+        window.showHelpInfo = showHelpInfo;
         
         console.log('Theme script loaded');
     </script>
@@ -711,6 +761,11 @@ def create_landing_page():
             </div>
         </div>
     </div>
+    
+    <!-- Botão de ajuda flutuante -->
+    <button class="help-button" onclick="showHelpInfo()" title="Ajuda">
+        ❓
+    </button>
     """
 
 def create_interface():
