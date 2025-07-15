@@ -231,23 +231,72 @@ def create_landing_page():
         </div>
         
         <div class="help-modal-content">
+            <!-- Developer Section -->
             <div class="help-section">
                 <h4>👨‍💻 Desenvolvedor</h4>
                 <div class="help-info">
                     <p><strong>Anderson Henrique da Silva</strong></p>
                     <p>Bacharelado em Ciência da Computação</p>
                     <p>IFSuldeminas Campus Muzambinho</p>
+                    
+                    <div class="help-links">
+                        <a href="https://github.com/anderson-ufrj" target="_blank" class="help-link">
+                            <span>🐙</span> GitHub
+                        </a>
+                        <a href="https://www.linkedin.com/in/anderson-h-silva95/" target="_blank" class="help-link">
+                            <span>💼</span> LinkedIn
+                        </a>
+                        <a href="mailto:andersonhs27@gmail.com" class="help-link">
+                            <span>📧</span> Email
+                        </a>
+                        <a href="https://x.com/neural_thinker" target="_blank" class="help-link">
+                            <span>🐦</span> Twitter
+                        </a>
+                        <a href="https://www.instagram.com/andhenrique_/" target="_blank" class="help-link">
+                            <span>📸</span> Instagram
+                        </a>
+                    </div>
                 </div>
             </div>
 
+            <!-- Institution Section -->
+            <div class="help-section">
+                <h4>🏛️ Instituição</h4>
+                <div class="help-info">
+                    <p><strong>Instituto Federal do Sul de Minas Gerais</strong></p>
+                    <p>Campus Muzambinho</p>
+                    <p>Curso: Bacharelado em Ciência da Computação</p>
+                    
+                    <div class="help-links">
+                        <a href="https://cursos.muz.ifsuldeminas.edu.br/ciencia-da-computacao" target="_blank" class="help-link">
+                            <span>🏫</span> Curso
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Project Section -->
             <div class="help-section">
                 <h4>🔍 Projeto</h4>
                 <div class="help-info">
                     <p><strong>Cidadão.AI</strong></p>
                     <p>Sistema Multi-Agente de IA para Transparência Pública</p>
+                    
+                    <div class="help-links">
+                        <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="help-link">
+                            <span>📦</span> Repositório
+                        </a>
+                        <a href="https://anderson-ufrj.github.io/cidadao.ai/" target="_blank" class="help-link">
+                            <span>📖</span> Documentação
+                        </a>
+                        <a href="https://huggingface.co/spaces/neural-thinker/cidadao.ia" target="_blank" class="help-link">
+                            <span>🤗</span> Demo Online
+                        </a>
+                    </div>
                 </div>
             </div>
 
+            <!-- Version Section -->
             <div class="help-section">
                 <h4>🏷️ Versão</h4>
                 <div class="help-info">

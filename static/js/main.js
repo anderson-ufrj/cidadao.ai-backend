@@ -1,13 +1,23 @@
 // Cidadão.AI - Main JavaScript
 
-// Theme toggle functionality
+// Theme toggle functionality - VERSÃO SIMPLIFICADA
 function toggleTheme() {
     console.log('Toggle theme called');
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
+    const currentTheme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     console.log('Switching from', currentTheme, 'to', newTheme);
     
-    applyTheme(newTheme);
+    if (newTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.documentElement.classList.add('dark-mode');
+        const containers = document.querySelectorAll('.gradio-container, .header, .landing-page');
+        containers.forEach(container => container.classList.add('dark-mode'));
+    } else {
+        document.body.classList.remove('dark-mode');
+        document.documentElement.classList.remove('dark-mode');
+        const containers = document.querySelectorAll('.gradio-container, .header, .landing-page');
+        containers.forEach(container => container.classList.remove('dark-mode'));
+    }
     
     // Save theme preference
     localStorage.setItem('theme', newTheme);
@@ -64,14 +74,19 @@ function updateToggleButtons(theme) {
     });
 }
 
-// Set initial theme
+// Set initial theme - VERSÃO SIMPLIFICADA
 function initTheme() {
     console.log('Init theme called');
     const savedTheme = localStorage.getItem('theme') || 'light';
     console.log('Saved theme:', savedTheme);
     
-    // Apply theme
-    applyTheme(savedTheme);
+    // Apply saved theme
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.documentElement.classList.add('dark-mode');
+        const containers = document.querySelectorAll('.gradio-container, .header, .landing-page');
+        containers.forEach(container => container.classList.add('dark-mode'));
+    }
     
     // Update toggle buttons
     updateToggleButtons(savedTheme);

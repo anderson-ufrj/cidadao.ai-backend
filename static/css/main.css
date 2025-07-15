@@ -48,13 +48,33 @@
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-body, .gradio-container {
-    background: var(--bg-primary) !important;
-    color: var(--text-primary) !important;
+/* Base styles - sempre aplicar */
+body {
+    background: var(--bg-primary, #FFFFFF) !important;
+    color: var(--text-primary, #0F172A) !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .gradio-container {
+    background: var(--bg-primary, #FFFFFF) !important;
+    color: var(--text-primary, #0F172A) !important;
     transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Força modo escuro quando classe dark-mode está presente */
+.dark-mode,
+.dark-mode body,
+.dark-mode .gradio-container {
+    background: #0F172A !important;
+    color: #F1F5F9 !important;
+}
+
+.dark-mode .gr-app,
+.dark-mode .gr-container,
+.dark-mode .gr-panel,
+.dark-mode .gr-block {
+    background: #0F172A !important;
+    color: #F1F5F9 !important;
 }
 
 /* Header fixo baseado no mockup */
