@@ -15,15 +15,29 @@ from typing import List, Dict, Any, Tuple, Optional
 from datetime import datetime
 
 # Import local modules for real data integration
+REAL_DATA_AVAILABLE = False
 try:
     import sys
-    sys.path.append('/home/anderson-henrique/Documentos/cidadao.ai')
-    from src.tools.data_integrator import DataIntegrator
-    from src.tools.api_test import quick_api_test
-    from src.tools.ai_analyzer import AIAnalyzer
-    REAL_DATA_AVAILABLE = True
+    import os
+    # Add current directory and parent directory to path
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    parent_dir = os.path.dirname(current_dir)
+    sys.path.extend([current_dir, parent_dir])
+    
+    # Check if we can import required modules
+    if os.path.exists(os.path.join(parent_dir, 'src')):
+        from src.tools.data_integrator import DataIntegrator
+        from src.tools.api_test import quick_api_test
+        from src.tools.ai_analyzer import AIAnalyzer
+        REAL_DATA_AVAILABLE = True
+        logger.info("✅ Real data integration modules loaded successfully")
+    else:
+        logger.warning("⚠️ src directory not found, running in simple mode")
 except ImportError as e:
-    logger.warning(f"Real data integration not available: {e}")
+    logger.warning(f"⚠️ Real data integration not available: {e}")
+    REAL_DATA_AVAILABLE = False
+except Exception as e:
+    logger.error(f"❌ Error loading real data modules: {e}")
     REAL_DATA_AVAILABLE = False
 
 # Configurar logging
