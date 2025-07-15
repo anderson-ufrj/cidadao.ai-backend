@@ -120,7 +120,7 @@ body, .gradio-container {
     gap: 0.5rem;
 }
 
-.theme-toggle:hover {
+.theme-toggle:hover, .credits-button:hover {
     background: var(--primary-blue);
     color: white;
     border-color: var(--primary-blue);
@@ -577,6 +577,34 @@ def create_landing_page():
         window.toggleTheme = toggleTheme;
         window.initTheme = initTheme;
         
+        // Credits modal functionality
+        function showCreditsModal() {
+            const modal = document.getElementById('creditsModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function hideCreditsModal() {
+            const modal = document.getElementById('creditsModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+        
+        // Close modal when clicking outside
+        function handleModalClick(event) {
+            if (event.target.classList.contains('modal-overlay')) {
+                hideCreditsModal();
+            }
+        }
+        
+        window.showCreditsModal = showCreditsModal;
+        window.hideCreditsModal = hideCreditsModal;
+        window.handleModalClick = handleModalClick;
+        
         console.log('Theme script loaded');
     </script>
     
@@ -585,16 +613,21 @@ def create_landing_page():
             <span style="font-size: 2rem;">🇧🇷</span>
             <span class="logo-text">Cidadão.AI</span>
         </div>
-        <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn">
-            <span>🌙</span> Modo Escuro
-        </button>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <button class="credits-button" onclick="showCreditsModal()" style="background: transparent; border: 2px solid var(--border-color); border-radius: 30px; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary); font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
+                <span>ℹ️</span> Créditos
+            </button>
+            <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn">
+                <span>🌙</span> Modo Escuro
+            </button>
+        </div>
     </div>
     
     <div class="landing-page">
         <div class="hero-content">
             <h1 class="hero-title">Cidadão.AI</h1>
             <p class="hero-subtitle">
-                (breve descrição)
+                Plataforma inteligente que facilita a análise de dados públicos brasileiros. Descubra contratos suspeitos, gastos irregulares e licitações problemáticas de forma simples e rápida.
             </p>
             
             <div class="action-buttons">
@@ -612,6 +645,72 @@ def create_landing_page():
             
             <div style="margin-top: 3rem; text-align: center; color: var(--text-secondary); font-size: 0.875rem;">
                 <p style="margin-bottom: 1rem;">(Créditos: API - gradio - hugging face)</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Créditos -->
+    <div id="creditsModal" class="modal-overlay" onclick="handleModalClick(event)" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 2000; justify-content: center; align-items: center;">
+        <div class="modal-content" style="background: var(--bg-primary); border-radius: 12px; padding: 2rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-xl); border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="color: var(--text-primary); margin: 0; font-size: 1.5rem; font-weight: 600;">Créditos</h2>
+                <button onclick="hideCreditsModal()" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); padding: 0.5rem;">×</button>
+            </div>
+            
+            <div style="color: var(--text-secondary); line-height: 1.6;">
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.125rem;">🇧🇷 Cidadão.AI</h3>
+                    <p style="margin-bottom: 1rem;">Plataforma inteligente para análise de dados públicos brasileiros</p>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🔗 Links Importantes</h4>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
+                        <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease;">
+                            <span>📚</span> GitHub
+                        </a>
+                        <a href="https://huggingface.co/spaces/neural-thinker/cidadao.ia" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease;">
+                            <span>🤗</span> Hugging Face
+                        </a>
+                        <a href="https://gradio.app" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease;">
+                            <span>🎨</span> Made with Gradio
+                        </a>
+                        <a href="https://api.portaldatransparencia.gov.br" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease;">
+                            <span>🔌</span> Use via API
+                        </a>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🎓 Projeto Acadêmico</h4>
+                    <p style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; border-left: 4px solid var(--primary-green);">
+                        Feito com carinho para Trabalho de Conclusão de Curso - Bacharelado em Ciência da Computação
+                    </p>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🛠️ Tecnologias Utilizadas</h4>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 0.5rem;">
+                        <div style="background: var(--bg-secondary); padding: 0.75rem; border-radius: 6px; font-size: 0.875rem;">
+                            <strong>Interface:</strong> Gradio 5.0
+                        </div>
+                        <div style="background: var(--bg-secondary); padding: 0.75rem; border-radius: 6px; font-size: 0.875rem;">
+                            <strong>API:</strong> Portal da Transparência
+                        </div>
+                        <div style="background: var(--bg-secondary); padding: 0.75rem; border-radius: 6px; font-size: 0.875rem;">
+                            <strong>IA:</strong> GROQ & LLaMA
+                        </div>
+                        <div style="background: var(--bg-secondary); padding: 0.75rem; border-radius: 6px; font-size: 0.875rem;">
+                            <strong>Deploy:</strong> Hugging Face Spaces
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                    <p style="font-size: 0.875rem; color: var(--text-tertiary);">
+                        © 2025 Cidadão.AI - Democratizando o acesso à transparência pública
+                    </p>
+                </div>
             </div>
         </div>
     </div>
