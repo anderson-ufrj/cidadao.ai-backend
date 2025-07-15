@@ -499,6 +499,33 @@ body, .gradio-container {
     transform: translateY(-1px);
 }
 
+/* Ocultar rodapé padrão do Gradio */
+.gradio-container footer,
+.gradio-container .footer,
+footer[class*="gradio"],
+div[class*="footer"],
+.gradio-container > div:last-child:has(a[href*="gradio"]),
+.gradio-container a[href*="gradio.app"],
+.gradio-container a[href*="Use via API"] {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Ocultar links específicos do Gradio */
+.gradio-container a[href*="gradio"],
+.gradio-container a[href*="api"],
+.gradio-container a:has-text("Built with Gradio"),
+.gradio-container a:has-text("Use via API") {
+    display: none !important;
+}
+
+/* Ocultar qualquer div que contenha apenas links do Gradio */
+.gradio-container > div:has(> a[href*="gradio"]),
+.gradio-container > div:has(> a[href*="api"]) {
+    display: none !important;
+}
+
 /* Responsivo aprimorado */
 @media (max-width: 768px) {
     .header {
