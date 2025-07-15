@@ -17,21 +17,21 @@
     --glass-light: rgba(255, 255, 255, 0.1);
     --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
     
-    /* Modo escuro - cinzas mais orgânicos */
+    /* Modo escuro - inspirado no Claude */
     --background-dark: #1a1a1a;
-    --surface-dark: #2d2d2d;
-    --surface-darker: #242424;
-    --text-primary-dark: #f0f0f0;
-    --text-secondary-dark: #b0b0b0;
-    --border-dark: #404040;
-    --glass-dark: rgba(255, 255, 255, 0.05);
-    --shadow-dark: 0 4px 12px rgba(0, 0, 0, 0.4);
+    --surface-dark: #2a2a2a;
+    --surface-darker: #222222;
+    --text-primary-dark: #eeeeee;
+    --text-secondary-dark: #cccccc;
+    --border-dark: #444444;
+    --glass-dark: rgba(255, 255, 255, 0.02);
+    --shadow-dark: 0 2px 8px rgba(0, 0, 0, 0.3);
     
-    /* Gradientes orgânicos */
-    --gradient-dark-bg: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-    --gradient-dark-surface: linear-gradient(135deg, #2d2d2d 0%, #242424 100%);
-    --gradient-light-bg: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
-    --gradient-light-surface: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    /* Gradientes suaves - inspirado no Claude */
+    --gradient-dark-bg: #1a1a1a;
+    --gradient-dark-surface: #2a2a2a;
+    --gradient-light-bg: #ffffff;
+    --gradient-light-surface: #f8fafc;
 }
 
 [data-theme="light"] {
@@ -65,23 +65,23 @@
 
 /* Base styles - sempre aplicar */
 body {
-    background: var(--gradient-bg, var(--bg-primary, #FFFFFF)) !important;
+    background: var(--bg-primary, #FFFFFF) !important;
     color: var(--text-primary, #0F172A) !important;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.2s ease, color 0.2s ease;
     min-height: 100vh;
 }
 
 .gradio-container {
-    background: var(--gradient-bg, var(--bg-primary, #FFFFFF)) !important;
+    background: var(--bg-primary, #FFFFFF) !important;
     color: var(--text-primary, #0F172A) !important;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 /* Força modo escuro quando classe dark-mode está presente */
 .dark-mode,
 .dark-mode body,
 .dark-mode .gradio-container {
-    background: var(--gradient-dark-bg) !important;
+    background: var(--background-dark) !important;
     color: var(--text-primary-dark) !important;
 }
 
@@ -89,7 +89,7 @@ body {
 .dark-mode .gr-container,
 .dark-mode .gr-panel,
 .dark-mode .gr-block {
-    background: var(--gradient-dark-bg) !important;
+    background: var(--background-dark) !important;
     color: var(--text-primary-dark) !important;
 }
 
@@ -100,7 +100,7 @@ body {
     left: 0;
     right: 0;
     height: 70px;
-    background: var(--gradient-surface, var(--bg-secondary));
+    background: var(--bg-secondary);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
@@ -108,8 +108,6 @@ body {
     padding: 0 2rem;
     z-index: 1000;
     box-shadow: var(--shadow);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
 }
 
 .logo {
@@ -125,20 +123,23 @@ body {
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    /* Garantir que apareça no modo escuro */
-    color: var(--text-primary);
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* Fallback para caso o gradient não funcione */
+    color: var(--primary-green);
 }
 
-/* Correção específica para logo no modo escuro */
+/* Logo no modo escuro - mais nítida, sem blur */
 .dark-mode .logo-text {
-    background: linear-gradient(135deg, var(--primary-green), var(--primary-yellow));
+    /* Usar cores sólidas no modo escuro para máxima nitidez */
+    color: var(--primary-green) !important;
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+    background-clip: unset !important;
+    text-shadow: none !important;
+    /* Alternativa: usar gradiente mais sutil */
+    /* background: linear-gradient(135deg, #00A86B, #00D084);
     -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 2px 8px rgba(0, 168, 107, 0.3);
-    /* Fallback caso o gradient não funcione */
-    color: var(--primary-green);
+    -webkit-text-fill-color: transparent; */
 }
 
 .theme-toggle {
@@ -164,7 +165,7 @@ body {
 /* Landing page baseada no mockup */
 .landing-page {
     min-height: 100vh;
-    background: var(--gradient-bg, var(--bg-primary));
+    background: var(--bg-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -173,7 +174,7 @@ body {
     position: relative;
 }
 
-/* Efeito de partículas no fundo */
+/* Efeito de partículas sutil no fundo */
 .landing-page::before {
     content: '';
     position: absolute;
@@ -181,8 +182,8 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle at 20% 80%, rgba(0, 168, 107, 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.1) 0%, transparent 50%);
+    background: radial-gradient(circle at 20% 80%, rgba(0, 168, 107, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(245, 158, 11, 0.03) 0%, transparent 50%);
     pointer-events: none;
     z-index: 1;
 }
@@ -203,18 +204,17 @@ body {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: -0.02em;
-    text-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Correção específica para hero title no modo escuro */
+/* Hero title no modo escuro - mais nítido */
 .dark-mode .hero-title {
-    background: linear-gradient(135deg, var(--primary-green), var(--primary-yellow));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-shadow: 0 4px 12px rgba(0, 168, 107, 0.3);
-    /* Fallback caso o gradient não funcione */
-    color: var(--primary-green);
+    /* Usar cor sólida no modo escuro para máxima nitidez */
+    color: var(--primary-green) !important;
+    background: none !important;
+    -webkit-background-clip: unset !important;
+    -webkit-text-fill-color: unset !important;
+    background-clip: unset !important;
+    text-shadow: none !important;
 }
 
 .hero-subtitle {
@@ -436,31 +436,31 @@ body {
 /* Forçar modo escuro em todos os elementos Gradio */
 .dark-mode,
 .dark-mode * {
-    background: var(--gradient-dark-bg) !important;
+    background: var(--background-dark) !important;
     color: var(--text-primary-dark) !important;
 }
 
 .dark-mode .header {
-    background: var(--gradient-dark-surface) !important;
+    background: var(--surface-dark) !important;
     border-color: var(--border-dark) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+    box-shadow: var(--shadow-dark) !important;
 }
 
 .dark-mode .landing-page {
-    background: var(--gradient-dark-bg) !important;
+    background: var(--background-dark) !important;
 }
 
 .dark-mode .theme-toggle {
     color: var(--text-primary-dark) !important;
     border-color: var(--border-dark) !important;
-    background: var(--gradient-dark-surface) !important;
+    background: var(--surface-dark) !important;
 }
 
 .dark-mode .theme-toggle:hover {
     background: var(--primary-blue) !important;
     color: white !important;
     border-color: var(--primary-blue) !important;
-    box-shadow: 0 4px 12px rgba(0, 102, 204, 0.3) !important;
+    box-shadow: 0 2px 8px rgba(0, 102, 204, 0.3) !important;
 }
 
 /* Botão de ajuda flutuante */
@@ -478,17 +478,15 @@ body {
     cursor: pointer;
     box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
     z-index: 1000;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     justify-content: center;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
 }
 
 .help-button:hover {
-    transform: scale(1.1) translateY(-2px);
-    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.4);
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
     background: linear-gradient(135deg, var(--primary-navy), var(--primary-blue));
 }
 
@@ -497,11 +495,11 @@ body {
 }
 
 .dark-mode .help-button {
-    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.5);
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.4);
 }
 
 .dark-mode .help-button:hover {
-    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.6);
+    box-shadow: 0 6px 20px rgba(0, 102, 204, 0.5);
 }
 
 /* Modal de ajuda em formato de balão */
@@ -511,25 +509,23 @@ body {
     right: 20px;
     width: 400px;
     max-height: 550px;
-    background: var(--gradient-surface, var(--bg-primary));
+    background: var(--bg-primary);
     border: 1px solid var(--border-color);
     border-radius: 15px;
-    box-shadow: var(--shadow), 0 25px 50px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--shadow), 0 20px 40px rgba(0, 0, 0, 0.1);
     z-index: 1001;
     opacity: 0;
     transform: translateY(20px) scale(0.9);
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
     pointer-events: none;
     overflow: hidden;
     display: none;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
 }
 
 .dark-mode .help-modal {
-    background: var(--gradient-dark-surface);
+    background: var(--surface-dark);
     border-color: var(--border-dark);
-    box-shadow: var(--shadow-dark), 0 25px 50px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--shadow-dark), 0 20px 40px rgba(0, 0, 0, 0.3);
 }
 
 .help-modal.open {
