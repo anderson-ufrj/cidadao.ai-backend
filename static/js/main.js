@@ -95,18 +95,24 @@ function updateToggleButtons(theme) {
     });
 }
 
-// Set initial theme - VERSÃO SIMPLIFICADA
+// Set initial theme - MODO CLARO COMO PADRÃO
 function initTheme() {
     console.log('Init theme called');
     const savedTheme = localStorage.getItem('theme') || 'light';
     console.log('Saved theme:', savedTheme);
     
-    // Apply saved theme
+    // Garantir que iniciamos sempre no modo claro por padrão
     if (savedTheme === 'dark') {
         document.body.classList.add('dark-mode');
         document.documentElement.classList.add('dark-mode');
         const containers = document.querySelectorAll('.gradio-container, .header, .landing-page');
         containers.forEach(container => container.classList.add('dark-mode'));
+    } else {
+        // Garantir que as classes de modo escuro sejam removidas
+        document.body.classList.remove('dark-mode');
+        document.documentElement.classList.remove('dark-mode');
+        const containers = document.querySelectorAll('.gradio-container, .header, .landing-page');
+        containers.forEach(container => container.classList.remove('dark-mode'));
     }
     
     // Update toggle buttons

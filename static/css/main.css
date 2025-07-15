@@ -63,12 +63,23 @@
     transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Base styles - sempre aplicar */
+/* Base styles - MODO CLARO PADRÃO */
 body {
     background: var(--bg-primary, #FFFFFF) !important;
     color: var(--text-primary, #0F172A) !important;
     transition: background-color 0.2s ease, color 0.2s ease;
     min-height: 100vh;
+    
+    /* Garantir variáveis do modo claro como padrão */
+    --bg-primary: var(--background-light, #FFFFFF);
+    --bg-secondary: var(--surface-light, #F8FAFC);
+    --text-primary: var(--text-primary-light, #0F172A);
+    --text-secondary: var(--text-secondary-light, #64748B);
+    --border-color: var(--border-light, #E2E8F0);
+    --glass-bg: var(--glass-light, rgba(255, 255, 255, 0.1));
+    --shadow: var(--shadow-light, 0 2px 4px rgba(0, 0, 0, 0.1));
+    --gradient-bg: var(--gradient-light-bg, #ffffff);
+    --gradient-surface: var(--gradient-light-surface, #f8fafc);
 }
 
 .gradio-container {
