@@ -179,38 +179,89 @@ def create_landing_page():
         </div>
     </div>
     
-    <!-- Modal de Créditos -->
-    <div id="creditsModal" class="modal-overlay" onclick="handleModalClick(event)" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 2000; justify-content: center; align-items: center;">
-        <div class="modal-content" style="background: var(--bg-primary); border-radius: 12px; padding: 2rem; max-width: 600px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-xl); border: 1px solid var(--border-color);">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h2 style="color: var(--text-primary); margin: 0; font-size: 1.5rem; font-weight: 600;">Créditos</h2>
-                <button onclick="hideCreditsModal()" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); padding: 0.5rem;">×</button>
+    <!-- Modal de Créditos Aprimorado -->
+    <div id="creditsModal" class="modal-overlay" onclick="handleModalClick(event)" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); z-index: 2000; justify-content: center; align-items: center;">
+        <div class="modal-content" style="background: var(--bg-primary); border-radius: 20px; padding: 2.5rem; max-width: 700px; width: 90%; max-height: 85vh; overflow-y: auto; box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3); border: 1px solid var(--border-color); position: relative;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 style="color: var(--text-primary); margin: 0; font-size: 1.75rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                    <span>🏆</span> Créditos
+                </h2>
+                <button onclick="hideCreditsModal()" style="background: transparent; border: none; font-size: 1.8rem; cursor: pointer; color: var(--text-secondary); padding: 0.5rem; border-radius: 50%; transition: all 0.2s ease; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center;">×</button>
             </div>
             
-            <div style="color: var(--text-secondary); line-height: 1.6;">
-                <div style="margin-bottom: 1.5rem;">
-                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.125rem;">🇧🇷 Cidadão.AI</h3>
-                    <p style="margin-bottom: 1rem;">Plataforma inteligente para análise de dados públicos brasileiros</p>
-                </div>
-                
-                <div style="margin-bottom: 1.5rem;">
-                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🔗 Links Importantes</h4>
-                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem;">
-                        <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease;">
-                            <span>📚</span> GitHub
+            <div style="color: var(--text-secondary); line-height: 1.7;">
+                <!-- Projeto Principal -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background: var(--bg-secondary); border-radius: 15px; border-left: 4px solid var(--primary-green);">
+                    <h3 style="color: var(--text-primary); margin-bottom: 0.75rem; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>🇧🇷</span> Cidadão.AI
+                    </h3>
+                    <p style="margin-bottom: 1rem; font-size: 1rem;">Sistema Multi-Agente de Inteligência Artificial para análise de transparência pública no Brasil</p>
+                    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                        <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; transition: all 0.2s ease; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>📚</span> Repositório
                         </a>
-                        <a href="https://huggingface.co/spaces/neural-thinker/cidadao.ia" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease;">
-                            <span>🤗</span> Hugging Face
+                        <a href="https://anderson-ufrj.github.io/cidadao.ai/" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; transition: all 0.2s ease; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>📖</span> Documentação
                         </a>
-                        <a href="https://anderson-ufrj.github.io/cidadao.ai/" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease;">
-                            <span>📖</span> Documentação Técnica
+                        <a href="https://huggingface.co/spaces/neural-thinker/cidadao.ia" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; transition: all 0.2s ease; font-size: 0.9rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>🤗</span> Demo
                         </a>
                     </div>
                 </div>
                 
-                <div style="text-align: center; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-                    <p style="font-size: 0.875rem; color: var(--text-tertiary);">
-                        © 2025 Cidadão.AI - Democratizando o acesso à transparência pública
+                <!-- Curso/Formação -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background: var(--bg-secondary); border-radius: 15px; border-left: 4px solid var(--primary-blue);">
+                    <h3 style="color: var(--text-primary); margin-bottom: 0.75rem; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>🎓</span> Formação Acadêmica
+                    </h3>
+                    <p style="margin-bottom: 0.5rem;"><strong>Trabalho de Conclusão de Curso</strong></p>
+                    <p style="margin-bottom: 0.5rem;">Bacharelado em Ciência da Computação</p>
+                    <p style="margin-bottom: 0.5rem;">Instituto Federal do Sul de Minas Gerais - Campus Muzambinho</p>
+                    <p style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--text-secondary);">Orientação: Prof. Dr. [Nome do Orientador]</p>
+                    <a href="https://cursos.muz.ifsuldeminas.edu.br/ciencia-da-computacao" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 8px; transition: all 0.2s ease; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <span>🏫</span> Sobre o Curso
+                    </a>
+                </div>
+                
+                <!-- Tecnologias -->
+                <div style="margin-bottom: 2rem; padding: 1.5rem; background: var(--bg-secondary); border-radius: 15px; border-left: 4px solid var(--primary-yellow);">
+                    <h3 style="color: var(--text-primary); margin-bottom: 0.75rem; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>🛠️</span> Stack Tecnológica
+                    </h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.5rem; margin-bottom: 1rem;">
+                        <div style="background: var(--bg-primary); padding: 0.5rem; border-radius: 6px; font-size: 0.85rem; text-align: center;">
+                            <strong>Frontend:</strong> Gradio 5.0
+                        </div>
+                        <div style="background: var(--bg-primary); padding: 0.5rem; border-radius: 6px; font-size: 0.85rem; text-align: center;">
+                            <strong>IA:</strong> GROQ & LLaMA
+                        </div>
+                        <div style="background: var(--bg-primary); padding: 0.5rem; border-radius: 6px; font-size: 0.85rem; text-align: center;">
+                            <strong>API:</strong> Portal da Transparência
+                        </div>
+                        <div style="background: var(--bg-primary); padding: 0.5rem; border-radius: 6px; font-size: 0.85rem; text-align: center;">
+                            <strong>Deploy:</strong> HuggingFace Spaces
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Agradecimentos -->
+                <div style="margin-bottom: 1.5rem; padding: 1.5rem; background: var(--bg-secondary); border-radius: 15px; border-left: 4px solid var(--primary-green);">
+                    <h3 style="color: var(--text-primary); margin-bottom: 0.75rem; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span>🙏</span> Agradecimentos
+                    </h3>
+                    <p style="margin-bottom: 0.5rem;">• IFSuldeminas Campus Muzambinho pelo suporte acadêmico</p>
+                    <p style="margin-bottom: 0.5rem;">• Portal da Transparência pela API pública</p>
+                    <p style="margin-bottom: 0.5rem;">• Comunidade open source pelas bibliotecas utilizadas</p>
+                    <p style="margin-bottom: 0.5rem;">• Hugging Face por hospedar o projeto gratuitamente</p>
+                </div>
+                
+                <!-- Copyright -->
+                <div style="text-align: center; padding-top: 1.5rem; border-top: 1px solid var(--border-color);">
+                    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+                        <strong>© 2025 Cidadão.AI</strong>
+                    </p>
+                    <p style="font-size: 0.8rem; color: var(--text-secondary);">
+                        Democratizando o acesso à transparência pública brasileira
                     </p>
                 </div>
             </div>

@@ -1,26 +1,47 @@
 // Cidadão.AI - Main JavaScript
 
-// Theme toggle functionality - VERSÃO SIMPLIFICADA
+// Theme toggle functionality - VERSÃO ROBUSTA COM LOGS
 function toggleTheme() {
-    console.log('Toggle theme called');
+    console.log('🌙 Toggle theme called');
     const currentTheme = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-    console.log('Switching from', currentTheme, 'to', newTheme);
+    console.log('🔄 Switching from', currentTheme, 'to', newTheme);
     
     if (newTheme === 'dark') {
+        console.log('🌙 Applying dark mode...');
         document.body.classList.add('dark-mode');
         document.documentElement.classList.add('dark-mode');
-        const containers = document.querySelectorAll('.gradio-container, .header, .landing-page');
-        containers.forEach(container => container.classList.add('dark-mode'));
+        
+        // Apply to all containers
+        const containers = document.querySelectorAll('.gradio-container, .header, .landing-page, .gr-app');
+        console.log('🎯 Found containers:', containers.length);
+        containers.forEach(container => {
+            container.classList.add('dark-mode');
+            console.log('✅ Dark mode applied to:', container.className);
+        });
+        
+        // Force style application
+        document.body.style.backgroundColor = '#0F172A';
+        document.body.style.color = '#F1F5F9';
+        
     } else {
+        console.log('☀️ Applying light mode...');
         document.body.classList.remove('dark-mode');
         document.documentElement.classList.remove('dark-mode');
-        const containers = document.querySelectorAll('.gradio-container, .header, .landing-page');
-        containers.forEach(container => container.classList.remove('dark-mode'));
+        
+        const containers = document.querySelectorAll('.gradio-container, .header, .landing-page, .gr-app');
+        containers.forEach(container => {
+            container.classList.remove('dark-mode');
+        });
+        
+        // Force style application
+        document.body.style.backgroundColor = '#FFFFFF';
+        document.body.style.color = '#0F172A';
     }
     
     // Save theme preference
     localStorage.setItem('theme', newTheme);
+    console.log('💾 Theme saved:', newTheme);
     
     // Update toggle text
     updateToggleButtons(newTheme);
