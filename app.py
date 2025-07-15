@@ -540,9 +540,43 @@ def create_landing_page():
             console.log('📊 Current URL:', window.location.href);
             console.log('📊 Gradio container:', document.querySelector('.gradio-container'));
             
+            // Função de debugging super agressiva
+            function debugDOMStructure() {
+                console.log('🔍 === DEBUGGING DOM STRUCTURE ===');
+                console.log('📊 All buttons in page:', document.querySelectorAll('button').length);
+                console.log('📊 All divs in page:', document.querySelectorAll('div').length);
+                console.log('📊 Gradio container exists:', !!document.querySelector('.gradio-container'));
+                console.log('📊 App element exists:', !!document.querySelector('#root, .app, gradio-app'));
+                
+                // Log all buttons with their text
+                const allButtons = document.querySelectorAll('button');
+                console.log('🔘 All buttons found:');
+                allButtons.forEach((btn, i) => {
+                    const text = (btn.textContent || btn.innerText || '').trim();
+                    if (text) {
+                        console.log(`  ${i}: "${text}" (classes: ${btn.className})`);
+                    }
+                });
+                
+                // Check for tabs specifically
+                const tabElements = document.querySelectorAll('[role="tab"], .tab, .gradio-tab, [class*="tab"]');
+                console.log('🏷️ Tab-like elements:', tabElements.length);
+                tabElements.forEach((tab, i) => {
+                    console.log(`  Tab ${i}:`, tab.textContent, tab.className);
+                });
+                
+                // Check iframe
+                const iframes = document.querySelectorAll('iframe');
+                console.log('🖼️ Iframes found:', iframes.length);
+            }
+            
             // Função para adicionar eventos aos botões
             function setupButtons() {
                 console.log('⚙️ setupButtons called at', new Date().toISOString());
+                
+                // Debug DOM structure every time
+                debugDOMStructure();
+                
                 const btnAdvanced = document.getElementById('btnAdvanced');
                 const btnChat = document.getElementById('btnChat');
                 
@@ -589,12 +623,37 @@ def create_landing_page():
                             }
                             
                             if (!found) {
-                                console.warn('⚠️ Advanced tab not found, trying alternative approach');
-                                // Último fallback: tentar encontrar pela posição
+                                console.warn('⚠️ Advanced tab not found, trying RADICAL fallbacks...');
+                                
+                                // Fallback 1: Tentar por posição
                                 const allTabs = document.querySelectorAll('button[role="tab"], .gradio-container .tabs button');
                                 if (allTabs.length >= 2) {
                                     console.log('📍 Clicking second tab by position');
                                     allTabs[1].click();
+                                    found = true;
+                                }
+                                
+                                // Fallback 2: Procurar em TODO o documento por qualquer coisa com "Consulta"
+                                if (!found) {
+                                    console.log('🔍 RADICAL: Searching entire document for "Consulta"');
+                                    const allElements = document.querySelectorAll('*');
+                                    for (const elem of allElements) {
+                                        const text = (elem.textContent || '').toLowerCase();
+                                        if (text.includes('consulta') && text.includes('avançada')) {
+                                            console.log('✅ FOUND via radical search:', elem.tagName, elem.textContent);
+                                            if (elem.click) {
+                                                elem.click();
+                                                found = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                // Fallback 3: Eventos customizados
+                                if (!found) {
+                                    console.log('⚡ ULTRA RADICAL: Trying custom events');
+                                    window.dispatchEvent(new CustomEvent('navigateToAdvanced'));
                                 }
                             }
                         }
@@ -644,12 +703,37 @@ def create_landing_page():
                             }
                             
                             if (!found) {
-                                console.warn('⚠️ Chat tab not found, trying alternative approach');
-                                // Último fallback: tentar encontrar pela posição
+                                console.warn('⚠️ Chat tab not found, trying RADICAL fallbacks...');
+                                
+                                // Fallback 1: Tentar por posição
                                 const allTabs = document.querySelectorAll('button[role="tab"], .gradio-container .tabs button');
                                 if (allTabs.length >= 3) {
                                     console.log('📍 Clicking third tab by position');
                                     allTabs[2].click();
+                                    found = true;
+                                }
+                                
+                                // Fallback 2: Procurar em TODO o documento por qualquer coisa com "Pergunte"
+                                if (!found) {
+                                    console.log('🔍 RADICAL: Searching entire document for "Pergunte"');
+                                    const allElements = document.querySelectorAll('*');
+                                    for (const elem of allElements) {
+                                        const text = (elem.textContent || '').toLowerCase();
+                                        if (text.includes('pergunte') || text.includes('modelo')) {
+                                            console.log('✅ FOUND via radical search:', elem.tagName, elem.textContent);
+                                            if (elem.click) {
+                                                elem.click();
+                                                found = true;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                }
+                                
+                                // Fallback 3: Eventos customizados
+                                if (!found) {
+                                    console.log('⚡ ULTRA RADICAL: Trying custom events');
+                                    window.dispatchEvent(new CustomEvent('navigateToChat'));
                                 }
                             }
                         }
@@ -666,6 +750,25 @@ def create_landing_page():
             setTimeout(setupButtons, 2000);
             setTimeout(setupButtons, 3000);
             setTimeout(setupButtons, 5000);
+            setTimeout(setupButtons, 8000);
+            setTimeout(setupButtons, 10000);
+            
+            // PANIC MODE: Adicionar botão de debug ao vivo
+            setTimeout(() => {
+                if (!document.getElementById('panicDebug')) {
+                    const panicBtn = document.createElement('button');
+                    panicBtn.id = 'panicDebug';
+                    panicBtn.innerHTML = '🚨 DEBUG';
+                    panicBtn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9999;background:red;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;';
+                    panicBtn.onclick = () => {
+                        console.log('🚨 PANIC DEBUG ACTIVATED!');
+                        debugDOMStructure();
+                        setupButtons();
+                    };
+                    document.body.appendChild(panicBtn);
+                    console.log('🚨 Panic debug button added to page');
+                }
+            }, 2000);
             
             // Observer para elementos dinâmicos
             const observer = new MutationObserver(function(mutations) {
