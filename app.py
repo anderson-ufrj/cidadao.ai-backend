@@ -66,13 +66,12 @@ custom_css = """
 }
 
 body, .gradio-container {
-    background: var(--background-light) !important;
-    color: var(--text-primary-light) !important;
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
 }
 
-body[data-theme="dark"], .gradio-container[data-theme="dark"] {
-    background: var(--background-dark) !important;
-    color: var(--text-primary-dark) !important;
+.gradio-container {
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Header fixo baseado no mockup */
@@ -290,6 +289,20 @@ body[data-theme="dark"], .gradio-container[data-theme="dark"] {
     color: var(--text-primary) !important;
 }
 
+/* Forçar tema escuro nos componentes */
+[data-theme="dark"] .gr-textbox,
+[data-theme="dark"] .gr-number,
+[data-theme="dark"] .gr-radio {
+    background: var(--surface-dark) !important;
+    color: var(--text-primary-dark) !important;
+    border-color: var(--border-dark) !important;
+}
+
+[data-theme="dark"] .gr-form {
+    background: var(--surface-dark) !important;
+    border-color: var(--border-dark) !important;
+}
+
 /* Responsivo aprimorado */
 @media (max-width: 768px) {
     .header {
@@ -482,13 +495,13 @@ def create_landing_page():
             
             // Apply theme to document root
             document.documentElement.setAttribute('data-theme', newTheme);
-            
-            // Apply theme to body and gradio container
             document.body.setAttribute('data-theme', newTheme);
-            const gradioContainer = document.querySelector('.gradio-container');
-            if (gradioContainer) {
-                gradioContainer.setAttribute('data-theme', newTheme);
-            }
+            
+            // Apply to all containers
+            const containers = document.querySelectorAll('.gradio-container, .header, .landing-page');
+            containers.forEach(container => {
+                container.setAttribute('data-theme', newTheme);
+            });
             
             // Save theme preference
             localStorage.setItem('theme', newTheme);
@@ -508,10 +521,11 @@ def create_landing_page():
             document.documentElement.setAttribute('data-theme', savedTheme);
             document.body.setAttribute('data-theme', savedTheme);
             
-            const gradioContainer = document.querySelector('.gradio-container');
-            if (gradioContainer) {
-                gradioContainer.setAttribute('data-theme', savedTheme);
-            }
+            // Apply to all containers
+            const containers = document.querySelectorAll('.gradio-container, .header, .landing-page');
+            containers.forEach(container => {
+                container.setAttribute('data-theme', savedTheme);
+            });
             
             // Update toggle buttons
             const toggles = document.querySelectorAll('.theme-toggle');
