@@ -1228,7 +1228,6 @@ def create_interface():
             chatbot = gr.Chatbot(
                 height=400,
                 show_label=False,
-                type="messages",
                 avatar_images=("👤", "🤖")
             )
             
@@ -1303,9 +1302,7 @@ def create_interface():
                     except Exception as e:
                         response = f"Erro ao processar mensagem: {str(e)}"
                     
-                    # Usar formato de mensagens (openai-style)
-                    history.append({"role": "user", "content": message})
-                    history.append({"role": "assistant", "content": response})
+                    history.append((message, response))
                     return history, ""
                 return history, ""
             
