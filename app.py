@@ -344,10 +344,10 @@ def create_landing_page():
             </p>
             
             <div class="action-buttons">
-                <button class="btn btn-primary" onclick="navigateToAdvanced()">
+                <button class="btn btn-primary" id="btnAdvanced">
                     <span>🔍</span> Consulta Avançada
                 </button>
-                <button class="btn btn-secondary" onclick="navigateToChat()">
+                <button class="btn btn-secondary" id="btnChat">
                     <span>💬</span> Pergunte ao Modelo
                 </button>
             </div>
@@ -532,6 +532,85 @@ def create_landing_page():
             </div>
         </div>
     </div>
+    
+    <!-- Script inline para garantir que os botões funcionem -->
+    <script>
+        (function() {
+            console.log('🚀 Landing page inline script loaded');
+            
+            // Função para adicionar eventos aos botões
+            function setupButtons() {
+                const btnAdvanced = document.getElementById('btnAdvanced');
+                const btnChat = document.getElementById('btnChat');
+                
+                if (btnAdvanced && !btnAdvanced.hasAttribute('data-listener')) {
+                    console.log('✅ Setting up Advanced button');
+                    btnAdvanced.setAttribute('data-listener', 'true');
+                    btnAdvanced.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('🔍 Advanced button clicked - inline');
+                        
+                        // Tentar usar a função global primeiro
+                        if (typeof window.navigateToAdvanced === 'function') {
+                            window.navigateToAdvanced();
+                        } else {
+                            // Fallback: procurar e clicar na aba diretamente
+                            const tabs = document.querySelectorAll('button[role="tab"], .gradio-container button');
+                            for (const tab of tabs) {
+                                if (tab.textContent && (tab.textContent.includes('Consulta Avançada') || tab.textContent.includes('🔍'))) {
+                                    console.log('📍 Found tab:', tab.textContent);
+                                    tab.click();
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                if (btnChat && !btnChat.hasAttribute('data-listener')) {
+                    console.log('✅ Setting up Chat button');
+                    btnChat.setAttribute('data-listener', 'true');
+                    btnChat.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        console.log('💬 Chat button clicked - inline');
+                        
+                        // Tentar usar a função global primeiro
+                        if (typeof window.navigateToChat === 'function') {
+                            window.navigateToChat();
+                        } else {
+                            // Fallback: procurar e clicar na aba diretamente
+                            const tabs = document.querySelectorAll('button[role="tab"], .gradio-container button');
+                            for (const tab of tabs) {
+                                if (tab.textContent && (tab.textContent.includes('Pergunte ao Modelo') || tab.textContent.includes('💬'))) {
+                                    console.log('📍 Found tab:', tab.textContent);
+                                    tab.click();
+                                    break;
+                                }
+                            }
+                        }
+                    });
+                }
+            }
+            
+            // Executar imediatamente
+            setupButtons();
+            
+            // E também após um delay para garantir
+            setTimeout(setupButtons, 500);
+            setTimeout(setupButtons, 1000);
+            setTimeout(setupButtons, 2000);
+            
+            // Observer para elementos dinâmicos
+            const observer = new MutationObserver(function(mutations) {
+                setupButtons();
+            });
+            
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+        })();
+    </script>
     """
 
 async def call_groq_api(message):
