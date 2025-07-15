@@ -7,9 +7,14 @@ Sistema de consulta aos dados do Portal da Transparência
 import gradio as gr
 import os
 import time
+import asyncio
+import httpx
+import json
+from datetime import datetime
 
 # Configurar variáveis de ambiente
 TRANSPARENCY_API_KEY = os.getenv("TRANSPARENCY_API_KEY")
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 # CSS moderno baseado nos mockups
 custom_css = """
@@ -443,8 +448,34 @@ def create_landing_page():
     </div>
     """
 
+async def call_transparency_api(endpoint, params=None):
+    """Chamar API do Portal da Transparência"""
+    if not TRANSPARENCY_API_KEY:
+        return {"error": "API key não configurada"}
+    
+    base_url = "https://api.portaldatransparencia.gov.br"
+    headers = {
+        "chave-api-dados": TRANSPARENCY_API_KEY,
+        "User-Agent": "CidadaoAI/1.0"
+    }
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                f"{base_url}{endpoint}",
+                headers=headers,
+                params=params or {}
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return {"error": f"Status {response.status_code}: {response.text}"}
+    except Exception as e:
+        return {"error": f"Erro na requisição: {str(e)}"}
+
 def search_data(data_type, year, search_term):
-    """Buscar dados baseado no tipo e termo"""
+    """Buscar dados reais na API do Portal da Transparência"""
     if not search_term:
         return """
         <div style="padding: 2rem; text-align: center;">
@@ -452,82 +483,89 @@ def search_data(data_type, year, search_term):
         </div>
         """
     
-    # Simular dados baseados no tipo e busca
-    if "contrato" in search_term.lower() or data_type == "Contratos Públicos":
-        results = [
-            {
-                "tipo": "Contrato", 
-                "numero": "88888/2024", 
-                "empresa": "Tech Inovação LTDA", 
-                "valor": "R$ 8.750.000,00", 
-                "objeto": "Desenvolvimento de Sistema de Gestão Pública",
-                "status": "Ativo",
-                "risco": "Baixo"
-            },
-            {
-                "tipo": "Contrato", 
-                "numero": "77777/2024", 
-                "empresa": "Construtora Moderna S/A", 
-                "valor": "R$ 15.200.000,00", 
-                "objeto": "Reforma e Modernização de Prédio Público",
-                "status": "Em Andamento",
-                "risco": "Médio"
-            }
-        ]
-    elif "despesa" in search_term.lower() or data_type == "Despesas Orçamentárias":
-        results = [
-            {
-                "tipo": "Despesa", 
-                "numero": "DES-001/2024", 
-                "empresa": "Fornecedor Médico LTDA", 
-                "valor": "R$ 2.450.000,00", 
-                "objeto": "Equipamentos Hospitalares",
-                "status": "Pago",
-                "risco": "Baixo"
-            }
-        ]
-    else:
-        results = [
-            {
-                "tipo": "Licitação", 
-                "numero": "LIC-456/2024", 
-                "empresa": "Múltiplas Empresas", 
-                "valor": "R$ 12.300.000,00", 
-                "objeto": "Pregão Eletrônico - Serviços de TI",
-                "status": "Em Análise",
-                "risco": "Alto"
-            }
-        ]
+    # Mapear tipo de dados para endpoint
+    endpoint_map = {
+        "Contratos Públicos": "/api-de-dados/contratos",
+        "Despesas Orçamentárias": "/api-de-dados/despesas", 
+        "Licitações e Pregões": "/api-de-dados/licitacoes"
+    }
+    
+    endpoint = endpoint_map.get(data_type, "/api-de-dados/contratos")
+    
+    # Parâmetros da consulta
+    params = {
+        "ano": int(year),
+        "pagina": 1,
+        "tamanhoPagina": 10
+    }
+    
+    # Executar consulta na API
+    try:
+        # Usar asyncio para chamar a API assíncrona
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        api_result = loop.run_until_complete(call_transparency_api(endpoint, params))
+        loop.close()
+        
+        if "error" in api_result:
+            return f"""
+            <div style="padding: 2rem; text-align: center; color: #DC2626;">
+                <h3>Erro na API</h3>
+                <p>{api_result['error']}</p>
+            </div>
+            """
+        
+        # Processar resultados
+        results = api_result if isinstance(api_result, list) else []
+        
+        if not results:
+            return """
+            <div style="padding: 2rem; text-align: center;">
+                <h3>Nenhum resultado encontrado</h3>
+                <p style="color: var(--text-secondary);">Tente ajustar os filtros ou termo de busca</p>
+            </div>
+            """
+        
+    except Exception as e:
+        return f"""
+        <div style="padding: 2rem; text-align: center; color: #DC2626;">
+            <h3>Erro na busca</h3>
+            <p>{str(e)}</p>
+        </div>
+        """
     
     # Header simples
     html = f"""
     <div style="padding: 1.5rem;">
         <h3 style="margin-bottom: 1.5rem;">Resultados da busca</h3>
         <p style="color: var(--text-secondary); margin-bottom: 2rem;">Busca por: "{search_term}" - {data_type} ({year})</p>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Encontrados: {len(results)} registros</p>
     """
     
-    # Resultados detalhados
-    for i, item in enumerate(results, 1):
-        risk_color = {
-            "Baixo": "var(--primary-green)",
-            "Médio": "var(--primary-yellow)", 
-            "Alto": "#FF6B6B"
-        }
+    # Processar resultados reais da API
+    for i, item in enumerate(results[:5], 1):  # Mostrar apenas 5 primeiros
+        # Adaptar campos conforme retorno da API
+        numero = item.get('numero', item.get('id', f'REG-{i:03d}'))
+        empresa = item.get('nome', item.get('razaoSocial', item.get('fornecedor', 'N/A')))
+        valor = item.get('valor', item.get('valorContrato', item.get('valorInicial', 0)))
+        objeto = item.get('objeto', item.get('descricao', 'N/A'))
         
-        status_color = {
-            "Ativo": "var(--primary-green)",
-            "Em Andamento": "var(--primary-blue)",
-            "Em Análise": "var(--primary-yellow)",
-            "Pago": "var(--primary-green)"
-        }
+        # Formatar valor
+        if isinstance(valor, (int, float)):
+            valor_fmt = f"R$ {valor:,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.')
+        else:
+            valor_fmt = str(valor)
         
         html += f"""
         <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
-            <h4 style="color: var(--primary-blue); margin: 0 0 0.5rem 0;">{item['tipo']} #{item['numero']}</h4>
-            <p><strong>Empresa:</strong> {item['empresa']}</p>
-            <p><strong>Valor:</strong> {item['valor']}</p>
-            <p><strong>Objeto:</strong> {item['objeto']}</p>
-            <p><strong>Status:</strong> {item['status']} | <strong>Risco:</strong> {item['risco']}</p>
+            <h4 style="color: var(--primary-blue); margin: 0 0 0.5rem 0;">{data_type} #{numero}</h4>
+            <p><strong>Empresa/Favorecido:</strong> {empresa}</p>
+            <p><strong>Valor:</strong> {valor_fmt}</p>
+            <p><strong>Objeto:</strong> {objeto[:100]}{'...' if len(str(objeto)) > 100 else ''}</p>
+            <details style="margin-top: 0.5rem;">
+                <summary style="cursor: pointer; color: var(--primary-blue);">Ver dados completos</summary>
+                <pre style="background: var(--bg-secondary); padding: 1rem; border-radius: 4px; overflow-x: auto; font-size: 0.8rem;">{json.dumps(item, indent=2, ensure_ascii=False)}</pre>
+            </details>
         </div>
         """
     
@@ -654,11 +692,61 @@ def create_interface():
                 </div>
             """)
             
+            async def call_groq_api(message):
+                """Chamar API do GROQ para chat"""
+                if not GROQ_API_KEY:
+                    return "API key do GROQ não configurada"
+                
+                headers = {
+                    "Authorization": f"Bearer {GROQ_API_KEY}",
+                    "Content-Type": "application/json"
+                }
+                
+                payload = {
+                    "messages": [
+                        {
+                            "role": "system",
+                            "content": "Você é um assistente especializado em dados do governo brasileiro e transparência pública. Responda de forma clara e objetiva sobre gastos públicos, contratos, licitações e dados governamentais."
+                        },
+                        {
+                            "role": "user",
+                            "content": message
+                        }
+                    ],
+                    "model": "llama3-8b-8192",
+                    "temperature": 0.7,
+                    "max_tokens": 1000
+                }
+                
+                try:
+                    async with httpx.AsyncClient(timeout=30.0) as client:
+                        response = await client.post(
+                            "https://api.groq.com/openai/v1/chat/completions",
+                            headers=headers,
+                            json=payload
+                        )
+                        
+                        if response.status_code == 200:
+                            result = response.json()
+                            return result["choices"][0]["message"]["content"]
+                        else:
+                            return f"Erro na API: {response.status_code} - {response.text}"
+                except Exception as e:
+                    return f"Erro na requisição: {str(e)}"
+            
             def chat_fn(message, history):
                 if message:
                     history = history or []
-                    # Resposta simples
-                    response = f"Processando sua pergunta sobre: {message}. Esta é uma demonstração do sistema."
+                    
+                    # Chamar API do GROQ
+                    try:
+                        loop = asyncio.new_event_loop()
+                        asyncio.set_event_loop(loop)
+                        response = loop.run_until_complete(call_groq_api(message))
+                        loop.close()
+                    except Exception as e:
+                        response = f"Erro ao processar mensagem: {str(e)}"
+                    
                     history.append((message, response))
                     return history, ""
                 return history, ""
