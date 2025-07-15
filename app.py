@@ -642,18 +642,35 @@ def create_landing_page():
         }
         
         // Help button functionality
-        function showHelpInfo() {
-            alert('🤖 Cidadão.AI - Ajuda\\n\\n' +
-                  '• Use a "Consulta Avançada" para buscar dados específicos\\n' +
-                  '• Experimente "Pergunte ao Modelo" para análises inteligentes\\n' +
-                  '• Clique em "Créditos" para mais informações sobre o projeto\\n\\n' +
-                  'Precisa de mais ajuda? Visite nossa documentação técnica!');
+        function showHelpModal() {
+            const modal = document.getElementById('helpModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+            }
+        }
+        
+        function hideHelpModal() {
+            const modal = document.getElementById('helpModal');
+            if (modal) {
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+        
+        // Close help modal when clicking outside
+        function handleHelpModalClick(event) {
+            if (event.target.classList.contains('help-modal-overlay')) {
+                hideHelpModal();
+            }
         }
         
         window.showCreditsModal = showCreditsModal;
         window.hideCreditsModal = hideCreditsModal;
         window.handleModalClick = handleModalClick;
-        window.showHelpInfo = showHelpInfo;
+        window.showHelpModal = showHelpModal;
+        window.hideHelpModal = hideHelpModal;
+        window.handleHelpModalClick = handleHelpModalClick;
         
         console.log('Theme script loaded');
     </script>
@@ -763,9 +780,80 @@ def create_landing_page():
     </div>
     
     <!-- Botão de ajuda flutuante -->
-    <button class="help-button" onclick="showHelpInfo()" title="Ajuda">
+    <button class="help-button" onclick="showHelpModal()" title="Sobre o Projeto">
         ❓
     </button>
+    
+    <!-- Modal de Ajuda/Sobre o Projeto -->
+    <div id="helpModal" class="help-modal-overlay" onclick="handleHelpModalClick(event)" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.5); z-index: 2000; justify-content: center; align-items: center;">
+        <div class="modal-content" style="background: var(--bg-primary); border-radius: 12px; padding: 2rem; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-xl); border: 1px solid var(--border-color);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h2 style="color: var(--text-primary); margin: 0; font-size: 1.5rem; font-weight: 600;">📊 Sobre o Projeto</h2>
+                <button onclick="hideHelpModal()" style="background: transparent; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-secondary); padding: 0.5rem;">×</button>
+            </div>
+            
+            <div style="color: var(--text-secondary); line-height: 1.6;">
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="color: var(--text-primary); margin-bottom: 0.5rem; font-size: 1.125rem;">🇧🇷 Desenvolvedor</h3>
+                    <p style="margin-bottom: 0.5rem;"><strong>Anderson Henrique da Silva</strong></p>
+                    <p style="margin-bottom: 0.5rem;">Bacharelado em Ciência da Computação</p>
+                    <p style="margin-bottom: 1rem; font-size: 0.9rem;">IFSuldeminas Campus Muzambinho</p>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🔗 Links do Desenvolvedor</h4>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem;">
+                        <a href="https://github.com/anderson-ufrj" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>👨‍💻</span> GitHub
+                        </a>
+                        <a href="https://www.linkedin.com/in/anderson-h-silva95/" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>💼</span> LinkedIn
+                        </a>
+                        <a href="https://x.com/neural_thinker" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>🐦</span> Twitter
+                        </a>
+                        <a href="https://www.instagram.com/andhenrique_/" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>📸</span> Instagram
+                        </a>
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">📧 Contato</h4>
+                    <a href="mailto:andersonhs27@gmail.com" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <span>📧</span> andersonhs27@gmail.com
+                    </a>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🎓 Instituição</h4>
+                    <a href="https://cursos.muz.ifsuldeminas.edu.br/ciencia-da-computacao" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <span>🏫</span> Ciência da Computação - IFSuldeminas
+                    </a>
+                </div>
+                
+                <div style="margin-bottom: 1.5rem;">
+                    <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🔍 Projeto</h4>
+                    <p style="margin-bottom: 0.5rem; font-size: 0.9rem;">Sistema Multi-Agente de IA para Transparência Pública</p>
+                    <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                        <span>📚</span> Repositório do Projeto
+                    </a>
+                </div>
+                
+                <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; border-left: 4px solid var(--primary-green); margin-bottom: 1rem;">
+                    <p style="margin: 0; font-size: 0.875rem; font-weight: 500;">
+                        <strong>Versão:</strong> v1.0.0 | <strong>Licença:</strong> Todos os direitos reservados
+                    </p>
+                </div>
+                
+                <div style="text-align: center; padding-top: 1rem; border-top: 1px solid var(--border-color);">
+                    <p style="font-size: 0.875rem; color: var(--text-tertiary); margin: 0;">
+                        Trabalho de Conclusão de Curso - 2025
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
     """
 
 def create_interface():
