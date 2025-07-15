@@ -419,8 +419,8 @@ body, .gradio-container {
     box-shadow: var(--shadow-xl);
     z-index: 1001;
     opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.3s ease;
+    transform: translateY(20px) scale(0.9);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     pointer-events: none;
     overflow: hidden;
     display: none;
@@ -428,9 +428,25 @@ body, .gradio-container {
 
 .help-modal.open {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
     pointer-events: all;
     display: block;
+}
+
+/* Seta do balão */
+.help-modal::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    right: 32px;
+    width: 20px;
+    height: 20px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg);
+    z-index: -1;
 }
 
 .help-modal-header {
@@ -786,9 +802,9 @@ def create_landing_page():
                     }, 300);
                 } else {
                     modal.style.display = 'block';
-                    setTimeout(() => {
-                        modal.classList.add('open');
-                    }, 10);
+                    // Force reflow to ensure the element is rendered
+                    modal.offsetHeight;
+                    modal.classList.add('open');
                 }
             }
         }
@@ -805,7 +821,8 @@ def create_landing_page():
         
         // Close help modal when clicking outside
         function handleHelpModalClick(event) {
-            if (event.target === event.currentTarget) {
+            // Only close if clicking on the modal itself, not its content
+            if (event.target.classList.contains('help-modal')) {
                 hideHelpModal();
             }
         }
