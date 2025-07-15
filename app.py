@@ -537,9 +537,12 @@ def create_landing_page():
     <script>
         (function() {
             console.log('🚀 Landing page inline script loaded');
+            console.log('📊 Current URL:', window.location.href);
+            console.log('📊 Gradio container:', document.querySelector('.gradio-container'));
             
             // Função para adicionar eventos aos botões
             function setupButtons() {
+                console.log('⚙️ setupButtons called at', new Date().toISOString());
                 const btnAdvanced = document.getElementById('btnAdvanced');
                 const btnChat = document.getElementById('btnChat');
                 
@@ -554,13 +557,44 @@ def create_landing_page():
                         if (typeof window.navigateToAdvanced === 'function') {
                             window.navigateToAdvanced();
                         } else {
-                            // Fallback: procurar e clicar na aba diretamente
-                            const tabs = document.querySelectorAll('button[role="tab"], .gradio-container button');
-                            for (const tab of tabs) {
-                                if (tab.textContent && (tab.textContent.includes('Consulta Avançada') || tab.textContent.includes('🔍'))) {
-                                    console.log('📍 Found tab:', tab.textContent);
-                                    tab.click();
-                                    break;
+                            // Fallback melhorado: múltiplos seletores para Gradio 5.0
+                            console.log('🔍 Searching for Advanced tab...');
+                            
+                            // Seletores específicos para Gradio 5.0
+                            const selectors = [
+                                'button[role="tab"]', 
+                                '.tab-nav button',
+                                '.gradio-tabs button',
+                                'div[role="tablist"] button',
+                                '.gr-tabs button',
+                                '.tabs button',
+                                'button'
+                            ];
+                            
+                            let found = false;
+                            for (const selector of selectors) {
+                                const tabs = document.querySelectorAll(selector);
+                                console.log(`Trying selector: ${selector}, found ${tabs.length} elements`);
+                                
+                                for (const tab of tabs) {
+                                    const text = tab.textContent || tab.innerText || '';
+                                    if (text.includes('Consulta Avançada') || text.includes('🔍')) {
+                                        console.log('✅ Found Advanced tab:', text);
+                                        tab.click();
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (found) break;
+                            }
+                            
+                            if (!found) {
+                                console.warn('⚠️ Advanced tab not found, trying alternative approach');
+                                // Último fallback: tentar encontrar pela posição
+                                const allTabs = document.querySelectorAll('button[role="tab"], .gradio-container .tabs button');
+                                if (allTabs.length >= 2) {
+                                    console.log('📍 Clicking second tab by position');
+                                    allTabs[1].click();
                                 }
                             }
                         }
@@ -578,13 +612,44 @@ def create_landing_page():
                         if (typeof window.navigateToChat === 'function') {
                             window.navigateToChat();
                         } else {
-                            // Fallback: procurar e clicar na aba diretamente
-                            const tabs = document.querySelectorAll('button[role="tab"], .gradio-container button');
-                            for (const tab of tabs) {
-                                if (tab.textContent && (tab.textContent.includes('Pergunte ao Modelo') || tab.textContent.includes('💬'))) {
-                                    console.log('📍 Found tab:', tab.textContent);
-                                    tab.click();
-                                    break;
+                            // Fallback melhorado: múltiplos seletores para Gradio 5.0
+                            console.log('💬 Searching for Chat tab...');
+                            
+                            // Seletores específicos para Gradio 5.0
+                            const selectors = [
+                                'button[role="tab"]', 
+                                '.tab-nav button',
+                                '.gradio-tabs button',
+                                'div[role="tablist"] button',
+                                '.gr-tabs button',
+                                '.tabs button',
+                                'button'
+                            ];
+                            
+                            let found = false;
+                            for (const selector of selectors) {
+                                const tabs = document.querySelectorAll(selector);
+                                console.log(`Trying selector: ${selector}, found ${tabs.length} elements`);
+                                
+                                for (const tab of tabs) {
+                                    const text = tab.textContent || tab.innerText || '';
+                                    if (text.includes('Pergunte ao Modelo') || text.includes('💬')) {
+                                        console.log('✅ Found Chat tab:', text);
+                                        tab.click();
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (found) break;
+                            }
+                            
+                            if (!found) {
+                                console.warn('⚠️ Chat tab not found, trying alternative approach');
+                                // Último fallback: tentar encontrar pela posição
+                                const allTabs = document.querySelectorAll('button[role="tab"], .gradio-container .tabs button');
+                                if (allTabs.length >= 3) {
+                                    console.log('📍 Clicking third tab by position');
+                                    allTabs[2].click();
                                 }
                             }
                         }
@@ -595,10 +660,12 @@ def create_landing_page():
             // Executar imediatamente
             setupButtons();
             
-            // E também após um delay para garantir
+            // E também após um delay para garantir que Gradio carregou
             setTimeout(setupButtons, 500);
             setTimeout(setupButtons, 1000);
             setTimeout(setupButtons, 2000);
+            setTimeout(setupButtons, 3000);
+            setTimeout(setupButtons, 5000);
             
             // Observer para elementos dinâmicos
             const observer = new MutationObserver(function(mutations) {
