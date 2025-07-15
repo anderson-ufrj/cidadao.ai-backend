@@ -323,6 +323,54 @@ body, .gradio-container {
     border-color: #334155 !important;
 }
 
+/* Ocultar loading do Gradio */
+.gradio-container .wrap.default,
+.gradio-container .loading,
+.gradio-container .eta-bar,
+.gradio-container .progress-bar,
+.gradio-container .uploading,
+.gradio-container .pending {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Ocultar logo do Gradio durante loading */
+.gradio-container .logo:not(.header .logo),
+.gradio-container svg[alt="logo"],
+.gradio-container img[alt="logo"] {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+}
+
+/* Ocultar splash screen e loading inicial */
+.gradio-container > div:first-child:not(.tab-nav):not(.tabitem) {
+    display: none !important;
+}
+
+/* Ocultar qualquer div que contenha apenas o logo */
+.gradio-container > div:empty,
+.gradio-container > div:has(> svg),
+.gradio-container > div:has(> img[alt="logo"]) {
+    display: none !important;
+}
+
+/* Forçar exibição do conteúdo principal */
+.gradio-container .tab-nav,
+.gradio-container .tabitem,
+.gradio-container .block {
+    display: block !important;
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+/* Acelerar carregamento */
+.gradio-container {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
 /* Responsivo aprimorado */
 @media (max-width: 768px) {
     .header {
@@ -762,6 +810,31 @@ def create_landing_page():
         setTimeout(initTheme, 1000);
         setTimeout(initTheme, 2000);
         
+        // Force hide Gradio loading elements
+        function hideGradioLoading() {
+            const loadingElements = document.querySelectorAll('.loading, .eta-bar, .wrap.default');
+            loadingElements.forEach(el => {
+                el.style.display = 'none';
+            });
+            
+            // Hide any Gradio logos or loading screens
+            const gradioLogos = document.querySelectorAll('.gradio-container .logo, .gradio-container > div:first-child');
+            gradioLogos.forEach(el => {
+                if (el.tagName !== 'DIV' || !el.classList.contains('header')) {
+                    el.style.display = 'none';
+                }
+            });
+        }
+        
+        // Run multiple times to ensure it works
+        setTimeout(hideGradioLoading, 0);
+        setTimeout(hideGradioLoading, 100);
+        setTimeout(hideGradioLoading, 500);
+        setTimeout(hideGradioLoading, 1000);
+        
+        // Also run on window load
+        window.addEventListener('load', hideGradioLoading);
+        
         // Global function accessible from anywhere
         window.toggleTheme = toggleTheme;
         window.initTheme = initTheme;
@@ -1038,7 +1111,12 @@ def create_landing_page():
 def create_interface():
     """Interface principal"""
     
-    with gr.Blocks(css=custom_css, title="Cidadão.AI") as app:
+    with gr.Blocks(
+        css=custom_css, 
+        title="Cidadão.AI",
+        theme=gr.themes.Base(),
+        head="<style>body { margin: 0; padding: 0; }</style>"
+    ) as app:
         
         # Landing page como primeira aba
         with gr.Tab("🏠 Cidadão.AI"):
@@ -1226,6 +1304,14 @@ def create_interface():
 
 # Executar aplicação
 if __name__ == "__main__":
-    print("🚀 Iniciando Cidadão.AI - Modo Escuro Corrigido...")
+    print("🚀 Iniciando Cidadão.AI - Loading Otimizado...")
     app = create_interface()
-    app.launch()
+    app.launch(
+        show_error=True,
+        quiet=False,
+        favicon_path=None,
+        app_kwargs={
+            "docs_url": None,
+            "redoc_url": None,
+        }
+    )
