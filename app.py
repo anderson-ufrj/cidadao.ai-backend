@@ -540,34 +540,9 @@ def create_landing_page():
             console.log('📊 Current URL:', window.location.href);
             console.log('📊 Gradio container:', document.querySelector('.gradio-container'));
             
-            // Função de debugging super agressiva
+            // Função de debugging simples
             function debugDOMStructure() {
-                console.log('🔍 === DEBUGGING DOM STRUCTURE ===');
-                console.log('📊 All buttons in page:', document.querySelectorAll('button').length);
-                console.log('📊 All divs in page:', document.querySelectorAll('div').length);
-                console.log('📊 Gradio container exists:', !!document.querySelector('.gradio-container'));
-                console.log('📊 App element exists:', !!document.querySelector('#root, .app, gradio-app'));
-                
-                // Log all buttons with their text
-                const allButtons = document.querySelectorAll('button');
-                console.log('🔘 All buttons found:');
-                allButtons.forEach((btn, i) => {
-                    const text = (btn.textContent || btn.innerText || '').trim();
-                    if (text) {
-                        console.log(`  ${i}: "${text}" (classes: ${btn.className})`);
-                    }
-                });
-                
-                // Check for tabs specifically
-                const tabElements = document.querySelectorAll('[role="tab"], .tab, .gradio-tab, [class*="tab"]');
-                console.log('🏷️ Tab-like elements:', tabElements.length);
-                tabElements.forEach((tab, i) => {
-                    console.log(`  Tab ${i}:`, tab.textContent, tab.className);
-                });
-                
-                // Check iframe
-                const iframes = document.querySelectorAll('iframe');
-                console.log('🖼️ Iframes found:', iframes.length);
+                console.log('🔍 Simple debug - tabs found:', document.querySelectorAll('[role="tab"]').length);
             }
             
             // Função para adicionar eventos aos botões
@@ -595,25 +570,15 @@ def create_landing_page():
                             console.log('🔍 Searching for Advanced tab...');
                             
                             // Seletores específicos para Gradio 5.0
-                            const selectors = [
-                                'button[role="tab"]', 
-                                '.tab-nav button',
-                                '.gradio-tabs button',
-                                'div[role="tablist"] button',
-                                '.gr-tabs button',
-                                '.tabs button',
-                                'button'
-                            ];
+                            const selectors = ['button[role="tab"]', '.gradio-tabs button', 'button'];
                             
                             let found = false;
                             for (const selector of selectors) {
                                 const tabs = document.querySelectorAll(selector);
-                                console.log(`Trying selector: ${selector}, found ${tabs.length} elements`);
-                                
                                 for (const tab of tabs) {
                                     const text = tab.textContent || tab.innerText || '';
                                     if (text.includes('Consulta Avançada') || text.includes('🔍')) {
-                                        console.log('✅ Found Advanced tab:', text);
+                                        console.log('✅ Found Advanced tab');
                                         tab.click();
                                         found = true;
                                         break;
@@ -633,27 +598,15 @@ def create_landing_page():
                                     found = true;
                                 }
                                 
-                                // Fallback 2: Procurar em TODO o documento por qualquer coisa com "Consulta"
+                                // Fallback 2: Busca simples
                                 if (!found) {
-                                    console.log('🔍 RADICAL: Searching entire document for "Consulta"');
-                                    const allElements = document.querySelectorAll('*');
-                                    for (const elem of allElements) {
-                                        const text = (elem.textContent || '').toLowerCase();
-                                        if (text.includes('consulta') && text.includes('avançada')) {
-                                            console.log('✅ FOUND via radical search:', elem.tagName, elem.textContent);
-                                            if (elem.click) {
-                                                elem.click();
-                                                found = true;
-                                                break;
-                                            }
+                                    const elements = document.querySelectorAll('*');
+                                    for (const elem of elements) {
+                                        if ((elem.textContent || '').includes('Consulta Avançada')) {
+                                            if (elem.click) elem.click();
+                                            break;
                                         }
                                     }
-                                }
-                                
-                                // Fallback 3: Eventos customizados
-                                if (!found) {
-                                    console.log('⚡ ULTRA RADICAL: Trying custom events');
-                                    window.dispatchEvent(new CustomEvent('navigateToAdvanced'));
                                 }
                             }
                         }
@@ -675,25 +628,15 @@ def create_landing_page():
                             console.log('💬 Searching for Chat tab...');
                             
                             // Seletores específicos para Gradio 5.0
-                            const selectors = [
-                                'button[role="tab"]', 
-                                '.tab-nav button',
-                                '.gradio-tabs button',
-                                'div[role="tablist"] button',
-                                '.gr-tabs button',
-                                '.tabs button',
-                                'button'
-                            ];
+                            const selectors = ['button[role="tab"]', '.gradio-tabs button', 'button'];
                             
                             let found = false;
                             for (const selector of selectors) {
                                 const tabs = document.querySelectorAll(selector);
-                                console.log(`Trying selector: ${selector}, found ${tabs.length} elements`);
-                                
                                 for (const tab of tabs) {
                                     const text = tab.textContent || tab.innerText || '';
                                     if (text.includes('Pergunte ao Modelo') || text.includes('💬')) {
-                                        console.log('✅ Found Chat tab:', text);
+                                        console.log('✅ Found Chat tab');
                                         tab.click();
                                         found = true;
                                         break;
@@ -713,27 +656,15 @@ def create_landing_page():
                                     found = true;
                                 }
                                 
-                                // Fallback 2: Procurar em TODO o documento por qualquer coisa com "Pergunte"
+                                // Fallback 2: Busca simples
                                 if (!found) {
-                                    console.log('🔍 RADICAL: Searching entire document for "Pergunte"');
-                                    const allElements = document.querySelectorAll('*');
-                                    for (const elem of allElements) {
-                                        const text = (elem.textContent || '').toLowerCase();
-                                        if (text.includes('pergunte') || text.includes('modelo')) {
-                                            console.log('✅ FOUND via radical search:', elem.tagName, elem.textContent);
-                                            if (elem.click) {
-                                                elem.click();
-                                                found = true;
-                                                break;
-                                            }
+                                    const elements = document.querySelectorAll('*');
+                                    for (const elem of elements) {
+                                        if ((elem.textContent || '').includes('Pergunte ao Modelo')) {
+                                            if (elem.click) elem.click();
+                                            break;
                                         }
                                     }
-                                }
-                                
-                                // Fallback 3: Eventos customizados
-                                if (!found) {
-                                    console.log('⚡ ULTRA RADICAL: Trying custom events');
-                                    window.dispatchEvent(new CustomEvent('navigateToChat'));
                                 }
                             }
                         }
@@ -753,22 +684,6 @@ def create_landing_page():
             setTimeout(setupButtons, 8000);
             setTimeout(setupButtons, 10000);
             
-            // PANIC MODE: Adicionar botão de debug ao vivo
-            setTimeout(() => {
-                if (!document.getElementById('panicDebug')) {
-                    const panicBtn = document.createElement('button');
-                    panicBtn.id = 'panicDebug';
-                    panicBtn.innerHTML = '🚨 DEBUG';
-                    panicBtn.style.cssText = 'position:fixed;top:10px;right:10px;z-index:9999;background:red;color:white;padding:10px;border:none;border-radius:5px;cursor:pointer;';
-                    panicBtn.onclick = () => {
-                        console.log('🚨 PANIC DEBUG ACTIVATED!');
-                        debugDOMStructure();
-                        setupButtons();
-                    };
-                    document.body.appendChild(panicBtn);
-                    console.log('🚨 Panic debug button added to page');
-                }
-            }, 2000);
             
             // Observer para elementos dinâmicos
             const observer = new MutationObserver(function(mutations) {
