@@ -14,6 +14,17 @@ import logging
 from typing import List, Dict, Any, Tuple, Optional
 from datetime import datetime
 
+# Import local modules for real data integration
+try:
+    import sys
+    sys.path.append('/home/anderson-henrique/Documentos/cidadao.ai')
+    from src.tools.data_integrator import DataIntegrator
+    from src.tools.api_test import quick_api_test
+    REAL_DATA_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Real data integration not available: {e}")
+    REAL_DATA_AVAILABLE = False
+
 # Configurar logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -568,12 +579,95 @@ def call_groq_api(message: str, system_prompt: str = None) -> str:
     except Exception as e:
         return f"❌ **Erro de conexão**: {str(e)}\n\nVerifique sua conexão e tente novamente."
 
+async def search_real_data(query: str, data_type: str = "contracts") -> str:
+    """
+    Search real government data based on query
+    """
+    if not REAL_DATA_AVAILABLE:
+        return "❌ **Dados reais não disponíveis**\n\nIntegração com API governamental não configurada."
+    
+    try:
+        async with DataIntegrator() as integrator:
+            # Parse query for search parameters
+            query_lower = query.lower()
+            
+            # Extract CNPJ if present
+            import re
+            cnpj_match = re.search(r'\b\d{2}\.\d{3}\.\d{3}/\d{4}-\d{2}\b|\b\d{14}\b', query)
+            cnpj = cnpj_match.group() if cnpj_match else None
+            
+            # Extract year if present
+            year_match = re.search(r'\b(20\d{2})\b', query)
+            year = int(year_match.group()) if year_match else None
+            
+            # Extract value if present
+            value_match = re.search(r'\b(?:acima|maior|superior)\s+(?:de\s+)?(?:r\$\s*)?([\d.,]+)\b', query_lower)
+            min_value = None
+            if value_match:
+                try:
+                    value_str = value_match.group(1).replace(',', '.')
+                    min_value = float(value_str)
+                except:
+                    pass
+            
+            # Search based on data type
+            if data_type == "contracts" or "contrato" in query_lower:
+                result = await integrator.search_contracts(
+                    cnpj=cnpj, 
+                    year=year, 
+                    min_value=min_value,
+                    limit=10
+                )
+            elif data_type == "expenses" or "despesa" in query_lower:
+                result = await integrator.search_expenses(
+                    year=year,
+                    min_value=min_value,
+                    limit=10
+                )
+            elif data_type == "biddings" or "licitação" in query_lower:
+                result = await integrator.search_biddings(
+                    year=year,
+                    min_value=min_value,
+                    limit=10
+                )
+            else:
+                # Default to contracts
+                result = await integrator.search_contracts(
+                    cnpj=cnpj,
+                    year=year,
+                    min_value=min_value,
+                    limit=10
+                )
+            
+            # Format for display
+            return integrator.format_data_for_display(result)
+            
+    except Exception as e:
+        logger.error(f"Error searching real data: {str(e)}")
+        return f"❌ **Erro ao buscar dados**: {str(e)}"
+
 def analyze_transparency_text(text: str) -> str:
     """
-    Análise especializada usando IA real
+    Análise especializada usando IA real e dados governamentais
     """
     if not text.strip():
         return "⚠️ **Texto vazio**\n\nPor favor, insira um texto para análise."
+    
+    # Check if this is a data search request
+    search_keywords = ['buscar', 'procurar', 'encontrar', 'listar', 'cnpj', 'empresa', 'contrato', 'despesa', 'licitação']
+    if any(keyword in text.lower() for keyword in search_keywords):
+        # This is a data search request
+        try:
+            # Run async search in sync context
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            result = loop.run_until_complete(search_real_data(text))
+            loop.close()
+            return result
+        except Exception as e:
+            logger.error(f"Error in data search: {str(e)}")
+            # Fall back to AI analysis
+            pass
     
     # Prompt especializado para análise de transparência
     system_prompt = """Você é o Cidadão.AI, um sistema especializado em análise de transparência pública brasileira.
@@ -628,10 +722,30 @@ Por favor, forneça uma análise completa seguindo o formato estabelecido."""
 
 def chat_with_ai(message: str, history: List[Dict]) -> Tuple[str, List[Dict]]:
     """
-    Chat conversacional com a IA
+    Chat conversacional com a IA e busca de dados reais
     """
     if not message.strip():
         return "", history
+    
+    # Check if this is a data search request
+    search_keywords = ['buscar', 'procurar', 'encontrar', 'listar', 'cnpj', 'empresa', 'contrato', 'despesa', 'licitação']
+    if any(keyword in message.lower() for keyword in search_keywords):
+        try:
+            # Run async search in sync context
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            ai_response = loop.run_until_complete(search_real_data(message))
+            loop.close()
+            
+            # Update history
+            history.append({"role": "user", "content": message})
+            history.append({"role": "assistant", "content": ai_response})
+            
+            return "", history
+        except Exception as e:
+            logger.error(f"Error in chat data search: {str(e)}")
+            # Fall back to regular AI chat
+            pass
     
     # Sistema especializado para chat
     system_prompt = """Você é o Cidadão.AI, assistente especializada em transparência pública brasileira.
@@ -709,11 +823,18 @@ def get_status_info() -> Tuple[str, str]:
     status_emoji = "✅"
     status_text = "Sistema Online"
     
+    # Check API status
     if GROQ_API_KEY:
         status_text += " - IA Ativa"
     else:
         status_emoji = "⚠️"
-        status_text += " - Modo Limitado"
+        status_text += " - IA Limitada"
+    
+    # Check real data availability
+    if REAL_DATA_AVAILABLE:
+        status_text += " - Dados Reais"
+    else:
+        status_text += " - Dados Simulados"
     
     return status_emoji, status_text
 
@@ -801,21 +922,21 @@ def create_main_interface():
                         # Examples section
                         gr.HTML("""
                         <div class="examples-grid">
+                            <div class="example-card" onclick="document.querySelector('textarea').value = 'Buscar contratos da empresa CNPJ 12.345.678/0001-90 em 2024'">
+                                <div class="example-title">🔍 Busca por CNPJ</div>
+                                <div class="example-text">Contratos de empresa específica</div>
+                            </div>
+                            <div class="example-card" onclick="document.querySelector('textarea').value = 'Listar despesas acima de R$ 1.000.000 em 2024'">
+                                <div class="example-title">💰 Busca por Valor</div>
+                                <div class="example-text">Despesas de alto valor</div>
+                            </div>
+                            <div class="example-card" onclick="document.querySelector('textarea').value = 'Encontrar licitações em andamento no ministério da saúde'">
+                                <div class="example-title">🏛️ Busca por Órgão</div>
+                                <div class="example-text">Licitações de órgão específico</div>
+                            </div>
                             <div class="example-card" onclick="document.querySelector('textarea').value = 'Contrato emergencial de R$ 50 milhões sem licitação para empresa recém-criada'">
-                                <div class="example-title">🚨 Contrato Suspeito</div>
-                                <div class="example-text">Emergencial sem licitação para empresa nova</div>
-                            </div>
-                            <div class="example-card" onclick="document.querySelector('textarea').value = 'Pregão eletrônico para material de escritório no valor de R$ 100.000 com ampla participação'">
-                                <div class="example-title">✅ Pregão Regular</div>
-                                <div class="example-text">Processo licitatório com ampla participação</div>
-                            </div>
-                            <div class="example-card" onclick="document.querySelector('textarea').value = 'Dispensa de licitação para obra de R$ 25 milhões com justificativa questionável'">
-                                <div class="example-title">⚠️ Dispensa Irregular</div>
-                                <div class="example-text">Valor alto sem processo competitivo</div>
-                            </div>
-                            <div class="example-card" onclick="document.querySelector('textarea').value = 'Convênio de pesquisa com universidade federal no valor de R$ 2 milhões'">
-                                <div class="example-title">📚 Convênio Acadêmico</div>
-                                <div class="example-text">Parceria com instituição de ensino</div>
+                                <div class="example-title">🤖 Análise de Texto</div>
+                                <div class="example-text">Análise de documento suspeito</div>
                             </div>
                         </div>
                         """)
@@ -824,14 +945,14 @@ def create_main_interface():
                         with gr.Column(elem_classes=["input-container"]):
                             text_input = gr.Textbox(
                                 label="",
-                                placeholder="Cole aqui o texto do contrato, licitação, despesa ou qualquer documento público para análise...",
+                                placeholder="Cole um documento para análise OU digite uma busca como: 'buscar contratos da empresa CNPJ 12.345.678/0001-90' ou 'listar despesas acima de R$ 1.000.000'...",
                                 lines=6,
                                 max_lines=15,
                                 elem_classes=["modern-input"]
                             )
                             
                             analyze_btn = gr.Button(
-                                "Analisar com IA",
+                                "Analisar/Buscar",
                                 variant="primary",
                                 elem_classes=["primary-button"]
                             )
@@ -839,14 +960,19 @@ def create_main_interface():
                         # Output area
                         with gr.Column(elem_classes=["output-container"]):
                             analysis_output = gr.Markdown(
-                                value="""### 🤖 Aguardando análise...
+                                value="""### 🤖 Aguardando análise ou busca...
 
-Insira um documento acima e clique em "Analisar com IA" para receber:
+Você pode:
 
-- 🚨 **Detecção de Anomalias**
-- 💰 **Análise Financeira**
-- ⚖️ **Conformidade Legal**
-- 📋 **Recomendações Práticas**""",
+🔍 **Buscar dados reais**:
+- "buscar contratos da empresa CNPJ 12.345.678/0001-90"
+- "listar despesas acima de R$ 1.000.000 em 2024"
+- "encontrar licitações do ministério da saúde"
+
+🤖 **Analisar documentos**:
+- Cole texto de contratos, licitações ou despesas
+- Receba análise de anomalias e conformidade
+- Obtenha recomendações práticas""",
                                 elem_classes=["analysis-result"]
                             )
                         
@@ -865,10 +991,16 @@ Insira um documento acima e clique em "Analisar com IA" para receber:
                             value=[{"role": "assistant", "content": """👋 Olá! Sou o **Cidadão.AI**, sua assistente especializada em transparência pública brasileira.
 
 Posso ajudar você com:
-- 📊 Análise de contratos e licitações
-- 🔍 Detecção de irregularidades
-- ⚖️ Interpretação da legislação
-- 💡 Orientações sobre compliance
+- 🔍 **Busca de dados reais** do Portal da Transparência
+- 📊 **Análise de contratos** e licitações
+- 🔍 **Detecção de irregularidades**
+- ⚖️ **Interpretação da legislação**
+- 💡 **Orientações sobre compliance**
+
+🔍 **Exemplos de busca**:
+- "buscar contratos da empresa CNPJ 12.345.678/0001-90"
+- "listar despesas acima de R$ 1.000.000 em 2024"
+- "encontrar licitações do ministério da saúde"
 
 Como posso ajudar você hoje?"""}],
                             height=500,
