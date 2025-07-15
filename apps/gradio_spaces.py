@@ -20,6 +20,7 @@ try:
     sys.path.append('/home/anderson-henrique/Documentos/cidadao.ai')
     from src.tools.data_integrator import DataIntegrator
     from src.tools.api_test import quick_api_test
+    from src.tools.ai_analyzer import AIAnalyzer
     REAL_DATA_AVAILABLE = True
 except ImportError as e:
     logger.warning(f"Real data integration not available: {e}")
@@ -646,6 +647,21 @@ async def search_real_data(query: str, data_type: str = "contracts") -> str:
         logger.error(f"Error searching real data: {str(e)}")
         return f"❌ **Erro ao buscar dados**: {str(e)}"
 
+async def comprehensive_analysis(text: str) -> str:
+    """
+    Comprehensive analysis combining real data and AI
+    """
+    if not REAL_DATA_AVAILABLE:
+        return "❌ **Análise completa indisponível**\n\nIntegração com dados reais não configurada."
+    
+    try:
+        async with AIAnalyzer(groq_api_key=GROQ_API_KEY) as analyzer:
+            result = await analyzer.comprehensive_analysis(text)
+            return analyzer.format_comprehensive_analysis(result)
+    except Exception as e:
+        logger.error(f"Error in comprehensive analysis: {str(e)}")
+        return f"❌ **Erro na análise**: {str(e)}"
+
 def analyze_transparency_text(text: str) -> str:
     """
     Análise especializada usando IA real e dados governamentais
@@ -656,18 +672,27 @@ def analyze_transparency_text(text: str) -> str:
     # Check if this is a data search request
     search_keywords = ['buscar', 'procurar', 'encontrar', 'listar', 'cnpj', 'empresa', 'contrato', 'despesa', 'licitação']
     if any(keyword in text.lower() for keyword in search_keywords):
-        # This is a data search request
+        # This is a comprehensive analysis request
         try:
-            # Run async search in sync context
+            # Run async comprehensive analysis in sync context
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            result = loop.run_until_complete(search_real_data(text))
+            result = loop.run_until_complete(comprehensive_analysis(text))
             loop.close()
             return result
         except Exception as e:
-            logger.error(f"Error in data search: {str(e)}")
-            # Fall back to AI analysis
-            pass
+            logger.error(f"Error in comprehensive analysis: {str(e)}")
+            # Fall back to simple search
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                result = loop.run_until_complete(search_real_data(text))
+                loop.close()
+                return result
+            except Exception as e2:
+                logger.error(f"Error in fallback search: {str(e2)}")
+                # Fall back to AI analysis
+                pass
     
     # Prompt especializado para análise de transparência
     system_prompt = """Você é o Cidadão.AI, um sistema especializado em análise de transparência pública brasileira.
@@ -731,10 +756,10 @@ def chat_with_ai(message: str, history: List[Dict]) -> Tuple[str, List[Dict]]:
     search_keywords = ['buscar', 'procurar', 'encontrar', 'listar', 'cnpj', 'empresa', 'contrato', 'despesa', 'licitação']
     if any(keyword in message.lower() for keyword in search_keywords):
         try:
-            # Run async search in sync context
+            # Run async comprehensive analysis in sync context
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            ai_response = loop.run_until_complete(search_real_data(message))
+            ai_response = loop.run_until_complete(comprehensive_analysis(message))
             loop.close()
             
             # Update history
@@ -743,9 +768,23 @@ def chat_with_ai(message: str, history: List[Dict]) -> Tuple[str, List[Dict]]:
             
             return "", history
         except Exception as e:
-            logger.error(f"Error in chat data search: {str(e)}")
-            # Fall back to regular AI chat
-            pass
+            logger.error(f"Error in chat comprehensive analysis: {str(e)}")
+            # Fall back to simple search
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                ai_response = loop.run_until_complete(search_real_data(message))
+                loop.close()
+                
+                # Update history
+                history.append({"role": "user", "content": message})
+                history.append({"role": "assistant", "content": ai_response})
+                
+                return "", history
+            except Exception as e2:
+                logger.error(f"Error in fallback search: {str(e2)}")
+                # Fall back to regular AI chat
+                pass
     
     # Sistema especializado para chat
     system_prompt = """Você é o Cidadão.AI, assistente especializada em transparência pública brasileira.
