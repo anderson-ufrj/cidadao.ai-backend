@@ -1120,7 +1120,7 @@ Como posso ajudar você hoje?"""}],
                         <strong>Cidadão.AI</strong> - Democratizando a transparência pública
                     </div>
                     <div class="footer-links">
-                        <a href="https://github.com/anderson-henrique-da-silva/cidadao.ai" class="footer-link">GitHub</a>
+                        <a href="https://github.com/anderson-ufrj/cidadao.ai" class="footer-link">GitHub</a>
                         <a href="https://portaldatransparencia.gov.br" class="footer-link">Portal da Transparência</a>
                         <a href="https://dados.gov.br" class="footer-link">Dados Abertos</a>
                     </div>

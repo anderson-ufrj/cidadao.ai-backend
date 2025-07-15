@@ -14,6 +14,7 @@ import logging
 
 from .data_integrator import DataIntegrator
 from .transparency_api import TransparencyAPIFilter
+from .data_visualizer import DataVisualizer
 
 logger = logging.getLogger(__name__)
 
@@ -24,6 +25,7 @@ class AIAnalyzer:
     def __init__(self, groq_api_key: Optional[str] = None):
         self.groq_api_key = groq_api_key
         self.data_integrator = DataIntegrator()
+        self.visualizer = DataVisualizer()
     
     async def __aenter__(self):
         await self.data_integrator.__aenter__()
@@ -388,8 +390,16 @@ Base sua análise exclusivamente nos dados fornecidos."""
             response += f"• Total de registros: {real_data.get('total_records', 0):,}\\n"
             response += f"• Registros analisados: {real_data.get('returned_records', 0)}\\n\\n"
         
-        # Risk analysis
+        # Add visualizations
         risk_analysis = analysis.get("risk_analysis", {})
+        if real_data.get("success") and real_data.get("data"):
+            visualizations = self.visualizer.create_comprehensive_visualization(
+                real_data, risk_analysis
+            )
+            if visualizations:
+                response += f"\\n{visualizations}\\n"
+        
+        # Risk analysis text
         if risk_analysis:
             risk_score = risk_analysis.get("risk_score", 0)
             risk_level = risk_analysis.get("risk_level", "BAIXO")
