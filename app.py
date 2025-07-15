@@ -639,9 +639,6 @@ def create_landing_page():
                 </button>
             </div>
             
-            <div style="margin-top: 3rem; text-align: center; color: var(--text-secondary);">
-                <p style="font-size: 0.875rem;">OBS: Botões 1 & 2 idênticos ao Landing Page</p>
-            </div>
             
             <div style="margin-top: 3rem; text-align: center; color: var(--text-secondary); font-size: 0.875rem;">
                 <p style="margin-bottom: 1rem;">(Créditos: API - gradio - hugging face)</p>
