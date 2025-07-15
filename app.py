@@ -736,6 +736,9 @@ def create_landing_page():
                         <a href="https://huggingface.co/spaces/neural-thinker/cidadao.ia" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease;">
                             <span>🤗</span> Hugging Face
                         </a>
+                        <a href="https://anderson-ufrj.github.io/cidadao.ai/" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease;">
+                            <span>📖</span> Documentação Técnica
+                        </a>
                         <a href="https://gradio.app" target="_blank" style="color: var(--primary-blue); text-decoration: none; padding: 0.5rem 1rem; border: 1px solid var(--border-color); border-radius: 6px; transition: all 0.2s ease;">
                             <span>🎨</span> Made with Gradio
                         </a>
