@@ -21,9 +21,11 @@ custom_css = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --primary-green: #10B981;
+    --primary-green: #00A86B;
     --primary-yellow: #F59E0B;
-    --primary-blue: #3B82F6;
+    --primary-blue: #0066CC;
+    --primary-navy: #003366;
+    --primary-light-blue: #4DA6FF;
     --background-light: #FFFFFF;
     --background-dark: #0F172A;
     --surface-light: #F8FAFC;
@@ -181,41 +183,60 @@ body, .gradio-container {
 }
 
 .btn {
-    padding: 1rem 2rem;
-    border-radius: 8px;
-    font-size: 1rem;
+    padding: 1.2rem 2.5rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
     font-weight: 600;
     border: none;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     text-decoration: none;
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    min-width: 180px;
+    gap: 0.75rem;
+    min-width: 200px;
     justify-content: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn:hover::before {
+    left: 100%;
 }
 
 .btn-primary {
-    background: var(--primary-blue);
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-light-blue));
     color: white;
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
 }
 
 .btn-primary:hover {
-    background: #2563EB;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    background: linear-gradient(135deg, var(--primary-navy), var(--primary-blue));
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.4);
 }
 
 .btn-secondary {
-    background: transparent;
-    color: var(--text-primary);
-    border: 2px solid var(--border-color);
+    background: linear-gradient(135deg, var(--primary-green), #00D084);
+    color: white;
+    box-shadow: 0 4px 15px rgba(0, 168, 107, 0.3);
 }
 
 .btn-secondary:hover {
-    background: var(--bg-secondary);
-    border-color: var(--primary-blue);
+    background: linear-gradient(135deg, #008A5A, var(--primary-green));
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 168, 107, 0.4);
 }
 
 /* Logo dinâmico simples */
@@ -431,13 +452,13 @@ body, .gradio-container {
     right: 20px;
     width: 65px;
     height: 65px;
-    background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-light-blue));
     border: none;
     border-radius: 50%;
     color: white;
     font-size: 2rem;
     cursor: pointer;
-    box-shadow: var(--shadow-lg);
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
     z-index: 1000;
     transition: all 0.3s ease;
     display: flex;
@@ -447,7 +468,8 @@ body, .gradio-container {
 
 .help-button:hover {
     transform: scale(1.1);
-    box-shadow: var(--shadow-xl);
+    box-shadow: 0 8px 25px rgba(0, 102, 204, 0.4);
+    background: linear-gradient(135deg, var(--primary-navy), var(--primary-blue));
 }
 
 .help-button:active {
@@ -498,7 +520,7 @@ body, .gradio-container {
 }
 
 .help-modal-header {
-    background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+    background: linear-gradient(135deg, var(--primary-blue), var(--primary-light-blue));
     color: white;
     padding: 15px 20px;
     border-radius: 15px 15px 0 0;
@@ -934,17 +956,14 @@ def create_landing_page():
             
             <div class="action-buttons">
                 <button class="btn btn-primary" onclick="document.querySelector('.gradio-container .tabs button:nth-child(2)').click()">
-                    Consulta Avançada
+                    <span>🔍</span> Consulta Avançada
                 </button>
                 <button class="btn btn-secondary" onclick="document.querySelector('.gradio-container .tabs button:nth-child(3)').click()">
-                    Pergunte ao Modelo
+                    <span>💬</span> Pergunte ao Modelo
                 </button>
             </div>
             
             
-            <div style="margin-top: 3rem; text-align: center; color: var(--text-secondary); font-size: 0.875rem;">
-                <p style="margin-bottom: 1rem;">(Créditos: API - gradio - hugging face)</p>
-            </div>
         </div>
     </div>
     
