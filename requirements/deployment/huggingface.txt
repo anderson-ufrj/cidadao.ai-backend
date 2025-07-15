@@ -9,6 +9,7 @@ httpx>=0.25.0
 # Data Processing
 pandas>=2.0.0
 numpy>=1.24.0
+plotly>=5.17.0
 
 # Utilities
 python-dateutil>=2.8.2

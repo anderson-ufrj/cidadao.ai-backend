@@ -10,11 +10,104 @@ import time
 import asyncio
 import httpx
 import json
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
 from datetime import datetime
 
 # Configurar variáveis de ambiente
 TRANSPARENCY_API_KEY = os.getenv("TRANSPARENCY_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+def create_visualizations(results, data_type):
+    """Criar visualizações interativas com Plotly"""
+    if not results or len(results) == 0:
+        return None, None, None
+    
+    # Preparar dados
+    df_data = []
+    for item in results[:20]:  # Limitar a 20 itens para performance
+        valor = item.get('valor', item.get('valorContrato', item.get('valorInicial', 0)))
+        empresa = item.get('nome', item.get('razaoSocial', item.get('fornecedor', 'N/A')))
+        numero = item.get('numero', item.get('id', f'REG-{len(df_data)+1:03d}'))
+        
+        df_data.append({
+            'numero': numero,
+            'empresa': empresa[:30] + '...' if len(str(empresa)) > 30 else empresa,
+            'valor': float(valor) if isinstance(valor, (int, float)) else 0,
+            'valor_formatado': f"R$ {float(valor):,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.') if isinstance(valor, (int, float)) else 'N/A'
+        })
+    
+    df = pd.DataFrame(df_data)
+    
+    if df.empty:
+        return None, None, None
+    
+    # Gráfico 1: Top 10 por Valor
+    fig_bar = px.bar(
+        df.nlargest(10, 'valor'), 
+        x='valor', 
+        y='empresa',
+        orientation='h',
+        title=f'🏆 Top 10 {data_type} por Valor',
+        labels={'valor': 'Valor (R$)', 'empresa': 'Empresa/Favorecido'},
+        color='valor',
+        color_continuous_scale='viridis',
+        text='valor_formatado'
+    )
+    fig_bar.update_layout(
+        height=500,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(size=12),
+        title_font_size=16,
+        yaxis={'categoryorder': 'total ascending'}
+    )
+    fig_bar.update_traces(textposition='outside')
+    
+    # Gráfico 2: Distribuição por Valor
+    fig_hist = px.histogram(
+        df, 
+        x='valor',
+        nbins=10,
+        title=f'📊 Distribuição de Valores - {data_type}',
+        labels={'valor': 'Valor (R$)', 'count': 'Quantidade'},
+        color_discrete_sequence=['#0066CC']
+    )
+    fig_hist.update_layout(
+        height=400,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(size=12),
+        title_font_size=16
+    )
+    
+    # Gráfico 3: Pizza das Empresas
+    empresas_valor = df.groupby('empresa')['valor'].sum().nlargest(8).reset_index()
+    outros_valor = df[~df['empresa'].isin(empresas_valor['empresa'])]['valor'].sum()
+    
+    if outros_valor > 0:
+        empresas_valor = pd.concat([
+            empresas_valor,
+            pd.DataFrame({'empresa': ['Outros'], 'valor': [outros_valor]})
+        ])
+    
+    fig_pie = px.pie(
+        empresas_valor,
+        values='valor',
+        names='empresa',
+        title=f'🥧 Participação por Empresa - {data_type}',
+        color_discrete_sequence=px.colors.qualitative.Set3
+    )
+    fig_pie.update_layout(
+        height=500,
+        plot_bgcolor='rgba(0,0,0,0)',
+        paper_bgcolor='rgba(0,0,0,0)',
+        font=dict(size=12),
+        title_font_size=16
+    )
+    
+    return fig_bar, fig_hist, fig_pie
 
 async def call_transparency_api(endpoint, params=None):
     """Chamar API do Portal da Transparência"""
@@ -49,7 +142,7 @@ def search_data(data_type, year, search_term):
         <div style="padding: 2rem; text-align: center;">
             <p style="color: var(--text-secondary);">Digite uma consulta para buscar dados</p>
         </div>
-        """
+        """, None, None, None
     
     # Mapear tipo de dados para endpoint
     endpoint_map = {
@@ -81,7 +174,7 @@ def search_data(data_type, year, search_term):
                 <h3>Erro na API</h3>
                 <p>{api_result['error']}</p>
             </div>
-            """
+            """, None, None, None
         
         # Processar resultados
         results = api_result if isinstance(api_result, list) else []
@@ -92,7 +185,7 @@ def search_data(data_type, year, search_term):
                 <h3>Nenhum resultado encontrado</h3>
                 <p style="color: var(--text-secondary);">Tente ajustar os filtros ou termo de busca</p>
             </div>
-            """
+            """, None, None, None
         
     except Exception as e:
         return f"""
@@ -100,7 +193,7 @@ def search_data(data_type, year, search_term):
             <h3>Erro na busca</h3>
             <p>{str(e)}</p>
         </div>
-        """
+        """, None, None, None
     
     # Header do dashboard com resultados
     html = f"""
@@ -197,7 +290,10 @@ def search_data(data_type, year, search_term):
     </div>
     """
     
-    return html
+    # Gerar visualizações
+    fig_bar, fig_hist, fig_pie = create_visualizations(results, data_type)
+    
+    return html, fig_bar, fig_hist, fig_pie
 
 def create_advanced_search_page():
     """Página de consulta avançada baseada no mockup 2"""
@@ -584,48 +680,60 @@ def create_interface():
                     </div>
                     """)
                     
-                    results = gr.HTML(
-                        value="""
-                        <div class="dashboard-main">
-                            <div class="dashboard-welcome">
-                                <div class="welcome-icon">🎯</div>
-                                <h3>Bem-vindo ao Dashboard de Transparência</h3>
-                                <p>Configure os filtros na lateral e inicie sua investigação para ver os resultados aqui.</p>
-                                
-                                <div class="dashboard-stats">
-                                    <div class="stat-card">
-                                        <div class="stat-icon">📊</div>
-                                        <div class="stat-content">
-                                            <h4>Dados Disponíveis</h4>
-                                            <p>Portal da Transparência</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="stat-card">
-                                        <div class="stat-icon">🤖</div>
-                                        <div class="stat-content">
-                                            <h4>IA Especializada</h4>
-                                            <p>Análise Inteligente</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="stat-card">
-                                        <div class="stat-icon">📈</div>
-                                        <div class="stat-content">
-                                            <h4>Relatórios</h4>
-                                            <p>Insights Automatizados</p>
+                    # Abas para organizar resultados e gráficos
+                    with gr.Tabs():
+                        with gr.Tab("📋 Resultados"):
+                            results = gr.HTML(
+                                value="""
+                                <div class="dashboard-main">
+                                    <div class="dashboard-welcome">
+                                        <div class="welcome-icon">🎯</div>
+                                        <h3>Bem-vindo ao Dashboard de Transparência</h3>
+                                        <p>Configure os filtros na lateral e inicie sua investigação para ver os resultados aqui.</p>
+                                        
+                                        <div class="dashboard-stats">
+                                            <div class="stat-card">
+                                                <div class="stat-icon">📊</div>
+                                                <div class="stat-content">
+                                                    <h4>Dados Disponíveis</h4>
+                                                    <p>Portal da Transparência</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="stat-card">
+                                                <div class="stat-icon">🤖</div>
+                                                <div class="stat-content">
+                                                    <h4>IA Especializada</h4>
+                                                    <p>Análise Inteligente</p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="stat-card">
+                                                <div class="stat-icon">📈</div>
+                                                <div class="stat-content">
+                                                    <h4>Relatórios</h4>
+                                                    <p>Insights Automatizados</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                        """
-                    )
+                                """
+                            )
+                        
+                        with gr.Tab("📊 Top 10 por Valor"):
+                            chart_bar = gr.Plot(label="Gráfico de Barras")
+                        
+                        with gr.Tab("📈 Distribuição"):
+                            chart_hist = gr.Plot(label="Histograma")
+                        
+                        with gr.Tab("🥧 Participação"):
+                            chart_pie = gr.Plot(label="Gráfico Pizza")
             
             search_btn.click(
                 fn=search_data,
                 inputs=[data_type, year, search_term],
-                outputs=results
+                outputs=[results, chart_bar, chart_hist, chart_pie]
             )
         
         # Aba de perguntas ao modelo
