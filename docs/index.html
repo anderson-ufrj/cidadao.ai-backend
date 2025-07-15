@@ -750,6 +750,110 @@
                 font-size: 1.8rem;
             }
         }
+
+        /* Navigation buttons */
+        .section-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 3rem;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .nav-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .nav-button:hover {
+            background: var(--bg-accent);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .nav-button:active {
+            transform: translateY(0);
+        }
+
+        .nav-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .nav-button-prev {
+            margin-right: auto;
+        }
+
+        .nav-button-next {
+            margin-left: auto;
+        }
+
+        .nav-button-icon {
+            font-size: 1.1rem;
+        }
+
+        .nav-button-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .nav-button-next .nav-button-text {
+            align-items: flex-end;
+        }
+
+        .nav-button-label {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-button-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            line-height: 1.2;
+            max-width: 200px;
+        }
+
+        /* Responsive navigation buttons */
+        @media (max-width: 768px) {
+            .section-navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .nav-button-prev,
+            .nav-button-next {
+                margin: 0;
+            }
+            
+            .nav-button-text {
+                align-items: center;
+            }
+            
+            .nav-button-next .nav-button-text {
+                align-items: center;
+            }
+        }
     </style>
 </head>
 <body>
@@ -834,7 +938,7 @@
             </div>
 
             <div class="nav-section">
-                <div class="nav-section-title" data-pt="APÊNCIDES" data-en="APPENDICES">APÊNCIDES</div>
+                <div class="nav-section-title" data-pt="APÊNDICES" data-en="APPENDICES">APÊNDICES</div>
                 <div class="nav-links">
                     <a href="#" class="nav-link" data-section="mathematical-proofs"><span>📐</span> <span data-pt="Provas Matemáticas" data-en="Mathematical Proofs">Provas Matemáticas</span></a>
                     <a href="#" class="nav-link" data-section="code-examples"><span>💾</span> <span data-pt="Exemplos de Código" data-en="Code Examples">Exemplos de Código</span></a>
@@ -954,7 +1058,7 @@
                         <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="credits-link">
                             <span>📦</span> <span data-pt="Repositório" data-en="Repository">Repositório</span>
                         </a>
-                        <a href="https://huggingface.co/spaces/neural-thinker/cidadao-ai" target="_blank" class="credits-link">
+                        <a href="https://huggingface.co/spaces/neural-thinker/cidadao.ia" target="_blank" class="credits-link">
                             <span>🤗</span> <span data-pt="Demo Online" data-en="Online Demo">Demo Online</span>
                         </a>
                     </div>
@@ -1278,6 +1382,9 @@
                 // Re-initialize components
                 reinitializeComponents(section);
                 
+                // Update navigation buttons
+                updateNavigationButtons(sectionName);
+                
             } catch (error) {
                 console.error('Error loading section:', error);
                 
@@ -1367,20 +1474,117 @@
             activeLink.classList.add('active');
         }
 
+        // Global sections array for navigation
+        const allSections = [
+            'overview', 'theoretical-foundations', 'literature-review', 'methodology',
+            'system-architecture', 'multi-agent-system', 'algorithms', 'data-pipeline',
+            'technical-implementation', 'api-reference', 'security', 'performance',
+            'experimental-design', 'benchmarks', 'case-studies', 'validation',
+            'contributions', 'limitations', 'future-work', 'conclusion',
+            'mathematical-proofs', 'code-examples', 'datasets', 'bibliography'
+        ];
+
+        // Section titles for navigation
+        const sectionTitles = {
+            'overview': { pt: 'Visão Geral e Introdução', en: 'Overview & Introduction' },
+            'theoretical-foundations': { pt: 'Fundamentos Teóricos', en: 'Theoretical Foundations' },
+            'literature-review': { pt: 'Revisão da Literatura', en: 'Literature Review' },
+            'methodology': { pt: 'Metodologia de Pesquisa', en: 'Research Methodology' },
+            'system-architecture': { pt: 'Arquitetura do Sistema', en: 'System Architecture' },
+            'multi-agent-system': { pt: 'Sistema Multi-Agente', en: 'Multi-Agent System' },
+            'algorithms': { pt: 'Algoritmos e Modelos', en: 'Algorithms & Models' },
+            'data-pipeline': { pt: 'Pipeline de Dados', en: 'Data Pipeline' },
+            'technical-implementation': { pt: 'Implementação Técnica', en: 'Technical Implementation' },
+            'api-reference': { pt: 'Referência da API', en: 'API Reference' },
+            'security': { pt: 'Framework de Segurança', en: 'Security Framework' },
+            'performance': { pt: 'Análise de Performance', en: 'Performance Analysis' },
+            'experimental-design': { pt: 'Design Experimental', en: 'Experimental Design' },
+            'benchmarks': { pt: 'Benchmarks e Resultados', en: 'Benchmarks & Results' },
+            'case-studies': { pt: 'Estudos de Caso', en: 'Case Studies' },
+            'validation': { pt: 'Validação e Testes', en: 'Validation & Testing' },
+            'contributions': { pt: 'Contribuições', en: 'Contributions' },
+            'limitations': { pt: 'Limitações e Escopo', en: 'Limitations & Scope' },
+            'future-work': { pt: 'Pesquisa Futura', en: 'Future Research' },
+            'conclusion': { pt: 'Conclusão', en: 'Conclusion' },
+            'mathematical-proofs': { pt: 'Provas Matemáticas', en: 'Mathematical Proofs' },
+            'code-examples': { pt: 'Exemplos de Código', en: 'Code Examples' },
+            'datasets': { pt: 'Datasets e Métricas', en: 'Datasets & Metrics' },
+            'bibliography': { pt: 'Bibliografia', en: 'Bibliography' }
+        };
+
         function updateProgress(sectionName) {
-            const sections = [
-                'overview', 'theoretical-foundations', 'literature-review', 'methodology',
-                'system-architecture', 'multi-agent-system', 'algorithms', 'data-pipeline',
-                'technical-implementation', 'api-reference', 'security', 'performance',
-                'experimental-design', 'benchmarks', 'case-studies', 'validation',
-                'contributions', 'limitations', 'future-work', 'conclusion',
-                'mathematical-proofs', 'code-examples', 'datasets', 'bibliography'
-            ];
-            
-            const currentIndex = sections.indexOf(sectionName);
-            const progress = ((currentIndex + 1) / sections.length) * 100;
+            const currentIndex = allSections.indexOf(sectionName);
+            const progress = ((currentIndex + 1) / allSections.length) * 100;
             
             document.querySelector('.progress-fill').style.width = `${progress}%`;
+        }
+
+        function updateNavigationButtons(currentSection) {
+            const currentIndex = allSections.indexOf(currentSection);
+            const prevSection = currentIndex > 0 ? allSections[currentIndex - 1] : null;
+            const nextSection = currentIndex < allSections.length - 1 ? allSections[currentIndex + 1] : null;
+            
+            // Remove existing navigation if any
+            const existingNav = document.querySelector('.section-navigation');
+            if (existingNav) {
+                existingNav.remove();
+            }
+            
+            // Create navigation container
+            const navContainer = document.createElement('div');
+            navContainer.className = 'section-navigation';
+            
+            // Get current language
+            const currentLang = document.documentElement.lang || 'pt-BR';
+            const isPortuguese = currentLang === 'pt-BR';
+            
+            // Previous button
+            if (prevSection) {
+                const prevButton = document.createElement('a');
+                prevButton.className = 'nav-button nav-button-prev';
+                prevButton.href = '#';
+                prevButton.onclick = (e) => {
+                    e.preventDefault();
+                    loadSectionWithRetry(prevSection);
+                    setActiveNavLink(document.querySelector(`[data-section="${prevSection}"]`));
+                };
+                
+                prevButton.innerHTML = `
+                    <span class="nav-button-icon">←</span>
+                    <div class="nav-button-text">
+                        <span class="nav-button-label">${isPortuguese ? 'Anterior' : 'Previous'}</span>
+                        <span class="nav-button-title">${sectionTitles[prevSection][isPortuguese ? 'pt' : 'en']}</span>
+                    </div>
+                `;
+                navContainer.appendChild(prevButton);
+            }
+            
+            // Next button
+            if (nextSection) {
+                const nextButton = document.createElement('a');
+                nextButton.className = 'nav-button nav-button-next';
+                nextButton.href = '#';
+                nextButton.onclick = (e) => {
+                    e.preventDefault();
+                    loadSectionWithRetry(nextSection);
+                    setActiveNavLink(document.querySelector(`[data-section="${nextSection}"]`));
+                };
+                
+                nextButton.innerHTML = `
+                    <div class="nav-button-text">
+                        <span class="nav-button-label">${isPortuguese ? 'Próxima' : 'Next'}</span>
+                        <span class="nav-button-title">${sectionTitles[nextSection][isPortuguese ? 'pt' : 'en']}</span>
+                    </div>
+                    <span class="nav-button-icon">→</span>
+                `;
+                navContainer.appendChild(nextButton);
+            }
+            
+            // Add navigation to the current section
+            const currentSectionElement = document.getElementById(currentSection);
+            if (currentSectionElement && (prevSection || nextSection)) {
+                currentSectionElement.appendChild(navContainer);
+            }
         }
 
         function setLanguage(lang) {
@@ -1397,6 +1601,12 @@
             
             // Update text elements
             updateLanguageElements(lang);
+            
+            // Update navigation buttons for current section
+            const currentSection = document.querySelector('.content-section.active');
+            if (currentSection) {
+                updateNavigationButtons(currentSection.id);
+            }
         }
 
         function updateLanguageElements(lang) {
