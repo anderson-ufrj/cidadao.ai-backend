@@ -7,23 +7,60 @@ function toggleTheme() {
     const newTheme = currentTheme === 'light' ? 'dark' : 'light';
     console.log('Switching from', currentTheme, 'to', newTheme);
     
-    // Apply theme to document root
-    document.documentElement.setAttribute('data-theme', newTheme);
-    document.body.setAttribute('data-theme', newTheme);
-    
-    // Apply to all containers
-    const containers = document.querySelectorAll('.gradio-container, .header, .landing-page');
-    containers.forEach(container => {
-        container.setAttribute('data-theme', newTheme);
-    });
+    applyTheme(newTheme);
     
     // Save theme preference
     localStorage.setItem('theme', newTheme);
     
     // Update toggle text
+    updateToggleButtons(newTheme);
+}
+
+// Apply theme to all elements
+function applyTheme(theme) {
+    console.log('Applying theme:', theme);
+    
+    // Apply to document root
+    document.documentElement.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-theme', theme);
+    
+    // Apply to all containers
+    const containers = document.querySelectorAll('.gradio-container, .header, .landing-page, .gr-app');
+    containers.forEach(container => {
+        container.setAttribute('data-theme', theme);
+        if (theme === 'dark') {
+            container.classList.add('dark-mode');
+        } else {
+            container.classList.remove('dark-mode');
+        }
+    });
+    
+    // Apply to all Gradio elements
+    const gradioElements = document.querySelectorAll('[class*="gr-"], .gradio-container *');
+    gradioElements.forEach(element => {
+        element.setAttribute('data-theme', theme);
+        if (theme === 'dark') {
+            element.classList.add('dark-mode');
+        } else {
+            element.classList.remove('dark-mode');
+        }
+    });
+    
+    // Force background color update
+    if (theme === 'dark') {
+        document.body.style.backgroundColor = '#0F172A';
+        document.body.style.color = '#F1F5F9';
+    } else {
+        document.body.style.backgroundColor = '#FFFFFF';
+        document.body.style.color = '#0F172A';
+    }
+}
+
+// Update toggle buttons
+function updateToggleButtons(theme) {
     const toggles = document.querySelectorAll('.theme-toggle');
     toggles.forEach(toggle => {
-        toggle.innerHTML = newTheme === 'light' ? '<span>🌙</span> Modo Escuro' : '<span>☀️</span> Modo Claro';
+        toggle.innerHTML = theme === 'light' ? '<span>🌙</span> Modo Escuro' : '<span>☀️</span> Modo Claro';
     });
 }
 
@@ -33,21 +70,16 @@ function initTheme() {
     const savedTheme = localStorage.getItem('theme') || 'light';
     console.log('Saved theme:', savedTheme);
     
-    // Apply to all relevant elements
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    document.body.setAttribute('data-theme', savedTheme);
-    
-    // Apply to all containers
-    const containers = document.querySelectorAll('.gradio-container, .header, .landing-page');
-    containers.forEach(container => {
-        container.setAttribute('data-theme', savedTheme);
-    });
+    // Apply theme
+    applyTheme(savedTheme);
     
     // Update toggle buttons
+    updateToggleButtons(savedTheme);
+    
+    // Add event listeners to toggle buttons
     const toggles = document.querySelectorAll('.theme-toggle');
     console.log('Found toggles:', toggles.length);
     toggles.forEach(toggle => {
-        toggle.innerHTML = savedTheme === 'light' ? '<span>🌙</span> Modo Escuro' : '<span>☀️</span> Modo Claro';
         toggle.addEventListener('click', toggleTheme);
     });
 }
@@ -60,6 +92,50 @@ function removeGradioFooter() {
         if (link.href?.includes('gradio.app') || 
             link.textContent.includes('Built with Gradio')) {
             link.style.display = 'none';
+        }
+    });
+}
+
+// Monitor theme changes continuously
+function monitorThemeChanges() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    
+    // Apply theme to any new elements
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'childList') {
+                mutation.addedNodes.forEach((node) => {
+                    if (node.nodeType === 1) { // Element node
+                        applyThemeToElement(node, savedTheme);
+                    }
+                });
+            }
+        });
+    });
+    
+    observer.observe(document.body, {
+        childList: true,
+        subtree: true
+    });
+}
+
+// Apply theme to a specific element
+function applyThemeToElement(element, theme) {
+    element.setAttribute('data-theme', theme);
+    if (theme === 'dark') {
+        element.classList.add('dark-mode');
+    } else {
+        element.classList.remove('dark-mode');
+    }
+    
+    // Apply to children as well
+    const children = element.querySelectorAll('*');
+    children.forEach(child => {
+        child.setAttribute('data-theme', theme);
+        if (theme === 'dark') {
+            child.classList.add('dark-mode');
+        } else {
+            child.classList.remove('dark-mode');
         }
     });
 }
@@ -77,6 +153,9 @@ function initializeApp() {
     setTimeout(initTheme, 500);
     setTimeout(initTheme, 1000);
     setTimeout(initTheme, 2000);
+    
+    // Monitor theme changes continuously
+    setTimeout(monitorThemeChanges, 1000);
     
     // Remove Gradio footer elements multiple times
     setTimeout(removeGradioFooter, 500);
@@ -167,6 +246,10 @@ function navigateToChat() {
 // Global functions accessible from anywhere
 window.toggleTheme = toggleTheme;
 window.initTheme = initTheme;
+window.applyTheme = applyTheme;
+window.updateToggleButtons = updateToggleButtons;
+window.monitorThemeChanges = monitorThemeChanges;
+window.applyThemeToElement = applyThemeToElement;
 window.showCreditsModal = showCreditsModal;
 window.hideCreditsModal = hideCreditsModal;
 window.handleModalClick = handleModalClick;

@@ -305,24 +305,74 @@ body, .gradio-container {
     border-color: var(--border-dark) !important;
 }
 
-/* CSS alternativo para modo escuro */
-.dark-mode {
-    background: #0F172A !important;
-    color: #F1F5F9 !important;
+/* Modo escuro aprimorado para Gradio */
+[data-theme="dark"] body,
+[data-theme="dark"] .gradio-container,
+[data-theme="dark"] .gr-app {
+    background: var(--background-dark) !important;
+    color: var(--text-primary-dark) !important;
+}
+
+[data-theme="dark"] .gr-panel,
+[data-theme="dark"] .gr-form,
+[data-theme="dark"] .gr-box {
+    background: var(--surface-dark) !important;
+    border-color: var(--border-dark) !important;
+}
+
+[data-theme="dark"] .gr-textbox,
+[data-theme="dark"] .gr-number,
+[data-theme="dark"] .gr-radio,
+[data-theme="dark"] .gr-dropdown,
+[data-theme="dark"] .gr-checkbox,
+[data-theme="dark"] .gr-slider {
+    background: var(--background-dark) !important;
+    color: var(--text-primary-dark) !important;
+    border-color: var(--border-dark) !important;
+}
+
+[data-theme="dark"] .gr-button {
+    background: var(--primary-blue) !important;
+    color: white !important;
+}
+
+[data-theme="dark"] .gr-button:hover {
+    background: var(--primary-navy) !important;
+}
+
+[data-theme="dark"] .gr-tab-nav {
+    background: var(--surface-dark) !important;
+    border-color: var(--border-dark) !important;
+}
+
+[data-theme="dark"] .gr-tab-nav button {
+    color: var(--text-primary-dark) !important;
+}
+
+[data-theme="dark"] .gr-tab-nav button.selected {
+    background: var(--primary-blue) !important;
+    color: white !important;
+}
+
+/* Forçar modo escuro em todos os elementos Gradio */
+.dark-mode,
+.dark-mode * {
+    background: var(--background-dark) !important;
+    color: var(--text-primary-dark) !important;
 }
 
 .dark-mode .header {
-    background: #1E293B !important;
-    border-color: #334155 !important;
+    background: var(--surface-dark) !important;
+    border-color: var(--border-dark) !important;
 }
 
 .dark-mode .landing-page {
-    background: #0F172A !important;
+    background: var(--background-dark) !important;
 }
 
 .dark-mode .theme-toggle {
-    color: #F1F5F9 !important;
-    border-color: #334155 !important;
+    color: var(--text-primary-dark) !important;
+    border-color: var(--border-dark) !important;
 }
 
 /* Botão de ajuda flutuante */
