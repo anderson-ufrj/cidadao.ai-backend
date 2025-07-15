@@ -11,29 +11,28 @@ import time
 # Configurar variáveis de ambiente
 TRANSPARENCY_API_KEY = os.getenv("TRANSPARENCY_API_KEY")
 
-# CSS moderno com tema claro/escuro
+# CSS moderno baseado nos mockups
 custom_css = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-    --primary-green: #228B22;
-    --primary-yellow: #FFD700;
-    --primary-blue: #0052CC;
-    --accent-gold: #DAA520;
-    --background-light: #FAFBFC;
-    --background-dark: #0D1117;
-    --surface-light: #FFFFFF;
-    --surface-dark: #161B22;
-    --text-primary-light: #1F2937;
-    --text-primary-dark: #F0F6FC;
-    --text-secondary-light: #6B7280;
-    --text-secondary-dark: #8B949E;
-    --border-light: #E5E7EB;
-    --border-dark: #21262D;
+    --primary-green: #10B981;
+    --primary-yellow: #F59E0B;
+    --primary-blue: #3B82F6;
+    --background-light: #FFFFFF;
+    --background-dark: #0F172A;
+    --surface-light: #F8FAFC;
+    --surface-dark: #1E293B;
+    --text-primary-light: #0F172A;
+    --text-primary-dark: #F1F5F9;
+    --text-secondary-light: #64748B;
+    --text-secondary-dark: #94A3B8;
+    --border-light: #E2E8F0;
+    --border-dark: #334155;
     --glass-light: rgba(255, 255, 255, 0.1);
-    --glass-dark: rgba(255, 255, 255, 0.05);
-    --shadow-light: 0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --shadow-dark: 0 10px 25px -3px rgba(0, 0, 0, 0.6), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+    --glass-dark: rgba(0, 0, 0, 0.1);
+    --shadow-light: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --shadow-dark: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 [data-theme="light"] {
@@ -76,7 +75,7 @@ body[data-theme="dark"], .gradio-container[data-theme="dark"] {
     color: var(--text-primary-dark) !important;
 }
 
-/* Header com toggle de tema */
+/* Header fixo baseado no mockup */
 .header {
     position: fixed;
     top: 0;
@@ -84,7 +83,6 @@ body[data-theme="dark"], .gradio-container[data-theme="dark"] {
     right: 0;
     height: 70px;
     background: var(--bg-secondary);
-    backdrop-filter: blur(20px);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
@@ -95,55 +93,49 @@ body[data-theme="dark"], .gradio-container[data-theme="dark"] {
 }
 
 .logo {
-    font-size: 1.5rem;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--primary-green), var(--primary-yellow), var(--primary-blue));
+    font-size: 1.75rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo-text {
+    background: linear-gradient(135deg, var(--primary-green), var(--primary-yellow));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
 
 .theme-toggle {
-    background: var(--glass-bg);
-    border: 1px solid var(--border-color);
-    border-radius: 50px;
+    background: transparent;
+    border: 2px solid var(--border-color);
+    border-radius: 30px;
     padding: 0.5rem 1rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     color: var(--text-primary);
     font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .theme-toggle:hover {
     background: var(--primary-blue);
     color: white;
-    transform: translateY(-2px);
+    border-color: var(--primary-blue);
 }
 
-/* Landing page moderna */
+/* Landing page baseada no mockup */
 .landing-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+    background: var(--bg-primary);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 2rem;
     padding-top: 100px;
-    position: relative;
-    overflow: hidden;
-}
-
-.landing-page::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(ellipse at top, var(--primary-green)10, transparent 60%),
-                radial-gradient(ellipse at bottom right, var(--primary-yellow)10, transparent 60%);
-    opacity: 0.1;
-    pointer-events: none;
 }
 
 .hero-content {
@@ -154,23 +146,21 @@ body[data-theme="dark"], .gradio-container[data-theme="dark"] {
 }
 
 .hero-title {
-    font-size: clamp(3rem, 8vw, 5rem);
+    font-size: 4rem;
     font-weight: 800;
-    margin-bottom: 1.5rem;
-    background: linear-gradient(135deg, var(--primary-green), var(--primary-yellow), var(--primary-blue));
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--primary-green), var(--primary-yellow));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
     letter-spacing: -0.02em;
-    line-height: 1.1;
 }
 
 .hero-subtitle {
-    font-size: clamp(1.25rem, 4vw, 1.75rem);
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 1.5rem;
-    opacity: 0.9;
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: var(--text-secondary);
+    margin-bottom: 3rem;
 }
 
 .hero-description {
@@ -193,120 +183,74 @@ body[data-theme="dark"], .gradio-container[data-theme="dark"] {
 
 .btn {
     padding: 1rem 2rem;
-    border-radius: 50px;
+    border-radius: 8px;
     font-size: 1rem;
     font-weight: 600;
     border: none;
     cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 0.2s ease;
     text-decoration: none;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    min-width: 160px;
+    min-width: 180px;
     justify-content: center;
 }
 
 .btn-primary {
-    background: linear-gradient(135deg, var(--primary-blue), var(--primary-green));
+    background: var(--primary-blue);
     color: white;
-    box-shadow: 0 4px 15px rgba(0, 82, 204, 0.3);
 }
 
 .btn-primary:hover {
-    transform: translateY(-2px) scale(1.02);
-    box-shadow: 0 8px 25px rgba(0, 82, 204, 0.4);
+    background: #2563EB;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
 
 .btn-secondary {
-    background: var(--glass-bg);
+    background: transparent;
     color: var(--text-primary);
     border: 2px solid var(--border-color);
-    backdrop-filter: blur(10px);
 }
 
 .btn-secondary:hover {
-    background: var(--primary-yellow);
-    color: var(--background-dark);
-    border-color: var(--primary-yellow);
-    transform: translateY(-2px) scale(1.02);
+    background: var(--bg-secondary);
+    border-color: var(--primary-blue);
 }
 
-/* Stats section */
-.stats-section {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 2rem;
-    margin: 3rem 0;
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
+/* Logo dinâmico simples */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
 }
 
-.stat-card {
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
+.logo-text {
+    animation: pulse 3s ease-in-out infinite;
+}
+
+/* Filtros laterais */
+.filter-sidebar {
+    background: var(--bg-secondary);
     border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 2rem 1.5rem;
-    text-align: center;
-    transition: all 0.3s ease;
+    border-radius: 12px;
+    padding: 1.5rem;
+    height: fit-content;
+    position: sticky;
+    top: 90px;
 }
 
-.stat-card:hover {
-    transform: translateY(-5px);
-    box-shadow: var(--shadow);
-}
-
-.stat-number {
-    font-size: 2.5rem;
-    font-weight: 800;
-    color: var(--primary-blue);
-    margin-bottom: 0.5rem;
-}
-
-.stat-label {
-    color: var(--text-secondary);
-    font-weight: 500;
-}
-
-/* Footer moderno */
-.footer-content {
-    margin-top: 4rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--border-color);
-    max-width: 600px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.footer-links {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    flex-wrap: wrap;
+.filter-group {
     margin-bottom: 1.5rem;
 }
 
-.footer-link {
-    color: var(--text-secondary);
-    text-decoration: none;
-    font-weight: 500;
-    transition: all 0.3s ease;
-    padding: 0.5rem 1rem;
-    border-radius: 10px;
-}
-
-.footer-link:hover {
-    color: var(--primary-blue);
-    background: var(--glass-bg);
-}
-
-.footer-credit {
-    text-align: center;
-    color: var(--text-secondary);
+.filter-label {
     font-size: 0.875rem;
-    opacity: 0.8;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    display: block;
 }
 
 /* Tabs personalizadas */
@@ -401,7 +345,7 @@ body[data-theme="dark"], .gradio-container[data-theme="dark"] {
 """
 
 def create_landing_page():
-    """Landing page moderna com tema claro/escuro"""
+    """Landing page baseada no mockup 1"""
     return """
     <script>
         // Theme toggle functionality
@@ -425,7 +369,7 @@ def create_landing_page():
             // Update toggle text
             const toggles = document.querySelectorAll('.theme-toggle');
             toggles.forEach(toggle => {
-                toggle.textContent = newTheme === 'light' ? '🌙 Modo Escuro' : '☀️ Modo Claro';
+                toggle.innerHTML = newTheme === 'light' ? '<span>🌙</span> Modo Escuro' : '<span>☀️</span> Modo Claro';
             });
         }
         
@@ -445,7 +389,7 @@ def create_landing_page():
             // Update toggle buttons
             const toggles = document.querySelectorAll('.theme-toggle');
             toggles.forEach(toggle => {
-                toggle.textContent = savedTheme === 'light' ? '🌙 Modo Escuro' : '☀️ Modo Claro';
+                toggle.innerHTML = savedTheme === 'light' ? '<span>🌙</span> Modo Escuro' : '<span>☀️</span> Modo Claro';
                 toggle.addEventListener('click', toggleTheme);
             });
         }
@@ -463,84 +407,48 @@ def create_landing_page():
     </script>
     
     <div class="header">
-        <div class="logo">🇧🇷 Cidadão.AI</div>
-        <button class="theme-toggle" onclick="toggleTheme()">🌙 Modo Escuro</button>
+        <div class="logo">
+            <span style="font-size: 2rem;">🇧🇷</span>
+            <span class="logo-text">Cidadão.AI</span>
+        </div>
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <span>🌙</span> Modo Escuro
+        </button>
     </div>
     
     <div class="landing-page">
         <div class="hero-content">
             <h1 class="hero-title">Cidadão.AI</h1>
-            <h2 class="hero-subtitle">Inteligência Artificial para Transparência Pública</h2>
-            <p class="hero-description">
-                Democratizando o acesso aos dados governamentais brasileiros através de IA especializada. 
-                Analise contratos, licitações e gastos públicos com tecnologia de ponta.
+            <p class="hero-subtitle">
+                (breve descrição)
             </p>
             
             <div class="action-buttons">
-                <div class="btn btn-primary">
-                    🔍 Busca Avançada com IA
-                </div>
-                <div class="btn btn-secondary">
-                    💬 Converse com nosso Modelo
-                </div>
+                <button class="btn btn-primary" onclick="document.querySelector('.gradio-container .tabs button:nth-child(2)').click()">
+                    Consulta Avançada
+                </button>
+                <button class="btn btn-secondary" onclick="document.querySelector('.gradio-container .tabs button:nth-child(3)').click()">
+                    Pergunte ao Modelo
+                </button>
             </div>
             
-            <div class="stats-section">
-                <div class="stat-card">
-                    <div class="stat-number">2.1T+</div>
-                    <div class="stat-label">Reais Analisados</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">500K+</div>
-                    <div class="stat-label">Licitações Processadas</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-number">92.3%</div>
-                    <div class="stat-label">Precisão da IA</div>
-                </div>
+            <div style="margin-top: 3rem; text-align: center; color: var(--text-secondary);">
+                <p style="font-size: 0.875rem;">OBS: Botões 1 & 2 idênticos ao Landing Page</p>
             </div>
             
-            <div class="footer-content">
-                <div class="footer-links">
-                    <a href="https://anderson-ufrj.github.io/cidadao.ai/" target="_blank" class="footer-link">
-                        📚 Documentação
-                    </a>
-                    <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="footer-link">
-                        💻 GitHub
-                    </a>
-                    <a href="https://portaldatransparencia.gov.br" target="_blank" class="footer-link">
-                        🏛️ Portal Oficial
-                    </a>
-                    <a href="https://huggingface.co/neural-thinker/cidadao-gpt" target="_blank" class="footer-link">
-                        🤖 Modelo IA
-                    </a>
-                </div>
-                <div class="footer-credit">
-                    <div style="margin-bottom: 1rem;">
-                        <strong>Desenvolvido por Anderson Henrique da Silva</strong> • © 2024 Cidadão.AI<br>
-                        <em>Fortalecendo a democracia brasileira através da tecnologia</em>
-                    </div>
-                    <div style="display: flex; justify-content: center; gap: 1.5rem; flex-wrap: wrap; font-size: 0.8rem; opacity: 0.7;">
-                        <span>🔗 Use via API</span>
-                        <span>⚡ Built with Gradio</span>
-                        <span>🚀 Powered by Hugging Face</span>
-                    </div>
-                </div>
+            <div style="margin-top: 3rem; text-align: center; color: var(--text-secondary); font-size: 0.875rem;">
+                <p style="margin-bottom: 1rem;">(Créditos: API - gradio - hugging face)</p>
             </div>
         </div>
     </div>
     """
 
 def search_data(data_type, year, search_term):
-    """Buscar dados com IA"""
-    time.sleep(2)  # Simular processamento de IA
-    
+    """Buscar dados baseado no tipo e termo"""
     if not search_term:
         return """
-        <div style="background: var(--glass-bg); padding: 2rem; border-radius: 15px; border: 1px solid var(--border-color); text-align: center;">
-            <div style="font-size: 2rem; margin-bottom: 1rem;">⚠️</div>
-            <h3 style="color: var(--text-primary);">Consulta Vazia</h3>
-            <p style="color: var(--text-secondary);">Por favor, descreva sua consulta no campo "Consulta Inteligente"</p>
+        <div style="padding: 2rem; text-align: center;">
+            <p style="color: var(--text-secondary);">Digite uma consulta para buscar dados</p>
         </div>
         """
     
@@ -591,39 +499,11 @@ def search_data(data_type, year, search_term):
             }
         ]
     
-    # Header da análise
+    # Header simples
     html = f"""
-    <div style="background: var(--bg-secondary); border-radius: 15px; border: 1px solid var(--border-color); overflow: hidden;">
-        <div style="background: linear-gradient(135deg, var(--primary-blue), var(--primary-green)); padding: 1.5rem; color: white;">
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                <div style="font-size: 2rem;">🤖</div>
-                <div>
-                    <h3 style="margin: 0; font-size: 1.25rem;">Análise IA Concluída</h3>
-                    <p style="margin: 0; opacity: 0.9; font-size: 0.9rem;">Processamento de linguagem natural • Detecção de anomalias</p>
-                </div>
-            </div>
-            
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-top: 1rem;">
-                <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 10px; text-align: center;">
-                    <div style="font-size: 1.5rem; font-weight: bold;">{len(results)}</div>
-                    <div style="font-size: 0.85rem;">Resultados</div>
-                </div>
-                <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 10px; text-align: center;">
-                    <div style="font-size: 1.5rem; font-weight: bold;">{data_type}</div>
-                    <div style="font-size: 0.85rem;">Tipo</div>
-                </div>
-                <div style="background: rgba(255,255,255,0.2); padding: 1rem; border-radius: 10px; text-align: center;">
-                    <div style="font-size: 1.5rem; font-weight: bold;">{year}</div>
-                    <div style="font-size: 0.85rem;">Ano</div>
-                </div>
-            </div>
-        </div>
-        
-        <div style="padding: 1.5rem;">
-            <div style="margin-bottom: 1.5rem;">
-                <h4 style="color: var(--text-primary); margin-bottom: 0.5rem;">🔍 Consulta Processada:</h4>
-                <p style="background: var(--glass-bg); padding: 1rem; border-radius: 8px; color: var(--text-secondary); font-style: italic; border: 1px solid var(--border-color);">"{search_term}"</p>
-            </div>
+    <div style="padding: 1.5rem;">
+        <h3 style="margin-bottom: 1.5rem;">Resultados da busca</h3>
+        <p style="color: var(--text-secondary); margin-bottom: 2rem;">Busca por: "{search_term}" - {data_type} ({year})</p>
     """
     
     # Resultados detalhados
@@ -642,61 +522,16 @@ def search_data(data_type, year, search_term):
         }
         
         html += f"""
-        <div style="background: var(--glass-bg); border: 1px solid var(--border-color); border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;">
-            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                <div>
-                    <h4 style="color: var(--text-primary); margin: 0 0 0.5rem 0; font-size: 1.1rem;">
-                        📄 {item['tipo']} #{item['numero']}
-                    </h4>
-                    <p style="color: var(--text-secondary); margin: 0; font-size: 0.9rem;">
-                        <strong>Empresa:</strong> {item['empresa']}
-                    </p>
-                </div>
-                <div style="text-align: right;">
-                    <div style="background: {status_color.get(item['status'], 'var(--primary-blue)')}; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem; margin-bottom: 0.5rem;">
-                        {item['status']}
-                    </div>
-                    <div style="background: {risk_color.get(item['risco'], 'var(--primary-blue)')}; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.8rem;">
-                        Risco {item['risco']}
-                    </div>
-                </div>
-            </div>
-            
-            <div style="border-top: 1px solid var(--border-color); padding-top: 1rem;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div>
-                        <strong style="color: var(--text-primary);">💰 Valor:</strong>
-                        <div style="font-size: 1.25rem; font-weight: bold; color: var(--primary-blue);">{item['valor']}</div>
-                    </div>
-                    <div>
-                        <strong style="color: var(--text-primary);">📋 Objeto:</strong>
-                        <div style="color: var(--text-secondary);">{item['objeto']}</div>
-                    </div>
-                </div>
-            </div>
+        <div style="border: 1px solid var(--border-color); border-radius: 8px; padding: 1rem; margin-bottom: 1rem;">
+            <h4 style="color: var(--primary-blue); margin: 0 0 0.5rem 0;">{item['tipo']} #{item['numero']}</h4>
+            <p><strong>Empresa:</strong> {item['empresa']}</p>
+            <p><strong>Valor:</strong> {item['valor']}</p>
+            <p><strong>Objeto:</strong> {item['objeto']}</p>
+            <p><strong>Status:</strong> {item['status']} | <strong>Risco:</strong> {item['risco']}</p>
         </div>
         """
     
-    # Footer com ações
-    html += f"""
-            <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem; margin-top: 1.5rem;">
-                <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
-                    <button style="background: var(--primary-blue); color: white; border: none; padding: 0.75rem 1.5rem; border-radius: 25px; cursor: pointer; font-weight: 600;">
-                        📊 Análise Detalhada
-                    </button>
-                    <button style="background: var(--glass-bg); color: var(--text-primary); border: 1px solid var(--border-color); padding: 0.75rem 1.5rem; border-radius: 25px; cursor: pointer; font-weight: 600;">
-                        📑 Gerar Relatório
-                    </button>
-                    <button style="background: var(--glass-bg); color: var(--text-primary); border: 1px solid var(--border-color); padding: 0.75rem 1.5rem; border-radius: 25px; cursor: pointer; font-weight: 600;">
-                        🔍 Refinar Busca
-                    </button>
-                </div>
-                
-                <div style="text-align: center; margin-top: 1rem; color: var(--text-secondary); font-size: 0.85rem;">
-                    ✨ Powered by Cidadão-GPT • Dados processados com IA especializada em transparência pública
-                </div>
-            </div>
-        </div>
+    html += """
     </div>
     """
     
@@ -711,62 +546,63 @@ def create_interface():
         with gr.Tab("🏠 Cidadão.AI"):
             gr.HTML(create_landing_page())
         
-        # Aba de busca
-        with gr.Tab("🔍 Busca Avançada com IA"):
+        # Aba de consulta avançada
+        with gr.Tab("🔍 Consulta Avançada"):
             gr.HTML("""
-                <div style="text-align: center; padding: 2rem 0; border-bottom: 1px solid var(--border-color); margin-bottom: 2rem;">
-                    <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">
-                        🔍 Sistema de Busca Inteligente
-                    </h2>
-                    <p style="color: var(--text-secondary); font-size: 1.1rem;">
-                        Utilize IA para analisar dados governamentais brasileiros com precisão e velocidade
-                    </p>
+                <div class="header">
+                    <div class="logo">
+                        <span style="font-size: 2rem;">🇧🇷</span>
+                        <span class="logo-text">Cidadão.AI</span>
+                    </div>
+                    <button class="theme-toggle" onclick="toggleTheme()">
+                        <span>🌙</span> Modo Escuro
+                    </button>
+                </div>
+                <div style="padding-top: 100px;">
+                    <h2 style="text-align: center; margin-bottom: 2rem;">Página: consulta avançada</h2>
                 </div>
             """)
             
             with gr.Row():
                 with gr.Column(scale=1):
-                    gr.HTML('<div style="background: var(--glass-bg); padding: 1.5rem; border-radius: 15px; border: 1px solid var(--border-color);">')
+                    gr.HTML("""
+                    <div style="background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                        <h3 style="margin-bottom: 1.5rem;">Menu lateral & filtros</h3>
+                        <p style="color: var(--text-secondary);">apareceu quando clicados</p>
+                    </div>
+                    """)
                     
                     data_type = gr.Radio(
-                        label="📊 Tipo de Dados Governamentais",
+                        label="Tipo de Dados",
                         choices=["Contratos Públicos", "Despesas Orçamentárias", "Licitações e Pregões"],
-                        value="Contratos Públicos",
-                        info="Selecione o tipo de dado que deseja analisar"
+                        value="Contratos Públicos"
                     )
                     
                     year = gr.Number(
-                        label="📅 Ano de Referência",
+                        label="Ano",
                         value=2024,
                         minimum=2000,
-                        maximum=2024,
-                        info="Digite o ano para filtrar os dados"
+                        maximum=2024
                     )
                     
                     search_term = gr.Textbox(
-                        label="🔍 Consulta Inteligente",
-                        placeholder="Ex: contratos emergenciais acima de 1 milhão, fornecedores do Ministério da Saúde...",
-                        lines=3,
-                        info="Descreva sua consulta em linguagem natural"
+                        label="Busca",
+                        placeholder="Digite sua consulta...",
+                        lines=2
                     )
                     
                     search_btn = gr.Button(
-                        "🚀 Analisar com IA", 
-                        variant="primary", 
-                        size="lg"
+                        "Buscar", 
+                        variant="primary"
                     )
-                    
-                    gr.HTML('</div>')
                 
                 with gr.Column(scale=2):
                     results = gr.HTML(
                         value="""
-                        <div style="background: var(--bg-secondary); padding: 2rem; border-radius: 15px; border: 1px solid var(--border-color); text-align: center; min-height: 400px; display: flex; align-items: center; justify-content: center;">
-                            <div>
-                                <div style="font-size: 3rem; margin-bottom: 1rem;">🤖</div>
-                                <h3 style="color: var(--text-primary); margin-bottom: 1rem;">Aguardando Consulta</h3>
-                                <p style="color: var(--text-secondary);">Configure os parâmetros ao lado e clique em "Analisar com IA" para iniciar</p>
-                            </div>
+                        <div style="background: var(--bg-secondary); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); min-height: 400px;">
+                            <h3 style="margin-bottom: 1.5rem;">Área do dashboard</h3>
+                            <p style="color: var(--text-secondary);">(na página inicial, descrição e como usar, guiado, explicando como usar)</p>
+                            <p style="color: var(--text-secondary); margin-top: 1rem;">(créditos)</p>
                         </div>
                         """
                     )
@@ -777,16 +613,20 @@ def create_interface():
                 outputs=results
             )
         
-        # Aba de chat
-        with gr.Tab("💬 Chat com Cidadão-GPT"):
+        # Aba de perguntas ao modelo
+        with gr.Tab("💬 Pergunte ao Modelo"):
             gr.HTML("""
-                <div style="text-align: center; padding: 2rem 0; border-bottom: 1px solid var(--border-color); margin-bottom: 2rem;">
-                    <h2 style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary);">
-                        💬 Converse com o Cidadão-GPT
-                    </h2>
-                    <p style="color: var(--text-secondary); font-size: 1.1rem;">
-                        IA especializada em transparência pública brasileira • Precisão de 92.3%
-                    </p>
+                <div class="header">
+                    <div class="logo">
+                        <span style="font-size: 2rem;">🇧🇷</span>
+                        <span class="logo-text">Cidadão.AI</span>
+                    </div>
+                    <button class="theme-toggle" onclick="toggleTheme()">
+                        <span>🌙</span> Modo Escuro
+                    </button>
+                </div>
+                <div style="padding-top: 100px; text-align: center;">
+                    <h2 style="margin-bottom: 2rem;">Pergunte ao Modelo:</h2>
                 </div>
             """)
             
@@ -800,36 +640,26 @@ def create_interface():
             
             with gr.Row():
                 msg = gr.Textbox(
-                    placeholder="Pergunte sobre contratos, licitações, gastos públicos... Ex: 'Quais foram os maiores contratos emergenciais em 2024?'",
+                    placeholder="exemplos do que pode ser perguntado - breve descrição de como funciona",
                     show_label=False,
                     scale=4,
-                    lines=2
+                    lines=1,
+                    elem_id="chat-input"
                 )
-                send_btn = gr.Button("Enviar", variant="primary", scale=1)
+                send_btn = gr.Button(">", variant="primary", scale=1)
             
             gr.HTML("""
-                <div style="margin-top: 1rem; padding: 1rem; background: var(--glass-bg); border-radius: 10px; border: 1px solid var(--border-color);">
-                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; justify-content: center;">
-                        <span style="background: var(--primary-blue); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem;">📊 Análise de Contratos</span>
-                        <span style="background: var(--primary-green); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem;">🔍 Detecção de Anomalias</span>
-                        <span style="background: var(--primary-yellow); color: var(--background-dark); padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem;">⚖️ Conformidade Legal</span>
-                        <span style="background: var(--accent-gold); color: white; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem;">📈 Análise Financeira</span>
-                    </div>
+                <div style="margin-top: 1rem; text-align: center; color: var(--text-secondary); font-size: 0.875rem;">
+                    <p>Botões perguntar</p>
                 </div>
             """)
             
             def chat_fn(message, history):
                 if message:
                     history = history or []
-                    # Simulated AI response with more realistic content
-                    responses = [
-                        f"🔍 **Análise Concluída**: Encontrei informações relevantes sobre '{message}'. Esta é uma demonstração do sistema de IA especializado em transparência pública.",
-                        f"📊 **Dados Processados**: Sua consulta sobre '{message}' foi analisada. O sistema real utilizaria algoritmos de machine learning para detectar padrões e anomalias.",
-                        f"⚖️ **Conformidade Verificada**: A consulta '{message}' foi processada seguindo as diretrizes da Lei de Acesso à Informação. Esta é uma versão demonstrativa."
-                    ]
-                    import random
-                    response = random.choice(responses)
-                    history.append([message, response])
+                    # Resposta simples
+                    response = f"Processando sua pergunta sobre: {message}. Esta é uma demonstração do sistema."
+                    history.append((message, response))
                     return history, ""
                 return history, ""
             
