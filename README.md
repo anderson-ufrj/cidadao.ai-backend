@@ -55,7 +55,7 @@ O **Cidadão.AI** é uma plataforma inovadora que utiliza inteligência artifici
 ## 🚀 Acesso Rápido
 
 ### 🌐 **Aplicação Online**
-- **🤗 Hugging Face Spaces**: [cidadao-ai](https://huggingface.co/spaces/neural-thinker/cidadao-ai)
+- **🤗 Hugging Face Spaces**: [cidadao.ia](https://huggingface.co/spaces/neural-thinker/cidadao.ia)
 - **📚 Documentação Técnica**: [anderson-ufrj.github.io/cidadao.ai](https://anderson-ufrj.github.io/cidadao.ai/)
 - **💻 Repositório**: [GitHub](https://github.com/anderson-ufrj/cidadao.ai)
 
@@ -213,6 +213,6 @@ Este projeto está sob licença **Todos os Direitos Reservados**. Veja o arquivo
 
 ## 🇧🇷 Feito com ❤️ para fortalecer a democracia brasileira
 
-**🚀 [Experimente Agora](https://huggingface.co/spaces/neural-thinker/cidadao-ai) | 📚 [Documentação](https://anderson-ufrj.github.io/cidadao.ai/) | 💻 [Código](https://github.com/anderson-ufrj/cidadao.ai)**
+**🚀 [Experimente Agora](https://huggingface.co/spaces/neural-thinker/cidadao.ia) | 📚 [Documentação](https://anderson-ufrj.github.io/cidadao.ai/) | 💻 [Código](https://github.com/anderson-ufrj/cidadao.ai)**
 
 </div>
