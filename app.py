@@ -303,6 +303,26 @@ body, .gradio-container {
     border-color: var(--border-dark) !important;
 }
 
+/* CSS alternativo para modo escuro */
+.dark-mode {
+    background: #0F172A !important;
+    color: #F1F5F9 !important;
+}
+
+.dark-mode .header {
+    background: #1E293B !important;
+    border-color: #334155 !important;
+}
+
+.dark-mode .landing-page {
+    background: #0F172A !important;
+}
+
+.dark-mode .theme-toggle {
+    color: #F1F5F9 !important;
+    border-color: #334155 !important;
+}
+
 /* Responsivo aprimorado */
 @media (max-width: 768px) {
     .header {
@@ -490,8 +510,10 @@ def create_landing_page():
     <script>
         // Theme toggle functionality
         function toggleTheme() {
+            console.log('Toggle theme called');
             const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            console.log('Switching from', currentTheme, 'to', newTheme);
             
             // Apply theme to document root
             document.documentElement.setAttribute('data-theme', newTheme);
@@ -515,7 +537,9 @@ def create_landing_page():
         
         // Set initial theme
         function initTheme() {
+            console.log('Init theme called');
             const savedTheme = localStorage.getItem('theme') || 'light';
+            console.log('Saved theme:', savedTheme);
             
             // Apply to all relevant elements
             document.documentElement.setAttribute('data-theme', savedTheme);
@@ -529,6 +553,7 @@ def create_landing_page():
             
             // Update toggle buttons
             const toggles = document.querySelectorAll('.theme-toggle');
+            console.log('Found toggles:', toggles.length);
             toggles.forEach(toggle => {
                 toggle.innerHTML = savedTheme === 'light' ? '<span>🌙</span> Modo Escuro' : '<span>☀️</span> Modo Claro';
                 toggle.addEventListener('click', toggleTheme);
@@ -545,6 +570,14 @@ def create_landing_page():
         // Also try to initialize after a short delay for Gradio
         setTimeout(initTheme, 100);
         setTimeout(initTheme, 500);
+        setTimeout(initTheme, 1000);
+        setTimeout(initTheme, 2000);
+        
+        // Global function accessible from anywhere
+        window.toggleTheme = toggleTheme;
+        window.initTheme = initTheme;
+        
+        console.log('Theme script loaded');
     </script>
     
     <div class="header">
@@ -552,7 +585,7 @@ def create_landing_page():
             <span style="font-size: 2rem;">🇧🇷</span>
             <span class="logo-text">Cidadão.AI</span>
         </div>
-        <button class="theme-toggle" onclick="toggleTheme()">
+        <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn">
             <span>🌙</span> Modo Escuro
         </button>
     </div>
@@ -601,7 +634,7 @@ def create_interface():
                         <span style="font-size: 2rem;">🇧🇷</span>
                         <span class="logo-text">Cidadão.AI</span>
                     </div>
-                    <button class="theme-toggle" onclick="toggleTheme()">
+                    <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn-2">
                         <span>🌙</span> Modo Escuro
                     </button>
                 </div>
@@ -668,7 +701,7 @@ def create_interface():
                         <span style="font-size: 2rem;">🇧🇷</span>
                         <span class="logo-text">Cidadão.AI</span>
                     </div>
-                    <button class="theme-toggle" onclick="toggleTheme()">
+                    <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn-2">
                         <span>🌙</span> Modo Escuro
                     </button>
                 </div>
