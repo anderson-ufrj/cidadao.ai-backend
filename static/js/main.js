@@ -52,52 +52,14 @@ function initTheme() {
     });
 }
 
-// Remove Gradio footer elements
+// Remove Gradio footer elements - VERSÃO SEGURA
 function removeGradioFooter() {
-    // Remove footer elements
-    const footerSelectors = [
-        'footer',
-        '.footer',
-        'a[href*="gradio.app"]',
-        'a[href*="gradio"]',
-        'a:contains("Built with Gradio")',
-        'a:contains("Use via API")',
-        'div:has(a[href*="gradio"])',
-        'div:has(a[href*="api"])'
-    ];
-    
-    footerSelectors.forEach(selector => {
-        try {
-            const elements = document.querySelectorAll(selector);
-            elements.forEach(el => {
-                if (el && (el.textContent.includes('Built with Gradio') || 
-                          el.textContent.includes('Use via API') || 
-                          el.href?.includes('gradio'))) {
-                    el.style.display = 'none';
-                    el.style.opacity = '0';
-                    el.style.visibility = 'hidden';
-                    // Also try to remove the parent if it becomes empty
-                    if (el.parentElement && el.parentElement.children.length === 1) {
-                        el.parentElement.style.display = 'none';
-                    }
-                }
-            });
-        } catch (e) {
-            // Ignore errors for unsupported selectors
-        }
-    });
-    
-    // Remove by text content (more aggressive approach)
+    // Remove apenas links específicos do Gradio
     const allLinks = document.querySelectorAll('a');
     allLinks.forEach(link => {
-        if (link.textContent.includes('Built with Gradio') || 
-            link.textContent.includes('Use via API') ||
-            link.href?.includes('gradio.app')) {
+        if (link.href?.includes('gradio.app') || 
+            link.textContent.includes('Built with Gradio')) {
             link.style.display = 'none';
-            // Hide parent if it becomes empty
-            if (link.parentElement && link.parentElement.children.length === 1) {
-                link.parentElement.style.display = 'none';
-            }
         }
     });
 }
