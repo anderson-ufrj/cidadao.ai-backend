@@ -775,6 +775,6 @@ def create_interface():
 
 # Executar aplicação
 if __name__ == "__main__":
-    print("🚀 Iniciando Cidadão.AI...")
+    print("🚀 Iniciando Cidadão.AI - Modo Escuro Corrigido...")
     app = create_interface()
     app.launch()
