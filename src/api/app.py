@@ -19,10 +19,12 @@ from fastapi.openapi.utils import get_openapi
 
 from src.core import get_logger, settings
 from src.core.exceptions import CidadaoAIError, create_error_response
-from src.api.routes import investigations, analysis, reports, health
+from src.core.audit import audit_logger, AuditEventType, AuditSeverity, AuditContext
+from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit
 from src.api.middleware.rate_limiting import RateLimitMiddleware
 from src.api.middleware.authentication import AuthenticationMiddleware
 from src.api.middleware.logging_middleware import LoggingMiddleware
+from src.api.middleware.security import SecurityMiddleware
 
 
 logger = get_logger(__name__)
@@ -30,9 +32,22 @@ logger = get_logger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Application lifespan manager."""
+    """Application lifespan manager with enhanced audit logging."""
     # Startup
     logger.info("cidadao_ai_api_starting")
+    
+    # Log startup event
+    await audit_logger.log_event(
+        event_type=AuditEventType.SYSTEM_STARTUP,
+        message=f"Cidadão.AI API started (env: {settings.app_env})",
+        severity=AuditSeverity.LOW,
+        details={
+            "version": "1.0.0",
+            "environment": settings.app_env,
+            "debug": settings.debug,
+            "security_enabled": True
+        }
+    )
     
     # Initialize global resources here
     # - Database connections
@@ -43,6 +58,13 @@ async def lifespan(app: FastAPI):
     
     # Shutdown
     logger.info("cidadao_ai_api_shutting_down")
+    
+    # Log shutdown event
+    await audit_logger.log_event(
+        event_type=AuditEventType.SYSTEM_SHUTDOWN,
+        message="Cidadão.AI API shutting down",
+        severity=AuditSeverity.LOW
+    )
     
     # Cleanup resources here
     # - Close database connections
@@ -92,24 +114,32 @@ app = FastAPI(
     redoc_url=None,  # Disable redoc
 )
 
-# Add middleware
+# Add security middleware (order matters!)
+app.add_middleware(SecurityMiddleware)
+app.add_middleware(LoggingMiddleware)
+app.add_middleware(RateLimitMiddleware)
+
+# Add trusted host middleware for production
+if settings.app_env == "production":
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=["api.cidadao.ai", "*.cidadao.ai"]
+    )
+else:
+    app.add_middleware(
+        TrustedHostMiddleware,
+        allowed_hosts=["localhost", "127.0.0.1", "*.cidadao.ai", "testserver"]
+    )
+
+# CORS middleware with secure configuration
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
     allow_credentials=settings.cors_allow_credentials,
     allow_methods=settings.cors_allow_methods,
     allow_headers=settings.cors_allow_headers,
+    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining"]
 )
-
-app.add_middleware(
-    TrustedHostMiddleware,
-    allowed_hosts=["localhost", "127.0.0.1", "*.cidadao.ai", "testserver"]
-)
-
-app.add_middleware(LoggingMiddleware)
-app.add_middleware(RateLimitMiddleware)
-# TODO: Fix AuthenticationMiddleware implementation
-# app.add_middleware(AuthenticationMiddleware)
 
 
 # Custom OpenAPI schema
@@ -170,7 +200,7 @@ async def custom_swagger_ui_html():
     )
 
 
-# Include routers
+# Include routers with security
 app.include_router(
     health.router,
     prefix="/health",
@@ -178,24 +208,39 @@ app.include_router(
 )
 
 app.include_router(
+    auth.router,
+    prefix="/auth",
+    tags=["Authentication"]
+)
+
+app.include_router(
+    oauth.router,
+    prefix="/auth/oauth",
+    tags=["OAuth2"]
+)
+
+app.include_router(
+    audit.router,
+    prefix="/audit",
+    tags=["Audit & Security"]
+)
+
+app.include_router(
     investigations.router,
     prefix="/api/v1/investigations",
-    tags=["Investigations"],
-    dependencies=[Depends(AuthenticationMiddleware)]
+    tags=["Investigations"]
 )
 
 app.include_router(
     analysis.router,
     prefix="/api/v1/analysis",
-    tags=["Analysis"],
-    dependencies=[Depends(AuthenticationMiddleware)]
+    tags=["Analysis"]
 )
 
 app.include_router(
     reports.router,
     prefix="/api/v1/reports",
-    tags=["Reports"],
-    dependencies=[Depends(AuthenticationMiddleware)]
+    tags=["Reports"]
 )
 
 
@@ -235,7 +280,27 @@ async def cidadao_ai_exception_handler(request, exc: CidadaoAIError):
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc: HTTPException):
-    """Handle HTTP exceptions."""
+    """Enhanced HTTP exception handler with audit logging."""
+    
+    # Create audit context
+    context = AuditContext(
+        ip_address=request.client.host if request.client else "unknown",
+        user_agent=request.headers.get("user-agent"),
+        host=request.headers.get("host")
+    )
+    
+    # Log security-related errors
+    if exc.status_code in [401, 403, 429]:
+        await audit_logger.log_event(
+            event_type=AuditEventType.UNAUTHORIZED_ACCESS,
+            message=f"HTTP {exc.status_code}: {exc.detail}",
+            severity=AuditSeverity.MEDIUM if exc.status_code != 429 else AuditSeverity.HIGH,
+            success=False,
+            error_code=str(exc.status_code),
+            error_message=exc.detail,
+            context=context
+        )
+    
     logger.warning(
         "http_exception_occurred",
         status_code=exc.status_code,
@@ -260,7 +325,25 @@ async def http_exception_handler(request, exc: HTTPException):
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request, exc: Exception):
-    """Handle general exceptions."""
+    """Enhanced general exception handler with audit logging."""
+    
+    # Log unexpected errors with audit
+    context = AuditContext(
+        ip_address=request.client.host if request.client else "unknown",
+        user_agent=request.headers.get("user-agent"),
+        host=request.headers.get("host")
+    )
+    
+    await audit_logger.log_event(
+        event_type=AuditEventType.API_ERROR,
+        message=f"Unhandled exception: {str(exc)}",
+        severity=AuditSeverity.HIGH,
+        success=False,
+        error_message=str(exc),
+        details={"error_type": type(exc).__name__},
+        context=context
+    )
+    
     logger.error(
         "unexpected_exception_occurred",
         error_type=type(exc).__name__,
@@ -269,18 +352,33 @@ async def general_exception_handler(request, exc: Exception):
         method=request.method,
     )
     
-    return JSONResponse(
-        status_code=500,
-        content={
-            "status": "error",
-            "status_code": 500,
-            "error": {
-                "error": "InternalServerError",
-                "message": "An unexpected error occurred",
-                "details": {"error_type": type(exc).__name__}
+    # Don't expose internal errors in production
+    if settings.app_env == "production":
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "status_code": 500,
+                "error": {
+                    "error": "InternalServerError",
+                    "message": "An unexpected error occurred",
+                    "details": {}
+                }
             }
-        }
-    )
+        )
+    else:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "status": "error",
+                "status_code": 500,
+                "error": {
+                    "error": "InternalServerError",
+                    "message": f"An unexpected error occurred: {str(exc)}",
+                    "details": {"error_type": type(exc).__name__}
+                }
+            }
+        )
 
 
 # Root endpoint
