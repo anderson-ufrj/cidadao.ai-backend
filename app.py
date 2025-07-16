@@ -872,6 +872,72 @@ def create_professional_interface():
         
         credits_btn.click(fn=show_credits)
         theme_btn.click(fn=toggle_theme)
+        
+        # Floating info button (bottom-right corner)
+        gr.HTML("""
+        <div style="position: fixed; bottom: 20px; right: 20px; z-index: 1000;">
+            <button id="floating-info-btn" onclick="showFloatingInfo()" 
+                    style="background: var(--primary-blue); color: white; border: none; 
+                           border-radius: 50%; width: 60px; height: 60px; font-size: 24px; 
+                           cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
+                           transition: all 0.3s ease; display: flex; align-items: center; 
+                           justify-content: center;">
+                ℹ️
+            </button>
+        </div>
+        
+        <!-- Floating info modal -->
+        <div id="floating-info-modal" style="display: none; position: fixed; top: 0; left: 0; 
+             right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 2000; 
+             justify-content: center; align-items: center;" onclick="hideFloatingInfo()">
+            <div style="background: white; border-radius: 20px; padding: 2rem; max-width: 500px; 
+                        width: 90%; box-shadow: 0 25px 50px rgba(0,0,0,0.3);" onclick="event.stopPropagation()">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="margin: 0; color: #0f172a; font-size: 1.5rem;">🏆 Créditos</h3>
+                    <button onclick="hideFloatingInfo()" style="background: none; border: none; 
+                            font-size: 1.5rem; cursor: pointer; color: #64748b;">×</button>
+                </div>
+                <div style="color: #64748b; line-height: 1.6;">
+                    <p><strong>Anderson Henrique da Silva</strong></p>
+                    <p>Bacharelado em Ciência da Computação</p>
+                    <p>IFSuldeminas Campus Muzambinho</p>
+                    <div style="margin-top: 1rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <a href="https://github.com/anderson-ufrj" target="_blank" 
+                           style="color: #3b82f6; text-decoration: none; font-size: 0.9rem;">🐙 GitHub</a>
+                        <a href="https://www.linkedin.com/in/anderson-h-silva95/" target="_blank" 
+                           style="color: #3b82f6; text-decoration: none; font-size: 0.9rem;">💼 LinkedIn</a>
+                        <a href="mailto:andersonhs27@gmail.com" 
+                           style="color: #3b82f6; text-decoration: none; font-size: 0.9rem;">📧 Email</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            function showFloatingInfo() {
+                document.getElementById('floating-info-modal').style.display = 'flex';
+            }
+            
+            function hideFloatingInfo() {
+                document.getElementById('floating-info-modal').style.display = 'none';
+            }
+            
+            // Add hover effect to floating button
+            document.addEventListener('DOMContentLoaded', function() {
+                const btn = document.getElementById('floating-info-btn');
+                if (btn) {
+                    btn.addEventListener('mouseenter', function() {
+                        this.style.transform = 'scale(1.1)';
+                        this.style.boxShadow = '0 6px 20px rgba(0,0,0,0.4)';
+                    });
+                    btn.addEventListener('mouseleave', function() {
+                        this.style.transform = 'scale(1)';
+                        this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.3)';
+                    });
+                }
+            });
+        </script>
+        """)
     
     return app
 
