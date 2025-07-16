@@ -716,9 +716,17 @@ def create_professional_interface():
                     size="lg"
                 )
         
-        # Advanced Search Page Profissional
+        # Advanced Search Page Profissional (separate page)
         with gr.Column(visible=False, elem_classes="page-professional") as advanced_page:
-            gr.HTML('<h2 class="page-title-professional">🔍 Consulta Avançada</h2>')
+            with gr.Row():
+                with gr.Column(scale=1):
+                    back_to_home_btn = gr.Button(
+                        "← Voltar ao Início",
+                        elem_classes="header-btn",
+                        size="sm"
+                    )
+                with gr.Column(scale=2):
+                    gr.HTML('<h2 class="page-title-professional">🔍 Consulta Avançada</h2>')
             
             with gr.Row():
                 # Sidebar Profissional
@@ -771,8 +779,17 @@ def create_professional_interface():
                         elem_classes="results-professional"
                     )
         
-        # Chat Page Profissional
+        # Chat Page Profissional (separate page)
         with gr.Column(visible=False, elem_classes="chat-professional") as chat_page:
+            with gr.Row():
+                with gr.Column(scale=1):
+                    back_to_home_chat_btn = gr.Button(
+                        "← Voltar ao Início",
+                        elem_classes="header-btn",
+                        size="sm"
+                    )
+                with gr.Column(scale=2):
+                    pass
             gr.HTML("""
             <div class="chat-title-professional">💬 Assistente de Transparência</div>
             <div class="chat-subtitle-professional">
@@ -838,6 +855,17 @@ def create_professional_interface():
         
         chat_nav_btn.click(
             fn=show_chat,
+            outputs=[landing_page, advanced_page, chat_page, current_page]
+        )
+        
+        # Back button handlers
+        back_to_home_btn.click(
+            fn=show_landing,
+            outputs=[landing_page, advanced_page, chat_page, current_page]
+        )
+        
+        back_to_home_chat_btn.click(
+            fn=show_landing,
             outputs=[landing_page, advanced_page, chat_page, current_page]
         )
         
