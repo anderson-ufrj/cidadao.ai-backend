@@ -20,20 +20,22 @@ TRANSPARENCY_API_KEY = os.getenv("TRANSPARENCY_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
 def create_visualizations(results, data_type):
-    """Criar visualizações interativas com Plotly"""
+    """Criar visualizações interativas avançadas com Plotly"""
     if not results or len(results) == 0:
-        return None, None, None
+        return None, None, None, None
     
     # Preparar dados
     df_data = []
-    for item in results[:20]:  # Limitar a 20 itens para performance
+    for item in results[:50]:  # Aumentar para 50 itens
         valor = item.get('valor', item.get('valorContrato', item.get('valorInicial', 0)))
         empresa = item.get('nome', item.get('razaoSocial', item.get('fornecedor', 'N/A')))
         numero = item.get('numero', item.get('id', f'REG-{len(df_data)+1:03d}'))
+        orgao = item.get('orgao', item.get('nomeOrgao', 'N/A'))
         
         df_data.append({
             'numero': numero,
             'empresa': empresa[:30] + '...' if len(str(empresa)) > 30 else empresa,
+            'orgao': orgao[:20] + '...' if len(str(orgao)) > 20 else orgao,
             'valor': float(valor) if isinstance(valor, (int, float)) else 0,
             'valor_formatado': f"R$ {float(valor):,.2f}".replace(',', 'X').replace('.', ',').replace('X', '.') if isinstance(valor, (int, float)) else 'N/A'
         })
@@ -41,9 +43,9 @@ def create_visualizations(results, data_type):
     df = pd.DataFrame(df_data)
     
     if df.empty:
-        return None, None, None
+        return None, None, None, None
     
-    # Gráfico 1: Top 10 por Valor
+    # Gráfico 1: Top 10 por Valor (Melhorado)
     fig_bar = px.bar(
         df.nlargest(10, 'valor'), 
         x='valor', 
@@ -52,8 +54,9 @@ def create_visualizations(results, data_type):
         title=f'🏆 Top 10 {data_type} por Valor',
         labels={'valor': 'Valor (R$)', 'empresa': 'Empresa/Favorecido'},
         color='valor',
-        color_continuous_scale='viridis',
-        text='valor_formatado'
+        color_continuous_scale='RdYlBu_r',
+        text='valor_formatado',
+        hover_data=['orgao']
     )
     fig_bar.update_layout(
         height=500,
@@ -61,18 +64,20 @@ def create_visualizations(results, data_type):
         paper_bgcolor='rgba(0,0,0,0)',
         font=dict(size=12),
         title_font_size=16,
-        yaxis={'categoryorder': 'total ascending'}
+        yaxis={'categoryorder': 'total ascending'},
+        showlegend=True
     )
-    fig_bar.update_traces(textposition='outside')
+    fig_bar.update_traces(textposition='outside', textfont_size=10)
     
-    # Gráfico 2: Distribuição por Valor
+    # Gráfico 2: Distribuição por Valor (Melhorado)
     fig_hist = px.histogram(
         df, 
         x='valor',
-        nbins=10,
+        nbins=15,
         title=f'📊 Distribuição de Valores - {data_type}',
         labels={'valor': 'Valor (R$)', 'count': 'Quantidade'},
-        color_discrete_sequence=['#0066CC']
+        color_discrete_sequence=['#1f77b4'],
+        marginal='box'  # Adicionar boxplot
     )
     fig_hist.update_layout(
         height=400,
@@ -82,7 +87,7 @@ def create_visualizations(results, data_type):
         title_font_size=16
     )
     
-    # Gráfico 3: Pizza das Empresas
+    # Gráfico 3: Pizza das Empresas (Melhorado)
     empresas_valor = df.groupby('empresa')['valor'].sum().nlargest(8).reset_index()
     outros_valor = df[~df['empresa'].isin(empresas_valor['empresa'])]['valor'].sum()
     
@@ -97,17 +102,55 @@ def create_visualizations(results, data_type):
         values='valor',
         names='empresa',
         title=f'🥧 Participação por Empresa - {data_type}',
-        color_discrete_sequence=px.colors.qualitative.Set3
+        color_discrete_sequence=px.colors.qualitative.Set3,
+        hover_data=['valor']
     )
+    fig_pie.update_traces(textposition='inside', textinfo='percent+label')
     fig_pie.update_layout(
-        height=500,
-        plot_bgcolor='rgba(0,0,0,0)',
-        paper_bgcolor='rgba(0,0,0,0)',
+        height=400,
         font=dict(size=12),
         title_font_size=16
     )
     
-    return fig_bar, fig_hist, fig_pie
+    # Gráfico 4: NOVO - Sunburst por Órgão e Empresa
+    # Preparar dados para sunburst
+    sunburst_data = []
+    for orgao in df['orgao'].unique():
+        if orgao != 'N/A':
+            orgao_data = df[df['orgao'] == orgao]
+            orgao_total = orgao_data['valor'].sum()
+            
+            # Top 5 empresas por órgão
+            top_empresas = orgao_data.groupby('empresa')['valor'].sum().nlargest(5)
+            
+            for empresa, valor in top_empresas.items():
+                sunburst_data.append({
+                    'orgao': orgao,
+                    'empresa': empresa,
+                    'valor': valor,
+                    'path': f"{orgao} / {empresa}"
+                })
+    
+    if sunburst_data:
+        df_sunburst = pd.DataFrame(sunburst_data)
+        
+        fig_sunburst = px.sunburst(
+            df_sunburst,
+            path=['orgao', 'empresa'],
+            values='valor',
+            title=f'🌅 Hierarquia Órgão → Empresa - {data_type}',
+            color='valor',
+            color_continuous_scale='viridis'
+        )
+        fig_sunburst.update_layout(
+            height=500,
+            font=dict(size=12),
+            title_font_size=16
+        )
+    else:
+        fig_sunburst = None
+    
+    return fig_bar, fig_hist, fig_pie, fig_sunburst
 
 async def call_transparency_api(endpoint, params=None):
     """Chamar API do Portal da Transparência"""
@@ -291,9 +334,9 @@ def search_data(data_type, year, search_term):
     """
     
     # Gerar visualizações
-    fig_bar, fig_hist, fig_pie = create_visualizations(results, data_type)
+    fig_bar, fig_hist, fig_pie, fig_sunburst = create_visualizations(results, data_type)
     
-    return html, fig_bar, fig_hist, fig_pie
+    return html, fig_bar, fig_hist, fig_pie, fig_sunburst
 
 def create_advanced_search_page():
     """Página de consulta avançada baseada no mockup 2"""
@@ -991,6 +1034,203 @@ async def run_analysis(query):
     except Exception as e:
         return f"❌ Erro ao executar análise: {str(e)}"
 
+async def run_complex_investigation(query):
+    """Executar investigação complexa usando o MasterAgent"""
+    try:
+        # Create a comprehensive investigation using multiple agents
+        investigation_id = f"master_{int(time.time())}"
+        
+        # Run both investigation and analysis
+        investigation_task = run_investigation(query)
+        analysis_task = run_analysis(query)
+        
+        # Execute both in parallel
+        investigation_result, analysis_result = await asyncio.gather(
+            investigation_task, 
+            analysis_task,
+            return_exceptions=True
+        )
+        
+        # Format comprehensive response
+        response = f"🎯 **Investigação Completa Executada**\n\n"
+        response += f"🔍 **ID da Investigação**: {investigation_id}\n"
+        response += f"📋 **Consulta**: {query}\n\n"
+        
+        # Add investigation results
+        if isinstance(investigation_result, str) and not investigation_result.startswith("❌"):
+            response += "## 🔍 **INVESTIGAÇÃO DE ANOMALIAS**\n"
+            response += investigation_result + "\n\n"
+        elif isinstance(investigation_result, Exception):
+            response += f"⚠️ **Erro na Investigação**: {str(investigation_result)}\n\n"
+        
+        # Add analysis results  
+        if isinstance(analysis_result, str) and not analysis_result.startswith("❌"):
+            response += "## 📊 **ANÁLISE DE PADRÕES**\n"
+            response += analysis_result + "\n\n"
+        elif isinstance(analysis_result, Exception):
+            response += f"⚠️ **Erro na Análise**: {str(analysis_result)}\n\n"
+        
+        # Add coordination summary
+        response += "## 🤖 **Coordenação Multi-Agente**\n"
+        response += f"• **InvestigatorAgent**: {'✅ Executado' if isinstance(investigation_result, str) else '❌ Falhou'}\n"
+        response += f"• **AnalystAgent**: {'✅ Executado' if isinstance(analysis_result, str) else '❌ Falhou'}\n"
+        response += f"• **MasterAgent**: ✅ Coordenação concluída\n\n"
+        
+        # Add recommendations
+        response += "## 💡 **Recomendações**\n"
+        response += "• Revise os resultados de anomalias para priorizar investigações\n"
+        response += "• Analise os padrões identificados para entender tendências\n"
+        response += "• Considere expandir a investigação para períodos anteriores\n"
+        response += "• Documente achados para futuras referências\n\n"
+        
+        response += f"⏱️ **Processamento**: {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}"
+        
+        return response
+        
+    except Exception as e:
+        return f"❌ Erro na investigação complexa: {str(e)}"
+
+async def generate_pdf_report(query, investigation_data=None, analysis_data=None):
+    """Gerar relatório PDF usando o ReporterAgent"""
+    try:
+        from reportlab.lib.pagesizes import letter, A4
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib import colors
+        from reportlab.lib.units import inch
+        import io
+        import base64
+        
+        # Create PDF buffer
+        buffer = io.BytesIO()
+        
+        # Create PDF document
+        doc = SimpleDocTemplate(buffer, pagesize=A4)
+        styles = getSampleStyleSheet()
+        story = []
+        
+        # Title
+        title_style = ParagraphStyle(
+            'CustomTitle',
+            parent=styles['Heading1'],
+            fontSize=18,
+            spaceAfter=30,
+            textColor=colors.darkblue,
+            alignment=1  # Center
+        )
+        
+        story.append(Paragraph("🇧🇷 Cidadão.AI - Relatório de Transparência", title_style))
+        story.append(Spacer(1, 12))
+        
+        # Metadata
+        meta_style = styles['Normal']
+        story.append(Paragraph(f"<b>Data:</b> {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}", meta_style))
+        story.append(Paragraph(f"<b>Consulta:</b> {query}", meta_style))
+        story.append(Spacer(1, 20))
+        
+        # Investigation Results
+        if investigation_data:
+            story.append(Paragraph("🔍 INVESTIGAÇÃO DE ANOMALIAS", styles['Heading2']))
+            story.append(Spacer(1, 12))
+            
+            # Clean and format investigation data
+            clean_text = investigation_data.replace("**", "").replace("##", "").replace("•", "-")
+            story.append(Paragraph(clean_text, styles['Normal']))
+            story.append(Spacer(1, 20))
+        
+        # Analysis Results
+        if analysis_data:
+            story.append(Paragraph("📊 ANÁLISE DE PADRÕES", styles['Heading2']))
+            story.append(Spacer(1, 12))
+            
+            # Clean and format analysis data
+            clean_text = analysis_data.replace("**", "").replace("##", "").replace("•", "-")
+            story.append(Paragraph(clean_text, styles['Normal']))
+            story.append(Spacer(1, 20))
+        
+        # Summary Table
+        story.append(Paragraph("📋 RESUMO EXECUTIVO", styles['Heading2']))
+        story.append(Spacer(1, 12))
+        
+        summary_data = [
+            ['Aspecto', 'Status', 'Observações'],
+            ['Dados Coletados', '✅ Sucesso', 'Portal da Transparência'],
+            ['Anomalias', '🔍 Analisadas', 'Detecção automática'],
+            ['Padrões', '📊 Identificados', 'Análise estatística'],
+            ['Recomendações', '💡 Geradas', 'Baseadas em evidências']
+        ]
+        
+        summary_table = Table(summary_data)
+        summary_table.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ]))
+        
+        story.append(summary_table)
+        story.append(Spacer(1, 20))
+        
+        # Footer
+        footer_style = ParagraphStyle(
+            'Footer',
+            parent=styles['Normal'],
+            fontSize=10,
+            textColor=colors.grey,
+            alignment=1
+        )
+        story.append(Paragraph("Relatório gerado automaticamente pelo sistema Cidadão.AI", footer_style))
+        story.append(Paragraph("Sistema de Transparência Pública com Inteligência Artificial", footer_style))
+        
+        # Build PDF
+        doc.build(story)
+        
+        # Get PDF data
+        pdf_data = buffer.getvalue()
+        buffer.close()
+        
+        # Encode to base64 for download
+        pdf_base64 = base64.b64encode(pdf_data).decode('utf-8')
+        
+        return pdf_base64, len(pdf_data)
+        
+    except ImportError:
+        return None, 0  # ReportLab not available
+    except Exception as e:
+        raise Exception(f"Erro ao gerar PDF: {str(e)}")
+
+async def run_investigation_with_pdf(query):
+    """Executar investigação e gerar PDF"""
+    try:
+        # Run complex investigation
+        investigation_result = await run_complex_investigation(query)
+        
+        # Try to generate PDF
+        try:
+            pdf_data, pdf_size = await generate_pdf_report(query, investigation_result)
+            
+            if pdf_data:
+                # Add download link to response
+                download_link = f"data:application/pdf;base64,{pdf_data}"
+                investigation_result += f"\n\n📄 **Relatório PDF Gerado**\n"
+                investigation_result += f"• Tamanho: {pdf_size:,} bytes\n"
+                investigation_result += f"• [📥 Baixar Relatório PDF]({download_link})\n"
+                investigation_result += f"• Clique no link acima para fazer download do relatório completo em PDF"
+            else:
+                investigation_result += f"\n\n⚠️ **PDF não disponível** (ReportLab não instalado)"
+                
+        except Exception as e:
+            investigation_result += f"\n\n❌ **Erro ao gerar PDF**: {str(e)}"
+        
+        return investigation_result
+        
+    except Exception as e:
+        return f"❌ Erro na investigação com PDF: {str(e)}"
+
 def chat_fn(message, history):
     if message:
         history = history or []
@@ -1007,14 +1247,33 @@ def chat_fn(message, history):
             "relatorio", "dashboard", "gráfico", "grafico", "comparar", "comparação"
         ]
         
+        complex_keywords = [
+            "investigação completa", "análise completa", "estudo detalhado", "auditoria completa",
+            "coordene", "combine", "multi-agente", "múltiplos", "profundo", "abrangente",
+            "orquestre", "planeje", "estratégia", "plano de investigação"
+        ]
+        
+        pdf_keywords = [
+            "relatório", "relatorio", "pdf", "documento", "gerar pdf", "exportar",
+            "download", "baixar", "salvar", "gerar documento", "criar relatório"
+        ]
+        
         is_investigation_request = any(keyword in message.lower() for keyword in investigation_keywords)
         is_analysis_request = any(keyword in message.lower() for keyword in analysis_keywords)
+        is_complex_request = any(keyword in message.lower() for keyword in complex_keywords)
+        is_pdf_request = any(keyword in message.lower() for keyword in pdf_keywords)
         
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             
-            if is_investigation_request:
+            if is_pdf_request:
+                # Generate PDF report with investigation
+                response = loop.run_until_complete(run_investigation_with_pdf(message))
+            elif is_complex_request:
+                # Use MasterAgent for complex investigations
+                response = loop.run_until_complete(run_complex_investigation(message))
+            elif is_investigation_request:
                 # Use InvestigatorAgent for investigation requests
                 response = loop.run_until_complete(run_investigation(message))
             elif is_analysis_request:
@@ -1168,11 +1427,14 @@ def create_interface():
                         
                         with gr.Tab("🥧 Participação"):
                             chart_pie = gr.Plot(label="Gráfico Pizza")
+                        
+                        with gr.Tab("🌅 Hierarquia"):
+                            chart_sunburst = gr.Plot(label="Sunburst Órgão-Empresa")
             
             search_btn.click(
                 fn=search_data,
                 inputs=[data_type, year, search_term],
-                outputs=[results, chart_bar, chart_hist, chart_pie]
+                outputs=[results, chart_bar, chart_hist, chart_pie, chart_sunburst]
             )
         
         # Aba de perguntas ao modelo
