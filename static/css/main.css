@@ -269,6 +269,11 @@ body {
     justify-content: center;
     position: relative;
     overflow: hidden;
+    /* Critical: Ensure buttons are clickable */
+    pointer-events: auto !important;
+    z-index: 10;
+    outline: none;
+    user-select: none;
 }
 
 .btn::before {
@@ -280,6 +285,7 @@ body {
     height: 100%;
     background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
     transition: left 0.5s ease;
+    pointer-events: none;
 }
 
 .btn:hover::before {
@@ -298,6 +304,11 @@ body {
     box-shadow: 0 8px 25px rgba(0, 102, 204, 0.4);
 }
 
+.btn-primary:active {
+    transform: translateY(-1px) scale(0.95);
+    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+}
+
 .btn-secondary {
     background: linear-gradient(135deg, var(--primary-green), #00D084);
     color: white;
@@ -308,6 +319,11 @@ body {
     background: linear-gradient(135deg, #008A5A, var(--primary-green));
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0, 168, 107, 0.4);
+}
+
+.btn-secondary:active {
+    transform: translateY(-1px) scale(0.95);
+    box-shadow: 0 4px 15px rgba(0, 168, 107, 0.3);
 }
 
 /* Logo dinâmico simples */

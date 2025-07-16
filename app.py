@@ -579,156 +579,289 @@ def create_landing_page():
     <!-- Script DEFINITIVO para navegação das abas -->
     <script>
         (function() {
-            console.log('🚀 DEFINITIVE Navigation Script Loaded');
+            console.log('🚀 BULLETPROOF Navigation Script Loaded');
             
-            // Variáveis globais para controle
-            let navigationReady = false;
-            let gradioTabsReady = false;
-            let attemptCount = 0;
-            const maxAttempts = 50;
+            // Global state management
+            let isNavigationReady = false;
+            let setupAttempts = 0;
+            const MAX_SETUP_ATTEMPTS = 100;
             
-            // Função para verificar se o Gradio está pronto
-            function checkGradioReady() {
-                const gradioContainer = document.querySelector('.gradio-container');
-                const tabButtons = document.querySelectorAll('button[role="tab"]');
-                const hasMainTabs = tabButtons.length >= 3;
+            // Enhanced Gradio readiness check with multiple fallbacks
+            function isGradioFullyReady() {
+                const containers = [
+                    document.querySelector('.gradio-container'),
+                    document.querySelector('[data-testid="gradio-container"]'),
+                    document.querySelector('.gr-container'),
+                    document.querySelector('gradio-app')
+                ];
                 
-                console.log('🔍 Gradio Status Check:', {
-                    container: !!gradioContainer,
+                const hasValidContainer = containers.some(container => container !== null);
+                const tabButtons = document.querySelectorAll('button[role="tab"], .tab-nav button, .gradio-tabs button');
+                const hasMinimumTabs = tabButtons.length >= 3;
+                
+                console.log('📊 Gradio Status:', {
+                    containers: containers.map(c => !!c),
                     tabButtons: tabButtons.length,
-                    hasMainTabs: hasMainTabs,
-                    attempt: attemptCount + 1
+                    hasContainer: hasValidContainer,
+                    hasMinTabs: hasMinimumTabs,
+                    attempt: setupAttempts + 1
                 });
                 
-                return gradioContainer && hasMainTabs;
+                return hasValidContainer && hasMinimumTabs;
             }
             
-            // Função DEFINITIVA para navegar para aba
-            function navigateToTab(targetTabIndex, tabName) {
-                console.log(`🎯 DEFINITIVE Navigation to: ${tabName} (index ${targetTabIndex})`);
+            // Bulletproof tab navigation with dynamic tab discovery
+            function navigateToTargetTab(targetTabText) {
+                console.log(`🎯 BULLETPROOF Navigation to: ${targetTabText}`);
                 
-                // Método 1: Usar seletor role="tab" direto
-                const tabButtons = document.querySelectorAll('button[role="tab"]');
-                console.log(`📋 Found ${tabButtons.length} tab buttons`);
+                // Multiple selector strategies for different Gradio versions
+                const tabSelectors = [
+                    'button[role="tab"]',
+                    '.tab-nav button',
+                    '.gradio-tabs button',
+                    '.gr-tabs button',
+                    'button[data-testid="tab-button"]',
+                    '.tabs button'
+                ];
                 
-                if (tabButtons.length > targetTabIndex) {
-                    const targetTab = tabButtons[targetTabIndex];
-                    console.log(`✅ Clicking tab ${targetTabIndex}:`, targetTab.textContent);
-                    
-                    // Forçar clique com múltiplos métodos
+                let allTabs = [];
+                
+                // Collect all possible tab buttons
+                for (const selector of tabSelectors) {
+                    const tabs = document.querySelectorAll(selector);
+                    if (tabs.length > 0) {
+                        allTabs = Array.from(tabs);
+                        console.log(`📋 Found ${tabs.length} tabs with selector: ${selector}`);
+                        break;
+                    }
+                }
+                
+                if (allTabs.length === 0) {
+                    console.log('❌ No tabs found with any selector');
+                    return false;
+                }
+                
+                // Find target tab by text content (flexible matching)
+                const targetTab = allTabs.find(tab => {
+                    const tabText = (tab.textContent || tab.innerText || '').trim();
+                    return tabText.includes(targetTabText) || 
+                           targetTabText.includes(tabText.replace(/[^\w\s]/gi, ''));
+                });
+                
+                if (!targetTab) {
+                    console.log(`❌ Target tab "${targetTabText}" not found. Available tabs:`);
+                    allTabs.forEach((tab, index) => {
+                        console.log(`  ${index}: "${tab.textContent.trim()}"`);  
+                    });
+                    return false;
+                }
+                
+                console.log(`✅ Found target tab: "${targetTab.textContent.trim()}"`);  
+                
+                // Execute click with multiple event dispatch methods
+                try {
+                    // Method 1: Direct click
                     targetTab.click();
-                    targetTab.focus();
                     
-                    // Dispatch event manual
-                    targetTab.dispatchEvent(new MouseEvent('click', {
+                    // Method 2: Focus and click
+                    targetTab.focus();
+                    targetTab.click();
+                    
+                    // Method 3: Mouse event dispatch
+                    const mouseEvent = new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window,
+                        detail: 1
+                    });
+                    targetTab.dispatchEvent(mouseEvent);
+                    
+                    // Method 4: Pointer event dispatch (for touch devices)
+                    const pointerEvent = new PointerEvent('click', {
                         bubbles: true,
                         cancelable: true,
                         view: window
-                    }));
+                    });
+                    targetTab.dispatchEvent(pointerEvent);
                     
-                    // Verificar se funcionou
+                    // Verify navigation success
                     setTimeout(() => {
-                        const activeTab = document.querySelector('button[role="tab"][aria-selected="true"]');
+                        const activeTab = document.querySelector('button[role="tab"][aria-selected="true"], .tab-nav button.active, .gradio-tabs button.selected');
                         if (activeTab && activeTab === targetTab) {
-                            console.log('✅ SUCCESS: Tab navigation worked!');
+                            console.log('✅ SUCCESS: Tab navigation completed!');
                         } else {
-                            console.log('❌ FAILED: Tab navigation did not work');
+                            console.log('⚠️  WARNING: Tab click executed but state unclear');
                         }
-                    }, 100);
+                    }, 150);
                     
                     return true;
+                    
+                } catch (error) {
+                    console.error('❌ ERROR clicking tab:', error);
+                    return false;
                 }
-                
-                console.log('❌ FAILED: Could not find target tab');
-                return false;
             }
             
-            // Função para configurar os botões
-            function setupButtonsDefinitive() {
-                console.log('⚙️ Setting up buttons (DEFINITIVE)');
+            // Robust button event attachment
+            function attachButtonEvents() {
+                console.log('🔗 Attaching button events...');
                 
                 const btnAdvanced = document.getElementById('btnAdvanced');
                 const btnChat = document.getElementById('btnChat');
                 
-                if (btnAdvanced && !btnAdvanced.hasAttribute('data-definitive-listener')) {
-                    console.log('✅ Setting up DEFINITIVE Advanced button');
-                    btnAdvanced.setAttribute('data-definitive-listener', 'true');
+                // Clear any existing listeners to prevent conflicts
+                if (btnAdvanced) {
+                    // Remove existing listeners by cloning and replacing
+                    const newBtnAdvanced = btnAdvanced.cloneNode(true);
+                    btnAdvanced.parentNode.replaceChild(newBtnAdvanced, btnAdvanced);
                     
-                    btnAdvanced.addEventListener('click', function(e) {
+                    // Attach new robust listener
+                    newBtnAdvanced.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log('🔍 DEFINITIVE Advanced button clicked');
+                        console.log('🔍 BULLETPROOF Advanced button clicked');
                         
-                        // Navegar para aba índice 1 (segunda aba)
-                        navigateToTab(1, 'Consulta Avançada');
-                    });
+                        // Add visual feedback
+                        newBtnAdvanced.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            newBtnAdvanced.style.transform = 'scale(1)';
+                        }, 100);
+                        
+                        // Navigate using flexible text matching
+                        navigateToTargetTab('Consulta Avançada');
+                    }, { passive: false });
+                    
+                    console.log('✅ Advanced button event attached');
                 }
                 
-                if (btnChat && !btnChat.hasAttribute('data-definitive-listener')) {
-                    console.log('✅ Setting up DEFINITIVE Chat button');
-                    btnChat.setAttribute('data-definitive-listener', 'true');
+                if (btnChat) {
+                    // Remove existing listeners by cloning and replacing
+                    const newBtnChat = btnChat.cloneNode(true);
+                    btnChat.parentNode.replaceChild(newBtnChat, btnChat);
                     
-                    btnChat.addEventListener('click', function(e) {
+                    // Attach new robust listener
+                    newBtnChat.addEventListener('click', function(e) {
                         e.preventDefault();
                         e.stopPropagation();
-                        console.log('💬 DEFINITIVE Chat button clicked');
+                        console.log('💬 BULLETPROOF Chat button clicked');
                         
-                        // Navegar para aba índice 2 (terceira aba)
-                        navigateToTab(2, 'Pergunte ao Modelo');
-                    });
+                        // Add visual feedback
+                        newBtnChat.style.transform = 'scale(0.95)';
+                        setTimeout(() => {
+                            newBtnChat.style.transform = 'scale(1)';
+                        }, 100);
+                        
+                        // Navigate using flexible text matching
+                        navigateToTargetTab('Pergunte ao Modelo');
+                    }, { passive: false });
+                    
+                    console.log('✅ Chat button event attached');
                 }
             }
             
-            // Função principal de inicialização
-            function initializeDefinitiveNavigation() {
-                attemptCount++;
-                console.log(`🔄 Initialize attempt ${attemptCount}/${maxAttempts}`);
+            // Main initialization with persistent retry
+            function initializeBulletproofNavigation() {
+                setupAttempts++;
+                console.log(`🔄 Setup attempt ${setupAttempts}/${MAX_SETUP_ATTEMPTS}`);
                 
-                if (checkGradioReady()) {
-                    console.log('✅ Gradio is ready! Setting up navigation...');
-                    gradioTabsReady = true;
-                    setupButtonsDefinitive();
-                    navigationReady = true;
-                } else if (attemptCount < maxAttempts) {
-                    console.log('⏳ Gradio not ready yet, retrying in 200ms...');
-                    setTimeout(initializeDefinitiveNavigation, 200);
+                if (isGradioFullyReady()) {
+                    console.log('✅ Gradio is ready! Setting up bulletproof navigation...');
+                    attachButtonEvents();
+                    isNavigationReady = true;
+                    console.log('🎉 BULLETPROOF navigation setup completed!');
+                } else if (setupAttempts < MAX_SETUP_ATTEMPTS) {
+                    console.log('⏳ Gradio not ready yet, retrying in 100ms...');
+                    setTimeout(initializeBulletproofNavigation, 100);
                 } else {
-                    console.log('❌ Max attempts reached, setup may have failed');
+                    console.log('❌ Max attempts reached, implementing fallback...');
+                    // Fallback: Try to attach even if Gradio not fully ready
+                    attachButtonEvents();
                 }
             }
             
-            // Iniciar imediatamente
-            initializeDefinitiveNavigation();
-            
-            // Backup: Observer para detectar mudanças no DOM
-            const observer = new MutationObserver(function(mutations) {
-                if (!navigationReady) {
-                    console.log('🔄 DOM changed, checking if Gradio is ready...');
-                    if (checkGradioReady()) {
-                        setupButtonsDefinitive();
-                        navigationReady = true;
-                    }
-                }
-            });
-            
-            observer.observe(document.body, {
-                childList: true,
-                subtree: true
-            });
-            
-            // Expor função global para debug
-            window.testNavigation = function() {
-                console.log('🧪 Testing navigation manually...');
-                console.log('Gradio ready:', checkGradioReady());
-                console.log('Navigation ready:', navigationReady);
+            // Multi-stage initialization strategy
+            function startBulletproofNavigation() {
+                console.log('🚀 Starting bulletproof navigation initialization...');
                 
-                const tabs = document.querySelectorAll('button[role="tab"]');
-                tabs.forEach((tab, i) => {
-                    console.log(`Tab ${i}:`, tab.textContent);
+                // Stage 1: Immediate attempt
+                if (isGradioFullyReady()) {
+                    console.log('✅ Gradio already ready, attaching events immediately');
+                    attachButtonEvents();
+                    isNavigationReady = true;
+                    return;
+                }
+                
+                // Stage 2: Persistent retry
+                initializeBulletproofNavigation();
+                
+                // Stage 3: DOM mutation observer as backup
+                const observer = new MutationObserver(function(mutations) {
+                    if (!isNavigationReady) {
+                        console.log('👀 DOM mutation detected, checking Gradio readiness...');
+                        if (isGradioFullyReady()) {
+                            console.log('✅ Gradio ready after DOM change, attaching events');
+                            attachButtonEvents();
+                            isNavigationReady = true;
+                            observer.disconnect(); // Clean up observer
+                        }
+                    }
                 });
+                
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['class', 'data-testid']
+                });
+                
+                // Stage 4: Fallback event listeners for page load events
+                window.addEventListener('load', function() {
+                    console.log('📱 Window load event, final attempt...');
+                    if (!isNavigationReady) {
+                        setTimeout(() => {
+                            attachButtonEvents();
+                            isNavigationReady = true;
+                        }, 500);
+                    }
+                });
+                
+                // Stage 5: Document ready state change listener
+                document.addEventListener('readystatechange', function() {
+                    if (document.readyState === 'complete' && !isNavigationReady) {
+                        console.log('📋 Document ready state complete, attempting setup...');
+                        setTimeout(() => {
+                            attachButtonEvents();
+                            isNavigationReady = true;
+                        }, 300);
+                    }
+                });
+            }
+            
+            // Execute immediately
+            startBulletproofNavigation();
+            
+            // Global debug function for testing
+            window.testBulletproofNavigation = function() {
+                console.log('🧪 Testing bulletproof navigation manually...');
+                console.log('Gradio ready:', isGradioFullyReady());
+                console.log('Navigation ready:', isNavigationReady);
+                
+                const tabs = document.querySelectorAll('button[role="tab"], .tab-nav button, .gradio-tabs button');
+                tabs.forEach((tab, i) => {
+                    console.log(`Tab ${i}: "${tab.textContent.trim()}"`);
+                });
+                
+                // Test navigation functions
+                console.log('Testing Advanced navigation...');
+                navigateToTargetTab('Consulta Avançada');
+                
+                setTimeout(() => {
+                    console.log('Testing Chat navigation...');
+                    navigateToTargetTab('Pergunte ao Modelo');
+                }, 1000);
             };
             
-            console.log('🚀 DEFINITIVE Navigation Script Setup Complete');
+            console.log('🎯 BULLETPROOF Navigation Script Setup Complete');
         })();
     </script>
     """
