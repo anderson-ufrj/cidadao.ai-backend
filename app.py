@@ -907,17 +907,108 @@ async def run_investigation(query):
     except Exception as e:
         return f"❌ Erro ao executar investigação: {str(e)}"
 
+async def run_analysis(query):
+    """Executar análise usando o AnalystAgent"""
+    try:
+        # Import here to avoid circular imports
+        from src.agents.analyst_agent import AnalystAgent, AnalysisRequest
+        from src.agents.base_agent import AgentMessage, AgentContext
+        
+        # Create analysis request
+        request = AnalysisRequest(
+            query=query,
+            analysis_types=["pattern_analysis", "correlation_analysis", "trend_analysis"],
+            max_records=100
+        )
+        
+        # Create agent context
+        context = AgentContext(
+            investigation_id=f"analysis_{int(time.time())}",
+            user_id="chat_user",
+            session_id="chat_session"
+        )
+        
+        # Create message
+        message = AgentMessage(
+            message_type="analysis_request",
+            content=request.dict(),
+            metadata={"source": "chat"}
+        )
+        
+        # Run analysis
+        agent = AnalystAgent()
+        result = await agent.execute(message, context)
+        
+        if result.content.get("status") == "completed":
+            patterns = result.content.get("patterns", [])
+            correlations = result.content.get("correlations", [])
+            summary = result.content.get("summary", {})
+            
+            # Format response
+            response = f"📊 **Análise Concluída**\n\n"
+            response += f"📈 **Resumo:**\n"
+            response += f"• Registros analisados: {summary.get('total_records', 0)}\n"
+            response += f"• Padrões identificados: {len(patterns)}\n"
+            response += f"• Correlações encontradas: {len(correlations)}\n"
+            response += f"• Valor médio: R$ {summary.get('average_value', 0):,.2f}\n\n"
+            
+            if patterns:
+                response += "🔍 **Padrões Identificados:**\n"
+                for i, pattern in enumerate(patterns[:3], 1):  # Show top 3
+                    response += f"\n{i}. **{pattern['pattern_type']}**\n"
+                    response += f"   • Significância: {pattern['significance']:.2f}\n"
+                    response += f"   • Confiança: {pattern['confidence']:.2f}\n"
+                    response += f"   • Descrição: {pattern['description']}\n"
+                    
+                    if pattern.get('trend_direction'):
+                        response += f"   • Tendência: {pattern['trend_direction']}\n"
+                
+                if len(patterns) > 3:
+                    response += f"\n... e mais {len(patterns) - 3} padrões identificados."
+            
+            if correlations:
+                response += "\n\n📊 **Correlações Encontradas:**\n"
+                for i, corr in enumerate(correlations[:2], 1):  # Show top 2
+                    response += f"\n{i}. **{corr['correlation_type']}**\n"
+                    response += f"   • Coeficiente: {corr['correlation_coefficient']:.3f}\n"
+                    response += f"   • Significância: {corr['significance_level']}\n"
+                    response += f"   • Interpretação: {corr['business_interpretation']}\n"
+                
+                if len(correlations) > 2:
+                    response += f"\n... e mais {len(correlations) - 2} correlações encontradas."
+            
+            if not patterns and not correlations:
+                response += "ℹ️ **Nenhum padrão significativo detectado nos dados analisados.**"
+                
+            return response
+            
+        elif result.content.get("status") == "no_data":
+            return "ℹ️ Nenhum dado encontrado para análise."
+            
+        else:
+            return f"❌ Erro na análise: {result.content.get('error', 'Erro desconhecido')}"
+            
+    except Exception as e:
+        return f"❌ Erro ao executar análise: {str(e)}"
+
 def chat_fn(message, history):
     if message:
         history = history or []
         
-        # Check if message requests investigation
+        # Check if message requests investigation or analysis
         investigation_keywords = [
-            "investiga", "anomalia", "suspeito", "irregular", "analise", "análise",
-            "detectar", "verificar", "auditor", "fraude", "corrupção", "contratos suspeitos"
+            "investiga", "anomalia", "suspeito", "irregular", "detectar", "verificar", 
+            "auditor", "fraude", "corrupção", "contratos suspeitos"
+        ]
+        
+        analysis_keywords = [
+            "analise", "análise", "padrão", "padroes", "tendência", "tendencia",
+            "correlação", "correlacao", "estatística", "estatistica", "relatório", 
+            "relatorio", "dashboard", "gráfico", "grafico", "comparar", "comparação"
         ]
         
         is_investigation_request = any(keyword in message.lower() for keyword in investigation_keywords)
+        is_analysis_request = any(keyword in message.lower() for keyword in analysis_keywords)
         
         try:
             loop = asyncio.new_event_loop()
@@ -926,6 +1017,9 @@ def chat_fn(message, history):
             if is_investigation_request:
                 # Use InvestigatorAgent for investigation requests
                 response = loop.run_until_complete(run_investigation(message))
+            elif is_analysis_request:
+                # Use AnalystAgent for analysis requests
+                response = loop.run_until_complete(run_analysis(message))
             else:
                 # Use GROQ API for general questions
                 response = loop.run_until_complete(call_groq_api(message))
