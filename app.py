@@ -689,12 +689,6 @@ def create_professional_interface():
                         elem_classes="header-btn",
                         size="sm"
                     )
-                    back_btn = gr.Button(
-                        "🏠 Início",
-                        elem_classes="header-btn header-btn-primary",
-                        size="sm",
-                        visible=False
-                    )
         
         # Landing Page Profissional
         with gr.Column(visible=True, elem_classes="landing-professional") as landing_page:
@@ -817,7 +811,6 @@ def create_professional_interface():
                 landing_page: gr.Column(visible=False),
                 advanced_page: gr.Column(visible=True),
                 chat_page: gr.Column(visible=False),
-                back_btn: gr.Button(visible=True),
                 current_page: "advanced"
             }
         
@@ -826,7 +819,6 @@ def create_professional_interface():
                 landing_page: gr.Column(visible=False),
                 advanced_page: gr.Column(visible=False),
                 chat_page: gr.Column(visible=True),
-                back_btn: gr.Button(visible=True),
                 current_page: "chat"
             }
         
@@ -835,24 +827,18 @@ def create_professional_interface():
                 landing_page: gr.Column(visible=True),
                 advanced_page: gr.Column(visible=False),
                 chat_page: gr.Column(visible=False),
-                back_btn: gr.Button(visible=False),
                 current_page: "landing"
             }
         
         # Event handlers
         advanced_nav_btn.click(
             fn=show_advanced,
-            outputs=[landing_page, advanced_page, chat_page, back_btn, current_page]
+            outputs=[landing_page, advanced_page, chat_page, current_page]
         )
         
         chat_nav_btn.click(
             fn=show_chat,
-            outputs=[landing_page, advanced_page, chat_page, back_btn, current_page]
-        )
-        
-        back_btn.click(
-            fn=show_landing,
-            outputs=[landing_page, advanced_page, chat_page, back_btn, current_page]
+            outputs=[landing_page, advanced_page, chat_page, current_page]
         )
         
         # Funcionalidades principais
