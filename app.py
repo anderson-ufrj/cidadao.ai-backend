@@ -792,10 +792,7 @@ def create_professional_interface():
                 chatbot = gr.Chatbot(
                     height=500,
                     show_label=False,
-                    avatar_images=("👤", "🤖"),
-                    bubble_full_width=False,
-                    show_copy_button=True,
-                    placeholder="Início da conversa...",
+                    type="tuples",
                     elem_classes="chatbot-professional"
                 )
                 
@@ -900,8 +897,5 @@ if __name__ == "__main__":
         quiet=False,
         share=False,
         server_name="0.0.0.0",
-        server_port=7860,
-        favicon_path=None,
-        show_tips=False,
-        enable_queue=False
+        server_port=7860
     )
