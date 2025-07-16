@@ -1,518 +1,474 @@
 #!/usr/bin/env python3
 """
 🇧🇷 Cidadão.AI - Portal da Transparência
-Sistema de consulta aos dados do Portal da Transparência
-VERSÃO CORRIGIDA - Navegação baseada em mockups
+GRADIO NATIVO - Fidelidade extrema aos mockups
 """
 
 import gradio as gr
 import os
-import time
-import asyncio
-import httpx
-import json
-import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 from datetime import datetime
 
 # Configurar variáveis de ambiente
 TRANSPARENCY_API_KEY = os.getenv("TRANSPARENCY_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-def create_landing_page():
-    """Landing page baseada no mockup 1"""
-    return """
-    <div class="header">
-        <div class="logo">
-            <span style="font-size: 2rem;">🇧🇷</span>
-            <span class="logo-text">Cidadão.AI</span>
-        </div>
-        <div style="display: flex; gap: 1rem; align-items: center;">
-            <button class="credits-button" onclick="showCreditsModal()" style="background: transparent; border: 2px solid var(--border-color); border-radius: 30px; padding: 0.5rem 1rem; cursor: pointer; transition: all 0.2s ease; color: var(--text-primary); font-weight: 500; display: flex; align-items: center; gap: 0.5rem;">
-                <span>ℹ️</span> Créditos
-            </button>
-            <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn">
-                <span>🌙</span> Modo Escuro
-            </button>
-        </div>
-    </div>
-    
-    <div class="landing-page">
-        <div class="hero-content">
-            <h1 class="hero-title">Cidadão.AI</h1>
-            <p class="hero-subtitle">
-                Plataforma inteligente que facilita a análise de dados públicos brasileiros. Descubra contratos suspeitos, gastos irregulares e licitações problemáticas de forma simples e rápida.
-            </p>
-            
-            <div class="action-buttons">
-                <button class="btn btn-primary" id="btnAdvanced">
-                    <span>🔍</span> Consulta Avançada
-                </button>
-                <button class="btn btn-secondary" id="btnChat">
-                    <span>💬</span> Pergunte ao Modelo
-                </button>
-            </div>
-        </div>
-    </div>
-    """
-
-def create_advanced_search_page():
-    """Página de consulta avançada baseada no mockup 2"""
-    return """
-    <div class="header">
-        <div class="logo">
-            <span style="font-size: 2rem;">🇧🇷</span>
-            <span class="logo-text">Cidadão.AI</span>
-        </div>
-        <div style="display: flex; gap: 1rem; align-items: center;">
-            <button class="btn btn-outline" onclick="navigateToHome()" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                <span>🏠</span> Voltar
-            </button>
-            <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn-2">
-                <span>🌙</span> Modo Escuro
-            </button>
-        </div>
-    </div>
-    
-    <div style="padding-top: 100px;">
-        <h2 style="text-align: center; margin-bottom: 2rem;">🔍 Consulta Avançada</h2>
-        <div style="display: flex; gap: 2rem; max-width: 1200px; margin: 0 auto;">
-            <div style="flex: 1; background: var(--bg-secondary); padding: 1.5rem; border-radius: 12px; border: 1px solid var(--border-color);">
-                <h3 style="margin-bottom: 1.5rem;">≡ Menu lateral & filtros</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 1rem;">Controles aparecerão aqui quando implementados</p>
-                <div style="background: var(--bg-primary); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                    <p style="font-size: 0.9rem; color: var(--text-secondary);">📊 Filtros de dados</p>
-                    <p style="font-size: 0.9rem; color: var(--text-secondary);">📅 Seletor de período</p>
-                    <p style="font-size: 0.9rem; color: var(--text-secondary);">🔍 Busca avançada</p>
-                </div>
-            </div>
-            <div style="flex: 3; background: var(--bg-secondary); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color); min-height: 400px;">
-                <h3 style="margin-bottom: 1.5rem;">📊 Área do Dashboard</h3>
-                <p style="color: var(--text-secondary); margin-bottom: 1rem;">(na página inicial, descrição e como usar, guiado, explicando como usar)</p>
-                <div style="background: var(--bg-primary); padding: 2rem; border-radius: 8px; border: 1px solid var(--border-color); text-align: center;">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">📈</div>
-                    <p style="color: var(--text-secondary);">Dashboard será exibido aqui</p>
-                </div>
-                <p style="color: var(--text-secondary); margin-top: 1rem; font-size: 0.9rem;">(créditos)</p>
-            </div>
-        </div>
-    </div>
-    """
-
-def create_chat_page():
-    """Página de chat baseada no mockup 3"""
-    return """
-    <div class="header">
-        <div class="logo">
-            <span style="font-size: 2rem;">🇧🇷</span>
-            <span class="logo-text">Cidadão.AI</span>
-        </div>
-        <div style="display: flex; gap: 1rem; align-items: center;">
-            <button class="btn btn-outline" onclick="navigateToHome()" style="padding: 0.5rem 1rem; font-size: 0.9rem;">
-                <span>🏠</span> Voltar
-            </button>
-            <button class="theme-toggle" onclick="toggleTheme()" id="theme-toggle-btn-3">
-                <span>🌙</span> Modo Escuro
-            </button>
-        </div>
-    </div>
-    
-    <div style="padding-top: 100px; text-align: center;">
-        <h2 style="margin-bottom: 2rem;">💬 Pergunte ao Modelo</h2>
-        <p style="color: var(--text-secondary); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-            Exemplos do que pode ser perguntado: breve descrição de como funciona
-        </p>
-        <div style="max-width: 800px; margin: 0 auto; background: var(--bg-secondary); padding: 2rem; border-radius: 12px; border: 1px solid var(--border-color);">
-            <div style="background: var(--bg-primary); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color); min-height: 300px; margin-bottom: 1rem;">
-                <p style="color: var(--text-secondary); text-align: center;">💬 Área de conversação</p>
-            </div>
-            <div style="display: flex; gap: 1rem; align-items: center;">
-                <div style="flex: 1; background: var(--bg-primary); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color);">
-                    <p style="color: var(--text-secondary); font-size: 0.9rem;">Caixa de texto dinâmica p/ perguntas</p>
-                </div>
-                <button class="btn btn-primary" style="padding: 1rem 2rem;">
-                    <span>✈️</span> Enviar
-                </button>
-            </div>
-        </div>
-    </div>
-    """
-
-# Função de chat simples
+# Função de chat básica
 def chat_fn(message, history):
     """Função de chat básica"""
     if not message:
         return history, ""
     
-    # Simular resposta
-    response = f"Entendi sua pergunta sobre: '{message}'. Esta é uma resposta simulada do modelo de transparência pública."
+    # Simular resposta do modelo
+    response = f"Entendi sua pergunta sobre transparência: '{message}'. Esta é uma demonstração da funcionalidade de chat especializada em dados públicos brasileiros."
     
     history.append((message, response))
     return history, ""
 
-# Função de busca simples
+# Função de busca básica
 def search_data(data_type, year, search_term):
     """Função de busca básica"""
     if not search_term:
-        return "Digite um termo de busca para começar..."
+        return "Digite um termo de busca para começar a investigação..."
     
-    return f"""
-    <div class="search-results">
-        <h3>🔍 Resultados para: "{search_term}"</h3>
-        <p><strong>Tipo:</strong> {data_type}</p>
-        <p><strong>Ano:</strong> {year}</p>
-        <div style="background: var(--bg-primary); padding: 1rem; border-radius: 8px; border: 1px solid var(--border-color); margin-top: 1rem;">
-            <p>Resultados da busca aparecerão aqui...</p>
-        </div>
-    </div>
+    # Simular resultados de busca
+    results = f"""
+    # 🔍 Resultados da Investigação
+    
+    **Termo buscado:** {search_term}  
+    **Tipo de dados:** {data_type}  
+    **Ano:** {year}  
+    **Encontrados:** 156 registros
+    
+    ---
+    
+    ## 📊 Principais Achados:
+    
+    1. **Contrato #2024001** - R$ 2.500.000,00
+       - Fornecedor: Empresa ABC Ltda
+       - Modalidade: Dispensa de Licitação
+       - Status: ⚠️ Verificar valores
+    
+    2. **Contrato #2024002** - R$ 850.000,00
+       - Fornecedor: Empresa XYZ S/A
+       - Modalidade: Pregão Eletrônico
+       - Status: ✅ Regular
+    
+    3. **Contrato #2024003** - R$ 1.200.000,00
+       - Fornecedor: Empresa 123 Ltda
+       - Modalidade: Concorrência
+       - Status: ⚠️ Análise requerida
+    
+    ---
+    
+    💡 **Dica:** Use filtros mais específicos para refinar os resultados.
     """
+    
+    return results
 
 def create_interface():
-    """Cria a interface principal"""
+    """Cria interface nativa do Gradio seguindo os mockups"""
     
-    # CSS da aplicação
-    css_content = """
-    :root {
-        --primary-blue: #0066CC;
-        --primary-green: #00A86B;
-        --bg-primary: #FFFFFF;
-        --bg-secondary: #F8FAFC;
-        --text-primary: #0F172A;
-        --text-secondary: #64748B;
-        --border-color: #E2E8F0;
+    # Tema customizado baseado no mockup
+    cidadao_theme = gr.themes.Base(
+        primary_hue="green",      # Verde para elementos principais
+        secondary_hue="blue",     # Azul para elementos secundários
+        neutral_hue="slate",      # Cinza neutro
+        font=gr.themes.GoogleFont("Inter"),  # Fonte moderna
+    ).set(
+        # Cores personalizadas baseadas no mockup
+        body_background_fill="white",
+        body_text_color="#0F172A",
+        button_primary_background_fill="#00A86B",
+        button_primary_background_fill_hover="#008A5A",
+        button_secondary_background_fill="#0066CC",
+        button_secondary_background_fill_hover="#004B99",
+        block_background_fill="white",
+        block_border_color="#E2E8F0",
+        block_title_text_color="#0F172A",
+        input_background_fill="white",
+        input_border_color="#E2E8F0",
+    )
+    
+    # CSS customizado para fidelidade ao mockup
+    custom_css = """
+    /* Hide Gradio footer */
+    .gradio-container .footer {
+        display: none !important;
     }
     
-    .header {
-        position: fixed;
+    /* Custom header styling */
+    .header-container {
+        background: white;
+        border-bottom: 1px solid #E2E8F0;
+        padding: 1rem 2rem;
+        position: sticky;
         top: 0;
-        left: 0;
-        right: 0;
-        height: 80px;
-        background: var(--bg-primary);
-        border-bottom: 1px solid var(--border-color);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 2rem;
-        z-index: 1000;
+        z-index: 100;
     }
     
-    .logo {
+    .logo-container {
         display: flex;
         align-items: center;
         gap: 0.5rem;
         font-size: 1.5rem;
         font-weight: 700;
-        color: var(--primary-green);
+        color: #00A86B;
     }
     
-    .landing-page {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        padding: 2rem;
+    /* Landing page styling */
+    .landing-hero {
         text-align: center;
-    }
-    
-    .hero-content {
+        padding: 4rem 2rem;
         max-width: 800px;
+        margin: 0 auto;
     }
     
     .hero-title {
         font-size: 4rem;
         font-weight: 800;
-        color: var(--primary-green);
+        color: #00A86B;
         margin-bottom: 1rem;
+        line-height: 1.1;
     }
     
     .hero-subtitle {
         font-size: 1.25rem;
-        color: var(--text-secondary);
+        color: #64748B;
         margin-bottom: 3rem;
         line-height: 1.6;
     }
     
-    .action-buttons {
-        display: flex;
-        gap: 1.5rem;
-        justify-content: center;
-        flex-wrap: wrap;
+    /* Button styling */
+    .primary-button {
+        background: linear-gradient(135deg, #0066CC, #4DA6FF) !important;
+        color: white !important;
+        border: none !important;
+        padding: 1.2rem 2.5rem !important;
+        border-radius: 12px !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        min-width: 200px !important;
+        margin: 0.5rem !important;
     }
     
-    .btn {
-        padding: 1.2rem 2.5rem;
+    .secondary-button {
+        background: linear-gradient(135deg, #00A86B, #00D084) !important;
+        color: white !important;
+        border: none !important;
+        padding: 1.2rem 2.5rem !important;
+        border-radius: 12px !important;
+        font-size: 1.1rem !important;
+        font-weight: 600 !important;
+        min-width: 200px !important;
+        margin: 0.5rem !important;
+    }
+    
+    /* Advanced search page styling */
+    .page-title {
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #0F172A;
+        margin-bottom: 2rem;
+    }
+    
+    .sidebar {
+        background: #F8FAFC;
         border-radius: 12px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        border: none;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.75rem;
-        min-width: 200px;
-        justify-content: center;
-        pointer-events: auto !important;
+        border: 1px solid #E2E8F0;
+        padding: 1.5rem;
     }
     
-    .btn-primary {
-        background: linear-gradient(135deg, var(--primary-blue), #4DA6FF);
-        color: white;
-        box-shadow: 0 4px 15px rgba(0, 102, 204, 0.3);
+    .dashboard-area {
+        background: #F8FAFC;
+        border-radius: 12px;
+        border: 1px solid #E2E8F0;
+        padding: 2rem;
+        min-height: 500px;
     }
     
-    .btn-primary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 102, 204, 0.4);
+    /* Chat page styling */
+    .chat-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 2rem;
     }
     
-    .btn-secondary {
-        background: linear-gradient(135deg, var(--primary-green), #00D084);
-        color: white;
-        box-shadow: 0 4px 15px rgba(0, 168, 107, 0.3);
+    .chat-title {
+        text-align: center;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #0F172A;
+        margin-bottom: 1rem;
     }
     
-    .btn-secondary:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 168, 107, 0.4);
+    .chat-subtitle {
+        text-align: center;
+        color: #64748B;
+        margin-bottom: 2rem;
+        max-width: 600px;
+        margin-left: auto;
+        margin-right: auto;
     }
     
-    .btn-outline {
-        background: transparent;
-        border: 2px solid var(--border-color);
-        color: var(--text-primary);
+    /* Hide Gradio branding */
+    .gradio-container .version {
+        display: none !important;
     }
     
-    .btn-outline:hover {
-        background: var(--bg-secondary);
-        transform: translateY(-1px);
+    .gradio-container .footer {
+        display: none !important;
     }
     
-    .theme-toggle {
-        background: transparent;
-        border: 2px solid var(--border-color);
-        border-radius: 30px;
-        padding: 0.5rem 1rem;
-        cursor: pointer;
-        transition: all 0.2s ease;
-        color: var(--text-primary);
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+    .gradio-container .built-with {
+        display: none !important;
     }
     
-    .theme-toggle:hover {
-        background: var(--bg-secondary);
-        transform: translateY(-1px);
-    }
-    
-    .gradio-container {
-        max-width: none !important;
-        margin: 0 !important;
-        padding: 0 !important;
-    }
-    """
-    
-    # JavaScript para navegação
-    js_content = """
-    // Variáveis globais
-    let currentPage = 'landing';
-    
-    // Funções de navegação
-    function navigateToHome() {
-        console.log('Navegando para home');
-        // Trigger o botão oculto do Gradio
-        const homeBtn = document.querySelector('[data-testid="navigate-home"]');
-        if (homeBtn) homeBtn.click();
-    }
-    
-    function navigateToAdvanced() {
-        console.log('Navegando para consulta avançada');
-        // Trigger o botão oculto do Gradio
-        const advBtn = document.querySelector('[data-testid="navigate-advanced"]');
-        if (advBtn) advBtn.click();
-    }
-    
-    function navigateToChat() {
-        console.log('Navegando para chat');
-        // Trigger o botão oculto do Gradio
-        const chatBtn = document.querySelector('[data-testid="navigate-chat"]');
-        if (chatBtn) chatBtn.click();
-    }
-    
-    // Configurar navegação dos botões
-    function setupNavigation() {
-        setTimeout(function() {
-            const btnAdvanced = document.getElementById('btnAdvanced');
-            const btnChat = document.getElementById('btnChat');
-            
-            if (btnAdvanced) {
-                btnAdvanced.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    navigateToAdvanced();
-                });
-            }
-            
-            if (btnChat) {
-                btnChat.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    navigateToChat();
-                });
-            }
-        }, 500);
-    }
-    
-    // Inicializar quando a página carregar
-    document.addEventListener('DOMContentLoaded', setupNavigation);
-    
-    // Observar mudanças no DOM
-    const observer = new MutationObserver(function(mutations) {
-        setupNavigation();
-    });
-    
-    observer.observe(document.body, {
-        childList: true,
-        subtree: true
-    });
-    
-    // Função de toggle de tema (básica)
-    function toggleTheme() {
-        console.log('Toggle theme');
-        // Implementar mudança de tema aqui
-    }
-    
-    // Função de créditos (básica)
-    function showCreditsModal() {
-        console.log('Show credits modal');
-        // Implementar modal de créditos aqui
+    /* Responsive design */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+        
+        .primary-button, .secondary-button {
+            min-width: 150px !important;
+            padding: 1rem 1.5rem !important;
+        }
     }
     """
     
     with gr.Blocks(
-        css=css_content,
-        title="Cidadão.AI",
-        theme=gr.themes.Base(),
-        head=f"""
-        <style>body {{ margin: 0; padding: 0; }}</style>
-        <script>{js_content}</script>
+        theme=cidadao_theme,
+        css=custom_css,
+        title="Cidadão.AI - Transparência Pública",
+        head="""
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Plataforma de transparência pública brasileira">
         """
     ) as app:
         
-        # Container principal - navegação por troca de conteúdo
-        main_content = gr.HTML(value=create_landing_page(), elem_id="main-content")
+        # Estado da aplicação
+        current_page = gr.State("landing")
         
-        # Container oculto para controles da consulta avançada
-        with gr.Row(visible=False, elem_id="advanced-controls") as advanced_controls:
+        # Header fixo
+        with gr.Row(elem_classes="header-container"):
             with gr.Column(scale=1):
-                data_type = gr.Radio(
-                    label="Tipo de Dados",
-                    choices=["Contratos Públicos", "Despesas Orçamentárias", "Licitações e Pregões"],
-                    value="Contratos Públicos"
-                )
-                
-                year = gr.Number(
-                    label="Ano",
-                    value=2024,
-                    minimum=2000,
-                    maximum=2024
-                )
-                
-                search_term = gr.Textbox(
-                    label="Busca",
-                    placeholder="Digite sua consulta...",
-                    lines=2
-                )
-                
-                search_btn = gr.Button("Buscar", variant="primary")
-                
-            with gr.Column(scale=3):
-                results = gr.HTML(value="<p>Resultados aparecerão aqui...</p>")
-        
-        # Container oculto para chat
-        with gr.Row(visible=False, elem_id="chat-controls") as chat_controls:
-            with gr.Column():
-                chatbot = gr.Chatbot(
-                    height=400,
-                    show_label=False,
-                    avatar_images=("👤", "🤖")
-                )
-                
+                gr.HTML("""
+                <div class="logo-container">
+                    <span style="font-size: 2rem;">🇧🇷</span>
+                    <span>Cidadão.AI</span>
+                </div>
+                """)
+            
+            with gr.Column(scale=1):
                 with gr.Row():
-                    msg = gr.Textbox(
-                        placeholder="Digite sua pergunta sobre transparência pública...",
-                        show_label=False,
-                        scale=4,
-                        lines=1
+                    credits_btn = gr.Button(
+                        "ℹ️ Créditos", 
+                        variant="secondary",
+                        size="sm",
+                        visible=True
                     )
-                    send_btn = gr.Button("Enviar", variant="primary", scale=1)
+                    theme_btn = gr.Button(
+                        "🌙 Modo Escuro", 
+                        variant="secondary", 
+                        size="sm",
+                        visible=True
+                    )
+                    back_btn = gr.Button(
+                        "🏠 Voltar",
+                        variant="secondary",
+                        size="sm", 
+                        visible=False
+                    )
         
-        # Função para navegar para consulta avançada
-        def navigate_to_advanced():
+        # Container principal - Landing Page
+        with gr.Column(visible=True) as landing_page:
+            gr.HTML("""
+            <div class="landing-hero">
+                <h1 class="hero-title">Cidadão.AI</h1>
+                <p class="hero-subtitle">
+                    Plataforma inteligente que facilita a análise de dados públicos brasileiros. 
+                    Descubra contratos suspeitos, gastos irregulares e licitações problemáticas 
+                    de forma simples e rápida.
+                </p>
+            </div>
+            """)
+            
+            with gr.Row():
+                with gr.Column():
+                    advanced_nav_btn = gr.Button(
+                        "🔍 Consulta Avançada",
+                        variant="primary",
+                        size="lg",
+                        elem_classes="primary-button"
+                    )
+                
+                with gr.Column():
+                    chat_nav_btn = gr.Button(
+                        "💬 Pergunte ao Modelo",
+                        variant="secondary", 
+                        size="lg",
+                        elem_classes="secondary-button"
+                    )
+        
+        # Container - Advanced Search Page
+        with gr.Column(visible=False) as advanced_page:
+            gr.HTML('<h2 class="page-title">🔍 Consulta Avançada</h2>')
+            
+            with gr.Row():
+                # Sidebar
+                with gr.Column(scale=1, elem_classes="sidebar"):
+                    gr.HTML("<h3>≡ Menu lateral & filtros</h3>")
+                    
+                    data_type = gr.Radio(
+                        label="📊 Tipo de Dados",
+                        choices=["Contratos Públicos", "Despesas Orçamentárias", "Licitações e Pregões"],
+                        value="Contratos Públicos"
+                    )
+                    
+                    year = gr.Number(
+                        label="📅 Ano",
+                        value=2024,
+                        minimum=2000,
+                        maximum=2024
+                    )
+                    
+                    search_term = gr.Textbox(
+                        label="🔍 Busca",
+                        placeholder="Digite sua consulta...",
+                        lines=2
+                    )
+                    
+                    search_btn = gr.Button(
+                        "Buscar",
+                        variant="primary",
+                        size="lg"
+                    )
+                
+                # Dashboard Area
+                with gr.Column(scale=3, elem_classes="dashboard-area"):
+                    gr.HTML("<h3>📊 Área do Dashboard</h3>")
+                    gr.HTML("<p style='color: #64748B;'>(Dashboard interativo será exibido aqui)</p>")
+                    
+                    results = gr.Markdown(
+                        value="💡 **Dica:** Use os filtros ao lado para começar sua investigação.",
+                        elem_classes="results-area"
+                    )
+        
+        # Container - Chat Page  
+        with gr.Column(visible=False) as chat_page:
+            gr.HTML("""
+            <div class="chat-container">
+                <h2 class="chat-title">💬 Pergunte ao Modelo</h2>
+                <p class="chat-subtitle">
+                    Faça perguntas sobre transparência pública, contratos, licitações e gastos governamentais. 
+                    O modelo foi treinado para ajudar cidadãos a entender dados públicos.
+                </p>
+            </div>
+            """)
+            
+            chatbot = gr.Chatbot(
+                height=400,
+                show_label=False,
+                avatar_images=("👤", "🤖"),
+                bubble_full_width=False,
+                show_copy_button=True,
+                elem_classes="chat-interface"
+            )
+            
+            with gr.Row():
+                msg = gr.Textbox(
+                    placeholder="Digite sua pergunta sobre transparência pública...",
+                    show_label=False,
+                    scale=4,
+                    lines=1
+                )
+                send_btn = gr.Button(
+                    "✈️ Enviar",
+                    variant="primary",
+                    scale=1
+                )
+        
+        # Funções de navegação
+        def show_advanced():
             return {
-                main_content: gr.HTML(value=create_advanced_search_page()),
-                advanced_controls: gr.Row(visible=True),
-                chat_controls: gr.Row(visible=False)
+                landing_page: gr.Column(visible=False),
+                advanced_page: gr.Column(visible=True),
+                chat_page: gr.Column(visible=False),
+                back_btn: gr.Button(visible=True),
+                current_page: "advanced"
             }
         
-        # Função para navegar para chat
-        def navigate_to_chat():
+        def show_chat():
             return {
-                main_content: gr.HTML(value=create_chat_page()),
-                advanced_controls: gr.Row(visible=False), 
-                chat_controls: gr.Row(visible=True)
+                landing_page: gr.Column(visible=False),
+                advanced_page: gr.Column(visible=False),
+                chat_page: gr.Column(visible=True),
+                back_btn: gr.Button(visible=True),
+                current_page: "chat"
             }
         
-        # Função para voltar ao início
-        def navigate_to_home():
+        def show_landing():
             return {
-                main_content: gr.HTML(value=create_landing_page()),
-                advanced_controls: gr.Row(visible=False),
-                chat_controls: gr.Row(visible=False)
+                landing_page: gr.Column(visible=True),
+                advanced_page: gr.Column(visible=False),
+                chat_page: gr.Column(visible=False),
+                back_btn: gr.Button(visible=False),
+                current_page: "landing"
             }
         
-        # Botões ocultos para navegação
-        nav_advanced = gr.Button("", visible=False, elem_id="navigate-advanced")
-        nav_chat = gr.Button("", visible=False, elem_id="navigate-chat")  
-        nav_home = gr.Button("", visible=False, elem_id="navigate-home")
-        
-        # Conectar navegação
-        nav_advanced.click(
-            fn=navigate_to_advanced,
-            inputs=[],
-            outputs=[main_content, advanced_controls, chat_controls]
+        # Event handlers
+        advanced_nav_btn.click(
+            fn=show_advanced,
+            outputs=[landing_page, advanced_page, chat_page, back_btn, current_page]
         )
         
-        nav_chat.click(
-            fn=navigate_to_chat,
-            inputs=[],
-            outputs=[main_content, advanced_controls, chat_controls]
+        chat_nav_btn.click(
+            fn=show_chat,
+            outputs=[landing_page, advanced_page, chat_page, back_btn, current_page]
         )
         
-        nav_home.click(
-            fn=navigate_to_home,
-            inputs=[],
-            outputs=[main_content, advanced_controls, chat_controls]
+        back_btn.click(
+            fn=show_landing,
+            outputs=[landing_page, advanced_page, chat_page, back_btn, current_page]
         )
         
-        # Conectar funcionalidades
+        # Funcionalidades
         search_btn.click(
             fn=search_data,
             inputs=[data_type, year, search_term],
             outputs=[results]
         )
         
-        msg.submit(fn=chat_fn, inputs=[msg, chatbot], outputs=[chatbot, msg])
-        send_btn.click(fn=chat_fn, inputs=[msg, chatbot], outputs=[chatbot, msg])
+        msg.submit(
+            fn=chat_fn,
+            inputs=[msg, chatbot],
+            outputs=[chatbot, msg]
+        )
+        
+        send_btn.click(
+            fn=chat_fn,
+            inputs=[msg, chatbot],
+            outputs=[chatbot, msg]
+        )
+        
+        # Placeholder para créditos e tema
+        credits_btn.click(
+            lambda: gr.Info("💡 Créditos: Anderson H. Silva - IFSuldeminas")
+        )
+        
+        theme_btn.click(
+            lambda: gr.Info("🌙 Modo escuro será implementado em breve")
+        )
     
     return app
 
-# Executar aplicação
 if __name__ == "__main__":
-    print("🚀 Iniciando Cidadão.AI - Versão Corrigida...")
+    print("🚀 Iniciando Cidadão.AI - Gradio Nativo...")
     app = create_interface()
     app.launch(
         show_error=True,
