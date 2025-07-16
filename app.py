@@ -669,14 +669,6 @@ def create_professional_interface():
         
         # Header profissional
         with gr.Row(elem_classes="professional-header"):
-            with gr.Column(scale=2):
-                gr.HTML("""
-                <div class="logo-professional">
-                    <span class="flag-icon">🇧🇷</span>
-                    <span>Cidadão.AI</span>
-                </div>
-                """)
-            
             with gr.Column(scale=1):
                 with gr.Row(elem_classes="header-buttons"):
                     credits_btn = gr.Button(
@@ -689,6 +681,14 @@ def create_professional_interface():
                         elem_classes="header-btn",
                         size="sm"
                     )
+            
+            with gr.Column(scale=2):
+                gr.HTML("""
+                <div class="logo-professional">
+                    <span class="flag-icon">🇧🇷</span>
+                    <span>Cidadão.AI</span>
+                </div>
+                """)
         
         # Landing Page Profissional
         with gr.Column(visible=True, elem_classes="landing-professional") as landing_page:
