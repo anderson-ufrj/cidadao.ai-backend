@@ -183,42 +183,9 @@ def create_professional_interface():
     
     # Tema profissional avançado
     professional_theme = gr.themes.Soft(
-        primary_hue=gr.themes.Color(
-            c50="#f0fdf4",
-            c100="#dcfce7", 
-            c200="#bbf7d0",
-            c300="#86efac",
-            c400="#4ade80",
-            c500="#22c55e",  # Main green
-            c600="#16a34a",
-            c700="#15803d",
-            c800="#166534",
-            c900="#14532d"
-        ),
-        secondary_hue=gr.themes.Color(
-            c50="#eff6ff",
-            c100="#dbeafe",
-            c200="#bfdbfe", 
-            c300="#93c5fd",
-            c400="#60a5fa",
-            c500="#3b82f6",  # Main blue
-            c600="#2563eb",
-            c700="#1d4ed8",
-            c800="#1e40af",
-            c900="#1e3a8a"
-        ),
-        neutral_hue=gr.themes.Color(
-            c50="#f8fafc",
-            c100="#f1f5f9",
-            c200="#e2e8f0",
-            c300="#cbd5e1",
-            c400="#94a3b8",
-            c500="#64748b",
-            c600="#475569",
-            c700="#334155",
-            c800="#1e293b",
-            c900="#0f172a"
-        ),
+        primary_hue="green",
+        secondary_hue="blue",
+        neutral_hue="slate",
         font=gr.themes.GoogleFont("Inter"),
         font_mono=gr.themes.GoogleFont("JetBrains Mono"),
         text_size=gr.themes.Size(
