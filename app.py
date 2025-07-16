@@ -825,25 +825,25 @@ def create_professional_interface():
         # Funções de navegação melhoradas
         def show_advanced():
             return {
-                landing_page: gr.Column(visible=False),
-                advanced_page: gr.Column(visible=True),
-                chat_page: gr.Column(visible=False),
+                landing_page: gr.update(visible=False),
+                advanced_page: gr.update(visible=True),
+                chat_page: gr.update(visible=False),
                 current_page: "advanced"
             }
         
         def show_chat():
             return {
-                landing_page: gr.Column(visible=False),
-                advanced_page: gr.Column(visible=False),
-                chat_page: gr.Column(visible=True),
+                landing_page: gr.update(visible=False),
+                advanced_page: gr.update(visible=False),
+                chat_page: gr.update(visible=True),
                 current_page: "chat"
             }
         
         def show_landing():
             return {
-                landing_page: gr.Column(visible=True),
-                advanced_page: gr.Column(visible=False),
-                chat_page: gr.Column(visible=False),
+                landing_page: gr.update(visible=True),
+                advanced_page: gr.update(visible=False),
+                chat_page: gr.update(visible=False),
                 current_page: "landing"
             }
         
