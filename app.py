@@ -181,66 +181,20 @@ def search_data(data_type, year, search_term):
 def create_professional_interface():
     """Interface profissional com UX/UI otimizado"""
     
-    # Tema profissional avançado
+    # Tema profissional simplificado
     professional_theme = gr.themes.Soft(
         primary_hue="green",
         secondary_hue="blue",
         neutral_hue="slate",
-        font=gr.themes.GoogleFont("Inter"),
-        font_mono=gr.themes.GoogleFont("JetBrains Mono"),
-        text_size=gr.themes.Size(
-            lg="18px",
-            md="16px", 
-            sm="14px",
-            xl="20px",
-            xs="12px",
-            xxl="24px",
-            xxs="10px"
-        ),
-        radius_size=gr.themes.Size(
-            lg="12px",
-            md="8px",
-            sm="6px", 
-            xl="16px",
-            xs="4px",
-            xxl="24px",
-            xxs="2px"
-        ),
-        spacing_size=gr.themes.Size(
-            lg="16px",
-            md="12px",
-            sm="8px",
-            xl="20px", 
-            xs="6px",
-            xxl="24px",
-            xxs="4px"
-        )
+        font=gr.themes.GoogleFont("Inter")
     ).set(
-        # Advanced customization
+        # Customizações básicas compatíveis
         body_background_fill="#ffffff",
         body_text_color="#0f172a",
-        block_background_fill="#ffffff",
-        block_border_color="#e2e8f0",
-        block_border_width="1px",
-        block_radius="12px",
-        block_shadow="0 4px 6px -1px rgba(0, 0, 0, 0.1)",
         button_primary_background_fill="#22c55e",
         button_primary_background_fill_hover="#16a34a",
-        button_primary_border_color="#22c55e",
-        button_primary_text_color="#ffffff",
         button_secondary_background_fill="#3b82f6",
-        button_secondary_background_fill_hover="#2563eb",
-        button_secondary_border_color="#3b82f6",
-        button_secondary_text_color="#ffffff",
-        input_background_fill="#ffffff",
-        input_border_color="#e2e8f0",
-        input_border_width="1px",
-        input_radius="8px",
-        input_shadow="0 1px 2px 0 rgba(0, 0, 0, 0.05)",
-        chatbot_code_background_fill="#f8fafc",
-        panel_background_fill="#f8fafc",
-        panel_border_color="#e2e8f0",
-        panel_border_width="1px"
+        button_secondary_background_fill_hover="#2563eb"
     )
     
     # CSS profissional avançado
