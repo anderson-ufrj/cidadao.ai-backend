@@ -576,265 +576,159 @@ def create_landing_page():
         </div>
     </div>
     
-    <!-- Script inline para garantir que os botões funcionem -->
+    <!-- Script DEFINITIVO para navegação das abas -->
     <script>
         (function() {
-            console.log('🚀 Landing page inline script loaded');
-            console.log('📊 Current URL:', window.location.href);
-            console.log('📊 Gradio container:', document.querySelector('.gradio-container'));
+            console.log('🚀 DEFINITIVE Navigation Script Loaded');
             
-            // Função de debugging aprimorada
-            function debugDOMStructure() {
-                console.log('🔍 === DEBUG DOM STRUCTURE ===');
+            // Variáveis globais para controle
+            let navigationReady = false;
+            let gradioTabsReady = false;
+            let attemptCount = 0;
+            const maxAttempts = 50;
+            
+            // Função para verificar se o Gradio está pronto
+            function checkGradioReady() {
+                const gradioContainer = document.querySelector('.gradio-container');
+                const tabButtons = document.querySelectorAll('button[role="tab"]');
+                const hasMainTabs = tabButtons.length >= 3;
                 
-                // Buscar todos os possíveis containers de tabs
-                const possibleSelectors = [
-                    '[role="tablist"]',
-                    '.tabs',
-                    '.tab-nav',
-                    '.gradio-tabs',
-                    'div[data-testid*="tab"]',
-                    '.svelte-kqij2n', // Gradio 5 sometimes uses svelte classes
-                    '[class*="tab"]'
-                ];
-                
-                possibleSelectors.forEach(selector => {
-                    const elements = document.querySelectorAll(selector);
-                    if (elements.length > 0) {
-                        console.log(`✅ Found ${elements.length} elements with selector: ${selector}`);
-                        elements.forEach((el, i) => {
-                            console.log(`  Element ${i}:`, {
-                                tagName: el.tagName,
-                                className: el.className,
-                                role: el.getAttribute('role'),
-                                children: el.children.length
-                            });
-                        });
-                    }
+                console.log('🔍 Gradio Status Check:', {
+                    container: !!gradioContainer,
+                    tabButtons: tabButtons.length,
+                    hasMainTabs: hasMainTabs,
+                    attempt: attemptCount + 1
                 });
                 
-                // Buscar todos os botões
-                const allButtons = document.querySelectorAll('button');
-                console.log(`🔘 Total buttons found: ${allButtons.length}`);
-                
-                // Filtrar botões que parecem ser tabs
-                const tabButtons = Array.from(allButtons).filter(btn => {
-                    const text = btn.textContent || '';
-                    const role = btn.getAttribute('role');
-                    const className = btn.className || '';
-                    return role === 'tab' || 
-                           className.includes('tab') || 
-                           text.includes('🏠') || 
-                           text.includes('🔍') || 
-                           text.includes('💬') ||
-                           text.includes('Cidadão') ||
-                           text.includes('Consulta') ||
-                           text.includes('Pergunte');
-                });
-                
-                console.log(`📑 Tab-like buttons found: ${tabButtons.length}`);
-                tabButtons.forEach((btn, i) => {
-                    console.log(`  Tab ${i}:`, {
-                        text: btn.textContent?.trim(),
-                        role: btn.getAttribute('role'),
-                        className: btn.className,
-                        ariaSelected: btn.getAttribute('aria-selected'),
-                        parent: btn.parentElement?.className
-                    });
-                });
+                return gradioContainer && hasMainTabs;
             }
             
-            // Função para adicionar eventos aos botões
-            function setupButtons() {
-                console.log('⚙️ setupButtons called at', new Date().toISOString());
+            // Função DEFINITIVA para navegar para aba
+            function navigateToTab(targetTabIndex, tabName) {
+                console.log(`🎯 DEFINITIVE Navigation to: ${tabName} (index ${targetTabIndex})`);
                 
-                // Debug DOM structure every time
-                debugDOMStructure();
+                // Método 1: Usar seletor role="tab" direto
+                const tabButtons = document.querySelectorAll('button[role="tab"]');
+                console.log(`📋 Found ${tabButtons.length} tab buttons`);
+                
+                if (tabButtons.length > targetTabIndex) {
+                    const targetTab = tabButtons[targetTabIndex];
+                    console.log(`✅ Clicking tab ${targetTabIndex}:`, targetTab.textContent);
+                    
+                    // Forçar clique com múltiplos métodos
+                    targetTab.click();
+                    targetTab.focus();
+                    
+                    // Dispatch event manual
+                    targetTab.dispatchEvent(new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    }));
+                    
+                    // Verificar se funcionou
+                    setTimeout(() => {
+                        const activeTab = document.querySelector('button[role="tab"][aria-selected="true"]');
+                        if (activeTab && activeTab === targetTab) {
+                            console.log('✅ SUCCESS: Tab navigation worked!');
+                        } else {
+                            console.log('❌ FAILED: Tab navigation did not work');
+                        }
+                    }, 100);
+                    
+                    return true;
+                }
+                
+                console.log('❌ FAILED: Could not find target tab');
+                return false;
+            }
+            
+            // Função para configurar os botões
+            function setupButtonsDefinitive() {
+                console.log('⚙️ Setting up buttons (DEFINITIVE)');
                 
                 const btnAdvanced = document.getElementById('btnAdvanced');
                 const btnChat = document.getElementById('btnChat');
                 
-                if (btnAdvanced && !btnAdvanced.hasAttribute('data-listener')) {
-                    console.log('✅ Setting up Advanced button');
-                    btnAdvanced.setAttribute('data-listener', 'true');
+                if (btnAdvanced && !btnAdvanced.hasAttribute('data-definitive-listener')) {
+                    console.log('✅ Setting up DEFINITIVE Advanced button');
+                    btnAdvanced.setAttribute('data-definitive-listener', 'true');
+                    
                     btnAdvanced.addEventListener('click', function(e) {
                         e.preventDefault();
-                        console.log('🔍 Advanced button clicked - inline');
+                        e.stopPropagation();
+                        console.log('🔍 DEFINITIVE Advanced button clicked');
                         
-                        // Tentar usar a função global primeiro
-                        if (typeof window.navigateToAdvanced === 'function') {
-                            window.navigateToAdvanced();
-                        } else {
-                            // Nova estratégia: usar índice direto do Gradio
-                            console.log('🔍 Using Gradio 5.0 tab navigation strategy...');
-                            
-                            // Primeiro, executar o debug para entender a estrutura
-                            debugDOMStructure();
-                            
-                            // Estratégia 1: Buscar o container de tabs do Gradio 5
-                            let tabContainer = document.querySelector('[role="tablist"]');
-                            if (!tabContainer) {
-                                // Buscar por classes do Gradio 5
-                                tabContainer = document.querySelector('.tabs') || 
-                                             document.querySelector('[class*="tab-nav"]') ||
-                                             document.querySelector('div.gradio-container div.tabs');
-                            }
-                            
-                            if (tabContainer) {
-                                console.log('📦 Found tab container:', tabContainer.className);
-                                const tabs = tabContainer.querySelectorAll('button');
-                                console.log(`🔘 Found ${tabs.length} buttons in tab container`);
-                                
-                                // Tentar encontrar por texto
-                                for (let i = 0; i < tabs.length; i++) {
-                                    const tab = tabs[i];
-                                    const text = tab.textContent || '';
-                                    console.log(`Tab ${i}: "${text.trim()}"`);
-                                    
-                                    if (text.includes('Consulta Avançada') || text.includes('🔍')) {
-                                        console.log('✅ Clicking Advanced tab by text match');
-                                        tab.click();
-                                        // Force focus
-                                        tab.focus();
-                                        // Dispatch events
-                                        tab.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-                                        tab.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
-                                        tab.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-                                        return;
-                                    }
-                                }
-                                
-                                // Se não encontrou por texto, tentar por índice (segunda aba)
-                                if (tabs.length >= 2) {
-                                    console.log('📍 Clicking second tab by index');
-                                    tabs[1].click();
-                                    tabs[1].focus();
-                                }
-                            } else {
-                                console.warn('⚠️ No tab container found');
-                                
-                                // Última tentativa: buscar qualquer botão com texto
-                                const allButtons = Array.from(document.querySelectorAll('button'));
-                                const advancedButton = allButtons.find(btn => 
-                                    btn.textContent && (
-                                        btn.textContent.includes('Consulta Avançada') || 
-                                        btn.textContent.includes('🔍 Consulta')
-                                    )
-                                );
-                                
-                                if (advancedButton) {
-                                    console.log('✅ Found button by global search');
-                                    advancedButton.click();
-                                    advancedButton.focus();
-                                }
-                            }
-                        }
+                        // Navegar para aba índice 1 (segunda aba)
+                        navigateToTab(1, 'Consulta Avançada');
                     });
                 }
                 
-                if (btnChat && !btnChat.hasAttribute('data-listener')) {
-                    console.log('✅ Setting up Chat button');
-                    btnChat.setAttribute('data-listener', 'true');
+                if (btnChat && !btnChat.hasAttribute('data-definitive-listener')) {
+                    console.log('✅ Setting up DEFINITIVE Chat button');
+                    btnChat.setAttribute('data-definitive-listener', 'true');
+                    
                     btnChat.addEventListener('click', function(e) {
                         e.preventDefault();
-                        console.log('💬 Chat button clicked - inline');
+                        e.stopPropagation();
+                        console.log('💬 DEFINITIVE Chat button clicked');
                         
-                        // Tentar usar a função global primeiro
-                        if (typeof window.navigateToChat === 'function') {
-                            window.navigateToChat();
-                        } else {
-                            // Nova estratégia: usar índice direto do Gradio
-                            console.log('💬 Using Gradio 5.0 chat tab navigation strategy...');
-                            
-                            // Primeiro, executar o debug para entender a estrutura
-                            debugDOMStructure();
-                            
-                            // Estratégia 1: Buscar o container de tabs do Gradio 5
-                            let tabContainer = document.querySelector('[role="tablist"]');
-                            if (!tabContainer) {
-                                // Buscar por classes do Gradio 5
-                                tabContainer = document.querySelector('.tabs') || 
-                                             document.querySelector('[class*="tab-nav"]') ||
-                                             document.querySelector('div.gradio-container div.tabs');
-                            }
-                            
-                            if (tabContainer) {
-                                console.log('📦 Found tab container:', tabContainer.className);
-                                const tabs = tabContainer.querySelectorAll('button');
-                                console.log(`🔘 Found ${tabs.length} buttons in tab container`);
-                                
-                                // Tentar encontrar por texto
-                                for (let i = 0; i < tabs.length; i++) {
-                                    const tab = tabs[i];
-                                    const text = tab.textContent || '';
-                                    console.log(`Tab ${i}: "${text.trim()}"`);
-                                    
-                                    if (text.includes('Pergunte ao Modelo') || text.includes('💬')) {
-                                        console.log('✅ Clicking Chat tab by text match');
-                                        tab.click();
-                                        // Force focus
-                                        tab.focus();
-                                        // Dispatch events
-                                        tab.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-                                        tab.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
-                                        tab.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-                                        return;
-                                    }
-                                }
-                                
-                                // Se não encontrou por texto, tentar por índice (terceira aba)
-                                if (tabs.length >= 3) {
-                                    console.log('📍 Clicking third tab by index');
-                                    tabs[2].click();
-                                    tabs[2].focus();
-                                }
-                            } else {
-                                console.warn('⚠️ No tab container found');
-                                
-                                // Última tentativa: buscar qualquer botão com texto
-                                const allButtons = Array.from(document.querySelectorAll('button'));
-                                const chatButton = allButtons.find(btn => 
-                                    btn.textContent && (
-                                        btn.textContent.includes('Pergunte ao Modelo') || 
-                                        btn.textContent.includes('💬 Pergunte')
-                                    )
-                                );
-                                
-                                if (chatButton) {
-                                    console.log('✅ Found button by global search');
-                                    chatButton.click();
-                                    chatButton.focus();
-                                }
-                            }
-                        }
+                        // Navegar para aba índice 2 (terceira aba)
+                        navigateToTab(2, 'Pergunte ao Modelo');
                     });
                 }
             }
             
-            // Executar imediatamente
-            setupButtons();
+            // Função principal de inicialização
+            function initializeDefinitiveNavigation() {
+                attemptCount++;
+                console.log(`🔄 Initialize attempt ${attemptCount}/${maxAttempts}`);
+                
+                if (checkGradioReady()) {
+                    console.log('✅ Gradio is ready! Setting up navigation...');
+                    gradioTabsReady = true;
+                    setupButtonsDefinitive();
+                    navigationReady = true;
+                } else if (attemptCount < maxAttempts) {
+                    console.log('⏳ Gradio not ready yet, retrying in 200ms...');
+                    setTimeout(initializeDefinitiveNavigation, 200);
+                } else {
+                    console.log('❌ Max attempts reached, setup may have failed');
+                }
+            }
             
-            // E também após um delay para garantir que Gradio carregou
-            setTimeout(setupButtons, 500);
-            setTimeout(setupButtons, 1000);
-            setTimeout(setupButtons, 2000);
-            setTimeout(setupButtons, 3000);
-            setTimeout(setupButtons, 5000);
-            setTimeout(setupButtons, 8000);
-            setTimeout(setupButtons, 10000);
-            setTimeout(setupButtons, 15000);
-            setTimeout(setupButtons, 20000);
+            // Iniciar imediatamente
+            initializeDefinitiveNavigation();
             
-            
-            // Observer para elementos dinâmicos
+            // Backup: Observer para detectar mudanças no DOM
             const observer = new MutationObserver(function(mutations) {
-                setupButtons();
+                if (!navigationReady) {
+                    console.log('🔄 DOM changed, checking if Gradio is ready...');
+                    if (checkGradioReady()) {
+                        setupButtonsDefinitive();
+                        navigationReady = true;
+                    }
+                }
             });
             
             observer.observe(document.body, {
                 childList: true,
                 subtree: true
             });
+            
+            // Expor função global para debug
+            window.testNavigation = function() {
+                console.log('🧪 Testing navigation manually...');
+                console.log('Gradio ready:', checkGradioReady());
+                console.log('Navigation ready:', navigationReady);
+                
+                const tabs = document.querySelectorAll('button[role="tab"]');
+                tabs.forEach((tab, i) => {
+                    console.log(`Tab ${i}:`, tab.textContent);
+                });
+            };
+            
+            console.log('🚀 DEFINITIVE Navigation Script Setup Complete');
         })();
     </script>
     """
