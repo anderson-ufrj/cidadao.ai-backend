@@ -838,15 +838,98 @@ async def call_groq_api(message):
     except Exception as e:
         return f"Erro na requisição: {str(e)}"
 
+async def run_investigation(query):
+    """Executar investigação usando o InvestigatorAgent"""
+    try:
+        # Import here to avoid circular imports
+        from src.agents.investigator_agent import InvestigatorAgent, InvestigationRequest
+        from src.agents.base_agent import AgentMessage, AgentContext
+        
+        # Create investigation request
+        request = InvestigationRequest(
+            query=query,
+            max_records=50  # Limit for chat interface
+        )
+        
+        # Create agent context
+        context = AgentContext(
+            investigation_id=f"chat_{int(time.time())}",
+            user_id="chat_user",
+            session_id="chat_session"
+        )
+        
+        # Create message
+        message = AgentMessage(
+            message_type="investigation_request",
+            content=request.dict(),
+            metadata={"source": "chat"}
+        )
+        
+        # Run investigation
+        agent = InvestigatorAgent()
+        result = await agent.execute(message, context)
+        
+        if result.content.get("status") == "completed":
+            anomalies = result.content.get("anomalies", [])
+            summary = result.content.get("summary", {})
+            
+            # Format response
+            response = f"🔍 **Investigação Concluída**\n\n"
+            response += f"📊 **Resumo:**\n"
+            response += f"• Registros analisados: {summary.get('total_records', 0)}\n"
+            response += f"• Anomalias encontradas: {len(anomalies)}\n"
+            response += f"• Valor total: R$ {summary.get('total_value', 0):,.2f}\n\n"
+            
+            if anomalies:
+                response += "🚨 **Anomalias Detectadas:**\n"
+                for i, anomaly in enumerate(anomalies[:3], 1):  # Show top 3
+                    response += f"\n{i}. **{anomaly['anomaly_type']}**\n"
+                    response += f"   • Severidade: {anomaly['severity']:.2f}\n"
+                    response += f"   • Confiança: {anomaly['confidence']:.2f}\n"
+                    response += f"   • Descrição: {anomaly['description']}\n"
+                    
+                    if anomaly.get('financial_impact'):
+                        response += f"   • Impacto financeiro: R$ {anomaly['financial_impact']:,.2f}\n"
+                
+                if len(anomalies) > 3:
+                    response += f"\n... e mais {len(anomalies) - 3} anomalias encontradas."
+            else:
+                response += "✅ **Nenhuma anomalia detectada nos dados analisados.**"
+                
+            return response
+            
+        elif result.content.get("status") == "no_data":
+            return "ℹ️ Nenhum dado encontrado para os critérios especificados."
+            
+        else:
+            return f"❌ Erro na investigação: {result.content.get('error', 'Erro desconhecido')}"
+            
+    except Exception as e:
+        return f"❌ Erro ao executar investigação: {str(e)}"
+
 def chat_fn(message, history):
     if message:
         history = history or []
         
-        # Chamar API do GROQ
+        # Check if message requests investigation
+        investigation_keywords = [
+            "investiga", "anomalia", "suspeito", "irregular", "analise", "análise",
+            "detectar", "verificar", "auditor", "fraude", "corrupção", "contratos suspeitos"
+        ]
+        
+        is_investigation_request = any(keyword in message.lower() for keyword in investigation_keywords)
+        
         try:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
-            response = loop.run_until_complete(call_groq_api(message))
+            
+            if is_investigation_request:
+                # Use InvestigatorAgent for investigation requests
+                response = loop.run_until_complete(run_investigation(message))
+            else:
+                # Use GROQ API for general questions
+                response = loop.run_until_complete(call_groq_api(message))
+            
             loop.close()
         except Exception as e:
             response = f"Erro ao processar mensagem: {str(e)}"
