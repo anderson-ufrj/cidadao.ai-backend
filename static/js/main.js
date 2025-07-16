@@ -271,25 +271,50 @@ function handleHelpModalClick(event) {
 function navigateToTab(tabName) {
     console.log('🧭 Navigating to tab:', tabName);
     
-    // Tentar múltiplos seletores para encontrar as abas do Gradio
+    // Tentar múltiplos seletores para encontrar as abas do Gradio 5.0
     const selectors = [
+        // Gradio 5.0 specific selectors
+        '.tabs button[role="tab"]',
+        'button[role="tab"]',
+        '.tab-nav button',
+        '.gradio-tabs button',
+        // Legacy selectors
         '.gradio-container .tab-nav button',
         '.gradio-container [role="tab"]',
         '.gradio-container .tabs button',
         '.gradio-container button[role="tab"]',
-        '.gr-tab-nav button'
+        '.gr-tab-nav button',
+        // More generic selectors
+        'button.tab-nav-button',
+        '.tabs .tab-nav-button',
+        'div.tabs button'
     ];
     
     for (const selector of selectors) {
         const tabs = document.querySelectorAll(selector);
-        console.log(`🔍 Found ${tabs.length} tabs with selector: ${selector}`);
-        
-        for (const tab of tabs) {
-            console.log('📝 Tab text:', tab.textContent);
-            if (tab.textContent.includes(tabName)) {
-                console.log('✅ Found matching tab, clicking...');
-                tab.click();
-                return true;
+        if (tabs.length > 0) {
+            console.log(`🔍 Found ${tabs.length} tabs with selector: ${selector}`);
+            
+            for (const tab of tabs) {
+                const tabText = tab.textContent || tab.innerText || '';
+                console.log('📝 Tab text:', tabText);
+                if (tabText.includes(tabName)) {
+                    console.log('✅ Found matching tab, clicking...');
+                    // Force click with multiple methods
+                    try {
+                        tab.click();
+                        // Dispatch click event as backup
+                        const clickEvent = new MouseEvent('click', {
+                            bubbles: true,
+                            cancelable: true,
+                            view: window
+                        });
+                        tab.dispatchEvent(clickEvent);
+                    } catch (e) {
+                        console.error('Error clicking tab:', e);
+                    }
+                    return true;
+                }
             }
         }
     }

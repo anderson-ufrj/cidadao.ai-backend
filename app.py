@@ -570,7 +570,15 @@ def create_landing_page():
                             console.log('🔍 Searching for Advanced tab...');
                             
                             // Seletores específicos para Gradio 5.0
-                            const selectors = ['button[role="tab"]', '.gradio-tabs button', 'button'];
+                            const selectors = [
+                                '.tabs button[role="tab"]',
+                                'button[role="tab"]',
+                                '.tab-nav button',
+                                '.gradio-tabs button',
+                                'button.tab-nav-button',
+                                '.tabs .tab-nav-button',
+                                'div.tabs button'
+                            ];
                             
                             let found = false;
                             for (const selector of selectors) {
@@ -578,8 +586,15 @@ def create_landing_page():
                                 for (const tab of tabs) {
                                     const text = tab.textContent || tab.innerText || '';
                                     if (text.includes('Consulta Avançada') || text.includes('🔍')) {
-                                        console.log('✅ Found Advanced tab');
+                                        console.log('✅ Found Advanced tab with selector:', selector);
                                         tab.click();
+                                        // Also dispatch click event as backup
+                                        const clickEvent = new MouseEvent('click', {
+                                            bubbles: true,
+                                            cancelable: true,
+                                            view: window
+                                        });
+                                        tab.dispatchEvent(clickEvent);
                                         found = true;
                                         break;
                                     }
@@ -628,7 +643,15 @@ def create_landing_page():
                             console.log('💬 Searching for Chat tab...');
                             
                             // Seletores específicos para Gradio 5.0
-                            const selectors = ['button[role="tab"]', '.gradio-tabs button', 'button'];
+                            const selectors = [
+                                '.tabs button[role="tab"]',
+                                'button[role="tab"]',
+                                '.tab-nav button',
+                                '.gradio-tabs button',
+                                'button.tab-nav-button',
+                                '.tabs .tab-nav-button',
+                                'div.tabs button'
+                            ];
                             
                             let found = false;
                             for (const selector of selectors) {
@@ -636,8 +659,15 @@ def create_landing_page():
                                 for (const tab of tabs) {
                                     const text = tab.textContent || tab.innerText || '';
                                     if (text.includes('Pergunte ao Modelo') || text.includes('💬')) {
-                                        console.log('✅ Found Chat tab');
+                                        console.log('✅ Found Chat tab with selector:', selector);
                                         tab.click();
+                                        // Also dispatch click event as backup
+                                        const clickEvent = new MouseEvent('click', {
+                                            bubbles: true,
+                                            cancelable: true,
+                                            view: window
+                                        });
+                                        tab.dispatchEvent(clickEvent);
                                         found = true;
                                         break;
                                     }
