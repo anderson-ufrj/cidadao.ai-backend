@@ -19,6 +19,7 @@ from src.agents.base_agent import BaseAgent, AgentContext, AgentMessage
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
 from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFilter
+from src.ml.spectral_analyzer import SpectralAnalyzer, SpectralFeatures, PeriodicPattern
 
 
 @dataclass
@@ -101,12 +102,17 @@ class AnalystAgent(BaseAgent):
         self.trend_window = trend_detection_window
         self.logger = get_logger(__name__)
         
+        # Initialize spectral analyzer for frequency-domain analysis
+        self.spectral_analyzer = SpectralAnalyzer()
+        
         # Analysis methods registry
         self.analysis_methods = {
             "spending_trends": self._analyze_spending_trends,
             "organizational_patterns": self._analyze_organizational_patterns,
             "vendor_behavior": self._analyze_vendor_behavior,
             "seasonal_patterns": self._analyze_seasonal_patterns,
+            "spectral_patterns": self._analyze_spectral_patterns,
+            "cross_spectral_analysis": self._perform_cross_spectral_analysis,
             "value_distribution": self._analyze_value_distribution,
             "correlation_analysis": self._perform_correlation_analysis,
             "efficiency_metrics": self._calculate_efficiency_metrics,
@@ -951,6 +957,318 @@ class AnalystAgent(BaseAgent):
                         patterns.append(pattern)
         
         return patterns
+    
+    async def _analyze_spectral_patterns(
+        self,
+        data: List[Dict[str, Any]],
+        request: AnalysisRequest,
+        context: AgentContext
+    ) -> List[PatternResult]:
+        """
+        Analyze spectral patterns using Fourier transforms.
+        
+        Args:
+            data: Contract data for analysis
+            request: Analysis request parameters
+            context: Agent context
+            
+        Returns:
+            List of spectral pattern results
+        """
+        patterns = []
+        
+        try:
+            # Group data by organization for spectral analysis
+            org_groups = defaultdict(list)
+            for contract in data:
+                org_code = contract.get("_org_code", "unknown")
+                org_groups[org_code].append(contract)
+            
+            for org_code, org_contracts in org_groups.items():
+                if len(org_contracts) < 30:  # Need sufficient data
+                    continue
+                
+                # Prepare time series data
+                time_series_data = self._prepare_time_series_for_org(org_contracts)
+                if len(time_series_data) < 20:
+                    continue
+                
+                # Extract spending values and timestamps
+                spending_data = pd.Series([item['value'] for item in time_series_data])
+                timestamps = pd.DatetimeIndex([item['date'] for item in time_series_data])
+                
+                # Perform spectral analysis
+                spectral_features = self.spectral_analyzer.analyze_time_series(
+                    spending_data, timestamps
+                )
+                
+                # Find periodic patterns
+                periodic_patterns = self.spectral_analyzer.find_periodic_patterns(
+                    spending_data, timestamps, entity_name=f"Org_{org_code}"
+                )
+                
+                # Convert to PatternResult objects
+                for i, period_pattern in enumerate(periodic_patterns[:5]):  # Top 5 patterns
+                    if period_pattern.amplitude > 0.1:  # Only significant patterns
+                        pattern = PatternResult(
+                            pattern_type="spectral_periodic",
+                            description=f"Padrão periódico detectado: {period_pattern.period_days:.1f} dias",
+                            significance=period_pattern.amplitude,
+                            confidence=period_pattern.confidence,
+                            insights=[
+                                f"Período dominante: {period_pattern.period_days:.1f} dias",
+                                f"Força do padrão: {period_pattern.amplitude:.1%}",
+                                f"Tipo: {period_pattern.pattern_type}",
+                                period_pattern.business_interpretation
+                            ],
+                            evidence={
+                                "period_days": period_pattern.period_days,
+                                "frequency_hz": period_pattern.frequency_hz,
+                                "amplitude": period_pattern.amplitude,
+                                "pattern_type": period_pattern.pattern_type,
+                                "confidence": period_pattern.confidence,
+                                "spectral_entropy": spectral_features.spectral_entropy,
+                                "dominant_frequencies": spectral_features.dominant_frequencies,
+                                "seasonal_components": spectral_features.seasonal_components
+                            },
+                            recommendations=[
+                                f"Investigar causa do padrão de {period_pattern.period_days:.1f} dias",
+                                "Verificar se corresponde a processos de negócio conhecidos",
+                                "Analisar se há justificativa administrativa",
+                                "Considerar otimização do cronograma de contratações"
+                            ],
+                            entities_involved=[{
+                                "organization_code": org_code,
+                                "contracts_analyzed": len(org_contracts),
+                                "period_days": period_pattern.period_days,
+                                "pattern_strength": period_pattern.amplitude
+                            }],
+                            trend_direction=self._classify_trend_from_spectral(spectral_features),
+                            correlation_strength=period_pattern.amplitude
+                        )
+                        patterns.append(pattern)
+                
+                # Analyze overall spectral characteristics
+                if spectral_features.spectral_entropy < 0.3:  # Low entropy indicates regular patterns
+                    pattern = PatternResult(
+                        pattern_type="spectral_regularity",
+                        description=f"Padrão de gastos muito regular detectado (entropia: {spectral_features.spectral_entropy:.2f})",
+                        significance=1 - spectral_features.spectral_entropy,
+                        confidence=0.8,
+                        insights=[
+                            f"Entropia espectral baixa: {spectral_features.spectral_entropy:.2f}",
+                            "Gastos seguem padrão muito regular",
+                            "Pode indicar processos automatizados ou planejamento rígido",
+                            f"Anomalia score: {spectral_features.anomaly_score:.2f}"
+                        ],
+                        evidence={
+                            "spectral_entropy": spectral_features.spectral_entropy,
+                            "anomaly_score": spectral_features.anomaly_score,
+                            "dominant_frequencies": spectral_features.dominant_frequencies[:5],
+                            "seasonal_components": spectral_features.seasonal_components
+                        },
+                        recommendations=[
+                            "Verificar se a regularidade é justificada",
+                            "Investigar processos de planejamento orçamentário",
+                            "Analisar flexibilidade nos cronogramas",
+                            "Considerar diversificação temporal"
+                        ],
+                        entities_involved=[{
+                            "organization_code": org_code,
+                            "spectral_entropy": spectral_features.spectral_entropy,
+                            "regularity_score": 1 - spectral_features.spectral_entropy
+                        }]
+                    )
+                    patterns.append(pattern)
+            
+            self.logger.info(
+                "spectral_analysis_completed",
+                patterns_found=len(patterns),
+                organizations_analyzed=len(org_groups)
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Error in spectral pattern analysis: {str(e)}")
+        
+        return patterns
+    
+    async def _perform_cross_spectral_analysis(
+        self,
+        data: List[Dict[str, Any]],
+        request: AnalysisRequest,
+        context: AgentContext
+    ) -> List[CorrelationResult]:
+        """
+        Perform cross-spectral analysis between organizations.
+        
+        Args:
+            data: Contract data for analysis
+            request: Analysis request parameters
+            context: Agent context
+            
+        Returns:
+            List of cross-spectral correlation results
+        """
+        correlations = []
+        
+        try:
+            # Group data by organization
+            org_groups = defaultdict(list)
+            for contract in data:
+                org_code = contract.get("_org_code", "unknown")
+                org_groups[org_code].append(contract)
+            
+            # Get organizations with sufficient data
+            valid_orgs = {org: contracts for org, contracts in org_groups.items() 
+                         if len(contracts) >= 30}
+            
+            if len(valid_orgs) < 2:
+                return correlations
+            
+            org_list = list(valid_orgs.keys())
+            
+            # Perform pairwise cross-spectral analysis
+            for i, org1 in enumerate(org_list):
+                for org2 in org_list[i+1:]:
+                    try:
+                        # Prepare time series for both organizations
+                        ts1 = self._prepare_time_series_for_org(valid_orgs[org1])
+                        ts2 = self._prepare_time_series_for_org(valid_orgs[org2])
+                        
+                        if len(ts1) < 20 or len(ts2) < 20:
+                            continue
+                        
+                        # Create comparable time series (same date range)
+                        all_dates = sorted(set([item['date'] for item in ts1 + ts2]))
+                        if len(all_dates) < 20:
+                            continue
+                        
+                        # Create aligned series
+                        data1 = pd.Series(index=all_dates, dtype=float).fillna(0)
+                        data2 = pd.Series(index=all_dates, dtype=float).fillna(0)
+                        
+                        for item in ts1:
+                            data1[item['date']] += item['value']
+                        for item in ts2:
+                            data2[item['date']] += item['value']
+                        
+                        timestamps = pd.DatetimeIndex(all_dates)
+                        
+                        # Perform cross-spectral analysis
+                        cross_spectral_result = self.spectral_analyzer.cross_spectral_analysis(
+                            data1, data2, f"Org_{org1}", f"Org_{org2}", timestamps
+                        )
+                        
+                        if cross_spectral_result and cross_spectral_result.get('max_coherence', 0) > 0.5:
+                            correlation = CorrelationResult(
+                                correlation_type="cross_spectral",
+                                variables=[f"Org_{org1}", f"Org_{org2}"],
+                                correlation_coefficient=cross_spectral_result['correlation_coefficient'],
+                                p_value=None,  # Not computed in spectral analysis
+                                significance_level=self._assess_spectral_significance(
+                                    cross_spectral_result['max_coherence']
+                                ),
+                                description=f"Correlação espectral entre organizações {org1} e {org2}",
+                                business_interpretation=cross_spectral_result['business_interpretation'],
+                                evidence={
+                                    "max_coherence": cross_spectral_result['max_coherence'],
+                                    "mean_coherence": cross_spectral_result['mean_coherence'],
+                                    "correlated_periods_days": cross_spectral_result['correlated_periods_days'],
+                                    "synchronization_score": cross_spectral_result['synchronization_score'],
+                                    "correlated_frequencies": cross_spectral_result['correlated_frequencies']
+                                },
+                                recommendations=[
+                                    "Investigar possível coordenação entre organizações",
+                                    "Verificar se há fornecedores em comum",
+                                    "Analisar sincronização de processos",
+                                    "Revisar independência das contratações"
+                                ]
+                            )
+                            correlations.append(correlation)
+                    
+                    except Exception as e:
+                        self.logger.warning(f"Cross-spectral analysis failed for {org1}-{org2}: {str(e)}")
+                        continue
+            
+            self.logger.info(
+                "cross_spectral_analysis_completed",
+                correlations_found=len(correlations),
+                organizations_compared=len(org_list)
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Error in cross-spectral analysis: {str(e)}")
+        
+        return correlations
+    
+    def _prepare_time_series_for_org(self, contracts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Prepare time series data for a specific organization."""
+        time_series = []
+        
+        for contract in contracts:
+            # Extract date
+            date_str = (
+                contract.get("dataAssinatura") or 
+                contract.get("dataPublicacao") or
+                contract.get("dataInicio")
+            )
+            
+            if not date_str:
+                continue
+                
+            try:
+                # Parse date (DD/MM/YYYY format)
+                date_parts = date_str.split("/")
+                if len(date_parts) == 3:
+                    day, month, year = int(date_parts[0]), int(date_parts[1]), int(date_parts[2])
+                    date_obj = datetime(year, month, day)
+                    
+                    # Extract value
+                    valor = contract.get("valorInicial") or contract.get("valorGlobal") or 0
+                    if isinstance(valor, (int, float)) and valor > 0:
+                        time_series.append({
+                            'date': date_obj,
+                            'value': float(valor),
+                            'contract_id': contract.get('id')
+                        })
+                        
+            except (ValueError, IndexError):
+                continue
+        
+        # Sort by date and aggregate by date
+        time_series.sort(key=lambda x: x['date'])
+        
+        # Aggregate by date
+        daily_aggregates = defaultdict(float)
+        for item in time_series:
+            daily_aggregates[item['date']] += item['value']
+        
+        return [{'date': date, 'value': value} for date, value in daily_aggregates.items()]
+    
+    def _classify_trend_from_spectral(self, features: SpectralFeatures) -> Optional[str]:
+        """Classify trend direction from spectral features."""
+        # Analyze trend component
+        if hasattr(features, 'trend_component') and len(features.trend_component) > 10:
+            trend_start = np.mean(features.trend_component[:len(features.trend_component)//3])
+            trend_end = np.mean(features.trend_component[-len(features.trend_component)//3:])
+            
+            if trend_end > trend_start * 1.1:
+                return "increasing"
+            elif trend_end < trend_start * 0.9:
+                return "decreasing"
+            else:
+                return "stable"
+        
+        return None
+    
+    def _assess_spectral_significance(self, coherence: float) -> str:
+        """Assess significance level of spectral coherence."""
+        if coherence > 0.8:
+            return "high"
+        elif coherence > 0.6:
+            return "medium"
+        else:
+            return "low"
     
     def _generate_insights(
         self,

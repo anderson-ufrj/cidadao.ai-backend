@@ -12,12 +12,14 @@ from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass
 
 import numpy as np
+import pandas as pd
 from pydantic import BaseModel, Field as PydanticField
 
 from src.agents.base_agent import BaseAgent, AgentContext, AgentMessage
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
 from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFilter
+from src.ml.spectral_analyzer import SpectralAnalyzer, SpectralAnomaly
 
 
 @dataclass
@@ -81,11 +83,15 @@ class InvestigatorAgent(BaseAgent):
         self.duplicate_threshold = duplicate_similarity_threshold
         self.logger = get_logger(__name__)
         
+        # Initialize spectral analyzer for frequency-domain analysis
+        self.spectral_analyzer = SpectralAnalyzer()
+        
         # Anomaly detection methods registry
         self.anomaly_detectors = {
             "price_anomaly": self._detect_price_anomalies,
             "vendor_concentration": self._detect_vendor_concentration,
             "temporal_patterns": self._detect_temporal_anomalies,
+            "spectral_patterns": self._detect_spectral_anomalies,
             "duplicate_contracts": self._detect_duplicate_contracts,
             "payment_patterns": self._detect_payment_anomalies,
         }
@@ -760,6 +766,277 @@ class InvestigatorAgent(BaseAgent):
                     continue
         
         return anomalies
+    
+    async def _detect_spectral_anomalies(
+        self,
+        contracts_data: List[Dict[str, Any]],
+        context: AgentContext
+    ) -> List[AnomalyResult]:
+        """
+        Detect anomalies using spectral analysis and Fourier transforms.
+        
+        Args:
+            contracts_data: Contract records
+            context: Agent context
+            
+        Returns:
+            List of spectral anomalies
+        """
+        anomalies = []
+        
+        try:
+            # Prepare time series data
+            time_series_data = self._prepare_time_series(contracts_data)
+            
+            if len(time_series_data) < 30:  # Need sufficient data points
+                self.logger.warning("insufficient_data_for_spectral_analysis", data_points=len(time_series_data))
+                return anomalies
+            
+            # Extract spending values and timestamps
+            spending_data = pd.Series([item['value'] for item in time_series_data])
+            timestamps = pd.DatetimeIndex([item['date'] for item in time_series_data])
+            
+            # Perform spectral anomaly detection
+            spectral_anomalies = self.spectral_analyzer.detect_anomalies(
+                spending_data, 
+                timestamps,
+                context={'entity_name': context.investigation_id if hasattr(context, 'investigation_id') else 'Unknown'}
+            )
+            
+            # Convert SpectralAnomaly objects to AnomalyResult objects
+            for spec_anomaly in spectral_anomalies:
+                anomaly = AnomalyResult(
+                    anomaly_type=f"spectral_{spec_anomaly.anomaly_type}",
+                    severity=spec_anomaly.anomaly_score,
+                    confidence=spec_anomaly.anomaly_score,
+                    description=spec_anomaly.description,
+                    explanation=self._create_spectral_explanation(spec_anomaly),
+                    evidence={
+                        "frequency_band": spec_anomaly.frequency_band,
+                        "anomaly_score": spec_anomaly.anomaly_score,
+                        "timestamp": spec_anomaly.timestamp.isoformat(),
+                        **spec_anomaly.evidence
+                    },
+                    recommendations=spec_anomaly.recommendations,
+                    affected_entities=self._extract_affected_entities_from_spectral(spec_anomaly, contracts_data),
+                    financial_impact=self._calculate_spectral_financial_impact(spec_anomaly, spending_data)
+                )
+                anomalies.append(anomaly)
+            
+            # Find periodic patterns
+            periodic_patterns = self.spectral_analyzer.find_periodic_patterns(
+                spending_data,
+                timestamps,
+                entity_name=context.investigation_id if hasattr(context, 'investigation_id') else None
+            )
+            
+            # Convert suspicious periodic patterns to anomalies
+            for pattern in periodic_patterns:
+                if pattern.pattern_type == "suspicious" or pattern.amplitude > 0.5:
+                    anomaly = AnomalyResult(
+                        anomaly_type="suspicious_periodic_pattern",
+                        severity=pattern.amplitude,
+                        confidence=pattern.confidence,
+                        description=f"Padrão periódico suspeito detectado (período: {pattern.period_days:.1f} dias)",
+                        explanation=(
+                            f"Detectado padrão de gastos com periodicidade de {pattern.period_days:.1f} dias "
+                            f"e amplitude de {pattern.amplitude:.1%}. {pattern.business_interpretation}"
+                        ),
+                        evidence={
+                            "period_days": pattern.period_days,
+                            "frequency_hz": pattern.frequency_hz,
+                            "amplitude": pattern.amplitude,
+                            "confidence": pattern.confidence,
+                            "pattern_type": pattern.pattern_type,
+                            "statistical_significance": pattern.statistical_significance
+                        },
+                        recommendations=[
+                            "Investigar causa do padrão periódico",
+                            "Verificar se há processos automatizados",
+                            "Analisar justificativas para regularidade excessiva",
+                            "Revisar cronograma de pagamentos"
+                        ],
+                        affected_entities=[{
+                            "pattern_type": pattern.pattern_type,
+                            "period_days": pattern.period_days,
+                            "amplitude": pattern.amplitude
+                        }],
+                        financial_impact=float(spending_data.sum() * pattern.amplitude)
+                    )
+                    anomalies.append(anomaly)
+            
+            self.logger.info(
+                "spectral_analysis_completed",
+                spectral_anomalies_count=len(spectral_anomalies),
+                periodic_patterns_count=len(periodic_patterns),
+                total_anomalies=len(anomalies)
+            )
+            
+        except Exception as e:
+            self.logger.error(f"Error in spectral anomaly detection: {str(e)}")
+            # Don't fail the entire investigation if spectral analysis fails
+        
+        return anomalies
+    
+    def _prepare_time_series(self, contracts_data: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Prepare time series data from contracts for spectral analysis."""
+        time_series = []
+        
+        for contract in contracts_data:
+            # Extract date
+            date_str = (
+                contract.get("dataAssinatura") or 
+                contract.get("dataPublicacao") or
+                contract.get("dataInicio")
+            )
+            
+            if not date_str:
+                continue
+                
+            try:
+                # Parse date (DD/MM/YYYY format)
+                date_parts = date_str.split("/")
+                if len(date_parts) == 3:
+                    day, month, year = int(date_parts[0]), int(date_parts[1]), int(date_parts[2])
+                    date_obj = datetime(year, month, day)
+                    
+                    # Extract value
+                    valor = contract.get("valorInicial") or contract.get("valorGlobal") or 0
+                    if isinstance(valor, (int, float)) and valor > 0:
+                        time_series.append({
+                            'date': date_obj,
+                            'value': float(valor),
+                            'contract_id': contract.get('id'),
+                            'supplier': contract.get('fornecedor', {}).get('nome', 'N/A')
+                        })
+                        
+            except (ValueError, IndexError):
+                continue
+        
+        # Sort by date
+        time_series.sort(key=lambda x: x['date'])
+        
+        # Aggregate by date (sum values for same dates)
+        daily_aggregates = {}
+        for item in time_series:
+            date_key = item['date'].date()
+            if date_key not in daily_aggregates:
+                daily_aggregates[date_key] = {
+                    'date': datetime.combine(date_key, datetime.min.time()),
+                    'value': 0,
+                    'contract_count': 0,
+                    'suppliers': set()
+                }
+            daily_aggregates[date_key]['value'] += item['value']
+            daily_aggregates[date_key]['contract_count'] += 1
+            daily_aggregates[date_key]['suppliers'].add(item['supplier'])
+        
+        # Convert back to list
+        aggregated_series = []
+        for date_key in sorted(daily_aggregates.keys()):
+            data = daily_aggregates[date_key]
+            aggregated_series.append({
+                'date': data['date'],
+                'value': data['value'],
+                'contract_count': data['contract_count'],
+                'unique_suppliers': len(data['suppliers'])
+            })
+        
+        return aggregated_series
+    
+    def _create_spectral_explanation(self, spec_anomaly: SpectralAnomaly) -> str:
+        """Create detailed explanation for spectral anomaly."""
+        explanations = {
+            "high_frequency_pattern": (
+                "Detectado padrão de alta frequência nos gastos públicos. "
+                "Padrões muito regulares podem indicar manipulação sistemática ou "
+                "processos automatizados não documentados."
+            ),
+            "spectral_regime_change": (
+                "Mudança significativa detectada na complexidade dos padrões de gastos. "
+                "Alterações bruscas podem indicar mudanças de política, procedimentos "
+                "ou possível manipulação."
+            ),
+            "excessive_quarterly_pattern": (
+                "Padrão excessivo de gastos trimestrais detectado. "
+                "Concentração de gastos no final de trimestres pode indicar "
+                "execução inadequada de orçamento ou 'correria' para gastar verbas."
+            ),
+            "unusual_weekly_regularity": (
+                "Regularidade semanal incomum detectada nos gastos. "
+                "Padrões muito regulares em gastos governamentais podem ser suspeitos "
+                "se não corresponderem a processos de negócio conhecidos."
+            ),
+            "high_frequency_noise": (
+                "Ruído de alta frequência detectado nos dados de gastos. "
+                "Pode indicar problemas na coleta de dados ou manipulação artificial "
+                "dos valores reportados."
+            )
+        }
+        
+        base_explanation = explanations.get(
+            spec_anomaly.anomaly_type,
+            f"Anomalia espectral detectada: {spec_anomaly.description}"
+        )
+        
+        return f"{base_explanation} Score de anomalia: {spec_anomaly.anomaly_score:.2f}. {spec_anomaly.description}"
+    
+    def _extract_affected_entities_from_spectral(
+        self, 
+        spec_anomaly: SpectralAnomaly, 
+        contracts_data: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """Extract affected entities from spectral anomaly context."""
+        affected = []
+        
+        # For temporal anomalies, find contracts around the anomaly timestamp
+        if hasattr(spec_anomaly, 'timestamp') and spec_anomaly.timestamp:
+            anomaly_date = spec_anomaly.timestamp.date()
+            
+            for contract in contracts_data:
+                date_str = (
+                    contract.get("dataAssinatura") or 
+                    contract.get("dataPublicacao") or
+                    contract.get("dataInicio")
+                )
+                
+                if date_str:
+                    try:
+                        date_parts = date_str.split("/")
+                        if len(date_parts) == 3:
+                            day, month, year = int(date_parts[0]), int(date_parts[1]), int(date_parts[2])
+                            contract_date = datetime(year, month, day).date()
+                            
+                            # Include contracts within a week of the anomaly
+                            if abs((contract_date - anomaly_date).days) <= 7:
+                                affected.append({
+                                    "contract_id": contract.get("id"),
+                                    "date": date_str,
+                                    "supplier": contract.get("fornecedor", {}).get("nome", "N/A"),
+                                    "value": contract.get("valorInicial") or contract.get("valorGlobal") or 0,
+                                    "object": contract.get("objeto", "")[:100]
+                                })
+                    except (ValueError, IndexError):
+                        continue
+        
+        return affected[:10]  # Limit to first 10 to avoid overwhelming
+    
+    def _calculate_spectral_financial_impact(
+        self, 
+        spec_anomaly: SpectralAnomaly, 
+        spending_data: pd.Series
+    ) -> Optional[float]:
+        """Calculate financial impact of spectral anomaly."""
+        try:
+            # For high-amplitude anomalies, estimate impact as percentage of total spending
+            if hasattr(spec_anomaly, 'anomaly_score') and spec_anomaly.anomaly_score > 0:
+                total_spending = float(spending_data.sum())
+                impact_ratio = min(spec_anomaly.anomaly_score, 0.5)  # Cap at 50%
+                return total_spending * impact_ratio
+        except:
+            pass
+        
+        return None
     
     def _generate_investigation_summary(
         self,
