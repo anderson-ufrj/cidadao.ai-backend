@@ -1,0 +1,162 @@
+name: README Sync Manager
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'README.md', 'README_HF.md' ]
+  pull_request:
+    branches: [ main ]
+    paths: [ 'README.md', 'README_HF.md' ]
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'Target platform (github/hf/both)'
+        required: true
+        default: 'github'
+        type: choice
+        options:
+        - github
+        - hf
+        - both
+
+jobs:
+  readme-check:
+    runs-on: ubuntu-latest
+    name: Check README Compatibility
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Check README status
+      run: |
+        echo "🔍 Checking README compatibility..."
+        python scripts/sync_readme.py --check
+        
+    - name: Validate GitHub README
+      run: |
+        echo "📋 Validating GitHub README format..."
+        if head -1 README.md | grep -q "^---"; then
+          echo "❌ GitHub README contains HF YAML header"
+          echo "::error::README.md should not contain YAML frontmatter for GitHub"
+          exit 1
+        else
+          echo "✅ GitHub README format is clean"
+        fi
+        
+    - name: Check for required sections
+      run: |
+        echo "📝 Checking required sections..."
+        if ! grep -q "Cidadão.AI" README.md; then
+          echo "::error::README.md missing project title"
+          exit 1
+        fi
+        if ! grep -q "Installation\|Instalação" README.md; then
+          echo "::warning::README.md missing installation section"
+        fi
+        echo "✅ Required sections present"
+
+  readme-sync:
+    runs-on: ubuntu-latest
+    name: Sync README if needed
+    if: github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: Sync README for GitHub
+      if: ${{ github.event.inputs.target == 'github' || github.event.inputs.target == 'both' }}
+      run: |
+        echo "🔄 Syncing README for GitHub..."
+        python scripts/sync_readme.py --target github --backup
+        
+    - name: Sync README for HF Spaces
+      if: ${{ github.event.inputs.target == 'hf' || github.event.inputs.target == 'both' }}
+      run: |
+        echo "🔄 Syncing README for HF Spaces..."
+        python scripts/sync_readme.py --target hf --backup
+        
+    - name: Commit changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        
+        if git diff --quiet HEAD -- README.md; then
+          echo "📝 No changes to commit"
+        else
+          git add README.md
+          git commit -m "auto: sync README for ${{ github.event.inputs.target }}
+
+Automated README synchronization via GitHub Action:
+- Target: ${{ github.event.inputs.target }}
+- Triggered by: ${{ github.actor }}
+- Timestamp: $(date -Iseconds)"
+          
+          git push
+          echo "✅ README changes committed and pushed"
+        fi
+
+  validate-hf-config:
+    runs-on: ubuntu-latest
+    name: Validate HF Spaces Configuration
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Check HF README template
+      run: |
+        echo "🔍 Validating HF README template..."
+        if [[ -f "README_HF.md" ]]; then
+          if head -1 README_HF.md | grep -q "^---"; then
+            echo "✅ HF README template has YAML header"
+            
+            # Check required fields
+            if grep -q "app_file:" README_HF.md; then
+              echo "✅ app_file field present"
+            else
+              echo "::error::HF README missing app_file field"
+              exit 1
+            fi
+            
+            if grep -q "sdk: gradio" README_HF.md; then
+              echo "✅ Gradio SDK specified"
+            else
+              echo "::warning::HF README should specify Gradio SDK"
+            fi
+            
+          else
+            echo "::error::HF README template missing YAML header"
+            exit 1
+          fi
+        else
+          echo "::warning::README_HF.md template not found"
+        fi
+        
+    - name: Generate sync report
+      run: |
+        echo "📊 README Sync Report" >> $GITHUB_STEP_SUMMARY
+        echo "===================" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Current Status:**" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        python scripts/sync_readme.py --check >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Usage:**" >> $GITHUB_STEP_SUMMARY
+        echo "- Manual sync: \`python scripts/sync_readme.py --target [github|hf]\`" >> $GITHUB_STEP_SUMMARY
+        echo "- Auto-detect: \`python scripts/sync_readme.py --auto-detect\`" >> $GITHUB_STEP_SUMMARY
+        echo "- Check status: \`python scripts/sync_readme.py --check\`" >> $GITHUB_STEP_SUMMARY
