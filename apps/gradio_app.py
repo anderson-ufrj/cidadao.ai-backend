@@ -258,7 +258,7 @@ custom_css = """
     padding: 0;
 }
 
-/* Status Button */
+/* Status Button with Tooltip */
 .status-btn {
     position: fixed;
     bottom: var(--space-lg);
@@ -273,6 +273,47 @@ custom_css = """
     box-shadow: var(--shadow);
     z-index: 999;
     font-size: 0.875rem;
+    transition: var(--transition);
+}
+
+.status-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 15px rgba(0, 102, 204, 0.3);
+}
+
+/* Floating Tooltip */
+.tooltip {
+    position: fixed;
+    background: var(--text);
+    color: var(--background);
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius);
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: var(--transition);
+    box-shadow: var(--shadow);
+    max-width: 200px;
+    text-align: center;
+}
+
+.tooltip.show {
+    opacity: 1;
+}
+
+.tooltip::before {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-top: 5px solid var(--text);
 }
 
 /* Results */
@@ -545,11 +586,11 @@ def create_interface():
             with gr.Tab("🏠 Início"):
                 gr.HTML("""
                 <div class="actions">
-                    <div class="action-card" onclick="document.querySelector('[id*=\"tab_1\"]').click()">
+                    <div class="action-card" onclick="switchToDataTab()">
                         <h3>🔍 Consultar Dados</h3>
                         <p>Busque contratos, despesas e licitações públicas</p>
                     </div>
-                    <div class="action-card" onclick="document.querySelector('[id*=\"tab_2\"]').click()">
+                    <div class="action-card" onclick="switchToChatTab()">
                         <h3>💬 Conversar com IA</h3>
                         <p>Tire dúvidas sobre transparência pública</p>
                     </div>
@@ -653,10 +694,40 @@ def create_interface():
             </div>
         </div>
         
-        <!-- Status Button -->
-        <button class="status-btn" onclick="showSystemStatus()" title="Status do Sistema">ℹ️</button>
+        <!-- Status Button with Tooltip -->
+        <button class="status-btn" onmouseenter="showTooltip(event)" onmouseleave="hideTooltip()" onclick="showSystemStatus()">ℹ️</button>
+        <div id="tooltip" class="tooltip">System Status</div>
         
         <script>
+            // Tab Navigation Functions
+            function switchToDataTab() {
+                // Find and click the data tab
+                const tabs = document.querySelectorAll('.tab-nav button');
+                if (tabs[1]) tabs[1].click();
+            }
+            
+            function switchToChatTab() {
+                // Find and click the chat tab
+                const tabs = document.querySelectorAll('.tab-nav button');
+                if (tabs[2]) tabs[2].click();
+            }
+            
+            // Tooltip Functions
+            function showTooltip(event) {
+                const tooltip = document.getElementById('tooltip');
+                const button = event.target;
+                const rect = button.getBoundingClientRect();
+                
+                tooltip.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+                tooltip.style.right = (window.innerWidth - rect.right) + 'px';
+                tooltip.classList.add('show');
+            }
+            
+            function hideTooltip() {
+                const tooltip = document.getElementById('tooltip');
+                tooltip.classList.remove('show');
+            }
+            
             // Modal functions
             function showModal(id) {
                 document.getElementById(id).style.display = 'flex';
