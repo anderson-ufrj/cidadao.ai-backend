@@ -391,6 +391,18 @@
                 observer.observe(el);
             });
         });
+        
+        // PDF Viewer functionality (redirect to GitHub Pages)
+        function openPDFViewer() {
+            // Always redirect to GitHub Pages for PDF access
+            const lang = document.documentElement.getAttribute('data-current-lang') || 'pt';
+            const message = lang === 'pt' 
+                ? 'Anotações disponíveis no GitHub Pages. Redirecionando...'
+                : 'Notes available on GitHub Pages. Redirecting...';
+            
+            alert(message);
+            window.open('https://anderson-ufrj.github.io/cidadao.ai/blog/', '_blank');
+        }
     </script>
 </body>
 </html>
