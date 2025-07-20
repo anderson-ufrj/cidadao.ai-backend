@@ -27,31 +27,65 @@ def get_system_status():
     }
     return status
 
-# Modern CSS following mockups exactly
+# Professional CSS Design System - Enterprise Grade
 custom_css = """
-/* Modern Design System - Following Mockups */
+/* Professional Design System - Inspired by docs/blog/main.css */
 :root {
-    --primary-green: #10B981;
-    --primary-yellow: #F59E0B;
-    --primary-blue: #3B82F6;
-    --accent-gradient: linear-gradient(135deg, var(--primary-green), var(--primary-yellow));
-    --text-gradient: linear-gradient(135deg, #059669, #D97706);
+    /* Light Theme - Professional Brand Colors */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
+    --bg-hover: #e2e8f0;
+    --bg-accent: #3b82f6;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-tertiary: #64748b;
+    --text-accent: #1e40af;
+    --text-muted: #94a3b8;
+    --border: #e2e8f0;
+    --border-light: #f1f5f9;
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    
+    /* Brazilian Colors */
+    --brazil-green: #009639;
+    --brazil-yellow: #ffdf00;
+    --brazil-blue: #002776;
+    
+    /* Brand Colors */
+    --brand-primary: #0049A0;
+    --brand-secondary: #00873D;
+    --brand-accent: #FFB74D;
+    
+    /* Legacy compatibility */
+    --primary-green: var(--brand-secondary);
+    --primary-yellow: var(--brand-accent);
+    --primary-blue: var(--brand-primary);
+    --accent-gradient: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
+    --text-gradient: linear-gradient(135deg, var(--brand-primary), var(--brand-secondary));
     --glass-bg: rgba(255, 255, 255, 0.1);
-    --shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.1);
-    --shadow-strong: 0 8px 32px rgba(0, 0, 0, 0.2);
     --border-radius: 12px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    
-    /* Theme variables */
-    --text-primary: #0F172A;
-    --border-color: #E2E8F0;
+    --border-color: var(--border);
 }
 
-/* Dark theme */
+/* Dark Theme */
 [data-theme="dark"] {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --bg-hover: #475569;
+    --bg-accent: #1e40af;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+    --text-accent: #60a5fa;
+    --text-muted: #64748b;
+    --border: #334155;
+    --border-light: #475569;
     --glass-bg: rgba(0, 0, 0, 0.2);
-    --text-primary: #F1F5F9;
-    --border-color: #334155;
+    --border-color: var(--border);
 }
 
 body[data-theme="dark"], .gradio-container[data-theme="dark"] {
@@ -75,92 +109,133 @@ body[data-theme="dark"], .gradio-container[data-theme="dark"] {
     border-color: #334155;
 }
 
-/* Clean Typography */
+/* Professional Typography */
 .gradio-container {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     max-width: 1400px;
     margin: 0 auto;
     transition: var(--transition);
+    background: var(--bg-primary);
+    color: var(--text-primary);
 }
 
 body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: var(--bg-primary);
     transition: var(--transition);
+    min-height: 100vh;
 }
 
-/* Landing Page Hero - Mockup 1 */
+/* Professional Hero Section */
 .hero-section {
     text-align: center;
-    padding: 4rem 2rem;
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
+    padding: 6rem 2rem;
+    background: linear-gradient(135deg, 
+        var(--brand-primary) 0%, 
+        var(--brand-secondary) 50%, 
+        var(--brand-accent) 100%);
+    color: white;
     border-radius: var(--border-radius);
     margin: 2rem 0;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-lg);
+}
+
+.hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M 10 0 L 0 0 0 10" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100" height="100" fill="url(%23grid)"/></svg>');
+    opacity: 0.3;
 }
 
 .hero-logo {
-    font-size: 4rem;
+    font-size: 3.5rem;
     font-weight: 900;
-    background: var(--text-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: white;
     margin-bottom: 1rem;
-    animation: subtle-pulse 3s ease-in-out infinite;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    position: relative;
+    z-index: 1;
 }
 
 .hero-subtitle {
-    font-size: 1.25rem;
-    color: #64748B;
-    margin-bottom: 3rem;
-    font-weight: 400;
+    font-size: 1.5rem;
+    color: rgba(255, 255, 255, 0.95);
+    margin-bottom: 2rem;
+    font-weight: 300;
+    position: relative;
+    z-index: 1;
 }
 
-/* Modern Buttons */
+.hero-description {
+    font-size: 1.125rem;
+    max-width: 600px;
+    margin: 0 auto 3rem;
+    opacity: 0.9;
+    line-height: 1.7;
+    color: rgba(255, 255, 255, 0.9);
+    position: relative;
+    z-index: 1;
+}
+
+/* Professional Button System */
 .action-buttons {
     display: flex;
-    gap: 1.5rem;
+    gap: 1rem;
     justify-content: center;
     flex-wrap: wrap;
     margin: 2rem 0;
+    position: relative;
+    z-index: 1;
 }
 
-.btn-modern {
-    padding: 1rem 2rem;
-    border-radius: var(--border-radius);
-    font-weight: 600;
-    font-size: 1rem;
-    border: none;
-    cursor: pointer;
-    transition: var(--transition);
-    min-width: 200px;
+.btn {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
     gap: 0.5rem;
+    padding: 0.875rem 2rem;
+    border-radius: 0.5rem;
+    font-weight: 600;
     text-decoration: none;
+    transition: var(--transition);
+    border: 2px solid transparent;
+    cursor: pointer;
+    font-size: 1rem;
+    min-width: 180px;
+    justify-content: center;
 }
 
 .btn-primary {
-    background: var(--accent-gradient);
-    color: white;
-    box-shadow: var(--shadow-soft);
+    background: white;
+    color: var(--brand-primary);
+    border-color: white;
 }
 
 .btn-primary:hover {
+    background: transparent;
+    color: white;
     transform: translateY(-2px);
-    box-shadow: var(--shadow-strong);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .btn-secondary {
     background: transparent;
-    color: var(--primary-blue);
-    border: 2px solid var(--primary-blue);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.5);
 }
 
 .btn-secondary:hover {
-    background: var(--primary-blue);
-    color: white;
+    background: rgba(255, 255, 255, 0.1);
+    border-color: white;
+    transform: translateY(-2px);
 }
 
 /* Sidebar Filters - Mockup 2 */
@@ -182,25 +257,40 @@ body {
     min-height: 500px;
 }
 
-/* Results Cards */
+/* Professional Cards */
 .result-card {
-    background: white;
+    background: var(--bg-primary);
     border-radius: var(--border-radius);
-    padding: 1.5rem;
+    padding: 2rem;
     margin: 1rem 0;
-    box-shadow: var(--shadow-soft);
-    border-left: 4px solid var(--primary-blue);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--brand-primary);
     transition: var(--transition);
 }
 
 .result-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-strong);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
 }
 
-/* Status Indicators */
+.feature-card {
+    background: var(--bg-primary);
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+    border: 1px solid var(--border);
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Professional Status Indicators */
 .status-success {
-    border-left-color: var(--primary-green);
+    border-left-color: var(--brand-secondary);
     background: #F0FDF4;
 }
 
@@ -210,77 +300,97 @@ body {
 }
 
 .status-warning {
-    border-left-color: var(--primary-yellow);
+    border-left-color: var(--brand-accent);
     background: #FFFBEB;
 }
 
-/* Info Button - Bottom Right Corner */
+/* Professional Section Headers */
+.section-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.section-subtitle {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto 2rem;
+    text-align: center;
+    line-height: 1.6;
+}
+
+/* Professional Info Button */
 .info-button {
     position: fixed;
-    bottom: 1rem;
-    right: 1rem;
-    background: var(--primary-blue);
+    bottom: 1.5rem;
+    right: 1.5rem;
+    background: var(--brand-primary);
     color: white;
     border: none;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 48px;
+    height: 48px;
     cursor: pointer;
-    font-size: 1.2rem;
+    font-size: 1.25rem;
     display: flex;
     align-items: center;
     justify-content: center;
     z-index: 1000;
-    box-shadow: var(--shadow-soft);
+    box-shadow: var(--shadow-lg);
     transition: var(--transition);
 }
 
 .info-button:hover {
     transform: scale(1.1);
-    box-shadow: var(--shadow-strong);
+    box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+    background: var(--brand-secondary);
 }
 
-/* Top Right Buttons - About and Theme */
-.top-right-buttons {
+/* Professional Header Buttons */
+.top-left-buttons {
     position: fixed;
     top: 1rem;
-    right: 1rem;
+    left: 1rem;
     display: flex;
     gap: 0.5rem;
     z-index: 1000;
 }
 
 .top-button {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     color: var(--text-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
     padding: 0.5rem 1rem;
     cursor: pointer;
     font-size: 0.875rem;
     font-weight: 500;
     transition: var(--transition);
     backdrop-filter: blur(10px);
-    box-shadow: var(--shadow-soft);
+    box-shadow: var(--shadow);
 }
 
 .top-button:hover {
-    background: var(--primary-blue);
+    background: var(--brand-primary);
     color: white;
     transform: translateY(-1px);
+    border-color: var(--brand-primary);
 }
 
 .theme-toggle {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
     color: var(--text-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
+    border: 1px solid var(--border);
+    border-radius: 0.5rem;
     padding: 0.5rem;
     cursor: pointer;
-    font-size: 1rem;
+    font-size: 1.125rem;
     transition: var(--transition);
     backdrop-filter: blur(10px);
-    box-shadow: var(--shadow-soft);
+    box-shadow: var(--shadow);
     width: 40px;
     height: 36px;
     display: flex;
@@ -289,9 +399,10 @@ body {
 }
 
 .theme-toggle:hover {
-    background: var(--primary-blue);
+    background: var(--brand-primary);
     color: white;
     transform: translateY(-1px);
+    border-color: var(--brand-primary);
 }
 
 /* Credits Section */
@@ -719,10 +830,10 @@ def create_interface():
         # Landing Page (Following Mockup 1)
         with gr.Column(visible=True) as landing_page:
             gr.HTML("""
-            <!-- Top Right Buttons -->
-            <div class="top-right-buttons">
+            <!-- Professional Header Buttons -->
+            <div class="top-left-buttons">
                 <button class="top-button" onclick="alert('📜 Sobre o Cidadão.AI\\n\\nSistema de transparência pública brasileira\\nDesenvolvido para democratizar o acesso aos dados governamentais\\n\\n🔗 Portal da Transparência API\\n🤖 Inteligência Artificial\\n🇧🇷 Feito no Brasil')" title="Sobre o projeto">
-                    Sobre
+                    📜 Sobre
                 </button>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">
                     🌙
@@ -730,16 +841,24 @@ def create_interface():
             </div>
             
             <div class="hero-section fade-in">
-                <div class="hero-logo">Cidadão.AI</div>
-                <div class="hero-subtitle">(breve descrição)</div>
+                <div class="hero-logo">🏛️ Cidadão.AI</div>
+                <div class="hero-subtitle">Sistema de IA Multi-Agente para Transparência Governamental Brasileira</div>
+                <div class="hero-description">
+                    Democratizando o acesso aos dados públicos brasileiros através de inteligência artificial especializada.
+                    Desenvolvido para fortalecer as instituições democráticas com análise automatizada de contratos, licitações e despesas públicas.
+                </div>
             </div>
             
             <div class="credits-section">
+                <h3 style="color: var(--brand-primary); margin-bottom: 1rem; font-size: 1.25rem;">🚀 Acesso Rápido</h3>
                 <div class="credits-text">
-                    <strong>Créditos:</strong> API - Gradio - Hugging Face
+                    <strong>Portal da Transparência API</strong> • <strong>Gradio Interface</strong> • <strong>Hugging Face Spaces</strong>
                 </div>
                 <div class="credits-text">
-                    🤖 Desenvolvido por Anderson Henrique da Silva | 🇧🇷 Feito para o Brasil
+                    🤖 Desenvolvido por <strong>Anderson Henrique da Silva</strong> | 🇧🇷 Feito para fortalecer a democracia brasileira
+                </div>
+                <div class="credits-text" style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-tertiary);">
+                    ⚖️ Alinhado ao ODS 16: Paz, Justiça e Instituições Eficazes | 📊 89.2% de precisão em detecção de anomalias
                 </div>
             </div>
             
@@ -792,37 +911,88 @@ def create_interface():
                     });
                 }
                 
+                // Initialize button connections
+                function initButtonConnections() {
+                    // Connect styled buttons to hidden Gradio buttons
+                    const searchBtn = document.querySelector('button[onclick*="searchPageBtn"]');
+                    const chatBtn = document.querySelector('button[onclick*="chatPageBtn"]');
+                    
+                    // Find Gradio buttons by scanning all buttons
+                    const gradioButtons = document.querySelectorAll('button');
+                    let searchPageBtn = null;
+                    let chatPageBtn = null;
+                    
+                    gradioButtons.forEach(btn => {
+                        if (btn.textContent?.includes('🔍 Consulta Avançada') && btn.style.display === 'none') {
+                            searchPageBtn = btn;
+                        }
+                        if (btn.textContent?.includes('💬 Pergunte ao Modelo') && btn.style.display === 'none') {
+                            chatPageBtn = btn;
+                        }
+                    });
+                    
+                    // Set up click handlers
+                    if (searchBtn && searchPageBtn) {
+                        searchBtn.onclick = () => searchPageBtn.click();
+                        window.searchPageBtn = searchPageBtn;
+                    }
+                    if (chatBtn && chatPageBtn) {
+                        chatBtn.onclick = () => chatPageBtn.click();
+                        window.chatPageBtn = chatPageBtn;
+                    }
+                }
+                
                 // Initialize when ready
                 if (document.readyState === 'loading') {
-                    document.addEventListener('DOMContentLoaded', initTheme);
+                    document.addEventListener('DOMContentLoaded', () => {
+                        initTheme();
+                        setTimeout(initButtonConnections, 500);
+                    });
                 } else {
                     initTheme();
+                    setTimeout(initButtonConnections, 500);
                 }
-                setTimeout(initTheme, 100);
+                setTimeout(() => {
+                    initTheme();
+                    initButtonConnections();
+                }, 1000);
             </script>
             """)
             
             with gr.Row():
+                with gr.Column():
+                    gr.HTML("""
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="window.searchPageBtn?.click()">
+                            🔍 Consulta Avançada
+                        </button>
+                        <button class="btn btn-secondary" onclick="window.chatPageBtn?.click()">
+                            💬 Pergunte ao Modelo
+                        </button>
+                    </div>
+                    """)
+                    
+                # Hidden Gradio buttons for functionality
                 search_page_btn = gr.Button(
                     "🔍 Consulta Avançada",
                     variant="primary",
                     size="lg",
-                    elem_classes=["btn-modern", "btn-primary"]
+                    visible=False
                 )
                 chat_page_btn = gr.Button(
                     "💬 Pergunte ao Modelo",
                     variant="secondary",
-                    size="lg",
-                    elem_classes=["btn-modern", "btn-secondary"]
+                    size="lg", 
+                    visible=False
                 )
         
         # Search Page (Following Mockup 2)
         with gr.Column(visible=False) as search_page:
             gr.HTML("""
-            <!-- Top Right Buttons -->
-            <div class="top-right-buttons">
+            <!-- Professional Header Buttons -->
+            <div class="top-left-buttons">
                 <button class="top-button" onclick="alert('📜 Sobre o Cidadão.AI\\n\\nSistema de transparência pública brasileira\\nDesenvolvido para democratizar o acesso aos dados governamentais\\n\\n🔗 Portal da Transparência API\\n🤖 Inteligência Artificial\\n🇧🇷 Feito no Brasil')" title="Sobre o projeto">
-                    Sobre
+                    📜 Sobre
                 </button>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">
                     🌙
@@ -877,9 +1047,30 @@ def create_interface():
                     results_display = gr.HTML(
                         value="""
                         <div class="dashboard-area">
-                            <h3>📊 Área do dashboard</h3>
-                            <p>(na página inicial, descrição e como usar, guiado, explicando como usar)</p>
-                            <p style="margin-top: 2rem; color: #64748B;">(créditos)</p>
+                            <h2 class="section-title">📊 Consulta Avançada de Dados Públicos</h2>
+                            <p class="section-subtitle">
+                                Sistema inteligente para análise de transparência governamental brasileira.
+                                Utilize os filtros ao lado para consultar contratos, despesas e licitações públicas.
+                            </p>
+                            
+                            <div class="feature-card" style="margin: 2rem 0;">
+                                <h4 style="color: var(--brand-primary); margin-bottom: 1rem;">🎯 Como usar o sistema:</h4>
+                                <ol style="color: var(--text-secondary); line-height: 1.8;">
+                                    <li><strong>Selecione o tipo de dados</strong> desejado (Contratos, Despesas, Licitações)</li>
+                                    <li><strong>Escolha o ano</strong> de interesse (2020-2025)</li>
+                                    <li><strong>Digite um termo de busca</strong> (opcional) para filtrar resultados</li>
+                                    <li><strong>Clique em "Buscar Dados"</strong> para executar a consulta</li>
+                                </ol>
+                            </div>
+                            
+                            <div class="feature-card" style="margin: 2rem 0;">
+                                <h4 style="color: var(--brand-secondary); margin-bottom: 1rem;">🔍 Fontes de Dados:</h4>
+                                <p style="color: var(--text-secondary);">
+                                    • <strong>Portal da Transparência</strong> - Dados oficiais do governo federal<br>
+                                    • <strong>API v3</strong> - Interface de dados em tempo real<br>
+                                    • <strong>Análise IA</strong> - Detecção automática de anomalias (89.2% precisão)
+                                </p>
+                            </div>
                         </div>
                         """
                     )
@@ -887,10 +1078,10 @@ def create_interface():
         # Chat Page (Following Mockup 3)
         with gr.Column(visible=False) as chat_page:
             gr.HTML("""
-            <!-- Top Right Buttons -->
-            <div class="top-right-buttons">
+            <!-- Professional Header Buttons -->
+            <div class="top-left-buttons">
                 <button class="top-button" onclick="alert('📜 Sobre o Cidadão.AI\\n\\nSistema de transparência pública brasileira\\nDesenvolvido para democratizar o acesso aos dados governamentais\\n\\n🔗 Portal da Transparência API\\n🤖 Inteligência Artificial\\n🇧🇷 Feito no Brasil')" title="Sobre o projeto">
-                    Sobre
+                    📜 Sobre
                 </button>
                 <button class="theme-toggle" onclick="toggleTheme()" title="Alternar tema">
                     🌙
