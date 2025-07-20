@@ -1,3 +1,44 @@
+---
+title: Cidadão.AI - Public Transparency Platform / Plataforma de Transparência Pública
+emoji: 🔍
+colorFrom: green
+colorTo: yellow
+sdk: gradio
+sdk_version: "5.0.0"
+app_file: apps/gradio_app.py
+pinned: true
+license: apache-2.0
+language: 
+  - pt
+  - en
+tags:
+  - transparency
+  - government
+  - corruption-detection
+  - anomaly-detection
+  - brazilian-government
+  - public-spending
+  - accountability
+  - SDG16
+  - open-government
+  - civic-tech
+pipeline_tag: text-classification
+library_name: transformers
+base_model: gpt2
+datasets:
+  - portal-da-transparencia
+  - custom
+metrics:
+  - accuracy
+  - f1
+  - precision
+  - recall
+description: >
+  Cidadão.AI is an enterprise-grade multi-agent AI platform for Brazilian government transparency analysis.
+  Features 8 specialized agents, 40+ API endpoints, and achieves 89.2% accuracy in anomaly detection.
+  Aligned with UN SDG16 and Open Government Partnership principles.
+---
+
 <div align="center">
 
 # 🇧🇷 Cidadão.AI / 🇺🇸 Citizen.AI
