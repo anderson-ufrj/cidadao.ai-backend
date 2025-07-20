@@ -671,7 +671,11 @@ def create_interface():
             }
             
             function showSystemStatus() {
-                const status = `ℹ️ Status do Sistema\\n\\nCidadão.AI v2.0\\nAmbiente: """ + ("HF Spaces" if os.getenv("SPACE_ID") else "Local") + f"""\\n\\nPortal da Transparência: {status['transparency_api']}\\nIA Assistant: {status['groq_api']}\\n\\n⚙️ Configure as APIs como secrets no HF Spaces`;
+                const env = """ + ("'HF Spaces'" if os.getenv("SPACE_ID") else "'Local'") + """;
+                const transparencyStatus = """ + ("'✅ Configurada'" if TRANSPARENCY_API_KEY else "'❌ Não configurada'") + """;
+                const groqStatus = """ + ("'✅ Configurada'" if GROQ_API_KEY else "'❌ Não configurada'") + """;
+                
+                const status = `ℹ️ Status do Sistema\\n\\nCidadão.AI v2.0\\nAmbiente: ${env}\\n\\nPortal da Transparência: ${transparencyStatus}\\nIA Assistant: ${groqStatus}\\n\\n⚙️ Configure as APIs como secrets no HF Spaces`;
                 alert(status);
             }
             
