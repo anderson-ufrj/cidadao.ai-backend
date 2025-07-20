@@ -16,6 +16,17 @@ from datetime import datetime
 TRANSPARENCY_API_KEY = os.getenv("TRANSPARENCY_API_KEY")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
+# Debug function for HF Spaces
+def get_system_status():
+    """Get system status for debugging"""
+    status = {
+        "transparency_api": "✅ Configurada" if TRANSPARENCY_API_KEY else "❌ Não configurada",
+        "groq_api": "✅ Configurada" if GROQ_API_KEY else "❌ Não configurada",
+        "python_version": f"🐍 {os.sys.version}",
+        "environment": "🤗 Hugging Face Spaces" if os.getenv("SPACE_ID") else "💻 Local"
+    }
+    return status
+
 # Modern CSS following mockups exactly
 custom_css = """
 /* Modern Design System - Following Mockups */
@@ -430,18 +441,23 @@ def show_home_page():
     )
 
 async def call_transparency_api(endpoint, params=None):
-    """Call Portal da Transparência API"""
+    """Call Portal da Transparência API with HF Spaces compatibility"""
     if not TRANSPARENCY_API_KEY:
-        return {"error": "API key não configurada"}
+        return {"error": "⚠️ TRANSPARENCY_API_KEY não configurada como secret no HF Spaces"}
     
     base_url = "https://api.portaldatransparencia.gov.br"
     headers = {
         "chave-api-dados": TRANSPARENCY_API_KEY,
-        "User-Agent": "CidadaoAI/2.0"
+        "User-Agent": "Mozilla/5.0 (compatible; CidadaoAI/2.0)",
+        "Accept": "application/json"
     }
     
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(15.0, connect=5.0),
+            follow_redirects=True,
+            limits=httpx.Limits(max_connections=10)
+        ) as client:
             response = await client.get(
                 f"{base_url}{endpoint}",
                 headers=headers,
@@ -450,10 +466,16 @@ async def call_transparency_api(endpoint, params=None):
             
             if response.status_code == 200:
                 return response.json()
+            elif response.status_code == 401:
+                return {"error": "❌ API key inválida - verifique TRANSPARENCY_API_KEY"}
+            elif response.status_code == 429:
+                return {"error": "⏳ Rate limit atingido - tente novamente"}
             else:
-                return {"error": f"Status {response.status_code}: {response.text[:200]}"}
+                return {"error": f"❌ API Error {response.status_code}"}
+    except httpx.TimeoutException:
+        return {"error": "⏳ Timeout na API - tente novamente"}
     except Exception as e:
-        return {"error": f"Erro na requisição: {str(e)}"}
+        return {"error": f"❌ Erro: {str(e)}"}
 
 def search_transparency_data(data_type, year, search_term, page_size=5):
     """Search real data from Portal da Transparência API following mockup requirements"""
@@ -494,12 +516,16 @@ def search_transparency_data(data_type, year, search_term, page_size=5):
         "tamanhoPagina": page_size
     }
     
-    # Execute API call
+    # Execute API call - HF Spaces compatible
     try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        api_result = loop.run_until_complete(call_transparency_api(endpoint, params))
-        loop.close()
+        try:
+            current_loop = asyncio.get_running_loop()
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, call_transparency_api(endpoint, params))
+                api_result = future.result(timeout=20)
+        except RuntimeError:
+            api_result = asyncio.run(call_transparency_api(endpoint, params))
         
         if "error" in api_result:
             return f"""
@@ -585,9 +611,9 @@ def search_transparency_data(data_type, year, search_term, page_size=5):
         """
 
 async def call_groq_api(message):
-    """Call GROQ API for chat"""
+    """Call GROQ API for chat with HF Spaces compatibility"""
     if not GROQ_API_KEY:
-        return "⚠️ API key do GROQ não configurada. Configure GROQ_API_KEY como secret."
+        return "⚠️ GROQ_API_KEY não configurada como secret no HF Spaces"
     
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
@@ -600,7 +626,7 @@ async def call_groq_api(message):
                 "role": "system",
                 "content": """Você é um assistente especializado em transparência pública brasileira. 
                 Responda de forma clara e objetiva sobre gastos públicos, contratos, licitações e dados governamentais.
-                Use emojis quando apropriado e seja educativo."""
+                Use emojis quando apropriado e seja educativo. Mantenha respostas concisas."""
             },
             {
                 "role": "user", 
@@ -609,11 +635,14 @@ async def call_groq_api(message):
         ],
         "model": "llama3-8b-8192",
         "temperature": 0.7,
-        "max_tokens": 1000
+        "max_tokens": 800
     }
     
     try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
+        async with httpx.AsyncClient(
+            timeout=httpx.Timeout(20.0, connect=5.0),
+            limits=httpx.Limits(max_connections=10)
+        ) as client:
             response = await client.post(
                 "https://api.groq.com/openai/v1/chat/completions",
                 headers=headers,
@@ -623,22 +652,30 @@ async def call_groq_api(message):
             if response.status_code == 200:
                 result = response.json()
                 return result["choices"][0]["message"]["content"]
+            elif response.status_code == 401:
+                return "❌ API key inválida - verifique GROQ_API_KEY"
             else:
-                return f"❌ Erro na API: {response.status_code}"
+                return f"❌ Erro na API GROQ: {response.status_code}"
+    except httpx.TimeoutException:
+        return "⏳ Timeout na API GROQ - tente novamente"
     except Exception as e:
-        return f"❌ Erro na requisição: {str(e)}"
+        return f"❌ Erro: {str(e)}"
 
 def chat_function(message, history):
-    """Chat function for the AI assistant following mockup 3"""
+    """Chat function for the AI assistant following mockup 3 - HF Spaces compatible"""
     if not message.strip():
         return history, ""
     
     try:
-        # Call GROQ API
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        response = loop.run_until_complete(call_groq_api(message))
-        loop.close()
+        # Call GROQ API - HF Spaces compatible
+        try:
+            current_loop = asyncio.get_running_loop()
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, call_groq_api(message))
+                response = future.result(timeout=25)
+        except RuntimeError:
+            response = asyncio.run(call_groq_api(message))
         
         # Add to history (messages format)
         history = history or []
@@ -650,7 +687,7 @@ def chat_function(message, history):
     except Exception as e:
         history = history or []
         history.append({"role": "user", "content": message})
-        history.append({"role": "assistant", "content": f"❌ Erro: {str(e)}"})
+        history.append({"role": "assistant", "content": f"❌ Erro no chat: {str(e)}"})
         return history, ""
 
 def create_interface():
@@ -707,11 +744,20 @@ def create_interface():
             </div>
             
             <!-- Info Button - Bottom Right -->
-            <button class="info-button" onclick="alert('ℹ️ Informações do Sistema\\n\\nCidadão.AI v2.0\\nStatus: Operacional\\n\\n📊 Portal da Transparência: Conectado\\n🤖 IA: Disponível\\n🔒 Segurança: Ativa')" title="Informações do Sistema">
+            <button class="info-button" onclick="showSystemStatus()" title="Status do Sistema">
                 ℹ️
             </button>
             
             <script>
+                // System status function
+                function showSystemStatus() {
+                    const transparencyStatus = """ + ("'✅ Configurada'" if TRANSPARENCY_API_KEY else "'❌ Não configurada'") + """;
+                    const groqStatus = """ + ("'✅ Configurada'" if GROQ_API_KEY else "'❌ Não configurada'") + """;
+                    const environment = """ + ("'🤗 HF Spaces'" if os.getenv("SPACE_ID") else "'💻 Local'") + """;
+                    
+                    alert(`ℹ️ Status do Sistema\\n\\nCidadão.AI v2.0\\nAmbiente: ${environment}\\n\\n📊 Portal da Transparência API: ${transparencyStatus}\\n🤖 GROQ AI API: ${groqStatus}\\n\\n⚙️ Configure as APIs como secrets no HF Spaces`);
+                }
+                
                 // Theme toggle functionality
                 function toggleTheme() {
                     const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
