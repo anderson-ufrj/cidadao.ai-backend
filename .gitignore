@@ -184,8 +184,13 @@ models/
 *.pth
 *.onnx
 
-# Frontend assets (use online images for HF compatibility)
-frontend/static/img/slides/
+# Frontend files (moved to separate repository)
+frontend/
+static/
+docs/
+blog/
+*.html
+*.css.map
 
 # Vector stores
 *.faiss
@@ -224,9 +229,12 @@ fine_tuning_data/
 grafana_data/
 prometheus_data/
 
-# Claude
-.claude
+# Claude Code - NEVER COMMIT
+.claude/
 CLAUDE.md
+claude.md
+*claude*
+.claude*
 
 
 # Test scripts with API keys (keep only in local development)
