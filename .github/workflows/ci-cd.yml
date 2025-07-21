@@ -1,12 +1,14 @@
-name: CI/CD Pipeline
+# Temporarily disabled - fixing deprecation issues
+name: CI/CD Pipeline (Disabled)
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main, develop ]
-  release:
-    types: [ published ]
+  workflow_dispatch:  # Manual trigger only
+  # push:
+  #   branches: [ main, develop ]
+  # pull_request:
+  #   branches: [ main, develop ]
+  # release:
+  #   types: [ published ]
 
 env:
   REGISTRY: ghcr.io
