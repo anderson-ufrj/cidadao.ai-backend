@@ -1,32 +1,32 @@
 <div align="center">
 
-# 🇧🇷 Cidadão.AI / 🇺🇸 Citizen.AI
+# 🇧🇷 Cidadão.AI Backend
 
-**Multi-Agent AI System for Brazilian Government Transparency Analysis**
+**Multi-Agent AI System Backend API for Brazilian Government Transparency Analysis**
 
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
-[![Hugging Face](https://img.shields.io/badge/🤗%20Hugging%20Face-Spaces-blue)](https://huggingface.co/spaces/neural-thinker/cidadao-ai)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
+[![Docker](https://img.shields.io/badge/Docker-enabled-blue.svg)](https://www.docker.com/)
 [![SDG16](https://img.shields.io/badge/SDG-16-orange.svg)](https://sdgs.un.org/goals/goal16)
-[![Open Government](https://img.shields.io/badge/Open%20Government-Partnership-green.svg)](https://www.opengovpartnership.org/)
 
-[![Code Quality](https://img.shields.io/badge/code%20quality-A+-brightgreen.svg)](https://github.com/anderson-ufrj/cidadao.ai)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/anderson-ufrj/cidadao.ai/pulls)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/anderson-ufrj/cidadao.ai/graphs/commit-activity)
+[![Code Quality](https://img.shields.io/badge/code%20quality-A+-brightgreen.svg)](https://github.com/anderson-ufrj/cidadao.ai-backend)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/anderson-ufrj/cidadao.ai-backend/pulls)
+[![API Docs](https://img.shields.io/badge/API-Documentation-blue.svg)](https://your-api-url.com/docs)
 
-[Português](#português) | [English](#english) | [🚀 Try Live Demo](https://huggingface.co/spaces/neural-thinker/cidadao.ia)
+[Português](#português) | [English](#english) | [🎯 Frontend](https://github.com/anderson-ufrj/cidadao.ai-frontend)
 
 </div>
 
-## 📊 Project Impact
+## 📊 Backend Performance
 
 <div align="center">
 
-| 🏛️ AI Agents | 📡 API Endpoints | 🚀 Accuracy | ⚡ Response Time | 🌍 SDG Alignment |
+| 🏛️ AI Agents | 📡 API Endpoints | 🚀 ML Accuracy | ⚡ Response Time | 🗄️ Database |
 |:---:|:---:|:---:|:---:|:---:|
-| **8** | **40+** | **89.2%** | **<180ms** | **SDG 16** |
+| **8** | **40+** | **89.2%** | **<180ms** | **PostgreSQL** |
 
-**Transforming Brazilian Government Transparency with AI**
+**Enterprise-Grade Backend for Government Transparency Analysis**
 
 </div>
 
@@ -38,7 +38,7 @@
 
 ### 🎯 Visão Geral
 
-O **Cidadão.AI** é uma plataforma inovadora que utiliza inteligência artificial especializada para democratizar o acesso aos dados públicos brasileiros. Desenvolvido especificamente para o contexto brasileiro, o sistema emprega arquitetura multi-agente para analisar contratos, licitações, despesas e outros documentos governamentais.
+O **Cidadão.AI Backend** é uma API robusta baseada em FastAPI que utiliza inteligência artificial multi-agente para processar e analisar dados públicos brasileiros. Esta API serve como núcleo de processamento para aplicações frontend, fornecendo endpoints especializados para análise de transparência governamental.
 
 ### 🌍 Alinhamento com ODS 16
 

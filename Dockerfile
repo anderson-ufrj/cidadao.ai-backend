@@ -1,4 +1,4 @@
-# Multi-stage Dockerfile for Web Interface
+# Multi-stage Dockerfile for Production API
 FROM python:3.11-slim as builder
 
 # Build arguments
@@ -23,11 +23,11 @@ RUN useradd --create-home --shell /bin/bash app
 # Set work directory
 WORKDIR /app
 
-# Copy requirements for web interface
-COPY requirements.txt requirements-spaces.txt ./
+# Copy requirements
+COPY requirements.txt requirements-prod.txt ./
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r requirements-spaces.txt
+RUN pip install --no-cache-dir -r requirements-prod.txt
 
 # Production stage
 FROM python:3.11-slim as production
@@ -36,8 +36,6 @@ FROM python:3.11-slim as production
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV ENVIRONMENT=production
-ENV GRADIO_SERVER_NAME=0.0.0.0
-ENV GRADIO_SERVER_PORT=7860
 
 # Install runtime dependencies
 RUN apt-get update && apt-get install -y \
@@ -54,13 +52,14 @@ WORKDIR /app
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
 COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Copy web application code
-COPY app_spaces.py ./app.py
+# Copy application code
 COPY src/ ./src/
-COPY requirements-spaces.txt ./requirements.txt
+COPY *.py ./
+COPY *.md ./
+COPY *.txt ./
 
 # Create necessary directories
-RUN mkdir -p logs
+RUN mkdir -p logs models data
 
 # Change ownership to app user
 RUN chown -R app:app /app
@@ -70,10 +69,10 @@ USER app
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:7860 || exit 1
+    CMD curl -f http://localhost:8001/health || exit 1
 
-# Expose port
-EXPOSE 7860
+# Expose ports
+EXPOSE 8001 8000
 
-# Run web application
-CMD ["python", "app.py"]
+# Run application
+CMD ["python", "-m", "uvicorn", "src.api.app:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "4"]
