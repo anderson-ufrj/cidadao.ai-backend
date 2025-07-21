@@ -2,7 +2,7 @@
 title: "Cidadão.AI - Documentação Técnica"
 description: "Sistema Multi-Agente de IA para Transparência Pública Brasileira"
 url: "https://anderson-ufrj.github.io"
-baseurl: "/cidadao.ai"
+baseurl: "/cidadao.ai-backend"
 
 # Theme
 theme: minima
