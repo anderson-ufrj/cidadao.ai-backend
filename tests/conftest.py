@@ -1,214 +1,322 @@
 """
-Module: tests.conftest
-Description: Pytest configuration and fixtures
-Author: Anderson H. Silva
-Date: 2025-01-24
-License: Proprietary - All rights reserved
+Test configuration and fixtures for the Cidadão.AI Backend.
+Provides comprehensive test setup with database, Redis, and API client fixtures.
 """
 
+import pytest
 import asyncio
 import os
 from typing import AsyncGenerator, Generator
-from unittest.mock import Mock, AsyncMock
-
-import pytest
-import pytest_asyncio
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
-from sqlalchemy.orm import sessionmaker
+from httpx import AsyncClient
+from testcontainers.postgres import PostgresContainer
+from testcontainers.redis import RedisContainer
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
+from unittest.mock import AsyncMock, patch, Mock
 
 # Set test environment
-os.environ["APP_ENV"] = "testing"
-os.environ["DATABASE_URL"] = "sqlite+aiosqlite:///:memory:"
-os.environ["REDIS_URL"] = "redis://localhost:6379/15"
+os.environ["ENVIRONMENT"] = "testing"
+os.environ["TESTING"] = "true"
 
-from src.core.config import settings
-from src.core.logging import setup_logging
-
-
-# Setup logging for tests
-setup_logging()
+from src.api.app import create_app
+from src.core.database import get_db_session
+from src.core.config import Settings, get_settings
 
 
 @pytest.fixture(scope="session")
-def event_loop() -> Generator:
+def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     """Create event loop for async tests."""
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
+    policy = asyncio.get_event_loop_policy()
+    loop = policy.new_event_loop()
     yield loop
     loop.close()
 
 
+@pytest.fixture(scope="session")
+async def test_database() -> AsyncGenerator[str, None]:
+    """Integration test database using testcontainers."""
+    with PostgresContainer("postgres:15-alpine") as postgres:
+        database_url = postgres.get_connection_url().replace(
+            "postgresql://", "postgresql+asyncpg://"
+        )
+        
+        # Create engine
+        engine = create_async_engine(database_url)
+        
+        # Run migrations (simplified for tests)
+        from src.core.database import Base
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        
+        yield database_url
+        
+        # Cleanup
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.drop_all)
+        
+        await engine.dispose()
+
+
+@pytest.fixture(scope="session")
+async def test_redis() -> AsyncGenerator[str, None]:
+    """Test Redis instance using testcontainers."""
+    with RedisContainer("redis:7-alpine") as redis_container:
+        redis_url = redis_container.get_connection_url()
+        yield redis_url
+
+
 @pytest.fixture
-def mock_settings() -> settings:
-    """Mock settings for tests."""
-    settings.app_env = "testing"
-    settings.debug = True
-    settings.database_url = "sqlite+aiosqlite:///:memory:"
-    return settings
-
-
-@pytest_asyncio.fixture
-async def db_session() -> AsyncGenerator[AsyncSession, None]:
-    """Create test database session."""
-    engine = create_async_engine(
-        settings.get_database_url(async_mode=True),
-        echo=False,
-    )
+async def db_session(test_database: str) -> AsyncGenerator[AsyncSession, None]:
+    """Database session for individual tests."""
+    engine = create_async_engine(test_database)
     
-    async_session = sessionmaker(
-        engine,
-        class_=AsyncSession,
-        expire_on_commit=False,
-    )
-    
-    async with async_session() as session:
-        yield session
-        await session.rollback()
+    async with AsyncSession(engine) as session:
+        try:
+            yield session
+            await session.rollback()  # Always rollback test transactions
+        finally:
+            await session.close()
     
     await engine.dispose()
 
 
 @pytest.fixture
-def mock_llm_service() -> Mock:
-    """Mock LLM service."""
-    mock = Mock()
-    mock.generate.return_value = AsyncMock(
-        return_value="Mock LLM response"
+async def test_settings(test_database: str, test_redis: str) -> Settings:
+    """Test application settings."""
+    return Settings(
+        database_url=test_database,
+        redis_url=test_redis,
+        testing=True,
+        secret_key="test-secret-key-do-not-use-in-production",
+        transparency_api_key="test-api-key",
+        environment="testing"
     )
-    mock.stream_generate.return_value = AsyncMock(
-        return_value=["Mock", " streaming", " response"]
-    )
-    return mock
 
 
 @pytest.fixture
-def mock_transparency_api() -> Mock:
-    """Mock Portal Transparência API."""
-    mock = Mock()
-    mock.search_contracts.return_value = AsyncMock(
-        return_value={
-            "total": 100,
-            "items": [
+async def app(test_settings: Settings):
+    """FastAPI application for testing."""
+    app = create_app(test_settings)
+    return app
+
+
+@pytest.fixture
+async def client(app, db_session: AsyncSession, test_settings: Settings) -> AsyncGenerator[AsyncClient, None]:
+    """Test client with database session override."""
+    
+    async def get_test_db():
+        yield db_session
+    
+    app.dependency_overrides[get_db_session] = get_test_db
+    app.dependency_overrides[get_settings] = lambda: test_settings
+    
+    async with AsyncClient(app=app, base_url="http://testserver") as client:
+        yield client
+    
+    # Cleanup
+    app.dependency_overrides.clear()
+
+
+@pytest.fixture
+async def authenticated_client(client: AsyncClient) -> AsyncGenerator[AsyncClient, None]:
+    """Authenticated test client with JWT token."""
+    # Create test user and get token
+    test_user_data = {
+        "email": "test@example.com",
+        "password": "testpassword123"
+    }
+    
+    # Register test user
+    await client.post("/auth/register", json=test_user_data)
+    
+    # Login and get token
+    response = await client.post("/auth/login", data={
+        "username": test_user_data["email"],
+        "password": test_user_data["password"]
+    })
+    
+    token_data = response.json()
+    access_token = token_data["access_token"]
+    
+    # Set authorization header
+    client.headers.update({"Authorization": f"Bearer {access_token}"})
+    
+    yield client
+
+
+@pytest.fixture
+def mock_transparency_api():
+    """Mock for transparency API calls."""
+    with patch('src.services.transparency_service.TransparencyService') as mock:
+        # Configure mock responses
+        mock.return_value.get_contracts.return_value = {
+            "data": [
                 {
-                    "id": "2024-001",
+                    "id": "123",
+                    "objeto": "Test contract",
                     "valor": 100000.00,
-                    "fornecedor": "Empresa XYZ",
-                    "orgao": "Ministério ABC",
-                    "data": "2024-01-15",
+                    "dataInicioVigencia": "2024-01-01",
+                    "dataFimVigencia": "2024-12-31",
+                    "fornecedor": {"nome": "Test Supplier"}
                 }
-            ]
+            ],
+            "total": 1
         }
-    )
-    return mock
+        
+        mock.return_value.get_expenses.return_value = {
+            "data": [
+                {
+                    "id": "456",
+                    "orgaoSuperior": {"nome": "Test Ministry"},
+                    "valor": 50000.00,
+                    "dataCompetencia": "2024-01-01",
+                    "modalidadeAplicacao": {"nome": "Direct Application"}
+                }
+            ],
+            "total": 1
+        }
+        
+        yield mock
 
 
 @pytest.fixture
-def mock_redis_client() -> Mock:
-    """Mock Redis client."""
-    mock = Mock()
-    mock.get.return_value = AsyncMock(return_value=None)
-    mock.set.return_value = AsyncMock(return_value=True)
-    mock.delete.return_value = AsyncMock(return_value=True)
-    mock.exists.return_value = AsyncMock(return_value=False)
-    return mock
+def mock_ai_service():
+    """Mock for AI service calls."""
+    with patch('src.services.ai_service.AIService') as mock:
+        # Configure mock responses
+        mock.return_value.classify_text.return_value = {
+            "label": "corruption",
+            "confidence": 0.85,
+            "explanation": "High probability of corruption indicators"
+        }
+        
+        mock.return_value.analyze_anomalies.return_value = {
+            "anomalies": [
+                {
+                    "type": "price_anomaly",
+                    "severity": "high",
+                    "description": "Price 300% above market average"
+                }
+            ],
+            "risk_score": 0.78
+        }
+        
+        yield mock
 
 
 @pytest.fixture
-def sample_investigation_query() -> str:
-    """Sample investigation query."""
-    return "contratos emergenciais sem licitação em 2024"
-
-
-@pytest.fixture
-def sample_investigation_result() -> dict:
-    """Sample investigation result."""
-    return {
-        "query": "contratos emergenciais sem licitação em 2024",
-        "findings": [
-            {
-                "contract_id": "2024-001",
-                "value": 500000.00,
-                "supplier": "Fornecedor ABC",
-                "anomaly_score": 0.85,
-                "explanation": "Valor 340% acima da média para contratos similares",
+def mock_agent_system():
+    """Mock for agent system."""
+    with patch('src.agents.master_agent.MasterAgent') as mock:
+        # Configure mock agent responses
+        async def mock_process_task(task):
+            return {
+                "task_id": task.get("id", "test-task"),
+                "status": "completed",
+                "result": {
+                    "analysis": "Test analysis result",
+                    "recommendations": ["Test recommendation 1", "Test recommendation 2"],
+                    "confidence": 0.9
+                },
+                "agents_used": ["investigator", "analyst", "reporter"],
+                "processing_time": 2.5
             }
-        ],
-        "confidence_score": 0.87,
-        "sources": ["Portal Transparência", "TCU"],
-        "timestamp": "2024-01-24T10:30:00Z",
-    }
+        
+        mock.return_value.process_task = mock_process_task
+        yield mock
 
 
 @pytest.fixture
-def sample_agent_context() -> dict:
-    """Sample agent context."""
+def sample_analysis_data():
+    """Sample data for analysis tests."""
     return {
-        "user_id": "test-user-123",
-        "session_id": "session-456",
-        "investigation_id": "inv-789",
-        "previous_queries": [],
-        "memory_context": {},
+        "text": "Contrato de fornecimento de equipamentos de informática no valor de R$ 1.000.000,00",
+        "type": "analyze",
+        "options": {
+            "includeMetrics": True,
+            "includeVisualization": False,
+            "language": "pt"
+        }
     }
 
 
 @pytest.fixture
-def mock_vector_store() -> Mock:
-    """Mock vector store."""
-    mock = Mock()
-    mock.add_documents.return_value = AsyncMock(return_value=True)
-    mock.similarity_search.return_value = AsyncMock(
-        return_value=[
-            {"content": "Similar document 1", "score": 0.95},
-            {"content": "Similar document 2", "score": 0.87},
-        ]
-    )
-    return mock
-
-
-@pytest.fixture
-def mock_memory_service() -> Mock:
-    """Mock memory service."""
-    mock = Mock()
-    mock.store_episodic.return_value = AsyncMock(return_value=True)
-    mock.retrieve_episodic.return_value = AsyncMock(return_value=[])
-    mock.store_semantic.return_value = AsyncMock(return_value=True)
-    mock.retrieve_semantic.return_value = AsyncMock(return_value=[])
-    return mock
-
-
-@pytest.fixture
-def auth_headers() -> dict:
-    """Authentication headers for API tests."""
+def sample_contract_data():
+    """Sample contract data for tests."""
     return {
-        "Authorization": "Bearer test-token-123",
-        "Content-Type": "application/json",
+        "numero": "123456/2024",
+        "objeto": "Fornecimento de equipamentos de informática",
+        "valor": 1000000.00,
+        "dataAssinatura": "2024-01-15",
+        "dataInicioVigencia": "2024-02-01",
+        "dataFimVigencia": "2025-01-31",
+        "fornecedor": {
+            "cnpj": "12.345.678/0001-90",
+            "nome": "Tech Solutions LTDA",
+            "endereco": "Rua das Tecnologias, 123"
+        },
+        "orgao": {
+            "codigo": "26000",
+            "nome": "Ministério da Educação",
+            "sigla": "MEC"
+        }
     }
 
 
 @pytest.fixture
-def mock_celery_task() -> Mock:
-    """Mock Celery task."""
-    mock = Mock()
-    mock.delay.return_value = Mock(id="task-123", state="PENDING")
-    mock.apply_async.return_value = Mock(id="task-123", state="PENDING")
-    return mock
+def sample_expense_data():
+    """Sample expense data for tests."""
+    return {
+        "codigo": "789012",
+        "valor": 50000.00,
+        "dataCompetencia": "2024-01-01",
+        "orgaoSuperior": {
+            "codigo": "20000",
+            "nome": "Presidência da República",
+            "sigla": "PR"
+        },
+        "funcao": {
+            "codigo": "04",
+            "nome": "Administração"
+        },
+        "subfuncao": {
+            "codigo": "122",
+            "nome": "Administração Geral"
+        },
+        "modalidadeAplicacao": {
+            "codigo": "90",
+            "nome": "Aplicação Direta"
+        }
+    }
 
 
-# Markers for test categories
+# Test markers for categorization
+pytest.mark.unit = pytest.mark.unit
+pytest.mark.integration = pytest.mark.integration
+pytest.mark.e2e = pytest.mark.e2e
+pytest.mark.slow = pytest.mark.slow
+pytest.mark.security = pytest.mark.security
+pytest.mark.performance = pytest.mark.performance
+
+
+# Environment setup for tests
 def pytest_configure(config):
     """Configure pytest with custom markers."""
-    config.addinivalue_line(
-        "markers", "unit: mark test as a unit test"
-    )
-    config.addinivalue_line(
-        "markers", "integration: mark test as an integration test"
-    )
-    config.addinivalue_line(
-        "markers", "e2e: mark test as an end-to-end test"
-    )
-    config.addinivalue_line(
-        "markers", "slow: mark test as slow running"
-    )
-    config.addinivalue_line(
-        "markers", "multiagent: mark test as multi-agent test"
-    )
+    config.addinivalue_line("markers", "unit: Unit tests")
+    config.addinivalue_line("markers", "integration: Integration tests")
+    config.addinivalue_line("markers", "e2e: End-to-end tests")
+    config.addinivalue_line("markers", "slow: Slow running tests")
+    config.addinivalue_line("markers", "security: Security-related tests")
+    config.addinivalue_line("markers", "performance: Performance tests")
+
+
+def pytest_collection_modifyitems(config, items):
+    """Modify test collection to add markers automatically."""
+    for item in items:
+        # Add unit marker to tests without explicit markers
+        if not any(marker.name in ["integration", "e2e", "slow", "security", "performance"] 
+                  for marker in item.iter_markers()):
+            item.add_marker(pytest.mark.unit)
+        
+        # Add slow marker to tests that might be slow
+        if any(keyword in item.name.lower() for keyword in ["database", "redis", "ai", "agent"]):
+            item.add_marker(pytest.mark.slow)
