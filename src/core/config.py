@@ -143,7 +143,13 @@ class Settings(BaseSettings):
     
     # CORS
     cors_origins: List[str] = Field(
-        default=["http://localhost:3000", "http://localhost:8000"],
+        default=[
+            "http://localhost:3000",
+            "http://localhost:8000", 
+            "https://cidadao-ai-frontend.vercel.app",
+            "https://*.vercel.app",
+            "https://neural-thinker-cidadao-ai-backend.hf.space"
+        ],
         description="CORS allowed origins"
     )
     cors_allow_credentials: bool = Field(default=True, description="Allow credentials")
