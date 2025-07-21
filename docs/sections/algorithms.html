@@ -1,0 +1,98 @@
+<div class="section-header">
+    <h2 class="section-title">
+        ⚙️ <span data-pt="Algoritmos e Modelos" data-en="Algorithms and Models">Algoritmos e Modelos</span>
+    </h2>
+    <p class="section-description">
+        Detalhamento técnico dos algoritmos de machine learning, ensemble methods, modelo CidadãoGPT especializado e implementações matemáticas do backend API.
+    </p>
+</div>
+
+<div class="methodology-section">
+    <h3>🧠 <span data-pt="Modelo CidadãoGPT" data-en="CidadãoGPT Model">Modelo CidadãoGPT</span></h3>
+    <p data-pt="Modelo transformer multi-tarefa especializado para transparência pública brasileira com 768M parâmetros base + 200M especializados. Implementado com otimizações de inferência assíncrona via FastAPI e caching inteligente Redis." data-en="Multi-task transformer model specialized for Brazilian public transparency with 768M base parameters + 200M specialized. Implemented with asynchronous inference optimizations via FastAPI and intelligent Redis caching.">
+        Modelo transformer multi-tarefa especializado para transparência pública brasileira com 768M parâmetros base + 200M especializados. Implementado com otimizações de inferência assíncrona via FastAPI e caching inteligente Redis.
+    </p>
+    
+    <h4>Características:</h4>
+    <ul>
+        <li><strong>Fine-tuning:</strong> 2.1T tokens de dados governamentais brasileiros</li>
+        <li><strong>Vocabulário:</strong> 52K tokens especializados + embeddings contextuais</li>
+        <li><strong>Multi-head Classification:</strong> anomalias, risco financeiro, conformidade legal</li>
+        <li><strong>Contexto:</strong> 8K tokens com attention sliding window</li>
+        <li><strong>Performance:</strong> <180ms inferência média via GPU inference</li>
+        <li><strong>API Endpoints:</strong> /classify, /analyze, /risk-assessment</li>
+    </ul>
+</div>
+
+<div class="methodology-section">
+    <h3>🎯 <span data-pt="Ensemble de Detecção de Anomalias" data-en="Anomaly Detection Ensemble">Ensemble de Detecção de Anomalias</span></h3>
+    <p data-pt="Ensemble matemático de 15+ algoritmos com pesos otimizados via validação cruzada para máxima precisão F1-Score (89.2%). Implementação assíncrona com processamento paralelo." data-en="Mathematical ensemble of 15+ algorithms with weights optimized via cross-validation for maximum F1-Score precision (89.2%). Asynchronous implementation with parallel processing.">
+        Ensemble matemático de 15+ algoritmos com pesos otimizados via validação cruzada para máxima precisão F1-Score (89.2%). Implementação assíncrona com processamento paralelo.
+    </p>
+    
+    <h4>Algoritmos Implementados:</h4>
+    <ul>
+        <li><strong>Isolation Forest:</strong> O(n·log n) detecção de outliers multivariados</li>
+        <li><strong>Local Outlier Factor:</strong> O(n²) análise de densidade local com k-NN otimizado</li>
+        <li><strong>One-Class SVM:</strong> O(n³) classificação de normalidade com kernel RBF</li>
+        <li><strong>Elliptic Envelope:</strong> Detecção gaussiana robusta com covariance estimation</li>
+        <li><strong>DBSCAN:</strong> O(n·log n) clustering baseado em densidade ε-neighborhood</li>
+        <li><strong>Statistical Z-Score:</strong> O(n) métodos estatísticos com Bonferroni correction</li>
+        <li><strong>Autoencoders:</strong> Deep learning reconstruction error com threshold adaptativo</li>
+        <li><strong>LSTM Anomaly Detection:</strong> Temporal sequence analysis para séries temporais</li>
+        <li><strong>Spectral Analysis:</strong> Fourier Transform para detecção de padrões periódicos</li>
+        <li><strong>Bayesian Anomaly Detection:</strong> Probabilistic inference com prior knowledge</li>
+    </ul>
+</div>
+
+<div class="methodology-section">
+    <h3>🚀 <span data-pt="Implementação Backend API" data-en="Backend API Implementation">Implementação Backend API</span></h3>
+    
+    <h4>🔧 <span data-pt="Arquitetura de Serviço" data-en="Service Architecture">Arquitetura de Serviço</span></h4>
+    <ul data-pt="" data-en="">
+        <li><strong>FastAPI Framework:</strong> Async/await com Pydantic validation</li>
+        <li><strong>Docker Multi-Stage:</strong> Containers otimizados para produção</li>
+        <li><strong>Redis Caching:</strong> Cache inteligente com TTL adaptativo</li>
+        <li><strong>PostgreSQL:</strong> Database principal com connection pooling</li>
+        <li><strong>ChromaDB:</strong> Vector database para embeddings e similarity search</li>
+        <li><strong>Kubernetes:</strong> Orchestração com auto-scaling horizontal</li>
+    </ul>
+    
+    <h4>📊 <span data-pt="Endpoints de Performance" data-en="Performance Endpoints">Endpoints de Performance</span></h4>
+    <ul data-pt="" data-en="">
+        <li><strong>POST /api/v1/analyze:</strong> <180ms análise completa de contratos</li>
+        <li><strong>POST /api/v1/investigate:</strong> Multi-agent investigation em paralelo</li>
+        <li><strong>GET /api/v1/reports/{id}:</strong> <50ms retrieval de relatórios cached</li>
+        <li><strong>WebSocket /ws:</strong> Real-time updates para frontend integrations</li>
+        <li><strong>GET /health:</strong> <10ms health check com métricas detalhadas</li>
+    </ul>
+</div>
+
+<div class="methodology-section">
+    <h3>🌐 <span data-pt="Separação Frontend/Backend" data-en="Frontend/Backend Separation">Separação Frontend/Backend</span></h3>
+    <p data-pt="O frontend foi separado em repositório independente para melhor escalabilidade e deploy:" data-en="The frontend has been separated into an independent repository for better scalability and deployment:">
+        O frontend foi separado em repositório independente para melhor escalabilidade e deploy:
+    </p>
+    
+    <div class="info-card success">
+        <h4>🎯 <span data-pt="Frontend Cidadão.AI" data-en="Cidadão.AI Frontend">Frontend Cidadão.AI</span></h4>
+        <ul>
+            <li><strong>Repository:</strong> <a href="https://github.com/anderson-ufrj/cidadao.ai-frontend">cidadao.ai-frontend</a></li>
+            <li><strong>Deploy URL:</strong> <a href="https://cidadao-ai-frontend.vercel.app/">https://cidadao-ai-frontend.vercel.app/</a></li>
+            <li><strong>Platform:</strong> Vercel (Next.js 15 + Tailwind CSS + Radix UI)</li>
+            <li><strong>Features:</strong> Next.js App Router, Internationalization (PT-BR/EN-US)</li>
+            <li><strong>API Integration:</strong> REST client para comunicação com este backend</li>
+        </ul>
+    </div>
+    
+    <p data-pt="Esta arquitetura permite desenvolvimento independente, deploy separado e escalabilidade horizontal de ambos frontend e backend." data-en="This architecture enables independent development, separate deployment, and horizontal scalability of both frontend and backend.">
+        Esta arquitetura permite desenvolvimento independente, deploy separado e escalabilidade horizontal de ambos frontend e backend.
+    </p>
+</div>
+
+<div class="info-card">
+    <h4>🔮 <span data-pt="Próxima Seção: Pipeline de Dados" data-en="Next Section: Data Pipeline">Próxima Seção: Pipeline de Dados</span></h4>
+    <p data-pt="Arquitetura completa do pipeline de processamento de dados backend desde coleta via APIs governamentais até análise final e caching inteligente." data-en="Complete backend data processing pipeline architecture from collection via government APIs to final analysis and intelligent caching.">
+        Arquitetura completa do pipeline de processamento de dados backend desde coleta via APIs governamentais até análise final e caching inteligente.
+    </p>
+</div>

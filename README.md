@@ -17,7 +17,7 @@
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-automated-blue.svg)](https://github.com/anderson-ufrj/cidadao.ai-backend/actions)
 [![Security](https://img.shields.io/badge/security-enterprise-green.svg)](https://github.com/anderson-ufrj/cidadao.ai-backend/security)
 
-[Português](#-português) | [English](#-english) | [🎯 Frontend](https://github.com/anderson-ufrj/cidadao.ai-frontend) | [📖 Docs](https://anderson-ufrj.github.io/cidadao.ai/) | [🚀 Try Online](https://huggingface.co/spaces/neural-thinker/cidadao.ai-backend)
+[Português](#-português) | [English](#-english) | [🎯 Frontend](https://cidadao-ai-frontend.vercel.app/) | [📖 Docs](https://anderson-ufrj.github.io/cidadao.ai/) | [🚀 Backend API](https://huggingface.co/spaces/neural-thinker/cidadao.ai-backend)
 
 </div>
 
@@ -79,7 +79,7 @@ Este projeto contribui diretamente para o **ODS 16: Paz, Justiça e Instituiçõ
 - **📊 API Documentation**: [Swagger UI](https://api.cidadao.ai/docs)
 - **📚 Documentação Técnica**: [anderson-ufrj.github.io/cidadao.ai](https://anderson-ufrj.github.io/cidadao.ai/)
 - **💻 Repositório Backend**: [GitHub](https://github.com/anderson-ufrj/cidadao.ai-backend)
-- **🎯 Repositório Frontend**: [GitHub](https://github.com/anderson-ufrj/cidadao.ai-frontend)
+- **🎯 Frontend Separado**: [Vercel Deploy](https://cidadao-ai-frontend.vercel.app/) | [GitHub Repo](https://github.com/anderson-ufrj/cidadao.ai-frontend)
 
 #### ⚡ **Deploy Rápido com Docker**
 
@@ -300,7 +300,7 @@ This project directly contributes to **SDG 16: Peace, Justice and Strong Institu
 - **📊 API Documentation**: [Swagger UI](https://api.cidadao.ai/docs)
 - **📚 Technical Documentation**: [anderson-ufrj.github.io/cidadao.ai](https://anderson-ufrj.github.io/cidadao.ai/)
 - **💻 Backend Repository**: [GitHub](https://github.com/anderson-ufrj/cidadao.ai-backend)
-- **🎯 Frontend Repository**: [GitHub](https://github.com/anderson-ufrj/cidadao.ai-frontend)
+- **🎯 Separate Frontend**: [Vercel Deploy](https://cidadao-ai-frontend.vercel.app/) | [GitHub Repo](https://github.com/anderson-ufrj/cidadao.ai-frontend)
 
 #### ⚡ **Quick Deploy with Docker**
 

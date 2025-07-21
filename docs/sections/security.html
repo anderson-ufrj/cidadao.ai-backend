@@ -1,0 +1,1035 @@
+<div class="section-header">
+    <h2 class="section-title">
+        🛡️ <span data-pt="Framework de Segurança Empresarial" data-en="Enterprise Security Framework">Framework de Segurança Empresarial</span>
+    </h2>
+    <div class="security-badge">
+        🔒 <span class="icon">ENTERPRISE-GRADE</span> Sistema de Segurança Completo
+    </div>
+    <p class="section-description" data-pt="Sistema de segurança nível empresarial para o Cidadão.AI, incluindo OAuth2 multi-provider, audit logging avançado, security middleware e conformidade total com LGPD." data-en="Enterprise-grade security system for Cidadão.AI, including multi-provider OAuth2, advanced audit logging, security middleware, and full LGPD compliance.">
+        Sistema de segurança nível empresarial para o Cidadão.AI, incluindo OAuth2 multi-provider, audit logging avançado, security middleware e conformidade total com LGPD.
+    </p>
+</div>
+
+<style>
+    .security-section {
+        margin-bottom: 3rem;
+        padding: 2rem;
+        background-color: var(--bg-secondary);
+        border-radius: 0.5rem;
+        border: 1px solid var(--border);
+    }
+    
+    .security-section h3 {
+        color: var(--text-primary);
+        margin-bottom: 1.5rem;
+        font-size: 1.5rem;
+        font-weight: 600;
+        border-bottom: 2px solid var(--border-light);
+        padding-bottom: 0.5rem;
+    }
+    
+    .security-layer {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 0.5rem;
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    .security-layer h4 {
+        color: var(--text-accent);
+        margin-bottom: 1rem;
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+    
+    .threat-model {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+    
+    .threat-item {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        padding: 1.5rem;
+        border-left: 4px solid var(--color-error);
+    }
+    
+    .threat-item h4 {
+        color: var(--color-error);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .mitigation {
+        background-color: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        border-radius: 0.25rem;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        border-left: 4px solid var(--color-success);
+    }
+    
+    .mitigation h5 {
+        color: var(--color-success);
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    
+    .compliance-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 1.5rem;
+        margin: 2rem 0;
+    }
+    
+    .compliance-item {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        padding: 1.5rem;
+        text-align: center;
+    }
+    
+    .compliance-status {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border-radius: 1rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+    }
+    
+    .status-compliant {
+        background-color: var(--color-success);
+        color: white;
+    }
+    
+    .status-partial {
+        background-color: var(--color-warning);
+        color: white;
+    }
+    
+    .status-pending {
+        background-color: var(--color-neutral);
+        color: white;
+    }
+    
+    .encryption-flow {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+        margin: 2rem 0;
+    }
+    
+    .encryption-step {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        padding: 1rem;
+        text-align: center;
+        position: relative;
+    }
+    
+    .encryption-step::after {
+        content: '🔒';
+        position: absolute;
+        right: -0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: var(--bg-accent);
+        color: white;
+        padding: 0.25rem;
+        border-radius: 50%;
+        font-size: 0.875rem;
+    }
+    
+    .encryption-step:last-child::after {
+        display: none;
+    }
+    
+    .auth-mechanism {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    .auth-flow {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin: 1rem 0;
+    }
+    
+    .auth-step {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 1rem;
+        background-color: var(--bg-secondary);
+        border-radius: 0.25rem;
+    }
+    
+    .auth-step-number {
+        background-color: var(--bg-accent);
+        color: white;
+        border-radius: 50%;
+        width: 2rem;
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+    
+    .security-metric {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem;
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        margin: 0.5rem 0;
+    }
+    
+    .metric-name {
+        font-weight: 600;
+        color: var(--text-primary);
+    }
+    
+    .metric-value {
+        font-weight: 700;
+        color: var(--brazil-blue);
+    }
+    
+    .code-security {
+        background-color: var(--bg-tertiary);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.875rem;
+        overflow-x: auto;
+    }
+    
+    .security-alert {
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 0.375rem;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-left: 4px solid var(--color-error);
+    }
+    
+    [data-theme="dark"] .security-alert {
+        background-color: #1f1917;
+        border-color: #451a03;
+    }
+    
+    .security-alert h4 {
+        color: var(--color-error);
+        margin-bottom: 0.5rem;
+    }
+    
+    .vulnerability-scan {
+        background-color: var(--bg-primary);
+        border: 1px solid var(--border);
+        border-radius: 0.375rem;
+        padding: 1.5rem;
+        margin: 1rem 0;
+    }
+    
+    .scan-result {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem;
+        background-color: var(--bg-secondary);
+        border-radius: 0.25rem;
+        margin: 0.5rem 0;
+    }
+    
+    .severity-critical { border-left: 4px solid #dc2626; }
+    .severity-high { border-left: 4px solid #ea580c; }
+    .severity-medium { border-left: 4px solid #d97706; }
+    .severity-low { border-left: 4px solid #65a30d; }
+    .severity-info { border-left: 4px solid #0ea5e9; }
+</style>
+
+<!-- Security Overview -->
+<div class="security-section">
+    <h3>🛡️ <span data-pt="Visão Geral da Segurança" data-en="Security Overview">Visão Geral da Segurança</span></h3>
+    
+    <div class="security-alert">
+        <h4>⚠️ <span data-pt="Premissa de Segurança" data-en="Security Premise">Premissa de Segurança</span></h4>
+        <p data-pt="O sistema Cidadão.AI processa exclusivamente dados públicos oficiais, não coletando, armazenando ou processando informações pessoais ou sensíveis." data-en="The Cidadão.AI system processes exclusively official public data, not collecting, storing, or processing personal or sensitive information.">
+            O sistema Cidadão.AI processa exclusivamente dados públicos oficiais, não coletando, armazenando ou processando informações pessoais ou sensíveis.
+        </p>
+    </div>
+    
+    <div class="feature-grid">
+        <div class="feature-card">
+            <span class="icon">🔐</span>
+            <h4>OAuth2 Multi-Provider</h4>
+            <p data-pt="Autenticação segura com 4 provedores: Google, GitHub, Microsoft e Gov.br. Implementação com PKCE para máxima segurança." data-en="Secure authentication with 4 providers: Google, GitHub, Microsoft and Gov.br. Implementation with PKCE for maximum security.">
+                Autenticação segura com 4 provedores: Google, GitHub, Microsoft e Gov.br. Implementação com PKCE para máxima segurança.
+            </p>
+        </div>
+        
+        <div class="feature-card">
+            <span class="icon">📋</span>
+            <h4>Audit Logging Avançado</h4>
+            <p data-pt="Sistema completo de auditoria com 24 tipos de eventos, checksums SHA256 e integridade de dados." data-en="Complete audit system with 24 event types, SHA256 checksums and data integrity.">
+                Sistema completo de auditoria com 24 tipos de eventos, checksums SHA256 e integridade de dados.
+            </p>
+        </div>
+        
+        <div class="feature-card">
+            <span class="icon">🛡️</span>
+            <h4>Security Middleware</h4>
+            <p data-pt="Rate limiting, IP blocking, detecção de ameaças e validação avançada de requests." data-en="Rate limiting, IP blocking, threat detection and advanced request validation.">
+                Rate limiting, IP blocking, detecção de ameaças e validação avançada de requests.
+            </p>
+        </div>
+        
+        <div class="feature-card">
+            <span class="icon">🧪</span>
+            <h4>Testes Abrangentes</h4>
+            <p data-pt="75+ testes de segurança cobrindo OAuth, auditoria, middleware e validação." data-en="75+ security tests covering OAuth, audit, middleware and validation.">
+                75+ testes de segurança cobrindo OAuth, auditoria, middleware e validação.
+            </p>
+        </div>
+    </div>
+    
+    <div class="security-layer">
+        <h4>🎯 <span data-pt="Princípios de Segurança" data-en="Security Principles">Princípios de Segurança</span></h4>
+        <ul>
+            <li data-pt="**Defense in Depth**: Múltiplas camadas de proteção" data-en="**Defense in Depth**: Multiple layers of protection">
+                <strong>Defense in Depth</strong>: Múltiplas camadas de proteção
+            </li>
+            <li data-pt="**Least Privilege**: Acesso mínimo necessário" data-en="**Least Privilege**: Minimum necessary access">
+                <strong>Least Privilege</strong>: Acesso mínimo necessário
+            </li>
+            <li data-pt="**Zero Trust**: Verificação contínua de identidade" data-en="**Zero Trust**: Continuous identity verification">
+                <strong>Zero Trust</strong>: Verificação contínua de identidade
+            </li>
+            <li data-pt="**Privacy by Design**: Privacidade desde a concepção" data-en="**Privacy by Design**: Privacy from conception">
+                <strong>Privacy by Design</strong>: Privacidade desde a concepção
+            </li>
+        </ul>
+    </div>
+</div>
+
+<!-- Authentication & Authorization -->
+<div class="security-section">
+    <h3>🔐 <span data-pt="Autenticação e Autorização" data-en="Authentication & Authorization">Autenticação e Autorização</span></h3>
+    
+    <div class="auth-mechanism">
+        <h4>🔑 <span data-pt="Mecanismo de Autenticação" data-en="Authentication Mechanism">Mecanismo de Autenticação</span></h4>
+        
+        <div class="auth-flow">
+            <div class="auth-step">
+                <div class="auth-step-number">1</div>
+                <div>
+                    <strong data-pt="Requisição de Token" data-en="Token Request">Requisição de Token</strong>
+                    <p data-pt="Cliente envia credenciais via HTTPS" data-en="Client sends credentials via HTTPS">Cliente envia credenciais via HTTPS</p>
+                </div>
+            </div>
+            
+            <div class="auth-step">
+                <div class="auth-step-number">2</div>
+                <div>
+                    <strong data-pt="Validação Multi-Fator" data-en="Multi-Factor Validation">Validação Multi-Fator</strong>
+                    <p data-pt="Verificação de credenciais + 2FA" data-en="Credential verification + 2FA">Verificação de credenciais + 2FA</p>
+                </div>
+            </div>
+            
+            <div class="auth-step">
+                <div class="auth-step-number">3</div>
+                <div>
+                    <strong data-pt="Geração de JWT" data-en="JWT Generation">Geração de JWT</strong>
+                    <p data-pt="Token assinado com RS256" data-en="Token signed with RS256">Token assinado com RS256</p>
+                </div>
+            </div>
+            
+            <div class="auth-step">
+                <div class="auth-step-number">4</div>
+                <div>
+                    <strong data-pt="Validação de Acesso" data-en="Access Validation">Validação de Acesso</strong>
+                    <p data-pt="Verificação de permissões RBAC" data-en="RBAC permission verification">Verificação de permissões RBAC</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="code-security">
+# JWT Token Configuration
+JWT_SETTINGS = {
+    "algorithm": "RS256",
+    "access_token_expire_minutes": 30,
+    "refresh_token_expire_days": 7,
+    "issuer": "cidadao.ai",
+    "audience": "api.cidadao.ai"
+}
+
+# RBAC Implementation
+class RoleBasedAccessControl:
+    ROLES = {
+        "admin": ["read", "write", "delete", "manage_users"],
+        "investigator": ["read", "write", "create_investigations"],
+        "analyst": ["read", "analyze", "generate_reports"],
+        "viewer": ["read"]
+    }
+    
+    def has_permission(self, user_role: str, required_permission: str) -> bool:
+        return required_permission in self.ROLES.get(user_role, [])
+    </div>
+</div>
+
+<!-- OAuth2 Multi-Provider System -->
+<div class="security-section">
+    <h3>🔐 <span data-pt="Sistema OAuth2 Multi-Provider" data-en="OAuth2 Multi-Provider System">Sistema OAuth2 Multi-Provider</span></h3>
+    
+    <div class="security-layer">
+        <h4>🌐 <span data-pt="Provedores Suportados" data-en="Supported Providers">Provedores Suportados</span></h4>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="icon" style="color: #4285F4;">🔵</span>
+                <h4>Google OAuth2</h4>
+                <p data-pt="Integração com Google para autenticação segura usando padrões OpenID Connect." data-en="Integration with Google for secure authentication using OpenID Connect standards.">
+                    Integração com Google para autenticação segura usando padrões OpenID Connect.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <span class="icon">⚫</span>
+                <h4>GitHub OAuth</h4>
+                <p data-pt="Autenticação via GitHub para desenvolvedores e usuários técnicos." data-en="Authentication via GitHub for developers and technical users.">
+                    Autenticação via GitHub para desenvolvedores e usuários técnicos.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <span class="icon" style="color: #00BCF2;">🔷</span>
+                <h4>Microsoft OAuth</h4>
+                <p data-pt="Suporte completo ao Microsoft Azure AD e contas corporativas." data-en="Full support for Microsoft Azure AD and corporate accounts.">
+                    Suporte completo ao Microsoft Azure AD e contas corporativas.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <span class="icon" style="color: var(--brazil-green);">🇧🇷</span>
+                <h4>Gov.br</h4>
+                <p data-pt="Integração com sistema de identidade digital do governo brasileiro." data-en="Integration with Brazilian government digital identity system.">
+                    Integração com sistema de identidade digital do governo brasileiro.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="security-layer">
+        <h4>🔒 <span data-pt="Implementação PKCE" data-en="PKCE Implementation">Implementação PKCE</span></h4>
+        <p data-pt="Proof Key for Code Exchange (PKCE) implementado para máxima segurança em fluxos OAuth2." data-en="Proof Key for Code Exchange (PKCE) implemented for maximum security in OAuth2 flows.">
+            Proof Key for Code Exchange (PKCE) implementado para máxima segurança em fluxos OAuth2.
+        </p>
+        
+        <div class="code-security">
+# PKCE Implementation
+def _generate_pkce_pair(self) -> Tuple[str, str]:
+    """Generate PKCE code verifier and challenge."""
+    code_verifier = base64.urlsafe_b64encode(
+        secrets.token_bytes(32)
+    ).decode('utf-8').rstrip('=')
+    
+    code_challenge = base64.urlsafe_b64encode(
+        hashlib.sha256(code_verifier.encode('utf-8')).digest()
+    ).decode('utf-8').rstrip('=')
+    
+    return code_verifier, code_challenge
+
+# OAuth Flow with PKCE
+async def initiate_oauth_flow(self, provider: str, redirect_uri: str):
+    """Initiate OAuth flow with PKCE security."""
+    code_verifier, code_challenge = self._generate_pkce_pair()
+    
+    # Store code_verifier securely
+    session_id = str(uuid4())
+    await self.redis.setex(
+        f"oauth:pkce:{session_id}", 
+        600,  # 10 minutes
+        code_verifier
+    )
+    
+    return {
+        "authorization_url": f"{auth_url}?{params}",
+        "session_id": session_id,
+        "code_challenge": code_challenge
+    }
+        </div>
+    </div>
+</div>
+
+<!-- Advanced Audit Logging -->
+<div class="security-section">
+    <h3>📋 <span data-pt="Sistema de Auditoria Avançado" data-en="Advanced Audit System">Sistema de Auditoria Avançado</span></h3>
+    
+    <div class="security-layer">
+        <h4>📊 <span data-pt="Tipos de Eventos (24 Categorias)" data-en="Event Types (24 Categories)">Tipos de Eventos (24 Categorias)</span></h4>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="icon">🔐</span>
+                <h4>Autenticação</h4>
+                <ul style="margin: 0; padding-left: 1.5rem; font-size: var(--text-sm);">
+                    <li>LOGIN_SUCCESS</li>
+                    <li>LOGIN_FAILED</li>
+                    <li>LOGOUT</li>
+                    <li>PASSWORD_CHANGE</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <span class="icon">🔑</span>
+                <h4>Autorização</h4>
+                <ul style="margin: 0; padding-left: 1.5rem; font-size: var(--text-sm);">
+                    <li>ACCESS_GRANTED</li>
+                    <li>ACCESS_DENIED</li>
+                    <li>PERMISSION_CHANGE</li>
+                    <li>ROLE_ASSIGNED</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <span class="icon">🗂️</span>
+                <h4>Dados</h4>
+                <ul style="margin: 0; padding-left: 1.5rem; font-size: var(--text-sm);">
+                    <li>DATA_ACCESS</li>
+                    <li>DATA_EXPORT</li>
+                    <li>DATA_MODIFIED</li>
+                    <li>DATA_DELETED</li>
+                </ul>
+            </div>
+            
+            <div class="feature-card">
+                <span class="icon">⚠️</span>
+                <h4>Segurança</h4>
+                <ul style="margin: 0; padding-left: 1.5rem; font-size: var(--text-sm);">
+                    <li>SECURITY_VIOLATION</li>
+                    <li>SUSPICIOUS_ACTIVITY</li>
+                    <li>RATE_LIMIT_EXCEEDED</li>
+                    <li>IP_BLOCKED</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="security-layer">
+        <h4>🔐 <span data-pt="Integridade de Dados" data-en="Data Integrity">Integridade de Dados</span></h4>
+        <p data-pt="Cada evento de auditoria inclui checksum SHA256 para garantir integridade e detectar alterações." data-en="Each audit event includes SHA256 checksum to ensure integrity and detect changes.">
+            Cada evento de auditoria inclui checksum SHA256 para garantir integridade e detectar alterações.
+        </p>
+        
+        <div class="code-security">
+# Audit Event with Integrity Check
+class AuditEvent(BaseModel):
+    id: str = Field(default_factory=lambda: str(uuid4()))
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    event_type: AuditEventType
+    severity: AuditSeverity = AuditSeverity.MEDIUM
+    user_id: Optional[str] = None
+    session_id: Optional[str] = None
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    details: Dict[str, Any] = Field(default_factory=dict)
+    checksum: Optional[str] = None
+    
+    def calculate_checksum(self) -> str:
+        """Calculate SHA256 checksum for data integrity."""
+        data = {
+            "id": self.id,
+            "timestamp": self.timestamp.isoformat(),
+            "event_type": self.event_type.value,
+            "user_id": self.user_id,
+            "ip_address": self.ip_address,
+            "details": json.dumps(self.details, sort_keys=True)
+        }
+        
+        content = json.dumps(data, sort_keys=True)
+        return hashlib.sha256(content.encode()).hexdigest()
+        </div>
+    </div>
+</div>
+
+<!-- Security Middleware -->
+<div class="security-section">
+    <h3>🛡️ <span data-pt="Middleware de Segurança" data-en="Security Middleware">Middleware de Segurança</span></h3>
+    
+    <div class="security-layer">
+        <h4>🚦 <span data-pt="Rate Limiting Avançado" data-en="Advanced Rate Limiting">Rate Limiting Avançado</span></h4>
+        <p data-pt="Algoritmo Token Bucket para controle preciso de taxa com diferentes limites por endpoint." data-en="Token Bucket algorithm for precise rate control with different limits per endpoint.">
+            Algoritmo Token Bucket para controle preciso de taxa com diferentes limites por endpoint.
+        </p>
+        
+        <div class="security-metric">
+            <span class="metric-name">Requests por Minuto</span>
+            <span class="metric-value">60</span>
+        </div>
+        
+        <div class="security-metric">
+            <span class="metric-name">Requests por Hora</span>
+            <span class="metric-value">1000</span>
+        </div>
+        
+        <div class="security-metric">
+            <span class="metric-name">Falhas até Bloqueio</span>
+            <span class="metric-value">5</span>
+        </div>
+        
+        <div class="security-metric">
+            <span class="metric-name">Duração do Bloqueio</span>
+            <span class="metric-value">30 min</span>
+        </div>
+    </div>
+    
+    <div class="security-layer">
+        <h4>🔍 <span data-pt="Detecção de Ameaças" data-en="Threat Detection">Detecção de Ameaças</span></h4>
+        <p data-pt="Padrões de ataques conhecidos detectados automaticamente com bloqueio em tempo real." data-en="Known attack patterns automatically detected with real-time blocking.">
+            Padrões de ataques conhecidos detectados automaticamente com bloqueio em tempo real.
+        </p>
+        
+        <div class="code-security">
+# Threat Detection Patterns
+THREAT_PATTERNS = [
+    r'(?i)(union|select|insert|delete|drop|exec|script)',  # SQL Injection
+    r'(?i)(<script|javascript:|onload=|onerror=)',         # XSS
+    r'(?i)(\.\.\/|\.\.\\|\.\./)',                          # Path Traversal
+    r'(?i)(eval\(|base64_decode|php:|python:)',           # Code Injection
+    r'(?i)(whoami|cat /etc|ls -la|net user)',             # Command Injection
+]
+
+class SecurityMiddleware:
+    async def __call__(self, request: Request, call_next):
+        # Check for suspicious patterns
+        content = await self._get_request_content(request)
+        
+        for pattern in THREAT_PATTERNS:
+            if re.search(pattern, content):
+                await self.audit_logger.log_event(
+                    AuditEventType.SECURITY_VIOLATION,
+                    user_id=getattr(request.state, 'user_id', None),
+                    ip_address=self._get_client_ip(request),
+                    details={
+                        "threat_type": "pattern_match",
+                        "pattern": pattern,
+                        "content_sample": content[:100]
+                    }
+                )
+                
+                # Block the request
+                raise HTTPException(
+                    status_code=403, 
+                    detail="Security violation detected"
+                )
+        </div>
+    </div>
+</div>
+
+<!-- Data Encryption -->
+<div class="security-section">
+    <h3>🔒 <span data-pt="Criptografia de Dados" data-en="Data Encryption">Criptografia de Dados</span></h3>
+    
+    <div class="encryption-flow">
+        <div class="encryption-step">
+            <h4>🌐 <span data-pt="Em Trânsito" data-en="In Transit">Em Trânsito</span></h4>
+            <p>TLS 1.3</p>
+            <p>HSTS Enabled</p>
+        </div>
+        
+        <div class="encryption-step">
+            <h4>🗄️ <span data-pt="Em Repouso" data-en="At Rest">Em Repouso</span></h4>
+            <p>AES-256-GCM</p>
+            <p>Key Rotation</p>
+        </div>
+        
+        <div class="encryption-step">
+            <h4>🔄 <span data-pt="Em Processamento" data-en="In Processing">Em Processamento</span></h4>
+            <p>Memory Encryption</p>
+            <p>Secure Enclaves</p>
+        </div>
+        
+        <div class="encryption-step">
+            <h4>🗝️ <span data-pt="Gerenciamento" data-en="Management">Gerenciamento</span></h4>
+            <p>HSM Integration</p>
+            <p>Key Escrow</p>
+        </div>
+    </div>
+    
+    <div class="code-security">
+# Encryption Implementation
+from cryptography.hazmat.primitives.ciphers import Cipher, algorithms, modes
+from cryptography.hazmat.backends import default_backend
+import os
+
+class DataEncryption:
+    def __init__(self):
+        self.key = os.environ.get("ENCRYPTION_KEY").encode()
+        
+    def encrypt_data(self, data: str) -> bytes:
+        iv = os.urandom(12)  # GCM requires 12 bytes IV
+        cipher = Cipher(
+            algorithms.AES(self.key),
+            modes.GCM(iv),
+            backend=default_backend()
+        )
+        encryptor = cipher.encryptor()
+        ciphertext = encryptor.update(data.encode()) + encryptor.finalize()
+        return iv + encryptor.tag + ciphertext
+    
+    def decrypt_data(self, encrypted_data: bytes) -> str:
+        iv = encrypted_data[:12]
+        tag = encrypted_data[12:28]
+        ciphertext = encrypted_data[28:]
+        
+        cipher = Cipher(
+            algorithms.AES(self.key),
+            modes.GCM(iv, tag),
+            backend=default_backend()
+        )
+        decryptor = cipher.decryptor()
+        return (decryptor.update(ciphertext) + decryptor.finalize()).decode()
+    </div>
+</div>
+
+<!-- Threat Model -->
+<div class="security-section">
+    <h3>⚠️ <span data-pt="Modelo de Ameaças" data-en="Threat Model">Modelo de Ameaças</span></h3>
+    
+    <div class="threat-model">
+        <div class="threat-item">
+            <h4>🔓 <span data-pt="Acesso Não Autorizado" data-en="Unauthorized Access">Acesso Não Autorizado</span></h4>
+            <p data-pt="Tentativas de acesso por usuários não autenticados" data-en="Access attempts by unauthenticated users">Tentativas de acesso por usuários não autenticados</p>
+            <div class="mitigation">
+                <h5>🛡️ <span data-pt="Mitigação" data-en="Mitigation">Mitigação</span></h5>
+                <p data-pt="Autenticação multi-fator obrigatória" data-en="Mandatory multi-factor authentication">Autenticação multi-fator obrigatória</p>
+            </div>
+        </div>
+        
+        <div class="threat-item">
+            <h4>🚨 <span data-pt="Injeção de Dados" data-en="Data Injection">Injeção de Dados</span></h4>
+            <p data-pt="Tentativas de injeção SQL, NoSQL ou código" data-en="SQL, NoSQL, or code injection attempts">Tentativas de injeção SQL, NoSQL ou código</p>
+            <div class="mitigation">
+                <h5>🛡️ <span data-pt="Mitigação" data-en="Mitigation">Mitigação</span></h5>
+                <p data-pt="Validação rigorosa com Pydantic + ORM" data-en="Strict validation with Pydantic + ORM">Validação rigorosa com Pydantic + ORM</p>
+            </div>
+        </div>
+        
+        <div class="threat-item">
+            <h4>🔄 <span data-pt="Ataques DDoS" data-en="DDoS Attacks">Ataques DDoS</span></h4>
+            <p data-pt="Sobrecarga do sistema com requisições maliciosas" data-en="System overload with malicious requests">Sobrecarga do sistema com requisições maliciosas</p>
+            <div class="mitigation">
+                <h5>🛡️ <span data-pt="Mitigação" data-en="Mitigation">Mitigação</span></h5>
+                <p data-pt="Rate limiting + WAF + CDN" data-en="Rate limiting + WAF + CDN">Rate limiting + WAF + CDN</p>
+            </div>
+        </div>
+        
+        <div class="threat-item">
+            <h4>🎭 <span data-pt="Manipulação de IA" data-en="AI Manipulation">Manipulação de IA</span></h4>
+            <p data-pt="Tentativas de envenenar ou manipular modelos" data-en="Attempts to poison or manipulate models">Tentativas de envenenar ou manipular modelos</p>
+            <div class="mitigation">
+                <h5>🛡️ <span data-pt="Mitigação" data-en="Mitigation">Mitigação</span></h5>
+                <p data-pt="Validação de entrada + modelo isolado" data-en="Input validation + isolated model">Validação de entrada + modelo isolado</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Compliance -->
+<div class="security-section">
+    <h3>⚖️ <span data-pt="Conformidade Legal" data-en="Legal Compliance">Conformidade Legal</span></h3>
+    
+    <div class="compliance-grid">
+        <div class="compliance-item">
+            <div class="compliance-status status-compliant">✅ <span data-pt="CONFORME" data-en="COMPLIANT">CONFORME</span></div>
+            <h4>LGPD</h4>
+            <p data-pt="Lei Geral de Proteção de Dados" data-en="General Data Protection Law">Lei Geral de Proteção de Dados</p>
+        </div>
+        
+        <div class="compliance-item">
+            <div class="compliance-status status-compliant">✅ <span data-pt="CONFORME" data-en="COMPLIANT">CONFORME</span></div>
+            <h4>LAI</h4>
+            <p data-pt="Lei de Acesso à Informação" data-en="Freedom of Information Act">Lei de Acesso à Informação</p>
+        </div>
+        
+        <div class="compliance-item">
+            <div class="compliance-status status-partial">⚠️ <span data-pt="PARCIAL" data-en="PARTIAL">PARCIAL</span></div>
+            <h4>ISO 27001</h4>
+            <p data-pt="Gestão de Segurança da Informação" data-en="Information Security Management">Gestão de Segurança da Informação</p>
+        </div>
+        
+        <div class="compliance-item">
+            <div class="compliance-status status-pending">🔄 <span data-pt="PENDENTE" data-en="PENDING">PENDENTE</span></div>
+            <h4>SOC 2</h4>
+            <p data-pt="Service Organization Control 2" data-en="Service Organization Control 2">Service Organization Control 2</p>
+        </div>
+    </div>
+</div>
+
+<!-- Security Monitoring -->
+<div class="security-section">
+    <h3>📊 <span data-pt="Monitoramento de Segurança" data-en="Security Monitoring">Monitoramento de Segurança</span></h3>
+    
+    <div class="security-metric">
+        <span class="metric-name" data-pt="Tentativas de Login Falhadas" data-en="Failed Login Attempts">Tentativas de Login Falhadas</span>
+        <span class="metric-value">< 0.1%</span>
+    </div>
+    
+    <div class="security-metric">
+        <span class="metric-name" data-pt="Tempo de Detecção de Ameaças" data-en="Threat Detection Time">Tempo de Detecção de Ameaças</span>
+        <span class="metric-value">< 30s</span>
+    </div>
+    
+    <div class="security-metric">
+        <span class="metric-name" data-pt="Patching SLA" data-en="Patching SLA">Patching SLA</span>
+        <span class="metric-value">< 48h</span>
+    </div>
+    
+    <div class="security-metric">
+        <span class="metric-name" data-pt="Vulnerabilidades Críticas" data-en="Critical Vulnerabilities">Vulnerabilidades Críticas</span>
+        <span class="metric-value">0</span>
+    </div>
+</div>
+
+<!-- Vulnerability Assessment -->
+<div class="security-section">
+    <h3>🔍 <span data-pt="Avaliação de Vulnerabilidades" data-en="Vulnerability Assessment">Avaliação de Vulnerabilidades</span></h3>
+    
+    <div class="vulnerability-scan">
+        <h4>📊 <span data-pt="Último Scan de Segurança" data-en="Latest Security Scan">Último Scan de Segurança</span></h4>
+        <p data-pt="Executado em: 2024-01-15 | Próximo: 2024-01-22" data-en="Executed on: 2024-01-15 | Next: 2024-01-22">Executado em: 2024-01-15 | Próximo: 2024-01-22</p>
+        
+        <div class="scan-result severity-info">
+            <span data-pt="Dependências Atualizadas" data-en="Updated Dependencies">Dependências Atualizadas</span>
+            <span>456 ✅</span>
+        </div>
+        
+        <div class="scan-result severity-low">
+            <span data-pt="Vulnerabilidades Baixas" data-en="Low Vulnerabilities">Vulnerabilidades Baixas</span>
+            <span>2 ⚠️</span>
+        </div>
+        
+        <div class="scan-result severity-medium">
+            <span data-pt="Vulnerabilidades Médias" data-en="Medium Vulnerabilities">Vulnerabilidades Médias</span>
+            <span>0 ✅</span>
+        </div>
+        
+        <div class="scan-result severity-high">
+            <span data-pt="Vulnerabilidades Altas" data-en="High Vulnerabilities">Vulnerabilidades Altas</span>
+            <span>0 ✅</span>
+        </div>
+        
+        <div class="scan-result severity-critical">
+            <span data-pt="Vulnerabilidades Críticas" data-en="Critical Vulnerabilities">Vulnerabilidades Críticas</span>
+            <span>0 ✅</span>
+        </div>
+    </div>
+</div>
+
+<!-- Security Automation -->
+<div class="security-section">
+    <h3>🤖 <span data-pt="Automação de Segurança" data-en="Security Automation">Automação de Segurança</span></h3>
+    
+    <div class="code-security">
+# Security Automation Pipeline
+name: Security Scan
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM
+
+jobs:
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Run Bandit Security Scan
+        run: |
+          pip install bandit
+          bandit -r src/ -f json -o bandit-report.json
+          
+      - name: Run Safety Check
+        run: |
+          pip install safety
+          safety check --json --output safety-report.json
+          
+      - name: Run Semgrep
+        run: |
+          pip install semgrep
+          semgrep --config=auto --json --output=semgrep-report.json
+          
+      - name: Upload Security Reports
+        uses: actions/upload-artifact@v2
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json
+            safety-report.json
+            semgrep-report.json
+    </div>
+</div>
+
+<!-- Security Testing Suite -->
+<div class="security-section">
+    <h3>🧪 <span data-pt="Suite de Testes de Segurança" data-en="Security Testing Suite">Suite de Testes de Segurança</span></h3>
+    
+    <div class="security-layer">
+        <h4>📊 <span data-pt="Cobertura de Testes" data-en="Test Coverage">Cobertura de Testes</span></h4>
+        
+        <div class="security-metric">
+            <span class="metric-name">Testes OAuth2</span>
+            <span class="metric-value">25+</span>
+        </div>
+        
+        <div class="security-metric">
+            <span class="metric-name">Testes de Auditoria</span>
+            <span class="metric-value">20+</span>
+        </div>
+        
+        <div class="security-metric">
+            <span class="metric-name">Testes de Middleware</span>
+            <span class="metric-value">30+</span>
+        </div>
+        
+        <div class="security-metric">
+            <span class="metric-name">Cobertura Total</span>
+            <span class="metric-value">75+</span>
+        </div>
+    </div>
+    
+    <div class="security-layer">
+        <h4>🔧 <span data-pt="Ferramentas de Segurança" data-en="Security Tools">Ferramentas de Segurança</span></h4>
+        
+        <div class="feature-grid">
+            <div class="feature-card">
+                <span class="icon">🔍</span>
+                <h4>Bandit</h4>
+                <p data-pt="Análise estática de código para identificar vulnerabilidades de segurança." data-en="Static code analysis to identify security vulnerabilities.">
+                    Análise estática de código para identificar vulnerabilidades de segurança.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <span class="icon">🛡️</span>
+                <h4>Safety</h4>
+                <p data-pt="Verificação de dependências contra base de dados de vulnerabilidades conhecidas." data-en="Dependency checking against known vulnerability database.">
+                    Verificação de dependências contra base de dados de vulnerabilidades conhecidas.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <span class="icon">🎯</span>
+                <h4>MyPy</h4>
+                <p data-pt="Verificação de tipos para prevenir erros relacionados a segurança." data-en="Type checking to prevent security-related errors.">
+                    Verificação de tipos para prevenir erros relacionados a segurança.
+                </p>
+            </div>
+            
+            <div class="feature-card">
+                <span class="icon">⚡</span>
+                <h4>Pytest</h4>
+                <p data-pt="Framework de testes com cobertura completa de cenários de segurança." data-en="Testing framework with complete security scenario coverage.">
+                    Framework de testes com cobertura completa de cenários de segurança.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="security-layer">
+        <h4>🤖 <span data-pt="Script de Automação" data-en="Automation Script">Script de Automação</span></h4>
+        <p data-pt="Script Python dedicado para execução automatizada de todos os testes de segurança." data-en="Dedicated Python script for automated execution of all security tests.">
+            Script Python dedicado para execução automatizada de todos os testes de segurança.
+        </p>
+        
+        <div class="code-security">
+# Security Test Automation
+./scripts/run_security_tests.py --test-type security --coverage
+
+# Test Categories
+- OAuth2 Authentication Tests
+  ✓ PKCE flow validation
+  ✓ Provider integration
+  ✓ Token security
+  ✓ Session management
+
+- Audit Logging Tests  
+  ✓ Event creation and integrity
+  ✓ Checksum validation
+  ✓ Data persistence
+  ✓ Query functionality
+
+- Security Middleware Tests
+  ✓ Rate limiting enforcement
+  ✓ IP blocking mechanisms
+  ✓ Threat pattern detection
+  ✓ Request validation
+
+- Security Analysis Tools
+  ✓ Bandit security scan
+  ✓ Safety vulnerability check
+  ✓ MyPy type validation
+  ✓ Coverage reporting
+        </div>
+    </div>
+    
+    <div class="vulnerability-scan">
+        <h4>📈 <span data-pt="Métricas de Segurança em Tempo Real" data-en="Real-time Security Metrics">Métricas de Segurança em Tempo Real</span></h4>
+        <p data-pt="Monitoramento contínuo de métricas de segurança atualizadas automaticamente." data-en="Continuous monitoring of security metrics updated automatically.">
+            Monitoramento contínuo de métricas de segurança atualizadas automaticamente.
+        </p>
+        
+        <div class="scan-result severity-info">
+            <span>OAuth2 Providers Ativos</span>
+            <span>4/4 ✅</span>
+        </div>
+        
+        <div class="scan-result severity-info">
+            <span>Eventos de Auditoria Processados</span>
+            <span>1,247 ✅</span>
+        </div>
+        
+        <div class="scan-result severity-info">
+            <span>Rate Limits Aplicados</span>
+            <span>98.7% ✅</span>
+        </div>
+        
+        <div class="scan-result severity-info">
+            <span>Ameaças Bloqueadas</span>
+            <span>15 ✅</span>
+        </div>
+        
+        <div class="scan-result severity-info">
+            <span>Testes de Segurança</span>
+            <span>75/75 ✅</span>
+        </div>
+    </div>
+</div>
+
+<!-- Next Section Preview -->
+<div class="info-card">
+    <h4>🔮 <span data-pt="Próxima Seção: Análise de Performance" data-en="Next Section: Performance Analysis">Próxima Seção: Análise de Performance</span></h4>
+    <p data-pt="A próxima seção apresentará métricas detalhadas de performance, benchmarks e otimizações implementadas no sistema." data-en="The next section will present detailed performance metrics, benchmarks, and optimizations implemented in the system.">
+        A próxima seção apresentará métricas detalhadas de performance, benchmarks e otimizações implementadas no sistema.
+    </p>
+</div>

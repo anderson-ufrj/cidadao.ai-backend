@@ -1,0 +1,1659 @@
+<!DOCTYPE html>
+<html lang="pt-BR" id="html-root">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cidadão.AI - Documentação Técnica Completa</title>
+    <meta name="description" content="Documentação técnica completa da plataforma Cidadão.AI - Sistema de IA multi-agente para transparência governamental brasileira">
+    <meta name="keywords" content="inteligência artificial, transparência, governo, brasil, dados públicos, multi-agent, API, REST, machine learning, research">
+    <meta name="author" content="Anderson Henrique da Silva">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="Portuguese">
+    <meta name="revisit-after" content="7 days">
+    
+    <!-- Canonical URL for GitHub Pages -->
+    <link rel="canonical" href="https://anderson-ufrj.github.io/cidadao.ai/docs/">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🔍</text></svg>">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Cidadão.AI - Documentação Técnica Completa">
+    <meta property="og:description" content="Sistema de IA multi-agente para análise de transparência governamental brasileira - Documentação técnica completa">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://anderson-ufrj.github.io/cidadao.ai/docs/">
+    <meta property="og:site_name" content="Cidadão.AI">
+    <meta property="og:locale" content="pt_BR">
+    <meta property="og:locale:alternate" content="en_US">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Cidadão.AI - Documentação Técnica">
+    <meta name="twitter:description" content="Sistema de IA multi-agente para transparência governamental brasileira">
+    <meta name="twitter:creator" content="@anderson_ufrj">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Crimson+Text:wght@400;600;700&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Crimson+Text:wght@400;600;700&display=swap" rel="stylesheet"></noscript>
+    
+    <!-- Math rendering -->
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']]
+            }
+        };
+    </script>
+    
+    <!-- Highlight.js for code syntax -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+    
+    <!-- Mermaid for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    
+    <!-- Main Styles -->
+    <link rel="stylesheet" href="./assets/css/main.css">
+    
+    <style>
+        /* Only critical inline styles remain here */
+        :root {
+            /* Light Theme */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8fafc;
+            --bg-tertiary: #f1f5f9;
+            --bg-sidebar: #f8fafc;
+            --bg-hover: #e2e8f0;
+            --bg-code: #f8fafc;
+            --bg-accent: #3b82f6;
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-tertiary: #64748b;
+            --text-accent: #1e40af;
+            --text-muted: #94a3b8;
+            --text-code: #1e293b;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --border-hover: #cbd5e1;
+            --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            
+            /* Status Colors */
+            --color-success: #10b981;
+            --color-warning: #f59e0b;
+            --color-error: #ef4444;
+            --color-info: #3b82f6;
+            --color-neutral: #6b7280;
+            
+            /* Brazilian Colors */
+            --brazil-green: #009639;
+            --brazil-yellow: #ffdf00;
+            --brazil-blue: #002776;
+            
+            /* Typography Scale */
+            --text-xs: 0.75rem;
+            --text-sm: 0.875rem;
+            --text-base: 1rem;
+            --text-lg: 1.125rem;
+            --text-xl: 1.25rem;
+            --text-2xl: 1.5rem;
+            --text-3xl: 1.875rem;
+            --text-4xl: 2.25rem;
+            --text-5xl: 3rem;
+        }
+
+        /* Dark Theme */
+        [data-theme="dark"] {
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-tertiary: #334155;
+            --bg-sidebar: #1e293b;
+            --bg-hover: #334155;
+            --bg-code: #1e293b;
+            --bg-accent: #3b82f6;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --text-tertiary: #94a3b8;
+            --text-accent: #60a5fa;
+            --text-muted: #64748b;
+            --text-code: #e2e8f0;
+            --border: #334155;
+            --border-light: #475569;
+            --border-hover: #475569;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 320px;
+            background-color: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            padding: 2rem 1.5rem;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+        }
+
+        .logo-text {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .logo-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-tertiary);
+            margin-top: 0.25rem;
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .control-button {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            background-color: var(--bg-primary);
+            color: var(--text-secondary);
+            border-radius: 0.375rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.875rem;
+        }
+
+        .control-button:hover {
+            background-color: var(--bg-hover);
+            border-color: var(--border-hover);
+        }
+
+        .control-button.active {
+            background-color: var(--bg-accent);
+            color: white;
+            border-color: var(--bg-accent);
+        }
+
+        .language-selector {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .lang-flag {
+            font-size: 1rem;
+            min-width: 2.5rem;
+            padding: 0.5rem 0.25rem;
+        }
+
+        .lang-flag.active {
+            background-color: var(--brazil-green);
+            border-color: var(--brazil-green);
+            transform: scale(1.1);
+        }
+
+        /* Navigation */
+        .nav-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.75rem;
+        }
+
+        .nav-links {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.375rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .nav-link:hover {
+            background-color: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .nav-link.active {
+            background-color: var(--bg-accent);
+            color: white;
+        }
+
+        .nav-link.loading {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        /* Main Content */
+        .main-content {
+            margin-left: 320px;
+            flex: 1;
+            padding: 2rem 3rem;
+            max-width: calc(100% - 320px);
+        }
+
+        .content-section {
+            display: none;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .section-header {
+            margin-bottom: 3rem;
+            text-align: center;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .section-description {
+            font-size: 1.125rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Loading States */
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 3rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--bg-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #991b1b;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+
+        [data-theme="dark"] .error-message {
+            background-color: #1f1917;
+            border-color: #451a03;
+            color: #fed7aa;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 280px;
+            }
+            
+            .main-content {
+                margin-left: 280px;
+                max-width: calc(100% - 280px);
+                padding: 1.5rem 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .main-content {
+                margin-left: 0;
+                max-width: 100%;
+                padding: 1rem;
+            }
+            
+            .mobile-menu-button {
+                display: block;
+                position: fixed;
+                top: 1rem;
+                left: 1rem;
+                z-index: 1001;
+                background-color: var(--bg-accent);
+                color: white;
+                border: none;
+                padding: 0.75rem;
+                border-radius: 0.375rem;
+                cursor: pointer;
+            }
+        }
+
+        .mobile-menu-button {
+            display: none;
+        }
+
+        /* Progress Indicator */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: var(--border-light);
+            z-index: 9999;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--brazil-green), var(--brazil-yellow), var(--brazil-blue));
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        /* Academic Styling */
+        .academic-header {
+            background: linear-gradient(135deg, var(--brazil-blue), var(--brazil-green));
+            color: white;
+            padding: 4rem 0;
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .academic-title {
+            font-family: 'Crimson Text', serif;
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .academic-subtitle {
+            font-size: 1.25rem;
+            opacity: 0.9;
+            margin-bottom: 0.5rem;
+        }
+
+        .academic-meta {
+            font-size: 1rem;
+            opacity: 0.8;
+        }
+
+        /* Error message styling */
+        .error-message {
+            background-color: #fef2f2;
+            border: 1px solid #fecaca;
+            border-radius: 0.5rem;
+            padding: 2rem;
+            margin: 2rem 0;
+            text-align: center;
+        }
+
+        [data-theme="dark"] .error-message {
+            background-color: #7f1d1d;
+            border-color: #dc2626;
+        }
+
+        .error-message h3 {
+            color: #dc2626;
+            margin-bottom: 1rem;
+        }
+
+        [data-theme="dark"] .error-message h3 {
+            color: #fca5a5;
+        }
+
+        .error-help {
+            background-color: #fffbeb;
+            border: 1px solid #fed7aa;
+            border-radius: 0.375rem;
+            padding: 1.5rem;
+            margin-top: 1.5rem;
+            text-align: left;
+        }
+
+        [data-theme="dark"] .error-help {
+            background-color: #451a03;
+            border-color: #fb923c;
+        }
+
+        .error-help h4 {
+            color: #92400e;
+            margin-bottom: 1rem;
+        }
+
+        [data-theme="dark"] .error-help h4 {
+            color: #fed7aa;
+        }
+
+        .error-help ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .error-help li {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .error-help code {
+            background-color: var(--bg-code);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875rem;
+        }
+
+        .error-debug {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.375rem;
+            padding: 1rem;
+            margin: 1rem 0;
+            font-size: 0.875rem;
+        }
+
+        [data-theme="dark"] .error-debug {
+            background-color: #1e293b;
+            border-color: #475569;
+        }
+
+        .error-debug h4 {
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .error-debug ul {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+
+        .error-debug li {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .error-debug code {
+            background-color: var(--bg-code);
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+        }
+
+        .retry-button {
+            transition: all 0.2s;
+        }
+
+        .retry-button:hover {
+            background-color: var(--text-accent) !important;
+            transform: translateY(-1px);
+        }
+
+        /* Credits Button */
+        .credits-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 65px;
+            height: 65px;
+            background: linear-gradient(135deg, var(--brazil-blue), var(--brazil-green));
+            border: none;
+            border-radius: 50%;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            z-index: 1000;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .credits-button:hover {
+            transform: scale(1.1);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .credits-button:active {
+            transform: scale(0.95);
+        }
+
+        /* Credits Modal */
+        .credits-modal {
+            position: fixed;
+            bottom: 95px;
+            right: 20px;
+            width: 400px;
+            max-height: 550px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+            border-radius: 15px;
+            box-shadow: var(--shadow-xl);
+            z-index: 1001;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .credits-modal.open {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: all;
+        }
+
+        .credits-header {
+            background: linear-gradient(135deg, var(--brazil-blue), var(--brazil-green));
+            color: white;
+            padding: 15px 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .credits-header h3 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .credits-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-left: auto;
+            padding: 5px;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .credits-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .credits-content {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .credits-section {
+            margin-bottom: 20px;
+        }
+
+        .credits-section h4 {
+            color: var(--text-primary);
+            margin-bottom: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .credits-info {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .credits-info p {
+            margin: 5px 0;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .credits-info strong {
+            color: var(--text-primary);
+        }
+
+        .credits-links {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .credits-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .credits-link:hover {
+            background: var(--bg-accent);
+            color: white;
+            transform: translateY(-1px);
+        }
+
+        .ifsul-logo {
+            width: 100%;
+            max-width: 200px;
+            height: auto;
+            margin: 10px 0;
+            border-radius: 8px;
+        }
+
+        .license-badge {
+            background: linear-gradient(135deg, var(--brazil-yellow), var(--brazil-green));
+            color: var(--text-primary);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        /* Mobile responsiveness for credits */
+        @media (max-width: 768px) {
+            .credits-modal {
+                width: calc(100vw - 40px);
+                right: 20px;
+                left: 20px;
+                bottom: 80px;
+            }
+            
+            .credits-button {
+                bottom: 15px;
+                right: 15px;
+                width: 55px;
+                height: 55px;
+                font-size: 1.8rem;
+            }
+        }
+
+        /* Navigation buttons */
+        .section-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 3rem;
+            padding: 2rem 0;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .nav-button {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            text-decoration: none;
+            border-radius: 0.5rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .nav-button:hover {
+            background: var(--bg-accent);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .nav-button:active {
+            transform: translateY(0);
+        }
+
+        .nav-button.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+
+        .nav-button-prev {
+            margin-right: auto;
+        }
+
+        .nav-button-next {
+            margin-left: auto;
+        }
+
+        .nav-button-icon {
+            font-size: 1.1rem;
+        }
+
+        .nav-button-text {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .nav-button-next .nav-button-text {
+            align-items: flex-end;
+        }
+
+        .nav-button-label {
+            font-size: 0.8rem;
+            color: var(--text-tertiary);
+            margin-bottom: 0.2rem;
+        }
+
+        .nav-button-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            line-height: 1.2;
+            max-width: 200px;
+        }
+
+        /* Responsive navigation buttons */
+        @media (max-width: 768px) {
+            .section-navigation {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .nav-button {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .nav-button-prev,
+            .nav-button-next {
+                margin: 0;
+            }
+            
+            .nav-button-text {
+                align-items: center;
+            }
+            
+            .nav-button-next .nav-button-text {
+                align-items: center;
+            }
+        }
+    </style>
+    
+    <!-- Main JavaScript -->
+    <script src="./assets/js/main.js" defer></script>
+</head>
+<body>
+    <!-- Progress Bar -->
+    <div class="progress-bar">
+        <div class="progress-fill"></div>
+    </div>
+
+    <!-- Mobile Menu Button -->
+    <button class="mobile-menu-button" id="mobileMenuButton">☰</button>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🔍</span>
+                <div>
+                    <div class="logo-text">Cidadão.AI</div>
+                    <div class="logo-subtitle" data-pt="Documentação Técnica" data-en="Technical Documentation">Documentação Técnica</div>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <button class="control-button" id="themeToggle" title="Alternar Tema Claro/Escuro" data-title-pt="Alternar Tema Claro/Escuro" data-title-en="Toggle Dark/Light Theme">🌓</button>
+                <div class="language-selector">
+                    <button class="control-button lang-flag active" id="langPT" title="Português" data-lang="pt-BR">🇧🇷</button>
+                    <button class="control-button lang-flag" id="langEN" title="English" data-lang="en">🇬🇧</button>
+                </div>
+                <button class="control-button" id="printMode" title="Modo de Impressão" data-title-pt="Modo de Impressão" data-title-en="Print Mode">🖨️</button>
+            </div>
+
+            <!-- Navigation -->
+            <div class="nav-section">
+                <div class="nav-section-title" data-pt="FUNDAMENTOS" data-en="FUNDAMENTALS">FUNDAMENTOS</div>
+                <div class="nav-links">
+                    <a href="#" class="nav-link active" data-section="overview"><span>📊</span> <span data-pt="Visão Geral e Introdução" data-en="Overview & Introduction">Visão Geral e Introdução</span></a>
+                    <a href="#" class="nav-link" data-section="theoretical-foundations"><span>🧮</span> <span data-pt="Fundamentos Teóricos" data-en="Theoretical Foundations">Fundamentos Teóricos</span></a>
+                    <a href="#" class="nav-link" data-section="literature-review"><span>📚</span> <span data-pt="Revisão da Literatura" data-en="Literature Review">Revisão da Literatura</span></a>
+                    <a href="#" class="nav-link" data-section="methodology"><span>🔬</span> <span data-pt="Metodologia de Pesquisa" data-en="Research Methodology">Metodologia de Pesquisa</span></a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title" data-pt="ARQUITETURA" data-en="ARCHITECTURE">ARQUITETURA</div>
+                <div class="nav-links">
+                    <a href="#" class="nav-link" data-section="system-architecture"><span>🏗️</span> <span data-pt="Arquitetura do Sistema" data-en="System Architecture">Arquitetura do Sistema</span></a>
+                    <a href="#" class="nav-link" data-section="multi-agent-system"><span>🤖</span> <span data-pt="Sistema Multi-Agente" data-en="Multi-Agent System">Sistema Multi-Agente</span></a>
+                    <a href="#" class="nav-link" data-section="algorithms"><span>⚙️</span> <span data-pt="Algoritmos e Modelos" data-en="Algorithms & Models">Algoritmos e Modelos</span></a>
+                    <a href="#" class="nav-link" data-section="data-pipeline"><span>📊</span> <span data-pt="Pipeline de Dados" data-en="Data Pipeline">Pipeline de Dados</span></a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title" data-pt="IMPLEMENTAÇÃO" data-en="IMPLEMENTATION">IMPLEMENTAÇÃO</div>
+                <div class="nav-links">
+                    <a href="#" class="nav-link" data-section="technical-implementation"><span>💻</span> <span data-pt="Implementação Técnica" data-en="Technical Implementation">Implementação Técnica</span></a>
+                    <a href="#" class="nav-link" data-section="api-reference"><span>🔌</span> <span data-pt="Referência da API" data-en="API Reference">Referência da API</span></a>
+                    <a href="#" class="nav-link" data-section="security"><span>🔒</span> <span data-pt="Framework de Segurança" data-en="Security Framework">Framework de Segurança</span></a>
+                    <a href="#" class="nav-link" data-section="performance"><span>⚡</span> <span data-pt="Análise de Performance" data-en="Performance Analysis">Análise de Performance</span></a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title" data-pt="AVALIAÇÃO" data-en="EVALUATION">AVALIAÇÃO</div>
+                <div class="nav-links">
+                    <a href="#" class="nav-link" data-section="experimental-design"><span>🧪</span> <span data-pt="Design Experimental" data-en="Experimental Design">Design Experimental</span></a>
+                    <a href="#" class="nav-link" data-section="benchmarks"><span>📈</span> <span data-pt="Benchmarks e Resultados" data-en="Benchmarks & Results">Benchmarks e Resultados</span></a>
+                    <a href="#" class="nav-link" data-section="case-studies"><span>📋</span> <span data-pt="Estudos de Caso" data-en="Case Studies">Estudos de Caso</span></a>
+                    <a href="#" class="nav-link" data-section="validation"><span>✅</span> <span data-pt="Validação e Testes" data-en="Validation & Testing">Validação e Testes</span></a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title" data-pt="PESQUISA" data-en="RESEARCH">PESQUISA</div>
+                <div class="nav-links">
+                    <a href="#" class="nav-link" data-section="contributions"><span>🏆</span> <span data-pt="Contribuições" data-en="Contributions">Contribuições</span></a>
+                    <a href="#" class="nav-link" data-section="limitations"><span>⚠️</span> <span data-pt="Limitações e Escopo" data-en="Limitations & Scope">Limitações e Escopo</span></a>
+                    <a href="#" class="nav-link" data-section="future-work"><span>🚀</span> <span data-pt="Pesquisa Futura" data-en="Future Research">Pesquisa Futura</span></a>
+                    <a href="#" class="nav-link" data-section="conclusion"><span>📝</span> <span data-pt="Conclusão" data-en="Conclusion">Conclusão</span></a>
+                </div>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title" data-pt="APÊNDICES" data-en="APPENDICES">APÊNDICES</div>
+                <div class="nav-links">
+                    <a href="#" class="nav-link" data-section="mathematical-proofs"><span>📐</span> <span data-pt="Provas Matemáticas" data-en="Mathematical Proofs">Provas Matemáticas</span></a>
+                    <a href="#" class="nav-link" data-section="code-examples"><span>💾</span> <span data-pt="Exemplos de Código" data-en="Code Examples">Exemplos de Código</span></a>
+                    <a href="#" class="nav-link" data-section="datasets"><span>📊</span> <span data-pt="Datasets e Métricas" data-en="Datasets & Metrics">Datasets e Métricas</span></a>
+                    <a href="#" class="nav-link" data-section="bibliography"><span>📖</span> <span data-pt="Bibliografia" data-en="Bibliography">Bibliografia</span></a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Academic Header -->
+            <header class="academic-header">
+                <h1 class="academic-title">Cidadão.AI</h1>
+                <p class="academic-subtitle" data-pt="Sistema Multi-Agente de Inteligência Artificial para Análise de Transparência Pública Brasileira" data-en="Multi-Agent Artificial Intelligence System for Brazilian Public Transparency Analysis">Sistema Multi-Agente de Inteligência Artificial para Análise de Transparência Pública Brasileira</p>
+                <p class="academic-meta" data-pt="Documentação Técnica Completa | Versão 1.0 | 2025" data-en="Complete Technical Documentation | Version 1.0 | 2025">Documentação Técnica Completa | Versão 1.0 | 2025</p>
+            </header>
+
+            <!-- Content Sections -->
+            <div id="content-container">
+                <!-- Overview Section (Default) -->
+                <section id="overview" class="content-section active">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                    </div>
+                </section>
+
+                <!-- Other sections will be loaded dynamically -->
+                <section id="theoretical-foundations" class="content-section"></section>
+                <section id="literature-review" class="content-section"></section>
+                <section id="methodology" class="content-section"></section>
+                <section id="system-architecture" class="content-section"></section>
+                <section id="multi-agent-system" class="content-section"></section>
+                <section id="algorithms" class="content-section"></section>
+                <section id="data-pipeline" class="content-section"></section>
+                <section id="technical-implementation" class="content-section"></section>
+                <section id="api-reference" class="content-section"></section>
+                <section id="security" class="content-section"></section>
+                <section id="performance" class="content-section"></section>
+                <section id="experimental-design" class="content-section"></section>
+                <section id="benchmarks" class="content-section"></section>
+                <section id="case-studies" class="content-section"></section>
+                <section id="validation" class="content-section"></section>
+                <section id="contributions" class="content-section"></section>
+                <section id="limitations" class="content-section"></section>
+                <section id="future-work" class="content-section"></section>
+                <section id="conclusion" class="content-section"></section>
+                <section id="mathematical-proofs" class="content-section"></section>
+                <section id="code-examples" class="content-section"></section>
+                <section id="datasets" class="content-section"></section>
+                <section id="bibliography" class="content-section"></section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Credits Button and Modal -->
+    <button class="credits-button" id="creditsButton" title="Sobre o Projeto">ℹ️</button>
+    
+    <div class="credits-modal" id="creditsModal">
+        <div class="credits-header">
+            <span>🎓</span>
+            <h3 data-pt="Sobre o Projeto" data-en="About the Project">Sobre o Projeto</h3>
+            <button class="credits-close" id="creditsClose">×</button>
+        </div>
+        
+        <div class="credits-content">
+            <!-- Developer Section -->
+            <div class="credits-section">
+                <h4>👨‍💻 <span data-pt="Desenvolvedor" data-en="Developer">Desenvolvedor</span></h4>
+                <div class="credits-info">
+                    <p><strong>Anderson Henrique da Silva</strong></p>
+                    <p data-pt="Bacharelado em Ciência da Computação" data-en="Bachelor in Computer Science">Bacharelado em Ciência da Computação</p>
+                    <p data-pt="IFSuldeminas Campus Muzambinho" data-en="IFSuldeminas Campus Muzambinho">IFSuldeminas Campus Muzambinho</p>
+                    
+                    <div class="credits-links">
+                        <a href="https://github.com/anderson-ufrj" target="_blank" class="credits-link">
+                            <span>🐙</span> GitHub
+                        </a>
+                        <a href="https://www.linkedin.com/in/anderson-h-silva95" target="_blank" class="credits-link">
+                            <span>💼</span> LinkedIn
+                        </a>
+                        <a href="mailto:andersonhs27@gmail.com" class="credits-link">
+                            <span>📧</span> Email
+                        </a>
+                        <a href="https://twitter.com/neural_thinker" target="_blank" class="credits-link">
+                            <span>🐦</span> Twitter
+                        </a>
+                        <a href="https://instagram.com/andhenrique_" target="_blank" class="credits-link">
+                            <span>📸</span> Instagram
+                        </a>
+                        <a href="https://facebook.com/andersonhs95" target="_blank" class="credits-link">
+                            <span>📘</span> Facebook
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Institution Section -->
+            <div class="credits-section">
+                <h4>🏛️ <span data-pt="Instituição" data-en="Institution">Instituição</span></h4>
+                <div class="credits-info">
+                    <img src="https://portal.muz.ifsuldeminas.edu.br/images/logo.png" alt="IFSuldeminas Logo" class="ifsul-logo" onerror="this.style.display='none'">
+                    <p><strong>Instituto Federal do Sul de Minas Gerais</strong></p>
+                    <p data-pt="Campus Muzambinho" data-en="Campus Muzambinho">Campus Muzambinho</p>
+                    <p data-pt="Curso: Bacharelado em Ciência da Computação" data-en="Course: Bachelor in Computer Science">Curso: Bacharelado em Ciência da Computação</p>
+                </div>
+            </div>
+
+            <!-- Project Section -->
+            <div class="credits-section">
+                <h4>🔍 <span data-pt="Projeto" data-en="Project">Projeto</span></h4>
+                <div class="credits-info">
+                    <p><strong>Cidadão.AI</strong></p>
+                    <p data-pt="Sistema Multi-Agente de IA para Transparência Pública" data-en="Multi-Agent AI System for Public Transparency">Sistema Multi-Agente de IA para Transparência Pública</p>
+                    
+                    <div class="credits-links">
+                        <a href="https://github.com/anderson-ufrj/cidadao.ai" target="_blank" class="credits-link">
+                            <span>📦</span> <span data-pt="Repositório" data-en="Repository">Repositório</span>
+                        </a>
+                        <a href="https://huggingface.co/spaces/neural-thinker/cidadao.ia" target="_blank" class="credits-link">
+                            <span>🤗</span> <span data-pt="Demo Online" data-en="Online Demo">Demo Online</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- License Section -->
+            <div class="credits-section">
+                <h4>📄 <span data-pt="Licença" data-en="License">Licença</span></h4>
+                <div class="license-badge">
+                    <span data-pt="Todos os direitos reservados" data-en="All rights reserved">Todos os direitos reservados</span>
+                </div>
+            </div>
+
+            <!-- Version Section -->
+            <div class="credits-section">
+                <h4>🏷️ <span data-pt="Versão" data-en="Version">Versão</span></h4>
+                <div class="credits-info">
+                    <p><strong>v1.0.0</strong></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+
+        function initializeApp() {
+            // Initialize syntax highlighting
+            hljs.highlightAll();
+            
+            // Initialize Mermaid
+            mermaid.initialize({ 
+                theme: 'default',
+                startOnLoad: true 
+            });
+
+            // Set default language to Portuguese
+            const savedLang = localStorage.getItem('cidadao-ai-lang') || 'pt-BR';
+            setLanguage(savedLang);
+
+            // Load default section with retry logic
+            loadSectionWithRetry('overview');
+
+            // Preload important sections in background
+            preloadImportantSections();
+
+            // Setup event listeners
+            setupEventListeners();
+            
+            // Setup theme toggle
+            setupThemeToggle();
+            
+            // Setup mobile menu
+            setupMobileMenu();
+            
+            // Setup credits modal
+            setupCreditsModal();
+        }
+
+        function setupEventListeners() {
+            // Navigation links
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const section = this.getAttribute('data-section');
+                    if (section) {
+                        loadSectionWithRetry(section);
+                        setActiveNavLink(this);
+                    }
+                });
+            });
+
+            // Language selectors
+            document.getElementById('langPT').addEventListener('click', () => setLanguage('pt-BR'));
+            document.getElementById('langEN').addEventListener('click', () => setLanguage('en'));
+            
+            // Print mode
+            document.getElementById('printMode').addEventListener('click', enterPrintMode);
+        }
+
+        function setupThemeToggle() {
+            const themeToggle = document.getElementById('themeToggle');
+            const htmlRoot = document.getElementById('html-root');
+            
+            // Load saved theme
+            const savedTheme = localStorage.getItem('cidadao-ai-theme') || 'light';
+            htmlRoot.setAttribute('data-theme', savedTheme);
+            
+            themeToggle.addEventListener('click', function() {
+                const currentTheme = htmlRoot.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                htmlRoot.setAttribute('data-theme', newTheme);
+                localStorage.setItem('cidadao-ai-theme', newTheme);
+                
+                // Update mermaid theme
+                if (newTheme === 'dark') {
+                    mermaid.initialize({ theme: 'dark' });
+                } else {
+                    mermaid.initialize({ theme: 'default' });
+                }
+            });
+        }
+
+        function setupCreditsModal() {
+            const creditsButton = document.getElementById('creditsButton');
+            const creditsModal = document.getElementById('creditsModal');
+            const creditsClose = document.getElementById('creditsClose');
+            
+            creditsButton.addEventListener('click', function() {
+                creditsModal.classList.add('open');
+            });
+            
+            creditsClose.addEventListener('click', function() {
+                creditsModal.classList.remove('open');
+            });
+            
+            // Close modal when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!creditsModal.contains(e.target) && !creditsButton.contains(e.target)) {
+                    creditsModal.classList.remove('open');
+                }
+            });
+            
+            // Close modal with Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && creditsModal.classList.contains('open')) {
+                    creditsModal.classList.remove('open');
+                }
+            });
+        }
+
+        async function preloadImportantSections() {
+            const importantSections = [
+                'theoretical-foundations',
+                'methodology', 
+                'system-architecture',
+                'literature-review'
+            ];
+            
+            // Delay preloading to not interfere with initial load
+            setTimeout(async () => {
+                // Determine the correct base path for GitHub Pages or local
+                let basePath = './';
+                
+                // Check if we're on GitHub Pages
+                if (window.location.hostname === 'anderson-ufrj.github.io') {
+                    // We're on GitHub Pages with the cidadao.ai repository
+                    // Since we're serving from the /docs folder as root, use relative paths
+                    basePath = './';
+                }
+                
+                for (const sectionName of importantSections) {
+                    try {
+                        const response = await fetch(`${basePath}sections/${sectionName}.html`);
+                        if (response.ok) {
+                            const content = await response.text();
+                            // Store in a simple cache
+                            if (!window.sectionCache) window.sectionCache = {};
+                            window.sectionCache[sectionName] = content;
+                            console.log(`✅ Preloaded: ${sectionName}`);
+                        updatePreloadStatus(sectionName, 'success');
+                        }
+                    } catch (error) {
+                        console.warn(`⚠️ Failed to preload: ${sectionName}`, error.message);
+                    }
+                    // Small delay between preloads
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            }, 2000); // Wait 2 seconds after initial load
+        }
+
+        function updatePreloadStatus(sectionName, status) {
+            // Find the nav link for this section and add a visual indicator
+            const navLink = document.querySelector(`[data-section="${sectionName}"]`);
+            if (navLink) {
+                if (status === 'success') {
+                    navLink.style.position = 'relative';
+                    if (!navLink.querySelector('.preload-indicator')) {
+                        const indicator = document.createElement('span');
+                        indicator.className = 'preload-indicator';
+                        indicator.innerHTML = '●';
+                        indicator.style.cssText = `
+                            position: absolute;
+                            right: 0.5rem;
+                            top: 50%;
+                            transform: translateY(-50%);
+                            color: var(--brazil-green);
+                            font-size: 0.75rem;
+                            opacity: 0.7;
+                        `;
+                        navLink.appendChild(indicator);
+                    }
+                }
+            }
+        }
+
+        function setupMobileMenu() {
+            const mobileMenuButton = document.getElementById('mobileMenuButton');
+            const sidebar = document.getElementById('sidebar');
+            
+            mobileMenuButton.addEventListener('click', function() {
+                sidebar.classList.toggle('open');
+            });
+
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(e.target) && !mobileMenuButton.contains(e.target)) {
+                        sidebar.classList.remove('open');
+                    }
+                }
+            });
+        }
+
+        async function loadSectionWithRetry(sectionName, maxRetries = 3, delay = 1000) {
+            for (let attempt = 1; attempt <= maxRetries; attempt++) {
+                try {
+                    await loadSection(sectionName);
+                    return; // Success, exit retry loop
+                } catch (error) {
+                    console.warn(`Attempt ${attempt}/${maxRetries} failed for section ${sectionName}:`, error.message);
+                    
+                    if (attempt === maxRetries) {
+                        // Last attempt failed, let loadSection handle the error display
+                        await loadSection(sectionName);
+                        return;
+                    }
+                    
+                    // Wait before retry
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    delay *= 1.5; // Exponential backoff
+                }
+            }
+        }
+
+        async function loadSection(sectionName) {
+            const section = document.getElementById(sectionName);
+            if (!section) return;
+
+            // Show loading spinner
+            section.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+            
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
+            
+            // Show current section
+            section.classList.add('active');
+            
+            // Update progress
+            updateProgress(sectionName);
+
+            try {
+                let content = '';
+                
+                // Check cache first
+                if (window.sectionCache && window.sectionCache[sectionName]) {
+                    console.log(`📦 Loading from cache: ${sectionName}`);
+                    content = window.sectionCache[sectionName];
+                } else {
+                    // Determine the correct base path for GitHub Pages or local
+                    let basePath = './';
+                    
+                    // Check if we're on GitHub Pages
+                    if (window.location.hostname === 'anderson-ufrj.github.io') {
+                        // We're on GitHub Pages with the cidadao.ai repository
+                        // The URL structure is: https://anderson-ufrj.github.io/cidadao.ai/
+                        // Since we're serving from the /docs folder as root, use relative paths
+                        basePath = './';
+                    }
+                    
+                    // Check if running locally (file://) or on server
+                    if (window.location.protocol === 'file:') {
+                        // For local file access, use XMLHttpRequest
+                        const xhr = new XMLHttpRequest();
+                        xhr.open('GET', `sections/${sectionName}.html`, false);
+                        try {
+                            xhr.send();
+                            if (xhr.status === 200 || xhr.status === 0) {
+                                content = xhr.responseText;
+                            } else {
+                                throw new Error(`Local file not found: ${sectionName}.html`);
+                            }
+                        } catch (localError) {
+                            throw new Error(`Cannot load local file: ${localError.message}`);
+                        }
+                    } else {
+                        // Use fetch for server-hosted files (GitHub Pages, local server, etc.)
+                        const sectionUrl = `${basePath}sections/${sectionName}.html`;
+                        
+                        // Debug logging
+                        console.log('Loading section:', {
+                            sectionName,
+                            basePath,
+                            sectionUrl,
+                            currentURL: window.location.href,
+                            hostname: window.location.hostname,
+                            pathname: window.location.pathname
+                        });
+                        
+                        const response = await fetch(sectionUrl);
+                        
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status} - URL: ${sectionUrl}`);
+                        }
+                        
+                        content = await response.text();
+                        
+                        // Cache the content for future use
+                        if (!window.sectionCache) window.sectionCache = {};
+                        window.sectionCache[sectionName] = content;
+                    }
+                }
+                
+                section.innerHTML = content;
+                
+                // Re-initialize components
+                reinitializeComponents(section);
+                
+                // Update navigation buttons
+                updateNavigationButtons(sectionName);
+                
+            } catch (error) {
+                console.error('Error loading section:', error);
+                
+                // Try to load a fallback section if the requested one fails
+                if (sectionName !== 'overview') {
+                    console.log('Attempting to load fallback section: overview');
+                    try {
+                        // Use the same base path logic
+                        let basePath = './';
+                        if (window.location.hostname === 'anderson-ufrj.github.io') {
+                            basePath = './';
+                        }
+                        const fallbackResponse = await fetch(`${basePath}sections/overview.html`);
+                        if (fallbackResponse.ok) {
+                            const fallbackContent = await fallbackResponse.text();
+                            section.innerHTML = `
+                                <div class="error-message">
+                                    <h3>⚠️ Seção temporariamente indisponível</h3>
+                                    <p>A seção "${sectionName}" está sendo processada. Exibindo conteúdo alternativo.</p>
+                                    <p><small><strong>Debug:</strong> ${error.message}</small></p>
+                                    <br>
+                                    <button onclick="window.location.reload()" class="retry-button">🔄 Tentar novamente</button>
+                                </div>
+                                <hr>
+                                ${fallbackContent}
+                            `;
+                            reinitializeComponents(section);
+                            return;
+                        }
+                    } catch (fallbackError) {
+                        console.error('Fallback also failed:', fallbackError);
+                    }
+                }
+                
+                section.innerHTML = `
+                    <div class="error-message">
+                        <h3>❌ Erro ao carregar seção</h3>
+                        <p>Não foi possível carregar o conteúdo da seção "${sectionName}". Verifique se o arquivo existe.</p>
+                        <p><strong>Erro:</strong> ${error.message}</p>
+                        <div class="error-debug">
+                            <h4>🔍 Informações de Debug:</h4>
+                            <ul>
+                                <li><strong>URL atual:</strong> <code>${window.location.href}</code></li>
+                                <li><strong>Hostname:</strong> <code>${window.location.hostname}</code></li>
+                                <li><strong>Protocolo:</strong> <code>${window.location.protocol}</code></li>
+                                <li><strong>Caminho:</strong> <code>${window.location.pathname}</code></li>
+                                <li><strong>URL da seção:</strong> <code>./sections/${sectionName}.html</code></li>
+                                <li><strong>Timestamp:</strong> <code>${new Date().toISOString()}</code></li>
+                            </ul>
+                        </div>
+                        <div class="error-help">
+                            <h4>💡 Como resolver:</h4>
+                            <ul>
+                                <li><strong>GitHub Pages:</strong> Aguarde alguns minutos para o deploy completar</li>
+                                <li><strong>Para uso local:</strong> Execute <code>python -m http.server 8000</code></li>
+                                <li><strong>Para desenvolvimento:</strong> Use extensão "Live Server" no VS Code</li>
+                                <li><strong>Cache:</strong> Tente <kbd>Ctrl+F5</kbd> para forçar reload</li>
+                            </ul>
+                            <button onclick="window.location.reload()" class="retry-button" style="margin-top: 1rem; padding: 0.5rem 1rem; background: var(--bg-accent); color: white; border: none; border-radius: 0.25rem; cursor: pointer;">🔄 Recarregar Página</button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function reinitializeComponents(container) {
+            // Re-highlight code blocks
+            container.querySelectorAll('pre code').forEach(block => {
+                hljs.highlightElement(block);
+            });
+            
+            // Re-render math
+            if (window.MathJax) {
+                MathJax.typesetPromise([container]);
+            }
+            
+            // Re-render mermaid diagrams
+            container.querySelectorAll('.mermaid').forEach(element => {
+                mermaid.init(undefined, element);
+            });
+        }
+
+        function setActiveNavLink(activeLink) {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            activeLink.classList.add('active');
+        }
+
+        // Global sections array for navigation
+        const allSections = [
+            'overview', 'theoretical-foundations', 'literature-review', 'methodology',
+            'system-architecture', 'multi-agent-system', 'algorithms', 'data-pipeline',
+            'technical-implementation', 'api-reference', 'security', 'performance',
+            'experimental-design', 'benchmarks', 'case-studies', 'validation',
+            'contributions', 'limitations', 'future-work', 'conclusion',
+            'mathematical-proofs', 'code-examples', 'datasets', 'bibliography'
+        ];
+
+        // Section titles for navigation
+        const sectionTitles = {
+            'overview': { pt: 'Visão Geral e Introdução', en: 'Overview & Introduction' },
+            'theoretical-foundations': { pt: 'Fundamentos Teóricos', en: 'Theoretical Foundations' },
+            'literature-review': { pt: 'Revisão da Literatura', en: 'Literature Review' },
+            'methodology': { pt: 'Metodologia de Pesquisa', en: 'Research Methodology' },
+            'system-architecture': { pt: 'Arquitetura do Sistema', en: 'System Architecture' },
+            'multi-agent-system': { pt: 'Sistema Multi-Agente', en: 'Multi-Agent System' },
+            'algorithms': { pt: 'Algoritmos e Modelos', en: 'Algorithms & Models' },
+            'data-pipeline': { pt: 'Pipeline de Dados', en: 'Data Pipeline' },
+            'technical-implementation': { pt: 'Implementação Técnica', en: 'Technical Implementation' },
+            'api-reference': { pt: 'Referência da API', en: 'API Reference' },
+            'security': { pt: 'Framework de Segurança', en: 'Security Framework' },
+            'performance': { pt: 'Análise de Performance', en: 'Performance Analysis' },
+            'experimental-design': { pt: 'Design Experimental', en: 'Experimental Design' },
+            'benchmarks': { pt: 'Benchmarks e Resultados', en: 'Benchmarks & Results' },
+            'case-studies': { pt: 'Estudos de Caso', en: 'Case Studies' },
+            'validation': { pt: 'Validação e Testes', en: 'Validation & Testing' },
+            'contributions': { pt: 'Contribuições', en: 'Contributions' },
+            'limitations': { pt: 'Limitações e Escopo', en: 'Limitations & Scope' },
+            'future-work': { pt: 'Pesquisa Futura', en: 'Future Research' },
+            'conclusion': { pt: 'Conclusão', en: 'Conclusion' },
+            'mathematical-proofs': { pt: 'Provas Matemáticas', en: 'Mathematical Proofs' },
+            'code-examples': { pt: 'Exemplos de Código', en: 'Code Examples' },
+            'datasets': { pt: 'Datasets e Métricas', en: 'Datasets & Metrics' },
+            'bibliography': { pt: 'Bibliografia', en: 'Bibliography' }
+        };
+
+        function updateProgress(sectionName) {
+            const currentIndex = allSections.indexOf(sectionName);
+            const progress = ((currentIndex + 1) / allSections.length) * 100;
+            
+            document.querySelector('.progress-fill').style.width = `${progress}%`;
+        }
+
+        function updateNavigationButtons(currentSection) {
+            const currentIndex = allSections.indexOf(currentSection);
+            const prevSection = currentIndex > 0 ? allSections[currentIndex - 1] : null;
+            const nextSection = currentIndex < allSections.length - 1 ? allSections[currentIndex + 1] : null;
+            
+            // Remove existing navigation if any
+            const existingNav = document.querySelector('.section-navigation');
+            if (existingNav) {
+                existingNav.remove();
+            }
+            
+            // Create navigation container
+            const navContainer = document.createElement('div');
+            navContainer.className = 'section-navigation';
+            
+            // Get current language
+            const currentLang = document.documentElement.lang || 'pt-BR';
+            const isPortuguese = currentLang === 'pt-BR';
+            
+            // Previous button
+            if (prevSection) {
+                const prevButton = document.createElement('a');
+                prevButton.className = 'nav-button nav-button-prev';
+                prevButton.href = '#';
+                prevButton.onclick = (e) => {
+                    e.preventDefault();
+                    loadSectionWithRetry(prevSection);
+                    setActiveNavLink(document.querySelector(`[data-section="${prevSection}"]`));
+                };
+                
+                prevButton.innerHTML = `
+                    <span class="nav-button-icon">←</span>
+                    <div class="nav-button-text">
+                        <span class="nav-button-label">${isPortuguese ? 'Anterior' : 'Previous'}</span>
+                        <span class="nav-button-title">${sectionTitles[prevSection][isPortuguese ? 'pt' : 'en']}</span>
+                    </div>
+                `;
+                navContainer.appendChild(prevButton);
+            }
+            
+            // Next button
+            if (nextSection) {
+                const nextButton = document.createElement('a');
+                nextButton.className = 'nav-button nav-button-next';
+                nextButton.href = '#';
+                nextButton.onclick = (e) => {
+                    e.preventDefault();
+                    loadSectionWithRetry(nextSection);
+                    setActiveNavLink(document.querySelector(`[data-section="${nextSection}"]`));
+                };
+                
+                nextButton.innerHTML = `
+                    <div class="nav-button-text">
+                        <span class="nav-button-label">${isPortuguese ? 'Próxima' : 'Next'}</span>
+                        <span class="nav-button-title">${sectionTitles[nextSection][isPortuguese ? 'pt' : 'en']}</span>
+                    </div>
+                    <span class="nav-button-icon">→</span>
+                `;
+                navContainer.appendChild(nextButton);
+            }
+            
+            // Add navigation to the current section
+            const currentSectionElement = document.getElementById(currentSection);
+            if (currentSectionElement && (prevSection || nextSection)) {
+                currentSectionElement.appendChild(navContainer);
+            }
+        }
+
+        function setLanguage(lang) {
+            document.documentElement.lang = lang;
+            localStorage.setItem('cidadao-ai-lang', lang);
+            
+            // Update flag buttons
+            document.querySelectorAll('.lang-flag').forEach(btn => btn.classList.remove('active'));
+            if (lang === 'pt-BR') {
+                document.getElementById('langPT').classList.add('active');
+            } else {
+                document.getElementById('langEN').classList.add('active');
+            }
+            
+            // Update text elements
+            updateLanguageElements(lang);
+            
+            // Update navigation buttons for current section
+            const currentSection = document.querySelector('.content-section.active');
+            if (currentSection) {
+                updateNavigationButtons(currentSection.id);
+            }
+        }
+
+        function updateLanguageElements(lang) {
+            // Update text content
+            document.querySelectorAll('[data-pt][data-en]').forEach(element => {
+                if (lang === 'pt-BR') {
+                    element.textContent = element.getAttribute('data-pt');
+                } else {
+                    element.textContent = element.getAttribute('data-en');
+                }
+            });
+            
+            // Update tooltips (title attribute)
+            document.querySelectorAll('[data-title-pt][data-title-en]').forEach(element => {
+                if (lang === 'pt-BR') {
+                    element.setAttribute('title', element.getAttribute('data-title-pt'));
+                } else {
+                    element.setAttribute('title', element.getAttribute('data-title-en'));
+                }
+            });
+            
+            // Nav section titles are already handled by the first query selector
+        }
+
+        function enterPrintMode() {
+            window.print();
+        }
+
+        // Analytics (placeholder)
+        function trackEvent(eventName, properties = {}) {
+            console.log('Event tracked:', eventName, properties);
+            // Future: Send to analytics service
+        }
+        
+        // Track page load
+        trackEvent('documentation_loaded', {
+            theme: document.getElementById('html-root').getAttribute('data-theme'),
+            language: document.documentElement.lang,
+            timestamp: new Date().toISOString()
+        });
+    </script>
+</body>
+</html>

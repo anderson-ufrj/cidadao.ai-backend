@@ -187,10 +187,11 @@ models/
 # Frontend files (moved to separate repository)
 frontend/
 static/
-docs/
 blog/
-*.html
 *.css.map
+
+# Keep docs/ for GitHub Pages technical documentation
+# docs/ - removed from gitignore to enable GitHub Pages
 
 # Vector stores
 *.faiss

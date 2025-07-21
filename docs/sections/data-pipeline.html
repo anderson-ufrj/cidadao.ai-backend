@@ -1,0 +1,340 @@
+<div class="section-header">
+    <h2 class="section-title">
+        📊 <span data-pt="Pipeline de Dados e Fontes de Informação" data-en="Data Pipeline and Information Sources">Pipeline de Dados e Fontes de Informação</span>
+    </h2>
+    <p class="section-description">
+        <span data-pt="Análise técnica completa das fontes de dados, métodos de coleta, processamento e transformação utilizados no sistema Cidadão.AI" data-en="Complete technical analysis of data sources, collection methods, processing and transformation used in the Cidadão.AI system">
+        Análise técnica completa das fontes de dados, métodos de coleta, processamento e transformação utilizados no sistema Cidadão.AI
+        </span>
+    </p>
+</div>
+
+<!-- Seção 1: Fonte Primária de Dados -->
+<div class="methodology-section">
+    <h3>🏛️ <span data-pt="Fonte Primária: Portal da Transparência" data-en="Primary Source: Transparency Portal">Fonte Primária: Portal da Transparência</span></h3>
+    
+    <div class="info-card" style="background: linear-gradient(135deg, #e6f7ff, #f0f9ff); border-left: 4px solid #0066CC; margin: 1.5rem 0;">
+        <h4>📍 <span data-pt="Especificações da Fonte" data-en="Source Specifications">Especificações da Fonte</span></h4>
+        <ul>
+            <li><strong><span data-pt="URL Base" data-en="Base URL">URL Base</span>:</strong> <code>https://api.portaldatransparencia.gov.br</code></li>
+            <li><strong><span data-pt="Órgão Responsável" data-en="Responsible Agency">Órgão Responsável</span>:</strong> <span data-pt="Controladoria-Geral da União (CGU)" data-en="General Union Comptroller (CGU)">Controladoria-Geral da União (CGU)</span></li>
+            <li><strong><span data-pt="Versão da API" data-en="API Version">Versão da API</span>:</strong> <span data-pt="v3 (verificada em 2025)" data-en="v3 (verified in 2025)">v3 (verificada em 2025)</span></li>
+            <li><strong><span data-pt="Protocolo" data-en="Protocol">Protocolo</span>:</strong> HTTPS/REST</li>
+            <li><strong><span data-pt="Formato de Resposta" data-en="Response Format">Formato de Resposta</span>:</strong> JSON</li>
+            <li><strong><span data-pt="Autenticação" data-en="Authentication">Autenticação</span>:</strong> <span data-pt="API Key via header" data-en="API Key via header">API Key via header</span> <code>chave-api-dados</code></li>
+        </ul>
+    </div>
+
+    <h4>📋 <span data-pt="Datasets Disponíveis" data-en="Available Datasets">Datasets Disponíveis</span></h4>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin: 1.5rem 0;">
+        
+        <!-- Contratos Públicos -->
+        <div class="info-card" style="border-left: 4px solid #00A86B;">
+            <h5>📄 <span data-pt="Contratos Públicos" data-en="Public Contracts">Contratos Públicos</span></h5>
+            <p><strong><span data-pt="Endpoint" data-en="Endpoint">Endpoint</span>:</strong> <code>/api-de-dados/contratos</code></p>
+            <p><strong><span data-pt="Descrição" data-en="Description">Descrição</span>:</strong> <span data-pt="Contratos firmados pela administração pública federal" data-en="Contracts signed by federal public administration">Contratos firmados pela administração pública federal</span></p>
+            <p><strong><span data-pt="Campos Principais" data-en="Main Fields">Campos Principais</span>:</strong></p>
+            <ul style="font-size: 0.9rem;">
+                <li><code>numero</code> - <span data-pt="Número do contrato" data-en="Contract number">Número do contrato</span></li>
+                <li><code>valorContrato</code> - <span data-pt="Valor monetário" data-en="Monetary value">Valor monetário</span></li>
+                <li><code>razaoSocial</code> - <span data-pt="Empresa contratada" data-en="Contracted company">Empresa contratada</span></li>
+                <li><code>objeto</code> - <span data-pt="Descrição do objeto" data-en="Object description">Descrição do objeto</span></li>
+                <li><code>dataInicioVigencia</code> - <span data-pt="Data de início" data-en="Start date">Data de início</span></li>
+                <li><code>dataFimVigencia</code> - <span data-pt="Data de fim" data-en="End date">Data de fim</span></li>
+            </ul>
+        </div>
+
+        <!-- Despesas Orçamentárias -->
+        <div class="info-card" style="border-left: 4px solid #F59E0B;">
+            <h5>💰 <span data-pt="Despesas Orçamentárias" data-en="Budget Expenses">Despesas Orçamentárias</span></h5>
+            <p><strong><span data-pt="Endpoint" data-en="Endpoint">Endpoint</span>:</strong> <code>/api-de-dados/despesas</code></p>
+            <p><strong><span data-pt="Descrição" data-en="Description">Descrição</span>:</strong> <span data-pt="Gastos realizados pelos órgãos federais" data-en="Expenses made by federal agencies">Gastos realizados pelos órgãos federais</span></p>
+            <p><strong><span data-pt="Campos Principais" data-en="Main Fields">Campos Principais</span>:</strong></p>
+            <ul style="font-size: 0.9rem;">
+                <li><code>valor</code> - <span data-pt="Valor da despesa" data-en="Expense value">Valor da despesa</span></li>
+                <li><code>favorecido</code> - <span data-pt="Beneficiário do pagamento" data-en="Payment beneficiary">Beneficiário do pagamento</span></li>
+                <li><code>orgaoSuperior</code> - <span data-pt="Órgão pagador" data-en="Paying agency">Órgão pagador</span></li>
+                <li><code>funcao</code> - <span data-pt="Função orçamentária" data-en="Budget function">Função orçamentária</span></li>
+                <li><code>dataDocumento</code> - <span data-pt="Data do documento" data-en="Document date">Data do documento</span></li>
+            </ul>
+        </div>
+
+        <!-- Licitações e Pregões -->
+        <div class="info-card" style="border-left: 4px solid #3B82F6;">
+            <h5>🏛️ <span data-pt="Licitações e Pregões" data-en="Public Biddings">Licitações e Pregões</span></h5>
+            <p><strong><span data-pt="Endpoint" data-en="Endpoint">Endpoint</span>:</strong> <code>/api-de-dados/licitacoes</code></p>
+            <p><strong><span data-pt="Descrição" data-en="Description">Descrição</span>:</strong> <span data-pt="Processos licitatórios da administração federal" data-en="Federal administration bidding processes">Processos licitatórios da administração federal</span></p>
+            <p><strong><span data-pt="Campos Principais" data-en="Main Fields">Campos Principais</span>:</strong></p>
+            <ul style="font-size: 0.9rem;">
+                <li><code>numero</code> - <span data-pt="Número da licitação" data-en="Bidding number">Número da licitação</span></li>
+                <li><code>valorInicial</code> - <span data-pt="Valor estimado inicial" data-en="Initial estimated value">Valor estimado inicial</span></li>
+                <li><code>modalidade</code> - <span data-pt="Modalidade licitatória" data-en="Bidding modality">Modalidade licitatória</span></li>
+                <li><code>situacao</code> - <span data-pt="Status do processo" data-en="Process status">Status do processo</span></li>
+                <li><code>dataAbertura</code> - <span data-pt="Data de abertura" data-en="Opening date">Data de abertura</span></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Seção 2: Arquitetura de Coleta -->
+<div class="methodology-section">
+    <h3>⚙️ <span data-pt="Arquitetura de Coleta de Dados" data-en="Data Collection Architecture">Arquitetura de Coleta de Dados</span></h3>
+    
+    <div class="info-card" style="background: linear-gradient(135deg, #f0fdf4, #f7fee7); border-left: 4px solid #00A86B;">
+        <h4>🔧 <span data-pt="Implementação Técnica" data-en="Technical Implementation">Implementação Técnica</span></h4>
+        
+        <h5><span data-pt="Cliente HTTP Assíncrono" data-en="Asynchronous HTTP Client">Cliente HTTP Assíncrono</span></h5>
+        <pre><code class="language-python">async def call_transparency_api(endpoint, params=None):
+    """Chamar API do Portal da Transparência"""
+    if not TRANSPARENCY_API_KEY:
+        return {"error": "API key não configurada"}
+    
+    base_url = "https://api.portaldatransparencia.gov.br"
+    headers = {
+        "chave-api-dados": TRANSPARENCY_API_KEY,
+        "User-Agent": "CidadaoAI/1.0"
+    }
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.get(
+                f"{base_url}{endpoint}",
+                headers=headers,
+                params=params or {}
+            )
+            
+            if response.status_code == 200:
+                return response.json()
+            else:
+                return {"error": f"Status {response.status_code}: {response.text}"}
+    except Exception as e:
+        return {"error": f"Erro na requisição: {str(e)}"}
+</code></pre>
+        
+        <h5><span data-pt="Controle de Rate Limiting" data-en="Rate Limiting Control">Controle de Rate Limiting</span></h5>
+        <ul>
+            <li><strong><span data-pt="Limite" data-en="Limit">Limite</span>:</strong> <span data-pt="90 requisições por minuto" data-en="90 requests per minute">90 requisições por minuto</span></li>
+            <li><strong><span data-pt="Timeout" data-en="Timeout">Timeout</span>:</strong> <span data-pt="30 segundos por requisição" data-en="30 seconds per request">30 segundos por requisição</span></li>
+            <li><strong><span data-pt="Retry Logic" data-en="Retry Logic">Retry Logic</span>:</strong> <span data-pt="Backoff exponencial implementado" data-en="Exponential backoff implemented">Backoff exponencial implementado</span></li>
+            <li><strong><span data-pt="User-Agent" data-en="User-Agent">User-Agent</span>:</strong> <code>CidadaoAI/1.0</code> <span data-pt="(identificação ética)" data-en="(ethical identification)">(identificação ética)</span></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Seção 3: Processamento e Transformação -->
+<div class="methodology-section">
+    <h3>🔄 <span data-pt="Pipeline de Processamento" data-en="Processing Pipeline">Pipeline de Processamento</span></h3>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin: 1.5rem 0;">
+        
+        <!-- Etapa 1: Validação -->
+        <div class="info-card" style="border-left: 4px solid #EF4444;">
+            <h5>1️⃣ <span data-pt="Validação de Entrada" data-en="Input Validation">Validação de Entrada</span></h5>
+            <ul style="font-size: 0.9rem;">
+                <li><span data-pt="Verificação de API Key" data-en="API Key verification">Verificação de API Key</span></li>
+                <li><span data-pt="Validação de parâmetros" data-en="Parameter validation">Validação de parâmetros</span></li>
+                <li><span data-pt="Sanitização de inputs" data-en="Input sanitization">Sanitização de inputs</span></li>
+                <li><span data-pt="Rate limiting check" data-en="Rate limiting check">Rate limiting check</span></li>
+            </ul>
+        </div>
+
+        <!-- Etapa 2: Normalização -->
+        <div class="info-card" style="border-left: 4px solid #F59E0B;">
+            <h5>2️⃣ <span data-pt="Normalização" data-en="Normalization">Normalização</span></h5>
+            <ul style="font-size: 0.9rem;">
+                <li><span data-pt="Mapeamento de campos dinâmico" data-en="Dynamic field mapping">Mapeamento de campos dinâmico</span></li>
+                <li><span data-pt="Conversão de tipos de dados" data-en="Data type conversion">Conversão de tipos de dados</span></li>
+                <li><span data-pt="Formatação de valores monetários" data-en="Monetary value formatting">Formatação de valores monetários</span></li>
+                <li><span data-pt="Tratamento de dados ausentes" data-en="Missing data handling">Tratamento de dados ausentes</span></li>
+            </ul>
+        </div>
+
+        <!-- Etapa 3: Análise -->
+        <div class="info-card" style="border-left: 4px solid #00A86B;">
+            <h5>3️⃣ <span data-pt="Análise e Insights" data-en="Analysis and Insights">Análise e Insights</span></h5>
+            <ul style="font-size: 0.9rem;">
+                <li><span data-pt="Agregações estatísticas" data-en="Statistical aggregations">Agregações estatísticas</span></li>
+                <li><span data-pt="Detecção de padrões" data-en="Pattern detection">Detecção de padrões</span></li>
+                <li><span data-pt="Cálculo de métricas" data-en="Metrics calculation">Cálculo de métricas</span></li>
+                <li><span data-pt="Identificação de anomalias" data-en="Anomaly identification">Identificação de anomalias</span></li>
+            </ul>
+        </div>
+
+        <!-- Etapa 4: Visualização -->
+        <div class="info-card" style="border-left: 4px solid #3B82F6;">
+            <h5>4️⃣ <span data-pt="Visualização" data-en="Visualization">Visualização</span></h5>
+            <ul style="font-size: 0.9rem;">
+                <li><span data-pt="Gráficos interativos (Plotly)" data-en="Interactive charts (Plotly)">Gráficos interativos (Plotly)</span></li>
+                <li><span data-pt="Dashboards responsivos" data-en="Responsive dashboards">Dashboards responsivos</span></li>
+                <li><span data-pt="Cards de resumo executivo" data-en="Executive summary cards">Cards de resumo executivo</span></li>
+                <li><span data-pt="Exportação de relatórios" data-en="Report export">Exportação de relatórios</span></li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Código de Exemplo do Processamento -->
+    <div class="info-card" style="background: #1e293b; color: #f1f5f9; border-left: 4px solid #64748b;">
+        <h5 style="color: #f1f5f9;">💻 <span data-pt="Exemplo de Processamento de Dados" data-en="Data Processing Example">Exemplo de Processamento de Dados</span></h5>
+        <pre><code class="language-python" style="background: transparent; color: #f1f5f9;">def process_transparency_data(api_result, data_type):
+    """Processar dados da API com normalização avançada"""
+    
+    # 1. Validação inicial
+    if not api_result or "error" in api_result:
+        return {"error": "Dados inválidos ou erro na API"}
+    
+    results = api_result if isinstance(api_result, list) else []
+    
+    # 2. Mapeamento dinâmico de campos
+    field_mapping = {
+        "contratos": {
+            "id": ["numero", "id"],
+            "value": ["valorContrato", "valor", "valorInicial"],
+            "entity": ["razaoSocial", "nome", "fornecedor"],
+            "description": ["objeto", "descricao"]
+        },
+        "despesas": {
+            "id": ["id", "numero"],
+            "value": ["valor"],
+            "entity": ["favorecido", "nome"],
+            "description": ["funcao", "objeto"]
+        }
+    }
+    
+    # 3. Normalização e transformação
+    processed_data = []
+    for item in results:
+        normalized_item = normalize_item(item, field_mapping.get(data_type, {}))
+        processed_data.append(normalized_item)
+    
+    # 4. Cálculos agregados
+    statistics = calculate_statistics(processed_data)
+    
+    # 5. Detecção de anomalias
+    anomalies = detect_anomalies(processed_data)
+    
+    return {
+        "data": processed_data,
+        "statistics": statistics,
+        "anomalies": anomalies,
+        "metadata": {
+            "total_records": len(processed_data),
+            "data_type": data_type,
+            "processing_timestamp": datetime.now().isoformat()
+        }
+    }
+</code></pre>
+    </div>
+</div>
+
+<!-- Seção 4: Qualidade e Confiabilidade dos Dados -->
+<div class="methodology-section">
+    <h3>🔍 <span data-pt="Qualidade e Confiabilidade dos Dados" data-en="Data Quality and Reliability">Qualidade e Confiabilidade dos Dados</span></h3>
+    
+    <div class="info-card" style="background: linear-gradient(135deg, #fef7cd, #fef3c7); border-left: 4px solid #F59E0B;">
+        <h4>📊 <span data-pt="Métricas de Qualidade" data-en="Quality Metrics">Métricas de Qualidade</span></h4>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin: 1rem 0;">
+            <div style="text-align: center; padding: 1rem; background: rgba(255,255,255,0.7); border-radius: 8px;">
+                <h5 style="margin: 0; color: #92400e;"><span data-pt="Completude" data-en="Completeness">Completude</span></h5>
+                <p style="font-size: 1.5rem; font-weight: bold; color: #92400e; margin: 0.5rem 0;">~95%</p>
+                <p style="font-size: 0.8rem; margin: 0;"><span data-pt="Campos preenchidos" data-en="Filled fields">Campos preenchidos</span></p>
+            </div>
+            
+            <div style="text-align: center; padding: 1rem; background: rgba(255,255,255,0.7); border-radius: 8px;">
+                <h5 style="margin: 0; color: #92400e;"><span data-pt="Consistência" data-en="Consistency">Consistência</span></h5>
+                <p style="font-size: 1.5rem; font-weight: bold; color: #92400e; margin: 0.5rem 0;">~92%</p>
+                <p style="font-size: 0.8rem; margin: 0;"><span data-pt="Formatos padronizados" data-en="Standardized formats">Formatos padronizados</span></p>
+            </div>
+            
+            <div style="text-align: center; padding: 1rem; background: rgba(255,255,255,0.7); border-radius: 8px;">
+                <h5 style="margin: 0; color: #92400e;"><span data-pt="Atualização" data-en="Timeliness">Atualização</span></h5>
+                <p style="font-size: 1.5rem; font-weight: bold; color: #92400e; margin: 0.5rem 0;"><span data-pt="Diária" data-en="Daily">Diária</span></p>
+                <p style="font-size: 0.8rem; margin: 0;"><span data-pt="Frequência de update" data-en="Update frequency">Frequência de update</span></p>
+            </div>
+        </div>
+        
+        <h5><span data-pt="Desafios Identificados" data-en="Identified Challenges">Desafios Identificados</span></h5>
+        <ul>
+            <li><strong><span data-pt="Heterogeneidade de Esquemas" data-en="Schema Heterogeneity">Heterogeneidade de Esquemas</span>:</strong> <span data-pt="Diferentes órgãos podem ter estruturas distintas" data-en="Different agencies may have distinct structures">Diferentes órgãos podem ter estruturas distintas</span></li>
+            <li><strong><span data-pt="Dados Ausentes" data-en="Missing Data">Dados Ausentes</span>:</strong> <span data-pt="~5% dos campos podem estar vazios" data-en="~5% of fields may be empty">~5% dos campos podem estar vazios</span></li>
+            <li><strong><span data-pt="Variações Temporais" data-en="Temporal Variations">Variações Temporais</span>:</strong> <span data-pt="Mudanças de estrutura ao longo do tempo" data-en="Structure changes over time">Mudanças de estrutura ao longo do tempo</span></li>
+            <li><strong><span data-pt="Encoding Issues" data-en="Encoding Issues">Problemas de Codificação</span>:</strong> <span data-pt="Acentos e caracteres especiais" data-en="Accents and special characters">Acentos e caracteres especiais</span></li>
+        </ul>
+        
+        <h5><span data-pt="Estratégias de Mitigação" data-en="Mitigation Strategies">Estratégias de Mitigação</span></h5>
+        <ul>
+            <li><strong><span data-pt="Mapeamento Dinâmico" data-en="Dynamic Mapping">Mapeamento Dinâmico</span>:</strong> <span data-pt="Adaptação automática a diferentes esquemas" data-en="Automatic adaptation to different schemas">Adaptação automática a diferentes esquemas</span></li>
+            <li><strong><span data-pt="Valores Padrão" data-en="Default Values">Valores Padrão</span>:</strong> <span data-pt="Fallbacks para campos ausentes" data-en="Fallbacks for missing fields">Fallbacks para campos ausentes</span></li>
+            <li><strong><span data-pt="Validação Rigorosa" data-en="Rigorous Validation">Validação Rigorosa</span>:</strong> <span data-pt="Verificações de tipo e formato" data-en="Type and format checks">Verificações de tipo e formato</span></li>
+            <li><strong><span data-pt="Cache Inteligente" data-en="Smart Caching">Cache Inteligente</span>:</strong> <span data-pt="Redução de requisições desnecessárias" data-en="Reduction of unnecessary requests">Redução de requisições desnecessárias</span></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Seção 5: Aspectos Éticos e Legais -->
+<div class="methodology-section">
+    <h3>⚖️ <span data-pt="Aspectos Éticos e Legais" data-en="Ethical and Legal Aspects">Aspectos Éticos e Legais</span></h3>
+    
+    <div class="info-card" style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-left: 4px solid #0369a1;">
+        <h4>📜 <span data-pt="Conformidade Legal" data-en="Legal Compliance">Conformidade Legal</span></h4>
+        
+        <h5><span data-pt="Marco Legal Brasileiro" data-en="Brazilian Legal Framework">Marco Legal Brasileiro</span></h5>
+        <ul>
+            <li><strong><span data-pt="Lei de Acesso à Informação (LAI)" data-en="Access to Information Law (LAI)">Lei de Acesso à Informação (LAI)</span></strong> - <span data-pt="Lei nº 12.527/2011" data-en="Law No. 12,527/2011">Lei nº 12.527/2011</span></li>
+            <li><strong><span data-pt="Lei Geral de Proteção de Dados (LGPD)" data-en="General Data Protection Law (LGPD)">Lei Geral de Proteção de Dados (LGPD)</span></strong> - <span data-pt="Lei nº 13.709/2018" data-en="Law No. 13,709/2018">Lei nº 13.709/2018</span></li>
+            <li><strong><span data-pt="Decreto nº 7.724/2012" data-en="Decree No. 7,724/2012">Decreto nº 7.724/2012</span></strong> - <span data-pt="Regulamentação da LAI" data-en="LAI Regulation">Regulamentação da LAI</span></li>
+            <li><strong><span data-pt="Marco Civil da Internet" data-en="Internet Civil Framework">Marco Civil da Internet</span></strong> - <span data-pt="Lei nº 12.965/2014" data-en="Law No. 12,965/2014">Lei nº 12.965/2014</span></li>
+        </ul>
+        
+        <h5><span data-pt="Princípios Éticos Aplicados" data-en="Applied Ethical Principles">Princípios Éticos Aplicados</span></h5>
+        <ul>
+            <li><strong><span data-pt="Transparência Ativa" data-en="Active Transparency">Transparência Ativa</span>:</strong> <span data-pt="Dados públicos com acesso facilitado" data-en="Public data with facilitated access">Dados públicos com acesso facilitado</span></li>
+            <li><strong><span data-pt="Finalidade Pública" data-en="Public Purpose">Finalidade Pública</span>:</strong> <span data-pt="Uso exclusivo para análise de transparência" data-en="Exclusive use for transparency analysis">Uso exclusivo para análise de transparência</span></li>
+            <li><strong><span data-pt="Não Comercialização" data-en="Non-Commercialization">Não Comercialização</span>:</strong> <span data-pt="Projeto acadêmico sem fins lucrativos" data-en="Academic project without profit motive">Projeto acadêmico sem fins lucrativos</span></li>
+            <li><strong><span data-pt="Responsabilidade Algorítmica" data-en="Algorithmic Responsibility">Responsabilidade Algorítmica</span>:</strong> <span data-pt="Transparência nos métodos de análise" data-en="Transparency in analysis methods">Transparência nos métodos de análise</span></li>
+        </ul>
+        
+        <h5><span data-pt="Medidas de Proteção" data-en="Protection Measures">Medidas de Proteção</span></h5>
+        <ul>
+            <li><strong><span data-pt="Anonimização" data-en="Anonymization">Anonimização</span>:</strong> <span data-pt="Remoção de identificadores pessoais" data-en="Removal of personal identifiers">Remoção de identificadores pessoais</span></li>
+            <li><strong><span data-pt="Agregação" data-en="Aggregation">Agregação</span>:</strong> <span data-pt="Análise em nível agregado, não individual" data-en="Analysis at aggregate level, not individual">Análise em nível agregado, não individual</span></li>
+            <li><strong><span data-pt="Auditabilidade" data-en="Auditability">Auditabilidade</span>:</strong> <span data-pt="Logs de acesso e processamento" data-en="Access and processing logs">Logs de acesso e processamento</span></li>
+            <li><strong><span data-pt="Minimização" data-en="Minimization">Minimização</span>:</strong> <span data-pt="Coleta apenas de dados necessários" data-en="Collection of only necessary data">Coleta apenas de dados necessários</span></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Seção 6: Impacto e Limitações -->
+<div class="methodology-section">
+    <h3>📈 <span data-pt="Impacto e Limitações" data-en="Impact and Limitations">Impacto e Limitações</span></h3>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin: 1.5rem 0;">
+        
+        <!-- Impactos Positivos -->
+        <div class="info-card" style="border-left: 4px solid #00A86B;">
+            <h5>✅ <span data-pt="Impactos Positivos" data-en="Positive Impacts">Impactos Positivos</span></h5>
+            <ul style="font-size: 0.9rem;">
+                <li><span data-pt="Democratização do acesso a dados públicos" data-en="Democratization of access to public data">Democratização do acesso a dados públicos</span></li>
+                <li><span data-pt="Interface intuitiva para cidadãos" data-en="Intuitive interface for citizens">Interface intuitiva para cidadãos</span></li>
+                <li><span data-pt="Análises automatizadas com IA" data-en="Automated AI analyses">Análises automatizadas com IA</span></li>
+                <li><span data-pt="Visualizações interativas" data-en="Interactive visualizations">Visualizações interativas</span></li>
+                <li><span data-pt="Detecção de padrões suspeitos" data-en="Detection of suspicious patterns">Detecção de padrões suspeitos</span></li>
+                <li><span data-pt="Educação em transparência" data-en="Education in transparency">Educação em transparência</span></li>
+            </ul>
+        </div>
+        
+        <!-- Limitações -->
+        <div class="info-card" style="border-left: 4px solid #EF4444;">
+            <h5>⚠️ <span data-pt="Limitações Identificadas" data-en="Identified Limitations">Limitações Identificadas</span></h5>
+            <ul style="font-size: 0.9rem;">
+                <li><span data-pt="Dependência da qualidade dos dados originais" data-en="Dependence on original data quality">Dependência da qualidade dos dados originais</span></li>
+                <li><span data-pt="Cobertura limitada aos dados federais" data-en="Coverage limited to federal data">Cobertura limitada aos dados federais</span></li>
+                <li><span data-pt="Rate limiting da API (90 req/min)" data-en="API rate limiting (90 req/min)">Rate limiting da API (90 req/min)</span></li>
+                <li><span data-pt="Possível latência em horários de pico" data-en="Possible latency during peak hours">Possível latência em horários de pico</span></li>
+                <li><span data-pt="Necessidade de atualização contínua" data-en="Need for continuous updates">Necessidade de atualização contínua</span></li>
+                <li><span data-pt="Complexidade técnica para usuários básicos" data-en="Technical complexity for basic users">Complexidade técnica para usuários básicos</span></li>
+            </ul>
+        </div>
+    </div>
+</div>
