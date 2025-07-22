@@ -21,8 +21,7 @@ COPY requirements-hf.txt ./
 RUN pip install --no-cache-dir -r requirements-hf.txt
 
 # Copy application code
-COPY app-simple.py ./app.py
-COPY *.md ./
+COPY app.py ./
 
 # Create necessary directories
 RUN mkdir -p logs models data
