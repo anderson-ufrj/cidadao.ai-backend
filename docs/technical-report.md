@@ -30,7 +30,7 @@
 
 ### **1. Multi-Agent Architecture (Excelente)**
 
-**Sistema sofisticado com 8 agentes especializados:**
+**Sistema sofisticado com múltiplos agentes especializados:**
 
 - **BaseAgent**: Fundação robusta com retry logic e message passing
 - **MasterAgent**: Orquestração inteligente com planejamento estratégico  

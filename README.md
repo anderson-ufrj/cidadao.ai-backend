@@ -28,7 +28,7 @@ docker-compose up -d
 ```
 
 ### Features
-- 8 specialized AI agents for transparency analysis
+- Multiple specialized AI agents for transparency analysis
 - Enterprise-grade FastAPI backend with 40+ endpoints
 - Multi-agent system with Redis communication
 - PostgreSQL + Redis + ChromaDB stack
@@ -52,7 +52,7 @@ docker-compose up -d
 ```
 
 ### Funcionalidades
-- 8 agentes de IA especializados para análise de transparência
+- Múltiplos agentes de IA especializados para análise de transparência
 - Backend FastAPI enterprise com 40+ endpoints
 - Sistema multi-agente com comunicação Redis
 - Stack PostgreSQL + Redis + ChromaDB
