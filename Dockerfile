@@ -17,9 +17,8 @@ RUN useradd --create-home --shell /bin/bash app
 WORKDIR /app
 
 # Copy requirements and install dependencies
-COPY requirements.txt ./
-COPY requirements/ ./requirements/
-RUN pip install --no-cache-dir -r requirements/production.txt
+COPY requirements-hf.txt ./
+RUN pip install --no-cache-dir -r requirements-hf.txt
 
 # Copy application code
 COPY src/ ./src/
