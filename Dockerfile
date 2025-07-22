@@ -21,8 +21,7 @@ COPY requirements-hf.txt ./
 RUN pip install --no-cache-dir -r requirements-hf.txt
 
 # Copy application code
-COPY src/ ./src/
-COPY app.py ./
+COPY app-simple.py ./app.py
 COPY *.md ./
 
 # Create necessary directories
