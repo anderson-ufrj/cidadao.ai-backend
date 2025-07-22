@@ -1,3 +1,15 @@
+---
+title: Cidadão.AI Backend
+emoji: 🏛️
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_file: app.py
+pinned: false
+license: apache-2.0
+suggested_hardware: t4-small
+---
+
 <div align="center">
 
 # 🇧🇷 Cidadão.AI Backend
