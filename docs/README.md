@@ -1,10 +1,41 @@
-# 📚 Documentação Técnica - Cidadão.AI
+# 📚 Technical Documentation / Documentação Técnica
 
-## 🌐 Acesso
+> **Technical documentation for Cidadão.AI backend system**  
+> **Documentação técnica para o sistema backend do Cidadão.AI**
 
-**📖 Documentação Online**: https://anderson-ufrj.github.io/cidadao.ai/docs/
+## [English](#english) | [Português](#português)
 
-## 🏃‍♂️ Visualização Local
+---
+
+## 🇺🇸 English
+
+### Access
+
+**📖 Online Documentation**: https://anderson-ufrj.github.io/cidadao.ai-docs/
+
+### Local Viewing
+
+```bash
+# In docs/ folder
+python3 -m http.server 8000
+# Access: http://localhost:8000
+```
+
+### Structure
+
+- `index.html` - Main documentation interface
+- `sections/` - Detailed technical sections
+- `_config.yml` - Jekyll configuration for GitHub Pages
+
+---
+
+## 🇧🇷 Português
+
+### Acesso
+
+**📖 Documentação Online**: https://anderson-ufrj.github.io/cidadao.ai-docs/
+
+### Visualização Local
 
 ```bash
 # Na pasta docs/
