@@ -24,8 +24,9 @@ suggested_hardware: t4-small
 
 [![Code Quality](https://img.shields.io/badge/code%20quality-9.8%2F10-brightgreen.svg)](https://github.com/anderson-ufrj/cidadao.ai-backend)
 [![Test Coverage](https://img.shields.io/badge/coverage-85%25-brightgreen.svg)](https://github.com/anderson-ufrj/cidadao.ai-backend)
-[![API Docs](https://img.shields.io/badge/API-Documentation-blue.svg)](https://api.cidadao.ai/docs)
-[![Swagger](https://img.shields.io/badge/docs-swagger-85EA2D.svg)](https://api.cidadao.ai/docs)
+[![API Docs](https://img.shields.io/badge/API-Documentation-blue.svg)](https://neural-thinker-cidadao-ai-backend.hf.space/docs)
+[![Swagger](https://img.shields.io/badge/docs-swagger-85EA2D.svg)](https://neural-thinker-cidadao-ai-backend.hf.space/docs)
+[![API Live](https://img.shields.io/badge/API-Live-brightgreen.svg)](https://neural-thinker-cidadao-ai-backend.hf.space)
 [![CI/CD](https://img.shields.io/badge/CI%2FCD-automated-blue.svg)](https://github.com/anderson-ufrj/cidadao.ai-backend/actions)
 [![Security](https://img.shields.io/badge/security-enterprise-green.svg)](https://github.com/anderson-ufrj/cidadao.ai-backend/security)
 
@@ -84,11 +85,15 @@ Este projeto contribui diretamente para o **ODS 16: Paz, Justiça e Instituiçõ
 - 🤝 Tomada de decisão responsiva, inclusiva e participativa (Meta 16.7)
 - 💰 Redução substancial da corrupção e suborno (Meta 16.5)
 
-### 🚀 Acesso Rápido & Deploy
+### 🎉 Status: API em Produção ✅
+
+**A API Cidadão.AI está LIVE e funcionando!**
 
 #### 🌐 **Aplicação Online**
-- **🤗 Backend API**: [cidadao.ai-backend](https://huggingface.co/spaces/neural-thinker/cidadao.ai-backend)
-- **📊 API Documentation**: [Swagger UI](https://api.cidadao.ai/docs)
+- **🚀 Backend API Live**: [neural-thinker-cidadao-ai-backend.hf.space](https://neural-thinker-cidadao-ai-backend.hf.space)
+- **📊 API Documentation**: [Swagger UI](https://neural-thinker-cidadao-ai-backend.hf.space/docs)
+- **🔍 Health Check**: [API Status](https://neural-thinker-cidadao-ai-backend.hf.space/health)
+- **🤗 HF Spaces**: [cidadao.ai-backend](https://huggingface.co/spaces/neural-thinker/cidadao.ai-backend)
 - **📚 Documentação Técnica**: [anderson-ufrj.github.io/cidadao.ai](https://anderson-ufrj.github.io/cidadao.ai/)
 - **💻 Repositório Backend**: [GitHub](https://github.com/anderson-ufrj/cidadao.ai-backend)
 - **🎯 Frontend Separado**: [Vercel Deploy](https://cidadao-ai-frontend.vercel.app/) | [GitHub Repo](https://github.com/anderson-ufrj/cidadao.ai-frontend)
