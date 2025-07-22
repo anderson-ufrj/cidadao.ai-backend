@@ -872,6 +872,9 @@
     <!-- Mobile Menu Button -->
     <button class="mobile-menu-button" id="mobileMenuButton">☰</button>
 
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
     <div class="container">
         <!-- Sidebar -->
         <nav class="sidebar" id="sidebar">
@@ -1299,17 +1302,62 @@
         function setupMobileMenu() {
             const mobileMenuButton = document.getElementById('mobileMenuButton');
             const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
             
-            mobileMenuButton.addEventListener('click', function() {
-                sidebar.classList.toggle('open');
+            function openSidebar() {
+                sidebar.classList.add('open');
+                sidebarOverlay.classList.add('active');
+                document.body.style.overflow = 'hidden'; // Prevent body scroll
+            }
+            
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = ''; // Restore body scroll
+            }
+            
+            // Toggle sidebar on menu button click
+            mobileMenuButton.addEventListener('click', function(e) {
+                e.stopPropagation();
+                if (sidebar.classList.contains('open')) {
+                    closeSidebar();
+                } else {
+                    openSidebar();
+                }
             });
+
+            // Close sidebar when clicking overlay
+            sidebarOverlay.addEventListener('click', closeSidebar);
 
             // Close sidebar when clicking outside on mobile
             document.addEventListener('click', function(e) {
                 if (window.innerWidth <= 768) {
                     if (!sidebar.contains(e.target) && !mobileMenuButton.contains(e.target)) {
-                        sidebar.classList.remove('open');
+                        closeSidebar();
                     }
+                }
+            });
+            
+            // Close sidebar when pressing Escape key
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            });
+            
+            // Close sidebar when navigating to a section on mobile
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function() {
+                    if (window.innerWidth <= 768) {
+                        closeSidebar();
+                    }
+                });
+            });
+            
+            // Handle window resize
+            window.addEventListener('resize', function() {
+                if (window.innerWidth > 768) {
+                    closeSidebar();
                 }
             });
         }

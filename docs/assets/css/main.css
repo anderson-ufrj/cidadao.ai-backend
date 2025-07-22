@@ -398,8 +398,10 @@ body {
     color: #fed7aa;
 }
 
-/* Responsive Design */
-@media (max-width: 1024px) {
+/* Responsive Design - Enhanced Mobile-First Approach */
+
+/* Large Tablets and Small Desktops */
+@media (max-width: 1200px) {
     .sidebar {
         width: 280px;
     }
@@ -409,40 +411,24 @@ body {
         max-width: calc(100% - 280px);
         padding: 1.5rem 2rem;
     }
+    
+    .content-section {
+        max-width: 800px;
+    }
 }
 
-@media (max-width: 768px) {
+/* Standard Tablets */
+@media (max-width: 1024px) {
     .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-    }
-    
-    .sidebar.open {
-        transform: translateX(0);
+        width: 260px;
     }
     
     .main-content {
-        margin-left: 0;
-        max-width: 100%;
-        padding: 1rem;
+        margin-left: 260px;
+        max-width: calc(100% - 260px);
+        padding: 1.25rem 1.5rem;
     }
     
-    .mobile-menu-button {
-        display: block;
-        position: fixed;
-        top: 1rem;
-        left: 1rem;
-        z-index: 1001;
-        background-color: var(--bg-accent);
-        color: white;
-        border: none;
-        padding: 0.75rem;
-        border-radius: 0.375rem;
-        cursor: pointer;
-        font-size: var(--text-base);
-    }
-    
-    /* Responsive typography */
     .section-title {
         font-size: var(--text-3xl);
     }
@@ -452,8 +438,205 @@ body {
     }
 }
 
+/* Mobile and Small Tablets */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        width: 280px;
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .sidebar.open {
+        transform: translateX(0);
+    }
+    
+    .main-content {
+        margin-left: 0;
+        max-width: 100%;
+        padding: 1rem 0.75rem;
+    }
+    
+    .mobile-menu-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        z-index: 1001;
+        background-color: var(--bg-accent);
+        color: white;
+        border: none;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        font-size: 1.25rem;
+        box-shadow: var(--shadow-lg);
+        transition: all 0.2s ease;
+        min-width: 44px;
+        min-height: 44px;
+    }
+    
+    .mobile-menu-button:hover {
+        transform: scale(1.05);
+        box-shadow: var(--shadow-xl);
+    }
+    
+    /* Responsive typography */
+    .section-title {
+        font-size: var(--text-2xl);
+        line-height: 1.3;
+    }
+    
+    .section-description {
+        font-size: var(--text-sm);
+    }
+    
+    .academic-header {
+        padding: 2rem 1rem;
+    }
+    
+    .academic-title {
+        font-size: var(--text-3xl);
+    }
+    
+    .academic-subtitle {
+        font-size: var(--text-lg);
+    }
+    
+    .academic-meta {
+        font-size: var(--text-sm);
+    }
+    
+    /* Content adjustments */
+    .content-section {
+        max-width: 100%;
+        padding: 0 0.25rem;
+    }
+    
+    .content-section h1 {
+        font-size: var(--text-2xl);
+    }
+    
+    .content-section h2 {
+        font-size: var(--text-xl);
+    }
+    
+    .content-section h3 {
+        font-size: var(--text-lg);
+    }
+    
+    .content-section p,
+    .content-section li {
+        font-size: var(--text-sm);
+    }
+    
+    /* Table responsiveness */
+    .content-section table {
+        font-size: var(--text-xs);
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    .content-section th,
+    .content-section td {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    /* Code blocks */
+    .content-section pre {
+        font-size: var(--text-xs);
+        padding: 1rem;
+        overflow-x: auto;
+    }
+    
+    .content-section code {
+        font-size: 0.85em;
+    }
+}
+
 .mobile-menu-button {
     display: none;
+}
+
+/* Mobile Overlay for Sidebar */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .sidebar-overlay {
+        display: block;
+    }
+    
+    .sidebar-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+}
+
+/* Small Mobile Devices */
+@media (max-width: 480px) {
+    .main-content {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .section-title {
+        font-size: var(--text-xl);
+    }
+    
+    .academic-header {
+        padding: 1.5rem 0.75rem;
+    }
+    
+    .academic-title {
+        font-size: var(--text-2xl);
+    }
+    
+    .sidebar {
+        width: calc(100vw - 2rem);
+        padding: 1.5rem 1rem;
+    }
+    
+    .logo-text {
+        font-size: var(--text-xl);
+    }
+    
+    .nav-link {
+        padding: 0.625rem 0.75rem;
+        font-size: var(--text-xs);
+    }
+    
+    .control-button {
+        padding: 0.4rem;
+        font-size: var(--text-xs);
+    }
+    
+    .lang-flag {
+        font-size: 0.9rem;
+        min-width: 2rem;
+    }
+    
+    .mobile-menu-button {
+        top: 0.75rem;
+        left: 0.75rem;
+        padding: 0.625rem;
+        min-width: 40px;
+        min-height: 40px;
+        font-size: 1.1rem;
+    }
 }
 
 /* Progress Indicator */
@@ -816,4 +999,77 @@ body {
 [data-theme="dark"] .status-indicator.info {
     background-color: #1e40af;
     color: #dbeafe;
+}
+
+/* Enhanced Mobile Credits Responsiveness */
+@media (max-width: 768px) {
+    .credits-modal {
+        width: calc(100vw - 2rem);
+        right: 1rem;
+        left: 1rem;
+        bottom: 5rem;
+        max-height: 70vh;
+    }
+    
+    .credits-button {
+        bottom: 1rem;
+        right: 1rem;
+        width: 50px;
+        height: 50px;
+        font-size: 1.6rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .credits-modal {
+        width: calc(100vw - 1.5rem);
+        right: 0.75rem;
+        left: 0.75rem;
+        bottom: 4.5rem;
+        max-height: 65vh;
+    }
+    
+    .credits-button {
+        bottom: 0.75rem;
+        right: 0.75rem;
+        width: 45px;
+        height: 45px;
+        font-size: 1.4rem;
+    }
+    
+    .credits-content {
+        padding: 15px;
+        max-height: calc(65vh - 60px);
+    }
+    
+    .credits-section h4 {
+        font-size: var(--text-sm);
+    }
+    
+    .credits-info p,
+    .credits-section li {
+        font-size: var(--text-xs);
+    }
+    
+    .credits-link {
+        font-size: var(--text-xs);
+        padding: 4px 8px;
+    }
+}
+
+@media (max-width: 320px) {
+    .credits-modal {
+        width: calc(100vw - 1rem);
+        right: 0.5rem;
+        left: 0.5rem;
+        bottom: 4rem;
+    }
+    
+    .credits-button {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+        bottom: 0.5rem;
+        right: 0.5rem;
+    }
 }
