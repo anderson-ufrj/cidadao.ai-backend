@@ -20,11 +20,25 @@
 
 ### Quick Start
 ```bash
-# Clone and run with Docker
+# Clone the repository
 git clone https://github.com/anderson-ufrj/cidadao.ai-backend
 cd cidadao.ai-backend
+
+# Option 1: Run with start script (recommended)
+./start.sh
+
+# Option 2: Run with Docker
 docker-compose up -d
-# Access API: http://localhost:8000/docs
+
+# Option 3: Manual start
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements-hf.txt
+python3 app.py
+
+# Access:
+# - Interface: http://localhost:7860
+# - API Docs: http://localhost:7860/docs
 ```
 
 ### Features
@@ -44,11 +58,25 @@ docker-compose up -d
 
 ### Início Rápido
 ```bash
-# Clone e execute com Docker
+# Clone o repositório
 git clone https://github.com/anderson-ufrj/cidadao.ai-backend
 cd cidadao.ai-backend
+
+# Opção 1: Executar com script (recomendado)
+./start.sh
+
+# Opção 2: Executar com Docker
 docker-compose up -d
-# Acesse a API: http://localhost:8000/docs
+
+# Opção 3: Iniciar manualmente
+python3 -m venv venv
+source venv/bin/activate  # No Windows: venv\Scripts\activate
+pip install -r requirements-hf.txt
+python3 app.py
+
+# Acesse:
+# - Interface: http://localhost:7860
+# - API Docs: http://localhost:7860/docs
 ```
 
 ### Funcionalidades
