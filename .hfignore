@@ -3,6 +3,7 @@
 
 # Documentation website (keep in GitHub, exclude from HF)
 docs/
+# Ensure docs folder is completely excluded from HF deployment
 *.html
 *.css
 *.js
