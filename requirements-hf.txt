@@ -4,7 +4,6 @@ fastapi>=0.104.0
 uvicorn[standard]>=0.24.0
 pydantic>=2.4.0
 python-multipart>=0.0.6
-gradio>=5.0.0
 
 # Database & Cache (lightweight)
 asyncpg>=0.29.0
