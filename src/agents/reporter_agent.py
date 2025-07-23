@@ -1,5 +1,6 @@
 """
 Module: agents.reporter_agent
+Codinome: Tiradentes - Avaliador de Riscos
 Description: Agent specialized in generating natural language reports from investigation and analysis results
 Author: Anderson H. Silva
 Date: 2025-01-24

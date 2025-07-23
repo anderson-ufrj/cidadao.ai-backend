@@ -1,5 +1,6 @@
 """
 Module: agents.context_memory_agent
+Codinome: Nanã - Agente Temporal
 Description: Agent responsible for managing episodic and semantic memory
 Author: Anderson H. Silva
 Date: 2025-01-24

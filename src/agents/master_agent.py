@@ -1,5 +1,6 @@
 """
 Module: agents.master_agent
+Codinome: Abaporu - Núcleo Central da IA
 Description: Master agent that orchestrates other agents with self-reflection
 Author: Anderson H. Silva
 Date: 2025-01-24
