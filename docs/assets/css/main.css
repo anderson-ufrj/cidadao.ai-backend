@@ -1247,11 +1247,12 @@ body::before {
     }
     
     .reading-content {
-        width: 85%; /* No mobile ocupa 85% da tela (sidebar escondida) */
-        margin-left: auto;
-        margin-right: auto;
-        padding: 1.5rem;
+        width: 90%; /* No mobile ocupa 90% da tela (mais centralizado) */
+        margin: 0 auto; /* Centralização perfeita */
+        padding: 1rem;
         font-size: 1rem;
+        max-width: 100%;
+        box-sizing: border-box;
     }
     
     .reading-modal-header {
@@ -1370,13 +1371,33 @@ body::before {
     }
 
     .modal-content {
-        margin: 1rem;
+        margin: 1rem auto;
         max-height: calc(100vh - 2rem);
+        width: calc(100% - 2rem);
+        left: 50%;
+        transform: translateX(-50%);
+        position: relative;
     }
 
     .modal-header,
     .modal-body {
         padding: 1.5rem;
+    }
+    
+    /* Centralização perfeita dos modais no mobile */
+    .modal.active {
+        padding: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    /* Garantir que o modo leitura está centralizado */
+    .reading-modal-content {
+        width: 100%;
+        margin: 0 auto;
+        left: 0;
+        transform: none;
     }
 
     .floating-button {
