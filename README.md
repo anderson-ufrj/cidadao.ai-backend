@@ -1,3 +1,15 @@
+---
+title: Cidadão.AI Backend
+emoji: 🏛️
+colorFrom: green
+colorTo: blue
+sdk: gradio
+sdk_version: "4.0.2"
+app_file: app.py
+pinned: false
+license: apache-2.0
+---
+
 # 🏛️ Cidadão.AI - Backend
 
 > **Enterprise-grade multi-agent AI backend for Brazilian government transparency analysis**  
