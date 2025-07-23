@@ -257,7 +257,10 @@ async def root():
             
             <div class="links">
                 <a href="/docs" class="link-button">
-                    📚 API Documentation
+                    📚 Swagger UI
+                </a>
+                <a href="/redoc" class="link-button">
+                    📖 ReDoc
                 </a>
                 <a href="/health" class="link-button secondary-button">
                     🔍 Health Check
