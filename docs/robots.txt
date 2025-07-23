@@ -10,7 +10,6 @@ Crawl-delay: 1
 # Priority pages
 Allow: /docs/
 Allow: /docs/index.html
-Allow: /docs/sections/
 
 # Cache and temporary files
 Disallow: /docs/_site/
