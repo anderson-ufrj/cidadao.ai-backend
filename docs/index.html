@@ -1320,6 +1320,54 @@
                                         .agent-card:hover .agent-avatar img {
                                             transform: scale(1.05);
                                         }
+                                        
+                                        /* 📱 Mobile Optimizations */
+                                        @media (max-width: 768px) {
+                                            .agent-grid {
+                                                grid-template-columns: 1fr;
+                                                gap: 1.5rem;
+                                                padding: 0 1rem;
+                                            }
+                                            
+                                            .agent-card {
+                                                padding: 2rem 1.5rem;
+                                                margin: 0 auto;
+                                                max-width: 100%;
+                                                width: 100%;
+                                            }
+                                            
+                                            .agent-avatar {
+                                                width: 100px;
+                                                height: 100px;
+                                                flex-shrink: 0;
+                                            }
+                                            
+                                            .agent-avatar img {
+                                                width: 100px !important;
+                                                height: 100px !important;
+                                                object-fit: cover !important;
+                                                border-radius: 50% !important;
+                                                display: block !important;
+                                                max-width: none !important;
+                                                min-width: 100px !important;
+                                                min-height: 100px !important;
+                                            }
+                                            
+                                            /* Fallback for mobile image loading issues */
+                                            .agent-avatar {
+                                                background-size: cover !important;
+                                                background-position: center !important;
+                                                background-repeat: no-repeat !important;
+                                            }
+                                            
+                                            .agent-name {
+                                                font-size: 1.25rem;
+                                            }
+                                            
+                                            .agent-role {
+                                                font-size: 0.875rem;
+                                            }
+                                        }
                                         .agent-info {
                                             text-align: center;
                                         }
@@ -1377,7 +1425,7 @@
                                         <div class="agent-card">
                                             <div class="agent-header">
                                                 <div class="agent-avatar">
-                                                    <img src="assets/img/agents/abaporu.png" alt="Abaporu" onerror="this.style.display='none'; this.parentNode.innerHTML='🎯'">
+                                                    <img src="./assets/img/agents/abaporu.png" alt="Abaporu" loading="eager" onerror="console.log('Error loading:', this.src); this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>🎯</div>'" onload="console.log('Image loaded:', this.src)">
                                                 </div>
                                                 <div class="agent-info">
                                                     <div class="agent-name">Abaporu</div>
