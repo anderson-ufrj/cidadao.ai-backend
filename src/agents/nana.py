@@ -1,5 +1,5 @@
 """
-Module: agents.context_memory_agent
+Module: agents.nana
 Codinome: Nanã - Agente Temporal
 Description: Agent responsible for managing episodic and semantic memory
 Author: Anderson H. Silva
@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field as PydanticField
 
 from src.core import AgentStatus, MemoryImportance, get_logger
 from src.core.exceptions import MemoryError, MemoryStorageError, MemoryRetrievalError
-from .base_agent import (
+from .deodoro import (
     AgentContext,
     AgentMessage,
     AgentResponse,

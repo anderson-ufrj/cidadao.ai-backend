@@ -1,6 +1,7 @@
 """
-Module: agents.semantic_router
-Description: Semantic router for directing queries to appropriate agents
+Module: agents.ayrton_senna
+Codinome: Ayrton Senna - Navegador das Rotas Perfeitas
+Description: Semantic router for directing queries to appropriate agents with precision and speed
 Author: Anderson H. Silva
 Date: 2025-01-24
 License: Proprietary - All rights reserved
@@ -13,7 +14,7 @@ from pydantic import BaseModel, Field as PydanticField
 
 from src.core import AgentStatus, get_logger
 from src.core.exceptions import AgentError, ValidationError
-from .base_agent import (
+from .deodoro import (
     AgentContext,
     AgentMessage,
     AgentResponse,

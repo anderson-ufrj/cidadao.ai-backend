@@ -1,5 +1,5 @@
 """
-Module: agents.investigator_agent
+Module: agents.zumbi
 Codinome: Zumbi - Investigador de Padrões
 Description: Agent specialized in detecting anomalies and suspicious patterns in government data
 Author: Anderson H. Silva
@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel, Field as PydanticField
 
-from src.agents.base_agent import BaseAgent, AgentContext, AgentMessage
+from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
 from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFilter
@@ -98,7 +98,7 @@ class InvestigatorAgent(BaseAgent):
         }
         
         self.logger.info(
-            "investigator_agent_initialized",
+            "zumbi_initialized",
             agent_id=agent_id,
             price_threshold=price_anomaly_threshold,
             concentration_threshold=concentration_threshold,

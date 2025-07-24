@@ -1,5 +1,5 @@
 """
-Module: agents.security_auditor_agent
+Module: agents.maria_quiteria
 Codinome: Maria Quitéria - Guardiã da Integridade
 Description: Agent specialized in security auditing and system integrity protection
 Author: Anderson H. Silva
@@ -20,7 +20,7 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel, Field as PydanticField
 
-from src.agents.base_agent import BaseAgent, AgentContext, AgentMessage, AgentResponse
+from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentResponse
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
 

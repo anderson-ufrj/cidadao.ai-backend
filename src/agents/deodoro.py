@@ -1,5 +1,5 @@
 """
-Module: agents.base_agent
+Module: agents.deodoro
 Codinome: Deodoro da Fonseca - Fundador da Arquitetura Multi-Agente
 Description: Base agent class for all Cidadão.AI agents
 Author: Anderson H. Silva

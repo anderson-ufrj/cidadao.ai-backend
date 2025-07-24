@@ -1,5 +1,5 @@
 """
-Module: agents.master_agent
+Module: agents.abaporu
 Codinome: Abaporu - Núcleo Central da IA
 Description: Master agent that orchestrates other agents with self-reflection
 Author: Anderson H. Silva
@@ -15,7 +15,7 @@ from pydantic import BaseModel, Field as PydanticField
 
 from src.core import AgentStatus, ReflectionType, get_logger
 from src.core.exceptions import AgentExecutionError, InvestigationError
-from .base_agent import (
+from .deodoro import (
     AgentContext,
     AgentMessage,
     AgentResponse,
@@ -100,14 +100,14 @@ class MasterAgent(ReflectiveAgent):
         self.agent_registry: Dict[str, Any] = {}
         
         self.logger.info(
-            "master_agent_initialized",
+            "abaporu_initialized",
             reflection_threshold=reflection_threshold,
             max_reflection_loops=max_reflection_loops,
         )
     
     async def initialize(self) -> None:
         """Initialize master agent."""
-        self.logger.info("master_agent_initializing")
+        self.logger.info("abaporu_initializing")
         
         # Initialize sub-services
         if hasattr(self.llm_service, 'initialize'):
@@ -117,11 +117,11 @@ class MasterAgent(ReflectiveAgent):
             await self.memory_agent.initialize()
         
         self.status = AgentStatus.IDLE
-        self.logger.info("master_agent_initialized")
+        self.logger.info("abaporu_initialized")
     
     async def shutdown(self) -> None:
         """Shutdown master agent."""
-        self.logger.info("master_agent_shutting_down")
+        self.logger.info("abaporu_shutting_down")
         
         # Cleanup resources
         if hasattr(self.llm_service, 'shutdown'):
@@ -133,7 +133,7 @@ class MasterAgent(ReflectiveAgent):
         self.active_investigations.clear()
         self.agent_registry.clear()
         
-        self.logger.info("master_agent_shutdown_complete")
+        self.logger.info("abaporu_shutdown_complete")
     
     def register_agent(self, agent_name: str, agent_instance: Any) -> None:
         """

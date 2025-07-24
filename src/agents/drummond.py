@@ -1,5 +1,5 @@
 """
-Module: agents.communication_agent
+Module: agents.drummond
 Codinome: Carlos Drummond de Andrade - Comunicador do Povo
 Description: Agent specialized in multi-channel communication and natural language generation
 Author: Anderson H. Silva
@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel, Field as PydanticField
 
-from src.agents.base_agent import BaseAgent, AgentContext, AgentMessage, AgentResponse
+from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentResponse
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
 

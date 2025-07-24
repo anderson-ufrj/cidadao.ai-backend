@@ -1,5 +1,5 @@
 """
-Module: agents.analyst_agent
+Module: agents.anita
 Codinome: Anita Garibaldi - Roteadora Semântica
 Description: Agent specialized in pattern analysis and correlation detection in government data
 Author: Anderson H. Silva
@@ -16,7 +16,7 @@ from collections import defaultdict, Counter
 import numpy as np
 from pydantic import BaseModel, Field as PydanticField
 
-from src.agents.base_agent import BaseAgent, AgentContext, AgentMessage
+from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
 from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFilter

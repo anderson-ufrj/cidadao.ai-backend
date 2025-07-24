@@ -206,7 +206,7 @@ def mock_ai_service():
 @pytest.fixture
 def mock_agent_system():
     """Mock for agent system."""
-    with patch('src.agents.master_agent.MasterAgent') as mock:
+    with patch('src.agents.abaporu.MasterAgent') as mock:
         # Configure mock agent responses
         async def mock_process_task(task):
             return {

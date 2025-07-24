@@ -1,5 +1,5 @@
 """
-Module: agents.reporter_agent
+Module: agents.tiradentes
 Codinome: Tiradentes - Avaliador de Riscos
 Description: Agent specialized in generating natural language reports from investigation and analysis results
 Author: Anderson H. Silva
@@ -15,7 +15,7 @@ from enum import Enum
 
 from pydantic import BaseModel, Field as PydanticField
 
-from src.agents.base_agent import BaseAgent, AgentContext, AgentMessage
+from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError
 
@@ -119,7 +119,7 @@ class ReporterAgent(BaseAgent):
         }
         
         self.logger.info(
-            "reporter_agent_initialized",
+            "tiradentes_initialized",
             agent_id=agent_id,
             default_language=default_language,
             max_length=max_report_length,

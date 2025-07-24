@@ -32,10 +32,10 @@ except ImportError:
 
 # Import agent system
 try:
-    from ..agents.master_agent import MasterAgent
-    from ..agents.investigator_agent import InvestigatorAgent
-    from ..agents.analyst_agent import AnalystAgent
-    from ..agents.reporter_agent import ReporterAgent
+    from ..agents.abaporu import MasterAgent
+    from ..agents.zumbi import InvestigatorAgent
+    from ..agents.anita import AnalystAgent
+    from ..agents.tiradentes import ReporterAgent
     AGENTS_AVAILABLE = True
 except ImportError:
     AGENTS_AVAILABLE = False

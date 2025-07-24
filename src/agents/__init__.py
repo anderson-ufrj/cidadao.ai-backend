@@ -6,28 +6,29 @@ Date: 2025-01-24
 License: Proprietary - All rights reserved
 """
 
-from .base_agent import (
+from .deodoro import (
     AgentContext,
     AgentMessage,
     AgentResponse,
     BaseAgent,
     ReflectiveAgent,
 )
-from .context_memory_agent import (
+from .nana import (
     ContextMemoryAgent,
     ConversationMemory,
     EpisodicMemory,
     MemoryEntry,
     SemanticMemory,
 )
-from .master_agent import (
+from .abaporu import (
     InvestigationPlan,
     InvestigationResult,
     MasterAgent,
 )
-from .investigator_agent import InvestigatorAgent
-from .analyst_agent import AnalystAgent
-from .reporter_agent import ReporterAgent
+from .zumbi import InvestigatorAgent
+from .anita import AnalystAgent
+from .tiradentes import ReporterAgent
+from .ayrton_senna import SemanticRouter
 
 __all__ = [
     # Base classes
@@ -44,6 +45,7 @@ __all__ = [
     "InvestigatorAgent",
     "AnalystAgent",
     "ReporterAgent",
+    "SemanticRouter",
     # Memory Agent
     "ContextMemoryAgent",
     "MemoryEntry",
