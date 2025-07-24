@@ -8,6 +8,33 @@ docs/
 *.css
 *.js
 
+# BACKUP PROTECTION - NEVER DEPLOY BACKUPS TO HF
+# ⚠️ CRITICAL: No backups should ever reach production ⚠️
+*backup*/
+*-backup*/
+*_backup*/
+backup*/
+backups/
+*.backup
+*.backup.*
+*.bak
+*.bak.*
+*.old
+*.orig
+*.save
+*.tmp
+*.temp
+*~
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# Date-based backups
+*-20[0-9][0-9]*
+*_20[0-9][0-9]*
+
 # GUI/Frontend components
 apps/api_app.py.backup
 

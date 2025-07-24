@@ -261,19 +261,67 @@ app_transparency_api.py
 test_api_*.py
 .env.example
 
-# Backup files - Universal patterns (enhanced)
+# Backup files - Universal patterns (MAXIMUM PROTECTION)
+# ⚠️ NEVER COMMIT BACKUPS TO REPOSITORY ⚠️
 *.backup
 *.backup.*
 *_backup
 *_backup.*
+*-backup
+*-backup.*
 backup_*
 backup-*
+backup/*
+backups/*
 *.bak
 *.bak.*
 *_bak
 *_bak.*
+*-bak
+*-bak.*
 bak_*
 bak-*
+bak/*
+
+# Directory backup patterns
+docs-backup*/
+*backup*/
+*-backup*/
+*_backup*/
+backup*/
+backups/
+**/backup/
+**/backups/
+**/*backup*/
+**/*-backup*/
+
+# Common backup patterns
+*.orig
+*.save
+*.swp
+*.tmp
+*.temp
+*.old
+*.previous
+*.copy
+*.~*
+*~
+
+# Archive files (often used for backups)
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.bz2
+*.gz
+
+# Date-based backup patterns
+*-20[0-9][0-9][0-9][0-9][0-9][0-9]*
+*_20[0-9][0-9][0-9][0-9][0-9][0-9]*
+*-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-*
+*_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_*
 
 # Arquivos redundantes e desnecessários
 .old/
