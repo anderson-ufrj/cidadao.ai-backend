@@ -193,6 +193,9 @@ blog/
 # Keep docs/ for GitHub Pages technical documentation
 # docs/ - removed from gitignore to enable GitHub Pages
 
+# HuggingFace Spaces specific exclusions
+# Exclude docs/ from HuggingFace deployments (GitHub Pages only)
+
 # Vector stores
 *.faiss
 *.index

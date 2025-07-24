@@ -1,0 +1,18 @@
+<!-- Template: Base Modal Modular -->
+<div id="{{modalId}}" class="modal" role="dialog" aria-labelledby="{{modalId}}-title" aria-hidden="true">
+    <div class="modal-content {{modalSize}}">
+        <div class="modal-header">
+            <h2 id="{{modalId}}-title" class="modal-title">{{title}}</h2>
+            <button class="modal-close" 
+                    data-component="modal" 
+                    data-component-action="close-modal"
+                    data-modal-target="{{modalId}}"
+                    aria-label="Fechar modal">
+                ×
+            </button>
+        </div>
+        <div class="modal-body">
+            {{content}}
+        </div>
+    </div>
+</div>

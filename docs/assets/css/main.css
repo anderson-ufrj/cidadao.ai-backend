@@ -1,5 +1,10 @@
 /* Cidadão.AI Backend - Documentação Técnica */
 
+/* ===== IMPORTS MODULARES ===== */
+@import url('../../../src/styles/components/accordion.css');
+@import url('../../../src/styles/components/modals.css');
+@import url('../../../src/styles/components/tables.css');
+
 /* ===== VARIÁVEIS CSS ===== */
 :root {
     /* Light Theme */
