@@ -10,10 +10,10 @@
     <meta name="keywords" content="Cidadão.AI, transparência pública, IA ética, open government, ODS 16, backend, FastAPI">
     <meta name="author" content="Anderson Henrique">
     
-    <!-- Fonts -->
+    <!-- Fonts - Optimized for Performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- Styles -->
     <link rel="stylesheet" href="assets/css/main.css">
@@ -3552,7 +3552,7 @@ class CidadaoAIUser(HttpUser):
                 <div class="author-section mb-6">
                     <h3 class="mb-4">👨‍💻 Autor</h3>
                     <div class="author-profile" style="display: flex; gap: 2rem; align-items: center;">
-                        <img src="assets/img/author.png" alt="Anderson Henrique da Silva" class="author-photo" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;">
+                        <img src="assets/img/author.png" alt="Anderson Henrique da Silva" class="author-photo" loading="lazy" style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover;">
                         <div class="author-info">
                             <p><strong>Anderson Henrique da Silva</strong></p>
                             <p class="text-secondary">Bacharelando em Ciência da Computação | Engenheiro de Sistemas de IA</p>
@@ -3721,8 +3721,7 @@ class CidadaoAIUser(HttpUser):
 
     <!-- Scripts -->
     <script src="assets/js/main.js"></script>
-    <!-- Lazy Loader (temporarily disabled) -->
-    <!-- <script src="assets/js/lazy-loader.js"></script> -->
+    <!-- Lazy Loader removed for cleaner production build -->
     <script>
         // Accordion Debug Helper
         document.addEventListener('DOMContentLoaded', function() {
