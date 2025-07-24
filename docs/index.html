@@ -1222,9 +1222,12 @@
                                     <style>
                                         .agent-grid {
                                             display: grid;
-                                            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                                            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
                                             gap: 1.5rem;
                                             margin: 2rem 0;
+                                            max-width: 1200px;
+                                            margin-left: auto;
+                                            margin-right: auto;
                                         }
                                         .agent-card {
                                             background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
@@ -1266,8 +1269,8 @@
                                             margin-bottom: 2rem;
                                         }
                                         .agent-avatar {
-                                            width: 120px;
-                                            height: 120px;
+                                            width: 150px;
+                                            height: 150px;
                                             border-radius: 50%;
                                             display: flex;
                                             align-items: center;
@@ -1337,20 +1340,20 @@
                                             }
                                             
                                             .agent-avatar {
-                                                width: 100px;
-                                                height: 100px;
+                                                width: 130px;
+                                                height: 130px;
                                                 flex-shrink: 0;
                                             }
                                             
                                             .agent-avatar img {
-                                                width: 100px !important;
-                                                height: 100px !important;
+                                                width: 130px !important;
+                                                height: 130px !important;
                                                 object-fit: cover !important;
                                                 border-radius: 50% !important;
                                                 display: block !important;
                                                 max-width: none !important;
-                                                min-width: 100px !important;
-                                                min-height: 100px !important;
+                                                min-width: 130px !important;
+                                                min-height: 130px !important;
                                             }
                                             
                                             /* Fallback for mobile image loading issues */
@@ -1446,11 +1449,11 @@
                                         <div class="agent-card">
                                             <div class="agent-header">
                                                 <div class="agent-avatar">
-                                                    <img src="assets/img/agents/zumbi.jpeg" alt="Zumbi" onerror="this.style.display='none'; this.parentNode.innerHTML='🔍'">
+                                                    <img src="./assets/img/agents/zumbi.jpeg" alt="Zumbi" loading="lazy" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>🔍</div>'">
                                                 </div>
-                                                <div>
-                                                    <div class="agent-name">Zumbi - InvestigatorAgent</div>
-                                                    <div class="agent-role">Investigador de Padrões</div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">Zumbi</div>
+                                                    <div class="agent-role">InvestigatorAgent • Investigador de Padrões</div>
                                                 </div>
                                             </div>
                                             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
@@ -1467,11 +1470,11 @@
                                         <div class="agent-card">
                                             <div class="agent-header">
                                                 <div class="agent-avatar">
-                                                    <img src="assets/img/agents/anita.png" alt="Anita" onerror="this.style.display='none'; this.parentNode.innerHTML='📈'">
+                                                    <img src="./assets/img/agents/anita.png" alt="Anita" loading="lazy" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>📈</div>'">
                                                 </div>
-                                                <div>
-                                                    <div class="agent-name">Anita Garibaldi - AnalystAgent</div>
-                                                    <div class="agent-role">Roteadora Semântica</div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">Anita Garibaldi</div>
+                                                    <div class="agent-role">AnalystAgent • Roteadora Semântica</div>
                                                 </div>
                                             </div>
                                             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
@@ -1488,11 +1491,11 @@
                                         <div class="agent-card">
                                             <div class="agent-header">
                                                 <div class="agent-avatar">
-                                                    <img src="assets/img/agents/tiradentes.png" alt="Tiradentes" onerror="this.style.display='none'; this.parentNode.innerHTML='📝'">
+                                                    <img src="./assets/img/agents/tiradentes.png" alt="Tiradentes" loading="lazy" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>📝</div>'">
                                                 </div>
-                                                <div>
-                                                    <div class="agent-name">Tiradentes - ReporterAgent</div>
-                                                    <div class="agent-role">Avaliador de Riscos</div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">Tiradentes</div>
+                                                    <div class="agent-role">ReporterAgent • Avaliador de Riscos</div>
                                                 </div>
                                             </div>
                                             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
@@ -1509,11 +1512,11 @@
                                         <div class="agent-card">
                                             <div class="agent-header">
                                                 <div class="agent-avatar">
-                                                    <img src="assets/img/agents/nana.png" alt="Nanã" onerror="this.style.display='none'; this.parentNode.innerHTML='🧠'">
+                                                    <img src="./assets/img/agents/nana.png" alt="Nanã" loading="lazy" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>🧠</div>'">
                                                 </div>
-                                                <div>
-                                                    <div class="agent-name">Nanã - ContextMemoryAgent</div>
-                                                    <div class="agent-role">Agente Temporal</div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">Nanã</div>
+                                                    <div class="agent-role">ContextMemoryAgent • Agente Temporal</div>
                                                 </div>
                                             </div>
                                             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
@@ -1530,11 +1533,11 @@
                                         <div class="agent-card">
                                             <div class="agent-header">
                                                 <div class="agent-avatar">
-                                                    <img src="assets/img/agents/bonifacio.png" alt="José Bonifácio" onerror="this.style.display='none'; this.parentNode.innerHTML='⚖️'">
+                                                    <img src="./assets/img/agents/bonifacio.png" alt="José Bonifácio" loading="lazy" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>⚖️</div>'">
                                                 </div>
-                                                <div>
-                                                    <div class="agent-name">José Bonifácio - PolicyAgent</div>
-                                                    <div class="agent-role">Políticas Públicas</div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">José Bonifácio</div>
+                                                    <div class="agent-role">PolicyAgent • Políticas Públicas</div>
                                                 </div>
                                             </div>
                                             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
@@ -1551,11 +1554,11 @@
                                         <div class="agent-card">
                                             <div class="agent-header">
                                                 <div class="agent-avatar">
-                                                    <img src="assets/img/agents/dandara.png" alt="Dandara" onerror="this.style.display='none'; this.parentNode.innerHTML='✊'">
+                                                    <img src="./assets/img/agents/dandara.png" alt="Dandara" loading="lazy" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>✊</div>'">
                                                 </div>
-                                                <div>
-                                                    <div class="agent-name">Dandara - SocialJusticeAgent</div>
-                                                    <div class="agent-role">Justiça Social</div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">Dandara</div>
+                                                    <div class="agent-role">SocialJusticeAgent • Justiça Social</div>
                                                 </div>
                                             </div>
                                             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
@@ -1572,11 +1575,11 @@
                                         <div class="agent-card">
                                             <div class="agent-header">
                                                 <div class="agent-avatar">
-                                                    <img src="assets/img/agents/machado.png" alt="Machado de Assis" onerror="this.style.display='none'; this.parentNode.innerHTML='📚'">
+                                                    <img src="./assets/img/agents/machado.png" alt="Machado de Assis" loading="lazy" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>📚</div>'">
                                                 </div>
-                                                <div>
-                                                    <div class="agent-name">Machado de Assis - TextualAgent</div>
-                                                    <div class="agent-role">Análise Textual</div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">Machado de Assis</div>
+                                                    <div class="agent-role">TextualAgent • Análise Textual</div>
                                                 </div>
                                             </div>
                                             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
@@ -1593,11 +1596,11 @@
                                         <div class="agent-card">
                                             <div class="agent-header">
                                                 <div class="agent-avatar">
-                                                    <img src="assets/img/agents/obaluaie.png" alt="Obaluaiê" onerror="this.style.display='none'; this.parentNode.innerHTML='🕷️'">
+                                                    <img src="./assets/img/agents/obaluaie.png" alt="Obaluaiê" loading="lazy" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>🕷️</div>'">
                                                 </div>
-                                                <div>
-                                                    <div class="agent-name">Obaluaiê - CorruptionDetector</div>
-                                                    <div class="agent-role">Detector de Corrupção</div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">Obaluaiê</div>
+                                                    <div class="agent-role">CorruptionDetector • Detector de Corrupção</div>
                                                 </div>
                                             </div>
                                             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
@@ -1614,11 +1617,11 @@
                                         <div class="agent-card">
                                             <div class="agent-header">
                                                 <div class="agent-avatar">
-                                                    <img src="assets/img/agents/niemeyer.png" alt="Niemeyer" onerror="this.style.display='none'; this.parentNode.innerHTML='🎨'">
+                                                    <img src="./assets/img/agents/niemeyer.png" alt="Niemeyer" loading="lazy" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>🎨</div>'">
                                                 </div>
-                                                <div>
-                                                    <div class="agent-name">Niemeyer - VisualizationAgent</div>
-                                                    <div class="agent-role">Visualização Gráfica</div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">Niemeyer</div>
+                                                    <div class="agent-role">VisualizationAgent • Visualização Gráfica</div>
                                                 </div>
                                             </div>
                                             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
@@ -1635,11 +1638,11 @@
                                         <div class="agent-card">
                                             <div class="agent-header">
                                                 <div class="agent-avatar">
-                                                    <img src="assets/img/agents/lampiao.png" alt="Lampião" onerror="this.style.display='none'; this.parentNode.innerHTML='⚡'">
+                                                    <img src="./assets/img/agents/lampiao.png" alt="Lampião" loading="lazy" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>⚡</div>'">
                                                 </div>
-                                                <div>
-                                                    <div class="agent-name">Lampião - ETLExecutor</div>
-                                                    <div class="agent-role">Executor Técnico</div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">Lampião</div>
+                                                    <div class="agent-role">ETLExecutor • Executor Técnico</div>
                                                 </div>
                                             </div>
                                             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
@@ -1656,11 +1659,11 @@
                                         <div class="agent-card">
                                             <div class="agent-header">
                                                 <div class="agent-avatar">
-                                                    <img src="assets/img/agents/ceuci.png" alt="Ceuci" onerror="this.style.display='none'; this.parentNode.innerHTML='🔮'">
+                                                    <img src="./assets/img/agents/ceuci.png" alt="Ceuci" loading="lazy" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>🔮</div>'">
                                                 </div>
-                                                <div>
-                                                    <div class="agent-name">Ceuci - PredictiveAgent</div>
-                                                    <div class="agent-role">Agente Preditivo</div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">Ceuci</div>
+                                                    <div class="agent-role">PredictiveAgent • Agente Preditivo</div>
                                                 </div>
                                             </div>
                                             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
@@ -1677,11 +1680,11 @@
                                         <div class="agent-card">
                                             <div class="agent-header">
                                                 <div class="agent-avatar">
-                                                    <img src="assets/img/agents/carlos-drummond.png" alt="Carlos Drummond" onerror="this.style.display='none'; this.parentNode.innerHTML='📢'">
+                                                    <img src="./assets/img/agents/carlos-drummond.png" alt="Carlos Drummond" loading="lazy" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>📢</div>'">
                                                 </div>
-                                                <div>
-                                                    <div class="agent-name">Drummond - CommunicationAgent</div>
-                                                    <div class="agent-role">Comunicador do Povo</div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">Carlos Drummond</div>
+                                                    <div class="agent-role">CommunicationAgent • Comunicador do Povo</div>
                                                 </div>
                                             </div>
                                             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
@@ -1698,11 +1701,11 @@
                                         <div class="agent-card">
                                             <div class="agent-header">
                                                 <div class="agent-avatar">
-                                                    <img src="assets/img/agents/maria-quiteria.png" alt="Maria Quitéria" onerror="this.style.display='none'; this.parentNode.innerHTML='🛡️'">
+                                                    <img src="./assets/img/agents/maria-quiteria.png" alt="Maria Quitéria" loading="lazy" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>🛡️</div>'">
                                                 </div>
-                                                <div>
-                                                    <div class="agent-name">Maria Quitéria - SecurityAuditor</div>
-                                                    <div class="agent-role">Guardiã da Integridade</div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">Maria Quitéria</div>
+                                                    <div class="agent-role">SecurityAuditor • Guardiã da Integridade</div>
                                                 </div>
                                             </div>
                                             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
@@ -1713,6 +1716,27 @@
                                                 <li>• UEBA (User Entity Behavior Analytics)</li>
                                                 <li>• LGPD/ISO27001/OWASP compliance</li>
                                                 <li>• Blockchain audit trails</li>
+                                            </ul>
+                                        </div>
+                                        
+                                        <div class="agent-card">
+                                            <div class="agent-header">
+                                                <div class="agent-avatar">
+                                                    <img src="./assets/img/agents/deodoro-fonseca.png" alt="Deodoro da Fonseca" loading="lazy" onerror="this.style.display='none'; this.parentNode.innerHTML='<div style=&quot;display:flex;align-items:center;justify-content:center;width:100%;height:100%;font-size:3rem;color:white;&quot;>🏗️</div>'">
+                                                </div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">Deodoro da Fonseca</div>
+                                                    <div class="agent-role">BaseAgent • Fundador da Arquitetura</div>
+                                                </div>
+                                            </div>
+                                            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
+                                                Classe base fundamental que define a arquitetura e protocolos de comunicação para todos os agentes do sistema.
+                                            </p>
+                                            <ul class="capability-list">
+                                                <li>• Definição da interface base de agentes</li>
+                                                <li>• Protocolo de mensagens inter-agentes</li>
+                                                <li>• Sistema de reflexão e qualidade</li>
+                                                <li>• Gestão de contexto e histórico</li>
                                             </ul>
                                         </div>
                                     </div>
