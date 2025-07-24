@@ -1229,44 +1229,113 @@
                                         .agent-card {
                                             background: linear-gradient(135deg, var(--bg-secondary), var(--bg-tertiary));
                                             border: 2px solid var(--border);
-                                            border-radius: 1rem;
-                                            padding: 2rem;
-                                            transition: all 0.3s ease;
+                                            border-radius: 1.25rem;
+                                            padding: 2.5rem 2rem 2rem 2rem;
+                                            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
                                             position: relative;
                                             overflow: hidden;
+                                            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
                                         }
                                         .agent-card:hover {
                                             border-color: var(--text-accent);
-                                            transform: translateY(-4px);
-                                            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+                                            transform: translateY(-8px) scale(1.02);
+                                            box-shadow: 
+                                                0 20px 40px rgba(0, 0, 0, 0.15),
+                                                0 0 0 1px var(--text-accent);
+                                        }
+                                        .agent-card::before {
+                                            content: '';
+                                            position: absolute;
+                                            top: 0;
+                                            left: 0;
+                                            right: 0;
+                                            height: 4px;
+                                            background: linear-gradient(90deg, #228B22, #FFD700, #0066CC);
+                                            opacity: 0;
+                                            transition: opacity 0.3s ease;
+                                        }
+                                        .agent-card:hover::before {
+                                            opacity: 1;
                                         }
                                         .agent-header {
                                             display: flex;
+                                            flex-direction: column;
                                             align-items: center;
-                                            gap: 1rem;
-                                            margin-bottom: 1.5rem;
+                                            text-align: center;
+                                            gap: 1.5rem;
+                                            margin-bottom: 2rem;
                                         }
                                         .agent-avatar {
-                                            width: 60px;
-                                            height: 60px;
+                                            width: 120px;
+                                            height: 120px;
                                             border-radius: 50%;
                                             display: flex;
                                             align-items: center;
                                             justify-content: center;
-                                            font-size: 2rem;
+                                            font-size: 2.5rem;
                                             background: linear-gradient(135deg, var(--text-accent), #06b6d4);
                                             color: white;
+                                            overflow: hidden;
+                                            position: relative;
+                                            border: 4px solid transparent;
+                                            background-clip: padding-box;
+                                            box-shadow: 
+                                                0 8px 25px rgba(0, 0, 0, 0.15),
+                                                0 0 0 1px rgba(255, 255, 255, 0.1),
+                                                inset 0 1px 0 rgba(255, 255, 255, 0.2);
+                                            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+                                        }
+                                        .agent-avatar::before {
+                                            content: '';
+                                            position: absolute;
+                                            top: -4px;
+                                            left: -4px;
+                                            right: -4px;
+                                            bottom: -4px;
+                                            background: linear-gradient(45deg, 
+                                                #228B22, #FFD700, #228B22, #0066CC, 
+                                                #228B22, #FFD700, #228B22, #0066CC);
+                                            border-radius: 50%;
+                                            z-index: -1;
+                                            opacity: 0;
+                                            transition: opacity 0.3s ease;
+                                        }
+                                        .agent-card:hover .agent-avatar::before {
+                                            opacity: 1;
+                                        }
+                                        .agent-card:hover .agent-avatar {
+                                            transform: scale(1.1);
+                                            box-shadow: 
+                                                0 12px 35px rgba(0, 0, 0, 0.25),
+                                                0 0 0 2px rgba(255, 255, 255, 0.2),
+                                                inset 0 2px 0 rgba(255, 255, 255, 0.3);
+                                        }
+                                        .agent-avatar img {
+                                            width: 100%;
+                                            height: 100%;
+                                            object-fit: cover;
+                                            border-radius: 50%;
+                                            transition: all 0.3s ease;
+                                        }
+                                        .agent-card:hover .agent-avatar img {
+                                            transform: scale(1.05);
+                                        }
+                                        .agent-info {
+                                            text-align: center;
                                         }
                                         .agent-name {
-                                            font-size: 1.25rem;
-                                            font-weight: 700;
+                                            font-size: 1.375rem;
+                                            font-weight: 800;
                                             color: var(--text-primary);
-                                            margin-bottom: 0.25rem;
+                                            margin-bottom: 0.5rem;
+                                            line-height: 1.2;
                                         }
                                         .agent-role {
-                                            font-size: 0.875rem;
+                                            font-size: 0.95rem;
                                             color: var(--text-accent);
-                                            font-weight: 500;
+                                            font-weight: 600;
+                                            text-transform: uppercase;
+                                            letter-spacing: 0.5px;
                                         }
                                         .capability-list {
                                             list-style: none;
@@ -1307,10 +1376,12 @@
                                     <div class="agent-grid">
                                         <div class="agent-card">
                                             <div class="agent-header">
-                                                <div class="agent-avatar">🎯</div>
-                                                <div>
-                                                    <div class="agent-name">Abaporu - MasterAgent</div>
-                                                    <div class="agent-role">Núcleo Central da IA</div>
+                                                <div class="agent-avatar">
+                                                    <img src="assets/img/agents/abaporu.png" alt="Abaporu" onerror="this.style.display='none'; this.parentNode.innerHTML='🎯'">
+                                                </div>
+                                                <div class="agent-info">
+                                                    <div class="agent-name">Abaporu</div>
+                                                    <div class="agent-role">MasterAgent • Núcleo Central da IA</div>
                                                 </div>
                                             </div>
                                             <p style="color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.6;">
@@ -1326,7 +1397,9 @@
                                         
                                         <div class="agent-card">
                                             <div class="agent-header">
-                                                <div class="agent-avatar">🔍</div>
+                                                <div class="agent-avatar">
+                                                    <img src="assets/img/agents/zumbi.jpeg" alt="Zumbi" onerror="this.style.display='none'; this.parentNode.innerHTML='🔍'">
+                                                </div>
                                                 <div>
                                                     <div class="agent-name">Zumbi - InvestigatorAgent</div>
                                                     <div class="agent-role">Investigador de Padrões</div>
@@ -1345,7 +1418,9 @@
                                         
                                         <div class="agent-card">
                                             <div class="agent-header">
-                                                <div class="agent-avatar">📈</div>
+                                                <div class="agent-avatar">
+                                                    <img src="assets/img/agents/anita.png" alt="Anita" onerror="this.style.display='none'; this.parentNode.innerHTML='📈'">
+                                                </div>
                                                 <div>
                                                     <div class="agent-name">Anita Garibaldi - AnalystAgent</div>
                                                     <div class="agent-role">Roteadora Semântica</div>
@@ -1364,7 +1439,9 @@
                                         
                                         <div class="agent-card">
                                             <div class="agent-header">
-                                                <div class="agent-avatar">📝</div>
+                                                <div class="agent-avatar">
+                                                    <img src="assets/img/agents/tiradentes.png" alt="Tiradentes" onerror="this.style.display='none'; this.parentNode.innerHTML='📝'">
+                                                </div>
                                                 <div>
                                                     <div class="agent-name">Tiradentes - ReporterAgent</div>
                                                     <div class="agent-role">Avaliador de Riscos</div>
@@ -1383,7 +1460,9 @@
                                         
                                         <div class="agent-card">
                                             <div class="agent-header">
-                                                <div class="agent-avatar">🧠</div>
+                                                <div class="agent-avatar">
+                                                    <img src="assets/img/agents/nana.png" alt="Nanã" onerror="this.style.display='none'; this.parentNode.innerHTML='🧠'">
+                                                </div>
                                                 <div>
                                                     <div class="agent-name">Nanã - ContextMemoryAgent</div>
                                                     <div class="agent-role">Agente Temporal</div>
@@ -1402,7 +1481,9 @@
                                         
                                         <div class="agent-card">
                                             <div class="agent-header">
-                                                <div class="agent-avatar">⚖️</div>
+                                                <div class="agent-avatar">
+                                                    <img src="assets/img/agents/bonifacio.png" alt="José Bonifácio" onerror="this.style.display='none'; this.parentNode.innerHTML='⚖️'">
+                                                </div>
                                                 <div>
                                                     <div class="agent-name">José Bonifácio - PolicyAgent</div>
                                                     <div class="agent-role">Políticas Públicas</div>
@@ -1421,7 +1502,9 @@
                                         
                                         <div class="agent-card">
                                             <div class="agent-header">
-                                                <div class="agent-avatar">✊</div>
+                                                <div class="agent-avatar">
+                                                    <img src="assets/img/agents/dandara.png" alt="Dandara" onerror="this.style.display='none'; this.parentNode.innerHTML='✊'">
+                                                </div>
                                                 <div>
                                                     <div class="agent-name">Dandara - SocialJusticeAgent</div>
                                                     <div class="agent-role">Justiça Social</div>
@@ -1440,7 +1523,9 @@
                                         
                                         <div class="agent-card">
                                             <div class="agent-header">
-                                                <div class="agent-avatar">📚</div>
+                                                <div class="agent-avatar">
+                                                    <img src="assets/img/agents/machado.png" alt="Machado de Assis" onerror="this.style.display='none'; this.parentNode.innerHTML='📚'">
+                                                </div>
                                                 <div>
                                                     <div class="agent-name">Machado de Assis - TextualAgent</div>
                                                     <div class="agent-role">Análise Textual</div>
@@ -1459,7 +1544,9 @@
                                         
                                         <div class="agent-card">
                                             <div class="agent-header">
-                                                <div class="agent-avatar">🕷️</div>
+                                                <div class="agent-avatar">
+                                                    <img src="assets/img/agents/obaluaie.png" alt="Obaluaiê" onerror="this.style.display='none'; this.parentNode.innerHTML='🕷️'">
+                                                </div>
                                                 <div>
                                                     <div class="agent-name">Obaluaiê - CorruptionDetector</div>
                                                     <div class="agent-role">Detector de Corrupção</div>
@@ -1478,7 +1565,9 @@
                                         
                                         <div class="agent-card">
                                             <div class="agent-header">
-                                                <div class="agent-avatar">🎨</div>
+                                                <div class="agent-avatar">
+                                                    <img src="assets/img/agents/niemeyer.png" alt="Niemeyer" onerror="this.style.display='none'; this.parentNode.innerHTML='🎨'">
+                                                </div>
                                                 <div>
                                                     <div class="agent-name">Niemeyer - VisualizationAgent</div>
                                                     <div class="agent-role">Visualização Gráfica</div>
@@ -1497,7 +1586,9 @@
                                         
                                         <div class="agent-card">
                                             <div class="agent-header">
-                                                <div class="agent-avatar">⚡</div>
+                                                <div class="agent-avatar">
+                                                    <img src="assets/img/agents/lampiao.png" alt="Lampião" onerror="this.style.display='none'; this.parentNode.innerHTML='⚡'">
+                                                </div>
                                                 <div>
                                                     <div class="agent-name">Lampião - ETLExecutor</div>
                                                     <div class="agent-role">Executor Técnico</div>
@@ -1516,7 +1607,9 @@
                                         
                                         <div class="agent-card">
                                             <div class="agent-header">
-                                                <div class="agent-avatar">🔮</div>
+                                                <div class="agent-avatar">
+                                                    <img src="assets/img/agents/ceuci.png" alt="Ceuci" onerror="this.style.display='none'; this.parentNode.innerHTML='🔮'">
+                                                </div>
                                                 <div>
                                                     <div class="agent-name">Ceuci - PredictiveAgent</div>
                                                     <div class="agent-role">Agente Preditivo</div>
@@ -1535,7 +1628,9 @@
                                         
                                         <div class="agent-card">
                                             <div class="agent-header">
-                                                <div class="agent-avatar">📢</div>
+                                                <div class="agent-avatar">
+                                                    <img src="assets/img/agents/carlos-drummond.png" alt="Carlos Drummond" onerror="this.style.display='none'; this.parentNode.innerHTML='📢'">
+                                                </div>
                                                 <div>
                                                     <div class="agent-name">Drummond - CommunicationAgent</div>
                                                     <div class="agent-role">Comunicador do Povo</div>
@@ -1554,7 +1649,9 @@
                                         
                                         <div class="agent-card">
                                             <div class="agent-header">
-                                                <div class="agent-avatar">🛡️</div>
+                                                <div class="agent-avatar">
+                                                    <img src="assets/img/agents/maria-quiteria.png" alt="Maria Quitéria" onerror="this.style.display='none'; this.parentNode.innerHTML='🛡️'">
+                                                </div>
                                                 <div>
                                                     <div class="agent-name">Maria Quitéria - SecurityAuditor</div>
                                                     <div class="agent-role">Guardiã da Integridade</div>
