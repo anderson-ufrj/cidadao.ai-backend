@@ -256,28 +256,14 @@ README_SPACE*.md
 requirements_hf*.txt
 app_transparency_api.py
 test_api_*.py
-.env.example
-
-# Backup files - Universal patterns (enhanced)
-*.backup
-*.backup.*
-*_backup
-*_backup.*
-backup_*
-backup-*
-*.bak
-*.bak.*
-*_bak
-*_bak.*
-bak_*
-bak-*
-
-# Arquivos redundantes e desnecessários
+.env.example# Arquivos redundantes e desnecessários
 .old/
 .mockups/
 *.old
+*_backup.*
 *_old.*
 temp_*
+backup_*
 
 # Arquivos organizados (agora em suas pastas específicas)
 app_*.py
