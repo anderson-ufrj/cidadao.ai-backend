@@ -15,86 +15,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- Critical CSS Loading Strategy -->
-    <link rel="preload" href="assets/css/main.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="assets/css/main.css"></noscript>
-    
-    <!-- Critical above-the-fold styles -->
-    <style>
-        /* Critical path CSS for immediate rendering */
-        :root {
-            --bg-primary: #ffffff;
-            --bg-secondary: #f8fafc;
-            --text-primary: #0f172a;
-            --text-secondary: #475569;
-            --text-accent: #10b981;
-            --border: #e2e8f0;
-            --gradient-start: #10b981;
-            --gradient-end: #059669;
-        }
-        
-        [data-theme="dark"] {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-accent: #34d399;
-            --border: #334155;
-        }
-        
-        body {
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            padding: 0;
-            background: var(--bg-primary);
-            color: var(--text-primary);
-            line-height: 1.6;
-        }
-        
-        /* Critical: Above-the-fold navbar and hero */
-        .navbar {
-            background: var(--bg-primary);
-            border-bottom: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .hero {
-            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
-            color: white;
-            padding: 4rem 2rem;
-            text-align: center;
-        }
-        
-        .hero-title {
-            font-size: 3rem;
-            font-weight: 800;
-            margin: 1rem 0;
-            line-height: 1.1;
-        }
-        
-        /* Loading state for non-critical content */
-        .accordion-item .item-content {
-            min-height: 50px;
-        }
-        
-        /* Ensure visual elements render properly */
-        .math-formula {
-            font-family: 'Computer Modern', serif;
-            text-align: center;
-            padding: 1rem;
-            margin: 1rem 0;
-            background: var(--bg-secondary);
-            border-radius: 0.5rem;
-        }
-        
-        /* ASCII diagram preservation */
-        pre, code {
-            font-family: 'Courier New', monospace;
-            white-space: pre;
-        }
-    </style>
+    <!-- Styles -->
+    <link rel="stylesheet" href="assets/css/main.css">
+    <!-- Accordion Fix Patch -->
+    <link rel="stylesheet" href="assets/css/accordion-fix.css">
 </head>
 <body>
     <!-- Navegação Principal -->
@@ -3797,38 +3721,52 @@ class CidadaoAIUser(HttpUser):
 
     <!-- Scripts -->
     <script src="assets/js/main.js"></script>
-    <!-- Conservative Lazy Loader -->
-    <script src="assets/js/conservative-lazy-loader.js"></script>
+    <!-- Lazy Loader (temporarily disabled) -->
+    <!-- <script src="assets/js/lazy-loader.js"></script> -->
     <script>
-        // Initialize Conservative Lazy Loading
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                // Initialize the conservative lazy loader
-                const lazyLoader = new ConservativeLazyLoader({
-                    debug: false, // Set to true for development
-                    enableTracking: false,
-                    preserveInitialHeight: true,
-                    enablePlaceholders: true,
-                    loadDelay: 100
+        // Accordion Debug Helper
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Cidadão.AI Documentation ready!');
+            
+            // Debug: Check accordion state after initialization
+            setTimeout(() => {
+                const categories = document.querySelectorAll('.accordion-category');
+                const items = document.querySelectorAll('.accordion-item');
+                
+                console.log(`📊 Accordion Debug Info:`);
+                console.log(`- Categories found: ${categories.length}`);
+                console.log(`- Items found: ${items.length}`);
+                
+                // Check if toggles have click handlers
+                const categoryToggles = document.querySelectorAll('.category-toggle');
+                const itemToggles = document.querySelectorAll('.item-toggle');
+                
+                console.log(`- Category toggles: ${categoryToggles.length}`);
+                console.log(`- Item toggles: ${itemToggles.length}`);
+                
+                // Force initial state
+                categories.forEach(cat => {
+                    const toggle = cat.querySelector('.category-toggle');
+                    const content = cat.querySelector('.category-content');
+                    if (toggle && content) {
+                        // Ensure initial collapsed state
+                        toggle.setAttribute('aria-expanded', 'false');
+                        content.classList.remove('expanded');
+                    }
                 });
                 
-                await lazyLoader.init();
+                items.forEach(item => {
+                    const toggle = item.querySelector('.item-toggle');
+                    const content = item.querySelector('.item-content');
+                    if (toggle && content) {
+                        // Ensure initial collapsed state
+                        toggle.setAttribute('aria-expanded', 'false');
+                        content.classList.remove('expanded');
+                    }
+                });
                 
-                // Make it globally available for debugging
-                window.cidadaoAILazyLoader = lazyLoader;
-                
-                console.log('🚀 Cidadão.AI Documentation with Conservative Lazy Loading ready!');
-                
-                // Log performance metrics after 5 seconds
-                setTimeout(() => {
-                    const metrics = lazyLoader.getMetrics();
-                    console.log('📊 Lazy Loading Metrics:', metrics);
-                }, 5000);
-                
-            } catch (error) {
-                console.error('❌ Failed to initialize lazy loading:', error);
-                // Fallback: page works normally without lazy loading
-            }
+                console.log('✅ Accordion initial state set');
+            }, 500);
         });
     </script>
 </body>
