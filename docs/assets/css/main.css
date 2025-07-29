@@ -1086,6 +1086,49 @@ body::before {
     line-height: 1.8;
     min-height: 100%;
     box-sizing: border-box;
+    overflow-x: hidden; /* Prevent horizontal overflow */
+    word-wrap: break-word; /* Break long words */
+    overflow-wrap: break-word; /* Modern browsers */
+}
+
+/* Responsive content fixes for all screen sizes in reading mode */
+.reading-content * {
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.reading-content .math-formula {
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+}
+
+.reading-content .algorithm-code {
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: pre;
+}
+
+.reading-content pre {
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: pre;
+}
+
+.reading-content code {
+    word-break: break-all;
+    white-space: pre-wrap;
+}
+
+.reading-content table {
+    width: 100%;
+    table-layout: fixed;
+    overflow-x: auto;
+}
+
+.reading-content img {
+    max-width: 100%;
+    height: auto;
 }
 
 .reading-content h2 {
@@ -1221,10 +1264,25 @@ body::before {
         width: 85%;
         margin-left: calc(220px + (100% - 220px - 85%) / 2);
         padding: 2rem;
+        overflow-x: hidden; /* Prevent horizontal overflow */
     }
     
     .reading-sidebar {
         width: 220px;
+    }
+    
+    /* Large screen responsive adjustments */
+    .reading-content .definition-box,
+    .reading-content .axiom-list,
+    .reading-content .theorem-box,
+    .reading-content .optimization-box,
+    .reading-content .complexity-box,
+    .reading-content .shap-box,
+    .reading-content .lime-box,
+    .reading-content .causal-box,
+    .reading-content .neural-box {
+        overflow-x: auto;
+        word-wrap: break-word;
     }
 }
 
@@ -1237,6 +1295,35 @@ body::before {
         width: 85%;
         margin-left: calc(200px + (100% - 200px - 85%) / 2);
         padding: 2rem;
+        overflow-x: hidden; /* Prevent horizontal overflow on tablets */
+    }
+    
+    /* Tablet responsive adjustments */
+    .reading-content .math-formula {
+        font-size: 1rem;
+        overflow-x: auto;
+        padding: 0.5rem;
+        background: var(--bg-secondary);
+        border-radius: 0.5rem;
+    }
+    
+    .reading-content .algorithm-code {
+        font-size: 0.8rem;
+        overflow-x: auto;
+        padding: 1.5rem;
+    }
+    
+    .reading-content .definition-box,
+    .reading-content .axiom-list,
+    .reading-content .theorem-box,
+    .reading-content .optimization-box,
+    .reading-content .complexity-box,
+    .reading-content .shap-box,
+    .reading-content .lime-box,
+    .reading-content .causal-box,
+    .reading-content .neural-box {
+        padding: 1.5rem;
+        overflow-x: auto;
     }
 }
 
@@ -1258,6 +1345,58 @@ body::before {
         font-size: 1rem;
         max-width: 100%;
         box-sizing: border-box;
+        overflow-x: hidden; /* Prevent horizontal overflow */
+    }
+    
+    /* Fix for wide content in reading mode */
+    .reading-content * {
+        max-width: 100% !important;
+        box-sizing: border-box;
+    }
+    
+    /* Math formulas responsive */
+    .reading-content .math-formula {
+        font-size: 0.9rem !important;
+        overflow-x: auto;
+        white-space: nowrap;
+        text-align: left !important;
+        padding: 0.5rem;
+        background: var(--bg-secondary);
+        border-radius: 0.5rem;
+        margin: 1rem 0;
+    }
+    
+    /* Algorithm code responsive */
+    .reading-content .algorithm-code {
+        font-size: 0.75rem !important;
+        overflow-x: auto;
+        white-space: pre;
+        padding: 1rem !important;
+        margin: 1rem 0;
+        border-radius: 0.5rem;
+    }
+    
+    /* Tables responsive */
+    .reading-content table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+        width: 100%;
+    }
+    
+    /* Definition boxes responsive */
+    .reading-content .definition-box,
+    .reading-content .axiom-list,
+    .reading-content .theorem-box,
+    .reading-content .optimization-box,
+    .reading-content .complexity-box,
+    .reading-content .shap-box,
+    .reading-content .lime-box,
+    .reading-content .causal-box,
+    .reading-content .neural-box {
+        padding: 1rem !important;
+        margin: 1rem 0 !important;
+        overflow-x: auto;
     }
     
     .reading-modal-header {
@@ -1268,6 +1407,7 @@ body::before {
     
     .reading-modal-body {
         padding-top: 60px;
+        overflow-x: hidden; /* Prevent horizontal scroll */
     }
 }
 
@@ -1403,6 +1543,36 @@ body::before {
         margin: 0 auto;
         left: 0;
         transform: none;
+    }
+    
+    /* Extra small screens responsive fixes */
+    .reading-content {
+        width: 95% !important;
+        padding: 0.75rem !important;
+        font-size: 0.9rem !important;
+    }
+    
+    .reading-content .math-formula {
+        font-size: 0.8rem !important;
+        padding: 0.25rem !important;
+    }
+    
+    .reading-content .algorithm-code {
+        font-size: 0.7rem !important;
+        padding: 0.75rem !important;
+    }
+    
+    .reading-content .definition-box,
+    .reading-content .axiom-list,
+    .reading-content .theorem-box,
+    .reading-content .optimization-box,
+    .reading-content .complexity-box,
+    .reading-content .shap-box,
+    .reading-content .lime-box,
+    .reading-content .causal-box,
+    .reading-content .neural-box {
+        padding: 0.75rem !important;
+        margin: 0.75rem 0 !important;
     }
 
     .floating-button {
