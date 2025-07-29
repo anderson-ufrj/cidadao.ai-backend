@@ -61,7 +61,7 @@ class ContentManager {
     async loadModularSections() {
         // Lista de seções que usam sistema modular
         const modularSections = [
-            'math-foundations',   // Fundamentos matemáticos PhD-level
+            'math-foundations',   // Fundamentos matemáticos
             'xai-algorithms'      // Algoritmos XAI avançados
         ];
 
@@ -109,14 +109,18 @@ class ContentManager {
                 return true;
             }
 
-            // Verificar cache
-            if (this.cache.has(sectionId)) {
-                this.insertContent(container, this.cache.get(sectionId));
+            // Verificar cache (incluindo idioma na chave)
+            const currentLanguage = window.currentLanguage || 'pt-BR';
+            const cacheKey = `${sectionId}-${currentLanguage}`;
+            
+            if (this.cache.has(cacheKey)) {
+                this.insertContent(container, this.cache.get(cacheKey));
                 return true;
             }
 
-            // Buscar conteúdo externo
-            const url = `${this.contentPath}${sectionId}.html`;
+            // Buscar conteúdo externo baseado no idioma atual
+            const suffix = currentLanguage === 'en-US' ? '-en' : '';
+            const url = `${this.contentPath}${sectionId}${suffix}.html`;
             const response = await fetch(url);
             
             if (!response.ok) {
@@ -133,7 +137,7 @@ class ContentManager {
             }
 
             // Cache e inserir
-            this.cache.set(sectionId, content);
+            this.cache.set(cacheKey, content);
             this.insertContent(container, content);
             
             console.log(`✅ Loaded section: ${sectionId}`);
@@ -236,6 +240,36 @@ class ContentManager {
     }
 
     /**
+     * API pública para recarregar conteúdo modular (usado na mudança de idioma)
+     */
+    async reloadModularContent() {
+        if (!this.initialized) return;
+        
+        console.log('🔄 Reloading modular content for language change...');
+        
+        // Forçar recarregamento removendo conteúdo existente
+        const modularSections = ['math-foundations', 'xai-algorithms'];
+        
+        for (const sectionId of modularSections) {
+            const container = document.querySelector(`[data-section="${sectionId}"] .item-content`);
+            if (container) {
+                // Limpar conteúdo existente exceto loading placeholders
+                const children = Array.from(container.children);
+                children.forEach(child => {
+                    if (!child.classList.contains('content-loading')) {
+                        child.remove();
+                    }
+                });
+                
+                // Recarregar seção
+                await this.loadSection(sectionId);
+            }
+        }
+        
+        console.log('✅ Modular content reloaded');
+    }
+
+    /**
      * API pública para adicionar novas seções modulares
      */
     static addModularSection(sectionId) {
@@ -244,6 +278,16 @@ class ContentManager {
             return window.contentManager.loadSection(sectionId);
         }
         return Promise.resolve(false);
+    }
+    
+    /**
+     * API pública para recarregar conteúdo na mudança de idioma
+     */
+    static async reloadForLanguageChange() {
+        if (window.contentManager && window.contentManager.initialized) {
+            return await window.contentManager.reloadModularContent();
+        }
+        return Promise.resolve();
     }
 }
 

@@ -89,6 +89,9 @@ function initializeApp() {
     currentLanguage = localStorage.getItem('cidadao-language') || 'pt-BR';
     currentTheme = localStorage.getItem('cidadao-theme') || 'light';
     
+    // Disponibilizar idioma globalmente para ContentManager
+    window.currentLanguage = currentLanguage;
+    
     // Aplicar configurações
     applyTheme(currentTheme);
     applyLanguage(currentLanguage);
@@ -166,17 +169,19 @@ function initializeLanguageControls() {
         }
         
         // Adicionar event listener
-        button.addEventListener('click', () => {
+        button.addEventListener('click', async () => {
             const language = button.dataset.langBtn;
-            switchLanguage(language);
+            await switchLanguage(language);
         });
     });
 }
 
-function switchLanguage(language) {
+async function switchLanguage(language) {
     if (language === currentLanguage) return;
     
     currentLanguage = language;
+    window.currentLanguage = language; // Disponibilizar globalmente para ContentManager
+    
     applyLanguage(language);
     
     // Salvar no localStorage
@@ -184,6 +189,11 @@ function switchLanguage(language) {
     
     // Atualizar botões
     updateLanguageButtons();
+    
+    // Recarregar conteúdo modular no idioma correto
+    if (window.ContentManager) {
+        await window.ContentManager.reloadForLanguageChange();
+    }
     
     console.log(`🌍 Language switched to: ${language}`);
 }
@@ -204,6 +214,17 @@ function applyLanguage(language) {
             } else {
                 element.textContent = translation;
             }
+        }
+    });
+    
+    // Atualizar placeholders com data-i18n-placeholder
+    const elementsWithI18nPlaceholder = document.querySelectorAll('[data-i18n-placeholder]');
+    elementsWithI18nPlaceholder.forEach(element => {
+        const key = element.dataset.i18nPlaceholder;
+        const translation = translations[language]?.[key];
+        
+        if (translation && element.hasAttribute('placeholder')) {
+            element.setAttribute('placeholder', translation);
         }
     });
     
