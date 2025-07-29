@@ -1,0 +1,243 @@
+<!-- CONTEÚDO PhD-LEVEL PARA SEÇÃO MULTI-AGENTE -->
+<!-- Inserir após a div de communication-flow (antes da linha 1795) -->
+
+                                    <!-- Fundamentos Teóricos e Formalismos Matemáticos -->
+                                    <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 3rem 0 1.5rem 0;">📐 Fundamentos Teóricos e Formalismos Matemáticos</h3>
+                                    
+                                    <!-- Definição Formal do Sistema -->
+                                    <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #0284c7; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                                        <h4 style="color: #0c4a6e; margin-bottom: 1.5rem;">Definição 1: Sistema Multi-Agente Heterogêneo para Transparência Pública</h4>
+                                        <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; font-family: 'Courier New', monospace;">
+                                            <p><strong>Definição Formal:</strong> Seja Ξ = ⟨A, E, S, O, T, Π, Φ, Ψ⟩ um sistema multi-agente onde:</p>
+                                            <ul style="list-style: none; margin: 1rem 0;">
+                                                <li>• A = {a₁, a₂, ..., a₁₇} é o conjunto finito de agentes heterogêneos</li>
+                                                <li>• E ⊆ A × A é o conjunto de canais de comunicação (grafo direcionado)</li>
+                                                <li>• S = S₁ × S₂ × ... × S₁₇ é o espaço de estados global do sistema</li>
+                                                <li>• O = ⋃ᵢ₌₁¹⁷ Oᵢ é o espaço de observações parciais</li>
+                                                <li>• T: S × A × Π → Δ(S) é a função de transição estocástica</li>
+                                                <li>• Π = ⋃ᵢ₌₁¹⁷ Πᵢ é o espaço de ações conjuntas</li>
+                                                <li>• Φ: S → ℝⁿ é a função de features do estado</li>
+                                                <li>• Ψ: O × H → Π é a política de decisão com memória H</li>
+                                            </ul>
+                                            <p style="margin-top: 1rem;"><strong>Propriedades:</strong></p>
+                                            <p>1. <em>Observabilidade Parcial:</em> ∀aᵢ ∈ A, ∃ηᵢ: S → Oᵢ tal que aᵢ observa apenas ηᵢ(s)</p>
+                                            <p>2. <em>Comunicação Assíncrona:</em> Mensagens m ∈ M são transmitidas com delay δ ~ Exp(λ)</p>
+                                            <p>3. <em>Heterogeneidade:</em> ∀i ≠ j, Πᵢ ∩ Πⱼ = ∅ (ações disjuntas)</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Teorema de Convergência -->
+                                    <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid #16a34a; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                                        <h4 style="color: #14532d; margin-bottom: 1.5rem;">Teorema 1: Convergência Assintótica com Comunicação Limitada</h4>
+                                        <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; font-family: 'Courier New', monospace;">
+                                            <p><strong>Enunciado:</strong> Considere o protocolo de consenso distribuído:</p>
+                                            <div style="text-align: center; margin: 1.5rem 0; font-size: 1.1rem;">
+                                                xᵢ(t+1) = wᵢᵢxᵢ(t) + Σⱼ∈Nᵢ(t) wᵢⱼ(t)xⱼ(t) + εᵢ(t)
+                                            </div>
+                                            <p>onde Nᵢ(t) é a vizinhança ativa no tempo t, wᵢⱼ(t) são pesos adaptativos e εᵢ(t) ~ 𝒩(0, σ²ᵢ).</p>
+                                            
+                                            <p style="margin-top: 1.5rem;"><strong>Condições:</strong></p>
+                                            <p>1. <em>Conectividade:</em> O grafo união G∞ = ⋃ₖ₌₀^∞ G(kT, (k+1)T) é fortemente conectado</p>
+                                            <p>2. <em>Balanço Estocástico:</em> E[W(t)] é duplamente estocástica</p>
+                                            <p>3. <em>Limitação:</em> ‖εᵢ(t)‖ ≤ ε̄ < ∞ ∀i,t</p>
+                                            
+                                            <p style="margin-top: 1.5rem;"><strong>Conclusão:</strong> Então ∃ x* ∈ ℝᵈ tal que:</p>
+                                            <div style="text-align: center; margin: 1rem 0; font-size: 1.1rem;">
+                                                lim_{t→∞} E[‖xᵢ(t) - x*‖²] ≤ κσ²/μ
+                                            </div>
+                                            <p>onde κ é a condição de número do grafo e μ é o gap espectral.</p>
+                                        </div>
+                                        <div style="background: #f0fdf4; border-radius: 0.5rem; padding: 1rem; font-style: italic;">
+                                            <p><strong>Prova (Esboço):</strong> Utilizando teoria de matrizes estocásticas e análise de Lyapunov, define-se V(t) = Σᵢ‖xᵢ(t) - x̄(t)‖². Pelo lema de convergência de Robbins-Monro...</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Teorema de Otimalidade -->
+                                    <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                                        <h4 style="color: #78350f; margin-bottom: 1.5rem;">Teorema 2: Otimalidade de Alocação sob Incerteza</h4>
+                                        <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; font-family: 'Courier New', monospace;">
+                                            <p><strong>Problema de Otimização Estocástica:</strong></p>
+                                            <div style="margin: 1.5rem 0;">
+                                                <p>min_{x∈X} 𝔼[f(x,ξ)] = ∫_Ξ f(x,ξ)P(dξ)</p>
+                                                <p style="margin-top: 0.5rem;">s.t. gᵢ(x) ≤ 0, i = 1,...,m</p>
+                                                <p style="margin-left: 2.5rem;">hⱼ(x) = 0, j = 1,...,p</p>
+                                                <p style="margin-left: 2.5rem;">x ∈ X ⊆ ℝⁿ (convexo, compacto)</p>
+                                            </div>
+                                            
+                                            <p><strong>Formulação Lagrangiana Aumentada:</strong></p>
+                                            <div style="text-align: center; margin: 1.5rem 0;">
+                                                L_ρ(x,λ,μ) = 𝔼[f(x,ξ)] + Σᵢλᵢgᵢ(x) + Σⱼμⱼhⱼ(x) + (ρ/2)‖c(x)‖²
+                                            </div>
+                                            
+                                            <p><strong>Algoritmo ADMM Distribuído:</strong></p>
+                                            <div style="margin: 1rem 0;">
+                                                <p>x^(k+1) = argmin_x L_ρ(x, λ^k, μ^k)</p>
+                                                <p>λᵢ^(k+1) = max(0, λᵢ^k + ρgᵢ(x^(k+1)))</p>
+                                                <p>μⱼ^(k+1) = μⱼ^k + ρhⱼ(x^(k+1))</p>
+                                            </div>
+                                            
+                                            <p style="margin-top: 1.5rem;"><strong>Taxa de Convergência:</strong> O(1/√k) para problemas convexos, O(1/k) com strong convexity</p>
+                                        </div>
+                                    </div>
+
+                                    <!-- Algoritmos de Explainable AI Avançados -->
+                                    <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 3rem 0 1.5rem 0;">🔬 Algoritmos Avançados de Explainable AI</h3>
+                                    
+                                    <!-- SHAP com Fundamentos Rigorosos -->
+                                    <div style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border: 2px solid #7c3aed; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                                        <h4 style="color: #4c1d95; margin-bottom: 1.5rem;">SHAP: Axiomatização e Propriedades</h4>
+                                        <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; font-family: 'Courier New', monospace;">
+                                            <p><strong>Axiomas de Shapley (1953):</strong></p>
+                                            <ol style="margin: 1rem 0;">
+                                                <li><em>Eficiência:</em> Σᵢ₌₁ⁿ φᵢ(v) = v(N) - v(∅)</li>
+                                                <li><em>Simetria:</em> Se i,j são substituíveis, então φᵢ(v) = φⱼ(v)</li>
+                                                <li><em>Dummy:</em> Se i é dummy player, então φᵢ(v) = v({i}) - v(∅)</li>
+                                                <li><em>Aditividade:</em> φᵢ(v + w) = φᵢ(v) + φᵢ(w)</li>
+                                            </ol>
+                                            
+                                            <p style="margin-top: 1.5rem;"><strong>Teorema de Unicidade:</strong> Existe uma única função φ satisfazendo os axiomas:</p>
+                                            <div style="margin: 1.5rem 0; overflow-x: auto;">
+                                                φᵢ(v) = Σ_{S⊆N\{i}} [|S|!(n-|S|-1)!/n!] × [v(S∪{i}) - v(S)]
+                                            </div>
+                                            
+                                            <p><strong>Implementação Computacional (TreeSHAP):</strong></p>
+                                            <div style="margin: 1rem 0;">
+                                                <p>Complexidade: O(TLD²) onde:</p>
+                                                <ul style="margin-left: 1.5rem;">
+                                                    <li>T = número de árvores</li>
+                                                    <li>L = número máximo de folhas</li>
+                                                    <li>D = profundidade máxima</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Causal Inference para XAI -->
+                                    <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border: 2px solid #dc2626; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                                        <h4 style="color: #7f1d1d; margin-bottom: 1.5rem;">Inferência Causal e Counterfactuals</h4>
+                                        <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; font-family: 'Courier New', monospace;">
+                                            <p><strong>Modelo Causal Estrutural (SCM):</strong></p>
+                                            <div style="margin: 1rem 0;">
+                                                <p>M = ⟨U, V, F, P(U)⟩ onde:</p>
+                                                <ul style="margin-left: 1.5rem;">
+                                                    <li>U: variáveis exógenas (não observadas)</li>
+                                                    <li>V: variáveis endógenas (observadas)</li>
+                                                    <li>F: funções estruturais vᵢ = fᵢ(paᵢ, uᵢ)</li>
+                                                    <li>P(U): distribuição sobre U</li>
+                                                </ul>
+                                            </div>
+                                            
+                                            <p style="margin-top: 1.5rem;"><strong>Counterfactual Query:</strong></p>
+                                            <div style="text-align: center; margin: 1rem 0;">
+                                                P(Yₓ = y | E = e) = Σᵤ P(Y = y | do(X = x), U = u) × P(U = u | E = e)
+                                            </div>
+                                            
+                                            <p><strong>Algoritmo de Geração de Explicações Counterfactuais:</strong></p>
+                                            <pre style="background: #f5f5f5; padding: 1rem; border-radius: 0.5rem; overflow-x: auto;">
+def generate_counterfactual(x, f, y_target, λ):
+    """
+    min_x' L(f(x'), y_target) + λ·d(x, x')
+    s.t. x' ∈ X_valid (restrições de validade)
+    """
+    x_cf = x.copy()
+    for _ in range(max_iterations):
+        grad = ∇_x[L(f(x_cf), y_target) + λ·d(x, x_cf)]
+        x_cf = project_to_valid(x_cf - α·grad)
+        if f(x_cf) ≈ y_target:
+            break
+    return x_cf
+                                            </pre>
+                                        </div>
+                                    </div>
+
+                                    <!-- Neural Network Interpretability -->
+                                    <div style="background: linear-gradient(135deg, #e0e7ff, #c7d2fe); border: 2px solid #4f46e5; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                                        <h4 style="color: #312e81; margin-bottom: 1.5rem;">Interpretabilidade de Redes Neurais Profundas</h4>
+                                        <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; font-family: 'Courier New', monospace;">
+                                            <p><strong>Integrated Gradients (Sundararajan et al., 2017):</strong></p>
+                                            <div style="margin: 1.5rem 0;">
+                                                IGᵢ(x) = (xᵢ - x'ᵢ) × ∫₀¹ ∂f(x' + α(x - x'))/∂xᵢ dα
+                                            </div>
+                                            
+                                            <p><strong>Propriedades Teóricas:</strong></p>
+                                            <ol style="margin: 1rem 0;">
+                                                <li><em>Sensibilidade:</em> Se f(x) ≠ f(x') e xᵢ ≠ x'ᵢ, então IGᵢ ≠ 0</li>
+                                                <li><em>Invariância de Implementação:</em> Independente da parametrização da rede</li>
+                                                <li><em>Completude:</em> Σᵢ IGᵢ(x) = f(x) - f(x')</li>
+                                            </ol>
+                                            
+                                            <p style="margin-top: 1.5rem;"><strong>Layer-wise Relevance Propagation (LRP):</strong></p>
+                                            <div style="margin: 1rem 0;">
+                                                <p>Propagação recursiva: Rᵢ^(l) = Σⱼ (aᵢwᵢⱼ/Σₖaₖwₖⱼ) × Rⱼ^(l+1)</p>
+                                                <p>Com conservação: Σᵢ Rᵢ^(l) = Σⱼ Rⱼ^(l+1) = f(x)</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Framework Matemático Unificado -->
+                                    <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 3rem 0 1.5rem 0;">🎯 Framework Matemático Unificado de Explicabilidade</h3>
+                                    
+                                    <div style="background: var(--bg-secondary); border: 2px solid var(--border); border-radius: 1rem; padding: 2rem;">
+                                        <h4 style="color: var(--text-primary); margin-bottom: 1.5rem;">Formalização do Pipeline de Explicabilidade</h4>
+                                        
+                                        <div style="background: var(--bg-primary); border: 1px solid var(--border-light); border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; font-family: 'Courier New', monospace;">
+                                            <p><strong>Pipeline Formal:</strong> E: X × F × C → X̃</p>
+                                            <p>onde:</p>
+                                            <ul style="margin: 1rem 0;">
+                                                <li>X: espaço de entrada (documentos, transações)</li>
+                                                <li>F: família de modelos f: X → Y</li>
+                                                <li>C: contexto (usuário, domínio, restrições)</li>
+                                                <li>X̃: espaço de explicações interpretáveis</li>
+                                            </ul>
+                                            
+                                            <p style="margin-top: 1.5rem;"><strong>Métricas de Qualidade de Explicação:</strong></p>
+                                            <div style="margin: 1rem 0;">
+                                                <p>1. <em>Fidelidade:</em> ρ(E, f) = 𝔼ₓ[‖f(x) - f̃ₑ(x)‖²]</p>
+                                                <p>2. <em>Estabilidade:</em> σ(E) = 𝔼[‖E(x + ε) - E(x)‖ / ‖ε‖]</p>
+                                                <p>3. <em>Complexidade:</em> κ(E) = |{features: |φᵢ| > τ}|</p>
+                                                <p>4. <em>Coerência Causal:</em> γ(E) = P(E satisfaz restrições causais)</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style="display: grid; gap: 1.5rem; margin-top: 2rem;">
+                                            <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 1px solid #0284c7; border-radius: 0.5rem; padding: 1.5rem;">
+                                                <h5 style="color: #0c4a6e; margin-bottom: 0.5rem;">Nível 1: Explicação Global (Model-Agnostic)</h5>
+                                                <p>Permutation Importance: I(fⱼ) = 𝔼[L(Y, f(X))] - 𝔼[L(Y, f(X^π_j))]</p>
+                                                <p>Partial Dependence: f̄ₛ(xₛ) = 𝔼_{X_C}[f(xₛ, X_C)]</p>
+                                            </div>
+                                            
+                                            <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 1px solid #16a34a; border-radius: 0.5rem; padding: 1.5rem;">
+                                                <h5 style="color: #14532d; margin-bottom: 0.5rem;">Nível 2: Explicação Local (Instance-Specific)</h5>
+                                                <p>SHAP values com garantias teóricas</p>
+                                                <p>Counterfactuals ótimos via programação convexa</p>
+                                                <p>Anchors com garantias probabilísticas: P(f(x) = f(a(x))) ≥ 1-δ</p>
+                                            </div>
+                                            
+                                            <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 1px solid #f59e0b; border-radius: 0.5rem; padding: 1.5rem;">
+                                                <h5 style="color: #78350f; margin-bottom: 0.5rem;">Nível 3: Explicação Semântica (Human-Readable)</h5>
+                                                <p>Template-based: g: X̃ → L (linguagem natural)</p>
+                                                <p>Com restrições: coherence(g(x̃)) ∧ correctness(g(x̃)) ∧ completeness(g(x̃))</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Garantias Teóricas -->
+                                    <div style="background: linear-gradient(135deg, #fef2f2, #fee2e2); border: 2px solid #ef4444; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                                        <h4 style="color: #991b1b; margin-bottom: 1.5rem;">Garantias Teóricas e Bounds</h4>
+                                        <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; font-family: 'Courier New', monospace;">
+                                            <p><strong>Teorema (Sample Complexity para Explicações):</strong></p>
+                                            <p>Para obter explicações ε-precisas com probabilidade 1-δ, necessitamos:</p>
+                                            <div style="text-align: center; margin: 1.5rem 0;">
+                                                n ≥ (2/ε²) × [VC(H) × log(2/ε) + log(2/δ)]
+                                            </div>
+                                            <p>onde VC(H) é a dimensão Vapnik-Chervonenkis do espaço de hipóteses.</p>
+                                            
+                                            <p style="margin-top: 1.5rem;"><strong>Bound de Aproximação (LIME):</strong></p>
+                                            <div style="margin: 1rem 0;">
+                                                ‖f(x) - g(x)‖_π ≤ ε com probabilidade ≥ 1 - δ
+                                            </div>
+                                            <p>se |D| ≥ O((d/ε²) × log(d/δ)), onde d é a dimensionalidade.</p>
+                                        </div>
+                                    </div>
+
+<!-- FIM DO CONTEÚDO PhD-LEVEL -->
