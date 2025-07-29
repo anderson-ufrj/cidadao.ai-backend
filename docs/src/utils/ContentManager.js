@@ -179,6 +179,9 @@ class ContentManager {
 
             // Trigger eventos personalizados se necessário
             this.triggerContentLoaded(container);
+            
+            // Force accordion height recalculation if expanded
+            this.recalculateAccordionHeight(container);
 
         } catch (error) {
             console.error('Error inserting content:', error);
@@ -194,6 +197,42 @@ class ContentManager {
             detail: { container, source: 'ContentManager' }
         });
         container.dispatchEvent(event);
+    }
+
+    /**
+     * Recalcula altura do accordion após inserção de conteúdo
+     */
+    recalculateAccordionHeight(container) {
+        try {
+            const accordionItem = container.closest('.accordion-item');
+            if (!accordionItem) return;
+            
+            const toggle = accordionItem.querySelector('.item-toggle');
+            const isExpanded = toggle && toggle.getAttribute('aria-expanded') === 'true';
+            
+            if (isExpanded && container.classList.contains('expanded')) {
+                // Force reflow by temporarily removing max-height
+                const originalMaxHeight = container.style.maxHeight;
+                container.style.maxHeight = 'none';
+                
+                // Get the actual content height
+                const contentHeight = container.scrollHeight;
+                
+                // Restore max-height with proper value
+                container.style.maxHeight = contentHeight + 'px';
+                
+                // Set back to none for flexibility (like CSS does)
+                setTimeout(() => {
+                    if (container.classList.contains('expanded')) {
+                        container.style.maxHeight = 'none';
+                    }
+                }, 100);
+                
+                console.log(`📏 Recalculated height for expanded accordion: ${contentHeight}px`);
+            }
+        } catch (error) {
+            console.error('Error recalculating accordion height:', error);
+        }
     }
 
     /**
