@@ -595,11 +595,13 @@ function initializeSearchSystem() {
     const searchClear = document.getElementById('searchClear');
     
     if (searchInput) {
-        searchInput.addEventListener('input', debounce(handleSearch, 300));
-        searchInput.addEventListener('keydown', (e) => {
+        searchInput.addEventListener('input', debounce(async (e) => {
+            await handleSearch(e);
+        }, 300));
+        searchInput.addEventListener('keydown', async (e) => {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                handleSearch(e);
+                await handleSearch(e);
             }
         });
     }
@@ -609,7 +611,7 @@ function initializeSearchSystem() {
     }
 }
 
-function handleSearch(e) {
+async function handleSearch(e) {
     const query = e.target.value.toLowerCase().trim();
     const accordion = document.getElementById('documentationAccordion');
     
@@ -625,24 +627,66 @@ function handleSearch(e) {
     
     // Search through categories and items
     const categories = accordion.querySelectorAll('.accordion-category');
-    categories.forEach(category => {
+    
+    for (const category of categories) {
         let categoryHasResults = false;
         const items = category.querySelectorAll('.accordion-item');
         
-        items.forEach(item => {
+        for (const item of items) {
             const title = item.querySelector('.item-title').textContent.toLowerCase();
             const sectionName = item.dataset.section.toLowerCase();
+            const content = item.querySelector('.item-content');
             
-            if (title.includes(query) || sectionName.includes(query)) {
+            // Ensure modular content is loaded before searching
+            if (content.querySelector('.content-loading')) {
+                const sectionId = item.dataset.section;
+                console.log(`📄 Loading content for search: ${sectionId}`);
+                
+                if (window.contentManager && window.contentManager.initialized) {
+                    await window.contentManager.loadSection(sectionId);
+                }
+            }
+            
+            // Get all text content from the section
+            let contentText = '';
+            try {
+                // Get text content excluding loading messages
+                const contentNodes = content.querySelectorAll('*:not(.content-loading)');
+                contentText = Array.from(contentNodes)
+                    .map(node => node.textContent || '')
+                    .join(' ')
+                    .toLowerCase();
+                
+                // Also get direct text content
+                const directText = content.textContent || '';
+                contentText += ' ' + directText.toLowerCase();
+            } catch (error) {
+                console.warn(`Error getting content for search in ${sectionName}:`, error);
+                contentText = content.textContent?.toLowerCase() || '';
+            }
+            
+            // Search in title, section name, and content
+            const titleMatch = title.includes(query);
+            const sectionMatch = sectionName.includes(query);
+            const contentMatch = contentText.includes(query);
+            
+            if (titleMatch || sectionMatch || contentMatch) {
                 item.classList.remove('filtered-out');
                 categoryHasResults = true;
                 foundResults = true;
                 resultsCount++;
                 
-                // Highlight the match
-                highlightSearchTerm(item.querySelector('.item-title'), query);
+                // Highlight the match in title
+                if (titleMatch) {
+                    highlightSearchTerm(item.querySelector('.item-title'), query);
+                } else {
+                    // If match is in content, show normal title but mark as content match
+                    removeHighlight(item.querySelector('.item-title'));
+                    const titleElement = item.querySelector('.item-title');
+                    titleElement.setAttribute('data-content-match', 'true');
+                }
                 
-                // Auto-expand category and item
+                // Auto-expand category and potentially the item
                 const categoryToggle = category.querySelector('.category-toggle');
                 const itemToggle = item.querySelector('.item-toggle');
                 
@@ -650,11 +694,24 @@ function handleSearch(e) {
                     toggleCategory(categoryToggle);
                 }
                 
+                // If match is in content (not just title), expand the item to show content
+                if (contentMatch && !titleMatch) {
+                    if (itemToggle.getAttribute('aria-expanded') !== 'true') {
+                        await toggleAccordionItem(itemToggle);
+                    }
+                    
+                    // Highlight matches in content
+                    setTimeout(() => {
+                        highlightContentMatches(content, query);
+                    }, 300);
+                }
+                
             } else {
                 item.classList.add('filtered-out');
                 removeHighlight(item.querySelector('.item-title'));
+                item.querySelector('.item-title').removeAttribute('data-content-match');
             }
-        });
+        }
         
         // Show/hide category based on results
         if (categoryHasResults) {
@@ -662,7 +719,7 @@ function handleSearch(e) {
         } else {
             category.classList.add('filtered-out');
         }
-    });
+    }
     
     // Show no results message
     showSearchResults(foundResults, resultsCount, query);
@@ -680,9 +737,74 @@ function highlightSearchTerm(element, term) {
     element.innerHTML = highlightedText;
 }
 
+function highlightContentMatches(container, term) {
+    // Remove previous highlights
+    removeAllHighlights(container);
+    
+    const regex = new RegExp(`(${term})`, 'gi');
+    const walker = document.createTreeWalker(
+        container,
+        NodeFilter.SHOW_TEXT,
+        {
+            acceptNode: function(node) {
+                // Skip script, style, and already highlighted content
+                const parent = node.parentElement;
+                if (parent.tagName === 'SCRIPT' || 
+                    parent.tagName === 'STYLE' || 
+                    parent.classList.contains('search-highlight') ||
+                    parent.classList.contains('content-loading')) {
+                    return NodeFilter.FILTER_REJECT;
+                }
+                
+                // Only process text nodes that contain the search term
+                if (node.textContent.toLowerCase().includes(term)) {
+                    return NodeFilter.FILTER_ACCEPT;
+                }
+                return NodeFilter.FILTER_REJECT;
+            }
+        }
+    );
+    
+    const textNodes = [];
+    let node;
+    while (node = walker.nextNode()) {
+        textNodes.push(node);
+    }
+    
+    // Process text nodes in reverse to avoid DOM position issues
+    textNodes.reverse().forEach(textNode => {
+        const text = textNode.textContent;
+        if (regex.test(text)) {
+            const parent = textNode.parentNode;
+            const highlightedHTML = text.replace(regex, '<span class="search-highlight">$1</span>');
+            
+            // Create a temporary container to hold the highlighted content
+            const temp = document.createElement('div');
+            temp.innerHTML = highlightedHTML;
+            
+            // Replace the text node with highlighted content
+            while (temp.firstChild) {
+                parent.insertBefore(temp.firstChild, textNode);
+            }
+            parent.removeChild(textNode);
+        }
+    });
+    
+    console.log(`✨ Highlighted ${textNodes.length} matches for "${term}" in content`);
+}
+
 function removeHighlight(element) {
     const text = element.textContent;
     element.innerHTML = text;
+}
+
+function removeAllHighlights(container) {
+    const highlights = container.querySelectorAll('.search-highlight');
+    highlights.forEach(highlight => {
+        const parent = highlight.parentNode;
+        parent.replaceChild(document.createTextNode(highlight.textContent), highlight);
+        parent.normalize(); // Merge adjacent text nodes
+    });
 }
 
 function clearSearch() {
@@ -698,6 +820,13 @@ function clearSearch() {
     items.forEach(item => {
         item.classList.remove('filtered-out');
         removeHighlight(item.querySelector('.item-title'));
+        item.querySelector('.item-title').removeAttribute('data-content-match');
+        
+        // Remove content highlights
+        const content = item.querySelector('.item-content');
+        if (content) {
+            removeAllHighlights(content);
+        }
     });
     
     categories.forEach(category => {

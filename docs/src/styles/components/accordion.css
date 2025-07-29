@@ -237,6 +237,14 @@
     color: var(--text-primary);
 }
 
+/* Indicate when match is in content (not title) */
+.item-title[data-content-match="true"]::after {
+    content: "📄";
+    margin-left: 0.5rem;
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
 /* No results message */
 .search-no-results {
     text-align: center;
