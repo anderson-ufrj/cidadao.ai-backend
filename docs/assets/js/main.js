@@ -423,6 +423,13 @@ async function toggleAccordionItem(toggle) {
             await loadSectionContent(sectionName, content);
         }
         
+        // Force height recalculation for expanded content
+        setTimeout(() => {
+            content.style.maxHeight = 'none';
+            content.style.overflow = 'visible';
+            content.offsetHeight; // Force reflow
+        }, 100);
+        
         // Scroll to item
         setTimeout(() => {
             item.scrollIntoView({ 

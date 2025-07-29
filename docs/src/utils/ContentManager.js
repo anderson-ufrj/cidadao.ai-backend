@@ -215,24 +215,17 @@ class ContentManager {
             const isExpanded = toggle && toggle.getAttribute('aria-expanded') === 'true';
             
             if (isExpanded && container.classList.contains('expanded')) {
-                // Force reflow by temporarily removing max-height
-                const originalMaxHeight = container.style.maxHeight;
+                // Since we now use max-height: none, ensure proper overflow handling
                 container.style.maxHeight = 'none';
+                container.style.overflow = 'visible';
                 
-                // Get the actual content height
+                // Force a reflow to ensure content is properly displayed
                 const contentHeight = container.scrollHeight;
                 
-                // Restore max-height with proper value
-                container.style.maxHeight = contentHeight + 'px';
+                // Trigger any layout recalculations
+                container.offsetHeight; // Force reflow
                 
-                // Set back to none for flexibility (like CSS does)
-                setTimeout(() => {
-                    if (container.classList.contains('expanded')) {
-                        container.style.maxHeight = 'none';
-                    }
-                }, 100);
-                
-                console.log(`📏 Recalculated height for expanded accordion: ${contentHeight}px`);
+                console.log(`📏 Accordion height recalculated - content fully visible: ${contentHeight}px`);
             }
         } catch (error) {
             console.error('Error recalculating accordion height:', error);

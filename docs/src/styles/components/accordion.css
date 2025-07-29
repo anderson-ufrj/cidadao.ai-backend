@@ -113,8 +113,9 @@
 }
 
 .category-content.expanded {
-    max-height: 5000px;
+    max-height: none; /* No height limit for category content */
     padding: 0;
+    overflow: visible; /* Ensure all content is visible */
 }
 
 /* Item do acordeão */
@@ -195,8 +196,9 @@
 }
 
 .item-content.expanded {
-    max-height: 10000px;
+    max-height: none; /* No height limit for dynamic content */
     padding: 0 1.5rem 1.5rem 1.5rem;
+    overflow: visible; /* Ensure all content is visible */
 }
 
 /* Loading do conteúdo */
