@@ -59,10 +59,10 @@ class ContentManager {
      * Carrega apenas seções que foram marcadas como modulares
      */
     async loadModularSections() {
-        // Lista de seções que usam sistema modular (começando vazio)
+        // Lista de seções que usam sistema modular
         const modularSections = [
-            // 'math-foundations',  // Será adicionado na FASE 2
-            // 'xai-algorithms'     // Será adicionado na FASE 2
+            'math-foundations',   // Fundamentos matemáticos PhD-level
+            'xai-algorithms'      // Algoritmos XAI avançados
         ];
 
         // Carregar cada seção modular
