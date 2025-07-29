@@ -38,7 +38,7 @@
                 </div>
                 
                 <!-- Toggle Sidebar (só no modo leitura mobile) -->
-                <button class="control-button reading-sidebar-toggle" id="readingSidebarToggle" style="display: none;" aria-label="Mostrar/esconder índice">
+                <button class="control-button reading-sidebar-toggle" id="readingSidebarToggle" style="display: none;" data-i18n="reading.toggle-sidebar" aria-label="Mostrar/esconder índice">
                     ☰
                 </button>
                 
@@ -54,21 +54,21 @@
                 
                 <!-- Idioma -->
                 <div class="control-group" role="group" aria-label="Seletor de idioma">
-                    <button class="control-button" data-lang-btn="pt-BR" data-i18n="nav.lang.pt" aria-label="Português">
+                    <button class="control-button" data-lang-btn="pt-BR" data-reading-lang-btn="pt-BR" data-i18n="nav.lang.pt" aria-label="Português">
                         🇧🇷 PT
                     </button>
-                    <button class="control-button" data-lang-btn="en-US" data-i18n="nav.lang.en" aria-label="English">
+                    <button class="control-button" data-lang-btn="en-US" data-reading-lang-btn="en-US" data-i18n="nav.lang.en" aria-label="English">
                         🇺🇸 EN
                     </button>
                 </div>
                 
                 <!-- Botão Voltar (só no modo leitura) -->
-                <button class="control-button reading-back-to-main-header" id="readingBackToMainHeader" style="display: none;" aria-label="Voltar à página principal">
+                <button class="control-button reading-back-to-main-header" id="readingBackToMainHeader" style="display: none;" data-i18n="reading.back-to-main" aria-label="Voltar à página principal">
                     ← Voltar
                 </button>
                 
                 <!-- Botão Fechar Modo Leitura (só no modo leitura) -->
-                <button class="control-button reading-close-button" id="readingCloseButton" data-modal-close="readingModal" style="display: none;" aria-label="Fechar modo leitura">
+                <button class="control-button reading-close-button" id="readingCloseButton" data-modal-close="readingModal" style="display: none;" data-i18n="reading.close" aria-label="Fechar modo leitura">
                     ✕ Fechar
                 </button>
             </div>
@@ -3922,14 +3922,14 @@ class CidadaoAIUser(HttpUser):
             
             <!-- Navegação Lateral -->
             <nav class="reading-sidebar" id="readingSidebar">
-                <h3 class="reading-sidebar-title">📑 Índice</h3>
+                <h3 class="reading-sidebar-title" data-i18n="reading.index">📑 Índice</h3>
                 <div class="reading-nav-list" id="readingNavList">
                     <!-- Links de navegação serão inseridos aqui -->
                 </div>
             </nav>
             
             <!-- Botão Voltar ao Topo -->
-            <button class="reading-back-to-top" id="backToTopBtn" aria-label="Voltar ao topo">
+            <button class="reading-back-to-top" id="backToTopBtn" data-i18n="reading.back-to-top" aria-label="Voltar ao topo">
                 ↑
             </button>
         </div>

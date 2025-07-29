@@ -26,6 +26,12 @@ const translations = {
         'controls.print': '🖨️ Imprimir',
         'search.placeholder': '🔍 Buscar na documentação...',
         
+        'reading.toggle-sidebar': '☰',
+        'reading.back-to-main': '← Voltar',
+        'reading.close': '✕ Fechar',
+        'reading.index': '📑 Índice',
+        'reading.back-to-top': '↑',
+        
         'category.fundamentacao.title': 'Fundamentação Teórica',
         'category.arquitetura.title': 'Arquitetura & Implementação',
         'category.ia.title': 'Inteligência Artificial & Machine Learning',
@@ -60,6 +66,12 @@ const translations = {
         'controls.reading-mode': '📚 Reading Mode',
         'controls.print': '🖨️ Print',
         'search.placeholder': '🔍 Search documentation...',
+        
+        'reading.toggle-sidebar': '☰',
+        'reading.back-to-main': '← Back',
+        'reading.close': '✕ Close',
+        'reading.index': '📑 Index',
+        'reading.back-to-top': '↑',
         
         'category.fundamentacao.title': 'Theoretical Foundation',
         'category.arquitetura.title': 'Architecture & Implementation',
@@ -1271,7 +1283,8 @@ function initReadingMode() {
             
             // Update progress bar
             readingProgress.style.width = `${scrollPercentage}%`;
-            readingProgressText.textContent = `${scrollPercentage}% lido`;
+            const progressSuffix = currentLanguage === 'en-US' ? '% read' : '% lido';
+            readingProgressText.textContent = `${scrollPercentage}${progressSuffix}`;
             
             // Update active nav item
             updateActiveNavItem(scrollTop);
