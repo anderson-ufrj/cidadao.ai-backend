@@ -857,7 +857,38 @@ function initReadingMode() {
         closeModal('readingModal');
     }
     
-    function openReadingMode() {
+    async function ensureModularContentLoaded() {
+        // Ensure ContentManager is initialized
+        if (!window.contentManager || !window.contentManager.initialized) {
+            console.log('⏳ Waiting for ContentManager initialization...');
+            await new Promise(resolve => {
+                const checkInit = () => {
+                    if (window.contentManager && window.contentManager.initialized) {
+                        resolve();
+                    } else {
+                        setTimeout(checkInit, 100);
+                    }
+                };
+                checkInit();
+            });
+        }
+        
+        // Load all modular sections
+        const modularSections = ['math-foundations', 'xai-algorithms'];
+        const loadPromises = modularSections.map(sectionId => {
+            const container = document.querySelector(`[data-section="${sectionId}"] .item-content`);
+            if (container && container.querySelector('.content-loading')) {
+                console.log(`📄 Loading modular content for reading mode: ${sectionId}`);
+                return window.contentManager.loadSection(sectionId);
+            }
+            return Promise.resolve();
+        });
+        
+        await Promise.all(loadPromises);
+        console.log('✅ All modular content loaded for reading mode');
+    }
+    
+    async function openReadingMode() {
         // Enable reading mode
         document.body.classList.add('reading-mode');
         
@@ -875,6 +906,9 @@ function initReadingMode() {
         // Clear previous content
         readingContent.innerHTML = '';
         readingNavList.innerHTML = '';
+        
+        // Wait for ContentManager to load all modular sections
+        await ensureModularContentLoaded();
         
         // Get all sections content
         const sections = document.querySelectorAll('.accordion-item');
