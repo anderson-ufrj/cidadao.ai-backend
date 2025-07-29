@@ -1,0 +1,110 @@
+<!-- CONTEÚDO A SER ADICIONADO NA SEÇÃO MULTI-AGENTE -->
+<!-- Inserir após a div de communication-flow (antes da linha 1795) -->
+
+                                    <!-- Teoremas Matemáticos do Sistema Multi-Agente -->
+                                    <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 3rem 0 1.5rem 0;">📐 Fundamentos Matemáticos e Teoremas</h3>
+                                    
+                                    <div style="background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border: 2px solid #0284c7; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                                        <h4 style="color: #0c4a6e; margin-bottom: 1.5rem;">Teorema 1: Convergência de Consenso Multi-Agente</h4>
+                                        <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; font-family: 'Courier New', monospace;">
+                                            <p><strong>Definição:</strong> Seja G = (V, E) um grafo direcionado representando a rede de agentes, onde V = {a₁, a₂, ..., aₙ} são os agentes e E representa as conexões de comunicação.</p>
+                                            <p style="margin-top: 1rem;"><strong>Teorema:</strong> Para um sistema multi-agente com matriz de adjacência A e protocolo de consenso:</p>
+                                            <div style="text-align: center; margin: 1rem 0; font-size: 1.1rem;">
+                                                x<sub>i</sub>(t+1) = Σ<sub>j∈N<sub>i</sub></sub> w<sub>ij</sub>x<sub>j</sub>(t)
+                                            </div>
+                                            <p>O sistema converge para consenso se e somente se o grafo G contém uma árvore geradora direcionada.</p>
+                                        </div>
+                                        <p style="color: #0c4a6e;"><strong>Aplicação no Cidadão.AI:</strong> Garante que todos os agentes eventualmente concordarão sobre anomalias detectadas, mesmo com comunicação parcial entre eles.</p>
+                                    </div>
+
+                                    <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); border: 2px solid #16a34a; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                                        <h4 style="color: #14532d; margin-bottom: 1.5rem;">Teorema 2: Otimalidade de Alocação de Tarefas</h4>
+                                        <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem; font-family: 'Courier New', monospace;">
+                                            <p><strong>Problema:</strong> Minimizar o tempo total de processamento T ao distribuir m tarefas entre n agentes.</p>
+                                            <p style="margin-top: 1rem;"><strong>Formulação:</strong></p>
+                                            <div style="text-align: center; margin: 1rem 0; font-size: 1.1rem;">
+                                                min T = max<sub>i∈[1,n]</sub> Σ<sub>j∈T<sub>i</sub></sub> t<sub>ij</sub>
+                                            </div>
+                                            <p>Sujeito a: Σ<sub>i=1</sub><sup>n</sup> x<sub>ij</sub> = 1, ∀j ∈ [1,m]</p>
+                                        </div>
+                                        <p style="color: #14532d;"><strong>Implementação:</strong> O MasterAgent (Abaporu) usa programação dinâmica para alocar investigações otimamente entre os agentes especializados.</p>
+                                    </div>
+
+                                    <!-- Algoritmos de Explainable AI -->
+                                    <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 3rem 0 1.5rem 0;">🔍 Algoritmos de Explainable AI (XAI)</h3>
+                                    
+                                    <div style="background: linear-gradient(135deg, #fef3c7, #fde68a); border: 2px solid #f59e0b; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                                        <h4 style="color: #78350f; margin-bottom: 1.5rem;">SHAP (SHapley Additive exPlanations)</h4>
+                                        <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem;">
+                                            <p><strong>Fundamento:</strong> Baseado na teoria dos jogos cooperativos de Shapley.</p>
+                                            <div style="font-family: 'Courier New', monospace; margin: 1rem 0;">
+                                                <p>φᵢ(f, x) = Σ<sub>S⊆N\{i}</sub> |S|!(|N|-|S|-1)!/|N|! [f<sub>S∪{i}</sub>(x<sub>S∪{i}</sub>) - f<sub>S</sub>(x<sub>S</sub>)]</p>
+                                            </div>
+                                            <p><strong>Implementação no InvestigatorAgent:</strong></p>
+                                            <ul style="margin-left: 1.5rem;">
+                                                <li>• Explica por que uma transação foi classificada como suspeita</li>
+                                                <li>• Identifica features mais importantes: valor, frequência, beneficiário</li>
+                                                <li>• Gera visualizações interpretáveis para auditores</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div style="background: linear-gradient(135deg, #ede9fe, #ddd6fe); border: 2px solid #7c3aed; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                                        <h4 style="color: #4c1d95; margin-bottom: 1.5rem;">LIME (Local Interpretable Model-agnostic Explanations)</h4>
+                                        <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem;">
+                                            <p><strong>Algoritmo:</strong></p>
+                                            <div style="font-family: 'Courier New', monospace; margin: 1rem 0;">
+                                                <p>ξ(x) = argmin<sub>g∈G</sub> L(f, g, π<sub>x</sub>) + Ω(g)</p>
+                                            </div>
+                                            <p>Onde L é a função de perda, π<sub>x</sub> define a vizinhança e Ω(g) é a complexidade.</p>
+                                            <p style="margin-top: 1rem;"><strong>Uso no AnalystAgent:</strong></p>
+                                            <ul style="margin-left: 1.5rem;">
+                                                <li>• Explica decisões locais em análises de contratos</li>
+                                                <li>• Gera aproximações lineares interpretáveis</li>
+                                                <li>• Permite debugging de decisões específicas</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <div style="background: linear-gradient(135deg, #fee2e2, #fecaca); border: 2px solid #dc2626; border-radius: 1rem; padding: 2rem; margin: 2rem 0;">
+                                        <h4 style="color: #7f1d1d; margin-bottom: 1.5rem;">Attention Mechanisms para Transparência</h4>
+                                        <div style="background: white; border-radius: 0.5rem; padding: 1.5rem; margin-bottom: 1.5rem;">
+                                            <p><strong>Mecanismo de Atenção Multi-Head:</strong></p>
+                                            <div style="font-family: 'Courier New', monospace; margin: 1rem 0;">
+                                                <p>Attention(Q,K,V) = softmax(QK<sup>T</sup>/√d<sub>k</sub>)V</p>
+                                                <p>MultiHead(Q,K,V) = Concat(head₁, ..., head<sub>h</sub>)W<sup>O</sup></p>
+                                            </div>
+                                            <p style="margin-top: 1rem;"><strong>Implementação no ReporterAgent:</strong></p>
+                                            <ul style="margin-left: 1.5rem;">
+                                                <li>• Visualiza quais partes dos documentos receberam mais atenção</li>
+                                                <li>• Gera heatmaps de relevância textual</li>
+                                                <li>• Permite rastreabilidade das conclusões</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+
+                                    <!-- Framework de Explicabilidade Integrado -->
+                                    <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text-primary); margin: 3rem 0 1.5rem 0;">🎯 Framework Integrado de Explicabilidade</h3>
+                                    
+                                    <div style="background: var(--bg-secondary); border: 2px solid var(--border); border-radius: 1rem; padding: 2rem;">
+                                        <p style="margin-bottom: 1.5rem;">O Cidadão.AI implementa um framework de explicabilidade em três níveis:</p>
+                                        
+                                        <div style="display: grid; gap: 1.5rem;">
+                                            <div style="background: var(--bg-primary); border: 1px solid var(--border-light); border-radius: 0.5rem; padding: 1.5rem;">
+                                                <h5 style="color: var(--text-accent); margin-bottom: 0.5rem;">Nível 1: Explicação Global</h5>
+                                                <p>Modelos interpretáveis por design (árvores de decisão, regressão linear) para políticas gerais.</p>
+                                            </div>
+                                            
+                                            <div style="background: var(--bg-primary); border: 1px solid var(--border-light); border-radius: 0.5rem; padding: 1.5rem;">
+                                                <h5 style="color: var(--text-accent); margin-bottom: 0.5rem;">Nível 2: Explicação Local</h5>
+                                                <p>SHAP/LIME para decisões específicas sobre contratos, licitações e anomalias.</p>
+                                            </div>
+                                            
+                                            <div style="background: var(--bg-primary); border: 1px solid var(--border-light); border-radius: 0.5rem; padding: 1.5rem;">
+                                                <h5 style="color: var(--text-accent); margin-bottom: 0.5rem;">Nível 3: Explicação Contextual</h5>
+                                                <p>Narrativas em linguagem natural geradas pelo ReporterAgent com referências completas.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+<!-- FIM DO CONTEÚDO A SER ADICIONADO -->
