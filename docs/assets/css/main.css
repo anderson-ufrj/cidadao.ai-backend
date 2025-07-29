@@ -1079,8 +1079,10 @@ body::before {
 }
 
 .reading-content {
-    width: 85%;
-    margin-left: calc(260px + (100% - 260px - 85%) / 2); /* Centralizado no espaço restante */
+    width: calc(100% - 280px); /* Dynamic width based on sidebar */
+    max-width: 800px; /* Optimal reading width */
+    margin-left: 260px; /* Space for sidebar */
+    margin-right: auto;
     padding: 2rem 3rem 4rem 3rem;
     font-size: 1.125rem;
     line-height: 1.8;
@@ -1261,8 +1263,9 @@ body::before {
 /* Ajuste para telas menores */
 @media (max-width: 1200px) {
     .reading-content {
-        width: 85%;
-        margin-left: calc(220px + (100% - 220px - 85%) / 2);
+        width: calc(100% - 240px);
+        max-width: 700px;
+        margin-left: 220px;
         padding: 2rem;
         overflow-x: hidden; /* Prevent horizontal overflow */
     }
@@ -1292,10 +1295,12 @@ body::before {
     }
     
     .reading-content {
-        width: 85%;
-        margin-left: calc(200px + (100% - 200px - 85%) / 2);
-        padding: 2rem;
+        width: calc(100% - 220px);
+        max-width: 600px;
+        margin-left: 200px;
+        padding: 2rem 1.5rem;
         overflow-x: hidden; /* Prevent horizontal overflow on tablets */
+        font-size: 1rem; /* Smaller font for tablets */
     }
     
     /* Tablet responsive adjustments */
@@ -1339,13 +1344,16 @@ body::before {
     }
     
     .reading-content {
-        width: 90%; /* No mobile ocupa 90% da tela (mais centralizado) */
+        width: 95%; /* No mobile ocupa 95% da tela (mais espaço de leitura) */
         margin: 0 auto; /* Centralização perfeita */
-        padding: 1rem;
+        padding: 1rem 0.75rem;
         font-size: 1rem;
         max-width: 100%;
         box-sizing: border-box;
         overflow-x: hidden; /* Prevent horizontal overflow */
+        word-wrap: break-word; /* Break long words */
+        overflow-wrap: break-word; /* Modern browsers */
+        hyphens: auto; /* Auto hyphenation for better text flow */
     }
     
     /* Fix for wide content in reading mode */
@@ -1545,23 +1553,86 @@ body::before {
         transform: none;
     }
     
-    /* Extra small screens responsive fixes */
+    /* Extra small screens responsive fixes (better mobile experience) */
     .reading-content {
-        width: 95% !important;
-        padding: 0.75rem !important;
-        font-size: 0.9rem !important;
+        width: 98% !important; /* Use almost full width on small screens */
+        margin: 0 auto !important;
+        padding: 0.5rem !important; /* Minimal padding to maximize reading space */
+        font-size: 0.95rem !important; /* Slightly smaller font for mobile */
+        line-height: 1.7 !important; /* Better line height for mobile reading */
+        overflow-x: hidden !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important; 
+        hyphens: auto !important;
     }
     
+    /* All child elements respect mobile width */
+    .reading-content * {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+    
+    /* Headers adjustments for small screens */
+    .reading-content h2 {
+        font-size: 1.5rem !important;
+        margin: 2rem 0 1rem !important;
+        line-height: 1.3 !important;
+        word-wrap: break-word !important;
+    }
+    
+    .reading-content h3 {
+        font-size: 1.25rem !important;
+        margin: 1.5rem 0 0.75rem !important;
+        line-height: 1.3 !important;
+        word-wrap: break-word !important;
+    }
+    
+    .reading-content h4 {
+        font-size: 1.1rem !important;
+        margin: 1.25rem 0 0.5rem !important;
+        line-height: 1.3 !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Paragraphs and lists optimized for mobile */
+    .reading-content p {
+        margin-bottom: 1rem !important;
+        text-align: justify !important;
+        word-spacing: -0.1em !important; /* Tighter word spacing for mobile */
+    }
+    
+    .reading-content ul, .reading-content ol {
+        margin: 0.75rem 0 1rem 1.5rem !important;
+        padding-left: 1rem !important;
+    }
+    
+    .reading-content li {
+        margin-bottom: 0.5rem !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Math formulas for small screens */
     .reading-content .math-formula {
         font-size: 0.8rem !important;
-        padding: 0.25rem !important;
+        padding: 0.5rem !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
     }
     
+    /* Algorithm code for small screens */
     .reading-content .algorithm-code {
         font-size: 0.7rem !important;
         padding: 0.75rem !important;
+        overflow-x: auto !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
     }
     
+    /* Definition boxes and similar elements */
     .reading-content .definition-box,
     .reading-content .axiom-list,
     .reading-content .theorem-box,
@@ -1573,6 +1644,35 @@ body::before {
     .reading-content .neural-box {
         padding: 0.75rem !important;
         margin: 0.75rem 0 !important;
+        font-size: 0.9rem !important;
+        overflow-x: auto !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        word-wrap: break-word !important;
+    }
+    
+    /* Tables for small screens */
+    .reading-content table {
+        font-size: 0.8rem !important;
+        display: block !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        max-width: 100% !important;
+    }
+    
+    /* Pre and code elements */
+    .reading-content pre {
+        font-size: 0.75rem !important;
+        overflow-x: auto !important;
+        padding: 0.75rem !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    .reading-content code {
+        font-size: 0.85rem !important;
+        word-break: break-all !important;
+        overflow-wrap: break-word !important;
     }
 
     .floating-button {
@@ -1605,6 +1705,69 @@ body::before {
     .control-group {
         flex-direction: row;
         flex-wrap: wrap;
+    }
+}
+
+/* Ultra-small screens (320px and below) - critical mobile support */
+@media (max-width: 320px) {
+    .reading-content {
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0.25rem !important;
+        font-size: 0.9rem !important;
+        line-height: 1.6 !important;
+    }
+    
+    .reading-content h2 {
+        font-size: 1.3rem !important;
+        margin: 1.5rem 0 0.75rem !important;
+    }
+    
+    .reading-content h3 {
+        font-size: 1.1rem !important;
+        margin: 1.25rem 0 0.5rem !important;
+    }
+    
+    .reading-content h4 {
+        font-size: 1rem !important;
+        margin: 1rem 0 0.5rem !important;
+    }
+    
+    .reading-content p {
+        margin-bottom: 0.75rem !important;
+        font-size: 0.9rem !important;
+    }
+    
+    .reading-content .math-formula {
+        font-size: 0.75rem !important;
+        padding: 0.25rem !important;
+    }
+    
+    .reading-content .algorithm-code {
+        font-size: 0.65rem !important;
+        padding: 0.5rem !important;
+    }
+    
+    .reading-content .definition-box,
+    .reading-content .axiom-list,
+    .reading-content .theorem-box,
+    .reading-content .optimization-box,
+    .reading-content .complexity-box,
+    .reading-content .shap-box,
+    .reading-content .lime-box,
+    .reading-content .causal-box,
+    .reading-content .neural-box {
+        padding: 0.5rem !important;
+        margin: 0.5rem 0 !important;
+        font-size: 0.85rem !important;
+    }
+    
+    .reading-sidebar {
+        width: 250px !important; /* Slightly wider sidebar for small screens */
+    }
+    
+    .reading-modal-body {
+        padding-top: 50px !important; /* Less top padding on ultra-small screens */
     }
 }
 

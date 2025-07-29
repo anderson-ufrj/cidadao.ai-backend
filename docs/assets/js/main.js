@@ -191,8 +191,14 @@ async function switchLanguage(language) {
     updateLanguageButtons();
     
     // Recarregar conteúdo modular no idioma correto
-    if (window.ContentManager) {
-        await window.ContentManager.reloadForLanguageChange();
+    if (window.contentManager) {
+        await window.contentManager.reloadModularContent();
+    }
+    
+    // Se estamos no modo leitura, recarregar o conteúdo
+    if (document.body.classList.contains('reading-mode')) {
+        console.log(`🔄 Reloading reading mode content for ${language}`);
+        await refreshReadingModeContent();
     }
     
     console.log(`🌍 Language switched to: ${language}`);
@@ -1030,21 +1036,186 @@ function initReadingMode() {
             });
         }
         
-        // Load all modular sections
+        // Ensure current language is available globally for ContentManager
+        window.currentLanguage = currentLanguage;
+        
+        // Load all modular sections in the current language
         const modularSections = ['math-foundations', 'xai-algorithms'];
         const loadPromises = modularSections.map(sectionId => {
             const container = document.querySelector(`[data-section="${sectionId}"] .item-content`);
-            if (container && container.querySelector('.content-loading')) {
-                console.log(`📄 Loading modular content for reading mode: ${sectionId}`);
+            if (container) {
+                // Always reload to ensure correct language content
+                const children = Array.from(container.children);
+                children.forEach(child => {
+                    if (!child.classList.contains('content-loading')) {
+                        child.remove();
+                    }
+                });
+                
+                console.log(`📄 Loading modular content for reading mode (${currentLanguage}): ${sectionId}`);
                 return window.contentManager.loadSection(sectionId);
             }
             return Promise.resolve();
         });
         
         await Promise.all(loadPromises);
-        console.log('✅ All modular content loaded for reading mode');
+        console.log(`✅ All modular content loaded for reading mode in ${currentLanguage}`);
     }
     
+    function buildReadingContent(sectionData) {
+        let sectionCounter = 0; // For main sections (1, 2, 3...)
+        
+        sectionData.forEach((section, index) => {
+            sectionCounter++;
+            const mainNumber = sectionCounter;
+            
+            // Add section to content with hierarchical numbering
+            const sectionDiv = document.createElement('div');
+            sectionDiv.id = section.id;
+            sectionDiv.className = 'reading-section';
+            
+            // Process content to add numbering to internal headers
+            const processedContent = addHierarchicalNumbering(section.content, mainNumber);
+            
+            sectionDiv.innerHTML = `
+                <h2>${mainNumber}. ${section.title}</h2>
+                ${processedContent}
+            `;
+            readingContent.appendChild(sectionDiv);
+            
+            // Add navigation link
+            const navLink = document.createElement('a');
+            navLink.href = `#${section.id}`;
+            navLink.className = 'reading-nav-item';
+            navLink.innerHTML = `<span class="nav-number">${mainNumber}.</span> ${section.title}`;
+            navLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.getElementById(section.id);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+            readingNavList.appendChild(navLink);
+        });
+        
+        // Open modal
+        openModal('readingModal');
+        
+        // Setup scroll tracking
+        setupScrollTracking();
+        
+        logEvent('reading_mode_opened', { sections: sectionData.length });
+    }
+
+    function addHierarchicalNumbering(content, mainNumber) {
+        // Create a temporary div to parse HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = content;
+        
+        let h3Counter = 0;
+        let h4Counter = 0;
+        let currentH3 = 0;
+        
+        // Process H3 headers (1.1, 1.2, 1.3...)
+        const h3Elements = tempDiv.querySelectorAll('h3');
+        h3Elements.forEach((h3, index) => {
+            h3Counter++;
+            currentH3 = h3Counter;
+            h4Counter = 0; // Reset h4 counter when new h3
+            h3.innerHTML = `${mainNumber}.${h3Counter}. ${h3.textContent}`;
+        });
+        
+        // Process H4 headers (1.1.1, 1.1.2, 1.2.1...)
+        const h4Elements = tempDiv.querySelectorAll('h4');
+        h4Elements.forEach((h4, index) => {
+            // Find which h3 this h4 belongs to
+            let belongsToH3 = 1;
+            const prevH3 = h4.previousElementSibling;
+            if (prevH3) {
+                const h3Before = tempDiv.querySelector('h3');
+                if (h3Before) {
+                    const h3Text = h3Before.textContent;
+                    const match = h3Text.match(/(\d+)\.(\d+)\./);
+                    if (match) {
+                        belongsToH3 = parseInt(match[2]);
+                    }
+                }
+            }
+            
+            h4Counter++;
+            h4.innerHTML = `${mainNumber}.${belongsToH3}.${h4Counter}. ${h4.textContent}`;
+        });
+        
+        return tempDiv.innerHTML;
+    }
+
+    async function refreshReadingModeContent() {
+        // This function refreshes reading mode content when language changes
+        if (!document.body.classList.contains('reading-mode')) return;
+        
+        console.log(`🔄 Refreshing reading mode content for ${currentLanguage}`);
+        
+        // Clear previous content
+        readingContent.innerHTML = '';
+        readingNavList.innerHTML = '';
+        
+        // Wait for ContentManager to load all modular sections
+        await ensureModularContentLoaded();
+        
+        // Get all sections content again with updated language
+        const sections = document.querySelectorAll('.accordion-item');
+        const sectionData = [];
+        
+        sections.forEach((section, index) => {
+            const sectionName = section.dataset.section;
+            const title = section.querySelector('.item-title').textContent;
+            const content = section.querySelector('.item-content').innerHTML;
+            
+            if (content && content.trim() !== '') {
+                sectionData.push({
+                    id: `reading-section-${index}`,
+                    name: sectionName,
+                    title: title,
+                    content: content
+                });
+            }
+        });
+        
+        // Rebuild reading content (but don't reopen modal or setup tracking)
+        let sectionCounter = 0;
+        sectionData.forEach((section, index) => {
+            sectionCounter++;
+            const mainNumber = sectionCounter;
+            
+            const sectionDiv = document.createElement('div');
+            sectionDiv.id = section.id;
+            sectionDiv.className = 'reading-section';
+            
+            const processedContent = addHierarchicalNumbering(section.content, mainNumber);
+            
+            sectionDiv.innerHTML = `
+                <h2>${mainNumber}. ${section.title}</h2>
+                ${processedContent}
+            `;
+            readingContent.appendChild(sectionDiv);
+            
+            const navLink = document.createElement('a');
+            navLink.href = `#${section.id}`;
+            navLink.className = 'reading-nav-item';
+            navLink.innerHTML = `<span class="nav-number">${mainNumber}.</span> ${section.title}`;
+            navLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = document.getElementById(section.id);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+            readingNavList.appendChild(navLink);
+        });
+        
+        console.log(`✅ Reading mode content refreshed for ${currentLanguage}`);
+    }
+
     async function openReadingMode() {
         // Enable reading mode
         document.body.classList.add('reading-mode');
@@ -1086,91 +1257,8 @@ function initReadingMode() {
             }
         });
         
-        // Build reading content with proper hierarchical numbering
-        let sectionCounter = 0; // For main sections (1, 2, 3...)
-        
-        sectionData.forEach((section, index) => {
-            sectionCounter++;
-            const mainNumber = sectionCounter;
-            
-            // Add section to content with hierarchical numbering
-            const sectionDiv = document.createElement('div');
-            sectionDiv.id = section.id;
-            sectionDiv.className = 'reading-section';
-            
-            // Process content to add numbering to internal headers
-            const processedContent = addHierarchicalNumbering(section.content, mainNumber);
-            
-            sectionDiv.innerHTML = `
-                <h2>${mainNumber}. ${section.title}</h2>
-                ${processedContent}
-            `;
-            readingContent.appendChild(sectionDiv);
-            
-            // Add navigation link
-            const navLink = document.createElement('a');
-            navLink.href = `#${section.id}`;
-            navLink.className = 'reading-nav-item';
-            navLink.innerHTML = `<span class="nav-number">${mainNumber}.</span> ${section.title}`;
-            navLink.addEventListener('click', (e) => {
-                e.preventDefault();
-                const target = document.getElementById(section.id);
-                if (target) {
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            });
-            readingNavList.appendChild(navLink);
-        });
-        
-        function addHierarchicalNumbering(content, mainNumber) {
-            // Create a temporary div to parse HTML
-            const tempDiv = document.createElement('div');
-            tempDiv.innerHTML = content;
-            
-            let h3Counter = 0;
-            let h4Counter = 0;
-            let currentH3 = 0;
-            
-            // Process H3 headers (1.1, 1.2, 1.3...)
-            const h3Elements = tempDiv.querySelectorAll('h3');
-            h3Elements.forEach((h3, index) => {
-                h3Counter++;
-                currentH3 = h3Counter;
-                h4Counter = 0; // Reset h4 counter when new h3
-                h3.innerHTML = `${mainNumber}.${h3Counter}. ${h3.textContent}`;
-            });
-            
-            // Process H4 headers (1.1.1, 1.1.2, 1.2.1...)
-            const h4Elements = tempDiv.querySelectorAll('h4');
-            h4Elements.forEach((h4, index) => {
-                // Find which h3 this h4 belongs to
-                let belongsToH3 = 1;
-                const prevH3 = h4.previousElementSibling;
-                if (prevH3) {
-                    const h3Before = tempDiv.querySelector('h3');
-                    if (h3Before) {
-                        const h3Text = h3Before.textContent;
-                        const match = h3Text.match(/(\d+)\.(\d+)\./);
-                        if (match) {
-                            belongsToH3 = parseInt(match[2]);
-                        }
-                    }
-                }
-                
-                h4Counter++;
-                h4.innerHTML = `${mainNumber}.${belongsToH3}.${h4Counter}. ${h4.textContent}`;
-            });
-            
-            return tempDiv.innerHTML;
-        }
-        
-        // Open modal
-        openModal('readingModal');
-        
-        // Setup scroll tracking
-        setupScrollTracking();
-        
-        logEvent('reading_mode_opened', { sections: sectionData.length });
+        // Build reading content
+        buildReadingContent(sectionData);
     }
     
     function setupScrollTracking() {
