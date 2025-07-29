@@ -252,6 +252,9 @@ api_test_results.json
 RELATORIO_*.md
 *_EXECUTIVO.md
 analise_*.md
+BACKUP_POLICY.md
+*_POLICY.md
+*_INTERNAL.md
 
 # Hugging Face specific files and deployment artifacts
 README_HF*.md
@@ -337,3 +340,9 @@ requirements_*.txt
 docker-compose.*.yml
 test_*.py
 setup_*.py
+
+# Project planning files
+next-steps.md
+*next-steps*
+planning/
+*.planning
