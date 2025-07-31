@@ -2,6 +2,7 @@
  * OfflineAccordion.js
  * Versão do SuperAccordion que funciona sem servidor HTTP
  * Carrega dados diretamente dos arquivos existentes
+ * Version: 1.1.1 - Build: 2025-01-31-01
  */
 
 class OfflineAccordion {
@@ -109,7 +110,7 @@ class OfflineAccordion {
         // Debounced functions
         this.debouncedSearch = this.debounce(this.performSearch.bind(this), this.options.debounceDelay);
         
-        console.log('🚀 OfflineAccordion initialized');
+        console.log('🚀 OfflineAccordion v1.1.1 initialized with MDX loader!');
     }
 
     /**
