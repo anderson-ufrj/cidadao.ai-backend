@@ -296,9 +296,9 @@ class OfflineAccordion {
                     <div class="section-demo-content">
                         <h3>${file.title}</h3>
                         <p><strong>Preview:</strong> ${file.preview}</p>
-                        <p><em>Esta é uma versão de demonstração. O conteúdo completo seria carregado de ${file.id}.mdx</em></p>
+                        <div class="content-loading" data-section="${file.id}">⏳ Carregando conteúdo...</div>
                         <div class="demo-actions">
-                            <button class="demo-btn" onclick="alert('Modo leitura para: ${file.title}')">📖 Ler Completo</button>
+                            <button class="demo-btn" onclick="window.offlineAccordion.loadFullContent('${file.id}')">📖 Ler Completo</button>
                             <button class="demo-btn" onclick="alert('Exportar: ${file.title}')">📄 Exportar</button>
                         </div>
                     </div>
@@ -716,12 +716,19 @@ class OfflineAccordion {
         // Atualizar título
         this.elements.readingModeTitle.textContent = sectionTitle;
         
-        // Conteúdo de demonstração
-        const content = `
-            <div class="reading-content-demo">
+        // Carregar conteúdo MDX real
+        this.elements.readingModeContent.innerHTML = '<div class="loading-content">⏳ Carregando conteúdo...</div>';
+        
+        try {
+            const content = await this.loadMDXContent(sectionId);
+            this.elements.readingModeContent.innerHTML = content;
+        } catch (error) {
+            console.error('Error loading reading mode content:', error);
+            const content = `
+            <div class="reading-content-error">
                 <h1>${sectionTitle}</h1>
-                <p>📄 <strong>Esta é uma versão de demonstração do modo leitura.</strong></p>
-                <p>O conteúdo completo seria carregado do arquivo <code>${sectionId}.mdx</code></p>
+                <p>❌ <strong>Erro ao carregar conteúdo.</strong></p>
+                <p>O arquivo <code>${sectionId}.mdx</code> não pôde ser carregado.</p>
                 
                 <h2>Funcionalidades do Modo Leitura:</h2>
                 <ul>
@@ -745,12 +752,6 @@ class OfflineAccordion {
                         <li>🔍 Sistema de busca</li>
                         <li>📱 Design responsivo</li>
                     </ul>
-                </div>
-            </div>
-        `;
-        
-        // Inserir conteúdo
-        this.elements.readingModeContent.innerHTML = content;
         
         // Atualizar navegação
         this.updateReadingNavigation();
@@ -917,6 +918,188 @@ class OfflineAccordion {
     }
 
     /**
+     * Carrega conteúdo MDX real de um arquivo
+     */
+    async loadMDXContent(sectionId) {
+        console.log(`📄 Loading MDX content for: ${sectionId}`);
+        
+        try {
+            // Mapear seção para categoria/arquivo
+            const sectionMap = {
+                'overview': 'fundamentacao/overview.mdx',
+                'theoretical-foundations': 'fundamentacao/theoretical-foundations.mdx',
+                'literature-review': 'fundamentacao/literature-review.mdx',
+                'methodology': 'fundamentacao/methodology.mdx',
+                'system-architecture': 'arquitetura/system-architecture.mdx',
+                'multi-agent-system': 'arquitetura/multi-agent-system.mdx',
+                'technical-implementation': 'arquitetura/technical-implementation.mdx',
+                'data-pipeline': 'arquitetura/data-pipeline.mdx',
+                'algorithms': 'ia/algorithms.mdx',
+                'math-foundations': 'ia/math-foundations.mdx',
+                'xai-algorithms': 'ia/xai-algorithms.mdx',
+                'mathematical-proofs': 'ia/mathematical-proofs.mdx',
+                'api-reference': 'api/api-reference.mdx',
+                'code-examples': 'api/code-examples.mdx',
+                'datasets': 'api/datasets.mdx',
+                'validation': 'validacao/validation.mdx',
+                'benchmarks': 'validacao/benchmarks.mdx',
+                'performance': 'validacao/performance.mdx',
+                'experimental-design': 'validacao/experimental-design.mdx',
+                'case-studies': 'validacao/case-studies.mdx',
+                'conclusion': 'conclusao/conclusion.mdx',
+                'contributions': 'conclusao/contributions.mdx',
+                'limitations': 'conclusao/limitations.mdx',
+                'future-work': 'conclusao/future-work.mdx',
+                'bibliography': 'conclusao/bibliography.mdx',
+                'security': 'conclusao/security.mdx'
+            };
+            
+            const filePath = sectionMap[sectionId];
+            if (!filePath) {
+                console.warn(`⚠️ No MDX file mapped for section: ${sectionId}`);
+                return this.getPlaceholderContent(sectionId);
+            }
+            
+            // Fetch do arquivo MDX
+            const response = await fetch(`content/${filePath}`);
+            if (!response.ok) {
+                console.warn(`⚠️ Failed to fetch ${filePath}: ${response.status}`);
+                return this.getPlaceholderContent(sectionId);
+            }
+            
+            const mdxContent = await response.text();
+            
+            // Processar conteúdo MDX
+            return this.processMDXContent(mdxContent, sectionId);
+            
+        } catch (error) {
+            console.error(`❌ Error loading MDX for ${sectionId}:`, error);
+            return this.getPlaceholderContent(sectionId);
+        }
+    }
+    
+    /**
+     * Processa conteúdo MDX removendo front matter e aplicando estilos
+     */
+    processMDXContent(mdxContent, sectionId) {
+        // Remover front matter (--- ... ---)
+        const contentWithoutFrontmatter = mdxContent.replace(/^---[\s\S]*?---\n/, '');
+        
+        // Aplicar estilos específicos para o tema atual
+        const processedContent = contentWithoutFrontmatter
+            .replace(/class="/g, 'class="mdx-content ')
+            .replace(/<style>/g, '<style scoped>')
+            // Garantir que variáveis CSS funcionem
+            .replace(/var\(--/g, 'var(--');
+        
+        return `
+            <div class="mdx-rendered-content" data-section="${sectionId}">
+                <style scoped>
+                    .mdx-rendered-content {
+                        line-height: 1.8;
+                        color: var(--text-primary);
+                    }
+                    .mdx-rendered-content h1,
+                    .mdx-rendered-content h2,
+                    .mdx-rendered-content h3,
+                    .mdx-rendered-content h4 {
+                        color: var(--text-primary);
+                        margin-top: 2rem;
+                        margin-bottom: 1rem;
+                    }
+                    .mdx-rendered-content p {
+                        margin-bottom: 1.5rem;
+                        color: var(--text-secondary);
+                    }
+                    .mdx-rendered-content code {
+                        background: var(--bg-tertiary);
+                        padding: 0.25rem 0.5rem;
+                        border-radius: 0.25rem;
+                        font-family: 'Courier New', monospace;
+                    }
+                </style>
+                ${processedContent}
+            </div>
+        `;
+    }
+    
+    /**
+     * Retorna conteúdo placeholder para seções sem MDX
+     */
+    getPlaceholderContent(sectionId) {
+        const section = this.findSectionById(sectionId);
+        const title = section ? section.title : sectionId;
+        
+        return `
+            <div class="placeholder-content">
+                <h1>${title}</h1>
+                <div style="background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 0.5rem; padding: 2rem; margin: 2rem 0; text-align: center;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">📝</div>
+                    <h3>Conteúdo em Desenvolvimento</h3>
+                    <p style="color: var(--text-secondary); margin-bottom: 1rem;">
+                        Esta seção está sendo preparada com conteúdo acadêmico detalhado.
+                    </p>
+                    <p style="color: var(--text-tertiary); font-size: 0.9rem;">
+                        MDX: <code>content/[categoria]/${sectionId}.mdx</code>
+                    </p>
+                </div>
+            </div>
+        `;
+    }
+    
+    /**
+     * Encontra uma seção pelo ID
+     */
+    findSectionById(sectionId) {
+        for (const category of this.categories.values()) {
+            const section = category.files.find(file => file.id === sectionId);
+            if (section) return section;
+        }
+        return null;
+    }
+    
+    /**
+     * Carrega conteúdo completo no accordion (expandir seção)
+     */
+    async loadFullContent(sectionId) {
+        console.log(`📖 Loading full content for: ${sectionId}`);
+        
+        const contentDiv = document.querySelector(`[data-section="${sectionId}"]`);
+        if (!contentDiv) {
+            console.warn(`Section not found: ${sectionId}`);
+            return;
+        }
+        
+        // Mostrar loading
+        contentDiv.innerHTML = '⏳ Carregando conteúdo completo...';
+        
+        try {
+            const content = await this.loadMDXContent(sectionId);
+            contentDiv.innerHTML = content;
+            
+            // Expandir a seção se não estiver expandida
+            const sectionItem = contentDiv.closest('.accordion-item');
+            const toggle = sectionItem?.querySelector('.section-toggle');
+            const sectionContent = sectionItem?.querySelector('.section-content');
+            
+            if (toggle && sectionContent && sectionContent.style.display === 'none') {
+                toggle.click(); // Expandir seção
+            }
+            
+            console.log(`✅ Content loaded for: ${sectionId}`);
+            
+        } catch (error) {
+            console.error(`❌ Error loading content for ${sectionId}:`, error);
+            contentDiv.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: var(--text-secondary);">
+                    ❌ Erro ao carregar conteúdo
+                    <br><small>${error.message}</small>
+                </div>
+            `;
+        }
+    }
+
+    /**
      * API pública para debug
      */
     getDebugInfo() {
@@ -924,7 +1107,7 @@ class OfflineAccordion {
             state: this.state,
             categories: Array.from(this.categories.keys()),
             totalSections: this.getTotalSectionsCount(),
-            version: 'OfflineAccordion v1.0'
+            version: 'OfflineAccordion v1.1 (MDX Loader)'
         };
     }
 }
