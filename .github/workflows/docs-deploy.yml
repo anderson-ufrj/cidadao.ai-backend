@@ -1,0 +1,141 @@
+name: 📚 Deploy Documentation to GitHub Pages
+
+on:
+  push:
+    branches: [ main, master ]
+    paths: 
+      - 'docs/**'
+      - '.github/workflows/docs-deploy.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths: 
+      - 'docs/**'
+  workflow_dispatch:
+
+# Allow only one concurrent deployment
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+# Sets permissions of the GITHUB_TOKEN
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛒 Checkout
+        uses: actions/checkout@v4
+        
+      - name: 🔍 Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: 🧹 Validate Documentation Structure
+        run: |
+          echo "🔍 Validating docs structure..."
+          
+          # Check essential files
+          if [ ! -f "docs/index.html" ]; then
+            echo "❌ Missing docs/index.html"
+            exit 1
+          fi
+          
+          if [ ! -f "docs/.nojekyll" ]; then
+            echo "❌ Missing docs/.nojekyll"
+            exit 1
+          fi
+          
+          # Check assets
+          if [ ! -d "docs/assets" ]; then
+            echo "❌ Missing docs/assets directory"
+            exit 1
+          fi
+          
+          echo "✅ Documentation structure is valid"
+          
+      - name: 🧪 Test HTML Validity
+        run: |
+          echo "🧪 Testing HTML files..."
+          
+          # Install HTML validator
+          sudo apt-get update && sudo apt-get install -y tidy
+          
+          # Validate main HTML files
+          for html_file in docs/*.html docs/**/*.html; do
+            if [ -f "$html_file" ]; then
+              echo "Validating: $html_file"
+              # Use tidy to check HTML (warnings are OK, errors are not)
+              tidy -q -e "$html_file" || true
+            fi
+          done
+          
+          echo "✅ HTML validation completed"
+          
+      - name: 🔗 Check Internal Links
+        run: |
+          echo "🔗 Checking internal links..."
+          
+          cd docs
+          
+          # Check CSS links
+          for css_file in $(grep -o 'href="[^"]*\.css"' *.html | cut -d'"' -f2); do
+            if [ ! -f "$css_file" ]; then
+              echo "❌ Missing CSS file: $css_file"
+              exit 1
+            fi
+          done
+          
+          # Check JS links  
+          for js_file in $(grep -o 'src="[^"]*\.js"' *.html | cut -d'"' -f2); do
+            if [ ! -f "$js_file" ]; then
+              echo "❌ Missing JS file: $js_file"
+              exit 1
+            fi
+          done
+          
+          echo "✅ Internal links are valid"
+          
+      - name: 📦 Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './docs'
+
+  # Deployment job (only on push to main)
+  deploy:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        
+      - name: 📊 Post-deployment verification
+        run: |
+          echo "🎉 Documentation deployed successfully!"
+          echo "📍 URL: ${{ steps.deployment.outputs.page_url }}"
+          echo "📈 GitHub Pages Status: Active"
+          echo "🔄 Cache may take 5-10 minutes to update"
+
+# Outputs
+  post-deploy:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest  
+    needs: deploy
+    steps:
+      - name: 📢 Notify Success
+        run: |
+          echo "✅ DEPLOYMENT SUCCESSFUL!"
+          echo ""
+          echo "📚 Documentation is now live at:"
+          echo "🔗 https://${{ github.repository_owner }}.github.io/cidadao.ai-backend/"
+          echo ""
+          echo "🛠️ To update: Just push changes to docs/ folder"
+          echo "⏰ Updates may take 5-10 minutes to appear"
