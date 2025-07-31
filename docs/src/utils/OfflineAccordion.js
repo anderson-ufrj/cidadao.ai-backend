@@ -725,34 +725,8 @@ class OfflineAccordion {
             this.elements.readingModeContent.innerHTML = content;
         } catch (error) {
             console.error('Error loading reading mode content:', error);
-            const content = `
-            <div class="reading-content-error">
-                <h1>${sectionTitle}</h1>
-                <p>❌ <strong>Erro ao carregar conteúdo.</strong></p>
-                <p>O arquivo <code>${sectionId}.mdx</code> não pôde ser carregado.</p>
-                
-                <h2>Funcionalidades do Modo Leitura:</h2>
-                <ul>
-                    <li>✅ Interface limpa e focada</li>
-                    <li>✅ Navegação entre seções</li>
-                    <li>✅ Barra de progresso</li>
-                    <li>✅ Suporte a teclado (setas)</li>
-                    <li>✅ Tema sincronizado</li>
-                </ul>
-                
-                <h2>Como usar:</h2>
-                <p>Use as setas ⬅️ ➡️ para navegar entre seções ou as teclas do teclado.</p>
-                <p>Pressione <kbd>ESC</kbd> para sair do modo leitura.</p>
-                
-                <div style="background: var(--bg-secondary, #f8fafc); padding: 2rem; border-radius: 0.5rem; margin: 2rem 0;">
-                    <h3>💡 Integração Completa</h3>
-                    <p>Este accordion se integra perfeitamente com:</p>
-                    <ul>
-                        <li>🎨 Sistema de temas claro/escuro</li>
-                        <li>🌐 Internacionalização pt-BR/en-US</li>
-                        <li>🔍 Sistema de busca</li>
-                        <li>📱 Design responsivo</li>
-                    </ul>
+            this.elements.readingModeContent.innerHTML = this.getPlaceholderContent(sectionId);
+        }
         
         // Atualizar navegação
         this.updateReadingNavigation();
@@ -760,7 +734,7 @@ class OfflineAccordion {
         // Scroll para o topo
         this.elements.readingModeContent.scrollTop = 0;
         
-        console.log(`📖 Seção carregada no modo leitura: ${sectionId}`);
+        console.log(`Reading mode loaded: ${sectionId}`);
     }
 
     /**
