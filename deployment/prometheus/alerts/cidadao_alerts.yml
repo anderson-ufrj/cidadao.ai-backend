@@ -1,0 +1,212 @@
+groups:
+  - name: cidadao_api_alerts
+    interval: 30s
+    rules:
+      # API Response Time
+      - alert: HighAPIResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="cidadao-api"}[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API response time (P95 > 500ms)"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.instance }}"
+
+      - alert: CriticalAPIResponseTime
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="cidadao-api"}[5m])) > 1
+        for: 5m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "Critical API response time (P95 > 1s)"
+          description: "95th percentile response time is {{ $value }}s for {{ $labels.instance }}"
+
+      # API Error Rate
+      - alert: HighAPIErrorRate
+        expr: rate(http_requests_total{job="cidadao-api",status=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API error rate (> 5%)"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.instance }}"
+
+      # API Availability
+      - alert: APIDown
+        expr: up{job="cidadao-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: api
+        annotations:
+          summary: "API is down"
+          description: "Cidadão.AI API has been down for more than 1 minute"
+
+  - name: cidadao_agent_alerts
+    interval: 30s
+    rules:
+      # Agent Performance
+      - alert: SlowAgentExecution
+        expr: histogram_quantile(0.95, rate(agent_task_duration_seconds_bucket[5m])) > 30
+        for: 5m
+        labels:
+          severity: warning
+          component: agents
+        annotations:
+          summary: "Slow agent execution (P95 > 30s)"
+          description: "Agent {{ $labels.agent_type }} is taking {{ $value }}s at P95"
+
+      # Agent Failures
+      - alert: HighAgentFailureRate
+        expr: rate(agent_task_total{status="failed"}[5m]) / rate(agent_task_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: agents
+        annotations:
+          summary: "High agent failure rate (> 10%)"
+          description: "Agent {{ $labels.agent_type }} has {{ $value | humanizePercentage }} failure rate"
+
+      # ML Model Performance
+      - alert: SlowMLInference
+        expr: histogram_quantile(0.95, rate(ml_inference_duration_seconds_bucket[5m])) > 5
+        for: 5m
+        labels:
+          severity: warning
+          component: ml
+        annotations:
+          summary: "Slow ML inference (P95 > 5s)"
+          description: "ML model inference is taking {{ $value }}s at P95"
+
+  - name: cidadao_infrastructure_alerts
+    interval: 30s
+    rules:
+      # Database Connection Pool
+      - alert: DatabaseConnectionPoolExhausted
+        expr: db_connection_pool_exhausted_total > 0
+        for: 1m
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Database connection pool exhausted"
+          description: "No available database connections in the pool"
+
+      # Database Performance
+      - alert: SlowDatabaseQueries
+        expr: histogram_quantile(0.95, rate(db_query_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "Slow database queries (P95 > 1s)"
+          description: "Database queries are taking {{ $value }}s at P95"
+
+      # Redis Performance
+      - alert: HighRedisLatency
+        expr: redis_commands_duration_seconds_mean > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          component: redis
+        annotations:
+          summary: "High Redis latency (> 100ms)"
+          description: "Redis command latency is {{ $value }}s"
+
+      # Cache Hit Rate
+      - alert: LowCacheHitRate
+        expr: cache_hit_rate < 0.5
+        for: 10m
+        labels:
+          severity: warning
+          component: cache
+        annotations:
+          summary: "Low cache hit rate (< 50%)"
+          description: "Cache hit rate is {{ $value | humanizePercentage }}"
+
+  - name: cidadao_system_alerts
+    interval: 30s
+    rules:
+      # CPU Usage
+      - alert: HighCPUUsage
+        expr: (1 - avg(rate(node_cpu_seconds_total{mode="idle"}[5m]))) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage (> 80%)"
+          description: "CPU usage is {{ $value | humanizePercentage }}"
+
+      # Memory Usage
+      - alert: HighMemoryUsage
+        expr: (1 - node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High memory usage (> 85%)"
+          description: "Memory usage is {{ $value | humanizePercentage }}"
+
+      # Disk Usage
+      - alert: HighDiskUsage
+        expr: (1 - node_filesystem_avail_bytes{fstype!~"tmpfs|fuse.lxcfs"} / node_filesystem_size_bytes) > 0.8
+        for: 10m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High disk usage (> 80%)"
+          description: "Disk usage is {{ $value | humanizePercentage }} on {{ $labels.device }}"
+
+      # Container Restart
+      - alert: ContainerRestarting
+        expr: rate(container_last_seen{name=~"cidadao.*"}[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          component: containers
+        annotations:
+          summary: "Container restarting frequently"
+          description: "Container {{ $labels.name }} is restarting"
+
+  - name: cidadao_business_alerts
+    interval: 30s
+    rules:
+      # Investigation Rate
+      - alert: LowInvestigationRate
+        expr: rate(investigations_created_total[1h]) < 0.1
+        for: 1h
+        labels:
+          severity: info
+          component: business
+        annotations:
+          summary: "Low investigation creation rate"
+          description: "Less than 6 investigations per hour"
+
+      # Anomaly Detection Rate
+      - alert: HighAnomalyRate
+        expr: rate(anomalies_detected_total[1h]) / rate(investigations_created_total[1h]) > 0.3
+        for: 1h
+        labels:
+          severity: warning
+          component: business
+        annotations:
+          summary: "High anomaly detection rate (> 30%)"
+          description: "{{ $value | humanizePercentage }} of investigations found anomalies"
+
+      # API Integration Health
+      - alert: TransparencyAPIDown
+        expr: transparency_api_health == 0
+        for: 5m
+        labels:
+          severity: critical
+          component: integrations
+        annotations:
+          summary: "Transparency API is down"
+          description: "Cannot connect to government transparency API"

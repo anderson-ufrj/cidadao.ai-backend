@@ -1,0 +1,93 @@
+global:
+  resolve_timeout: 5m
+  smtp_smarthost: 'mailhog:1025'
+  smtp_from: 'alertmanager@cidadao.ai'
+  smtp_require_tls: false
+
+# Templates for alert messages
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# The root route on which each incoming alert enters
+route:
+  group_by: ['alertname', 'component', 'severity']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 1h
+  receiver: 'default'
+  
+  routes:
+    # Critical alerts - immediate notification
+    - match:
+        severity: critical
+      receiver: 'critical'
+      group_wait: 0s
+      repeat_interval: 5m
+    
+    # Warning alerts - batched
+    - match:
+        severity: warning
+      receiver: 'warning'
+      group_wait: 30s
+      group_interval: 5m
+      repeat_interval: 12h
+    
+    # Info alerts - daily summary
+    - match:
+        severity: info
+      receiver: 'info'
+      group_wait: 1m
+      group_interval: 1h
+      repeat_interval: 24h
+
+# Inhibition rules
+inhibit_rules:
+  # Inhibit warning alerts if critical alert is firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'component']
+
+# Receivers
+receivers:
+  - name: 'default'
+    email_configs:
+      - to: 'admin@cidadao.ai'
+        headers:
+          Subject: '[Cidadão.AI] Alert: {{ .GroupLabels.alertname }}'
+        html: |
+          <h2>🚨 {{ .GroupLabels.alertname }}</h2>
+          <p><b>Component:</b> {{ .GroupLabels.component }}</p>
+          <p><b>Severity:</b> {{ .GroupLabels.severity }}</p>
+          
+          <h3>Alerts:</h3>
+          {{ range .Alerts }}
+          <hr>
+          <p><b>{{ .Labels.alertname }}</b></p>
+          <p>{{ .Annotations.summary }}</p>
+          <p>{{ .Annotations.description }}</p>
+          <p><b>Started:</b> {{ .StartsAt.Format "2006-01-02 15:04:05" }}</p>
+          {{ end }}
+
+  - name: 'critical'
+    email_configs:
+      - to: 'oncall@cidadao.ai'
+        headers:
+          Subject: '[CRITICAL] Cidadão.AI: {{ .GroupLabels.alertname }}'
+        send_resolved: true
+    webhook_configs:
+      - url: 'http://host.docker.internal:8000/api/v1/webhooks/alerts'
+        send_resolved: true
+
+  - name: 'warning'
+    email_configs:
+      - to: 'team@cidadao.ai'
+        headers:
+          Subject: '[Warning] Cidadão.AI: {{ .GroupLabels.alertname }}'
+
+  - name: 'info'
+    email_configs:
+      - to: 'monitoring@cidadao.ai'
+        headers:
+          Subject: '[Info] Cidadão.AI Daily Summary'

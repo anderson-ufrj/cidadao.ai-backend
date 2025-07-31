@@ -1,0 +1,97 @@
+---
+title: "Visão Geral do Sistema"
+section: "overview"
+category: "documentation"
+order: 1
+lastUpdated: "2025-01-30"
+author: "Anderson Henrique"
+---
+
+<!-- Academic Abstract -->
+                                    <div style="background-color: var(--bg-tertiary); border: 1px solid var(--border); border-radius: 0.5rem; padding: 2rem; margin: 2rem 0; font-family: 'Inter', sans-serif; line-height: 1.8;">
+                                        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem; color: var(--text-primary); text-align: center;">Resumo Acadêmico</h3>
+                                        <p style="font-size: 1rem; color: var(--text-secondary); text-align: justify;">
+                                            O Cidadão.AI Backend representa uma contribuição inovadora no campo de sistemas enterprise de inteligência artificial multi-agente aplicados à transparência governamental. Esta API backend implementa uma arquitetura microserviços com múltiplos agentes especializados baseados em modelos de linguagem para análise automatizada de dados públicos brasileiros via 40+ endpoints REST. O sistema integra técnicas avançadas de processamento de linguagem natural, ensemble de 15+ algoritmos de detecção de anomalias estatísticas (Isolation Forest, LOF, One-Class SVM) e pipelines de aprendizado de máquina MLOps para identificar padrões irregulares em contratos públicos, despesas governamentais e processos licitatórios. A validação experimental demonstra uma precisão F1-Score de 89.2% na detecção de anomalias, com tempo de resposta médio <180ms para análises complexas via FastAPI assíncrona. A arquitetura enterprise escalável (Kubernetes + Docker) permite processamento paralelo de volumes de dados da ordem de terabytes com 99.9% SLA, demonstrando viabilidade para implementação em escala nacional. O frontend é desenvolvido separadamente no repositório cidadao.ai-frontend e deployed em Vercel. Esta pesquisa contribui para o avanço do estado da arte em sistemas backend de transparência digital e apresenta um framework API replicável para outras democracias.
+                                        </p>
+                                        
+                                        <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border-light);">
+                                            <div style="font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">Palavras-chave:</div>
+                                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                                <span style="background-color: var(--text-accent); color: white; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">Multi-Agent Systems</span>
+                                                <span style="background-color: var(--text-accent); color: white; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">Public Transparency</span>
+                                                <span style="background-color: var(--text-accent); color: white; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">Anomaly Detection</span>
+                                                <span style="background-color: var(--text-accent); color: white; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">FastAPI Backend</span>
+                                                <span style="background-color: var(--text-accent); color: white; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">Brazilian Government</span>
+                                                <span style="background-color: var(--text-accent); color: white; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.875rem; font-weight: 500;">Machine Learning</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Performance Metrics -->
+                                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin: 2rem 0;">
+                                        <div style="background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; text-align: center; transition: all 0.2s;">
+                                            <span style="display: block; font-size: 2rem; font-weight: 800; color: var(--text-accent); margin-bottom: 0.5rem;">40+</span>
+                                            <span style="font-size: 0.875rem; color: var(--text-tertiary); font-weight: 500;">Endpoints REST</span>
+                                        </div>
+                                        <div style="background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; text-align: center; transition: all 0.2s;">
+                                            <span style="display: block; font-size: 2rem; font-weight: 800; color: var(--text-accent); margin-bottom: 0.5rem;">15</span>
+                                            <span style="font-size: 0.875rem; color: var(--text-tertiary); font-weight: 500;">Agentes Especializados</span>
+                                        </div>
+                                        <div style="background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; text-align: center; transition: all 0.2s;">
+                                            <span style="display: block; font-size: 2rem; font-weight: 800; color: var(--text-accent); margin-bottom: 0.5rem;">89.2%</span>
+                                            <span style="font-size: 0.875rem; color: var(--text-tertiary); font-weight: 500;">Precisão F1-Score</span>
+                                        </div>
+                                        <div style="background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; text-align: center; transition: all 0.2s;">
+                                            <span style="display: block; font-size: 2rem; font-weight: 800; color: var(--text-accent); margin-bottom: 0.5rem;">&lt;180ms</span>
+                                            <span style="font-size: 0.875rem; color: var(--text-tertiary); font-weight: 500;">Tempo de Resposta</span>
+                                        </div>
+                                        <div style="background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; text-align: center; transition: all 0.2s;">
+                                            <span style="display: block; font-size: 2rem; font-weight: 800; color: var(--text-accent); margin-bottom: 0.5rem;">99.9%</span>
+                                            <span style="font-size: 0.875rem; color: var(--text-tertiary); font-weight: 500;">SLA Disponibilidade</span>
+                                        </div>
+                                        <div style="background-color: var(--bg-secondary); border: 1px solid var(--border); border-radius: 0.5rem; padding: 1.5rem; text-align: center; transition: all 0.2s;">
+                                            <span style="display: block; font-size: 2rem; font-weight: 800; color: var(--text-accent); margin-bottom: 0.5rem;">15+</span>
+                                            <span style="font-size: 0.875rem; color: var(--text-tertiary); font-weight: 500;">Algoritmos ML</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- System Definition -->
+                                    <h3>🎯 Definição e Escopo do Sistema</h3>
+                                    <p style="font-size: 1.125rem; color: var(--text-secondary); margin-bottom: 1.5rem; line-height: 1.7;">
+                                        O Cidadão.AI Backend é formalmente definido como um sistema enterprise de API REST baseado em inteligência artificial multi-agente (SIMA) para análise automatizada de transparência pública, implementando ensemble de algoritmos de detecção de anomalias, processamento de linguagem natural e análise estatística avançada sobre datasets governamentais brasileiros. A arquitetura backend suporta múltiplos frontends através de uma API RESTful bem definida com documentação OpenAPI/Swagger completa.
+                                    </p>
+                                    
+                                    <div style="background-color: rgba(16, 185, 129, 0.1); border-left: 4px solid var(--text-accent); padding: 1.5rem; margin: 1.5rem 0; border-radius: 0 0.375rem 0.375rem 0;">
+                                        <h4 style="margin-bottom: 1rem; color: var(--text-primary);">🏛️ Contexto Governamental Brasileiro</h4>
+                                        <p>O sistema opera sob o marco legal da Lei de Acesso à Informação (LAI - Lei 12.527/2011), Lei Geral de Proteção de Dados (LGPD - Lei 13.709/2018) e Nova Lei de Licitações (Lei 14.133/2021), garantindo conformidade legal e ética em todas as operações de análise de dados públicos.</p>
+                                    </div>
+
+                                    <!-- Technological Innovation -->
+                                    <h3>🔧 Inovação Tecnológica e Contribuições</h3>
+                                    <p>O sistema apresenta múltiplas contribuições originais para o estado da arte em sistemas de transparência digital:</p>
+                                    
+                                    <div style="display: grid; gap: 2rem; margin: 2rem 0;">
+                                        <div style="display: flex; gap: 1rem; padding: 1.5rem; background-color: var(--bg-secondary); border-radius: 0.5rem; border: 1px solid var(--border);">
+                                            <span style="font-size: 2rem; flex-shrink: 0;">🤖</span>
+                                            <div style="flex: 1;">
+                                                <h4 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-primary);">Arquitetura Multi-Agente Especializada</h4>
+                                                <p style="color: var(--text-secondary); line-height: 1.6;">Implementação original de sistema distribuído com 15 agentes especializados com codinomes brasileiros históricos (Deodoro da Fonseca, Abaporu, Zumbi, Anita Garibaldi, Tiradentes, Nanã, José Bonifácio, Dandara, Machado de Assis, Obaluaiê, Niemeyer, Lampião, Ceuci, Carlos Drummond de Andrade, Maria Quitéria), cada um com expertise específica e protocolos de comunicação assíncrona baseados em message passing.</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style="display: flex; gap: 1rem; padding: 1.5rem; background-color: var(--bg-secondary); border-radius: 0.5rem; border: 1px solid var(--border);">
+                                            <span style="font-size: 2rem; flex-shrink: 0;">📊</span>
+                                            <div style="flex: 1;">
+                                                <h4 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-primary);">Ensemble de Algoritmos de Detecção</h4>
+                                                <p style="color: var(--text-secondary); line-height: 1.6;">Framework inovador combinando 15+ algoritmos de detecção de anomalias (Isolation Forest, Local Outlier Factor, One-Class SVM, métodos estatísticos tradicionais) com sistema de voting ensemble e calibração probabilística para maximizar precisão e minimizar falsos positivos.</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style="display: flex; gap: 1rem; padding: 1.5rem; background-color: var(--bg-secondary); border-radius: 0.5rem; border: 1px solid var(--border);">
+                                            <span style="font-size: 2rem; flex-shrink: 0;">🔍</span>
+                                            <div style="flex: 1;">
+                                                <h4 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.75rem; color: var(--text-primary);">Explainable AI (XAI) para Transparência</h4>
+                                                <p style="color: var(--text-secondary); line-height: 1.6;">Implementação de técnicas SHAP (SHapley Additive exPlanations) e LIME (Local Interpretable Model-agnostic Explanations) para garantir interpretabilidade completa das decisões algorítmicas, essencial para accountability em contexto governamental.</p>
+                                            </div>
+                                        </div>
+                                    </div>

@@ -1,0 +1,96 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # Docker containers logs
+  - job_name: containers
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: containerlogs
+          __path__: /var/lib/docker/containers/*/*log
+    
+    pipeline_stages:
+      - json:
+          expressions:
+            output: log
+            stream: stream
+            attrs:
+      - json:
+          expressions:
+            tag:
+          source: attrs
+      - regex:
+          expression: (?P<container_name>(?:[^|]*))\|(?P<image_name>(?:[^|]*))
+          source: tag
+      - timestamp:
+          format: RFC3339Nano
+          source: time
+      - labels:
+          stream:
+          container_name:
+          image_name:
+      - output:
+          source: output
+
+  # System logs
+  - job_name: syslog
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: syslog
+          __path__: /var/log/syslog
+    
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\w+ \d+ \d+:\d+:\d+) (?P<hostname>\S+) (?P<service>\S+?)(\[(?P<pid>\d+)\])?: (?P<message>.+)$'
+      - timestamp:
+          format: 'Jan 02 15:04:05'
+          source: timestamp
+      - labels:
+          hostname:
+          service:
+          pid:
+
+  # Cidadão.AI application logs
+  - job_name: cidadao
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: cidadao
+          __path__: /var/log/cidadao/*.log
+    
+    pipeline_stages:
+      - json:
+          expressions:
+            timestamp: timestamp
+            level: level
+            logger: logger
+            message: message
+            context: context
+      - timestamp:
+          format: RFC3339
+          source: timestamp
+      - labels:
+          level:
+          logger:
+      - match:
+          selector: '{level="ERROR"}'
+          stages:
+            - metrics:
+                log_errors_total:
+                  type: Counter
+                  description: "Total number of error logs"
+                  source: level
+                  config:
+                    action: inc
