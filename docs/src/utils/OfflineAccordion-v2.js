@@ -285,7 +285,7 @@ class OfflineAccordion {
      */
     createSectionElement(file) {
         return `
-            <div class="accordion-section" data-section="${file.id}" data-category="${file.category || 'unknown'}">
+            <div class="accordion-item" data-section="${file.id}" data-category="${file.category || 'unknown'}">
                 <div class="section-header" role="button" tabindex="0" aria-expanded="false">
                     <span class="section-title">${file.title}</span>
                     <div class="section-meta">
@@ -404,7 +404,7 @@ class OfflineAccordion {
         } else if (target.classList.contains('section-header')) {
             this.toggleSection(target.parentElement);
         } else if (target.classList.contains('preview-read-more')) {
-            const section = target.closest('.accordion-section');
+            const section = target.closest('.accordion-item');
             this.openSectionInReadingMode(section);
         }
     }
@@ -439,7 +439,7 @@ class OfflineAccordion {
         arrow.textContent = '▼';
         
         // Auto-expandir todas as seções desta categoria
-        const sections = categoryEl.querySelectorAll('.accordion-section');
+        const sections = categoryEl.querySelectorAll('.accordion-item');
         sections.forEach(async (sectionEl) => {
             await this.expandSection(sectionEl);
         });
@@ -459,7 +459,7 @@ class OfflineAccordion {
         const arrow = categoryEl.querySelector('.category-arrow');
         
         // Colapsar todas as seções desta categoria primeiro
-        const sections = categoryEl.querySelectorAll('.accordion-section');
+        const sections = categoryEl.querySelectorAll('.accordion-item');
         sections.forEach((sectionEl) => {
             this.collapseSection(sectionEl);
         });
@@ -554,7 +554,7 @@ class OfflineAccordion {
         
         categories.forEach(categoryEl => {
             const categoryId = categoryEl.getAttribute('data-category');
-            const sections = categoryEl.querySelectorAll('.accordion-section');
+            const sections = categoryEl.querySelectorAll('.accordion-item');
             let categoryHasResults = false;
             
             sections.forEach(sectionEl => {
@@ -635,7 +635,7 @@ class OfflineAccordion {
         categories.forEach(categoryEl => {
             categoryEl.style.display = 'block';
             
-            const sections = categoryEl.querySelectorAll('.accordion-section');
+            const sections = categoryEl.querySelectorAll('.accordion-item');
             sections.forEach(sectionEl => {
                 sectionEl.style.display = 'block';
                 
@@ -694,7 +694,7 @@ class OfflineAccordion {
      * Carrega primeira seção no modo leitura
      */
     async loadFirstSectionInReadingMode() {
-        const firstSection = this.elements.accordionContainer.querySelector('.accordion-section');
+        const firstSection = this.elements.accordionContainer.querySelector('.accordion-item');
         if (firstSection) {
             await this.openSectionInReadingMode(firstSection);
         }
@@ -741,7 +741,7 @@ class OfflineAccordion {
      * Atualiza navegação do modo leitura
      */
     updateReadingNavigation() {
-        const allSections = Array.from(this.elements.accordionContainer.querySelectorAll('.accordion-section'));
+        const allSections = Array.from(this.elements.accordionContainer.querySelectorAll('.accordion-item'));
         const currentIndex = allSections.findIndex(el => el.getAttribute('data-section') === this.state.activeSection);
         
         // Habilitar/desabilitar botões
@@ -758,7 +758,7 @@ class OfflineAccordion {
      * Navega no modo leitura
      */
     async navigateReading(direction) {
-        const allSections = Array.from(this.elements.accordionContainer.querySelectorAll('.accordion-section'));
+        const allSections = Array.from(this.elements.accordionContainer.querySelectorAll('.accordion-item'));
         const currentIndex = allSections.findIndex(el => el.getAttribute('data-section') === this.state.activeSection);
         
         let newIndex;
@@ -802,7 +802,7 @@ class OfflineAccordion {
         categories.forEach(categoryEl => {
             this.collapseCategory(categoryEl);
             
-            const sections = categoryEl.querySelectorAll('.accordion-section');
+            const sections = categoryEl.querySelectorAll('.accordion-item');
             sections.forEach(sectionEl => {
                 this.collapseSection(sectionEl);
             });
