@@ -1,9 +1,7 @@
 /* Cidadão.AI Backend - Documentação Técnica */
 
 /* ===== IMPORTS MODULARES ===== */
-@import url('../../../src/styles/components/accordion.css');
-@import url('../../../src/styles/components/modals.css');
-@import url('../../../src/styles/components/tables.css');
+/* Imports removidos - arquivos migrados para super-accordion.css */
 
 /* ===== VARIÁVEIS CSS ===== */
 :root {
