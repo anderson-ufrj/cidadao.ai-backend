@@ -279,8 +279,8 @@ function handlePrint() {
     const wasVisible = sectionContent.style.display !== 'none';
     
     if (!wasVisible) {
-        // Se não há seção carregada, carregar visão geral
-        loadSection('overview');
+        // Se não há seção carregada, mostrar accordion
+        console.log('📄 Print: usando accordion atual');
         
         // Aguardar um pouco para carregamento
         setTimeout(() => {
@@ -438,7 +438,8 @@ async function toggleAccordionItem(toggle) {
         
         // Load content if not loaded
         if (content.querySelector('.content-loading')) {
-            await loadSectionContent(sectionName, content);
+            // loadSectionContent substituído pelo OfflineAccordion
+            console.log(`📄 Content loading handled by OfflineAccordion: ${sectionName}`);
         }
         
         // Force height recalculation for expanded content
@@ -576,7 +577,7 @@ function expandAllSections() {
             // Load content if needed
             const sectionName = toggle.closest('.accordion-item').dataset.section;
             if (content.querySelector('.content-loading')) {
-                loadSectionContent(sectionName, content);
+                console.log(`📄 Content loading handled by OfflineAccordion: ${sectionName}`);
             }
         }
     });
@@ -660,9 +661,8 @@ async function handleSearch(e) {
                 const sectionId = item.dataset.section;
                 console.log(`📄 Loading content for search: ${sectionId}`);
                 
-                if (window.contentManager && window.contentManager.initialized) {
-                    await window.contentManager.loadSection(sectionId);
-                }
+                // ContentManager removido - usando OfflineAccordion
+                console.log(`📄 Search: section ${sectionId} handled by OfflineAccordion`);
             }
             
             // Get all text content from the section
@@ -1064,8 +1064,8 @@ function initReadingMode() {
                     }
                 });
                 
-                console.log(`📄 Loading modular content for reading mode (${currentLanguage}): ${sectionId}`);
-                return window.contentManager.loadSection(sectionId);
+                console.log(`📄 Reading mode: section ${sectionId} handled by OfflineAccordion`);
+                return Promise.resolve();
             }
             return Promise.resolve();
         });
@@ -1483,7 +1483,6 @@ window.CidadaoAI = {
     switchLanguage,
     openModal,
     closeModal,
-    loadSection,
     logEvent
 };
 
