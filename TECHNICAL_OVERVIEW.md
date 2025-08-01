@@ -393,4 +393,4 @@ The **Cidadão.AI Backend** represents a **breakthrough in government transparen
 
 ---
 
-*Last updated: January 2025 | Version: 1.0.0 | Next review: March 2025*
+*Last updated: Ag 2025 | Version: 1.0.0 | Next review: March 2025*

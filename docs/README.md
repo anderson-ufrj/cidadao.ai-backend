@@ -285,7 +285,7 @@ jobs:
 
 | Ambiente | URL | Branch | Status |
 |----------|-----|--------|--------|
-| **Production** | https://anderson-ufrj.github.io/cidadao.ai-backend/ | `main` | 🟢 |
+| **Production** | https://anderson-ufrj.github.io/cidadao.ai-docs/ | `main` | 🟢 |
 | **Staging** | https://staging-docs.cidadao.ai | `develop` | 🟡 |
 | **Preview** | Netlify Deploy Previews | PRs | 🔵 |
 

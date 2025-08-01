@@ -105,7 +105,7 @@ Este sistema multi-agente foi concebido com o propósito de **democratizar o ace
     <div style={{marginTop: '0.5rem'}}>
       <a href="https://github.com/anderson-ufrj" target="_blank">🔗 GitHub</a> | 
       <a href="https://huggingface.co/neural-thinker" target="_blank"> 🔗 Hugging Face</a> | 
-      <a href="https://www.linkedin.com/in/anderson-henrique/" target="_blank"> 🔗 LinkedIn</a><br/>
+      <a href="https://linkedin.com/in/anderson-h-silva95" target="_blank"> 🔗 LinkedIn</a><br/>
       <a href="mailto:andersonhs27@gmail.com">📧 andersonhs27@gmail.com</a>
     </div>
   </div>
