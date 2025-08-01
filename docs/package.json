@@ -1,0 +1,68 @@
+{
+  "name": "cidadao-ai-docs",
+  "version": "2.0.0",
+  "description": "Documentação técnica oficial do Cidadão.AI Backend - Sistema multi-agente para transparência pública",
+  "private": true,
+  "scripts": {
+    "docusaurus": "docusaurus",
+    "start": "docusaurus start",
+    "build": "docusaurus build",
+    "swizzle": "docusaurus swizzle",
+    "deploy": "docusaurus deploy",
+    "clear": "docusaurus clear",
+    "serve": "docusaurus serve",
+    "write-translations": "docusaurus write-translations",
+    "write-heading-ids": "docusaurus write-heading-ids",
+    "typecheck": "tsc",
+    "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
+    "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix"
+  },
+  "dependencies": {
+    "@docusaurus/core": "3.6.3",
+    "@docusaurus/preset-classic": "3.6.3",
+    "@docusaurus/theme-mermaid": "3.6.3",
+    "@mdx-js/react": "^3.0.0",
+    "clsx": "^2.0.0",
+    "prism-react-renderer": "^2.3.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "rehype-katex": "^7.0.0",
+    "remark-math": "^6.0.0"
+  },
+  "devDependencies": {
+    "@docusaurus/eslint-plugin": "3.6.3",
+    "@docusaurus/module-type-aliases": "3.6.3",
+    "@docusaurus/tsconfig": "3.6.3",
+    "@docusaurus/types": "3.6.3",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "eslint-plugin-react": "^7.33.2",
+    "typescript": "~5.2.0"
+  },
+  "engines": {
+    "node": ">=18.0"
+  },
+  "keywords": [
+    "cidadao-ai",
+    "transparencia-publica",
+    "sistema-multi-agente",
+    "ia-etica",
+    "governo-aberto",
+    "fastapi",
+    "python",
+    "documentacao-tecnica",
+    "brasil"
+  ],
+  "author": "Anderson Henrique da Silva <andersonhs27@gmail.com>",
+  "license": "Apache-2.0",
+  "homepage": "https://github.com/anderson-ufrj/cidadao.ai-backend",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anderson-ufrj/cidadao.ai-backend.git",
+    "directory": "docs_new"
+  },
+  "bugs": {
+    "url": "https://github.com/anderson-ufrj/cidadao.ai-backend/issues"
+  }
+}

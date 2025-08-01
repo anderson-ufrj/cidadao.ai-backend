@@ -1,0 +1,82 @@
+/**
+ * Custom CSS para Cidadão.AI Backend Documentation
+ * 
+ * Tema clean e minimalista baseado no padrão do Docusaurus
+ * Mantendo apenas as personalizações essenciais
+ */
+
+/* ============================================ */
+/* 🎨 VARIÁVEIS ESSENCIAIS                     */
+/* ============================================ */
+
+:root {
+  /* Cores do Cidadão.AI - sutis */
+  --cidadao-primary: #10b981;
+  --cidadao-primary-dark: #059669;
+  --cidadao-primary-light: #34d399;
+  
+  /* Gradiente da marca */
+  --brazil-gradient: linear-gradient(135deg, #009739 0%, #10b981 30%, #fbbf24 40%, #3b82f6 70%, #002776 100%);
+}
+
+/* ============================================ */
+/* 📚 TIPOGRAFIA CLEAN                         */
+/* ============================================ */
+
+/* Título principal com gradiente sutil apenas */
+h1 {
+  background: var(--brazil-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ============================================ */
+/* 🧮 MATEMÁTICA (KATEX)                       */
+/* ============================================ */
+
+.katex-display {
+  margin: 2rem 0 !important;
+  padding: 1.5rem;
+  background: var(--ifm-color-emphasis-100);
+  border-left: 4px solid var(--cidadao-primary);
+  border-radius: 8px;
+}
+
+/* ============================================ */
+/* 🎯 NAVBAR SUTIL                             */
+/* ============================================ */
+
+.navbar__title {
+  background: var(--brazil-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+}
+
+/* ============================================ */
+/* 📖 SIDEBAR CLEAN                            */
+/* ============================================ */
+
+.menu__link--active {
+  background: var(--ifm-color-emphasis-200) !important;
+  border-left: 3px solid var(--cidadao-primary);
+  color: var(--ifm-color-content) !important;
+  font-weight: 600;
+}
+
+/* ============================================ */
+/* 🎭 RESPONSIVIDADE                           */
+/* ============================================ */
+
+@media (max-width: 768px) {
+  h1 {
+    font-size: 2rem !important;
+  }
+  
+  .katex-display {
+    margin: 1rem 0 !important;
+    padding: 1rem;
+  }
+}
