@@ -11,9 +11,9 @@ const config: Config = {
 
   // Configurações de produção
   url: 'https://anderson-ufrj.github.io',
-  baseUrl: '/cidadao.ai-backend/',
+  baseUrl: '/cidadao.ai-docs/',
   organizationName: 'anderson-ufrj',
-  projectName: 'cidadao.ai-backend',
+  projectName: 'cidadao.ai-docs',
   deploymentBranch: 'gh-pages',
   trailingSlash: false,
 
@@ -44,7 +44,7 @@ const config: Config = {
       {
         docs: {
           sidebarPath: './sidebars.ts',
-          editUrl: 'https://github.com/anderson-ufrj/cidadao.ai-backend/tree/main/docs_new/',
+          editUrl: 'https://github.com/anderson-ufrj/cidadao.ai-backend/tree/main/docs/',
           remarkPlugins: [remarkMath],
           rehypePlugins: [rehypeKatex],
           showLastUpdateAuthor: true,
@@ -58,7 +58,7 @@ const config: Config = {
             type: 'all',
             copyright: `Copyright © ${new Date().getFullYear()} Anderson Henrique da Silva`,
           },
-          editUrl: 'https://github.com/anderson-ufrj/cidadao.ai-backend/tree/main/docs_new/',
+          editUrl: 'https://github.com/anderson-ufrj/cidadao.ai-backend/tree/main/docs/',
           remarkPlugins: [remarkMath],
           rehypePlugins: [rehypeKatex],
         },
@@ -206,7 +206,7 @@ const config: Config = {
             },
             {
               label: 'LinkedIn',
-              href: 'https://www.linkedin.com/in/anderson-henrique/',
+              href: 'https://linkedin.com/in/anderson-h-silva95',
             },
             {
               label: 'Email',
