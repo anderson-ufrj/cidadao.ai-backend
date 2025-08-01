@@ -135,7 +135,7 @@ jobs:
           echo "✅ DEPLOYMENT SUCCESSFUL!"
           echo ""
           echo "📚 Documentation is now live at:"
-          echo "🔗 https://${{ github.repository_owner }}.github.io/cidadao.ai-backend/build/"
+          echo "🔗 https://${{ github.repository_owner }}.github.io/cidadao.ai-backend/"
           echo ""
           echo "🛠️ To update: Just push changes to docs/ folder"
           echo "⏰ Updates may take 5-10 minutes to appear"
