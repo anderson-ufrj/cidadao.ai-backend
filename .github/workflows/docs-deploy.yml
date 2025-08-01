@@ -34,75 +34,75 @@ jobs:
       - name: 🔍 Setup Pages
         uses: actions/configure-pages@v4
         
-      - name: 🧹 Validate Documentation Structure
-        run: |
-          echo "🔍 Validating docs structure..."
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: docs/package-lock.json
           
-          # Check essential files
-          if [ ! -f "docs/index.html" ]; then
-            echo "❌ Missing docs/index.html"
+      - name: 📥 Install Dependencies
+        working-directory: docs
+        run: npm ci
+        
+      - name: 🏗️ Build Docusaurus
+        working-directory: docs
+        run: |
+          echo "🏗️ Building Docusaurus site..."
+          npm run build
+          echo "✅ Build completed successfully"
+          
+      - name: 🧹 Validate Build Output
+        working-directory: docs
+        run: |
+          echo "🔍 Validating build output..."
+          
+          # Check if build directory exists
+          if [ ! -d "build" ]; then
+            echo "❌ Build directory not found"
             exit 1
           fi
           
-          if [ ! -f "docs/.nojekyll" ]; then
-            echo "❌ Missing docs/.nojekyll"
+          # Check if index.html exists in build
+          if [ ! -f "build/index.html" ]; then
+            echo "❌ Missing build/index.html"
             exit 1
           fi
           
-          # Check assets
-          if [ ! -d "docs/assets" ]; then
-            echo "❌ Missing docs/assets directory"
+          # Check if assets directory exists
+          if [ ! -d "build/assets" ]; then
+            echo "❌ Missing build/assets directory"
             exit 1
           fi
           
-          echo "✅ Documentation structure is valid"
+          echo "✅ Build output is valid"
           
-      - name: 🧪 Test HTML Validity
+      - name: 🧪 Test Build Integrity
+        working-directory: docs/build
         run: |
-          echo "🧪 Testing HTML files..."
+          echo "🧪 Testing build integrity..."
           
-          # Install HTML validator
-          sudo apt-get update && sudo apt-get install -y tidy
+          # Check file count
+          file_count=$(find . -type f | wc -l)
+          echo "📊 Total files in build: $file_count"
           
-          # Validate main HTML files
-          for html_file in docs/*.html docs/**/*.html; do
-            if [ -f "$html_file" ]; then
-              echo "Validating: $html_file"
-              # Use tidy to check HTML (warnings are OK, errors are not)
-              tidy -q -e "$html_file" || true
-            fi
-          done
+          if [ $file_count -lt 10 ]; then
+            echo "❌ Build seems incomplete (too few files)"
+            exit 1
+          fi
           
-          echo "✅ HTML validation completed"
+          # Check for essential files
+          if [ ! -f "index.html" ]; then
+            echo "❌ Missing index.html"
+            exit 1
+          fi
           
-      - name: 🔗 Check Internal Links
-        run: |
-          echo "🔗 Checking internal links..."
-          
-          cd docs
-          
-          # Check CSS links
-          for css_file in $(grep -o 'href="[^"]*\.css"' *.html | cut -d'"' -f2); do
-            if [ ! -f "$css_file" ]; then
-              echo "❌ Missing CSS file: $css_file"
-              exit 1
-            fi
-          done
-          
-          # Check JS links  
-          for js_file in $(grep -o 'src="[^"]*\.js"' *.html | cut -d'"' -f2); do
-            if [ ! -f "$js_file" ]; then
-              echo "❌ Missing JS file: $js_file"
-              exit 1
-            fi
-          done
-          
-          echo "✅ Internal links are valid"
+          echo "✅ Build integrity verified"
           
       - name: 📦 Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './docs'
+          path: './docs/build'
 
   # Deployment job (only on push to main)
   deploy:
@@ -135,7 +135,7 @@ jobs:
           echo "✅ DEPLOYMENT SUCCESSFUL!"
           echo ""
           echo "📚 Documentation is now live at:"
-          echo "🔗 https://${{ github.repository_owner }}.github.io/cidadao.ai-backend/"
+          echo "🔗 https://${{ github.repository_owner }}.github.io/cidadao.ai-docs/"
           echo ""
           echo "🛠️ To update: Just push changes to docs/ folder"
           echo "⏰ Updates may take 5-10 minutes to appear"
