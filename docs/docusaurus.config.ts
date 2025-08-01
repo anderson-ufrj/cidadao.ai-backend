@@ -11,9 +11,9 @@ const config: Config = {
 
   // Configurações de produção
   url: 'https://anderson-ufrj.github.io',
-  baseUrl: '/cidadao.ai-docs/',
+  baseUrl: '/cidadao.ai-backend/',
   organizationName: 'anderson-ufrj',
-  projectName: 'cidadao.ai-docs',
+  projectName: 'cidadao.ai-backend',
   deploymentBranch: 'gh-pages',
   trailingSlash: false,
 
