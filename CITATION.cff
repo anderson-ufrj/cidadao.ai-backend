@@ -1,0 +1,81 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: "Silva"
+    given-names: "Anderson Henrique da"
+    orcid: "https://orcid.org/0000-0000-0000-0000"
+    email: "andersonhs27@gmail.com"
+    affiliation: "Instituto Federal de Educação, Ciência e Tecnologia do Sul de Minas Gerais - Campus Muzambinho"
+title: "Cidadão.AI: Multi-Agent AI System for Brazilian Government Transparency Analysis"
+version: 1.0.0
+doi: 10.5281/zenodo.0000000
+date-released: 2025-01-20
+url: "https://github.com/anderson-ufrj/cidadao.ai"
+repository-code: "https://github.com/anderson-ufrj/cidadao.ai"
+license: Apache-2.0
+type: software
+keywords:
+  - artificial-intelligence
+  - transparency
+  - government
+  - multi-agent-system
+  - brazil
+  - public-data
+  - corruption-detection
+  - anomaly-detection
+  - SDG16
+  - open-government
+  - civic-tech
+  - langchain
+  - fastapi
+  - machine-learning
+abstract: |
+  Cidadão.AI is an innovative platform that uses specialized artificial intelligence
+  to democratize access to Brazilian public data. The system employs a sophisticated
+  multi-agent architecture to analyze government contracts, bidding processes, public
+  expenses, and other government documents. It features eight specialized AI agents
+  working collaboratively to detect anomalies, analyze patterns, and generate
+  comprehensive reports, contributing directly to SDG 16: Peace, Justice and Strong
+  Institutions. The platform provides both web interfaces (Gradio and Streamlit) and
+  a REST API for programmatic access, making government transparency data accessible
+  to citizens, journalists, researchers, and civil society organizations.
+references:
+  - type: software
+    authors:
+      - name: "LangChain Contributors"
+    title: "LangChain: Building applications with LLMs through composability"
+    year: 2023
+    url: "https://github.com/langchain-ai/langchain"
+  - type: software
+    authors:
+      - name: "FastAPI Contributors"
+    title: "FastAPI: Modern, fast web framework for building APIs"
+    year: 2023
+    url: "https://github.com/tiangolo/fastapi"
+  - type: article
+    authors:
+      - family-names: "Vaswani"
+        given-names: "Ashish"
+      - family-names: "Shazeer"
+        given-names: "Noam"
+      - family-names: "Parmar"
+        given-names: "Niki"
+    title: "Attention is All You Need"
+    journal: "Advances in Neural Information Processing Systems"
+    volume: 30
+    year: 2017
+  - type: data
+    authors:
+      - name: "Controladoria-Geral da União"
+    title: "Portal da Transparência do Governo Federal"
+    year: 2025
+    url: "https://portaldatransparencia.gov.br"
+preferred-citation:
+  type: software
+  authors:
+    - family-names: "Silva"
+      given-names: "Anderson Henrique da"
+  title: "Cidadão.AI: Multi-Agent AI System for Brazilian Government Transparency Analysis"
+  year: 2025
+  doi: 10.5281/zenodo.0000000
+  url: "https://github.com/anderson-ufrj/cidadao.ai"

@@ -1,0 +1,141 @@
+name: 📚 Deploy Documentation to GitHub Pages
+
+on:
+  push:
+    branches: [ main, master ]
+    paths: 
+      - 'docs/**'
+      - '.github/workflows/docs-deploy.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths: 
+      - 'docs/**'
+  workflow_dispatch:
+
+# Allow only one concurrent deployment
+concurrency:
+  group: pages-${{ github.ref }}
+  cancel-in-progress: true
+
+# Sets permissions of the GITHUB_TOKEN
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛒 Checkout
+        uses: actions/checkout@v4
+        
+      - name: 🔍 Setup Pages
+        uses: actions/configure-pages@v4
+        
+      - name: 📦 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: docs/package-lock.json
+          
+      - name: 📥 Install Dependencies
+        working-directory: docs
+        run: npm ci
+        
+      - name: 🏗️ Build Docusaurus
+        working-directory: docs
+        run: |
+          echo "🏗️ Building Docusaurus site..."
+          npm run build
+          echo "✅ Build completed successfully"
+          
+      - name: 🧹 Validate Build Output
+        working-directory: docs
+        run: |
+          echo "🔍 Validating build output..."
+          
+          # Check if build directory exists
+          if [ ! -d "build" ]; then
+            echo "❌ Build directory not found"
+            exit 1
+          fi
+          
+          # Check if index.html exists in build
+          if [ ! -f "build/index.html" ]; then
+            echo "❌ Missing build/index.html"
+            exit 1
+          fi
+          
+          # Check if assets directory exists
+          if [ ! -d "build/assets" ]; then
+            echo "❌ Missing build/assets directory"
+            exit 1
+          fi
+          
+          echo "✅ Build output is valid"
+          
+      - name: 🧪 Test Build Integrity
+        working-directory: docs/build
+        run: |
+          echo "🧪 Testing build integrity..."
+          
+          # Check file count
+          file_count=$(find . -type f | wc -l)
+          echo "📊 Total files in build: $file_count"
+          
+          if [ $file_count -lt 10 ]; then
+            echo "❌ Build seems incomplete (too few files)"
+            exit 1
+          fi
+          
+          # Check for essential files
+          if [ ! -f "index.html" ]; then
+            echo "❌ Missing index.html"
+            exit 1
+          fi
+          
+          echo "✅ Build integrity verified"
+          
+      - name: 📦 Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './docs/build'
+
+  # Deployment job (only on push to main)
+  deploy:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+        
+      - name: 📊 Post-deployment verification
+        run: |
+          echo "🎉 Documentation deployed successfully!"
+          echo "📍 URL: ${{ steps.deployment.outputs.page_url }}"
+          echo "📈 GitHub Pages Status: Active"
+          echo "🔄 Cache may take 5-10 minutes to update"
+
+# Outputs
+  post-deploy:
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest  
+    needs: deploy
+    steps:
+      - name: 📢 Notify Success
+        run: |
+          echo "✅ DEPLOYMENT SUCCESSFUL!"
+          echo ""
+          echo "📚 Documentation is now live at:"
+          echo "🔗 https://${{ github.repository_owner }}.github.io/cidadao.ai-backend/"
+          echo ""
+          echo "🛠️ To update: Just push changes to docs/ folder"
+          echo "⏰ Updates may take 5-10 minutes to appear"

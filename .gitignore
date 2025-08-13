@@ -1,0 +1,351 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+
+# Flask stuff:
+instance/
+.webassets-cache
+
+# Scrapy stuff:
+.scrapy
+
+# Sphinx documentation
+docs/_build/
+
+# PyBuilder
+.pybuilder/
+target/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# poetry
+poetry.lock
+
+# pdm
+.pdm.toml
+.pdm-python
+.pdm-build/
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Spyder project settings
+.spyderproject
+.spyproject
+
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Pyre type checker
+.pyre/
+
+# pytype static type analyzer
+.pytype/
+
+# Cython debug symbols
+cython_debug/
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains IDEs
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+Desktop.ini
+
+# Linux
+*~
+.directory
+
+# Logs
+logs/
+*.log
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Redis
+dump.rdb
+
+# ML Models
+models/
+*.pkl
+*.joblib
+*.h5
+*.pt
+*.pth
+*.onnx
+
+# Frontend files (moved to separate repository)
+frontend/
+static/
+blog/
+*.css.map
+
+# Keep docs/ for GitHub Pages technical documentation
+# docs/ - removed from gitignore to enable GitHub Pages
+
+# HuggingFace Spaces specific exclusions
+# Exclude docs/ from HuggingFace deployments (GitHub Pages only)
+
+# Vector stores
+*.faiss
+*.index
+chroma_db/
+vector_store/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Secrets
+*.key
+*.pem
+*.crt
+*.p12
+
+# Local configuration
+local.env
+config.local.yaml
+
+# Audit logs
+audit_logs/
+
+# Test outputs
+test_output/
+.benchmarks/
+
+# Fine-tuning datasets
+datasets/
+fine_tuning_data/
+
+# Monitoring
+grafana_data/
+prometheus_data/
+
+# Internal documentation - IGNORE FROM REPOSITORY
+docs-internal/
+
+# Claude Code - NEVER COMMIT
+.claude/
+CLAUDE.md
+claude.md
+*claude*
+.claude*
+
+
+# Test scripts with API keys (keep only in local development)
+scripts/test_*.py
+scripts/simple_*.py
+
+# API testing outputscomo
+api_test_results.json
+
+# Internal reports and analysis (confidential)
+RELATORIO_*.md
+*_EXECUTIVO.md
+analise_*.md
+BACKUP_POLICY.md
+*_POLICY.md
+*_INTERNAL.md
+
+# Hugging Face specific files and deployment artifacts
+README_HF*.md
+README_SPACE*.md
+requirements_hf*.txt
+app_transparency_api.py
+test_api_*.py
+.env.example
+
+# Backup files - Universal patterns (MAXIMUM PROTECTION)
+# ⚠️ NEVER COMMIT BACKUPS TO REPOSITORY ⚠️
+*.backup
+*.backup.*
+*_backup
+*_backup.*
+*-backup
+*-backup.*
+backup_*
+backup-*
+backup/*
+backups/*
+*.bak
+*.bak.*
+*_bak
+*_bak.*
+*-bak
+*-bak.*
+bak_*
+bak-*
+bak/*
+
+# Directory backup patterns
+docs-backup*/
+*backup*/
+*-backup*/
+*_backup*/
+backup*/
+backups/
+**/backup/
+**/backups/
+**/*backup*/
+**/*-backup*/
+
+# Common backup patterns
+*.orig
+*.save
+*.swp
+*.tmp
+*.temp
+*.old
+*.previous
+*.copy
+*.~*
+*~
+
+# Archive files (often used for backups)
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.rar
+*.7z
+*.bz2
+*.gz
+
+# Date-based backup patterns
+*-20[0-9][0-9][0-9][0-9][0-9][0-9]*
+*_20[0-9][0-9][0-9][0-9][0-9][0-9]*
+*-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-*
+*_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_*
+
+# Arquivos redundantes e desnecessários
+.old/
+.mockups/
+*.old
+*_old.*
+temp_*
+
+# Arquivos organizados (agora em suas pastas específicas)
+app_*.py
+README_*.md
+requirements_*.txt
+docker-compose.*.yml
+test_*.py
+setup_*.py
+
+# Project planning files
+next-steps.md
+*next-steps*
+planning/
+*.planning

@@ -1,0 +1,436 @@
+# Temporarily disabled - fixing deprecation issues
+name: CI/CD Pipeline (Disabled)
+
+on:
+  workflow_dispatch:  # Manual trigger only
+  # push:
+  #   branches: [ main, develop ]
+  # pull_request:
+  #   branches: [ main, develop ]
+  # release:
+  #   types: [ published ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Security Scanning and Code Quality
+  security-and-quality:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Security - Bandit Security Scan
+      run: |
+        pip install bandit[toml]
+        bandit -r src/ -f json -o bandit-report.json || true
+        bandit -r src/ || true
+
+    - name: Security - Safety Check
+      run: |
+        pip install safety
+        safety check --json --output safety-report.json || true
+        safety check || true
+
+    - name: Code Quality - Ruff Linting
+      run: |
+        pip install ruff
+        ruff check src/ --output-format=github
+
+    - name: Code Quality - Black Formatting
+      run: |
+        pip install black
+        black --check src/ --diff
+
+    - name: Type Checking - MyPy
+      run: |
+        pip install mypy
+        mypy src/ --ignore-missing-imports || true
+
+    - name: Upload Security Reports
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-reports
+        path: |
+          bandit-report.json
+          safety-report.json
+
+  # Unit and Integration Tests
+  test:
+    runs-on: ubuntu-latest
+    needs: security-and-quality
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_USER: postgres
+          POSTGRES_DB: test_cidadao_ai
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install system dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential
+
+    - name: Install Python dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Set up test environment
+      run: |
+        export DATABASE_URL="postgresql+asyncpg://postgres:postgres@localhost:5432/test_cidadao_ai"
+        export REDIS_URL="redis://localhost:6379/1"
+        export TESTING=true
+        export ENVIRONMENT=testing
+
+    - name: Run unit tests
+      run: |
+        pytest tests/ -v -m "unit" --cov=src --cov-report=xml --cov-report=html
+
+    - name: Run integration tests
+      run: |
+        pytest tests/ -v -m "integration" --cov=src --cov-append --cov-report=xml --cov-report=html
+
+    - name: Run security tests
+      run: |
+        pytest tests/ -v -m "security" --cov=src --cov-append --cov-report=xml --cov-report=html
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: unittests
+        name: codecov-umbrella
+
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: test-results
+        path: |
+          coverage.xml
+          htmlcov/
+
+  # Performance and Load Testing
+  performance-test:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install locust
+
+    - name: Run performance tests
+      run: |
+        python -m pytest tests/ -v -m "performance" --tb=short
+
+    - name: Load testing with Locust
+      run: |
+        # Start API in background
+        python -m uvicorn src.api.app:app --host 0.0.0.0 --port 8000 &
+        sleep 10
+        
+        # Run load test
+        locust --headless --users 10 --spawn-rate 2 -H http://localhost:8000 --run-time 1m --locustfile tests/load_test.py
+
+  # Container Build and Security Scan
+  build-and-scan:
+    runs-on: ubuntu-latest
+    needs: test
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      if: github.event_name != 'pull_request'
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+
+    - name: Build Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: ${{ github.event_name != 'pull_request' }}
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
+
+    - name: Container Security Scan - Trivy
+      uses: aquasecurity/trivy-action@master
+      with:
+        image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: 'trivy-results.sarif'
+
+    - name: Container Security Scan - Snyk
+      continue-on-error: true
+      uses: snyk/actions/docker@master
+      env:
+        SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      with:
+        image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+        args: --severity-threshold=high
+
+  # Infrastructure as Code Security
+  iac-security:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Scan Kubernetes manifests - Checkov
+      uses: bridgecrewio/checkov-action@master
+      with:
+        directory: deployment/kubernetes/
+        framework: kubernetes
+        output_format: sarif
+        output_file_path: checkov-k8s.sarif
+
+    - name: Scan Docker files - Checkov
+      uses: bridgecrewio/checkov-action@master
+      with:
+        directory: .
+        framework: dockerfile
+        output_format: sarif
+        output_file_path: checkov-docker.sarif
+
+    - name: Upload Checkov results
+      uses: github/codeql-action/upload-sarif@v2
+      if: always()
+      with:
+        sarif_file: |
+          checkov-k8s.sarif
+          checkov-docker.sarif
+
+  # Dependency Security Scanning
+  dependency-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v3
+      if: github.event_name == 'pull_request'
+
+    - name: FOSSA License and Security Scan
+      continue-on-error: true
+      env:
+        FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+      run: |
+        if [ ! -z "$FOSSA_API_KEY" ]; then
+          curl -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/fossas/fossa-cli/master/install-latest.sh | bash
+          fossa analyze
+          fossa test
+        fi
+
+  # Deploy to Staging
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [build-and-scan, iac-security]
+    if: github.ref == 'refs/heads/develop' && github.event_name == 'push'
+    environment: staging
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure kubectl
+      uses: azure/k8s-set-context@v1
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.STAGING_KUBECONFIG }}
+
+    - name: Deploy to staging
+      run: |
+        kubectl apply -f deployment/kubernetes/namespace.yaml
+        kubectl apply -f deployment/kubernetes/staging/
+        kubectl set image deployment/cidadao-ai-api cidadao-ai-api=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} -n cidadao-ai-staging
+
+    - name: Wait for deployment
+      run: |
+        kubectl rollout status deployment/cidadao-ai-api -n cidadao-ai-staging --timeout=300s
+
+    - name: Health check
+      run: |
+        kubectl get pods -n cidadao-ai-staging
+        sleep 30
+        curl -f http://staging.cidadao.ai/health || exit 1
+
+  # End-to-End Tests on Staging
+  e2e-tests:
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: github.ref == 'refs/heads/develop'
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements-dev.txt
+
+    - name: Run E2E tests against staging
+      env:
+        E2E_BASE_URL: https://staging.cidadao.ai
+        E2E_API_KEY: ${{ secrets.STAGING_API_KEY }}
+      run: |
+        pytest tests/ -v -m "e2e" --base-url=$E2E_BASE_URL
+
+  # Deploy to Production
+  deploy-production:
+    runs-on: ubuntu-latest
+    needs: [e2e-tests, build-and-scan]
+    if: github.event_name == 'release' && github.event.action == 'published'
+    environment: production
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Configure kubectl
+      uses: azure/k8s-set-context@v1
+      with:
+        method: kubeconfig
+        kubeconfig: ${{ secrets.PRODUCTION_KUBECONFIG }}
+
+    - name: Deploy to production
+      run: |
+        kubectl apply -f deployment/kubernetes/namespace.yaml
+        kubectl apply -f deployment/kubernetes/production/
+        kubectl set image deployment/cidadao-ai-api cidadao-ai-api=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.release.tag_name }} -n cidadao-ai-production
+
+    - name: Wait for deployment
+      run: |
+        kubectl rollout status deployment/cidadao-ai-api -n cidadao-ai-production --timeout=600s
+
+    - name: Production health check
+      run: |
+        sleep 60
+        curl -f https://api.cidadao.ai/health || exit 1
+
+    - name: Notify deployment success
+      run: |
+        echo "🚀 Production deployment successful!"
+        echo "Version: ${{ github.event.release.tag_name }}"
+        echo "Image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.event.release.tag_name }}"
+
+  # Post-deployment monitoring
+  post-deploy-monitoring:
+    runs-on: ubuntu-latest
+    needs: deploy-production
+    if: github.event_name == 'release'
+
+    steps:
+    - name: Monitor production metrics
+      run: |
+        # Wait for metrics to stabilize
+        sleep 300
+        
+        # Check key metrics (implement actual monitoring checks)
+        echo "Monitoring production deployment..."
+        
+        # Check response times
+        curl -f https://api.cidadao.ai/health/detailed
+        
+        # Verify key endpoints
+        curl -f https://api.cidadao.ai/metrics
+        
+        echo "Production monitoring completed successfully"
+
+  # Cleanup
+  cleanup:
+    runs-on: ubuntu-latest
+    if: always()
+    needs: [deploy-production, post-deploy-monitoring]
+    steps:
+    - name: Clean up old container images
+      run: |
+        echo "Cleaning up old container images..."
+        # Implementation depends on registry retention policies

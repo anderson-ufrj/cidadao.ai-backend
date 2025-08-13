@@ -1,0 +1,72 @@
+#!/bin/bash
+#
+# Git Pre-Push Hook - Cidadão.AI
+# Automatically syncs README for the correct platform before push
+#
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+echo -e "${BLUE}🔄 Pre-push hook: README sync${NC}"
+
+# Get the remote URL
+remote_url=$(git remote get-url origin 2>/dev/null)
+
+if [[ $remote_url == *"github.com"* ]]; then
+    echo -e "${BLUE}📍 Detected GitHub push${NC}"
+    target="github"
+elif [[ $remote_url == *"hf.co"* ]] || [[ $remote_url == *"huggingface.co"* ]]; then
+    echo -e "${BLUE}📍 Detected HF Spaces push${NC}"
+    target="hf"
+else
+    echo -e "${YELLOW}⚠️  Unknown remote, skipping README sync${NC}"
+    exit 0
+fi
+
+# Check if sync script exists
+sync_script="scripts/sync_readme.py"
+if [[ ! -f "$sync_script" ]]; then
+    echo -e "${RED}❌ Sync script not found: $sync_script${NC}"
+    exit 0
+fi
+
+# Check current README status
+current_status=$(python3 "$sync_script" --check 2>/dev/null | grep -o "github\|hf\|unknown" | tail -1)
+
+if [[ "$current_status" == "$target" ]]; then
+    echo -e "${GREEN}✅ README already configured for $target${NC}"
+    exit 0
+fi
+
+echo -e "${YELLOW}🔄 Syncing README for $target...${NC}"
+
+# Backup and sync
+python3 "$sync_script" --target "$target" --backup
+
+if [[ $? -eq 0 ]]; then
+    echo -e "${GREEN}✅ README synced for $target${NC}"
+    
+    # Auto-commit if README changed
+    if git diff --quiet HEAD -- README.md; then
+        echo -e "${BLUE}📝 No changes to commit${NC}"
+    else
+        echo -e "${YELLOW}📝 Auto-committing README sync...${NC}"
+        git add README.md
+        git commit -m "auto: sync README for $target platform
+
+Automated README synchronization via pre-push hook:
+- Target platform: $target
+- Timestamp: $(date -Iseconds)
+- Remote: $remote_url"
+        echo -e "${GREEN}✅ README changes committed${NC}"
+    fi
+else
+    echo -e "${RED}❌ README sync failed${NC}"
+    echo -e "${YELLOW}💡 Push continues anyway...${NC}"
+fi
+
+exit 0

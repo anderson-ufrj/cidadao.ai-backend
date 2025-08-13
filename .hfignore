@@ -1,0 +1,106 @@
+# Hugging Face Spaces ignore file
+# Exclude documentation and GUI components from HF deployment
+
+# Documentation website (keep in GitHub, exclude from HF)
+docs/
+# Ensure docs folder is completely excluded from HF deployment
+*.html
+*.css
+*.js
+
+# Binary assets excluded from HF (use Git LFS if needed)
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.pdf
+*.ico
+
+# BACKUP PROTECTION - NEVER DEPLOY BACKUPS TO HF
+# ⚠️ CRITICAL: No backups should ever reach production ⚠️
+*backup*/
+*-backup*/
+*_backup*/
+backup*/
+backups/
+*.backup
+*.backup.*
+*.bak
+*.bak.*
+*.old
+*.orig
+*.save
+*.tmp
+*.temp
+*~
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z
+
+# Date-based backups
+*-20[0-9][0-9]*
+*_20[0-9][0-9]*
+
+# GUI/Frontend components
+apps/api_app.py.backup
+
+# Development files
+venv/
+logs/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+ENV/
+
+# Testing files
+tests/
+pytest.ini
+
+# Build files
+build/
+dist/
+*.egg-info/
+
+# IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# Git files
+.git/
+.gitignore
+
+# Environment files
+.env
+.env.local
+.env.production
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Internal documentation - EXCLUDE FROM HF SPACES
+docs-internal/
+.claude/
+
+# Internal planning and next steps
+next_steps.md
+*next-steps*
+planning/
+
+# Documentation markdown (keep main README only)
+CHANGELOG.md
+SECURITY.md
+
+# Deployment configs not needed in HF
+deployment/
+infrastructure/
+Dockerfile*
+docker-compose*.yml
+Makefile
