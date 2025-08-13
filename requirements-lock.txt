@@ -1,0 +1,65 @@
+# Cidadão.AI Backend - Locked Dependencies
+# Generated for reproducible builds across environments
+# This file locks specific versions for production deployment
+# Use: pip install -r requirements-lock.txt
+
+# Core framework
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+typer==0.9.4
+rich==13.7.1
+
+# Data validation and serialization
+pydantic==2.6.3
+pydantic-settings==2.2.1
+
+# Database
+sqlalchemy==2.0.28
+alembic==1.13.1
+asyncpg==0.29.0
+redis==5.0.3
+
+# AI/ML Core
+langchain==0.1.11
+langchain-community==0.0.27
+langchain-openai==0.0.8
+transformers==4.38.2
+torch==2.2.1
+faiss-cpu==1.8.0
+chromadb==0.4.24
+
+# ML/Data Science
+scikit-learn==1.4.1
+pandas==2.2.1
+numpy==1.26.4
+scipy==1.12.0
+prophet==1.1.5
+umap-learn==0.5.5
+hdbscan==0.8.33
+shap==0.44.1
+lime==0.2.0.1
+
+# Async processing
+celery[redis]==5.3.6
+flower==2.0.1
+
+# HTTP and API clients
+httpx==0.27.0
+aiohttp==3.9.3
+
+# Monitoring and logging
+opentelemetry-api==1.23.0
+opentelemetry-sdk==1.23.0
+opentelemetry-instrumentation-fastapi==0.44b0
+prometheus-client==0.20.0
+structlog==24.1.0
+
+# Security and authentication
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-multipart==0.0.9
+
+# Utilities
+python-dotenv==1.0.1
+tenacity==8.2.3
+pendulum==3.0.0

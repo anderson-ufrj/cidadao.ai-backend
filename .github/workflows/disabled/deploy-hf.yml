@@ -1,0 +1,37 @@
+name: Deploy to Hugging Face Spaces
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'app_hf.py'
+      - 'requirements_hf.txt'
+      - 'src/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Push to Hugging Face Spaces
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "GitHub Actions"
+          
+          # Clone HF Space
+          git clone https://$HF_TOKEN@huggingface.co/spaces/${{ secrets.HF_USERNAME }}/cidadao-ai hf-space
+          
+          # Copy files
+          cp app_hf.py hf-space/app.py
+          cp requirements_hf.txt hf-space/requirements.txt
+          cp README_HF.md hf-space/README.md
+          cp -r src hf-space/
+          
+          # Push to HF
+          cd hf-space
+          git add .
+          git commit -m "Update from GitHub: ${{ github.sha }}"
+          git push

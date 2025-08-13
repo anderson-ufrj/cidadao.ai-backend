@@ -1,0 +1,49 @@
+# MANIFEST.in - Package data inclusion for Cidadão.AI
+# This file ensures all necessary non-Python files are included in the package distribution
+
+# Include all documentation
+include README.md
+include LICENSE
+include CHANGELOG.md
+recursive-include docs *.md *.rst *.txt *.yaml *.yml *.json *.html *.css *.js
+
+# Include configuration files
+include pyproject.toml
+include requirements*.txt
+recursive-include src *.yaml *.yml *.json *.toml
+
+# Include deployment configurations
+recursive-include deployment *.yaml *.yml *.json *.dockerfile *.sh
+recursive-include infrastructure *.yaml *.yml *.json
+recursive-include monitoring *.yaml *.yml *.json
+
+# Include database migrations and schemas
+recursive-include src/infrastructure/database/migrations *.py *.sql
+recursive-include src/infrastructure/database/schemas *.sql
+
+# Include static assets and templates
+recursive-include src/api/static *.css *.js *.html *.ico *.png *.jpg *.svg
+recursive-include src/api/templates *.html *.jinja2
+
+# Include test data and fixtures
+recursive-include tests *.yaml *.yml *.json *.csv *.txt
+recursive-include tests/fixtures *.json *.yaml
+
+# Include monitoring and grafana dashboards
+recursive-include deployment/grafana/dashboards *.json
+recursive-include deployment/prometheus *.yml
+
+# Include CLI completion scripts
+recursive-include scripts *.sh *.bash *.zsh *.fish
+
+# Include security and audit configurations
+recursive-include security *.yaml *.yml *.json
+
+# Exclude development and cache files
+global-exclude *.pyc *.pyo *.pyd __pycache__
+global-exclude .git* .tox .coverage .pytest_cache
+global-exclude *.log *.tmp *.bak *.old
+global-exclude .env .env.local .env.production
+global-exclude node_modules build dist *.egg-info
+global-exclude .vscode .idea *.sublime-*
+global-exclude .claude CLAUDE.md claude.md

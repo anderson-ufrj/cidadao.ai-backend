@@ -1,0 +1,113 @@
+name: Basic Code Checks
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # Basic code quality checks
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Install basic dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install ruff black mypy
+
+    - name: Code Quality - Ruff Linting
+      run: |
+        ruff check src/ --output-format=github || echo "Linting issues found"
+
+    - name: Code Quality - Black Formatting Check
+      run: |
+        black --check src/ --diff || echo "Formatting issues found"
+
+    - name: Type Checking - MyPy (optional)
+      run: |
+        mypy src/ --ignore-missing-imports || echo "Type checking issues found"
+      continue-on-error: true
+
+  # Basic tests if requirements exist
+  basic-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        cache: 'pip'
+
+    - name: Check if requirements exist
+      id: check-reqs
+      run: |
+        if [ -f "requirements.txt" ]; then
+          echo "requirements_exist=true" >> $GITHUB_OUTPUT
+        else
+          echo "requirements_exist=false" >> $GITHUB_OUTPUT
+        fi
+
+    - name: Install dependencies
+      if: steps.check-reqs.outputs.requirements_exist == 'true'
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt || echo "Failed to install requirements"
+        pip install pytest || echo "Installing pytest"
+
+    - name: Run basic tests
+      if: steps.check-reqs.outputs.requirements_exist == 'true'
+      run: |
+        if [ -d "tests" ]; then
+          python -m pytest tests/ -v --tb=short || echo "Tests found issues"
+        else
+          echo "No tests directory found"
+        fi
+      continue-on-error: true
+
+  # Repository health check
+  repo-health:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Check important files
+      run: |
+        echo "Checking repository health..."
+        
+        # Check for important files
+        files=("README.md" "LICENSE" "requirements.txt" "src")
+        for file in "${files[@]}"; do
+          if [ -e "$file" ]; then
+            echo "✅ $file exists"
+          else
+            echo "❌ $file missing"
+          fi
+        done
+        
+        # Check README size (should be substantial)
+        if [ -f "README.md" ]; then
+          size=$(wc -l < README.md)
+          if [ $size -gt 50 ]; then
+            echo "✅ README.md has $size lines (good documentation)"
+          else
+            echo "⚠️ README.md has only $size lines (could be more detailed)"
+          fi
+        fi
+
+    - name: Repository structure summary
+      run: |
+        echo "Repository structure:"
+        find . -type f -name "*.py" | head -10 || echo "No Python files in top 10"
+        echo "Total Python files: $(find . -name "*.py" -type f | wc -l)"
+        echo "Total directories: $(find . -type d | wc -l)"

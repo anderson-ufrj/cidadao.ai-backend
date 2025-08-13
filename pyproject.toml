@@ -1,0 +1,261 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cidadao-ai"
+version = "1.0.0"
+description = "Sistema multi-agente de IA para transparência de dados públicos brasileiros"
+authors = [
+    {name = "Anderson H. Silva", email = "andersonhs27@gmail.com"}
+]
+readme = "README.md"
+license = {text = "Proprietary - All rights reserved"}
+requires-python = ">=3.11"
+keywords = ["ai", "transparency", "government", "brazil", "langchain", "multi-agent"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "Natural Language :: Portuguese (Brazilian)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+
+dependencies = [
+    # Core framework
+    "fastapi>=0.109.0",
+    "uvicorn[standard]>=0.26.0",
+    "typer>=0.9.0",
+    "rich>=13.7.0",
+    
+    # Data validation and serialization
+    "pydantic>=2.5.0",
+    "pydantic-settings>=2.1.0",
+    
+    # Database
+    "sqlalchemy>=2.0.25",
+    "alembic>=1.13.1",
+    "asyncpg>=0.29.0",
+    "redis>=5.0.1",
+    
+    # AI/ML Core
+    "langchain>=0.1.0",
+    "langchain-community>=0.0.12",
+    "langchain-openai>=0.0.5",
+    "transformers>=4.36.0",
+    "torch>=2.1.0",
+    "faiss-cpu>=1.7.4",
+    "chromadb>=0.4.22",
+    
+    # ML/Data Science
+    "scikit-learn>=1.3.2",
+    "pandas>=2.1.4",
+    "numpy>=1.26.3",
+    "scipy>=1.11.4",
+    "prophet>=1.1.5",
+    "umap-learn>=0.5.5",
+    "hdbscan>=0.8.33",
+    "shap>=0.43.0",
+    "lime>=0.2.0.1",
+    
+    # Async processing
+    "celery[redis]>=5.3.4",
+    "flower>=2.0.1",
+    
+    # HTTP and API clients
+    "httpx>=0.26.0",
+    "aiohttp>=3.9.1",
+    
+    # Monitoring and logging
+    "opentelemetry-api>=1.22.0",
+    "opentelemetry-sdk>=1.22.0",
+    "opentelemetry-instrumentation-fastapi>=0.43b0",
+    "prometheus-client>=0.19.0",
+    "structlog>=24.1.0",
+    
+    # Utils
+    "python-multipart>=0.0.6",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+    "python-dotenv>=1.0.0",
+    "tenacity>=8.2.3",
+    "pendulum>=3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    # Testing
+    "pytest>=7.4.4",
+    "pytest-asyncio>=0.23.3",
+    "pytest-cov>=4.1.0",
+    "pytest-mock>=3.12.0",
+    "pytest-xdist>=3.5.0",
+    "pytest-timeout>=2.2.0",
+    "faker>=22.0.0",
+    
+    # Code quality
+    "black>=23.12.1",
+    "ruff>=0.1.11",
+    "mypy>=1.8.0",
+    "isort>=5.13.2",
+    "pre-commit>=3.6.0",
+    
+    # Type stubs
+    "types-redis>=4.6.0.20240106",
+    "types-requests>=2.31.0.20240106",
+    "types-python-jose>=3.3.4.20240106",
+    
+    # Security
+    "safety>=3.0.1",
+    "bandit>=1.7.6",
+    
+    # Documentation
+    "mkdocs>=1.5.3",
+    "mkdocs-material>=9.5.3",
+    "mkdocstrings[python]>=0.24.0",
+    
+    # Development tools
+    "ipython>=8.19.0",
+    "ipdb>=0.13.13",
+    "watchdog>=3.0.0",
+]
+
+prod = [
+    # Production optimizations
+    "gunicorn>=21.2.0",
+    "orjson>=3.9.10",
+    "ujson>=5.9.0",
+]
+
+[project.scripts]
+cidadao = "src.cli.main:app"
+
+[project.urls]
+"Homepage" = "https://github.com/anderson-ufrj/cidadao.ai"
+"Documentation" = "https://github.com/anderson-ufrj/cidadao.ai/wiki"
+"Repository" = "https://github.com/anderson-ufrj/cidadao.ai"
+"Bug Tracker" = "https://github.com/anderson-ufrj/cidadao.ai/issues"
+
+[tool.setuptools]
+package-dir = {"" = "."}
+packages = {find = {where = ["src"], exclude = ["tests*"]}}
+
+[tool.setuptools.package-data]
+"*" = ["*.yaml", "*.yml", "*.json", "*.txt", "*.md"]
+
+[tool.black]
+line-length = 88
+target-version = ["py311", "py312"]
+include = '\.pyi?$'
+extend-exclude = '''
+(
+  /(
+      \.eggs
+    | \.git
+    | \.hg
+    | \.mypy_cache
+    | \.tox
+    | \.venv
+    | _build
+    | buck-out
+    | build
+    | dist
+    | migrations
+  )/
+)
+'''
+
+[tool.ruff]
+select = ["E", "F", "I", "N", "W", "B", "C90", "UP", "ANN", "S", "A", "C4", "RET", "SIM", "PL"]
+ignore = ["E501", "ANN101", "ANN102", "S101"]
+fixable = ["ALL"]
+unfixable = []
+line-length = 88
+target-version = "py311"
+
+[tool.ruff.per-file-ignores]
+"tests/*" = ["S101", "ANN", "PLR2004"]
+"scripts/*" = ["S101", "ANN"]
+
+[tool.mypy]
+python_version = "3.11"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[[tool.mypy.overrides]]
+module = ["transformers.*", "faiss.*", "chromadb.*", "prophet.*", "umap.*", "hdbscan.*", "shap.*", "lime.*"]
+ignore_missing_imports = true
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+include_trailing_comma = true
+force_grid_wrap = 0
+use_parentheses = true
+ensure_newline_before_comments = true
+line_length = 88
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--cov=src",
+    "--cov-branch",
+    "--cov-report=term-missing:skip-covered",
+    "--cov-report=html:htmlcov",
+    "--cov-report=xml",
+    "--no-cov-on-fail",
+]
+testpaths = ["tests"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+asyncio_mode = "auto"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+    "e2e: marks tests as end-to-end tests",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["src"]
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+    "*/__init__.py",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
