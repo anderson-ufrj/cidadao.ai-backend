@@ -21,6 +21,23 @@ license: mit
 
 ## 🚀 Quick Start
 
+### 🎯 **Deployment Options**
+
+**HuggingFace Spaces (Cloud):**
+```bash
+# Uses simplified app.py for fast cloud deployment
+# Automatic deployment via Git push to HuggingFace
+# Optimized for minimal dependencies and fast startup
+```
+
+**Local Development:**
+```bash
+# Full-featured version with complete agent system
+python -m src.api.app
+# OR using uvicorn directly:
+uvicorn src.api.app:app --reload --port 8000
+```
+
 ### 🔑 **Dados Reais vs Demo**
 
 O sistema detecta automaticamente se você tem acesso à API do Portal da Transparência:

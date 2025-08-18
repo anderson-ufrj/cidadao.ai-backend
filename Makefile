@@ -1,4 +1,4 @@
-.PHONY: help install install-dev test test-unit test-integration test-e2e test-multiagent test-coverage lint format type-check security-check run run-dev cli docker-up docker-down docker-build clean migrate db-upgrade db-downgrade celery celery-flower monitoring-up monitoring-down docs serve-docs
+.PHONY: help install install-dev test test-unit test-integration test-e2e test-multiagent test-coverage lint format type-check security-check run run-dev cli docker-up docker-down docker-build clean migrate db-upgrade db-downgrade celery celery-flower monitoring-up monitoring-down docs serve-docs pre-commit-install pre-commit ci check
 
 # Default target
 .DEFAULT_GOAL := help
@@ -90,11 +90,11 @@ security-check: ## Run security checks
 
 run: ## Run the FastAPI application
 	@echo "$(BLUE)Starting Cidadão.AI API...$(NC)"
-	$(UVICORN) src.api.main:app --host 0.0.0.0 --port 8000
+	$(UVICORN) src.api.app:app --host 0.0.0.0 --port 8000
 
 run-dev: ## Run the application in development mode with hot reload
 	@echo "$(BLUE)Starting Cidadão.AI API in development mode...$(NC)"
-	$(UVICORN) src.api.main:app --reload --host 0.0.0.0 --port 8000
+	$(UVICORN) src.api.app:app --reload --host 0.0.0.0 --port 8000
 
 cli: ## Install and test CLI tool
 	@echo "$(BLUE)Installing CLI tool...$(NC)"
@@ -239,3 +239,26 @@ fine-tune: ## Start fine-tuning process
 # Version
 version: ## Show version
 	@echo "$(BLUE)Cidadão.AI$(NC) version $(GREEN)1.0.0$(NC)"
+
+# CI/CD Commands
+pre-commit-install: ## Install pre-commit hooks
+	@echo "$(BLUE)Installing pre-commit hooks...$(NC)"
+	$(PYTHON) -m pre_commit install
+	$(PYTHON) -m pre_commit install --hook-type commit-msg
+	@echo "$(GREEN)Pre-commit hooks installed!$(NC)"
+
+pre-commit: ## Run pre-commit hooks manually
+	@echo "$(BLUE)Running pre-commit hooks...$(NC)"
+	$(PYTHON) -m pre_commit run --all-files
+	@echo "$(GREEN)Pre-commit checks complete!$(NC)"
+
+ci: ## Run complete CI pipeline locally
+	@echo "$(BLUE)Running full CI pipeline...$(NC)"
+	$(MAKE) format
+	$(MAKE) lint
+	$(MAKE) type-check
+	$(MAKE) security-check
+	$(MAKE) test-coverage
+	@echo "$(GREEN)CI pipeline complete!$(NC)"
+
+check: lint type-check test ## Run basic checks (lint, type-check, test)
