@@ -1,0 +1,150 @@
+groups:
+  - name: cidadao-ai-system
+    rules:
+      - alert: HighCPUUsage
+        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 2m
+        labels:
+          severity: warning
+          service: cidadao-ai
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 2 minutes. Current value: {{ $value }}%"
+      
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 2m
+        labels:
+          severity: warning
+          service: cidadao-ai
+        annotations:
+          summary: "High memory usage detected"
+          description: "Memory usage is above 85% for more than 2 minutes. Current value: {{ $value }}%"
+      
+      - alert: ServiceDown
+        expr: up{job="cidadao-ai-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: cidadao-ai
+        annotations:
+          summary: "Cidadão.AI service is down"
+          description: "The Cidadão.AI backend service has been down for more than 1 minute."
+
+  - name: cidadao-ai-api
+    rules:
+      - alert: HighAPILatency
+        expr: histogram_quantile(0.95, rate(cidadao_ai_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: cidadao-ai
+          component: api
+        annotations:
+          summary: "High API latency detected"
+          description: "95th percentile API latency is above 2 seconds for more than 5 minutes. Current value: {{ $value }}s"
+      
+      - alert: HighAPIErrorRate
+        expr: sum(rate(cidadao_ai_requests_total{status_code=~"5.."}[5m])) / sum(rate(cidadao_ai_requests_total[5m])) > 0.05
+        for: 3m
+        labels:
+          severity: warning
+          service: cidadao-ai
+          component: api
+        annotations:
+          summary: "High API error rate detected"
+          description: "API error rate is above 5% for more than 3 minutes. Current rate: {{ $value | humanizePercentage }}"
+      
+      - alert: LowAPIThroughput
+        expr: sum(rate(cidadao_ai_requests_total[5m])) < 0.1
+        for: 10m
+        labels:
+          severity: info
+          service: cidadao-ai
+          component: api
+        annotations:
+          summary: "Low API throughput"
+          description: "API throughput is very low (< 0.1 req/sec) for more than 10 minutes. Current rate: {{ $value }} req/sec"
+
+  - name: cidadao-ai-investigations
+    rules:
+      - alert: HighInvestigationFailureRate
+        expr: sum(rate(cidadao_ai_investigations_total{status="failed"}[10m])) / sum(rate(cidadao_ai_investigations_total[10m])) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: cidadao-ai
+          component: investigations
+        annotations:
+          summary: "High investigation failure rate"
+          description: "Investigation failure rate is above 10% for more than 5 minutes. Current rate: {{ $value | humanizePercentage }}"
+      
+      - alert: LongInvestigationDuration
+        expr: histogram_quantile(0.95, rate(cidadao_ai_investigation_duration_seconds_bucket[5m])) > 300
+        for: 5m
+        labels:
+          severity: warning
+          service: cidadao-ai
+          component: investigations
+        annotations:
+          summary: "Long investigation duration detected"
+          description: "95th percentile investigation duration is above 5 minutes. Current value: {{ $value }}s"
+      
+      - alert: NoAnomaliesDetected
+        expr: increase(cidadao_ai_anomalies_detected_total[1h]) == 0
+        for: 2h
+        labels:
+          severity: info
+          service: cidadao-ai
+          component: investigations
+        annotations:
+          summary: "No anomalies detected recently"
+          description: "No anomalies have been detected in the last 2 hours. This might indicate a problem with the detection system."
+
+  - name: cidadao-ai-data
+    rules:
+      - alert: TransparencyAPIFailures
+        expr: sum(rate(cidadao_ai_transparency_data_fetched_total{status="failed"}[5m])) > 0
+        for: 3m
+        labels:
+          severity: warning
+          service: cidadao-ai
+          component: transparency-api
+        annotations:
+          summary: "Transparency API failures detected"
+          description: "There are failures when fetching data from the Transparency API. Rate: {{ $value }} failures/sec"
+      
+      - alert: LowDataProcessingRate
+        expr: sum(rate(cidadao_ai_data_records_processed_total[5m])) < 1
+        for: 15m
+        labels:
+          severity: info
+          service: cidadao-ai
+          component: data-processing
+        annotations:
+          summary: "Low data processing rate"
+          description: "Data processing rate is very low (< 1 record/sec) for more than 15 minutes. Current rate: {{ $value }} records/sec"
+
+  - name: cidadao-ai-agents
+    rules:
+      - alert: HighAgentTaskFailureRate
+        expr: sum(rate(cidadao_ai_agent_tasks_total{status="failed"}[10m])) / sum(rate(cidadao_ai_agent_tasks_total[10m])) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: cidadao-ai
+          component: agents
+        annotations:
+          summary: "High agent task failure rate"
+          description: "Agent task failure rate is above 5% for more than 5 minutes. Current rate: {{ $value | humanizePercentage }}"
+      
+      - alert: AgentTaskRetries
+        expr: sum(rate(cidadao_ai_agent_tasks_total{status="retry"}[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: info
+          service: cidadao-ai
+          component: agents
+        annotations:
+          summary: "Frequent agent task retries"
+          description: "Agent tasks are retrying frequently. Retry rate: {{ $value }} retries/sec"
