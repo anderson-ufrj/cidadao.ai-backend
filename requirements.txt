@@ -22,5 +22,9 @@ python-dotenv>=1.0.0
 # Configuration
 pydantic-settings>=2.0.0
 
+# Logging
+structlog>=23.0.0
+
 # Data Analysis
 numpy>=1.24.0
+pandas>=2.0.0
