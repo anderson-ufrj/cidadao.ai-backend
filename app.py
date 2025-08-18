@@ -131,31 +131,42 @@ class ZumbiAgent:
             
             logger.info(f"🔍 Investigating with REAL DATA: {request.query}")
             
-            # Import API components
-            from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFilter
-            
-            # Fetch REAL data from Portal da Transparência
+            # Use direct HTTP calls to avoid complex configuration dependencies
             results = []
-            async with TransparencyAPIClient(api_key=api_key) as client:
+            
+            # Direct API call to Portal da Transparência
+            import httpx
+            async with httpx.AsyncClient(timeout=30.0) as client:
                 # Define organization codes for investigation
                 org_codes = ["26000", "20000", "25000"]  # Health, Presidency, Education
                 
                 for org_code in org_codes[:2]:  # Limit to 2 orgs to avoid timeout
                     try:
-                        filters = TransparencyAPIFilter(
-                            codigo_orgao=org_code,
-                            ano=2024,
-                            tamanho_pagina=20,
-                            valor_inicial=50000  # Min value R$ 50k
-                        )
+                        # Direct API call to Portal da Transparência
+                        url = "https://api.portaldatransparencia.gov.br/api-de-dados/contratos"
+                        headers = {
+                            "chave-api-dados": api_key,
+                            "Accept": "application/json"
+                        }
+                        params = {
+                            "codigoOrgao": org_code,
+                            "ano": 2024,
+                            "tamanhoPagina": 20,
+                            "valorInicial": 50000
+                        }
                         
-                        response = await client.get_contracts(filters)
+                        response = await client.get(url, headers=headers, params=params)
                         
-                        # Process real contracts for anomalies
-                        anomalies = await self._detect_anomalies_in_real_data(response.data, org_code)
-                        results.extend(anomalies)
-                        
-                        logger.info(f"✅ Fetched {len(response.data)} contracts from org {org_code}, found {len(anomalies)} anomalies")
+                        if response.status_code == 200:
+                            contracts_data = response.json()
+                            
+                            # Process real contracts for anomalies
+                            anomalies = await self._detect_anomalies_in_real_data(contracts_data, org_code)
+                            results.extend(anomalies)
+                            
+                            logger.info(f"✅ Fetched {len(contracts_data)} contracts from org {org_code}, found {len(anomalies)} anomalies")
+                        else:
+                            logger.warning(f"⚠️ API returned status {response.status_code} for org {org_code}")
                         
                     except Exception as e:
                         logger.warning(f"⚠️ Failed to fetch data from org {org_code}: {str(e)}")
