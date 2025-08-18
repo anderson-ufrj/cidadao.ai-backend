@@ -135,7 +135,8 @@ GET /metrics
 
 ## 📈 Performance
 
-- **Latência**: <2s para análise de contratos reais
+- **Latência**: <2s para análise de contratos reais (~50ms para dados cached)
+- **Cache Inteligente**: TTL de 1 hora reduz chamadas à API em até 100%
 - **Throughput**: Suporte a análise de até 1000 contratos
 - **Confiabilidade**: Sistema de fallback para alta disponibilidade
 - **Escalabilidade**: Arquitetura assíncrona para múltiplas investigações
@@ -144,8 +145,9 @@ GET /metrics
 
 - 📚 **API Docs**: `/docs` (documentação interativa)
 - 📊 **Status**: `/api/status` (tipo de dados e capacidades)
-- 🔍 **Test Data**: `/api/agents/zumbi/test` (dados para testes)
+- 🔍 **Test Data**: `/api/agents/zumbi/test` (dados para testes)  
 - 📈 **Metrics**: `/metrics` (métricas Prometheus)
+- 💾 **Cache Stats**: `/api/cache/stats` (estatísticas de performance)
 
 ## 👨‍💻 Autor
 
