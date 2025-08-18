@@ -1,241 +1,160 @@
-# 📊 Cidadão.AI Monitoring Stack
+---
+title: Cidadão.AI Backend
+emoji: 🏛️
+colorFrom: blue
+colorTo: green
+sdk: docker
+app_file: app.py
+pinned: false
+license: mit
+---
 
-Sistema completo de observabilidade para o Cidadão.AI com Prometheus + Grafana + Node Exporter + cAdvisor.
+# 🏛️ Cidadão.AI - Backend
+
+> **Sistema multi-agente de IA para transparência pública brasileira**  
+> **Enterprise-grade multi-agent AI system for Brazilian government transparency analysis**
+
+[![Open Gov](https://img.shields.io/badge/Open-Government-blue.svg)](https://www.opengovpartnership.org/)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
 
 ## 🚀 Quick Start
 
-### Iniciando o Stack de Monitoramento
+### 🔑 **Dados Reais vs Demo**
+
+O sistema detecta automaticamente se você tem acesso à API do Portal da Transparência:
+
+- **✅ Com `TRANSPARENCY_API_KEY`**: Análise de **dados reais** de contratos públicos
+- **🔄 Sem chave API**: Funciona com **dados demo** para demonstração
+
+### API Endpoints
 
 ```bash
-# Usando o script de gerenciamento
-./monitoring/manage-monitoring.sh start
+# Status do sistema (mostra tipo de dados)
+GET /api/status
 
-# Ou usando docker-compose diretamente
-docker-compose -f docker-compose.monitoring.yml up -d
+# Obter dados de teste
+GET /api/agents/zumbi/test
+
+# Executar investigação com detecção de anomalias
+POST /api/agents/zumbi/investigate
+{
+  "query": "Analisar contratos de informática com valores suspeitos",
+  "data_source": "contracts", 
+  "max_results": 100
+}
+
+# Acessar métricas Prometheus
+GET /metrics
 ```
 
-### Acessando os Serviços
+## 🤖 Agente Zumbi dos Palmares - Investigador
 
-| Serviço | URL | Credenciais |
-|---------|-----|-------------|
-| 🏛️ Cidadão.AI Backend | http://localhost:7860 | N/A |
-| 📊 Grafana Dashboard | http://localhost:3000 | admin/cidadao123 |
-| 📈 Prometheus | http://localhost:9090 | N/A |
-| 🖥️ Node Exporter | http://localhost:9100 | N/A |
-| 📦 cAdvisor | http://localhost:8080 | N/A |
+### 🎯 **Capacidades de Análise**
+- **Detecção de preços suspeitos** usando análise estatística Z-score
+- **Concentração de fornecedores** (threshold 40% = suspeito)
+- **Análise de outliers** em contratos públicos
+- **Processamento em tempo real** de dados governamentais
 
-## 📊 Dashboards Disponíveis
+### 📊 **Tipos de Anomalias Detectadas**
+- `price_suspicious` - Contratos com preços muito acima da média
+- `price_critical` - Contratos com preços extremamente elevados  
+- `vendor_concentration` - Concentração excessiva de um fornecedor
 
-### 1. 🏛️ Cidadão.AI - Overview Dashboard
-- **UID**: `cidadao-ai-overview`
-- **Descrição**: Visão geral do sistema com métricas principais
-- **Painéis**:
-  - Taxa de requisições da API
-  - Total de investigações
-  - Distribuição de investigações por status
-  - Distribuição de anomalias por tipo
-  - Duração das requisições
-  - Taxa de processamento de dados
+## 🔍 Exemplo de Investigação
 
-### 2. 🏹 Zumbi dos Palmares - Investigador Dashboard
-- **UID**: `zumbi-agent-dashboard`
-- **Descrição**: Métricas específicas do agente investigador Zumbi
-- **Painéis**:
-  - Total de investigações
-  - Anomalias detectadas
-  - Taxa de sucesso das investigações
-  - Duração das investigações (P95)
-  - Taxa de investigação por tipo e status
-  - Distribuição de tipos de anomalias
-  - Taxa de fetch da API de Transparência
-  - Distribuição de severidade das anomalias
-
-### 3. 🖥️ System Performance Dashboard
-- **UID**: `system-performance`
-- **Descrição**: Métricas de performance do sistema
-- **Painéis**:
-  - Uso de CPU
-  - Uso de memória
-  - Duração de tarefas dos agentes
-  - Taxa de tarefas por status
-  - I/O de rede
-  - I/O de disco
-
-## 📈 Métricas Disponíveis
-
-### Métricas da API
-- `cidadao_ai_requests_total` - Total de requisições por método/endpoint
-- `cidadao_ai_request_duration_seconds` - Duração das requisições
-
-### Métricas de Agentes
-- `cidadao_ai_agent_tasks_total` - Total de tarefas dos agentes por status
-- `cidadao_ai_agent_task_duration_seconds` - Duração das tarefas dos agentes
-
-### Métricas de Investigação
-- `cidadao_ai_investigations_total` - Total de investigações por tipo/status
-- `cidadao_ai_investigation_duration_seconds` - Duração das investigações
-- `cidadao_ai_anomalies_detected_total` - Anomalias detectadas por tipo/severidade
-
-### Métricas de Dados
-- `cidadao_ai_data_records_processed_total` - Registros processados
-- `cidadao_ai_transparency_data_fetched_total` - Dados da API de Transparência
-
-## 🚨 Alertas Configurados
-
-### Sistema
-- **HighCPUUsage**: CPU > 80% por mais de 2 minutos
-- **HighMemoryUsage**: Memória > 85% por mais de 2 minutos
-- **ServiceDown**: Serviço Cidadão.AI fora do ar por mais de 1 minuto
-
-### API
-- **HighAPILatency**: Latência P95 > 2s por mais de 5 minutos
-- **HighAPIErrorRate**: Taxa de erro > 5% por mais de 3 minutos
-- **LowAPIThroughput**: Throughput < 0.1 req/s por mais de 10 minutos
-
-### Investigações
-- **HighInvestigationFailureRate**: Taxa de falha > 10% por mais de 5 minutos
-- **LongInvestigationDuration**: Duração P95 > 5 minutos
-- **NoAnomaliesDetected**: Nenhuma anomalia detectada por mais de 2 horas
-
-### Dados
-- **TransparencyAPIFailures**: Falhas ao buscar dados da API de Transparência
-- **LowDataProcessingRate**: Taxa de processamento < 1 registro/s por mais de 15 minutos
-
-### Agentes
-- **HighAgentTaskFailureRate**: Taxa de falha > 5% por mais de 5 minutos
-- **AgentTaskRetries**: Retries frequentes de tarefas de agentes
-
-## 🛠️ Comandos de Gerenciamento
-
-```bash
-# Iniciar o stack
-./monitoring/manage-monitoring.sh start
-
-# Parar o stack
-./monitoring/manage-monitoring.sh stop
-
-# Reiniciar o stack
-./monitoring/manage-monitoring.sh restart
-
-# Ver status dos serviços
-./monitoring/manage-monitoring.sh status
-
-# Ver logs de todos os serviços
-./monitoring/manage-monitoring.sh logs
-
-# Ver logs de um serviço específico
-./monitoring/manage-monitoring.sh logs prometheus
-./monitoring/manage-monitoring.sh logs grafana
-
-# Executar health checks
-./monitoring/manage-monitoring.sh health
-
-# Limpar todos os dados (cuidado!)
-./monitoring/manage-monitoring.sh cleanup
-
-# Ver ajuda
-./monitoring/manage-monitoring.sh help
+### Request
+```json
+{
+  "query": "Investigar contratos de informática suspeitos",
+  "data_source": "contracts",
+  "max_results": 50
+}
 ```
 
-## 📁 Estrutura de Arquivos
-
-```
-monitoring/
-├── README.md                           # Este arquivo
-├── manage-monitoring.sh                # Script de gerenciamento
-├── prometheus/
-│   ├── prometheus.yml                 # Configuração do Prometheus
-│   └── rules/
-│       └── cidadao-ai-alerts.yml     # Regras de alerta
-├── grafana/
-│   ├── provisioning/
-│   │   ├── datasources/
-│   │   │   └── prometheus.yml         # Configuração do datasource
-│   │   └── dashboards/
-│   │       └── dashboards.yml         # Configuração dos dashboards
-│   └── dashboards/
-│       ├── cidadao-ai-overview.json   # Dashboard principal
-│       ├── zumbi-agent-dashboard.json # Dashboard do agente Zumbi
-│       └── system-performance.json    # Dashboard de performance
-└── docker-compose.monitoring.yml       # Definição dos serviços
-```
-
-## 🔧 Configuração Avançada
-
-### Customizando Intervalos de Coleta
-
-No arquivo `prometheus/prometheus.yml`:
-
-```yaml
-scrape_configs:
-  - job_name: 'cidadao-ai-backend'
-    static_configs:
-      - targets: ['cidadao-ai:7860']
-    scrape_interval: 10s  # Alterar para intervalo desejado
+### Response (Dados Reais)
+```json
+{
+  "status": "completed",
+  "query": "Investigar contratos de informática suspeitos", 
+  "anomalies_found": 3,
+  "confidence_score": 0.87,
+  "processing_time_ms": 2340,
+  "results": [
+    {
+      "contract_id": "12345",
+      "description": "Aquisição de servidores de alta performance",
+      "value": 850000.00,
+      "supplier": "TechCorp Solutions LTDA",
+      "organization": "26000",
+      "anomaly_type": "price_critical",
+      "risk_level": "high", 
+      "explanation": "Valor R$ 850.000,00 está 3.2 desvios padrão acima da média (R$ 420.000,00)",
+      "z_score": 3.2,
+      "mean_value": 420000.00
+    }
+  ]
+}
 ```
 
-### Adicionando Novos Alertas
+## 🛡️ Recursos Enterprise
 
-Edite `prometheus/rules/cidadao-ai-alerts.yml`:
+### 🏗️ **Arquitetura**
+- **Detecção de anomalias baseada em estatística** com algoritmos Z-score
+- **Sistema de fallback inteligente** para demonstrações
+- **API REST assíncrona** com FastAPI de alta performance
+- **Métricas Prometheus** para observabilidade completa
 
-```yaml
-- alert: NovoAlerta
-  expr: sua_metrica > threshold
-  for: 5m
-  labels:
-    severity: warning
-  annotations:
-    summary: "Descrição do alerta"
-    description: "Detalhes do que aconteceu"
-```
+### 🔒 **Segurança**
+- **Autenticação via environment variables** para APIs governamentais
+- **Rate limiting** automático para APIs externas
+- **Error handling** robusto com fallback gracioso
+- **Logging estruturado** para auditoria
 
-### Customizando Dashboards
+### 📊 **Observabilidade** 
+- **Métricas Prometheus implementadas**:
+  - `cidadao_ai_requests_total` - Total de requisições
+  - `cidadao_ai_investigations_total` - Investigações realizadas
+  - `cidadao_ai_anomalies_detected_total` - Anomalias detectadas
+- **Health checks** em `/health` e `/api/status`
+- **Documentação automática** em `/docs`
 
-1. Acesse o Grafana em http://localhost:3000
-2. Faça login (admin/cidadao123)
-3. Edite os dashboards existentes ou crie novos
-4. Exporte como JSON e salve em `grafana/dashboards/`
+## 🎯 Casos de Uso
 
-## 🐛 Troubleshooting
+### Detecção de Anomalias em Contratos Públicos
+- **Superfaturamento**: Contratos com valores muito acima da média de mercado
+- **Direcionamento**: Concentração excessiva de contratos em poucos fornecedores
+- **Padrões suspeitos**: Análise estatística de distribuições de preços
 
-### Serviços não iniciam
-```bash
-# Verificar logs
-./monitoring/manage-monitoring.sh logs
+### Análise de Transparência
+- 🏛️ **Ministério da Saúde** (código 26000)
+- 🏢 **Presidência da República** (código 20000)  
+- 📚 **Ministério da Educação** (código 25000)
+- 📊 **Análise customizada** por órgão e período
 
-# Verificar Docker
-docker info
+## 📈 Performance
 
-# Verificar portas ocupadas
-netstat -tulpn | grep -E "(3000|9090|7860|9100|8080)"
-```
+- **Latência**: <2s para análise de contratos reais
+- **Throughput**: Suporte a análise de até 1000 contratos
+- **Confiabilidade**: Sistema de fallback para alta disponibilidade
+- **Escalabilidade**: Arquitetura assíncrona para múltiplas investigações
 
-### Grafana não consegue conectar ao Prometheus
-```bash
-# Verificar se o Prometheus está rodando
-curl http://localhost:9090/-/healthy
+## 🔗 Links
 
-# Verificar logs do Grafana
-./monitoring/manage-monitoring.sh logs grafana
-```
+- 📚 **API Docs**: `/docs` (documentação interativa)
+- 📊 **Status**: `/api/status` (tipo de dados e capacidades)
+- 🔍 **Test Data**: `/api/agents/zumbi/test` (dados para testes)
+- 📈 **Metrics**: `/metrics` (métricas Prometheus)
 
-### Métricas não aparecem
-```bash
-# Verificar endpoint de métricas
-curl http://localhost:7860/health/metrics
+## 👨‍💻 Autor
 
-# Verificar configuração do Prometheus
-./monitoring/manage-monitoring.sh logs prometheus
-```
-
-## 📚 Recursos Adicionais
-
-- [Documentação do Prometheus](https://prometheus.io/docs/)
-- [Documentação do Grafana](https://grafana.com/docs/)
-- [Best Practices de Monitoramento](https://prometheus.io/docs/practices/)
-- [Query Language (PromQL)](https://prometheus.io/docs/prometheus/latest/querying/)
+**Anderson Henrique da Silva**  
+📧 andersonhs27@gmail.com | 💻 [GitHub](https://github.com/anderson-ufrj)
 
 ---
 
-**Desenvolvido para o projeto Cidadão.AI** 🏛️  
-Sistema de transparência pública com IA para o Brasil 🇧🇷
+<div align="center">
+<h3>🌟 Democratizando a Transparência Pública com IA 🌟</h3>
+<p><em>Open Source • Ética • Explicável • Brasileira</em></p>
+</div>
