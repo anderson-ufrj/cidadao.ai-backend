@@ -17,6 +17,8 @@ from pydantic import BaseModel, Field as PydanticField
 
 from src.core import AgentStatus, get_logger
 from src.core.exceptions import AgentError, AgentExecutionError
+from src.core.monitoring import AGENT_TASK_COUNT, AGENT_TASK_DURATION
+import time
 
 
 @dataclass
@@ -165,8 +167,16 @@ class BaseAgent(ABC):
         )
         
         start_time = datetime.utcnow()
+        perf_start_time = time.time()
         retries = 0
         last_error = None
+        
+        # Increment task counter
+        AGENT_TASK_COUNT.labels(
+            agent_type=self.name,
+            task_type=action,
+            status="started"
+        ).inc()
         
         while retries <= self.max_retries:
             try:
@@ -178,12 +188,23 @@ class BaseAgent(ABC):
                     retry=retries,
                 )
                 
-                # Process the message
-                response = await self.process(message, context)
+                # Process the message with timing
+                with AGENT_TASK_DURATION.labels(
+                    agent_type=self.name,
+                    task_type=action
+                ).time():
+                    response = await self.process(message, context)
                 
                 # Calculate processing time
                 processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
                 response.processing_time_ms = processing_time
+                
+                # Record successful execution
+                AGENT_TASK_COUNT.labels(
+                    agent_type=self.name,
+                    task_type=action,
+                    status="completed"
+                ).inc()
                 
                 # Update status
                 self.status = AgentStatus.COMPLETED
@@ -211,12 +232,25 @@ class BaseAgent(ABC):
                     retry=retries,
                 )
                 
+                # Record retry attempt
+                AGENT_TASK_COUNT.labels(
+                    agent_type=self.name,
+                    task_type=action,
+                    status="retry"
+                ).inc()
+                
                 retries += 1
                 if retries <= self.max_retries:
                     # Exponential backoff
                     await self._wait(2 ** retries)
         
-        # All retries exhausted
+        # All retries exhausted - record failure
+        AGENT_TASK_COUNT.labels(
+            agent_type=self.name,
+            task_type=action,
+            status="failed"
+        ).inc()
+        
         self.status = AgentStatus.ERROR
         
         error_response = AgentResponse(
