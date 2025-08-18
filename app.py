@@ -17,6 +17,9 @@ import traceback
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
 
+# Add src to Python path for imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+
 import uvicorn
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -112,35 +115,51 @@ class ZumbiAgent:
         logger.info(f"🏹 {self.name} - {self.role} initialized")
     
     async def investigate(self, request: InvestigationRequest) -> InvestigationResponse:
-        """Execute investigation with anomaly detection."""
+        """Execute investigation with anomaly detection using REAL API data."""
         import time
+        import os
+        import numpy as np
+        from collections import defaultdict
         start_time = time.time()
         
         try:
-            # Simulate investigation process
-            logger.info(f"🔍 Investigating: {request.query}")
+            # Get API key from environment (HuggingFace Secrets)
+            api_key = os.getenv("TRANSPARENCY_API_KEY")
+            if not api_key:
+                logger.warning("⚠️ TRANSPARENCY_API_KEY not found, using fallback data")
+                return await self._get_fallback_investigation(request, start_time)
             
-            # Mock investigation results for demonstration
-            results = [
-                {
-                    "contract_id": "2024001",
-                    "description": "Aquisição de equipamentos de informática",
-                    "value": 150000.00,
-                    "supplier": "Tech Solutions LTDA",
-                    "anomaly_type": "price_suspicious",
-                    "risk_level": "medium",
-                    "explanation": "Preço 25% acima da média de mercado para equipamentos similares"
-                },
-                {
-                    "contract_id": "2024002", 
-                    "description": "Serviços de consultoria especializada",
-                    "value": 280000.00,
-                    "supplier": "Consulting Group SA",
-                    "anomaly_type": "vendor_concentration",
-                    "risk_level": "high",
-                    "explanation": "Fornecedor concentra 40% dos contratos do órgão no período"
-                }
-            ]
+            logger.info(f"🔍 Investigating with REAL DATA: {request.query}")
+            
+            # Import API components
+            from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFilter
+            
+            # Fetch REAL data from Portal da Transparência
+            results = []
+            async with TransparencyAPIClient(api_key=api_key) as client:
+                # Define organization codes for investigation
+                org_codes = ["26000", "20000", "25000"]  # Health, Presidency, Education
+                
+                for org_code in org_codes[:2]:  # Limit to 2 orgs to avoid timeout
+                    try:
+                        filters = TransparencyAPIFilter(
+                            codigo_orgao=org_code,
+                            ano=2024,
+                            tamanho_pagina=20,
+                            valor_inicial=50000  # Min value R$ 50k
+                        )
+                        
+                        response = await client.get_contracts(filters)
+                        
+                        # Process real contracts for anomalies
+                        anomalies = await self._detect_anomalies_in_real_data(response.data, org_code)
+                        results.extend(anomalies)
+                        
+                        logger.info(f"✅ Fetched {len(response.data)} contracts from org {org_code}, found {len(anomalies)} anomalies")
+                        
+                    except Exception as e:
+                        logger.warning(f"⚠️ Failed to fetch data from org {org_code}: {str(e)}")
+                        continue
             
             processing_time = int((time.time() - start_time) * 1000)
             
@@ -160,13 +179,155 @@ class ZumbiAgent:
         except Exception as e:
             logger.error(f"❌ Investigation failed: {str(e)}")
             return InvestigationResponse(
-                status="error",
+                status="error", 
                 query=request.query,
                 results=[],
                 anomalies_found=0,
                 confidence_score=0.0,
                 processing_time_ms=int((time.time() - start_time) * 1000)
             )
+    
+    async def _detect_anomalies_in_real_data(self, contracts_data: list, org_code: str) -> list:
+        """Detect anomalies in real Portal da Transparência data."""
+        anomalies = []
+        
+        if not contracts_data:
+            return anomalies
+        
+        # Extract contract values for statistical analysis
+        values = []
+        for contract in contracts_data:
+            valor = contract.get("valorInicial") or contract.get("valorGlobal") or contract.get("valor", 0)
+            if isinstance(valor, (int, float)) and valor > 0:
+                values.append(float(valor))
+        
+        if len(values) < 5:  # Need minimum samples
+            return anomalies
+        
+        # Calculate statistical measures
+        import numpy as np
+        mean_value = np.mean(values)
+        std_value = np.std(values) 
+        
+        # Analyze each contract
+        for contract in contracts_data:
+            valor = contract.get("valorInicial") or contract.get("valorGlobal") or contract.get("valor", 0)
+            if not isinstance(valor, (int, float)) or valor <= 0:
+                continue
+            
+            valor = float(valor)
+            
+            # Price anomaly detection (Z-score > 2)
+            z_score = abs((valor - mean_value) / std_value) if std_value > 0 else 0
+            
+            if z_score > 2.0:  # Suspicious price
+                anomaly = {
+                    "contract_id": contract.get("id", "unknown"),
+                    "description": contract.get("objeto", "")[:100],
+                    "value": valor,
+                    "supplier": self._extract_supplier_name(contract),
+                    "organization": org_code,
+                    "anomaly_type": "price_suspicious" if z_score < 3 else "price_critical",
+                    "risk_level": "high" if z_score > 3 else "medium",
+                    "explanation": f"Valor R$ {valor:,.2f} está {z_score:.1f} desvios padrão acima da média (R$ {mean_value:,.2f})",
+                    "z_score": z_score,
+                    "mean_value": mean_value
+                }
+                anomalies.append(anomaly)
+        
+        # Vendor concentration analysis
+        vendor_analysis = self._analyze_vendor_concentration(contracts_data, org_code)
+        anomalies.extend(vendor_analysis)
+        
+        return anomalies[:10]  # Limit to top 10 anomalies
+    
+    def _extract_supplier_name(self, contract: dict) -> str:
+        """Extract supplier name from contract data."""
+        fornecedor = contract.get("fornecedor", {})
+        if isinstance(fornecedor, dict):
+            return fornecedor.get("nome", "N/A")
+        elif isinstance(fornecedor, str):
+            return fornecedor
+        return "N/A"
+    
+    def _analyze_vendor_concentration(self, contracts_data: list, org_code: str) -> list:
+        """Analyze vendor concentration in contracts."""
+        anomalies = []
+        vendor_stats = {}
+        total_value = 0
+        
+        for contract in contracts_data:
+            supplier_name = self._extract_supplier_name(contract)
+            valor = contract.get("valorInicial") or contract.get("valorGlobal") or contract.get("valor", 0)
+            
+            if isinstance(valor, (int, float)) and valor > 0:
+                total_value += float(valor)
+                
+                if supplier_name not in vendor_stats:
+                    vendor_stats[supplier_name] = {"contracts": 0, "total_value": 0}
+                
+                vendor_stats[supplier_name]["contracts"] += 1
+                vendor_stats[supplier_name]["total_value"] += float(valor)
+        
+        if total_value == 0:
+            return anomalies
+        
+        # Check for excessive concentration (>40% of total value)
+        for supplier, stats in vendor_stats.items():
+            concentration = stats["total_value"] / total_value
+            
+            if concentration > 0.4 and stats["contracts"] > 1:  # 40% threshold
+                anomaly = {
+                    "contract_id": f"concentration_{org_code}_{supplier}",
+                    "description": f"Concentração excessiva de contratos",
+                    "value": stats["total_value"],
+                    "supplier": supplier,
+                    "organization": org_code,
+                    "anomaly_type": "vendor_concentration",
+                    "risk_level": "high" if concentration > 0.6 else "medium",
+                    "explanation": f"Fornecedor {supplier} concentra {concentration:.1%} do valor total ({stats['contracts']} contratos)",
+                    "concentration": concentration,
+                    "contract_count": stats["contracts"]
+                }
+                anomalies.append(anomaly)
+        
+        return anomalies
+    
+    async def _get_fallback_investigation(self, request: InvestigationRequest, start_time: float) -> InvestigationResponse:
+        """Fallback investigation with mock data when API is unavailable."""
+        logger.info("🔄 Using fallback mock data for investigation")
+        
+        results = [
+            {
+                "contract_id": "FALLBACK_001",
+                "description": "Aquisição de equipamentos de informática (DADOS DEMO)",
+                "value": 150000.00,
+                "supplier": "Tech Solutions LTDA",
+                "anomaly_type": "price_suspicious",
+                "risk_level": "medium",
+                "explanation": "[DEMO] Preço 25% acima da média de mercado para equipamentos similares"
+            },
+            {
+                "contract_id": "FALLBACK_002", 
+                "description": "Serviços de consultoria especializada (DADOS DEMO)",
+                "value": 280000.00,
+                "supplier": "Consulting Group SA",
+                "anomaly_type": "vendor_concentration",
+                "risk_level": "high",
+                "explanation": "[DEMO] Fornecedor concentra 40% dos contratos do órgão no período"
+            }
+        ]
+        
+        processing_time = int((time.time() - start_time) * 1000)
+        
+        return InvestigationResponse(
+            status="completed_fallback",
+            query=request.query,
+            results=results,
+            anomalies_found=len(results),
+            confidence_score=0.75,  # Lower confidence for mock data
+            processing_time_ms=processing_time
+        )
 
 # Initialize Zumbi Agent
 zumbi_agent = ZumbiAgent()
@@ -254,19 +415,30 @@ async def metrics():
 
 @app.get("/api/status")
 async def api_status():
-    """API status endpoint."""
+    """API status endpoint with data source information."""
     REQUEST_COUNT.labels(method="GET", endpoint="/api/status").inc()
+    
+    # Check if we have real API access
+    api_key_available = bool(os.getenv("TRANSPARENCY_API_KEY"))
     
     return {
         "api": "Cidadão.AI Backend",
-        "version": "1.0.0",
+        "version": "1.1.0",
         "status": "operational",
+        "data_source": {
+            "type": "real_api" if api_key_available else "fallback_demo",
+            "portal_transparencia": {
+                "enabled": api_key_available,
+                "status": "connected" if api_key_available else "using_fallback"
+            }
+        },
         "agents": {
             "zumbi": {
                 "name": "Zumbi dos Palmares",
                 "role": "InvestigatorAgent",
-                "specialty": "Anomaly detection in government contracts",
-                "status": "active"
+                "specialty": "Real-time anomaly detection in government contracts",
+                "status": "active",
+                "data_source": "Portal da Transparência API" if api_key_available else "Demo data"
             }
         },
         "endpoints": {
@@ -274,8 +446,15 @@ async def api_status():
             "investigate": "/api/agents/zumbi/investigate",
             "test_data": "/api/agents/zumbi/test",
             "metrics": "/metrics",
-            "docs": "/docs"
-        }
+            "docs": "/docs",
+            "status": "/api/status"
+        },
+        "capabilities": [
+            "Price anomaly detection (Z-score analysis)",
+            "Vendor concentration analysis", 
+            "Statistical outlier detection",
+            "Real-time government data processing" if api_key_available else "Demo data analysis"
+        ]
     }
 
 if __name__ == "__main__":
