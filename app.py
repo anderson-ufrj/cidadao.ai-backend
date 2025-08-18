@@ -137,10 +137,10 @@ class ZumbiAgent:
             # Direct API call to Portal da Transparência
             import httpx
             async with httpx.AsyncClient(timeout=30.0) as client:
-                # Define organization codes for investigation
-                org_codes = ["26000", "20000", "25000"]  # Health, Presidency, Education
+                # Define organization codes for investigation (mais órgãos)
+                org_codes = ["26000", "20000", "25000", "44000", "36000"]  # Health, Presidency, Education, Environment, Justice
                 
-                for org_code in org_codes[:2]:  # Limit to 2 orgs to avoid timeout
+                for org_code in org_codes[:3]:  # Analisar 3 órgãos para mais diversidade
                     try:
                         # Direct API call to Portal da Transparência
                         url = "https://api.portaldatransparencia.gov.br/api-de-dados/contratos"
@@ -148,11 +148,12 @@ class ZumbiAgent:
                             "chave-api-dados": api_key,
                             "Accept": "application/json"
                         }
+                        # Parâmetros mais abrangentes para capturar mais anomalias
                         params = {
                             "codigoOrgao": org_code,
                             "ano": 2024,
-                            "tamanhoPagina": 20,
-                            "valorInicial": 50000
+                            "tamanhoPagina": 50,  # Mais contratos
+                            "valorInicial": 1000  # Valor mínimo muito menor (R$ 1k vs R$ 50k)
                         }
                         
                         response = await client.get(url, headers=headers, params=params)
@@ -228,10 +229,10 @@ class ZumbiAgent:
             
             valor = float(valor)
             
-            # Price anomaly detection (Z-score > 2)
+            # Price anomaly detection (Z-score > 1.5 - mais sensível)
             z_score = abs((valor - mean_value) / std_value) if std_value > 0 else 0
             
-            if z_score > 2.0:  # Suspicious price
+            if z_score > 1.5:  # Mais sensível para detectar mais anomalias
                 anomaly = {
                     "contract_id": contract.get("id", "unknown"),
                     "description": contract.get("objeto", "")[:100],
@@ -283,11 +284,11 @@ class ZumbiAgent:
         if total_value == 0:
             return anomalies
         
-        # Check for excessive concentration (>40% of total value)
+        # Check for excessive concentration (>25% of total value - mais sensível)
         for supplier, stats in vendor_stats.items():
             concentration = stats["total_value"] / total_value
             
-            if concentration > 0.4 and stats["contracts"] > 1:  # 40% threshold
+            if concentration > 0.25 and stats["contracts"] > 1:  # 25% threshold (mais sensível)
                 anomaly = {
                     "contract_id": f"concentration_{org_code}_{supplier}",
                     "description": f"Concentração excessiva de contratos",
