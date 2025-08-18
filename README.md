@@ -87,7 +87,15 @@ curl -X POST "https://your-space-url.hf.space/api/agents/zumbi/investigate" \
        "data_source": "contracts",
        "max_results": 100
      }'
+
+# Acessar métricas Prometheus
+curl -X GET "https://your-space-url.hf.space/health/metrics"
 ```
+
+### Monitoring Endpoints
+- `GET /health/metrics` - Métricas Prometheus para monitoramento
+- `GET /health/metrics/json` - Métricas do sistema em formato JSON
+- `GET /health/detailed` - Health check detalhado com informações do sistema
 
 ## 🛡️ Recursos Enterprise
 
@@ -105,9 +113,14 @@ curl -X POST "https://your-space-url.hf.space/api/agents/zumbi/investigate" \
 - **Gestão de segredos** integrada com HashiCorp Vault
 
 ### 📊 **Observabilidade Completa**
-- **Métricas Prometheus** customizadas para análises de transparência
+- **Métricas Prometheus** customizadas implementadas em produção:
+  - Métricas de API (requisições, duração, throughput)
+  - Métricas de agentes (execuções, falhas, retry, duração)
+  - Métricas de investigação (anomalias detectadas, tipos, severidade)
+  - Métricas de dados (registros processados, API transparência)
+- **Endpoint /health/metrics** expondo métricas para Grafana/Prometheus
 - **Logging estruturado JSON** com correlação de IDs
-- **Health checks** detalhados para todos os componentes
+- **Health checks** detalhados para todos os componentes  
 - **Documentação automática** com OpenAPI/Swagger
 
 ### ⚡ **Performance & Escalabilidade**
@@ -147,6 +160,8 @@ curl -X POST "https://your-space-url.hf.space/api/agents/zumbi/investigate" \
 - ✅ **Sistema Multi-Agente**: 16 agentes implementados
 - ✅ **API REST**: 100% endpoints funcionais com documentação
 - ✅ **Pipeline ML**: Estado-da-arte para anomaly detection
+- ✅ **Observabilidade**: Métricas Prometheus implementadas em produção
+- ✅ **Monitoramento**: Instrumentação completa de agentes e investigações
 - ✅ **Containerização**: Docker pronto para deploy
 - ✅ **Documentação**: Qualidade técnica excepcional
 

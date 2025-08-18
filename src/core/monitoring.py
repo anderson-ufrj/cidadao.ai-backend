@@ -99,6 +99,37 @@ ACTIVE_CONNECTIONS = Gauge(
     ['connection_type']
 )
 
+# Investigation and Anomaly Detection Metrics
+INVESTIGATIONS_TOTAL = Counter(
+    'cidadao_ai_investigations_total',
+    'Total number of investigations started',
+    ['agent_type', 'investigation_type', 'status']
+)
+
+ANOMALIES_DETECTED = Counter(
+    'cidadao_ai_anomalies_detected_total',
+    'Total number of anomalies detected',
+    ['anomaly_type', 'severity', 'agent']
+)
+
+INVESTIGATION_DURATION = Histogram(
+    'cidadao_ai_investigation_duration_seconds',
+    'Time taken for investigations',
+    ['agent_type', 'investigation_type']
+)
+
+DATA_RECORDS_PROCESSED = Counter(
+    'cidadao_ai_data_records_processed_total',
+    'Total number of data records processed',
+    ['data_source', 'agent', 'operation']
+)
+
+TRANSPARENCY_API_DATA_FETCHED = Counter(
+    'cidadao_ai_transparency_data_fetched_total',
+    'Total data fetched from transparency API',
+    ['endpoint', 'organization', 'status']
+)
+
 
 class PerformanceMetrics:
     """System performance metrics collector."""

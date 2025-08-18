@@ -15,7 +15,10 @@ from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel
 
 from src.core import get_logger, settings
+from src.core.monitoring import get_metrics_data, collect_system_metrics, performance_metrics, health_monitor
 from src.tools import TransparencyAPIClient
+from prometheus_client import CONTENT_TYPE_LATEST
+from fastapi.responses import Response
 
 
 logger = get_logger(__name__)
@@ -169,6 +172,45 @@ async def liveness_probe():
     Simple endpoint to check if the application is running.
     """
     return {"status": "alive", "timestamp": datetime.utcnow()}
+
+
+@router.get("/metrics")
+async def prometheus_metrics():
+    """
+    Prometheus metrics endpoint.
+    
+    Returns metrics in Prometheus format for monitoring.
+    """
+    try:
+        metrics_data = get_metrics_data()
+        return Response(
+            content=metrics_data,
+            media_type=CONTENT_TYPE_LATEST
+        )
+    except Exception as e:
+        logger.error("metrics_endpoint_error", error=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to collect metrics: {str(e)}"
+        )
+
+
+@router.get("/metrics/json")
+async def system_metrics_json():
+    """
+    System metrics in JSON format for debugging.
+    
+    Returns comprehensive system metrics in JSON format.
+    """
+    try:
+        metrics = await collect_system_metrics()
+        return metrics
+    except Exception as e:
+        logger.error("system_metrics_error", error=str(e))
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to collect system metrics: {str(e)}"
+        )
 
 
 @router.get("/ready")

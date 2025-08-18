@@ -19,9 +19,14 @@ from pydantic import BaseModel, Field as PydanticField
 from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
+from src.core.monitoring import (
+    INVESTIGATIONS_TOTAL, ANOMALIES_DETECTED, INVESTIGATION_DURATION,
+    DATA_RECORDS_PROCESSED, TRANSPARENCY_API_DATA_FETCHED
+)
 from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFilter
 from src.tools.models_client import ModelsClient, get_models_client
 from src.ml.spectral_analyzer import SpectralAnalyzer, SpectralAnomaly
+import time
 
 
 @dataclass
@@ -128,6 +133,8 @@ class InvestigatorAgent(BaseAgent):
         Returns:
             Investigation results with detected anomalies
         """
+        investigation_start_time = time.time()
+        
         try:
             self.logger.info(
                 "investigation_started",
@@ -139,6 +146,14 @@ class InvestigatorAgent(BaseAgent):
             # Parse investigation request
             if message.message_type == "investigation_request":
                 request = InvestigationRequest(**message.content)
+                
+                # Record investigation start
+                INVESTIGATIONS_TOTAL.labels(
+                    agent_type="zumbi",
+                    investigation_type=request.anomaly_types[0] if request.anomaly_types else "general",
+                    status="started"
+                ).inc()
+                
             else:
                 raise AgentExecutionError(
                     f"Unsupported message type: {message.message_type}",
@@ -147,6 +162,13 @@ class InvestigatorAgent(BaseAgent):
             
             # Fetch data for investigation
             contracts_data = await self._fetch_investigation_data(request, context)
+            
+            # Record data processed
+            DATA_RECORDS_PROCESSED.labels(
+                data_source="transparency_api",
+                agent="zumbi",
+                operation="fetch"
+            ).inc(len(contracts_data) if contracts_data else 0)
             
             if not contracts_data:
                 return AgentMessage(
@@ -167,6 +189,14 @@ class InvestigatorAgent(BaseAgent):
                 context
             )
             
+            # Record anomalies detected
+            for anomaly in anomalies:
+                ANOMALIES_DETECTED.labels(
+                    anomaly_type=anomaly.anomaly_type,
+                    severity="high" if anomaly.severity > 0.7 else "medium" if anomaly.severity > 0.4 else "low",
+                    agent="zumbi"
+                ).inc()
+            
             # Generate investigation summary
             summary = self._generate_investigation_summary(contracts_data, anomalies)
             
@@ -185,11 +215,25 @@ class InvestigatorAgent(BaseAgent):
                 }
             }
             
+            # Record investigation completion and duration
+            investigation_duration = time.time() - investigation_start_time
+            INVESTIGATION_DURATION.labels(
+                agent_type="zumbi",
+                investigation_type=request.anomaly_types[0] if request.anomaly_types else "general"
+            ).observe(investigation_duration)
+            
+            INVESTIGATIONS_TOTAL.labels(
+                agent_type="zumbi",
+                investigation_type=request.anomaly_types[0] if request.anomaly_types else "general",
+                status="completed"
+            ).inc()
+            
             self.logger.info(
                 "investigation_completed",
                 investigation_id=context.investigation_id,
                 records_analyzed=len(contracts_data),
                 anomalies_found=len(anomalies),
+                duration_seconds=investigation_duration,
             )
             
             return AgentMessage(
@@ -199,6 +243,13 @@ class InvestigatorAgent(BaseAgent):
             )
             
         except Exception as e:
+            # Record investigation failure
+            INVESTIGATIONS_TOTAL.labels(
+                agent_type="zumbi",
+                investigation_type="general",  # Fallback for failed investigations
+                status="failed"
+            ).inc()
+            
             self.logger.error(
                 "investigation_failed",
                 investigation_id=context.investigation_id,
@@ -259,6 +310,13 @@ class InvestigatorAgent(BaseAgent):
                     # Fetch contracts
                     response = await client.get_contracts(filters)
                     
+                    # Record API data fetched
+                    TRANSPARENCY_API_DATA_FETCHED.labels(
+                        endpoint="contracts",
+                        organization=org_code,
+                        status="success"
+                    ).inc(len(response.data))
+                    
                     # Add organization code to each contract
                     for contract in response.data:
                         contract["_org_code"] = org_code
@@ -273,6 +331,13 @@ class InvestigatorAgent(BaseAgent):
                     )
                     
                 except Exception as e:
+                    # Record API fetch failure
+                    TRANSPARENCY_API_DATA_FETCHED.labels(
+                        endpoint="contracts",
+                        organization=org_code,
+                        status="failed"
+                    ).inc()
+                    
                     self.logger.warning(
                         "data_fetch_failed",
                         org_code=org_code,
