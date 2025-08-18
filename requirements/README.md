@@ -1,40 +1,60 @@
-# Requirements Structure
+# Requirements Management
 
-This directory contains organized dependency files for different environments and use cases.
+This project uses **pyproject.toml as the single source of truth** for all dependencies. The files in this directory are convenience wrappers.
 
-## File Structure
-
-- **`base.txt`** - Core dependencies needed for all environments
-- **`production.txt`** - Full production stack extending base.txt
-- **`dev.txt`** - Development tools and testing dependencies
-- **`hf.txt`** - HuggingFace Spaces minimal requirements
-
-## Usage
+## ✅ Recommended Installation Methods
 
 ### Development Environment
 ```bash
-pip install -r requirements/dev.txt
+pip install -e .[dev]
 ```
 
-### Production Environment  
+### HuggingFace Spaces Deployment  
 ```bash
-pip install -r requirements/production.txt
+pip install -e .[hf]
 ```
 
-### HuggingFace Spaces
+### Production Deployment
 ```bash
-pip install -r requirements/hf.txt
-# OR use root requirements.txt (identical to hf.txt)
-pip install -r requirements.txt
+pip install -e .[prod]  
 ```
 
-## Primary Source of Truth
+### Base Installation Only
+```bash
+pip install -e .
+```
 
-The main dependency source is `pyproject.toml`. These requirements files are derived from it for specific deployment scenarios.
+## 📁 File Structure
 
-## Dependencies Overview
+- **`base.txt`** - References base dependencies from pyproject.toml
+- **`dev.txt`** - References development dependencies 
+- **`hf.txt`** - References HuggingFace minimal dependencies
+- **`production.txt`** - References production dependencies
 
-- **Base:** FastAPI, Pydantic, HTTPX, Prometheus, NumPy, Pandas
-- **Production:** +Database, +AI/ML, +Security, +Monitoring
-- **Development:** +Testing, +Code Quality, +Documentation tools
-- **HuggingFace:** Minimal subset for cloud deployment
+## 🔧 Maintenance
+
+All dependency management is done in `pyproject.toml`. To update:
+
+1. Edit dependencies in `pyproject.toml`
+2. Run `pip install -e .[dev]` to install updated dependencies
+3. For HuggingFace deployment, regenerate `requirements.txt`:
+   ```bash
+   python3 -c "
+   import tomllib
+   with open('pyproject.toml', 'rb') as f: 
+       data = tomllib.load(f)
+       deps = data['project']['optional-dependencies']['hf']
+       with open('requirements.txt', 'w') as out:
+           out.write('# Generated from pyproject.toml[hf]\n\n')
+           for dep in deps:
+               out.write(dep + '\n')
+   "
+   ```
+
+## 🎯 Single Source of Truth
+
+- **Primary**: `pyproject.toml` (defines all dependencies)
+- **HuggingFace**: `requirements.txt` (generated from pyproject.toml[hf])
+- **Convenience**: `requirements/*.txt` (reference pyproject.toml sections)
+
+This approach ensures consistency across all environments and deployment scenarios.

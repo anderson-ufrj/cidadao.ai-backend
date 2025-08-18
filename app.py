@@ -19,8 +19,9 @@ from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
 from datetime import datetime, timedelta
 
-# Add src to Python path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+# HuggingFace Spaces Entry Point
+# This is a simplified version of the main API for cloud deployment
+# For local development, use: python -m src.api.app
 
 import uvicorn
 from fastapi import FastAPI, HTTPException, status
