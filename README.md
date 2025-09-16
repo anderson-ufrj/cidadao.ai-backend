@@ -81,15 +81,22 @@ Our comprehensive test suite ensures reliability and security:
 
 ### 🤖 **Multi-Agent System**
 
-17 specialized AI agents with Brazilian cultural identities:
+**Status**: 8 agents fully operational, 7 partially implemented, 16/17 total
 
-- **🎯 Abaporu** (Master): Investigation orchestrator
-- **🔍 Zumbi dos Palmares** (Investigator): Anomaly detection
-- **📊 Anita Garibaldi** (Analyst): Pattern analysis
-- **📝 Tiradentes** (Reporter): Natural language reports
-- **🧠 Nanã** (Memory): Knowledge management
-- **🏎️ Ayrton Senna** (Router): Intelligent routing
-- And 11 more specialized agents...
+#### ✅ **Fully Operational Agents**:
+- **🎯 Abaporu** (Master): Investigation orchestrator and coordinator
+- **🔍 Zumbi dos Palmares** (Investigator): Advanced anomaly detection with FFT
+- **📊 Anita Garibaldi** (Analyst): Pattern analysis and trend detection
+- **📝 Tiradentes** (Reporter): Multi-format adaptive report generation
+- **🧠 Nanã** (Memory): Episodic, semantic and conversational memory
+- **🏎️ Ayrton Senna** (Router): Semantic routing with intent detection
+- **📚 Machado de Assis** (Textual): Document analysis with NER and compliance
+- **⚖️ Dandara** (Social Justice): Equity analysis with social coefficients
+
+#### ⚠️ **In Development** (7 agents):
+- José Bonifácio (Policy Analyst), Carlos Drummond (Communication)
+- Maria Quitéria (Security), Oscar Niemeyer (Visualization)
+- Ceuci (ETL), Obaluaiê (Health), Lampião (Regional)
 
 ### 🔒 **Security Features**
 
