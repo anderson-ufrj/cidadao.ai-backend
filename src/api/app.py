@@ -20,7 +20,7 @@ from fastapi.openapi.utils import get_openapi
 from src.core import get_logger, settings
 from src.core.exceptions import CidadaoAIError, create_error_response
 from src.core.audit import audit_logger, AuditEventType, AuditSeverity, AuditContext
-from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit
+from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat
 from src.api.middleware.rate_limiting import RateLimitMiddleware
 from src.api.middleware.authentication import AuthenticationMiddleware
 from src.api.middleware.logging_middleware import LoggingMiddleware
@@ -241,6 +241,12 @@ app.include_router(
     reports.router,
     prefix="/api/v1/reports",
     tags=["Reports"]
+)
+
+app.include_router(
+    chat.router,
+    prefix="/api/v1/chat",
+    tags=["Chat"]
 )
 
 
