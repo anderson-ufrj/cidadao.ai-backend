@@ -47,6 +47,8 @@ O sistema detecta automaticamente se você tem acesso à API do Portal da Transp
 - **✅ Com `TRANSPARENCY_API_KEY`**: Análise de **dados reais** de contratos públicos
 - **🔄 Sem chave API**: Funciona com **dados demo** para demonstração
 
+📚 **[Documentação completa da integração →](docs/PORTAL_TRANSPARENCIA_INTEGRATION.md)**
+
 ## 📊 Test Coverage & Quality
 
 ### 🛡️ **Enterprise-Grade Testing**
@@ -223,6 +225,13 @@ GET /health/metrics
 POST /api/v1/auth/login
 POST /api/v1/auth/refresh
 POST /api/v1/auth/logout
+
+# Chat (NEW!)
+POST /api/v1/chat/message              # Send message
+POST /api/v1/chat/stream               # Stream response (SSE)
+GET  /api/v1/chat/suggestions          # Quick actions
+GET  /api/v1/chat/history/{session_id} # Get history
+GET  /api/v1/chat/agents               # List agents
 
 # Investigations
 POST /api/v1/investigations

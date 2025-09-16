@@ -1,5 +1,34 @@
 # 📋 Changelog - Cidadão.AI
 
+## 🚀 v2.2.0 - Chat API & Mobile Support (2025-01-16)
+
+### ✨ New Features
+- **💬 Chat API**: Complete conversational interface with intent detection
+- **🔄 SSE Streaming**: Real-time message streaming for better UX
+- **🧠 Intent Detection**: Automatic routing to appropriate agents
+- **📱 Mobile Ready**: Optimized for PWA and mobile apps
+- **🎯 Session Management**: Persistent conversation context
+
+### 🤖 Chat Capabilities
+- **Endpoints**: 6 new chat endpoints for complete conversational flow
+- **Intent Types**: 7 types (investigate, analyze, report, status, help, greeting, question)
+- **Entity Extraction**: Organs, periods, and monetary values
+- **Agent Routing**: Automatic selection based on intent
+- **Portuguese Support**: Full PT-BR natural language processing
+
+### 📚 Documentation
+- **CHAT_API_DOCUMENTATION.md**: Complete API reference
+- **BACKEND_CHAT_IMPLEMENTATION.md**: Implementation guide
+- **Updated README**: Added chat endpoints
+
+### 🔧 Technical Improvements
+- Session persistence across conversations
+- SSE for smooth typing experience
+- Rate limiting per session
+- CORS headers for mobile apps
+
+---
+
 ## 🚀 v2.1.0 - Agent System Completion & Documentation Update (2025-01-16)
 
 ### ✨ Major Updates
