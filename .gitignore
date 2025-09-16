@@ -341,7 +341,7 @@ app_*.py
 README_*.md
 requirements_*.txt
 docker-compose.*.yml
-test_*.py
+# test_*.py  # Commented out - we want to commit test files
 setup_*.py
 
 # Project planning files
@@ -349,3 +349,8 @@ next-steps.md
 *next-steps*
 planning/
 *.planning
+
+# Local archive - internal reports and notes
+.local-archive/
+local-archive/
+*-archive/
