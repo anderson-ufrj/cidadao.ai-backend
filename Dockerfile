@@ -24,6 +24,7 @@ RUN pip install --no-cache-dir --upgrade pip && \
 
 # Copy application code
 COPY app.py ./
+COPY start_hf.py ./
 COPY src/ ./src/
 COPY *.py ./
 
@@ -41,5 +42,5 @@ EXPOSE 7860
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:7860/health || exit 1
 
-# Run application
-CMD ["python", "app.py"]
+# Run application - Using full API with WebSocket support
+CMD ["python", "start_hf.py"]
