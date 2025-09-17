@@ -6,6 +6,6 @@ Date: 2025-01-24
 License: Proprietary - All rights reserved
 """
 
-from . import health, investigations, analysis, reports, chat
+from . import health, investigations, analysis, reports, chat, websocket_chat
 
-__all__ = ["health", "investigations", "analysis", "reports", "chat"]
+__all__ = ["health", "investigations", "analysis", "reports", "chat", "websocket_chat"]
