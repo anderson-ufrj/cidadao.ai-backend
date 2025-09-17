@@ -15,17 +15,15 @@ from src.core.exceptions import ValidationError
 from src.api.dependencies import get_current_optional_user
 from src.agents.abaporu import MasterAgent
 from src.agents.deodoro import AgentMessage, AgentContext
-from src.services.chat_service_with_cache import chat_service as ChatService
+from src.services.chat_service_with_cache import chat_service
 from src.services.chat_service import IntentDetector, IntentType
 from src.api.models.pagination import CursorPaginationResponse
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/chat", tags=["chat"])
 
-# Initialize services
-chat_service = ChatService()
+# Services are already initialized
 intent_detector = IntentDetector()
-master_agent = MasterAgent()
 
 class ChatRequest(BaseModel):
     """Chat message request"""
