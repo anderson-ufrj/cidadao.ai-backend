@@ -46,7 +46,7 @@ __description__ = "Sistema multi-agente de IA para transparência pública brasi
 
 # Key exports for external usage
 from src.core.config import get_settings
-from src.core.exceptions import CidadaoAIException
+from src.core.exceptions import CidadaoAIError
 
 # Version info tuple
 VERSION = (1, 0, 0)
@@ -66,5 +66,5 @@ __all__ = [
     "VERSION",
     "VERSION_INFO",
     "get_settings",
-    "CidadaoAIException",
+    "CidadaoAIError",
 ]
