@@ -261,7 +261,7 @@ class ChatService:
     """Service for managing chat sessions and conversations"""
     
     def __init__(self):
-        self.cache = CacheService()
+        self.cache = cache_service
         self.sessions: Dict[str, ChatSession] = {}
         self.messages: Dict[str, List[Dict]] = defaultdict(list)
         
