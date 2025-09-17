@@ -11,6 +11,7 @@ from collections import defaultdict
 
 from src.core import get_logger
 from src.core.cache import CacheService
+from src.services.cache_service import cache_service
 from src.agents import (
     MasterAgent, InvestigatorAgent, AnalystAgent, 
     ReporterAgent, BaseAgent

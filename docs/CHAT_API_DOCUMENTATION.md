@@ -2,7 +2,7 @@
 
 **Status**: ✅ Implementado e Funcional  
 **Versão**: 1.0.0  
-**Data**: Janeiro 2025
+**Data**: Setembro 2025
 
 ## 📋 Visão Geral
 
@@ -44,7 +44,7 @@ Processa uma mensagem do usuário e retorna resposta do agente apropriado.
     "intent_type": "investigate",
     "processing_time": 0.234,
     "is_demo_mode": false,
-    "timestamp": "2025-01-16T10:30:00Z"
+    "timestamp": "2025-09-16T10:30:00Z"
   }
 }
 ```
@@ -115,12 +115,12 @@ Recupera histórico de mensagens de uma sessão.
     {
       "role": "user",
       "content": "Investigar contratos",
-      "timestamp": "2025-01-16T10:30:00Z"
+      "timestamp": "2025-09-16T10:30:00Z"
     },
     {
       "role": "assistant",
       "content": "Vou coordenar essa investigação...",
-      "timestamp": "2025-01-16T10:30:05Z",
+      "timestamp": "2025-09-16T10:30:05Z",
       "agent_id": "abaporu"
     }
   ],

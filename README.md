@@ -100,6 +100,16 @@ Our comprehensive test suite ensures reliability and security:
 - Maria Quitéria (Security), Oscar Niemeyer (Visualization)
 - Ceuci (ETL), Obaluaiê (Health), Lampião (Regional)
 
+### 💬 **Chat & Real-time Features**
+
+- **Conversational Interface**: Natural language chat in Portuguese
+- **Intent Detection**: 7 intent types with entity extraction
+- **SSE Streaming**: Real-time response streaming
+- **WebSocket**: Bidirectional communication
+- **Smart Caching**: Redis cache for frequent responses
+- **Cursor Pagination**: Efficient message history
+- **Gzip Compression**: 70-90% bandwidth reduction
+
 ### 🔒 **Security Features**
 
 - **JWT Authentication**: Secure token-based auth
@@ -231,7 +241,14 @@ POST /api/v1/chat/message              # Send message
 POST /api/v1/chat/stream               # Stream response (SSE)
 GET  /api/v1/chat/suggestions          # Quick actions
 GET  /api/v1/chat/history/{session_id} # Get history
+GET  /api/v1/chat/history/{session_id}/paginated # Cursor pagination
+DELETE /api/v1/chat/history/{session_id} # Clear history
+GET  /api/v1/chat/cache/stats          # Cache statistics
 GET  /api/v1/chat/agents               # List agents
+
+# WebSocket (NEW!)
+WS   /api/v1/ws/chat/{session_id}     # Real-time chat
+WS   /api/v1/ws/investigations/{id}   # Investigation updates
 
 # Investigations
 POST /api/v1/investigations
