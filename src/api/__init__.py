@@ -30,10 +30,8 @@ Status: Production-ready with comprehensive enterprise features.
 """
 
 from src.api.app import app
-from src.api.routes import get_api_router
 
 # Key exports for application setup
 __all__ = [
     "app",
-    "get_api_router",
 ]
