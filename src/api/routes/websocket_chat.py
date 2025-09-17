@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 from src.core import get_logger
 from src.core.exceptions import AuthenticationError
 from src.services.chat_service import ChatService
-from src.api.dependencies import get_current_user_optional
+from src.api.dependencies import get_current_optional_user
 
 logger = get_logger(__name__)
 router = APIRouter()
