@@ -8,6 +8,7 @@ import asyncio
 import logging
 import os
 import sys
+import time
 import hashlib
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional, Union
@@ -154,7 +155,6 @@ class EnhancedZumbiAgent:
     
     async def investigate_universal(self, request: UniversalSearchRequest) -> UniversalSearchResponse:
         """Investigate any data source."""
-        import time
         start_time = time.time()
         
         try:
