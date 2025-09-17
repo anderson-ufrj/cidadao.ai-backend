@@ -265,13 +265,8 @@ class ChatService:
         self.sessions: Dict[str, ChatSession] = {}
         self.messages: Dict[str, List[Dict]] = defaultdict(list)
         
-        # Initialize agents
-        self.agents = {
-            "abaporu": MasterAgent(),
-            "zumbi": InvestigatorAgent(),
-            "anita": AnalystAgent(),
-            "tiradentes": ReporterAgent()
-        }
+        # Agents will be initialized lazily when needed
+        self.agents = {}
     
     async def get_or_create_session(
         self, 
