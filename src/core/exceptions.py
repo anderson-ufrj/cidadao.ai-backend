@@ -221,6 +221,12 @@ class InvalidConfigurationError(ConfigurationError):
     pass
 
 
+# Cache exceptions
+class CacheError(CidadaoAIError):
+    """Base exception for cache-related errors."""
+    pass
+
+
 # Database exceptions
 class DatabaseError(CidadaoAIError):
     """Base exception for database errors."""
