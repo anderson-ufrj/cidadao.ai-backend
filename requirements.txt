@@ -27,3 +27,4 @@ opentelemetry-instrumentation-sqlalchemy>=0.43b0
 opentelemetry-instrumentation-redis>=0.43b0
 deprecated>=1.2.0
 redis>=5.0.0
+scipy>=1.11.0
