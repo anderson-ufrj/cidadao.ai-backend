@@ -13,6 +13,7 @@ import asyncio
 import logging
 import os
 import sys
+import time
 import traceback
 import hashlib
 from contextlib import asynccontextmanager
@@ -188,7 +189,6 @@ class ZumbiAgent:
     
     async def investigate(self, request: InvestigationRequest) -> InvestigationResponse:
         """Execute investigation with anomaly detection using REAL API data."""
-        import time
         import os
         import numpy as np
         from collections import defaultdict
