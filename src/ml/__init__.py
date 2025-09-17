@@ -1,4 +1,4 @@
-"""Machine Learning models and utilities for Cidadão.AI.
+"""Machine Learning models and utilities for Cidadao.AI.
 
 This module provides ML capabilities including:
 - Anomaly detection algorithms
