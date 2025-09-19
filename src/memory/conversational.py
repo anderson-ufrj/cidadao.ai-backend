@@ -2,7 +2,21 @@
 
 from typing import Any, Dict, List, Optional
 from datetime import datetime
+from dataclasses import dataclass
 from .base import BaseMemory
+
+
+@dataclass
+class ConversationContext:
+    """Context information for conversations."""
+    session_id: str
+    user_id: Optional[str] = None
+    user_profile: Optional[Dict[str, Any]] = None
+    metadata: Dict[str, Any] = None
+    
+    def __post_init__(self):
+        if self.metadata is None:
+            self.metadata = {}
 
 
 class ConversationalMemory(BaseMemory):

@@ -22,7 +22,7 @@ from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentRespo
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
 from src.services.chat_service import IntentType, Intent
-from src.memory.conversational_memory import ConversationalMemory, ConversationContext
+from src.memory.conversational import ConversationalMemory, ConversationContext
 
 
 class CommunicationChannel(Enum):
