@@ -396,6 +396,11 @@ class DistributedTracing:
     def setup_tracing(self):
         """Setup OpenTelemetry distributed tracing."""
         try:
+            # Skip tracing setup if Jaeger settings not available
+            if not hasattr(settings, 'jaeger_host'):
+                logger.info("Jaeger configuration not found, skipping distributed tracing setup")
+                return
+                
             # Configure tracer provider
             self.tracer_provider = TracerProvider()
             trace.set_tracer_provider(self.tracer_provider)
