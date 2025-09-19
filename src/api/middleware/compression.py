@@ -1,8 +1,8 @@
 """
-Gzip compression middleware for API responses.
+Advanced compression middleware for API responses with Gzip and Brotli support.
 
 This middleware compresses responses to reduce bandwidth usage,
-especially important for mobile applications.
+especially important for mobile applications and slow connections.
 """
 
 import gzip
@@ -13,8 +13,17 @@ from fastapi import Request, Response
 from fastapi.responses import StreamingResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
+from starlette.datastructures import MutableHeaders
 
 from src.core import get_logger
+from src.core.json_utils import dumps_bytes, loads
+
+try:
+    import brotli
+    HAS_BROTLI = True
+except ImportError:
+    HAS_BROTLI = False
+    brotli = None
 
 logger = get_logger(__name__)
 
@@ -34,7 +43,10 @@ class CompressionMiddleware(BaseHTTPMiddleware):
         self,
         app: ASGIApp,
         minimum_size: int = 1024,
-        compression_level: int = 6
+        gzip_level: int = 6,
+        brotli_quality: int = 4,
+        brotli_mode: str = "text",
+        exclude_paths: Optional[set] = None
     ):
         """
         Initialize compression middleware.
@@ -42,11 +54,25 @@ class CompressionMiddleware(BaseHTTPMiddleware):
         Args:
             app: ASGI application
             minimum_size: Minimum response size to compress (bytes)
-            compression_level: Gzip compression level (1-9)
+            gzip_level: Gzip compression level (1-9)
+            brotli_quality: Brotli quality level (0-11)
+            brotli_mode: Brotli mode - "text", "font", or "generic"
+            exclude_paths: Set of paths to exclude from compression
         """
         super().__init__(app)
         self.minimum_size = minimum_size
-        self.compression_level = compression_level
+        self.gzip_level = gzip_level
+        self.brotli_quality = brotli_quality
+        self.brotli_mode = brotli_mode
+        self.exclude_paths = exclude_paths or {'/metrics', '/health', '/health/metrics'}
+        
+        # Brotli mode mapping
+        if HAS_BROTLI:
+            self.brotli_modes = {
+                "text": brotli.MODE_TEXT,
+                "font": brotli.MODE_FONT,
+                "generic": brotli.MODE_GENERIC,
+            }
         
         # Content types to compress
         self.compressible_types = {
@@ -74,9 +100,16 @@ class CompressionMiddleware(BaseHTTPMiddleware):
     
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """Process request and potentially compress response."""
-        # Check if client accepts gzip
-        accept_encoding = request.headers.get("accept-encoding", "")
-        if "gzip" not in accept_encoding.lower():
+        # Skip compression for excluded paths
+        if request.url.path in self.exclude_paths:
+            return await call_next(request)
+        
+        # Check client's accepted encodings
+        accept_encoding = request.headers.get("accept-encoding", "").lower()
+        accepts_br = HAS_BROTLI and "br" in accept_encoding
+        accepts_gzip = "gzip" in accept_encoding
+        
+        if not (accepts_br or accepts_gzip):
             return await call_next(request)
         
         # Process request
@@ -101,22 +134,40 @@ class CompressionMiddleware(BaseHTTPMiddleware):
                 media_type=response.media_type
             )
         
-        # Compress body
-        compressed_body = gzip.compress(body, compresslevel=self.compression_level)
+        # Choose best compression method
+        if accepts_br and HAS_BROTLI:
+            # Brotli typically achieves better compression
+            compressed_body = self._compress_brotli(body)
+            encoding = "br"
+        elif accepts_gzip:
+            compressed_body = self._compress_gzip(body)
+            encoding = "gzip"
+        else:
+            # Should not reach here, but just in case
+            return Response(
+                content=body,
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                media_type=response.media_type
+            )
         
         # Calculate compression ratio
         compression_ratio = (1 - len(compressed_body) / len(body)) * 100
         logger.debug(
-            f"Compressed response: {len(body)} → {len(compressed_body)} bytes "
+            f"Compressed response with {encoding}: {len(body)} → {len(compressed_body)} bytes "
             f"({compression_ratio:.1f}% reduction)"
         )
         
         # Update headers
-        headers = dict(response.headers)
-        headers["content-encoding"] = "gzip"
+        headers = MutableHeaders(response.headers)
+        headers["content-encoding"] = encoding
         headers["content-length"] = str(len(compressed_body))
-        headers["x-uncompressed-size"] = str(len(body))
-        headers["x-compression-ratio"] = f"{compression_ratio:.1f}%"
+        headers["vary"] = "Accept-Encoding"
+        
+        # Optional debug headers
+        if logger.isEnabledFor(10):  # DEBUG level
+            headers["x-uncompressed-size"] = str(len(body))
+            headers["x-compression-ratio"] = f"{compression_ratio:.1f}%"
         
         # Remove content-length if streaming
         if "transfer-encoding" in headers:
@@ -153,6 +204,18 @@ class CompressionMiddleware(BaseHTTPMiddleware):
         
         # Skip everything else
         return False
+    
+    def _compress_gzip(self, data: bytes) -> bytes:
+        """Compress data using gzip."""
+        return gzip.compress(data, compresslevel=self.gzip_level)
+    
+    def _compress_brotli(self, data: bytes) -> bytes:
+        """Compress data using brotli."""
+        if not HAS_BROTLI:
+            raise RuntimeError("Brotli not available")
+        
+        mode = self.brotli_modes.get(self.brotli_mode, brotli.MODE_TEXT)
+        return brotli.compress(data, quality=self.brotli_quality, mode=mode)
 
 
 class StreamingCompressionMiddleware:
@@ -199,22 +262,33 @@ class StreamingCompressionMiddleware:
         await self.app(scope, receive, compressed_send)
 
 
-def add_compression_middleware(app, minimum_size: int = 1024, level: int = 6):
+def add_compression_middleware(
+    app, 
+    minimum_size: int = 1024, 
+    gzip_level: int = 6,
+    brotli_quality: int = 4,
+    exclude_paths: Optional[set] = None
+):
     """
     Add compression middleware to FastAPI app.
     
     Args:
         app: FastAPI application
         minimum_size: Minimum size to compress (bytes)
-        level: Compression level (1-9)
+        gzip_level: Gzip compression level (1-9)
+        brotli_quality: Brotli quality (0-11)
+        exclude_paths: Paths to exclude from compression
     """
     app.add_middleware(
         CompressionMiddleware,
         minimum_size=minimum_size,
-        compression_level=level
+        gzip_level=gzip_level,
+        brotli_quality=brotli_quality,
+        exclude_paths=exclude_paths
     )
     
     logger.info(
         f"Compression middleware enabled "
-        f"(min_size={minimum_size}, level={level})"
+        f"(min_size={minimum_size}, gzip_level={gzip_level}, "
+        f"brotli={'enabled' if HAS_BROTLI else 'disabled'})"
     )
