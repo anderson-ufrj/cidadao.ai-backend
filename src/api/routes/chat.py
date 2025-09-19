@@ -90,10 +90,13 @@ async def send_message(
         if intent.type in [IntentType.GREETING, IntentType.CONVERSATION, IntentType.HELP_REQUEST, 
                           IntentType.ABOUT_SYSTEM, IntentType.SMALLTALK, IntentType.THANKS, IntentType.GOODBYE]:
             target_agent = "drummond"
+            logger.info(f"Routing to Drummond for intent type: {intent.type}")
         elif intent.type == IntentType.INVESTIGATE:
             target_agent = "abaporu"
+            logger.info(f"Routing to Abaporu for intent type: {intent.type}")
         else:
             target_agent = "abaporu"  # Default to master agent
+            logger.info(f"Defaulting to Abaporu for intent type: {intent.type}")
             
         # Create agent message
         agent_message = AgentMessage(
@@ -522,3 +525,17 @@ async def get_available_agents() -> List[Dict[str, Any]]:
             "status": "active"
         }
     ]
+
+@router.get("/debug/drummond-status")
+async def debug_drummond_status():
+    """Debug endpoint to check Drummond agent status"""
+    return {
+        "drummond_initialized": drummond_agent is not None,
+        "drummond_error": drummond_init_error,
+        "drummond_type": str(type(drummond_agent)) if drummond_agent else None,
+        "has_process_method": hasattr(drummond_agent, 'process') if drummond_agent else False,
+        "intent_types_for_drummond": [
+            "GREETING", "CONVERSATION", "HELP_REQUEST", 
+            "ABOUT_SYSTEM", "SMALLTALK", "THANKS", "GOODBYE"
+        ]
+    }
