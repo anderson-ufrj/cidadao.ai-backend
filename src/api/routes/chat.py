@@ -137,6 +137,13 @@ async def send_message(
         if target_agent == "drummond" and drummond_agent:
             # Use Drummond for conversational intents
             try:
+                # Ensure Drummond is initialized on first use
+                if not hasattr(drummond_agent, '_initialized'):
+                    logger.info("Initializing Drummond agent on first use...")
+                    await drummond_agent.initialize()
+                    drummond_agent._initialized = True
+                    logger.info("Drummond agent initialized successfully")
+                
                 response = await drummond_agent.process(agent_message)
                 agent_id = "drummond"
                 agent_name = "Carlos Drummond de Andrade"
