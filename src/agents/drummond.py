@@ -305,6 +305,23 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         
         self.logger.info("Carlos Drummond de Andrade ready for communication")
     
+    async def shutdown(self) -> None:
+        """Cleanup agent resources."""
+        self.logger.info("Shutting down Carlos Drummond de Andrade...")
+        
+        # Close LLM client if exists
+        if self.llm_client:
+            try:
+                await self.llm_client.close()
+            except:
+                pass
+        
+        # Clear memory
+        self.conversational_memory = ConversationalMemory()
+        self.communication_history.clear()
+        
+        self.logger.info("Carlos Drummond de Andrade shutdown complete")
+    
     async def send_notification(
         self, 
         message_type: MessageType,
