@@ -254,13 +254,18 @@ class RequestValidator:
         if len(url) > SecurityConfig.MAX_URL_LENGTH:
             return False, "URL too long"
         
-        # Check for suspicious patterns in URL
+        # Only check path and query for suspicious patterns, not the full URL
+        path_and_query = request.url.path
+        if request.url.query:
+            path_and_query += "?" + request.url.query
+            
+        # Check for suspicious patterns in path and query only
         for pattern in self.suspicious_patterns:
-            if pattern.search(url):
+            if pattern.search(path_and_query):
                 return False, "Suspicious pattern in URL"
         
         # Check for double encoding
-        if "%25" in url:
+        if "%25" in path_and_query:
             return False, "Double URL encoding detected"
         
         return True, None
