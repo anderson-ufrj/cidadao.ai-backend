@@ -19,6 +19,11 @@ from src.services.chat_service_with_cache import chat_service
 from src.services.chat_service import IntentDetector, IntentType
 from src.api.models.pagination import CursorPaginationResponse
 
+# Import the simple Zumbi agent for investigations
+import sys
+sys.path.append('/')
+from app import enhanced_zumbi, UniversalSearchRequest, DataSourceType
+
 logger = get_logger(__name__)
 router = APIRouter(tags=["chat"])
 
@@ -121,6 +126,78 @@ async def send_message(
                 import traceback
                 traceback.print_exc()
                 raise
+        elif target_agent == "abaporu" and intent.type == IntentType.INVESTIGATE:
+            # Handle investigation requests with Zumbi
+            try:
+                logger.info("Routing investigation to Zumbi agent")
+                
+                # Extract what to investigate from the message
+                search_query = request.message.lower()
+                data_source = DataSourceType.CONTRACTS  # Default
+                
+                # Detect data source from keywords
+                if any(word in search_query for word in ["servidor", "salário", "funcionário"]):
+                    data_source = DataSourceType.SERVANTS
+                elif any(word in search_query for word in ["despesa", "gasto", "pagamento"]):
+                    data_source = DataSourceType.EXPENSES
+                elif any(word in search_query for word in ["licitação", "pregão"]):
+                    data_source = DataSourceType.BIDDINGS
+                
+                # Create investigation request
+                investigation_request = UniversalSearchRequest(
+                    query=request.message,
+                    data_source=data_source,
+                    max_results=10
+                )
+                
+                # Run investigation
+                investigation_result = await enhanced_zumbi.investigate_universal(investigation_request)
+                
+                # Format response
+                message = f"🏹 **Investigação Concluída**\n\n"
+                message += f"Fonte de dados: {investigation_result.data_source}\n"
+                message += f"Resultados encontrados: {investigation_result.total_found}\n"
+                message += f"Anomalias detectadas: {investigation_result.anomalies_detected}\n\n"
+                
+                if investigation_result.results:
+                    message += "**Principais achados:**\n"
+                    for i, result in enumerate(investigation_result.results[:3], 1):
+                        if investigation_result.data_source == "contratos":
+                            message += f"{i}. Contrato {result.get('numero', 'N/A')} - R$ {result.get('valor', 0):,.2f}\n"
+                        elif investigation_result.data_source == "servidores":
+                            message += f"{i}. {result.get('nome', 'N/A')} - {result.get('cargo', 'N/A')}\n"
+                else:
+                    message += "Nenhum resultado encontrado para esta busca.\n"
+                
+                response = AgentResponse(
+                    agent_name="Zumbi dos Palmares",
+                    status=AgentStatus.COMPLETED,
+                    result={
+                        "message": message,
+                        "investigation_data": investigation_result.dict(),
+                        "status": "investigation_completed"
+                    },
+                    metadata={
+                        "confidence": investigation_result.confidence_score,
+                        "processing_time": investigation_result.processing_time_ms
+                    }
+                )
+                agent_id = "zumbi"
+                agent_name = "Zumbi dos Palmares"
+                
+            except Exception as e:
+                logger.error(f"Investigation error: {e}")
+                response = AgentResponse(
+                    agent_name="Sistema",
+                    status=AgentStatus.ERROR,
+                    result={
+                        "message": "Erro ao processar investigação. Por favor, tente novamente.",
+                        "error": str(e)
+                    },
+                    metadata={"confidence": 0.0}
+                )
+                agent_id = "system"
+                agent_name = "Sistema"
         else:
             # For now, return a simple response if agents are not available
             logger.warning(f"Falling back to maintenance message. Target: {target_agent}, Drummond: {drummond_agent}")
