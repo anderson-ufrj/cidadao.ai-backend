@@ -30,3 +30,7 @@ redis>=5.0.0
 scipy>=1.11.0
 PyJWT>=2.8.0
 email-validator>=2.0.0
+orjson>=3.9.10
+brotli>=1.1.0
+strawberry-graphql[fastapi]>=0.217.0
+graphene>=3.3
