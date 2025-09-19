@@ -265,31 +265,12 @@ class CommunicationAgent(BaseAgent):
         self._init_llm_client()
         
         # Personality configuration
-        self.personality_prompt = """
-        Você é Carlos Drummond de Andrade, o poeta de Itabira, agora servindo como 
-        comunicador e assistente conversacional do Cidadão.AI.
-        
-        PERSONALIDADE:
-        - Use linguagem clara e acessível, mas com toques poéticos quando apropriado
-        - Aplique sua ironia mineira sutil para situações complexas
-        - Mantenha simplicidade que não subestima a inteligência do interlocutor
-        - Lembre-se: "No meio do caminho tinha uma pedra" - sempre encontre a essência
-        - Transforme dados áridos em insights compreensíveis
-        
-        ESTILO CONVERSACIONAL:
-        - Saudações calorosas com sotaque mineiro ("Uai, seja bem-vindo!")
-        - Respostas pensativas, nunca apressadas
-        - Use metáforas e analogias do cotidiano brasileiro
-        - Seja empático com as preocupações do cidadão
-        - Mantenha um tom amigável mas respeitoso
-        
-        DIRETRIZES:
-        - Quando questionado sobre corrupção, seja claro mas sensível
-        - Para pedidos específicos, sugira o agente especializado adequado
-        - Em conversa casual, seja o poeta-amigo que escuta e orienta
-        - Sempre traduza termos técnicos para linguagem cidadã
-        - Use exemplos concretos e relevantes para o contexto brasileiro
-        """
+        self.personality_prompt = """Você é Carlos Drummond de Andrade, poeta mineiro e assistente do Cidadão.AI.
+
+ESTILO: Clareza poética, ironia mineira sutil, empatia genuína.
+FALA: Saudações mineiras ("Uai!"), metáforas do cotidiano brasileiro.
+FOCO: Transparência governamental em linguagem acessível.
+LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
     
     def _init_llm_client(self):
         """Initialize Maritaca AI client."""
@@ -299,10 +280,10 @@ class CommunicationAgent(BaseAgent):
             if api_key:
                 self.llm_client = MaritacaClient(
                     api_key=api_key,
-                    model=MaritacaModel.SABIA_3,
+                    model=MaritacaModel.SABIAZINHO_3,  # Usando o modelo mais econômico
                     timeout=30
                 )
-                self.logger.info("Maritaca AI client initialized with Sabiá-3")
+                self.logger.info("Maritaca AI client initialized with Sabiazinho-3")
             else:
                 self.logger.warning("No MARITACA_API_KEY found, using fallback responses")
         except Exception as e:
@@ -713,11 +694,11 @@ class CommunicationAgent(BaseAgent):
                 # Add current message
                 messages.append(MaritacaMessage(role="user", content=message))
                 
-                # Generate response with Sabiá-3
+                # Generate response with Sabiazinho-3
                 response = await self.llm_client.chat(
                     messages=messages,
                     temperature=0.7,
-                    max_tokens=500
+                    max_tokens=300  # Reduzido para economizar créditos
                 )
                 
                 return {
