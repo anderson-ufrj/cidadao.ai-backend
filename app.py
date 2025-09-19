@@ -548,6 +548,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Add compression middleware for better performance
+from src.api.middleware.compression import add_compression_middleware
+add_compression_middleware(
+    app,
+    minimum_size=1024,  # Compress responses larger than 1KB
+    gzip_level=6,       # Good balance of speed vs compression
+    brotli_quality=4,   # Fast brotli compression
+    exclude_paths={"/health", "/metrics", "/health/metrics"}
+)
+
 # ==================== ENDPOINTS ====================
 
 @app.get("/", response_model=HealthResponse)

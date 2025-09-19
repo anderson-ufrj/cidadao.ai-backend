@@ -16,9 +16,10 @@ from enum import Enum
 import httpx
 from pydantic import BaseModel, Field as PydanticField
 
-from src.core import get_logger, settings
+from src.core import get_logger, settings, get_llm_pool
 from src.core.exceptions import LLMError, LLMRateLimitError
 from src.services.maritaca_client import MaritacaClient, MaritacaModel
+from src.core.json_utils import dumps, loads
 
 
 class LLMProvider(str, Enum):
@@ -81,14 +82,19 @@ class BaseLLMProvider(ABC):
         self.timeout = timeout
         self.max_retries = max_retries
         self.logger = get_logger(__name__)
+        self._use_pool = True  # Flag to use connection pool
         
-        self.client = httpx.AsyncClient(
-            timeout=httpx.Timeout(timeout),
-            limits=httpx.Limits(max_keepalive_connections=10, max_connections=20),
-        )
+        # Legacy client for backward compatibility
+        self.client = None
     
     async def __aenter__(self):
         """Async context manager entry."""
+        # Initialize legacy client if not using pool
+        if not self._use_pool and not self.client:
+            self.client = httpx.AsyncClient(
+                timeout=httpx.Timeout(self.timeout),
+                limits=httpx.Limits(max_keepalive_connections=10, max_connections=20),
+            )
         return self
     
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -97,7 +103,8 @@ class BaseLLMProvider(ABC):
     
     async def close(self):
         """Close HTTP client."""
-        await self.client.aclose()
+        if self.client:
+            await self.client.aclose()
     
     @abstractmethod
     async def complete(self, request: LLMRequest) -> LLMResponse:
@@ -134,6 +141,30 @@ class BaseLLMProvider(ABC):
         stream: bool = False
     ) -> Union[Dict[str, Any], AsyncGenerator[Dict[str, Any], None]]:
         """Make HTTP request with retry logic."""
+        # Use connection pool if available
+        if self._use_pool and hasattr(self, '_provider_name'):
+            try:
+                pool = await get_llm_pool()
+                if stream:
+                    # For streaming, fall back to regular client for now
+                    self.logger.debug("Streaming not yet supported with pool, using regular client")
+                else:
+                    result = await pool.post(
+                        self._provider_name,
+                        endpoint,
+                        data
+                    )
+                    return result
+            except Exception as e:
+                self.logger.warning(f"Pool request failed, falling back to regular client: {e}")
+        
+        # Original implementation for fallback or streaming
+        if not self.client:
+            self.client = httpx.AsyncClient(
+                timeout=httpx.Timeout(self.timeout),
+                limits=httpx.Limits(max_keepalive_connections=10, max_connections=20),
+            )
+        
         url = f"{self.base_url}{endpoint}"
         headers = self._get_headers()
         
@@ -165,7 +196,7 @@ class BaseLLMProvider(ABC):
                 else:
                     response = await self.client.post(
                         url,
-                        json=data,
+                        content=dumps_bytes(data),
                         headers=headers,
                     )
                     
@@ -178,7 +209,7 @@ class BaseLLMProvider(ABC):
                             response_time=response_time,
                         )
                         
-                        return response.json()
+                        return loads(response.content)
                     else:
                         await self._handle_error_response(response, attempt)
                         
@@ -277,7 +308,7 @@ class BaseLLMProvider(ABC):
                 if data == "[DONE]":
                     break
                 try:
-                    yield eval(data)  # Parse JSON chunk
+                    yield loads(data)  # Parse JSON chunk safely with orjson
                 except:
                     continue
 
@@ -294,6 +325,7 @@ class GroqProvider(BaseLLMProvider):
             timeout=60,
             max_retries=3,
         )
+        self._provider_name = "groq"
     
     async def complete(self, request: LLMRequest) -> LLMResponse:
         """Complete text generation using Groq."""
