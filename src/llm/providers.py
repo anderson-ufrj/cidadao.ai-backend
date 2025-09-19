@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field as PydanticField
 
 from src.core import get_logger, settings
 from src.core.exceptions import LLMError, LLMRateLimitError
+from src.services.maritaca_client import MaritacaClient, MaritacaModel
 
 
 class LLMProvider(str, Enum):
@@ -25,6 +26,7 @@ class LLMProvider(str, Enum):
     GROQ = "groq"
     TOGETHER = "together"
     HUGGINGFACE = "huggingface"
+    MARITACA = "maritaca"
 
 
 @dataclass
@@ -521,6 +523,98 @@ class HuggingFaceProvider(BaseLLMProvider):
         )
 
 
+class MaritacaProvider(BaseLLMProvider):
+    """Maritaca AI provider implementation."""
+    
+    def __init__(self, api_key: Optional[str] = None):
+        """Initialize Maritaca AI provider."""
+        # We don't use the base class init for Maritaca since it has its own client
+        self.api_key = api_key or settings.maritaca_api_key.get_secret_value()
+        self.default_model = settings.maritaca_model
+        self.logger = get_logger(__name__)
+        
+        # Create Maritaca client
+        self.maritaca_client = MaritacaClient(
+            api_key=self.api_key,
+            base_url=settings.maritaca_api_base_url,
+            model=self.default_model
+        )
+    
+    async def __aenter__(self):
+        """Async context manager entry."""
+        await self.maritaca_client.__aenter__()
+        return self
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit."""
+        await self.maritaca_client.__aexit__(exc_type, exc_val, exc_tb)
+    
+    async def close(self):
+        """Close Maritaca client."""
+        await self.maritaca_client.close()
+    
+    async def complete(self, request: LLMRequest) -> LLMResponse:
+        """Complete text generation using Maritaca AI."""
+        messages = self._prepare_messages(request)
+        
+        response = await self.maritaca_client.chat_completion(
+            messages=messages,
+            model=request.model or self.default_model,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens,
+            top_p=request.top_p,
+            stream=False
+        )
+        
+        return LLMResponse(
+            content=response.content,
+            provider="maritaca",
+            model=response.model,
+            usage=response.usage,
+            metadata=response.metadata,
+            response_time=response.response_time,
+            timestamp=response.timestamp
+        )
+    
+    async def stream_complete(self, request: LLMRequest) -> AsyncGenerator[str, None]:
+        """Stream text generation using Maritaca AI."""
+        messages = self._prepare_messages(request)
+        
+        async for chunk in await self.maritaca_client.chat_completion(
+            messages=messages,
+            model=request.model or self.default_model,
+            temperature=request.temperature,
+            max_tokens=request.max_tokens,
+            top_p=request.top_p,
+            stream=True
+        ):
+            yield chunk
+    
+    def _prepare_messages(self, request: LLMRequest) -> List[Dict[str, str]]:
+        """Prepare messages for Maritaca API."""
+        messages = []
+        
+        # Add system prompt if provided
+        if request.system_prompt:
+            messages.append({
+                "role": "system",
+                "content": request.system_prompt
+            })
+        
+        # Add conversation messages
+        messages.extend(request.messages)
+        
+        return messages
+    
+    def _prepare_request_data(self, request: LLMRequest) -> Dict[str, Any]:
+        """Not used for Maritaca - using direct client instead."""
+        pass
+    
+    def _parse_response(self, response_data: Dict[str, Any], response_time: float) -> LLMResponse:
+        """Not used for Maritaca - using direct client instead."""
+        pass
+
+
 class LLMManager:
     """Manager for multiple LLM providers with fallback support."""
     
@@ -539,7 +633,7 @@ class LLMManager:
             enable_fallback: Enable automatic fallback on errors
         """
         self.primary_provider = primary_provider
-        self.fallback_providers = fallback_providers or [LLMProvider.TOGETHER, LLMProvider.HUGGINGFACE]
+        self.fallback_providers = fallback_providers or [LLMProvider.TOGETHER, LLMProvider.HUGGINGFACE, LLMProvider.MARITACA]
         self.enable_fallback = enable_fallback
         self.logger = get_logger(__name__)
         
@@ -548,6 +642,7 @@ class LLMManager:
             LLMProvider.GROQ: GroqProvider(),
             LLMProvider.TOGETHER: TogetherProvider(),
             LLMProvider.HUGGINGFACE: HuggingFaceProvider(),
+            LLMProvider.MARITACA: MaritacaProvider(),
         }
         
         self.logger.info(

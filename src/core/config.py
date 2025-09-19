@@ -107,6 +107,17 @@ class Settings(BaseSettings):
         description="HuggingFace model ID"
     )
     
+    # Maritaca AI Configuration
+    maritaca_api_key: Optional[SecretStr] = Field(default=None, description="Maritaca AI API key")
+    maritaca_api_base_url: str = Field(
+        default="https://chat.maritaca.ai/api",
+        description="Maritaca AI base URL"
+    )
+    maritaca_model: str = Field(
+        default="sabia-3",
+        description="Default Maritaca AI model (sabia-3, sabia-3-medium, sabia-3-large)"
+    )
+    
     # Vector Store
     vector_store_type: str = Field(
         default="faiss",
