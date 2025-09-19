@@ -1,6 +1,6 @@
 # 📋 Changelog - Cidadão.AI
 
-## 🚀 v2.2.0 - Chat API & Mobile Support (2025-01-16)
+## 🚀 v2.2.0 - Chat API & Mobile Support (2025-09-16)
 
 ### ✨ New Features
 - **💬 Chat API**: Complete conversational interface with intent detection
@@ -29,7 +29,7 @@
 
 ---
 
-## 🚀 v2.1.0 - Agent System Completion & Documentation Update (2025-01-16)
+## 🚀 v2.1.0 - Agent System Completion & Documentation Update (2025-09-16)
 
 ### ✨ Major Updates
 - **🤖 Multi-Agent System Status** - 8/17 agents fully operational (47% complete)
@@ -54,7 +54,7 @@
 
 ---
 
-## 🚀 v2.0.0 - Major Project Organization (2024-01-XX)
+## 🚀 v2.0.0 - Major Project Organization (2025-08-XX)
 
 ### ✨ New Features
 - **🌍 Bilingual Documentation System** - Complete PT-BR/EN-US documentation with interactive navigation

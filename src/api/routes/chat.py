@@ -15,15 +15,15 @@ from src.core.exceptions import ValidationError
 from src.api.dependencies import get_current_optional_user
 from src.agents.abaporu import MasterAgent
 from src.agents.deodoro import AgentMessage, AgentContext
-from src.services.chat_service import ChatService, IntentDetector, IntentType
+from src.services.chat_service_with_cache import chat_service
+from src.services.chat_service import IntentDetector, IntentType
+from src.api.models.pagination import CursorPaginationResponse
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/chat", tags=["chat"])
 
-# Initialize services
-chat_service = ChatService()
+# Services are already initialized
 intent_detector = IntentDetector()
-master_agent = MasterAgent()
 
 class ChatRequest(BaseModel):
     """Chat message request"""
@@ -250,6 +250,51 @@ async def get_chat_history(
         "current_investigation_id": session.current_investigation_id
     }
 
+@router.get("/history/{session_id}/paginated")
+async def get_chat_history_paginated(
+    session_id: str,
+    cursor: Optional[str] = None,
+    limit: int = 50,
+    direction: str = "prev",
+    current_user = Depends(get_current_optional_user)
+) -> CursorPaginationResponse[Dict[str, Any]]:
+    """
+    Get paginated chat history using cursor pagination.
+    
+    This is more efficient for large chat histories and real-time updates.
+    
+    Args:
+        session_id: Session identifier
+        cursor: Pagination cursor from previous request
+        limit: Number of messages per page (max: 100)
+        direction: "next" for newer messages, "prev" for older (default)
+    """
+    session = await ChatService.get_session(session_id)
+    
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessão não encontrada")
+    
+    # Verify user has access to this session
+    if session.user_id and current_user and session.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Acesso negado")
+    
+    # Get paginated messages
+    paginated_response = await ChatService.get_session_messages_paginated(
+        session_id=session_id,
+        cursor=cursor,
+        limit=min(limit, 100),  # Cap at 100
+        direction=direction
+    )
+    
+    # Add session info to metadata
+    paginated_response.metadata.update({
+        "session_id": session_id,
+        "investigation_id": session.current_investigation_id,
+        "session_created": session.created_at.isoformat() if session else None
+    })
+    
+    return paginated_response
+
 @router.delete("/history/{session_id}")
 async def clear_chat_history(
     session_id: str,
@@ -267,6 +312,20 @@ async def clear_chat_history(
     await chat_service.clear_session(session_id)
     
     return {"message": "Histórico limpo com sucesso"}
+
+@router.get("/cache/stats")
+async def get_cache_stats(
+    current_user = Depends(get_current_optional_user)
+) -> Dict[str, Any]:
+    """
+    Get cache statistics (admin only in production)
+    """
+    try:
+        stats = await ChatService.get_cache_stats()
+        return stats
+    except Exception as e:
+        logger.error(f"Error getting cache stats: {e}")
+        return {"error": "Unable to get cache statistics"}
 
 @router.get("/agents")
 async def get_available_agents() -> List[Dict[str, Any]]:

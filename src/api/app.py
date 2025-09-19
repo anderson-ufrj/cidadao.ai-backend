@@ -20,11 +20,12 @@ from fastapi.openapi.utils import get_openapi
 from src.core import get_logger, settings
 from src.core.exceptions import CidadaoAIError, create_error_response
 from src.core.audit import audit_logger, AuditEventType, AuditSeverity, AuditContext
-from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat
+from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat, websocket_chat
 from src.api.middleware.rate_limiting import RateLimitMiddleware
 from src.api.middleware.authentication import AuthenticationMiddleware
 from src.api.middleware.logging_middleware import LoggingMiddleware
 from src.api.middleware.security import SecurityMiddleware
+from src.api.middleware.compression import CompressionMiddleware
 
 
 logger = get_logger(__name__)
@@ -118,6 +119,13 @@ app = FastAPI(
 app.add_middleware(SecurityMiddleware)
 app.add_middleware(LoggingMiddleware)
 app.add_middleware(RateLimitMiddleware)
+
+# Add compression middleware for mobile optimization
+app.add_middleware(
+    CompressionMiddleware,
+    minimum_size=1024,  # Compress responses > 1KB
+    compression_level=6  # Balanced compression
+)
 
 # Add trusted host middleware for production
 if settings.app_env == "production":
@@ -247,6 +255,12 @@ app.include_router(
     chat.router,
     prefix="/api/v1/chat",
     tags=["Chat"]
+)
+
+app.include_router(
+    websocket_chat.router,
+    prefix="/api/v1",
+    tags=["WebSocket"]
 )
 
 
