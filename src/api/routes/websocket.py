@@ -1,16 +1,22 @@
 """
-WebSocket routes for real-time communication
+WebSocket routes for real-time communication with message batching.
 """
 
 import json
-import logging
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query, HTTPException, Depends
+import asyncio
+import uuid
 from typing import Optional
+from datetime import datetime
 
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+
+from src.core import get_logger
+from src.api.auth import verify_token
+from src.infrastructure.websocket.message_batcher import websocket_manager
+from src.infrastructure.events.event_bus import get_event_bus, EventType
 from ..websocket import connection_manager, websocket_handler, WebSocketMessage
-from ..auth import auth_manager
 
-logger = logging.getLogger(__name__)
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -21,7 +27,7 @@ async def websocket_endpoint(
     connection_type: str = Query("general")
 ):
     """
-    Main WebSocket endpoint for real-time communication
+    Main WebSocket endpoint for real-time communication with message batching.
     
     Query parameters:
     - token: JWT access token for authentication
@@ -35,16 +41,29 @@ async def websocket_endpoint(
     
     try:
         # Verify token and get user
-        user = auth_manager.get_current_user(token)
-        user_id = user.id
+        user_payload = verify_token(token)
+        user_id = user_payload["sub"]
         
     except Exception as e:
         logger.error(f"WebSocket authentication failed: {e}")
         await websocket.close(code=1008, reason="Invalid token")
         return
     
-    # Connect user
+    # Accept connection
+    await websocket.accept()
+    
+    # Generate connection ID
+    connection_id = f"{user_id}:{connection_type}:{uuid.uuid4().hex[:8]}"
+    
+    # Connect with batching manager
+    await websocket_manager.connect(connection_id, websocket)
+    
+    # Connect with legacy manager
     await connection_manager.connect(websocket, user_id, connection_type)
+    
+    # Join appropriate room
+    if connection_type != "general":
+        await websocket_manager.join_room(connection_id, connection_type)
     
     try:
         while True:
@@ -53,22 +72,43 @@ async def websocket_endpoint(
             
             try:
                 message = json.loads(data)
-                await websocket_handler.handle_message(websocket, message)
+                
+                # Handle ping for keepalive
+                if message.get("type") == "ping":
+                    await websocket_manager.send_message(
+                        connection_id,
+                        {
+                            "type": "pong",
+                            "timestamp": datetime.utcnow().isoformat()
+                        },
+                        priority=10
+                    )
+                else:
+                    # Process with legacy handler
+                    await websocket_handler.handle_message(websocket, message)
                 
             except json.JSONDecodeError:
-                error_msg = WebSocketMessage(
-                    type="error",
-                    data={"message": "Invalid JSON format"}
+                await websocket_manager.send_message(
+                    connection_id,
+                    {
+                        "type": "error",
+                        "message": "Invalid JSON format",
+                        "timestamp": datetime.utcnow().isoformat()
+                    },
+                    priority=8
                 )
-                await connection_manager.send_personal_message(websocket, error_msg)
                 
             except Exception as e:
                 logger.error(f"Error processing WebSocket message: {e}")
-                error_msg = WebSocketMessage(
-                    type="error", 
-                    data={"message": f"Error processing message: {str(e)}"}
+                await websocket_manager.send_message(
+                    connection_id,
+                    {
+                        "type": "error",
+                        "message": f"Error processing message: {str(e)}",
+                        "timestamp": datetime.utcnow().isoformat()
+                    },
+                    priority=8
                 )
-                await connection_manager.send_personal_message(websocket, error_msg)
                 
     except WebSocketDisconnect:
         logger.info(f"WebSocket disconnected: user_id={user_id}")
@@ -77,6 +117,7 @@ async def websocket_endpoint(
         logger.error(f"WebSocket error: {e}")
         
     finally:
+        await websocket_manager.disconnect(connection_id)
         connection_manager.disconnect(websocket)
 
 @router.websocket("/ws/investigations/{investigation_id}")
@@ -95,15 +136,27 @@ async def investigation_websocket(
         return
     
     try:
-        user = auth_manager.get_current_user(token)
-        user_id = user.id
+        user_payload = verify_token(token)
+        user_id = user_payload["sub"]
         
     except Exception as e:
         logger.error(f"Investigation WebSocket authentication failed: {e}")
         await websocket.close(code=1008, reason="Invalid token")
         return
     
-    # Connect and subscribe to investigation
+    # Accept connection
+    await websocket.accept()
+    
+    # Generate connection ID
+    connection_id = f"{user_id}:inv:{investigation_id}:{uuid.uuid4().hex[:8]}"
+    
+    # Connect with batching manager
+    await websocket_manager.connect(connection_id, websocket)
+    
+    # Join investigation room
+    await websocket_manager.join_room(connection_id, f"investigation:{investigation_id}")
+    
+    # Connect and subscribe with legacy manager
     await connection_manager.connect(websocket, user_id, f"investigation_{investigation_id}")
     await connection_manager.subscribe_to_investigation(websocket, investigation_id)
     
@@ -120,7 +173,15 @@ async def investigation_websocket(
                     type="error",
                     data={"message": "Invalid JSON format"}
                 )
-                await connection_manager.send_personal_message(websocket, error_msg)
+                await websocket_manager.send_message(
+                    connection_id,
+                    {
+                        "type": "error",
+                        "message": "Invalid JSON format",
+                        "timestamp": datetime.utcnow().isoformat()
+                    },
+                    priority=8
+                )
                 
     except WebSocketDisconnect:
         logger.info(f"Investigation WebSocket disconnected: user_id={user_id}, investigation_id={investigation_id}")
@@ -129,6 +190,7 @@ async def investigation_websocket(
         logger.error(f"Investigation WebSocket error: {e}")
         
     finally:
+        await websocket_manager.disconnect(connection_id)
         await connection_manager.unsubscribe_from_investigation(websocket, investigation_id)
         connection_manager.disconnect(websocket)
 
@@ -148,15 +210,27 @@ async def analysis_websocket(
         return
     
     try:
-        user = auth_manager.get_current_user(token)
-        user_id = user.id
+        user_payload = verify_token(token)
+        user_id = user_payload["sub"]
         
     except Exception as e:
         logger.error(f"Analysis WebSocket authentication failed: {e}")
         await websocket.close(code=1008, reason="Invalid token")
         return
     
-    # Connect and subscribe to analysis
+    # Accept connection
+    await websocket.accept()
+    
+    # Generate connection ID
+    connection_id = f"{user_id}:ana:{analysis_id}:{uuid.uuid4().hex[:8]}"
+    
+    # Connect with batching manager
+    await websocket_manager.connect(connection_id, websocket)
+    
+    # Join analysis room
+    await websocket_manager.join_room(connection_id, f"analysis:{analysis_id}")
+    
+    # Connect and subscribe with legacy manager
     await connection_manager.connect(websocket, user_id, f"analysis_{analysis_id}")
     await connection_manager.subscribe_to_analysis(websocket, analysis_id)
     
@@ -173,7 +247,15 @@ async def analysis_websocket(
                     type="error", 
                     data={"message": "Invalid JSON format"}
                 )
-                await connection_manager.send_personal_message(websocket, error_msg)
+                await websocket_manager.send_message(
+                    connection_id,
+                    {
+                        "type": "error",
+                        "message": "Invalid JSON format",
+                        "timestamp": datetime.utcnow().isoformat()
+                    },
+                    priority=8
+                )
                 
     except WebSocketDisconnect:
         logger.info(f"Analysis WebSocket disconnected: user_id={user_id}, analysis_id={analysis_id}")
@@ -182,5 +264,6 @@ async def analysis_websocket(
         logger.error(f"Analysis WebSocket error: {e}")
         
     finally:
+        await websocket_manager.disconnect(connection_id)
         await connection_manager.unsubscribe_from_analysis(websocket, analysis_id)
         connection_manager.disconnect(websocket)
