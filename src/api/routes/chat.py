@@ -13,8 +13,8 @@ from datetime import datetime
 from src.core import get_logger
 from src.core.exceptions import ValidationError
 from src.api.dependencies import get_current_optional_user
-from src.agents.abaporu import MasterAgent
-from src.agents.deodoro import AgentMessage, AgentContext
+from src.agents.drummond import CommunicationAgent
+from src.agents.deodoro import AgentMessage, AgentContext, AgentResponse, AgentStatus
 from src.services.chat_service_with_cache import chat_service
 from src.services.chat_service import IntentDetector, IntentType
 from src.api.models.pagination import CursorPaginationResponse
@@ -24,6 +24,14 @@ router = APIRouter(tags=["chat"])
 
 # Services are already initialized
 intent_detector = IntentDetector()
+
+# Initialize Drummond agent
+try:
+    drummond_agent = CommunicationAgent()
+    logger.info("Drummond agent initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize Drummond agent: {e}")
+    drummond_agent = None
 
 class ChatRequest(BaseModel):
     """Chat message request"""
@@ -97,17 +105,26 @@ async def send_message(
         )
         
         # Route to appropriate agent based on intent
-        if intent.type == IntentType.INVESTIGATE:
-            # For investigations, use master agent to coordinate
-            response = await master_agent.process(agent_message)
-            agent_id = "abaporu"
-            agent_name = "Abaporu"
+        if target_agent == "drummond" and drummond_agent:
+            # Use Drummond for conversational intents
+            response = await drummond_agent.process(agent_message)
+            agent_id = "drummond"
+            agent_name = "Carlos Drummond de Andrade"
         else:
-            # Route to specific agent
-            agent = await chat_service.get_agent_for_intent(intent)
-            response = await agent.process(agent_message)
-            agent_id = agent.agent_id
-            agent_name = agent.name
+            # For now, return a simple response if agents are not available
+            response = AgentResponse(
+                agent_name="Sistema",
+                status=AgentStatus.COMPLETED,
+                result={
+                    "message": "Desculpe, estou em manutenção. Por favor, tente novamente em alguns instantes.",
+                    "status": "maintenance"
+                },
+                metadata={
+                    "confidence": 0.0
+                }
+            )
+            agent_id = "system"
+            agent_name = "Sistema"
         
         # Save to chat history
         await chat_service.save_message(
