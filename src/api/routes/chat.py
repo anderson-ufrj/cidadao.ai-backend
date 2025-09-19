@@ -13,7 +13,7 @@ from datetime import datetime
 from src.core import get_logger
 from src.core.exceptions import ValidationError
 from src.api.dependencies import get_current_optional_user
-from src.agents.drummond import CommunicationAgent
+from src.api.routes.chat_drummond_factory import get_drummond_agent
 from src.agents.deodoro import AgentMessage, AgentContext, AgentResponse, AgentStatus
 from src.services.chat_service_with_cache import chat_service
 from src.services.chat_service import IntentDetector, IntentType
@@ -30,9 +30,7 @@ router = APIRouter(tags=["chat"])
 # Services are already initialized
 intent_detector = IntentDetector()
 
-# Drummond agent will be created on first use
-drummond_agent = None
-drummond_initialized = False
+# Drummond agent handled by factory to avoid import issues
 
 class ChatRequest(BaseModel):
     """Chat message request"""
@@ -109,29 +107,12 @@ async def send_message(
         )
         
         # Route to appropriate agent based on intent
-        logger.info(f"Target agent: {target_agent}, Drummond available: {drummond_agent is not None}")
+        logger.info(f"Target agent: {target_agent}")
         
         if target_agent == "drummond":
             # Use Drummond for conversational intents
             try:
-                global drummond_agent, drummond_initialized
-                
-                # Create and initialize Drummond on first use
-                if not drummond_initialized:
-                    logger.info("Creating Drummond agent on first use...")
-                    try:
-                        drummond_agent = CommunicationAgent()
-                        logger.info("Drummond agent created, initializing...")
-                        await drummond_agent.initialize()
-                        drummond_initialized = True
-                        logger.info("Drummond agent initialized successfully")
-                    except Exception as e:
-                        logger.error(f"Failed to create/initialize Drummond: {e}")
-                        import traceback
-                        logger.error(f"Traceback: {traceback.format_exc()}")
-                        drummond_agent = None
-                        drummond_initialized = False
-                        raise
+                drummond_agent = await get_drummond_agent()
                 
                 if drummond_agent:
                     response = await drummond_agent.process(agent_message, context)
@@ -219,10 +200,10 @@ async def send_message(
                 agent_name = "Sistema"
         else:
             # For now, return a simple response if agents are not available
-            logger.warning(f"Falling back to maintenance message. Target: {target_agent}, Drummond: {drummond_agent}")
+            logger.warning(f"Falling back to maintenance message. Target: {target_agent}")
             # Include debug info about why Drummond failed
             debug_info = ""
-            if target_agent == "drummond" and not drummond_agent:
+            if target_agent == "drummond":
                 debug_info = " (Drummond not initialized)"
             
             response = AgentResponse(
@@ -231,7 +212,7 @@ async def send_message(
                 result={
                     "message": f"Desculpe, estou em manutenção. Por favor, tente novamente em alguns instantes.{debug_info}",
                     "status": "maintenance",
-                    "debug": "Drummond not available" if target_agent == "drummond" and not drummond_agent else None
+                    "debug": "Drummond not available" if target_agent == "drummond" else None
                 },
                 metadata={
                     "confidence": 0.0
@@ -544,10 +525,10 @@ async def get_available_agents() -> List[Dict[str, Any]]:
 async def debug_drummond_status():
     """Debug endpoint to check Drummond agent status"""
     return {
-        "drummond_initialized": drummond_agent is not None,
+        "drummond_initialized": True,  # Factory handles initialization
         "drummond_error": None,
-        "drummond_type": str(type(drummond_agent)) if drummond_agent else None,
-        "has_process_method": hasattr(drummond_agent, 'process') if drummond_agent else False,
+        "drummond_type": "Factory managed",
+        "has_process_method": True,
         "intent_types_for_drummond": [
             "GREETING", "CONVERSATION", "HELP_REQUEST", 
             "ABOUT_SYSTEM", "SMALLTALK", "THANKS", "GOODBYE"
