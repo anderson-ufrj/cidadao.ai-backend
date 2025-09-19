@@ -23,6 +23,7 @@ from src.core import get_logger
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
 from src.services.chat_service import IntentType, Intent
 from src.memory.conversational import ConversationalMemory, ConversationContext
+from src.services.maritaca_client import MaritacaClient, MaritacaModel, MaritacaMessage
 
 
 class CommunicationChannel(Enum):
@@ -259,6 +260,10 @@ class CommunicationAgent(BaseAgent):
         # Conversational memory for dialogue
         self.conversational_memory = ConversationalMemory()
         
+        # Initialize Maritaca AI client for Sabiá-3
+        self.llm_client = None
+        self._init_llm_client()
+        
         # Personality configuration
         self.personality_prompt = """
         Você é Carlos Drummond de Andrade, o poeta de Itabira, agora servindo como 
@@ -285,6 +290,24 @@ class CommunicationAgent(BaseAgent):
         - Sempre traduza termos técnicos para linguagem cidadã
         - Use exemplos concretos e relevantes para o contexto brasileiro
         """
+    
+    def _init_llm_client(self):
+        """Initialize Maritaca AI client."""
+        try:
+            import os
+            api_key = os.environ.get("MARITACA_API_KEY")
+            if api_key:
+                self.llm_client = MaritacaClient(
+                    api_key=api_key,
+                    model=MaritacaModel.SABIA_3,
+                    timeout=30
+                )
+                self.logger.info("Maritaca AI client initialized with Sabiá-3")
+            else:
+                self.logger.warning("No MARITACA_API_KEY found, using fallback responses")
+        except Exception as e:
+            self.logger.error(f"Failed to initialize Maritaca AI client: {e}")
+            self.llm_client = None
     
     async def initialize(self) -> None:
         """Inicializa templates, canais e configurações."""
@@ -663,9 +686,54 @@ class CommunicationAgent(BaseAgent):
         context: ConversationContext
     ) -> Dict[str, str]:
         """Gera resposta contextual para conversa geral."""
-        # Simplified contextual response for now
-        # In production, this would use LLM with personality prompt
         
+        # If we have LLM client, use it for more natural responses
+        if self.llm_client:
+            try:
+                # Get conversation history
+                try:
+                    history = await self.conversational_memory.get_recent_messages(
+                        context.session_id, 
+                        limit=5
+                    )
+                except AttributeError:
+                    # If method doesn't exist, use empty history
+                    history = []
+                
+                # Build messages for LLM
+                messages = [
+                    MaritacaMessage(role="system", content=self.personality_prompt)
+                ]
+                
+                # Add conversation history
+                for msg in history:
+                    role = "user" if msg["role"] == "user" else "assistant"
+                    messages.append(MaritacaMessage(role=role, content=msg["content"]))
+                
+                # Add current message
+                messages.append(MaritacaMessage(role="user", content=message))
+                
+                # Generate response with Sabiá-3
+                response = await self.llm_client.chat(
+                    messages=messages,
+                    temperature=0.7,
+                    max_tokens=500
+                )
+                
+                return {
+                    "content": response.content.strip(),
+                    "metadata": {
+                        "type": "contextual", 
+                        "llm_model": response.model,
+                        "usage": response.usage
+                    }
+                }
+                
+            except Exception as e:
+                self.logger.error(f"Error generating LLM response: {e}")
+                # Fall back to template response
+        
+        # Fallback response if no LLM or error
         response = f"""
         Interessante sua colocação... '{message[:30]}...'
         
