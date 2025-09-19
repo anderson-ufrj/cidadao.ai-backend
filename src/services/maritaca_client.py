@@ -147,6 +147,10 @@ class MaritacaClient:
         await self.client.aclose()
         self.logger.info("maritaca_client_closed")
     
+    async def shutdown(self):
+        """Alias for close method for compatibility."""
+        await self.close()
+    
     def _check_circuit_breaker(self) -> bool:
         """
         Check if circuit breaker is open.
