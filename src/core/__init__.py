@@ -30,6 +30,7 @@ from .exceptions import (
     ValidationError,
 )
 from .logging import get_logger, setup_logging
+from .llm_pool import llm_pool, get_llm_pool
 
 __all__ = [
     # Config
@@ -58,6 +59,9 @@ __all__ = [
     # Logging
     "get_logger",
     "setup_logging",
+    # LLM Pool
+    "llm_pool",
+    "get_llm_pool",
 ]
 
 # Initialize logging on import
