@@ -30,32 +30,9 @@ router = APIRouter(tags=["chat"])
 # Services are already initialized
 intent_detector = IntentDetector()
 
-# Initialize Drummond agent
-drummond_init_error = None
+# Drummond agent will be created on first use
 drummond_agent = None
-logger.info("Starting Drummond initialization...")
-
-try:
-    # Check if Maritaca key is available
-    import os
-    has_maritaca = bool(os.environ.get("MARITACA_API_KEY"))
-    logger.info(f"MARITACA_API_KEY available: {has_maritaca}")
-    
-    # Create agent
-    drummond_agent = CommunicationAgent()
-    logger.info("Drummond agent created successfully")
-    
-    # Note: We can't run async initialize here, it will be done on first use
-    logger.info("Drummond agent ready for initialization on first use")
-    
-except Exception as e:
-    drummond_init_error = str(e)
-    logger.error(f"Failed to create Drummond agent: {e}")
-    import traceback
-    logger.error(f"Traceback: {traceback.format_exc()}")
-    drummond_agent = None
-finally:
-    logger.info(f"Drummond agent final status: {'Available' if drummond_agent else f'Not available - {drummond_init_error}'}")
+drummond_initialized = False
 
 class ChatRequest(BaseModel):
     """Chat message request"""
@@ -134,17 +111,32 @@ async def send_message(
         # Route to appropriate agent based on intent
         logger.info(f"Target agent: {target_agent}, Drummond available: {drummond_agent is not None}")
         
-        if target_agent == "drummond" and drummond_agent:
+        if target_agent == "drummond":
             # Use Drummond for conversational intents
             try:
-                # Ensure Drummond is initialized on first use
-                if not hasattr(drummond_agent, '_initialized'):
-                    logger.info("Initializing Drummond agent on first use...")
-                    await drummond_agent.initialize()
-                    drummond_agent._initialized = True
-                    logger.info("Drummond agent initialized successfully")
+                global drummond_agent, drummond_initialized
                 
-                response = await drummond_agent.process(agent_message)
+                # Create and initialize Drummond on first use
+                if not drummond_initialized:
+                    logger.info("Creating Drummond agent on first use...")
+                    try:
+                        drummond_agent = CommunicationAgent()
+                        logger.info("Drummond agent created, initializing...")
+                        await drummond_agent.initialize()
+                        drummond_initialized = True
+                        logger.info("Drummond agent initialized successfully")
+                    except Exception as e:
+                        logger.error(f"Failed to create/initialize Drummond: {e}")
+                        import traceback
+                        logger.error(f"Traceback: {traceback.format_exc()}")
+                        drummond_agent = None
+                        drummond_initialized = False
+                        raise
+                
+                if drummond_agent:
+                    response = await drummond_agent.process(agent_message, context)
+                else:
+                    raise Exception("Drummond agent not available")
                 agent_id = "drummond"
                 agent_name = "Carlos Drummond de Andrade"
                 logger.info(f"Drummond response received: {response}")
@@ -230,8 +222,8 @@ async def send_message(
             logger.warning(f"Falling back to maintenance message. Target: {target_agent}, Drummond: {drummond_agent}")
             # Include debug info about why Drummond failed
             debug_info = ""
-            if target_agent == "drummond" and not drummond_agent and drummond_init_error:
-                debug_info = f" (Drummond init error: {drummond_init_error})"
+            if target_agent == "drummond" and not drummond_agent:
+                debug_info = " (Drummond not initialized)"
             
             response = AgentResponse(
                 agent_name="Sistema",
@@ -239,7 +231,7 @@ async def send_message(
                 result={
                     "message": f"Desculpe, estou em manutenção. Por favor, tente novamente em alguns instantes.{debug_info}",
                     "status": "maintenance",
-                    "debug": drummond_init_error if drummond_init_error else None
+                    "debug": "Drummond not available" if target_agent == "drummond" and not drummond_agent else None
                 },
                 metadata={
                     "confidence": 0.0
@@ -553,7 +545,7 @@ async def debug_drummond_status():
     """Debug endpoint to check Drummond agent status"""
     return {
         "drummond_initialized": drummond_agent is not None,
-        "drummond_error": drummond_init_error,
+        "drummond_error": None,
         "drummond_type": str(type(drummond_agent)) if drummond_agent else None,
         "has_process_method": hasattr(drummond_agent, 'process') if drummond_agent else False,
         "intent_types_for_drummond": [
