@@ -641,6 +641,48 @@ async def cache_stats():
         "ttl_seconds": api_cache.default_ttl
     }
 
+# Debug endpoint for Drummond issue
+@app.get("/debug/drummond-status")
+async def debug_drummond_status():
+    """Debug endpoint to check Drummond agent status."""
+    import traceback
+    
+    result = {
+        "python_version": sys.version,
+        "checks": {}
+    }
+    
+    # Check if we can import CommunicationAgent
+    try:
+        from src.agents.drummond import CommunicationAgent
+        abstract_methods = getattr(CommunicationAgent, '__abstractmethods__', set())
+        result["checks"]["import"] = {
+            "status": "success",
+            "abstract_methods": list(abstract_methods) if abstract_methods else "none",
+            "has_shutdown": hasattr(CommunicationAgent, 'shutdown'),
+            "has_initialize": hasattr(CommunicationAgent, 'initialize'),
+            "has_process": hasattr(CommunicationAgent, 'process')
+        }
+        
+        # Try to instantiate
+        try:
+            agent = CommunicationAgent()
+            result["checks"]["instantiation"] = {"status": "success", "agent_name": agent.name}
+        except Exception as e:
+            result["checks"]["instantiation"] = {
+                "status": "failed",
+                "error": str(e),
+                "error_type": type(e).__name__
+            }
+    except Exception as e:
+        result["checks"]["import"] = {
+            "status": "failed",
+            "error": str(e),
+            "traceback": traceback.format_exc()[:500]  # Limit traceback size
+        }
+    
+    return result
+
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 7860))
     logger.info(f"🚀 Starting Enhanced Cidadão.AI Backend on port {port}")
