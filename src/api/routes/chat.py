@@ -28,9 +28,11 @@ intent_detector = IntentDetector()
 # Initialize Drummond agent
 try:
     drummond_agent = CommunicationAgent()
-    logger.info("Drummond agent initialized successfully")
+    logger.info("Drummond agent created successfully")
 except Exception as e:
-    logger.error(f"Failed to initialize Drummond agent: {e}")
+    logger.error(f"Failed to create Drummond agent: {e}")
+    import traceback
+    traceback.print_exc()
     drummond_agent = None
 
 class ChatRequest(BaseModel):
@@ -105,13 +107,23 @@ async def send_message(
         )
         
         # Route to appropriate agent based on intent
+        logger.info(f"Target agent: {target_agent}, Drummond available: {drummond_agent is not None}")
+        
         if target_agent == "drummond" and drummond_agent:
             # Use Drummond for conversational intents
-            response = await drummond_agent.process(agent_message)
-            agent_id = "drummond"
-            agent_name = "Carlos Drummond de Andrade"
+            try:
+                response = await drummond_agent.process(agent_message)
+                agent_id = "drummond"
+                agent_name = "Carlos Drummond de Andrade"
+                logger.info(f"Drummond response received: {response}")
+            except Exception as e:
+                logger.error(f"Error processing with Drummond: {e}")
+                import traceback
+                traceback.print_exc()
+                raise
         else:
             # For now, return a simple response if agents are not available
+            logger.warning(f"Falling back to maintenance message. Target: {target_agent}, Drummond: {drummond_agent}")
             response = AgentResponse(
                 agent_name="Sistema",
                 status=AgentStatus.COMPLETED,
