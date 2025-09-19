@@ -21,6 +21,12 @@ from .deodoro import (
     AgentResponse,
     ReflectiveAgent,
 )
+from .parallel_processor import (
+    ParallelAgentProcessor,
+    ParallelTask,
+    ParallelStrategy,
+    parallel_processor,
+)
 
 
 class InvestigationPlan(BaseModel):
@@ -243,24 +249,64 @@ class MasterAgent(ReflectiveAgent):
         plan = await self._plan_investigation({"query": query}, context)
         self.active_investigations[investigation_id] = plan
         
-        # Step 2: Execute investigation steps
+        # Step 2: Execute investigation steps in parallel when possible
         findings = []
         sources = []
         
-        for i, step in enumerate(plan.steps):
-            step_result = await self._execute_step(step, context)
-            
-            if step_result.status == AgentStatus.COMPLETED:
-                findings.extend(step_result.result.get("findings", []))
-                sources.extend(step_result.result.get("sources", []))
-            else:
-                self.logger.warning(
-                    "investigation_step_failed",
-                    investigation_id=investigation_id,
-                    step_index=i,
-                    step=step,
-                    error=step_result.error,
+        # Group steps that can be executed in parallel
+        parallel_groups = self._group_parallel_steps(plan.steps)
+        
+        for group_idx, step_group in enumerate(parallel_groups):
+            if len(step_group) > 1:
+                # Execute in parallel
+                self.logger.info(
+                    f"Executing {len(step_group)} steps in parallel for group {group_idx}"
                 )
+                
+                # Create parallel tasks
+                tasks = []
+                for step in step_group:
+                    agent_type = self.agent_registry.get(step["agent"])
+                    if agent_type:
+                        task = ParallelTask(
+                            agent_type=agent_type,
+                            message=AgentMessage(
+                                sender=self.name,
+                                recipient=step["agent"],
+                                action=step["action"],
+                                payload=step.get("payload", {}),
+                            ),
+                            timeout=30.0,
+                        )
+                        tasks.append(task)
+                
+                # Execute parallel tasks
+                parallel_results = await parallel_processor.execute_parallel(
+                    tasks,
+                    context,
+                    strategy=ParallelStrategy.BEST_EFFORT
+                )
+                
+                # Aggregate results
+                aggregated = parallel_processor.aggregate_results(parallel_results)
+                findings.extend(aggregated.get("findings", []))
+                sources.extend(aggregated.get("sources", []))
+                
+            else:
+                # Execute single step
+                step = step_group[0]
+                step_result = await self._execute_step(step, context)
+                
+                if step_result.status == AgentStatus.COMPLETED:
+                    findings.extend(step_result.result.get("findings", []))
+                    sources.extend(step_result.result.get("sources", []))
+                else:
+                    self.logger.warning(
+                        "investigation_step_failed",
+                        investigation_id=investigation_id,
+                        step=step,
+                        error=step_result.error,
+                    )
         
         # Step 3: Generate explanation
         explanation = await self._generate_explanation(findings, query, context)
@@ -298,6 +344,40 @@ class MasterAgent(ReflectiveAgent):
         )
         
         return result
+    
+    def _group_parallel_steps(self, steps: List[Dict[str, Any]]) -> List[List[Dict[str, Any]]]:
+        """
+        Group steps that can be executed in parallel.
+        
+        Steps can be parallel if they don't depend on each other's output.
+        """
+        groups = []
+        current_group = []
+        seen_agents = set()
+        
+        for step in steps:
+            agent = step.get("agent", "")
+            depends_on = step.get("depends_on", [])
+            
+            # Check if this step depends on any agent in current group
+            depends_on_current = any(dep in seen_agents for dep in depends_on)
+            
+            if depends_on_current or agent in seen_agents:
+                # Start new group
+                if current_group:
+                    groups.append(current_group)
+                current_group = [step]
+                seen_agents = {agent}
+            else:
+                # Add to current group
+                current_group.append(step)
+                seen_agents.add(agent)
+        
+        # Add final group
+        if current_group:
+            groups.append(current_group)
+        
+        return groups
     
     async def _plan_investigation(
         self,

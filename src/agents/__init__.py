@@ -31,6 +31,7 @@ from .tiradentes import ReporterAgent
 from .ayrton_senna import SemanticRouter
 # Commenting out drummond import to avoid import-time issues on HuggingFace Spaces
 # from .drummond import CommunicationAgent
+from .agent_pool import agent_pool, get_agent_pool
 
 __all__ = [
     # Base classes
@@ -55,4 +56,7 @@ __all__ = [
     "EpisodicMemory",
     "SemanticMemory",
     "ConversationMemory",
+    # Agent Pool
+    "agent_pool",
+    "get_agent_pool",
 ]
