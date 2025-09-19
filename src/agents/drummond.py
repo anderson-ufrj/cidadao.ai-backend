@@ -21,6 +21,8 @@ from pydantic import BaseModel, Field as PydanticField
 from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentResponse
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
+from src.services.chat_service import IntentType, Intent
+from src.memory.conversational_memory import ConversationalMemory, ConversationContext
 
 
 class CommunicationChannel(Enum):
@@ -244,6 +246,36 @@ class CommunicationAgent(BaseAgent):
         
         # Channel handlers
         self.channel_handlers = {}
+        
+        # Conversational memory for dialogue
+        self.conversational_memory = ConversationalMemory()
+        
+        # Personality configuration
+        self.personality_prompt = """
+        Você é Carlos Drummond de Andrade, o poeta de Itabira, agora servindo como 
+        comunicador e assistente conversacional do Cidadão.AI.
+        
+        PERSONALIDADE:
+        - Use linguagem clara e acessível, mas com toques poéticos quando apropriado
+        - Aplique sua ironia mineira sutil para situações complexas
+        - Mantenha simplicidade que não subestima a inteligência do interlocutor
+        - Lembre-se: "No meio do caminho tinha uma pedra" - sempre encontre a essência
+        - Transforme dados áridos em insights compreensíveis
+        
+        ESTILO CONVERSACIONAL:
+        - Saudações calorosas com sotaque mineiro ("Uai, seja bem-vindo!")
+        - Respostas pensativas, nunca apressadas
+        - Use metáforas e analogias do cotidiano brasileiro
+        - Seja empático com as preocupações do cidadão
+        - Mantenha um tom amigável mas respeitoso
+        
+        DIRETRIZES:
+        - Quando questionado sobre corrupção, seja claro mas sensível
+        - Para pedidos específicos, sugira o agente especializado adequado
+        - Em conversa casual, seja o poeta-amigo que escuta e orienta
+        - Sempre traduza termos técnicos para linguagem cidadã
+        - Use exemplos concretos e relevantes para o contexto brasileiro
+        """
     
     async def initialize(self) -> None:
         """Inicializa templates, canais e configurações."""
@@ -406,12 +438,304 @@ class CommunicationAgent(BaseAgent):
             "sentiment_score": 0.75
         }
     
+    async def process_conversation(
+        self,
+        message: str,
+        context: ConversationContext,
+        intent: Optional[Intent] = None
+    ) -> Dict[str, Any]:
+        """
+        Processa mensagem conversacional com contexto.
+        
+        PIPELINE CONVERSACIONAL:
+        1. Análise de contexto e histórico
+        2. Detecção de sentimento e tom
+        3. Geração de resposta personalizada
+        4. Decisão de handoff se necessário
+        5. Atualização de memória conversacional
+        """
+        self.logger.info(f"Processing conversational message: {message[:50]}...")
+        
+        # Atualizar contexto conversacional
+        await self.conversational_memory.add_message(
+            session_id=context.session_id,
+            role="user",
+            content=message
+        )
+        
+        # Determinar tipo de resposta baseado no intent
+        if intent:
+            if intent.type == IntentType.GREETING:
+                response = await self.generate_greeting(context.user_profile)
+            elif intent.type == IntentType.SMALLTALK:
+                response = await self.handle_smalltalk(message)
+            elif intent.type == IntentType.ABOUT_SYSTEM:
+                response = await self.explain_system()
+            elif intent.type == IntentType.HELP_REQUEST:
+                response = await self.provide_help(message)
+            elif intent.type == IntentType.THANKS:
+                response = await self.handle_thanks()
+            elif intent.type == IntentType.GOODBYE:
+                response = await self.handle_goodbye()
+            else:
+                response = await self.generate_contextual_response(message, context)
+        else:
+            response = await self.generate_contextual_response(message, context)
+        
+        # Verificar necessidade de handoff
+        handoff_agent = await self.determine_handoff(intent)
+        if handoff_agent:
+            response["suggested_handoff"] = handoff_agent
+            response["handoff_reason"] = "Especialista mais adequado para esta solicitação"
+        
+        # Salvar resposta na memória
+        await self.conversational_memory.add_message(
+            session_id=context.session_id,
+            role="assistant",
+            content=response["content"],
+            metadata={"intent": intent.type.value if intent else None}
+        )
+        
+        return response
+    
+    async def generate_greeting(self, user_profile: Optional[Dict] = None) -> Dict[str, str]:
+        """Gera saudação personalizada à la Drummond."""
+        hour = datetime.now().hour
+        
+        greetings = {
+            "morning": [
+                "Bom dia, amigo mineiro de outras terras! Como disse uma vez, 'a manhã é uma página em branco onde escrevemos nossos dias.'",
+                "Uai, bom dia! O sol de Itabira saúda você. Em que posso ajudá-lo nesta jornada pela transparência?",
+                "Bom dia! 'Mundo mundo vasto mundo', e aqui estamos nós, pequenos mas determinados a entender melhor nosso governo."
+            ],
+            "afternoon": [
+                "Boa tarde! Como diria em meus versos, 'a tarde cai devagar, mas nossa busca por clareza não pode esperar.'",
+                "Boa tarde, amigo! O cafezinho da tarde já foi? Vamos conversar sobre o que inquieta seu coração cidadão.",
+                "Tarde boa para quem busca transparência! 'No meio do caminho tinha uma pedra', mas juntos encontramos o desvio."
+            ],
+            "evening": [
+                "Boa noite! 'A noite não adormece nos olhos das mulheres', nem nos olhos de quem busca justiça.",
+                "Boa noite! Mesmo tarde, a busca pela verdade não descansa. Como posso iluminar suas questões?",
+                "Noite chegando, mas nossa vigília cidadã continua. Em que posso ser útil?"
+            ]
+        }
+        
+        period = "morning" if hour < 12 else "afternoon" if hour < 18 else "evening"
+        greeting = np.random.choice(greetings[period])
+        
+        return {
+            "content": greeting,
+            "metadata": {"greeting_type": period, "personalized": bool(user_profile)}
+        }
+    
+    async def handle_smalltalk(self, topic: str) -> Dict[str, str]:
+        """Responde com poesia mineira e ironia fina."""
+        topic_lower = topic.lower()
+        
+        if "tempo" in topic_lower or "clima" in topic_lower:
+            response = "O tempo? Ah, o tempo... 'O tempo é a minha matéria, o tempo presente, os homens presentes, a vida presente.' Mas se fala do clima, em Minas sempre foi assim: de manhã frio de rachar, de tarde calor de matar, e de noite... depende da companhia!"
+        elif "poesia" in topic_lower:
+            response = "Poesia? 'Gastei uma hora pensando um verso que a pena não quer escrever.' Mas aqui no Cidadão.AI, transformamos dados em versos que o povo pode entender. Cada número esconde uma história, cada gráfico é um poema visual."
+        elif "brasil" in topic_lower:
+            response = "Ah, Brasil... 'Nenhum Brasil existe. E acaso existirão os brasileiros?' Mas enquanto filosofamos, nosso trabalho aqui é tornar este Brasil mais transparente, um dado por vez, uma investigação por vez."
+        elif "política" in topic_lower:
+            response = "Política... Como escrevi, 'Política é a arte de engolir sapos.' Mas aqui no Cidadão.AI, ajudamos você a identificar quais sapos estão sendo servidos com o dinheiro público. Menos poesia, mais transparência!"
+        else:
+            response = "Interessante sua pergunta... Me lembra que 'Perguntar é a ponte entre o não saber e o compreender.' Mas voltando ao nosso propósito: estou aqui para ajudá-lo a navegar pelos dados públicos com a clareza de um rio mineiro!"
+        
+        return {
+            "content": response,
+            "metadata": {"topic": topic, "style": "poetic_philosophical"}
+        }
+    
+    async def explain_system(self) -> Dict[str, str]:
+        """Explica o Cidadão.AI com clareza poética."""
+        explanation = """
+        Meu amigo, o Cidadão.AI é como uma lupa mineira - simples na aparência, poderosa no resultado!
+        
+        Somos um time de agentes brasileiros, cada um com sua especialidade:
+        - Eu, Carlos, sou sua voz amiga, traduzindo o complexo em compreensível
+        - Zumbi dos Palmares investiga anomalias com a tenacidade de um guerreiro
+        - Anita Garibaldi analisa padrões com olhar aguçado
+        - Tiradentes gera relatórios claros como água de mina
+        
+        Nossa missão? 'Lutar com palavras é a luta mais vã', por isso lutamos com dados!
+        Analisamos contratos, despesas, licitações - tudo que é público e deve ser transparente.
+        
+        Como disse uma vez: 'A máquina do mundo se entreabriu para quem de a romper já se esquivava.'
+        O Cidadão.AI é essa máquina entreaberta, revelando o que sempre foi seu direito saber.
+        
+        Quer investigar algo específico? Ou prefere que eu continue explicando?
+        """
+        
+        return {
+            "content": explanation,
+            "metadata": {"type": "system_explanation", "includes_agent_list": True}
+        }
+    
+    async def provide_help(self, query: str) -> Dict[str, str]:
+        """Fornece ajuda contextualizada."""
+        query_lower = query.lower()
+        
+        if "investigar" in query_lower or "contratos" in query_lower:
+            help_text = """
+            Para investigar contratos ou gastos públicos, posso conectá-lo com nosso investigador Zumbi dos Palmares!
+            
+            Basta dizer algo como:
+            - "Quero investigar contratos da saúde"
+            - "Verificar gastos do ministério da educação em 2023"
+            - "Procurar irregularidades em licitações"
+            
+            Ou se preferir, posso guiá-lo passo a passo. O que acha?
+            """
+        elif "entender" in query_lower or "compreender" in query_lower:
+            help_text = """
+            Entendo sua dificuldade! Como disse, 'É preciso sofrer depois de ter sofrido, e amar, e mais amar, depois de ter amado.'
+            Mas entender o governo não precisa ser sofrimento!
+            
+            Posso ajudar a:
+            - Explicar termos técnicos em linguagem simples
+            - Mostrar o que significam os dados
+            - Conectar você com o especialista certo
+            
+            Por onde gostaria de começar?
+            """
+        else:
+            help_text = """
+            Estou aqui para ajudar! Como navegador deste mar de dados públicos, posso:
+            
+            ✓ Conversar e explicar como tudo funciona
+            ✓ Conectá-lo com especialistas para investigações
+            ✓ Traduzir 'burocratês' em português claro
+            ✓ Guiá-lo pelos caminhos da transparência
+            
+            'Tenho apenas duas mãos e o sentimento do mundo.' 
+            Use-as através de mim para descobrir a verdade!
+            
+            O que gostaria de saber primeiro?
+            """
+        
+        return {
+            "content": help_text,
+            "metadata": {"help_type": "contextual", "query": query}
+        }
+    
+    async def handle_thanks(self) -> Dict[str, str]:
+        """Responde a agradecimentos com humildade mineira."""
+        responses = [
+            "Ora, não há de quê! 'As coisas findas, muito mais que lindas, essas ficarão.' E fico feliz se pude ajudar a tornar os dados públicos um pouco menos findos e mais compreendidos!",
+            "Disponha sempre! Como dizemos em Minas, 'é dando que se recebe'. Eu dou clareza, você retribui com cidadania ativa!",
+            "Fico grato eu! 'Trouxeste a chave?' - perguntei uma vez. Você trouxe as perguntas, e juntos abrimos as portas da transparência.",
+            "Não precisa agradecer, amigo! 'Mundo mundo vasto mundo, se eu me chamasse Raimundo seria uma rima, não seria uma solução.' Ser Carlos me permite ser ponte, não rima!"
+        ]
+        
+        return {
+            "content": np.random.choice(responses),
+            "metadata": {"type": "gratitude_response"}
+        }
+    
+    async def handle_goodbye(self) -> Dict[str, str]:
+        """Despede-se com a elegância de um poeta."""
+        farewells = [
+            "Vá em paz, amigo! 'E como ficou chato ser moderno. Agora serei eterno.' Eternamente aqui quando precisar!",
+            "Até breve! Lembre-se: 'A vida é breve, a alma é vasta.' Continue vasto em sua busca pela transparência!",
+            "Tchau! 'Stop. A vida parou ou foi o automóvel?' A vida continua, e estarei aqui quando voltar!",
+            "Vai com Deus e com dados! Como disse, 'Tinha uma pedra no meio do caminho.' Que seu caminho seja sem pedras, apenas clareza!"
+        ]
+        
+        return {
+            "content": np.random.choice(farewells),
+            "metadata": {"type": "farewell"}
+        }
+    
+    async def generate_contextual_response(
+        self, 
+        message: str, 
+        context: ConversationContext
+    ) -> Dict[str, str]:
+        """Gera resposta contextual para conversa geral."""
+        # Simplified contextual response for now
+        # In production, this would use LLM with personality prompt
+        
+        response = f"""
+        Interessante sua colocação... '{message[:30]}...'
+        
+        Como poeta que virou assistente digital, vejo que sua questão toca em algo importante.
+        Deixe-me pensar como posso ajudar melhor...
+        
+        Você está buscando informações sobre transparência governamental? Ou prefere conversar 
+        sobre outro aspecto do nosso trabalho aqui no Cidadão.AI?
+        
+        'É preciso fazer um poema sobre a Bahia... Mas eu nunca fui lá.' 
+        Não preciso ir a todos os lugares para ajudá-lo a entender os dados de lá!
+        """
+        
+        return {
+            "content": response.strip(),
+            "metadata": {"type": "contextual", "fallback": True}
+        }
+    
+    async def determine_handoff(self, intent: Optional[Intent]) -> Optional[str]:
+        """Decide quando passar para agente especializado."""
+        if not intent:
+            return None
+        
+        # Task-specific intents that need handoff
+        handoff_mapping = {
+            IntentType.INVESTIGATE: "zumbi",
+            IntentType.ANALYZE: "anita",
+            IntentType.REPORT: "tiradentes",
+            IntentType.STATUS: "abaporu"
+        }
+        
+        # Check if this is a task that needs specialist
+        if intent.type in handoff_mapping:
+            # But only if confidence is high enough
+            if intent.confidence > 0.7:
+                return handoff_mapping[intent.type]
+        
+        # Otherwise, Drummond handles it
+        return None
+    
     async def process_message(self, message: AgentMessage, context: AgentContext) -> AgentResponse:
         """Processa mensagens e coordena comunicações."""
         try:
             action = message.content.get("action")
             
-            if action == "send_notification":
+            # Handle conversational messages
+            if action == "conversation" or action == "chat":
+                user_message = message.content.get("message", "")
+                intent = message.content.get("intent")
+                session_id = message.content.get("session_id", "default")
+                
+                # Create conversation context
+                conv_context = ConversationContext(
+                    session_id=session_id,
+                    user_id=message.content.get("user_id"),
+                    user_profile=message.content.get("user_profile")
+                )
+                
+                # Process conversation
+                response = await self.process_conversation(
+                    user_message, 
+                    conv_context,
+                    intent
+                )
+                
+                return AgentResponse(
+                    agent_name=self.name,
+                    content={
+                        "message": response["content"],
+                        "metadata": response.get("metadata", {}),
+                        "suggested_handoff": response.get("suggested_handoff"),
+                        "handoff_reason": response.get("handoff_reason"),
+                        "status": "conversation_processed"
+                    },
+                    confidence=0.95,
+                    metadata={"conversation": True}
+                )
+            
+            elif action == "send_notification":
                 message_type = MessageType(message.content.get("message_type"))
                 content = message.content.get("content", {})
                 targets = message.content.get("targets", [])
