@@ -131,7 +131,7 @@ app.add_middleware(
 if settings.app_env == "production":
     app.add_middleware(
         TrustedHostMiddleware,
-        allowed_hosts=["api.cidadao.ai", "*.cidadao.ai"]
+        allowed_hosts=["api.cidadao.ai", "*.cidadao.ai", "*.hf.space", "*.huggingface.co"]
     )
 else:
     app.add_middleware(
