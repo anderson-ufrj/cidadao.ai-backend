@@ -29,7 +29,8 @@ from .zumbi import InvestigatorAgent
 from .anita import AnalystAgent
 from .tiradentes import ReporterAgent
 from .ayrton_senna import SemanticRouter
-from .drummond import CommunicationAgent
+# Commenting out drummond import to avoid import-time issues on HuggingFace Spaces
+# from .drummond import CommunicationAgent
 
 __all__ = [
     # Base classes
@@ -47,7 +48,7 @@ __all__ = [
     "AnalystAgent",
     "ReporterAgent",
     "SemanticRouter",
-    "CommunicationAgent",
+    # "CommunicationAgent",  # Commented out to avoid import issues
     # Memory Agent
     "ContextMemoryAgent",
     "MemoryEntry",
