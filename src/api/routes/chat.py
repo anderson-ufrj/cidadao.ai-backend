@@ -31,13 +31,15 @@ router = APIRouter(tags=["chat"])
 intent_detector = IntentDetector()
 
 # Initialize Drummond agent
+drummond_init_error = None
 try:
     drummond_agent = CommunicationAgent()
     logger.info("Drummond agent created successfully")
 except Exception as e:
+    drummond_init_error = str(e)
     logger.error(f"Failed to create Drummond agent: {e}")
     import traceback
-    traceback.print_exc()
+    logger.error(f"Traceback: {traceback.format_exc()}")
     drummond_agent = None
 
 class ChatRequest(BaseModel):
@@ -201,12 +203,18 @@ async def send_message(
         else:
             # For now, return a simple response if agents are not available
             logger.warning(f"Falling back to maintenance message. Target: {target_agent}, Drummond: {drummond_agent}")
+            # Include debug info about why Drummond failed
+            debug_info = ""
+            if target_agent == "drummond" and not drummond_agent and drummond_init_error:
+                debug_info = f" (Drummond init error: {drummond_init_error})"
+            
             response = AgentResponse(
                 agent_name="Sistema",
                 status=AgentStatus.COMPLETED,
                 result={
-                    "message": "Desculpe, estou em manutenção. Por favor, tente novamente em alguns instantes.",
-                    "status": "maintenance"
+                    "message": f"Desculpe, estou em manutenção. Por favor, tente novamente em alguns instantes.{debug_info}",
+                    "status": "maintenance",
+                    "debug": drummond_init_error if drummond_init_error else None
                 },
                 metadata={
                     "confidence": 0.0
