@@ -69,19 +69,31 @@ async def send_message(
         intent = await intent_detector.detect(request.message)
         logger.info(f"Detected intent: {intent.type} with confidence {intent.confidence}")
         
+        # Determine target agent based on intent
+        if intent.type in [IntentType.GREETING, IntentType.CONVERSATION, IntentType.HELP_REQUEST, 
+                          IntentType.ABOUT_SYSTEM, IntentType.SMALLTALK, IntentType.THANKS, IntentType.GOODBYE]:
+            target_agent = "drummond"
+        elif intent.type == IntentType.INVESTIGATE:
+            target_agent = "abaporu"
+        else:
+            target_agent = "abaporu"  # Default to master agent
+            
         # Create agent message
         agent_message = AgentMessage(
-            content={
+            sender="user",
+            recipient=target_agent,
+            action="process_chat",
+            payload={
                 "user_message": request.message,
                 "intent": intent.dict(),
                 "context": request.context or {},
                 "session": session.to_dict()
             },
-            sender="user",
-            context=AgentContext(
-                investigation_id=session.current_investigation_id,
-                user_id=session.user_id
-            )
+            context={
+                "investigation_id": session.current_investigation_id,
+                "user_id": session.user_id,
+                "session_id": session_id
+            }
         )
         
         # Route to appropriate agent based on intent
@@ -104,10 +116,13 @@ async def send_message(
             content=request.message
         )
         
+        # Get content from response
+        response_content = response.result if hasattr(response, 'result') else str(response)
+        
         await chat_service.save_message(
             session_id=session_id,
             role="assistant",
-            content=response.content,
+            content=response_content,
             agent_id=agent_id
         )
         
@@ -118,17 +133,28 @@ async def send_message(
         elif session.current_investigation_id:
             suggested_actions = ["view_progress", "generate_report", "new_investigation"]
         
+        # Extract message from response
+        if hasattr(response, 'result') and isinstance(response.result, dict):
+            message_text = response.result.get("message", str(response.result))
+            requires_input = response.result.get("requires_input")
+        elif hasattr(response, 'result'):
+            message_text = str(response.result)
+            requires_input = None
+        else:
+            message_text = str(response)
+            requires_input = None
+            
         return ChatResponse(
             session_id=session_id,
             agent_id=agent_id,
             agent_name=agent_name,
-            message=response.content.get("message", str(response.content)),
-            confidence=response.metadata.get("confidence", intent.confidence),
+            message=message_text,
+            confidence=response.metadata.get("confidence", intent.confidence) if hasattr(response, 'metadata') else intent.confidence,
             suggested_actions=suggested_actions,
-            requires_input=response.content.get("requires_input"),
+            requires_input=requires_input,
             metadata={
                 "intent_type": intent.type.value,
-                "processing_time": response.metadata.get("processing_time", 0),
+                "processing_time": response.metadata.get("processing_time", 0) if hasattr(response, 'metadata') else 0,
                 "is_demo_mode": not bool(current_user),
                 "timestamp": datetime.utcnow().isoformat()
             }
