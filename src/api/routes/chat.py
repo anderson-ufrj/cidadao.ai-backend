@@ -20,7 +20,7 @@ from src.services.chat_service import IntentDetector, IntentType
 from src.api.models.pagination import CursorPaginationResponse
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/api/v1/chat", tags=["chat"])
+router = APIRouter(tags=["chat"])
 
 # Services are already initialized
 intent_detector = IntentDetector()
