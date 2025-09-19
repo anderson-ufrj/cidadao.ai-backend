@@ -32,15 +32,30 @@ intent_detector = IntentDetector()
 
 # Initialize Drummond agent
 drummond_init_error = None
+drummond_agent = None
+logger.info("Starting Drummond initialization...")
+
 try:
+    # Check if Maritaca key is available
+    import os
+    has_maritaca = bool(os.environ.get("MARITACA_API_KEY"))
+    logger.info(f"MARITACA_API_KEY available: {has_maritaca}")
+    
+    # Create agent
     drummond_agent = CommunicationAgent()
     logger.info("Drummond agent created successfully")
+    
+    # Note: We can't run async initialize here, it will be done on first use
+    logger.info("Drummond agent ready for initialization on first use")
+    
 except Exception as e:
     drummond_init_error = str(e)
     logger.error(f"Failed to create Drummond agent: {e}")
     import traceback
     logger.error(f"Traceback: {traceback.format_exc()}")
     drummond_agent = None
+finally:
+    logger.info(f"Drummond agent final status: {'Available' if drummond_agent else f'Not available - {drummond_init_error}'}")
 
 class ChatRequest(BaseModel):
     """Chat message request"""
