@@ -235,7 +235,10 @@ class RequestValidator:
             "user-agent", "accept", "accept-language", "accept-encoding", 
             "referer", "origin", "x-direct-url", "x-forwarded-for", 
             "x-forwarded-proto", "x-forwarded-host", "x-real-ip",
-            "host", "connection", "upgrade-insecure-requests"
+            "host", "connection", "upgrade-insecure-requests",
+            "authorization", "x-api-key", "content-type", "content-length",
+            "cookie", "cache-control", "pragma", "expires",
+            "if-none-match", "if-modified-since"
         }
         for name, value in request.headers.items():
             if name.lower() in skip_headers:
