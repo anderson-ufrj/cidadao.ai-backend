@@ -230,8 +230,11 @@ class RequestValidator:
         if headers_size > SecurityConfig.MAX_HEADER_SIZE:
             return False, "Headers too large"
         
-        # Check for suspicious headers
+        # Check for suspicious headers (skip user-agent and common headers)
+        skip_headers = {"user-agent", "accept", "accept-language", "accept-encoding", "referer", "origin"}
         for name, value in request.headers.items():
+            if name.lower() in skip_headers:
+                continue
             if any(pattern.search(value) for pattern in self.suspicious_patterns):
                 return False, f"Suspicious content in header {name}"
         
