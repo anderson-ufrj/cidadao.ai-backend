@@ -1,4 +1,4 @@
-"""Memory system for Cidadão.AI agents.
+"""Memory system for Cidadao.AI agents.
 
 This module provides memory management capabilities for AI agents including:
 - Episodic memory for specific events and investigations
