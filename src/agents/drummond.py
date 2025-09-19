@@ -221,7 +221,16 @@ class CommunicationAgent(BaseAgent):
         super().__init__(
             name="CommunicationAgent",
             description="Carlos Drummond de Andrade - Comunicador do povo",
-            config=config or {}
+            capabilities=[
+                "process_chat",
+                "send_notification",
+                "generate_report_summary",
+                "send_bulk_communication",
+                "translate_content",
+                "analyze_communication_effectiveness"
+            ],
+            max_retries=3,
+            timeout=60
         )
         self.logger = get_logger(__name__)
         
