@@ -34,5 +34,7 @@ if __name__ == "__main__":
         host=host,
         port=port,
         log_level="info",
-        reload=False
+        reload=False,
+        forwarded_allow_ips="*",  # Allow all proxy IPs for HuggingFace
+        proxy_headers=True  # Trust proxy headers from HuggingFace
     )
