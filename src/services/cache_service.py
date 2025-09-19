@@ -8,12 +8,12 @@ This service provides:
 - Distributed cache for scalability
 """
 
-import json
 import hashlib
 from typing import Optional, Any, Dict, List
 from datetime import datetime, timedelta
 import asyncio
 from functools import wraps
+import zlib  # For compression
 
 import redis.asyncio as redis
 from redis.asyncio.connection import ConnectionPool
@@ -21,6 +21,7 @@ from redis.exceptions import RedisError
 
 from src.core import get_logger, settings
 from src.core.exceptions import CacheError
+from src.core.json_utils import dumps, loads, dumps_bytes
 
 logger = get_logger(__name__)
 
@@ -40,6 +41,10 @@ class CacheService:
         self.TTL_SESSION = 86400  # 24 hours for session data
         self.TTL_AGENT_CONTEXT = 1800  # 30 minutes for agent context
         self.TTL_SEARCH_RESULTS = 600  # 10 minutes for search results
+        
+        # Stampede protection settings
+        self.STAMPEDE_DELTA = 10  # seconds before expiry to refresh
+        self.STAMPEDE_BETA = 1.0  # randomization factor
     
     async def initialize(self):
         """Initialize Redis connection."""
@@ -94,33 +99,46 @@ class CacheService:
         
         return f"cidadao:{prefix}:{key_data}"
     
-    async def get(self, key: str) -> Optional[Any]:
-        """Get value from cache."""
+    async def get(self, key: str, decompress: bool = False) -> Optional[Any]:
+        """Get value from cache with optional decompression."""
         if not self._initialized:
             await self.initialize()
         
         try:
             value = await self.redis.get(key)
             if value:
+                # Decompress if needed
+                if decompress and isinstance(value, bytes):
+                    try:
+                        value = zlib.decompress(value)
+                    except zlib.error:
+                        pass  # Not compressed
+                
                 # Try to deserialize JSON
                 try:
-                    return json.loads(value)
-                except json.JSONDecodeError:
+                    return loads(value)
+                except Exception:
                     return value
             return None
         except RedisError as e:
             logger.error(f"Redis get error: {e}")
             return None
     
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
-        """Set value in cache with optional TTL."""
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None, compress: bool = False) -> bool:
+        """Set value in cache with optional TTL and compression."""
         if not self._initialized:
             await self.initialize()
         
         try:
             # Serialize complex objects to JSON
             if isinstance(value, (dict, list)):
-                value = json.dumps(value, ensure_ascii=False)
+                value = dumps_bytes(value)
+            elif not isinstance(value, bytes):
+                value = str(value).encode('utf-8')
+            
+            # Compress if requested and value is large enough
+            if compress and len(value) > 1024:  # Compress if > 1KB
+                value = zlib.compress(value, level=6)
             
             if ttl:
                 await self.redis.setex(key, ttl, value)
@@ -144,6 +162,70 @@ class CacheService:
             logger.error(f"Redis delete error: {e}")
             return False
     
+    async def get_with_stampede_protection(
+        self, 
+        key: str, 
+        ttl: int,
+        refresh_callback = None,
+        decompress: bool = False
+    ) -> Optional[Any]:
+        """
+        Get value with cache stampede protection using probabilistic early expiration.
+        
+        Args:
+            key: Cache key
+            ttl: Time to live for the cache
+            refresh_callback: Async function to refresh cache if needed
+            decompress: Whether to decompress the value
+            
+        Returns:
+            Cached value or None
+        """
+        # Get value with TTL info
+        pipeline = self.redis.pipeline()
+        pipeline.get(key)
+        pipeline.ttl(key)
+        value, remaining_ttl = await pipeline.execute()
+        
+        if value is None:
+            return None
+        
+        # Decompress and deserialize
+        if decompress and isinstance(value, bytes):
+            try:
+                value = zlib.decompress(value)
+            except zlib.error:
+                pass
+                
+        try:
+            result = loads(value)
+        except Exception:
+            result = value
+        
+        # Check if we should refresh early to prevent stampede
+        if refresh_callback and remaining_ttl > 0:
+            import random
+            import math
+            
+            # XFetch algorithm for cache stampede prevention
+            now = datetime.now().timestamp()
+            delta = self.STAMPEDE_DELTA * math.log(random.random()) * self.STAMPEDE_BETA
+            
+            if remaining_ttl < abs(delta):
+                # Refresh cache asynchronously
+                asyncio.create_task(self._refresh_cache(key, ttl, refresh_callback))
+        
+        return result
+    
+    async def _refresh_cache(self, key: str, ttl: int, refresh_callback):
+        """Refresh cache value asynchronously."""
+        try:
+            new_value = await refresh_callback()
+            if new_value is not None:
+                await self.set(key, new_value, ttl=ttl, compress=len(dumps(new_value)) > 1024)
+        except Exception as e:
+            logger.error(f"Error refreshing cache for key {key}: {e}")
+    
     # Chat-specific methods
     
     async def cache_chat_response(
@@ -163,7 +245,7 @@ class CacheService:
             "hit_count": 0
         }
         
-        return await self.set(key, cache_data, self.TTL_CHAT_RESPONSE)
+        return await self.set(key, cache_data, self.TTL_CHAT_RESPONSE, compress=True)
     
     async def get_cached_chat_response(
         self,
@@ -172,12 +254,12 @@ class CacheService:
     ) -> Optional[Dict[str, Any]]:
         """Get cached chat response if available."""
         key = self._generate_key("chat", message.lower().strip(), intent)
-        cache_data = await self.get(key)
+        cache_data = await self.get(key, decompress=True)
         
         if cache_data:
             # Increment hit count
             cache_data["hit_count"] += 1
-            await self.set(key, cache_data, self.TTL_CHAT_RESPONSE)
+            await self.set(key, cache_data, self.TTL_CHAT_RESPONSE, compress=True)
             
             logger.info(f"Cache hit for chat message: {message[:50]}...")
             return cache_data["response"]
@@ -194,7 +276,7 @@ class CacheService:
         """Save session state to cache."""
         key = self._generate_key("session", session_id)
         state["last_updated"] = datetime.utcnow().isoformat()
-        return await self.set(key, state, self.TTL_SESSION)
+        return await self.set(key, state, self.TTL_SESSION, compress=True)
     
     async def get_session_state(self, session_id: str) -> Optional[Dict[str, Any]]:
         """Get session state from cache."""
@@ -221,7 +303,7 @@ class CacheService:
     ) -> bool:
         """Cache investigation results."""
         key = self._generate_key("investigation", investigation_id)
-        return await self.set(key, result, self.TTL_INVESTIGATION)
+        return await self.set(key, result, self.TTL_INVESTIGATION, compress=True)
     
     async def get_cached_investigation(
         self,
