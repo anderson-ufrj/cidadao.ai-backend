@@ -644,4 +644,11 @@ async def cache_stats():
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 7860))
     logger.info(f"🚀 Starting Enhanced Cidadão.AI Backend on port {port}")
-    uvicorn.run(app, host="0.0.0.0", port=port)
+    # Disable host header validation for HuggingFace Spaces
+    uvicorn.run(
+        app, 
+        host="0.0.0.0", 
+        port=port,
+        forwarded_allow_ips="*",  # Allow all proxy IPs
+        proxy_headers=True  # Trust proxy headers
+    )
