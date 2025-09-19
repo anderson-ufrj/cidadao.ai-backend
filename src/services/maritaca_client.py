@@ -22,6 +22,7 @@ from src.core.exceptions import LLMError, LLMRateLimitError
 
 class MaritacaModel(str, Enum):
     """Available Maritaca AI models."""
+    SABIAZINHO_3 = "sabiazinho-3"  # Mais barato e eficiente
     SABIA_3 = "sabia-3"
     SABIA_3_MEDIUM = "sabia-3-medium"
     SABIA_3_LARGE = "sabia-3-large"
