@@ -231,7 +231,12 @@ class RequestValidator:
             return False, "Headers too large"
         
         # Check for suspicious headers (skip user-agent and common headers)
-        skip_headers = {"user-agent", "accept", "accept-language", "accept-encoding", "referer", "origin"}
+        skip_headers = {
+            "user-agent", "accept", "accept-language", "accept-encoding", 
+            "referer", "origin", "x-direct-url", "x-forwarded-for", 
+            "x-forwarded-proto", "x-forwarded-host", "x-real-ip",
+            "host", "connection", "upgrade-insecure-requests"
+        }
         for name, value in request.headers.items():
             if name.lower() in skip_headers:
                 continue
