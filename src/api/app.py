@@ -12,7 +12,7 @@ from typing import Dict, Any
 
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
+# from fastapi.middleware.trustedhost import TrustedHostMiddleware  # Disabled for HuggingFace
 from fastapi.responses import JSONResponse
 from fastapi.openapi.docs import get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
@@ -128,16 +128,17 @@ app.add_middleware(
 )
 
 # Add trusted host middleware for production
-if settings.app_env == "production":
-    app.add_middleware(
-        TrustedHostMiddleware,
-        allowed_hosts=["api.cidadao.ai", "*.cidadao.ai", "*.hf.space", "*.huggingface.co"]
-    )
-else:
-    app.add_middleware(
-        TrustedHostMiddleware,
-        allowed_hosts=["localhost", "127.0.0.1", "*.cidadao.ai", "testserver"]
-    )
+# DISABLED for HuggingFace Spaces - causes issues with proxy headers
+# if settings.app_env == "production":
+#     app.add_middleware(
+#         TrustedHostMiddleware,
+#         allowed_hosts=["api.cidadao.ai", "*.cidadao.ai", "*.hf.space", "*.huggingface.co"]
+#     )
+# else:
+#     app.add_middleware(
+#         TrustedHostMiddleware,
+#         allowed_hosts=["localhost", "127.0.0.1", "*.cidadao.ai", "testserver"]
+#     )
 
 # CORS middleware with secure configuration
 app.add_middleware(
