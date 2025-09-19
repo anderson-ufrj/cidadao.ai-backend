@@ -84,6 +84,7 @@ dependencies = [
     "python-dotenv>=1.0.0",
     "tenacity>=8.2.3",
     "pendulum>=3.0.0",
+    "orjson>=3.9.10",
 ]
 
 [project.optional-dependencies]
@@ -101,6 +102,7 @@ hf = [
     "python-dotenv>=1.0.0",
     "numpy>=1.26.3",
     "pandas>=2.1.4",
+    "orjson>=3.9.10",
 ]
 
 dev = [
