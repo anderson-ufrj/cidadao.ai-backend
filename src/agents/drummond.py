@@ -773,7 +773,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         # Otherwise, Drummond handles it
         return None
     
-    async def process(self, message: AgentMessage) -> AgentResponse:
+    async def process(self, message: AgentMessage, context: AgentContext) -> AgentResponse:
         """Processa mensagens e coordena comunicações."""
         try:
             # Get action from message
