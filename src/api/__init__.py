@@ -1,4 +1,4 @@
-"""FastAPI-based REST API for Cidadão.AI.
+"""FastAPI-based REST API for Cidadao.AI.
 
 This module provides a comprehensive REST API for the multi-agent transparency
 platform, featuring enterprise-grade security, comprehensive monitoring,
@@ -29,11 +29,9 @@ Usage:
 Status: Production-ready with comprehensive enterprise features.
 """
 
-from src.api.app import create_app
-from src.api.routes import get_api_router
+from src.api.app import app
 
 # Key exports for application setup
 __all__ = [
-    "create_app",
-    "get_api_router",
+    "app",
 ]

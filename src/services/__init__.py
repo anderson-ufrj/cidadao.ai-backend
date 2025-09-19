@@ -1,4 +1,4 @@
-"""Service layer for Cidadão.AI business logic.
+"""Service layer for Cidadao.AI business logic.
 
 This module provides service interfaces for:
 - External API integrations

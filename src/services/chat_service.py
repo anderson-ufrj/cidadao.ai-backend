@@ -10,7 +10,7 @@ import json
 from collections import defaultdict
 
 from src.core import get_logger
-from src.core.cache import CacheService
+from src.services.cache_service import cache_service
 from src.agents import (
     MasterAgent, InvestigatorAgent, AnalystAgent, 
     ReporterAgent, BaseAgent
@@ -19,14 +19,46 @@ from src.agents import (
 logger = get_logger(__name__)
 
 class IntentType(Enum):
-    """Types of user intents"""
+    """Types of user intents
+    
+    Task-specific intents:
+    - INVESTIGATE: Request investigation of contracts/expenses
+    - ANALYZE: Request pattern/anomaly analysis
+    - REPORT: Request report generation
+    - STATUS: Check investigation status
+    
+    Conversational intents:
+    - GREETING: Initial greeting/salutation
+    - CONVERSATION: General conversation
+    - HELP_REQUEST: Request for help/guidance
+    - ABOUT_SYSTEM: Questions about the system
+    - SMALLTALK: Casual conversation
+    - THANKS: Gratitude expressions
+    - GOODBYE: Farewell expressions
+    
+    Other:
+    - QUESTION: General questions
+    - HELP: Help (legacy, use HELP_REQUEST)
+    - UNKNOWN: Could not determine intent
+    """
+    # Task-specific intents
     INVESTIGATE = "investigate"
     ANALYZE = "analyze"
     REPORT = "report"
-    QUESTION = "question"
-    HELP = "help"
-    GREETING = "greeting"
     STATUS = "status"
+    
+    # Conversational intents
+    GREETING = "greeting"
+    CONVERSATION = "conversation"
+    HELP_REQUEST = "help_request"
+    ABOUT_SYSTEM = "about_system"
+    SMALLTALK = "smalltalk"
+    THANKS = "thanks"
+    GOODBYE = "goodbye"
+    
+    # General
+    QUESTION = "question"
+    HELP = "help"  # Legacy, keeping for backward compatibility
     UNKNOWN = "unknown"
 
 @dataclass
@@ -113,7 +145,59 @@ class IntentDetector:
                 r"oi",
                 r"bom\s+dia",
                 r"boa\s+tarde",
-                r"boa\s+noite"
+                r"boa\s+noite",
+                r"e\s+a[íi]",
+                r"tudo\s+bem",
+                r"como\s+vai"
+            ],
+            IntentType.CONVERSATION: [
+                r"conversar",
+                r"falar\s+sobre",
+                r"me\s+conte",
+                r"vamos\s+conversar",
+                r"quero\s+saber",
+                r"pode\s+me\s+falar"
+            ],
+            IntentType.HELP_REQUEST: [
+                r"preciso\s+de\s+ajuda",
+                r"me\s+ajud[ae]",
+                r"pode\s+ajudar",
+                r"n[ãa]o\s+sei\s+como",
+                r"n[ãa]o\s+entendi",
+                r"como\s+fa[çc]o"
+            ],
+            IntentType.ABOUT_SYSTEM: [
+                r"o\s+que\s+[ée]\s+o\s+cidad[ãa]o",
+                r"como\s+voc[êe]\s+funciona",
+                r"quem\s+[ée]\s+voc[êe]",
+                r"para\s+que\s+serve",
+                r"o\s+que\s+voc[êe]\s+faz",
+                r"qual\s+sua\s+fun[çc][ãa]o"
+            ],
+            IntentType.SMALLTALK: [
+                r"como\s+est[áa]\s+o\s+tempo",
+                r"voc[êe]\s+gosta",
+                r"qual\s+sua\s+opini[ãa]o",
+                r"o\s+que\s+acha",
+                r"conte\s+uma\s+hist[óo]ria",
+                r"voc[êe]\s+[ée]\s+brasileiro"
+            ],
+            IntentType.THANKS: [
+                r"obrigad[oa]",
+                r"muito\s+obrigad[oa]",
+                r"valeu",
+                r"gratid[ãa]o",
+                r"agradec[çc]o",
+                r"foi\s+[úu]til"
+            ],
+            IntentType.GOODBYE: [
+                r"tchau",
+                r"at[ée]\s+logo",
+                r"at[ée]\s+mais",
+                r"adeus",
+                r"falou",
+                r"tenho\s+que\s+ir",
+                r"at[ée]\s+breve"
             ]
         }
         
@@ -244,16 +328,33 @@ class IntentDetector:
         return values
     
     def _get_agent_for_intent(self, intent_type: IntentType) -> str:
-        """Get the best agent for handling this intent"""
+        """Get the best agent for handling this intent
+        
+        Routing strategy:
+        - Conversational intents -> Drummond (conversational AI)
+        - Task-specific intents -> Specialized agents
+        - Unknown intents -> Abaporu (master orchestrator)
+        """
         mapping = {
-            IntentType.INVESTIGATE: "abaporu",  # Master for investigations
-            IntentType.ANALYZE: "anita",        # Analyst for patterns
-            IntentType.REPORT: "tiradentes",    # Reporter for documents
-            IntentType.QUESTION: "machado",     # Textual for questions
-            IntentType.STATUS: "abaporu",       # Master for status
-            IntentType.HELP: "abaporu",         # Master for help
-            IntentType.GREETING: "abaporu",     # Master for greetings
-            IntentType.UNKNOWN: "abaporu"       # Master as default
+            # Task-specific routing
+            IntentType.INVESTIGATE: "abaporu",      # Master for investigations
+            IntentType.ANALYZE: "anita",            # Analyst for patterns
+            IntentType.REPORT: "tiradentes",        # Reporter for documents
+            IntentType.STATUS: "abaporu",           # Master for status
+            
+            # Conversational routing to Drummond
+            IntentType.GREETING: "drummond",        # Carlos handles greetings
+            IntentType.CONVERSATION: "drummond",    # Carlos handles conversation
+            IntentType.HELP_REQUEST: "drummond",    # Carlos provides help
+            IntentType.ABOUT_SYSTEM: "drummond",    # Carlos explains system
+            IntentType.SMALLTALK: "drummond",       # Carlos handles small talk
+            IntentType.THANKS: "drummond",          # Carlos receives thanks
+            IntentType.GOODBYE: "drummond",         # Carlos handles farewells
+            
+            # General routing
+            IntentType.QUESTION: "drummond",        # Carlos handles general questions
+            IntentType.HELP: "drummond",            # Legacy help -> Carlos
+            IntentType.UNKNOWN: "drummond"          # Unknown -> Carlos first
         }
         return mapping.get(intent_type, "abaporu")
 
@@ -261,17 +362,12 @@ class ChatService:
     """Service for managing chat sessions and conversations"""
     
     def __init__(self):
-        self.cache = CacheService()
+        self.cache = cache_service
         self.sessions: Dict[str, ChatSession] = {}
         self.messages: Dict[str, List[Dict]] = defaultdict(list)
         
-        # Initialize agents
-        self.agents = {
-            "abaporu": MasterAgent(),
-            "zumbi": InvestigatorAgent(),
-            "anita": AnalystAgent(),
-            "tiradentes": ReporterAgent()
-        }
+        # Agents will be initialized lazily when needed
+        self.agents = {}
     
     async def get_or_create_session(
         self, 
