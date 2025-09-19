@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel, Field as PydanticField
 
-from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentResponse
+from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentResponse, AgentStatus
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
 from src.services.chat_service import IntentType, Intent
@@ -697,22 +697,26 @@ class CommunicationAgent(BaseAgent):
         # Otherwise, Drummond handles it
         return None
     
-    async def process_message(self, message: AgentMessage, context: AgentContext) -> AgentResponse:
+    async def process(self, message: AgentMessage) -> AgentResponse:
         """Processa mensagens e coordena comunicações."""
         try:
-            action = message.content.get("action")
+            # Get action from message
+            action = message.action
+            payload = message.payload
             
             # Handle conversational messages
-            if action == "conversation" or action == "chat":
-                user_message = message.content.get("message", "")
-                intent = message.content.get("intent")
-                session_id = message.content.get("session_id", "default")
+            if action == "process_chat":
+                user_message = payload.get("user_message", "")
+                intent_data = payload.get("intent", {})
+                intent = Intent(**intent_data) if isinstance(intent_data, dict) else None
+                session_data = payload.get("session", {})
+                session_id = session_data.get("session_id", "default")
                 
                 # Create conversation context
                 conv_context = ConversationContext(
                     session_id=session_id,
-                    user_id=message.content.get("user_id"),
-                    user_profile=message.content.get("user_profile")
+                    user_id=session_data.get("user_id"),
+                    user_profile=payload.get("context", {}).get("user_profile")
                 )
                 
                 # Process conversation
@@ -724,15 +728,18 @@ class CommunicationAgent(BaseAgent):
                 
                 return AgentResponse(
                     agent_name=self.name,
-                    content={
+                    status=AgentStatus.COMPLETED,
+                    result={
                         "message": response["content"],
                         "metadata": response.get("metadata", {}),
                         "suggested_handoff": response.get("suggested_handoff"),
                         "handoff_reason": response.get("handoff_reason"),
                         "status": "conversation_processed"
                     },
-                    confidence=0.95,
-                    metadata={"conversation": True}
+                    metadata={
+                        "conversation": True,
+                        "confidence": 0.95
+                    }
                 )
             
             elif action == "send_notification":
