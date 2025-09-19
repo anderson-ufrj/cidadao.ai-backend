@@ -20,7 +20,7 @@ from fastapi.openapi.utils import get_openapi
 from src.core import get_logger, settings
 from src.core.exceptions import CidadaoAIError, create_error_response
 from src.core.audit import audit_logger, AuditEventType, AuditSeverity, AuditContext
-from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat, websocket_chat
+from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat, websocket_chat, batch, graphql, cqrs, resilience
 from src.api.middleware.rate_limiting import RateLimitMiddleware
 from src.api.middleware.authentication import AuthenticationMiddleware
 from src.api.middleware.logging_middleware import LoggingMiddleware
@@ -150,6 +150,16 @@ app.add_middleware(
     expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining"]
 )
 
+# Add compression middleware
+from src.api.middleware.compression import add_compression_middleware
+add_compression_middleware(
+    app,
+    minimum_size=1024,
+    gzip_level=6,
+    brotli_quality=4,
+    exclude_paths={"/health", "/metrics", "/health/metrics", "/api/v1/ws"}
+)
+
 
 # Custom OpenAPI schema
 def custom_openapi():
@@ -262,6 +272,29 @@ app.include_router(
     websocket_chat.router,
     prefix="/api/v1",
     tags=["WebSocket"]
+)
+
+app.include_router(
+    batch.router,
+    tags=["Batch Operations"]
+)
+
+# GraphQL endpoint
+app.include_router(
+    graphql.router,
+    tags=["GraphQL"]
+)
+
+# CQRS endpoints
+app.include_router(
+    cqrs.router,
+    tags=["CQRS"]
+)
+
+# Resilience monitoring endpoints
+app.include_router(
+    resilience.router,
+    tags=["Resilience"]
 )
 
 
