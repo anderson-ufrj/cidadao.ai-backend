@@ -16,17 +16,31 @@ import psutil
 import traceback
 from enum import Enum
 
-from opentelemetry import trace, metrics
-from opentelemetry.exporter.jaeger.thrift import JaegerExporter
-from opentelemetry.exporter.prometheus import PrometheusMetricReader
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.sdk.metrics import MeterProvider
-from opentelemetry.sdk.resources import Resource
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
-from opentelemetry.instrumentation.redis import RedisInstrumentor
-from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+# Try to import OpenTelemetry, use stubs if not available
+try:
+    from opentelemetry import trace, metrics
+    from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+    from opentelemetry.exporter.prometheus import PrometheusMetricReader
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor
+    from opentelemetry.sdk.metrics import MeterProvider
+    from opentelemetry.sdk.resources import Resource
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+    from opentelemetry.instrumentation.redis import RedisInstrumentor
+    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+    OPENTELEMETRY_AVAILABLE = True
+except ImportError:
+    # Use minimal implementation
+    OPENTELEMETRY_AVAILABLE = False
+    from src.core.monitoring_minimal import MockTracer as trace
+    
+    class MockInstrumentor:
+        @staticmethod
+        def instrument(*args, **kwargs):
+            pass
+    
+    FastAPIInstrumentor = HTTPXClientInstrumentor = RedisInstrumentor = SQLAlchemyInstrumentor = MockInstrumentor
 
 from prometheus_client import Counter, Histogram, Gauge, CollectorRegistry, generate_latest
 from pydantic import BaseModel, Field
