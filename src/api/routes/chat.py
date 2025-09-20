@@ -156,6 +156,13 @@ async def send_message(
             }
         )
         
+        # Create agent context
+        agent_context = AgentContext(
+            investigation_id=session.current_investigation_id,
+            user_id=session.user_id,
+            session_id=session_id
+        )
+        
         # Route to appropriate agent based on intent
         logger.info(f"Target agent: {target_agent}")
         
@@ -166,7 +173,7 @@ async def send_message(
                 drummond_agent = await get_drummond_agent()
                 
                 if drummond_agent:
-                    response = await drummond_agent.process(agent_message, context)
+                    response = await drummond_agent.process(agent_message, agent_context)
                     drummond_loaded = True
                 else:
                     raise Exception("Drummond agent not available")
@@ -240,13 +247,15 @@ async def send_message(
                 # NOTE: Enhanced Zumbi temporarily disabled to fix circular import
                 investigation_result = None
                 if investigation_result is None:
-                    # Return a simple error for now
-                    return {
-                        "response": "Desculpe, o sistema de investigação está temporariamente indisponível. Por favor, tente novamente mais tarde.",
-                        "session_id": session_id,
-                        "message_id": str(uuid.uuid4()),
-                        "timestamp": datetime.utcnow().isoformat()
-                    }
+                    # Return a properly formatted response
+                    return ChatResponse(
+                        session_id=session_id,
+                        agent_id="system",
+                        agent_name="Sistema",
+                        message="Desculpe, o sistema de investigação está temporariamente indisponível. Por favor, tente novamente mais tarde.",
+                        confidence=0.0,
+                        metadata={"status": "investigation_unavailable"}
+                    )
                 
                 # Format response
                 message = f"🏹 **Investigação Concluída**\n\n"
