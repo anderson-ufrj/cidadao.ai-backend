@@ -13,39 +13,82 @@ import uuid
 from functools import wraps
 
 # Try to import OpenTelemetry, use stubs if not available
+OPENTELEMETRY_AVAILABLE = False
 try:
     from opentelemetry import trace, context, baggage
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.resources import Resource, SERVICE_NAME, SERVICE_VERSION
+    OPENTELEMETRY_BASIC = True
+except ImportError:
+    OPENTELEMETRY_BASIC = False
+    # Use minimal implementation
+    from src.core.monitoring_minimal import MockTracer
+    
+    class MockTrace:
+        Tracer = MockTracer
+        def get_current_span(self):
+            return None
+        def set_tracer_provider(self, provider):
+            pass
+        def get_tracer(self, name, version=None):
+            return MockTracer()
+    
+    trace = MockTrace()
+    context = None
+    baggage = None
+    TracerProvider = None
+    Resource = None
+    SERVICE_NAME = "service_name"
+    SERVICE_VERSION = "service_version"
+
+# Try to import optional exporters and instrumentors
+try:
     from opentelemetry.exporter.jaeger.thrift import JaegerExporter
     from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+    OPENTELEMETRY_EXPORTERS = True
+except ImportError:
+    OPENTELEMETRY_EXPORTERS = False
+    JaegerExporter = None
+    OTLPSpanExporter = None
+    BatchSpanProcessor = None
+    ConsoleSpanExporter = None
+
+try:
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
     from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
     from opentelemetry.instrumentation.redis import RedisInstrumentor
     from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
     from opentelemetry.instrumentation.asyncpg import AsyncPGInstrumentor
-    from opentelemetry.propagate import set_global_textmap
-    from opentelemetry.propagators.b3 import B3MultiFormat
-    from opentelemetry.propagators.jaeger import JaegerPropagator
-    from opentelemetry.propagators.composite import CompositeHTTPPropagator
-    from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-    from opentelemetry.sdk.resources import Resource, SERVICE_NAME, SERVICE_VERSION
-    from opentelemetry.semconv.trace import SpanAttributes
-    OPENTELEMETRY_AVAILABLE = True
+    OPENTELEMETRY_INSTRUMENTORS = True
 except ImportError:
-    OPENTELEMETRY_AVAILABLE = False
-    # Use minimal implementation
-    from src.core.monitoring_minimal import MockTracer as trace
-    
+    OPENTELEMETRY_INSTRUMENTORS = False
     class MockInstrumentor:
         @staticmethod
         def instrument(*args, **kwargs):
             pass
-    
     FastAPIInstrumentor = HTTPXClientInstrumentor = RedisInstrumentor = SQLAlchemyInstrumentor = AsyncPGInstrumentor = MockInstrumentor
-    
-    # Mock constants
-    SERVICE_NAME = "service_name"
-    SERVICE_VERSION = "service_version"
+
+try:
+    from opentelemetry.propagate import set_global_textmap
+    from opentelemetry.propagators.b3 import B3MultiFormat
+    from opentelemetry.propagators.jaeger import JaegerPropagator
+    from opentelemetry.propagators.composite import CompositeHTTPPropagator
+    OPENTELEMETRY_PROPAGATORS = True
+except ImportError:
+    OPENTELEMETRY_PROPAGATORS = False
+    set_global_textmap = lambda x: None
+    B3MultiFormat = None
+    JaegerPropagator = None
+    CompositeHTTPPropagator = None
+
+try:
+    from opentelemetry.semconv.trace import SpanAttributes
+except ImportError:
+    SpanAttributes = None
+
+# Set availability flag based on basic functionality
+OPENTELEMETRY_AVAILABLE = OPENTELEMETRY_BASIC
 try:
     from opentelemetry.trace.status import Status, StatusCode
 except ImportError:
@@ -111,22 +154,35 @@ class TracingManager:
             logger.warning("Tracing already initialized")
             return
         
+        if not OPENTELEMETRY_BASIC:
+            logger.warning("OpenTelemetry not available - using mock tracer")
+            self.tracer = trace.get_tracer(__name__)
+            self._initialized = True
+            return
+            
         # Create resource
-        resource = Resource.create({
-            SERVICE_NAME: self.config.service_name,
-            SERVICE_VERSION: self.config.service_version,
-            "service.instance.id": str(uuid.uuid4()),
-            "deployment.environment": getattr(settings, 'app_env', 'development')
-        })
+        if Resource:
+            resource = Resource.create({
+                SERVICE_NAME: self.config.service_name,
+                SERVICE_VERSION: self.config.service_version,
+                "service.instance.id": str(uuid.uuid4()),
+                "deployment.environment": getattr(settings, 'app_env', 'development')
+            })
+        else:
+            resource = None
         
         # Create tracer provider
-        self.tracer_provider = TracerProvider(resource=resource)
+        if TracerProvider and resource:
+            self.tracer_provider = TracerProvider(resource=resource)
+        else:
+            self.tracer_provider = None
         
-        # Add span processors/exporters
-        self._setup_exporters()
-        
-        # Set global tracer provider
-        trace.set_tracer_provider(self.tracer_provider)
+        if self.tracer_provider:
+            # Add span processors/exporters
+            self._setup_exporters()
+            
+            # Set global tracer provider
+            trace.set_tracer_provider(self.tracer_provider)
         
         # Create tracer
         self.tracer = trace.get_tracer(
@@ -145,18 +201,20 @@ class TracingManager:
     
     def _setup_exporters(self):
         """Setup span exporters."""
-        if not self.tracer_provider:
+        if not self.tracer_provider or not OPENTELEMETRY_EXPORTERS:
+            if not OPENTELEMETRY_EXPORTERS:
+                logger.warning("OpenTelemetry exporters not available - skipping exporter setup")
             return
         
         # Console exporter for development
-        if self.config.enable_console_export:
+        if self.config.enable_console_export and ConsoleSpanExporter:
             console_exporter = ConsoleSpanExporter()
             console_processor = BatchSpanProcessor(console_exporter)
             self.tracer_provider.add_span_processor(console_processor)
             logger.info("Console span exporter enabled")
         
         # Jaeger exporter
-        if self.config.jaeger_endpoint:
+        if self.config.jaeger_endpoint and JaegerExporter:
             jaeger_exporter = JaegerExporter(
                 agent_host_name="localhost",
                 agent_port=14268,
@@ -167,7 +225,7 @@ class TracingManager:
             logger.info(f"Jaeger exporter configured: {self.config.jaeger_endpoint}")
         
         # OTLP exporter (for generic OpenTelemetry collectors)
-        if self.config.otlp_endpoint:
+        if self.config.otlp_endpoint and OTLPSpanExporter:
             otlp_exporter = OTLPSpanExporter(
                 endpoint=self.config.otlp_endpoint,
                 insecure=True
@@ -178,16 +236,23 @@ class TracingManager:
     
     def _setup_propagators(self):
         """Setup trace context propagators."""
+        if not OPENTELEMETRY_PROPAGATORS:
+            logger.warning("OpenTelemetry propagators not available - skipping propagator setup")
+            return
+            
         # Support multiple propagation formats
-        propagators = [
-            B3MultiFormat(),
-            JaegerPropagator()
-        ]
+        propagators = []
+        if B3MultiFormat:
+            propagators.append(B3MultiFormat())
+        if JaegerPropagator:
+            propagators.append(JaegerPropagator())
         
-        composite_propagator = CompositeHTTPPropagator(propagators)
-        set_global_textmap(composite_propagator)
-        
-        logger.info("Trace propagators configured")
+        if propagators and CompositeHTTPPropagator:
+            composite_propagator = CompositeHTTPPropagator(propagators)
+            set_global_textmap(composite_propagator)
+            logger.info("Trace propagators configured")
+        else:
+            logger.warning("No propagators available")
     
     def _setup_auto_instrumentation(self):
         """Setup automatic instrumentation for common libraries."""
@@ -249,49 +314,60 @@ class TraceContext:
     @staticmethod
     def get_correlation_id() -> str:
         """Get correlation ID from current trace context."""
-        span = trace.get_current_span()
-        if span and span.get_span_context().is_valid:
-            return f"{span.get_span_context().trace_id:032x}"
+        if hasattr(trace, 'get_current_span'):
+            span = trace.get_current_span()
+            if span and hasattr(span, 'get_span_context'):
+                span_context = span.get_span_context()
+                if hasattr(span_context, 'is_valid') and span_context.is_valid:
+                    return f"{span_context.trace_id:032x}"
         return str(uuid.uuid4())
     
     @staticmethod
     def get_span_id() -> str:
         """Get current span ID."""
-        span = trace.get_current_span()
-        if span and span.get_span_context().is_valid:
-            return f"{span.get_span_context().span_id:016x}"
+        if hasattr(trace, 'get_current_span'):
+            span = trace.get_current_span()
+            if span and hasattr(span, 'get_span_context'):
+                span_context = span.get_span_context()
+                if hasattr(span_context, 'is_valid') and span_context.is_valid:
+                    return f"{span_context.span_id:016x}"
         return ""
     
     @staticmethod
     def set_user_context(user_id: str, user_email: Optional[str] = None):
         """Set user context in current trace."""
-        span = trace.get_current_span()
-        if span:
-            span.set_attribute("user.id", user_id)
-            if user_email:
-                span.set_attribute("user.email", user_email)
+        if hasattr(trace, 'get_current_span'):
+            span = trace.get_current_span()
+            if span and hasattr(span, 'set_attribute'):
+                span.set_attribute("user.id", user_id)
+                if user_email:
+                    span.set_attribute("user.email", user_email)
             
             # Also set in baggage for propagation
-            ctx = baggage.set_baggage("user.id", user_id)
-            context.attach(ctx)
+            if baggage and context:
+                ctx = baggage.set_baggage("user.id", user_id)
+                context.attach(ctx)
     
     @staticmethod
     def set_investigation_context(investigation_id: str):
         """Set investigation context in current trace."""
-        span = trace.get_current_span()
-        if span:
-            span.set_attribute("investigation.id", investigation_id)
+        if hasattr(trace, 'get_current_span'):
+            span = trace.get_current_span()
+            if span and hasattr(span, 'set_attribute'):
+                span.set_attribute("investigation.id", investigation_id)
             
             # Set in baggage
-            ctx = baggage.set_baggage("investigation.id", investigation_id)
-            context.attach(ctx)
+            if baggage and context:
+                ctx = baggage.set_baggage("investigation.id", investigation_id)
+                context.attach(ctx)
     
     @staticmethod
     def add_event(name: str, attributes: Optional[Dict[str, Any]] = None):
         """Add event to current span."""
-        span = trace.get_current_span()
-        if span:
-            span.add_event(name, attributes or {})
+        if hasattr(trace, 'get_current_span'):
+            span = trace.get_current_span()
+            if span and hasattr(span, 'add_event'):
+                span.add_event(name, attributes or {})
 
 
 def trace_function(

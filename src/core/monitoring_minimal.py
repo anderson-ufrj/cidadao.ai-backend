@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 import logging
 import functools
 
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST, REGISTRY
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST, REGISTRY, CollectorRegistry
 
 from src.core.config import get_settings
 from src.core import get_logger
@@ -21,23 +21,29 @@ from src.core import get_logger
 logger = get_logger(__name__)
 settings = get_settings()
 
+# Create a custom registry to avoid conflicts
+_metrics_registry = CollectorRegistry()
+_metrics_cache = {}
+
 
 def get_or_create_metric(metric_type, name, description, labels=None, **kwargs):
-    """Get existing metric or create new one."""
-    # Check if metric already exists in the default registry
-    for collector in REGISTRY._collector_to_names:
-        if hasattr(collector, '_name') and collector._name == name:
-            return collector
+    """Get existing metric or create new one using custom registry."""
+    # Check if metric already exists in our cache
+    if name in _metrics_cache:
+        return _metrics_cache[name]
     
-    # Create new metric
+    # Create new metric with custom registry
     if metric_type == Counter:
-        return Counter(name, description, labels or [], **kwargs)
+        metric = Counter(name, description, labels or [], registry=_metrics_registry, **kwargs)
     elif metric_type == Histogram:
-        return Histogram(name, description, labels or [], **kwargs)
+        metric = Histogram(name, description, labels or [], registry=_metrics_registry, **kwargs)
     elif metric_type == Gauge:
-        return Gauge(name, description, labels or [], **kwargs)
+        metric = Gauge(name, description, labels or [], registry=_metrics_registry, **kwargs)
     else:
         raise ValueError(f"Unknown metric type: {metric_type}")
+    
+    _metrics_cache[name] = metric
+    return metric
 
 
 # Prometheus metrics - with duplicate checking
@@ -187,7 +193,7 @@ class MetricsCollector:
             
     def get_metrics(self) -> str:
         """Get Prometheus metrics."""
-        return generate_latest()
+        return generate_latest(_metrics_registry)
 
 
 # Global metrics collector instance
