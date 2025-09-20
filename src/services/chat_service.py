@@ -366,8 +366,9 @@ class ChatService:
         self.sessions: Dict[str, ChatSession] = {}
         self.messages: Dict[str, List[Dict]] = defaultdict(list)
         
-        # Initialize agents
-        self._initialize_agents()
+        # Initialize agents lazily to avoid import-time errors
+        self.agents = None
+        self._agents_initialized = False
     
     async def get_or_create_session(
         self, 
@@ -433,8 +434,11 @@ class ChatService:
     
     async def get_agent_for_intent(self, intent: Intent) -> BaseAgent:
         """Get the appropriate agent for an intent"""
+        self._ensure_agents_initialized()
         agent_id = intent.suggested_agent
-        return self.agents.get(agent_id, self.agents["abaporu"])
+        if self.agents:
+            return self.agents.get(agent_id, self.agents.get("abaporu"))
+        return None
     
     async def update_session_investigation(
         self, 
@@ -446,25 +450,36 @@ class ChatService:
             self.sessions[session_id].current_investigation_id = investigation_id
             self.sessions[session_id].last_activity = datetime.utcnow()
     
-    def _initialize_agents(self):
-        """Initialize available agents"""
-        # Import here to avoid circular imports
-        from src.agents import (
-            MasterAgent, InvestigatorAgent, AnalystAgent,
-            ReporterAgent, CommunicationAgent
-        )
-        
-        # Create agent instances
-        agents = {
-            "abaporu": MasterAgent(),
-            "zumbi": InvestigatorAgent(),
-            "anita": AnalystAgent(),
-            "tiradentes": ReporterAgent(),
-            "drummond": CommunicationAgent()
-        }
-        
-        # Add agent_id attribute to each agent
-        for agent_id, agent in agents.items():
-            agent.agent_id = agent_id
+    def _ensure_agents_initialized(self):
+        """Initialize agents on first use (lazy loading)"""
+        if self._agents_initialized:
+            return
             
-        self.agents = agents
+        try:
+            # Import here to avoid circular imports
+            from src.agents import (
+                MasterAgent, InvestigatorAgent, AnalystAgent,
+                ReporterAgent, CommunicationAgent
+            )
+            
+            # Create agent instances
+            agents = {
+                "abaporu": MasterAgent(),
+                "zumbi": InvestigatorAgent(),
+                "anita": AnalystAgent(),
+                "tiradentes": ReporterAgent(),
+                "drummond": CommunicationAgent()
+            }
+            
+            # Add agent_id attribute to each agent
+            for agent_id, agent in agents.items():
+                agent.agent_id = agent_id
+                
+            self.agents = agents
+            self._agents_initialized = True
+            
+        except Exception as e:
+            logger.error(f"Failed to initialize agents: {type(e).__name__}: {e}")
+            # Create empty agents dict to prevent errors
+            self.agents = {}
+            self._agents_initialized = True
