@@ -33,7 +33,18 @@ intent_detector = IntentDetector()
 
 # Drummond agent handled by factory to avoid import issues
 # Initialize master agent
-master_agent = MasterAgent()
+try:
+    master_agent = MasterAgent()
+except Exception as e:
+    # Log the REAL error, not a fake Drummond error
+    logger.error(f"Failed to initialize MasterAgent: {type(e).__name__}: {e}")
+    # Create a dummy object to prevent further errors
+    class DummyMasterAgent:
+        def __init__(self):
+            self.name = "dummy_master"
+    master_agent = DummyMasterAgent()
+    # Re-raise to see the real error
+    raise
 
 class ChatRequest(BaseModel):
     """Chat message request"""
