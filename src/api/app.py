@@ -139,8 +139,7 @@ app.add_middleware(RateLimitMiddleware)
 # Add compression middleware for mobile optimization
 app.add_middleware(
     CompressionMiddleware,
-    minimum_size=1024,  # Compress responses > 1KB
-    compression_level=6  # Balanced compression
+    minimum_size=1024  # Compress responses > 1KB
 )
 
 # Add trusted host middleware for production
