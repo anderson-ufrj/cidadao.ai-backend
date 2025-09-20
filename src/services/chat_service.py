@@ -366,8 +366,8 @@ class ChatService:
         self.sessions: Dict[str, ChatSession] = {}
         self.messages: Dict[str, List[Dict]] = defaultdict(list)
         
-        # Agents will be initialized lazily when needed
-        self.agents = {}
+        # Initialize agents
+        self._initialize_agents()
     
     async def get_or_create_session(
         self, 
@@ -445,3 +445,26 @@ class ChatService:
         if session_id in self.sessions:
             self.sessions[session_id].current_investigation_id = investigation_id
             self.sessions[session_id].last_activity = datetime.utcnow()
+    
+    def _initialize_agents(self):
+        """Initialize available agents"""
+        # Import here to avoid circular imports
+        from src.agents import (
+            MasterAgent, InvestigatorAgent, AnalystAgent,
+            ReporterAgent, CommunicationAgent
+        )
+        
+        # Create agent instances
+        agents = {
+            "abaporu": MasterAgent(),
+            "zumbi": InvestigatorAgent(),
+            "anita": AnalystAgent(),
+            "tiradentes": ReporterAgent(),
+            "drummond": CommunicationAgent()
+        }
+        
+        # Add agent_id attribute to each agent
+        for agent_id, agent in agents.items():
+            agent.agent_id = agent_id
+            
+        self.agents = agents
