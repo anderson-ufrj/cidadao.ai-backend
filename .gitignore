@@ -236,12 +236,12 @@ prometheus_data/
 # Internal documentation - IGNORE FROM REPOSITORY
 docs-internal/
 
-# Claude Code - NEVER COMMIT
+# Claude Code artifacts
 .claude/
-CLAUDE.md
-claude.md
-*claude*
-.claude*
+
+# Local planning and notes
+.local/
+.local-planning/
 
 
 # Test scripts with API keys (keep only in local development)
