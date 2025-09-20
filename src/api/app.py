@@ -20,12 +20,17 @@ from fastapi.openapi.utils import get_openapi
 from src.core import get_logger, settings
 from src.core.exceptions import CidadaoAIError, create_error_response
 from src.core.audit import audit_logger, AuditEventType, AuditSeverity, AuditContext
-from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat, websocket_chat, batch, graphql, cqrs, resilience
+from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat, websocket_chat, batch, graphql, cqrs, resilience, observability
 from src.api.middleware.rate_limiting import RateLimitMiddleware
 from src.api.middleware.authentication import AuthenticationMiddleware
 from src.api.middleware.logging_middleware import LoggingMiddleware
 from src.api.middleware.security import SecurityMiddleware
 from src.api.middleware.compression import CompressionMiddleware
+from src.infrastructure.observability import (
+    CorrelationMiddleware,
+    tracing_manager,
+    initialize_app_info
+)
 
 
 logger = get_logger(__name__)
@@ -50,6 +55,14 @@ async def lifespan(app: FastAPI):
         }
     )
     
+    # Initialize observability
+    tracing_manager.initialize()
+    initialize_app_info(
+        version="1.0.0",
+        environment=settings.app_env,
+        build_info={"deployment": "hf-fastapi"}
+    )
+    
     # Initialize global resources here
     # - Database connections
     # - Background tasks
@@ -66,6 +79,9 @@ async def lifespan(app: FastAPI):
         message="Cidadão.AI API shutting down",
         severity=AuditSeverity.LOW
     )
+    
+    # Shutdown observability
+    tracing_manager.shutdown()
     
     # Cleanup resources here
     # - Close database connections
@@ -150,6 +166,9 @@ app.add_middleware(
     expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining"]
 )
 
+# Add observability middleware
+app.add_middleware(CorrelationMiddleware, generate_request_id=True)
+
 # Add compression middleware
 from src.api.middleware.compression import add_compression_middleware
 add_compression_middleware(
@@ -157,7 +176,7 @@ add_compression_middleware(
     minimum_size=1024,
     gzip_level=6,
     brotli_quality=4,
-    exclude_paths={"/health", "/metrics", "/health/metrics", "/api/v1/ws"}
+    exclude_paths={"/health", "/metrics", "/health/metrics", "/api/v1/ws", "/api/v1/observability"}
 )
 
 
@@ -295,6 +314,12 @@ app.include_router(
 app.include_router(
     resilience.router,
     tags=["Resilience"]
+)
+
+# Observability monitoring endpoints
+app.include_router(
+    observability.router,
+    tags=["Observability"]
 )
 
 
