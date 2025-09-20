@@ -469,6 +469,26 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
             "sentiment_score": 0.75
         }
     
+    async def shutdown(self) -> None:
+        """Cleanup agent resources."""
+        try:
+            # Close LLM client connection if exists
+            if self.llm_client:
+                self.logger.info("Shutting down Maritaca AI client")
+                # Maritaca client doesn't have explicit close, but we can clean up
+                self.llm_client = None
+            
+            # Clear conversation memory
+            if hasattr(self, 'conversational_memory'):
+                self.conversational_memory.clear_all()
+            
+            # Clear communication history
+            self.communication_history.clear()
+            
+            self.logger.info(f"{self.name} shutdown completed")
+        except Exception as e:
+            self.logger.error(f"Error during shutdown: {e}")
+
     async def process_conversation(
         self,
         message: str,
