@@ -185,12 +185,15 @@ class TracingManager:
             trace.set_tracer_provider(self.tracer_provider)
         
         # Create tracer
+        logger.info(f"Creating tracer - OPENTELEMETRY_BASIC: {OPENTELEMETRY_BASIC}")
         if OPENTELEMETRY_BASIC:
+            logger.info("Using OpenTelemetry tracer with version")
             self.tracer = trace.get_tracer(
                 __name__,
                 version=self.config.service_version
             )
         else:
+            logger.info("Using Mock tracer without version")
             # Mock tracer accepts version as positional arg
             self.tracer = trace.get_tracer(__name__)
         
