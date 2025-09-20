@@ -8,13 +8,24 @@ providing a modern GraphQL endpoint with subscriptions support.
 from typing import Any, Dict
 from contextlib import asynccontextmanager
 
-from fastapi import APIRouter, Depends, Request, WebSocket
-from strawberry.fastapi import GraphQLRouter
-from strawberry.subscriptions import GRAPHQL_TRANSPORT_WS_PROTOCOL, GRAPHQL_WS_PROTOCOL
+from fastapi import APIRouter, Depends, Request, WebSocket, HTTPException
 
 from src.core import get_logger
+
+# Try to import strawberry - optional dependency
+try:
+    from strawberry.fastapi import GraphQLRouter
+    from strawberry.subscriptions import GRAPHQL_TRANSPORT_WS_PROTOCOL, GRAPHQL_WS_PROTOCOL
+    from src.api.graphql.schema import schema
+    STRAWBERRY_AVAILABLE = True
+except ImportError:
+    STRAWBERRY_AVAILABLE = False
+    GraphQLRouter = None
+    GRAPHQL_TRANSPORT_WS_PROTOCOL = None
+    GRAPHQL_WS_PROTOCOL = None
+    schema = None
+
 from src.api.dependencies import get_current_optional_user
-from src.api.graphql.schema import schema
 
 logger = get_logger(__name__)
 
@@ -47,21 +58,30 @@ async def get_ws_context(
     }
 
 
-# Create GraphQL app with custom context
-graphql_app = GraphQLRouter(
-    schema,
-    context_getter=get_context,
-    subscription_protocols=[
-        GRAPHQL_TRANSPORT_WS_PROTOCOL,
-        GRAPHQL_WS_PROTOCOL,
-    ],
-)
-
 # Create router
 router = APIRouter(prefix="/graphql", tags=["GraphQL"])
 
-# Add GraphQL routes
-router.include_router(graphql_app, prefix="")
+if STRAWBERRY_AVAILABLE:
+    # Create GraphQL app with custom context
+    graphql_app = GraphQLRouter(
+        schema,
+        context_getter=get_context,
+        subscription_protocols=[
+            GRAPHQL_TRANSPORT_WS_PROTOCOL,
+            GRAPHQL_WS_PROTOCOL,
+        ],
+    )
+    
+    # Add GraphQL routes
+    router.include_router(graphql_app, prefix="")
+else:
+    # Add placeholder route when GraphQL is not available
+    @router.get("/")
+    async def graphql_not_available():
+        raise HTTPException(
+            status_code=503,
+            detail="GraphQL is not available in this deployment. Install 'strawberry-graphql' to enable it."
+        )
 
 # Add GraphQL playground route (only in development)
 @router.get("/playground")
