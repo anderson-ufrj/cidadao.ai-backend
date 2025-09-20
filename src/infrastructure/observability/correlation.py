@@ -7,7 +7,7 @@ and context management across service boundaries.
 
 import uuid
 import asyncio
-from typing import Optional, Dict, Any, Callable
+from typing import Optional, Dict, Any, Callable, List
 from contextvars import ContextVar
 from functools import wraps
 import time
