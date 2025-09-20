@@ -21,6 +21,9 @@ license: mit
 [![Test Coverage](https://img.shields.io/badge/coverage-80%25-brightgreen.svg)](./tests)
 [![Security](https://img.shields.io/badge/security-A+-brightgreen.svg)](./tests/unit/test_security_middleware.py)
 
+**Author**: Anderson Henrique da Silva  
+**Last Updated**: 2025-09-20 07:28:07 -03 (São Paulo, Brazil)
+
 ## 🚀 Quick Start
 
 ### 🎯 **Deployment Options**
@@ -133,6 +136,31 @@ Our comprehensive test suite ensures reliability and security:
 - **Message Queue**: Event-driven architecture
 - **Monitoring**: Prometheus + Grafana integration
 - **Circuit Breakers**: Fault tolerance patterns
+
+### 🚄 **Performance Optimizations** (NEW!)
+
+- **JSON Serialization**: orjson for 3x faster processing
+- **Compression**: Brotli + Gzip with smart content detection
+- **Connection Pooling**: HTTP/2 multiplexing for LLM providers
+- **Agent Pooling**: Pre-warmed instances with lifecycle management
+- **Parallel Processing**: Async agent execution strategies
+- **Batch Operations**: Bulk API endpoints for efficiency
+- **Query Optimization**: Smart indexes and materialized views
+- **GraphQL API**: Flexible data fetching with Strawberry
+- **WebSocket Batching**: Message aggregation with compression
+- **CQRS Pattern**: Separated read/write models
+
+### 📊 **Observability & Monitoring** (NEW!)
+
+- **Health Checks**: Comprehensive dependency monitoring
+- **SLA/SLO Tracking**: Error budgets and compliance alerts
+- **Distributed Tracing**: OpenTelemetry integration
+- **Structured Logging**: JSON format with correlation IDs
+- **Business Metrics**: Custom Prometheus metrics
+- **Grafana Dashboards**: System and agent performance views
+- **Alert Rules**: 25+ Prometheus rules for proactive monitoring
+- **APM Integration**: Hooks for New Relic, Datadog, Elastic
+- **Chaos Engineering**: Controlled failure injection endpoints
 
 ## 🔧 Development
 
@@ -263,6 +291,34 @@ POST /api/v1/analysis/vendor-concentration
 # Reports
 POST /api/v1/reports/investigation/{id}
 GET  /api/v1/reports/investigation/{id}/export
+
+# Batch Operations (NEW!)
+POST /api/v1/batch/investigations      # Bulk create investigations
+POST /api/v1/batch/contracts/analyze  # Bulk contract analysis
+POST /api/v1/batch/reports/generate    # Bulk report generation
+
+# GraphQL (NEW!)
+POST /graphql                          # GraphQL endpoint
+GET  /graphql                          # GraphQL playground
+
+# Monitoring (NEW!)
+GET  /api/v1/monitoring/health/detailed
+GET  /api/v1/monitoring/slo            # SLO compliance status
+POST /api/v1/monitoring/slo/metric     # Record SLO metric
+GET  /api/v1/monitoring/alerts/violations
+GET  /api/v1/monitoring/dashboard/summary
+
+# Observability (NEW!)
+GET  /api/v1/observability/traces      # Distributed traces
+GET  /api/v1/observability/metrics/custom
+GET  /api/v1/observability/logs/structured
+GET  /api/v1/observability/correlation/{id}
+
+# Chaos Engineering (NEW!)
+GET  /api/v1/chaos/status              # Chaos experiments status
+POST /api/v1/chaos/inject/latency      # Inject latency
+POST /api/v1/chaos/inject/errors       # Inject errors
+POST /api/v1/chaos/stop/{experiment}   # Stop experiment
 ```
 
 ## 🚀 Deployment
