@@ -19,7 +19,7 @@ import structlog
 # Import all infrastructure components
 from .database import get_database_manager, cleanup_database, DatabaseManager
 from .cache_system import get_cache_manager, cleanup_cache, AdvancedCacheManager
-from .monitoring import get_monitoring_manager, cleanup_monitoring, ObservabilityManager
+from .monitoring_service import get_monitoring_manager, cleanup_monitoring, ObservabilityManager
 from .agent_pool import get_agent_pool_manager, cleanup_agent_pool, AgentPoolManager
 
 # Import ML components
