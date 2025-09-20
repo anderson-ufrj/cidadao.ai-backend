@@ -26,7 +26,7 @@ async def get_drummond_agent() -> Optional['CommunicationAgent']:
     
     if not _initialized:
         try:
-            # Lazy import to avoid module-level import errors
+            # Try to import the full Drummond first
             logger.info("Attempting to import CommunicationAgent...")
             from src.agents.drummond import CommunicationAgent
             
@@ -37,22 +37,30 @@ async def get_drummond_agent() -> Optional['CommunicationAgent']:
             await _drummond_instance.initialize()
             
             _initialized = True
-            logger.info("Drummond agent ready")
-            
-        except ImportError as e:
-            logger.error(f"Import error for Drummond agent: {e}")
-            import traceback
-            logger.error(f"Import traceback: {traceback.format_exc()}")
-            _drummond_instance = None
-            _initialized = False
-            _import_error = str(e)
+            logger.info("Full Drummond agent ready with Maritaca AI")
             
         except Exception as e:
-            logger.error(f"Failed to create/initialize Drummond: {e}")
-            import traceback
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            _drummond_instance = None
-            _initialized = False
-            _import_error = str(e)
+            logger.warning(f"Failed to load full Drummond, falling back to simple version: {e}")
+            
+            try:
+                # Fallback to simplified version
+                from src.agents.drummond_simple import SimpleDrummondAgent
+                
+                logger.info("Creating SimpleDrummondAgent instance...")
+                _drummond_instance = SimpleDrummondAgent()
+                
+                logger.info("Initializing SimpleDrummondAgent...")
+                await _drummond_instance.initialize()
+                
+                _initialized = True
+                logger.info("Simple Drummond agent ready")
+                
+            except Exception as e2:
+                logger.error(f"Failed to create even simple Drummond: {e2}")
+                import traceback
+                logger.error(f"Traceback: {traceback.format_exc()}")
+                _drummond_instance = None
+                _initialized = False
+                _import_error = str(e2)
             
     return _drummond_instance
