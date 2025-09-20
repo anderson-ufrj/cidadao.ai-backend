@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 import logging
 import functools
 
-from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST
+from prometheus_client import Counter, Histogram, Gauge, generate_latest, CONTENT_TYPE_LATEST, REGISTRY
 
 from src.core.config import get_settings
 from src.core import get_logger
@@ -22,51 +22,76 @@ logger = get_logger(__name__)
 settings = get_settings()
 
 
-# Prometheus metrics
-request_count = Counter(
+def get_or_create_metric(metric_type, name, description, labels=None, **kwargs):
+    """Get existing metric or create new one."""
+    # Check if metric already exists in the default registry
+    for collector in REGISTRY._collector_to_names:
+        if hasattr(collector, '_name') and collector._name == name:
+            return collector
+    
+    # Create new metric
+    if metric_type == Counter:
+        return Counter(name, description, labels or [], **kwargs)
+    elif metric_type == Histogram:
+        return Histogram(name, description, labels or [], **kwargs)
+    elif metric_type == Gauge:
+        return Gauge(name, description, labels or [], **kwargs)
+    else:
+        raise ValueError(f"Unknown metric type: {metric_type}")
+
+
+# Prometheus metrics - with duplicate checking
+request_count = get_or_create_metric(
+    Counter,
     'cidadao_ai_http_requests_total',
     'Total HTTP requests',
     ['method', 'endpoint', 'status']
 )
 
-request_duration = Histogram(
+request_duration = get_or_create_metric(
+    Histogram,
     'cidadao_ai_http_request_duration_seconds',
     'HTTP request latency',
     ['method', 'endpoint']
 )
 
-active_requests = Gauge(
+active_requests = get_or_create_metric(
+    Gauge,
     'cidadao_ai_http_requests_active',
     'Active HTTP requests'
 )
 
-agent_tasks_total = Counter(
+agent_tasks_total = get_or_create_metric(
+    Counter,
     'cidadao_ai_agent_tasks_total',
     'Total agent tasks executed',
     ['agent', 'status']
 )
 
-agent_task_duration = Histogram(
+agent_task_duration = get_or_create_metric(
+    Histogram,
     'cidadao_ai_agent_task_duration_seconds',
     'Agent task execution time',
     ['agent', 'task_type']
 )
 
-cache_operations = Counter(
+cache_operations = get_or_create_metric(
+    Counter,
     'cidadao_ai_cache_operations_total',
     'Cache operations',
     ['operation', 'status']
 )
 
-cache_hit_ratio = Gauge(
+cache_hit_ratio = get_or_create_metric(
+    Gauge,
     'cidadao_ai_cache_hit_ratio',
     'Cache hit ratio'
 )
 
 # System metrics
-system_cpu = Gauge('cidadao_ai_system_cpu_percent', 'System CPU usage')
-system_memory = Gauge('cidadao_ai_system_memory_percent', 'System memory usage')
-system_disk = Gauge('cidadao_ai_system_disk_percent', 'System disk usage')
+system_cpu = get_or_create_metric(Gauge, 'cidadao_ai_system_cpu_percent', 'System CPU usage')
+system_memory = get_or_create_metric(Gauge, 'cidadao_ai_system_memory_percent', 'System memory usage')
+system_disk = get_or_create_metric(Gauge, 'cidadao_ai_system_disk_percent', 'System disk usage')
 
 
 class MockTracer:
