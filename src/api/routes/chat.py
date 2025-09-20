@@ -25,6 +25,9 @@ router = APIRouter(prefix="/api/v1/chat", tags=["chat"])
 # Services are already initialized
 intent_detector = IntentDetector()
 
+# Initialize master agent
+master_agent = MasterAgent()
+
 class ChatRequest(BaseModel):
     """Chat message request"""
     message: str = Field(..., min_length=1, max_length=1000)
