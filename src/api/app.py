@@ -20,7 +20,7 @@ from fastapi.openapi.utils import get_openapi
 from src.core import get_logger, settings
 from src.core.exceptions import CidadaoAIError, create_error_response
 from src.core.audit import audit_logger, AuditEventType, AuditSeverity, AuditContext
-from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat, websocket_chat, batch, graphql, cqrs, resilience, observability, chat_simple, chat_stable
+from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat, websocket_chat, batch, graphql, cqrs, resilience, observability, chat_simple, chat_stable, chat_optimized
 from src.api.middleware.rate_limiting import RateLimitMiddleware
 from src.api.middleware.authentication import AuthenticationMiddleware
 from src.api.middleware.logging_middleware import LoggingMiddleware
@@ -295,6 +295,11 @@ app.include_router(
 app.include_router(
     chat_stable.router,
     tags=["Chat Stable"]
+)
+
+app.include_router(
+    chat_optimized.router,
+    tags=["Chat Optimized"]
 )
 
 app.include_router(
