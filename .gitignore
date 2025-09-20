@@ -235,6 +235,7 @@ prometheus_data/
 
 # Internal documentation - IGNORE FROM REPOSITORY
 docs-internal/
+docs/internal/
 
 # Claude Code artifacts
 .claude/
