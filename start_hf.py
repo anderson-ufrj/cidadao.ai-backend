@@ -25,9 +25,14 @@ if __name__ == "__main__":
     port = int(os.getenv("PORT", 7860))
     host = os.getenv("HOST", "0.0.0.0")
     
-    print(f"🚀 Starting Cidadão.AI Full API on {host}:{port}")
+    print("="*60)
+    print("🚀 Starting Cidadão.AI Full API - VERSION 2025-09-20 13:46:00")
+    print("🔧 FIXED: Lazy initialization for chat service")
+    print("🔧 FIXED: MasterAgent import added")
+    print(f"🌐 Running on {host}:{port}")
     print("✅ WebSocket support enabled")
     print("✅ All API endpoints available")
+    print("="*60)
     
     uvicorn.run(
         app,
