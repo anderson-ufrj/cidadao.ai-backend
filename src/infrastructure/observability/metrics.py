@@ -17,7 +17,14 @@ from prometheus_client import (
     CollectorRegistry, generate_latest, CONTENT_TYPE_LATEST,
     multiprocess, values
 )
-from prometheus_client.openmetrics.exposition import OpenMetricsHandler
+
+# Try to import OpenMetricsHandler - not available in all versions
+try:
+    from prometheus_client.openmetrics.exposition import OpenMetricsHandler
+    OPENMETRICS_AVAILABLE = True
+except ImportError:
+    OPENMETRICS_AVAILABLE = False
+    OpenMetricsHandler = None
 
 from src.core import get_logger
 
