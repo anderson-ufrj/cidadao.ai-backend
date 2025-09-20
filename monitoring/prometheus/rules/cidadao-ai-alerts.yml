@@ -1,150 +1,314 @@
 groups:
-  - name: cidadao-ai-system
+  - name: cidadao_ai_system_alerts
     rules:
-      - alert: HighCPUUsage
-        expr: 100 - (avg(rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
-        for: 2m
-        labels:
-          severity: warning
-          service: cidadao-ai
-        annotations:
-          summary: "High CPU usage detected"
-          description: "CPU usage is above 80% for more than 2 minutes. Current value: {{ $value }}%"
-      
-      - alert: HighMemoryUsage
-        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
-        for: 2m
-        labels:
-          severity: warning
-          service: cidadao-ai
-        annotations:
-          summary: "High memory usage detected"
-          description: "Memory usage is above 85% for more than 2 minutes. Current value: {{ $value }}%"
-      
-      - alert: ServiceDown
+      # System Health Alerts
+      - alert: SystemDown
         expr: up{job="cidadao-ai-backend"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: system
+        annotations:
+          summary: "Cidadão.AI system is down"
+          description: "The Cidadão.AI backend service has been down for more than 30 seconds."
+          runbook_url: "https://docs.cidadao.ai/runbooks/system-down"
+
+      - alert: HighErrorRate
+        expr: (rate(cidadao_ai_request_duration_seconds_count{status=~"5.."}[5m]) / rate(cidadao_ai_request_duration_seconds_count[5m])) * 100 > 5
+        for: 2m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is {{ $value }}% for the last 5 minutes."
+
+      - alert: HighResponseTime
+        expr: histogram_quantile(0.95, rate(cidadao_ai_request_duration_seconds_bucket[5m])) > 2
+        for: 3m
+        labels:
+          severity: warning
+          component: api
+        annotations:
+          summary: "High API response time"
+          description: "95th percentile response time is {{ $value }}s, exceeding 2s threshold."
+
+      - alert: CriticalResponseTime
+        expr: histogram_quantile(0.95, rate(cidadao_ai_request_duration_seconds_bucket[5m])) > 5
         for: 1m
         labels:
           severity: critical
-          service: cidadao-ai
-        annotations:
-          summary: "Cidadão.AI service is down"
-          description: "The Cidadão.AI backend service has been down for more than 1 minute."
-
-  - name: cidadao-ai-api
-    rules:
-      - alert: HighAPILatency
-        expr: histogram_quantile(0.95, rate(cidadao_ai_request_duration_seconds_bucket[5m])) > 2
-        for: 5m
-        labels:
-          severity: warning
-          service: cidadao-ai
           component: api
         annotations:
-          summary: "High API latency detected"
-          description: "95th percentile API latency is above 2 seconds for more than 5 minutes. Current value: {{ $value }}s"
-      
-      - alert: HighAPIErrorRate
-        expr: sum(rate(cidadao_ai_requests_total{status_code=~"5.."}[5m])) / sum(rate(cidadao_ai_requests_total[5m])) > 0.05
+          summary: "Critical API response time"
+          description: "95th percentile response time is {{ $value }}s, exceeding 5s critical threshold."
+
+  - name: cidadao_ai_infrastructure_alerts
+    rules:
+      # Database Alerts
+      - alert: DatabaseConnectionsHigh
+        expr: cidadao_ai_database_connections_active / cidadao_ai_database_connections_total > 0.8
+        for: 2m
+        labels:
+          severity: warning
+          component: database
+        annotations:
+          summary: "High database connection usage"
+          description: "Database connection pool is {{ $value | humanizePercentage }} full."
+
+      - alert: DatabaseConnectionsCritical
+        expr: cidadao_ai_database_connections_active / cidadao_ai_database_connections_total > 0.95
+        for: 30s
+        labels:
+          severity: critical
+          component: database
+        annotations:
+          summary: "Critical database connection usage"
+          description: "Database connection pool is {{ $value | humanizePercentage }} full."
+
+      - alert: DatabaseQuerySlow
+        expr: histogram_quantile(0.90, rate(cidadao_ai_database_query_duration_seconds_bucket[5m])) > 0.5
         for: 3m
         labels:
           severity: warning
-          service: cidadao-ai
-          component: api
+          component: database
         annotations:
-          summary: "High API error rate detected"
-          description: "API error rate is above 5% for more than 3 minutes. Current rate: {{ $value | humanizePercentage }}"
-      
-      - alert: LowAPIThroughput
-        expr: sum(rate(cidadao_ai_requests_total[5m])) < 0.1
-        for: 10m
-        labels:
-          severity: info
-          service: cidadao-ai
-          component: api
-        annotations:
-          summary: "Low API throughput"
-          description: "API throughput is very low (< 0.1 req/sec) for more than 10 minutes. Current rate: {{ $value }} req/sec"
+          summary: "Slow database queries detected"
+          description: "90th percentile database query time is {{ $value }}s."
 
-  - name: cidadao-ai-investigations
-    rules:
-      - alert: HighInvestigationFailureRate
-        expr: sum(rate(cidadao_ai_investigations_total{status="failed"}[10m])) / sum(rate(cidadao_ai_investigations_total[10m])) > 0.1
+      # Cache Alerts
+      - alert: CacheHitRateLow
+        expr: (cidadao_ai_cache_hits_total / (cidadao_ai_cache_hits_total + cidadao_ai_cache_misses_total)) * 100 < 70
         for: 5m
         labels:
           severity: warning
-          service: cidadao-ai
-          component: investigations
+          component: cache
         annotations:
-          summary: "High investigation failure rate"
-          description: "Investigation failure rate is above 10% for more than 5 minutes. Current rate: {{ $value | humanizePercentage }}"
-      
-      - alert: LongInvestigationDuration
-        expr: histogram_quantile(0.95, rate(cidadao_ai_investigation_duration_seconds_bucket[5m])) > 300
+          summary: "Low cache hit rate"
+          description: "Cache hit rate is {{ $value }}%, below 70% threshold."
+
+      - alert: CacheHitRateCritical
+        expr: (cidadao_ai_cache_hits_total / (cidadao_ai_cache_hits_total + cidadao_ai_cache_misses_total)) * 100 < 50
+        for: 2m
+        labels:
+          severity: critical
+          component: cache
+        annotations:
+          summary: "Critical cache hit rate"
+          description: "Cache hit rate is {{ $value }}%, below 50% critical threshold."
+
+      # Memory and CPU Alerts
+      - alert: HighMemoryUsage
+        expr: (process_resident_memory_bytes{job="cidadao-ai-backend"} / (1024^3)) > 2
         for: 5m
         labels:
           severity: warning
-          service: cidadao-ai
-          component: investigations
+          component: system
         annotations:
-          summary: "Long investigation duration detected"
-          description: "95th percentile investigation duration is above 5 minutes. Current value: {{ $value }}s"
-      
-      - alert: NoAnomaliesDetected
-        expr: increase(cidadao_ai_anomalies_detected_total[1h]) == 0
-        for: 2h
-        labels:
-          severity: info
-          service: cidadao-ai
-          component: investigations
-        annotations:
-          summary: "No anomalies detected recently"
-          description: "No anomalies have been detected in the last 2 hours. This might indicate a problem with the detection system."
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}GB, exceeding 2GB threshold."
 
-  - name: cidadao-ai-data
+      - alert: HighCPUUsage
+        expr: rate(process_cpu_seconds_total{job="cidadao-ai-backend"}[5m]) * 100 > 80
+        for: 5m
+        labels:
+          severity: warning
+          component: system
+        annotations:
+          summary: "High CPU usage"
+          description: "CPU usage is {{ $value }}%, exceeding 80% threshold."
+
+  - name: cidadao_ai_agent_alerts
     rules:
-      - alert: TransparencyAPIFailures
-        expr: sum(rate(cidadao_ai_transparency_data_fetched_total{status="failed"}[5m])) > 0
+      # Agent Performance Alerts
+      - alert: AgentTaskFailureHigh
+        expr: (rate(cidadao_ai_agent_tasks_total{status="error"}[10m]) / rate(cidadao_ai_agent_tasks_total[10m])) * 100 > 10
         for: 3m
         labels:
           severity: warning
-          service: cidadao-ai
-          component: transparency-api
-        annotations:
-          summary: "Transparency API failures detected"
-          description: "There are failures when fetching data from the Transparency API. Rate: {{ $value }} failures/sec"
-      
-      - alert: LowDataProcessingRate
-        expr: sum(rate(cidadao_ai_data_records_processed_total[5m])) < 1
-        for: 15m
-        labels:
-          severity: info
-          service: cidadao-ai
-          component: data-processing
-        annotations:
-          summary: "Low data processing rate"
-          description: "Data processing rate is very low (< 1 record/sec) for more than 15 minutes. Current rate: {{ $value }} records/sec"
-
-  - name: cidadao-ai-agents
-    rules:
-      - alert: HighAgentTaskFailureRate
-        expr: sum(rate(cidadao_ai_agent_tasks_total{status="failed"}[10m])) / sum(rate(cidadao_ai_agent_tasks_total[10m])) > 0.05
-        for: 5m
-        labels:
-          severity: warning
-          service: cidadao-ai
           component: agents
         annotations:
           summary: "High agent task failure rate"
-          description: "Agent task failure rate is above 5% for more than 5 minutes. Current rate: {{ $value | humanizePercentage }}"
-      
-      - alert: AgentTaskRetries
-        expr: sum(rate(cidadao_ai_agent_tasks_total{status="retry"}[5m])) > 0.1
-        for: 5m
+          description: "Agent {{ $labels.agent_name }} has {{ $value }}% task failure rate."
+
+      - alert: AgentTaskFailureCritical
+        expr: (rate(cidadao_ai_agent_tasks_total{status="error"}[5m]) / rate(cidadao_ai_agent_tasks_total[5m])) * 100 > 25
+        for: 1m
         labels:
-          severity: info
-          service: cidadao-ai
+          severity: critical
           component: agents
         annotations:
-          summary: "Frequent agent task retries"
-          description: "Agent tasks are retrying frequently. Retry rate: {{ $value }} retries/sec"
+          summary: "Critical agent task failure rate"
+          description: "Agent {{ $labels.agent_name }} has {{ $value }}% critical failure rate."
+
+      - alert: AgentQualityScoreLow
+        expr: cidadao_ai_agent_quality_score < 0.8
+        for: 5m
+        labels:
+          severity: warning
+          component: agents
+        annotations:
+          summary: "Agent quality score below threshold"
+          description: "Agent {{ $labels.agent_name }} quality score is {{ $value }}, below 0.8 threshold."
+
+      - alert: AgentTaskDurationHigh
+        expr: histogram_quantile(0.95, rate(cidadao_ai_agent_task_duration_seconds_bucket[5m])) > 30
+        for: 3m
+        labels:
+          severity: warning
+          component: agents
+        annotations:
+          summary: "Agent task duration high"
+          description: "Agent {{ $labels.agent_name }} P95 task duration is {{ $value }}s."
+
+      - alert: AgentReflectionLoopExcessive
+        expr: cidadao_ai_agent_reflection_iterations > 3
+        for: 1m
+        labels:
+          severity: warning
+          component: agents
+        annotations:
+          summary: "Excessive agent reflection iterations"
+          description: "Agent {{ $labels.agent_name }} performing {{ $value }} reflection iterations."
+
+  - name: cidadao_ai_business_alerts
+    rules:
+      # Investigation Alerts
+      - alert: InvestigationSuccessRateLow
+        expr: (rate(cidadao_ai_investigations_total{status="completed"}[1h]) / rate(cidadao_ai_investigations_total[1h])) * 100 < 90
+        for: 10m
+        labels:
+          severity: warning
+          component: investigations
+        annotations:
+          summary: "Low investigation success rate"
+          description: "Investigation success rate is {{ $value }}%, below 90% threshold."
+
+      - alert: AnomalyDetectionAccuracyLow
+        expr: avg_over_time(cidadao_ai_anomaly_detection_accuracy[30m]) < 0.85
+        for: 15m
+        labels:
+          severity: warning
+          component: anomaly_detection
+        annotations:
+          summary: "Low anomaly detection accuracy"
+          description: "Anomaly detection accuracy is {{ $value | humanizePercentage }}."
+
+      - alert: TransparencyDataFetchFailure
+        expr: rate(cidadao_ai_transparency_data_fetch_errors_total[5m]) > 0.1
+        for: 3m
+        labels:
+          severity: warning
+          component: data_ingestion
+        annotations:
+          summary: "High transparency data fetch failure rate"
+          description: "Transparency API fetch error rate is {{ $value }} errors/sec."
+
+  - name: cidadao_ai_slo_alerts
+    rules:
+      # SLO-based Alerts
+      - alert: SLOViolationWarning
+        expr: cidadao_ai_slo_compliance_percentage < 98
+        for: 5m
+        labels:
+          severity: warning
+          component: slo
+        annotations:
+          summary: "SLO compliance warning"
+          description: "SLO {{ $labels.slo_name }} compliance is {{ $value }}%, below 98% warning threshold."
+
+      - alert: SLOViolationCritical
+        expr: cidadao_ai_slo_compliance_percentage < 95
+        for: 2m
+        labels:
+          severity: critical
+          component: slo
+        annotations:
+          summary: "SLO compliance critical"
+          description: "SLO {{ $labels.slo_name }} compliance is {{ $value }}%, below 95% critical threshold."
+
+      - alert: ErrorBudgetHighConsumption
+        expr: cidadao_ai_error_budget_consumed_percentage > 80
+        for: 1m
+        labels:
+          severity: warning
+          component: slo
+        annotations:
+          summary: "High error budget consumption"
+          description: "SLO {{ $labels.slo_name }} error budget {{ $value }}% consumed."
+
+      - alert: ErrorBudgetCriticalConsumption
+        expr: cidadao_ai_error_budget_consumed_percentage > 95
+        for: 30s
+        labels:
+          severity: critical
+          component: slo
+        annotations:
+          summary: "Critical error budget consumption"
+          description: "SLO {{ $labels.slo_name }} error budget {{ $value }}% consumed - service at risk."
+
+  - name: cidadao_ai_external_dependencies
+    rules:
+      # External Service Alerts
+      - alert: ExternalAPIDown
+        expr: up{job="external-apis"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: external_api
+        annotations:
+          summary: "External API unavailable"
+          description: "External API {{ $labels.instance }} is down."
+
+      - alert: LLMServiceDown
+        expr: up{job="llm-services"} == 0
+        for: 30s
+        labels:
+          severity: critical
+          component: llm
+        annotations:
+          summary: "LLM service unavailable"
+          description: "LLM service {{ $labels.instance }} is down."
+
+      - alert: LLMServiceHighLatency
+        expr: histogram_quantile(0.95, rate(cidadao_ai_llm_request_duration_seconds_bucket[5m])) > 10
+        for: 2m
+        labels:
+          severity: warning
+          component: llm
+        annotations:
+          summary: "High LLM service latency"
+          description: "LLM service {{ $labels.service }} P95 latency is {{ $value }}s."
+
+  - name: cidadao_ai_security_alerts
+    rules:
+      # Security Alerts
+      - alert: UnauthorizedAccessAttempts
+        expr: rate(cidadao_ai_unauthorized_requests_total[5m]) > 1
+        for: 1m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High unauthorized access attempts"
+          description: "{{ $value }} unauthorized requests per second detected."
+
+      - alert: RateLimitExceeded
+        expr: rate(cidadao_ai_rate_limit_exceeded_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: warning
+          component: security
+        annotations:
+          summary: "High rate limit violations"
+          description: "{{ $value }} rate limit violations per second detected."
+
+      - alert: SuspiciousActivityPattern
+        expr: rate(cidadao_ai_suspicious_requests_total[5m]) > 0.5
+        for: 3m
+        labels:
+          severity: critical
+          component: security
+        annotations:
+          summary: "Suspicious activity pattern detected"
+          description: "{{ $value }} suspicious requests per second detected."
