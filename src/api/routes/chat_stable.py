@@ -12,7 +12,7 @@ import httpx
 from src.core import get_logger
 
 logger = get_logger(__name__)
-from src.infrastructure.ai_tools.clients.maritaca_client import MaritacaClient
+from src.services.maritaca_client import MaritacaClient, MaritacaModel
 from src.core.intent_detection import IntentDetector, IntentType
 
 router = APIRouter(prefix="/api/v1/chat")
