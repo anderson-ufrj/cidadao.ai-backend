@@ -12,23 +12,51 @@ import time
 import uuid
 from functools import wraps
 
-from opentelemetry import trace, context, baggage
-from opentelemetry.exporter.jaeger.thrift import JaegerExporter
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
-from opentelemetry.instrumentation.redis import RedisInstrumentor
-from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
-from opentelemetry.instrumentation.asyncpg import AsyncPGInstrumentor
-from opentelemetry.propagate import set_global_textmap
-from opentelemetry.propagators.b3 import B3MultiFormat
-from opentelemetry.propagators.jaeger import JaegerPropagator
-from opentelemetry.propagators.composite import CompositeHTTPPropagator
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
-from opentelemetry.sdk.resources import Resource, SERVICE_NAME, SERVICE_VERSION
-from opentelemetry.semconv.trace import SpanAttributes
-from opentelemetry.trace.status import Status, StatusCode
+# Try to import OpenTelemetry, use stubs if not available
+try:
+    from opentelemetry import trace, context, baggage
+    from opentelemetry.exporter.jaeger.thrift import JaegerExporter
+    from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+    from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
+    from opentelemetry.instrumentation.redis import RedisInstrumentor
+    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
+    from opentelemetry.instrumentation.asyncpg import AsyncPGInstrumentor
+    from opentelemetry.propagate import set_global_textmap
+    from opentelemetry.propagators.b3 import B3MultiFormat
+    from opentelemetry.propagators.jaeger import JaegerPropagator
+    from opentelemetry.propagators.composite import CompositeHTTPPropagator
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import BatchSpanProcessor, ConsoleSpanExporter
+    from opentelemetry.sdk.resources import Resource, SERVICE_NAME, SERVICE_VERSION
+    from opentelemetry.semconv.trace import SpanAttributes
+    OPENTELEMETRY_AVAILABLE = True
+except ImportError:
+    OPENTELEMETRY_AVAILABLE = False
+    # Use minimal implementation
+    from src.core.monitoring_minimal import MockTracer as trace
+    
+    class MockInstrumentor:
+        @staticmethod
+        def instrument(*args, **kwargs):
+            pass
+    
+    FastAPIInstrumentor = HTTPXClientInstrumentor = RedisInstrumentor = SQLAlchemyInstrumentor = AsyncPGInstrumentor = MockInstrumentor
+    
+    # Mock constants
+    SERVICE_NAME = "service_name"
+    SERVICE_VERSION = "service_version"
+try:
+    from opentelemetry.trace.status import Status, StatusCode
+except ImportError:
+    # Mock status classes
+    class StatusCode:
+        OK = "ok"
+        ERROR = "error"
+    
+    class Status:
+        def __init__(self, status_code=None):
+            self.status_code = status_code
 
 from src.core import get_logger, settings
 
