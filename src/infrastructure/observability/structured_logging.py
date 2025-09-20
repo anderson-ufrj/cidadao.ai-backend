@@ -280,26 +280,17 @@ class StructuredLogger:
         self.name = name
         self.component = component
         self.logger = get_logger(name)
-        self.logger.setLevel(getattr(logging, level.value))
+        self.level = level
         
-        # Configure JSON formatter if not already configured
-        if not any(isinstance(h.formatter, TraceContextFormatter) for h in self.logger.handlers):
-            self._configure_json_logging()
+        # Note: structlog loggers don't have setLevel method
+        # Level filtering is handled by structlog configuration
     
     def _configure_json_logging(self):
         """Configure JSON logging for the logger."""
-        # Remove existing handlers
-        for handler in self.logger.handlers[:]:
-            self.logger.removeHandler(handler)
-        
-        # Add console handler with JSON formatter
-        console_handler = logging.StreamHandler(sys.stdout)
-        formatter = TraceContextFormatter()
-        console_handler.setFormatter(formatter)
-        self.logger.addHandler(console_handler)
-        
-        # Prevent propagation to root logger
-        self.logger.propagate = False
+        # Note: structlog handles formatting internally
+        # This method is kept for compatibility but doesn't need to do anything
+        # as structlog is already configured in core.logging
+        pass
     
     def _log_structured(
         self,
