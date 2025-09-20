@@ -27,6 +27,7 @@ class DataSourceType:
     CONTRACTS = "contratos"
     SERVANTS = "servidores"
     EXPENSES = "despesas"
+    BIDDINGS = "licitacoes"
 
 class UniversalSearchRequest(BaseModel):
     """Universal search request model."""
