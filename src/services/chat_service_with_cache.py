@@ -318,4 +318,15 @@ class CachedChatService(ChatService):
 
 
 # Export the enhanced service
-chat_service = CachedChatService()
+# Use lazy initialization to avoid import-time errors
+_chat_service_instance = None
+
+def get_chat_service():
+    """Get or create the chat service instance"""
+    global _chat_service_instance
+    if _chat_service_instance is None:
+        _chat_service_instance = CachedChatService()
+    return _chat_service_instance
+
+# For backward compatibility
+chat_service = None  # Will be replaced by getter
