@@ -62,7 +62,7 @@ FALLBACK_RESPONSES = {
         "Oi! Estou aqui para ajudar com informações sobre gastos governamentais. Em que posso ser útil?",
         "Bem-vindo! Posso ajudar você a entender melhor os gastos públicos. O que gostaria de saber?"
     ],
-    IntentType.INVESTIGATION: [
+    IntentType.INVESTIGATE: [
         "Entendi que você quer investigar gastos públicos. Posso ajudar você a buscar informações sobre contratos, licitações e despesas governamentais. Qual área específica você gostaria de investigar?",
         "Vou ajudar você a investigar os gastos públicos. Temos dados sobre contratos, fornecedores e órgãos públicos. Por onde gostaria de começar?",
         "Perfeito! Posso analisar contratos e despesas públicas. Me diga qual órgão, período ou tipo de gasto você quer investigar."
@@ -108,7 +108,7 @@ async def process_with_maritaca(message: str, intent_type: IntentType, session_i
             Seja claro, objetivo e sempre forneça informações úteis sobre transparência fiscal.
             Quando apropriado, sugira ações específicas como investigar contratos ou analisar gastos."""
             
-            if intent_type == IntentType.INVESTIGATION:
+            if intent_type == IntentType.INVESTIGATE:
                 system_prompt += "\nO usuário quer investigar gastos. Seja específico sobre como você pode ajudar."
             elif intent_type == IntentType.ANALYSIS:
                 system_prompt += "\nO usuário quer uma análise. Explique que tipo de análise você pode fornecer."
@@ -188,7 +188,7 @@ async def chat_stable(request: ChatRequest) -> ChatResponse:
                 if any(word in message_lower for word in ["oi", "olá", "bom dia", "boa tarde", "boa noite"]):
                     intent_type = IntentType.GREETING
                 elif any(word in message_lower for word in ["investigar", "verificar", "buscar", "procurar"]):
-                    intent_type = IntentType.INVESTIGATION
+                    intent_type = IntentType.INVESTIGATE
                 elif any(word in message_lower for word in ["analisar", "análise", "examinar"]):
                     intent_type = IntentType.ANALYSIS
                 elif any(word in message_lower for word in ["ajuda", "help", "como", "o que"]):
@@ -210,7 +210,7 @@ async def chat_stable(request: ChatRequest) -> ChatResponse:
         # Determine agent info based on intent
         agent_info = {
             IntentType.GREETING: ("drummond", "Carlos Drummond"),
-            IntentType.INVESTIGATION: ("zumbi", "Zumbi dos Palmares"),
+            IntentType.INVESTIGATE: ("zumbi", "Zumbi dos Palmares"),
             IntentType.ANALYSIS: ("anita", "Anita Garibaldi"),
             IntentType.HELP: ("drummond", "Carlos Drummond"),
             IntentType.REPORT: ("tiradentes", "Tiradentes"),
@@ -222,7 +222,7 @@ async def chat_stable(request: ChatRequest) -> ChatResponse:
         # Prepare suggested actions
         suggested_actions = {
             IntentType.GREETING: ["investigate_contracts", "view_recent_expenses", "help"],
-            IntentType.INVESTIGATION: ["filter_by_date", "filter_by_agency", "view_suppliers"],
+            IntentType.INVESTIGATE: ["filter_by_date", "filter_by_agency", "view_suppliers"],
             IntentType.ANALYSIS: ["generate_report", "view_charts", "compare_periods"],
             IntentType.HELP: ["start_investigation", "learn_more", "examples"],
             IntentType.REPORT: ["download_pdf", "share_report", "new_analysis"],
