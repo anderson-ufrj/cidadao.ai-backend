@@ -186,15 +186,21 @@ class TracingManager:
         
         # Create tracer
         logger.info(f"Creating tracer - OPENTELEMETRY_BASIC: {OPENTELEMETRY_BASIC}")
-        if OPENTELEMETRY_BASIC:
-            logger.info("Using OpenTelemetry tracer with version")
-            self.tracer = trace.get_tracer(
-                __name__,
-                version=self.config.service_version
-            )
-        else:
-            logger.info("Using Mock tracer without version")
-            # Mock tracer accepts version as positional arg
+        
+        # Try to create tracer with version, fallback without if it fails
+        try:
+            if OPENTELEMETRY_BASIC:
+                logger.info("Trying OpenTelemetry tracer with version")
+                self.tracer = trace.get_tracer(
+                    __name__,
+                    version=self.config.service_version
+                )
+                logger.info("Successfully created tracer with version")
+            else:
+                raise Exception("Using mock tracer")
+        except Exception as e:
+            logger.info(f"Creating tracer without version parameter: {str(e)}")
+            # Fallback to tracer without version
             self.tracer = trace.get_tracer(__name__)
         
         # Setup propagators
