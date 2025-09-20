@@ -15,6 +15,7 @@ from src.core.exceptions import ValidationError
 from src.api.dependencies import get_current_optional_user
 from src.api.routes.chat_drummond_factory import get_drummond_agent
 from src.agents.deodoro import AgentMessage, AgentContext, AgentResponse, AgentStatus
+from src.agents.abaporu import MasterAgent
 from src.services.chat_service_with_cache import chat_service
 from src.services.chat_service import IntentDetector, IntentType
 from src.api.models.pagination import CursorPaginationResponse
