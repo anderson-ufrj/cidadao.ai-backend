@@ -21,10 +21,22 @@ from src.agents.abaporu import MasterAgent
 from src.services.chat_service import IntentDetector, IntentType
 from src.api.models.pagination import CursorPaginationResponse
 
-# Import the simple Zumbi agent for investigations
-import sys
-sys.path.append('/')
-from app import enhanced_zumbi, UniversalSearchRequest, DataSourceType
+# Import models for the simple fallback agent
+class DataSourceType:
+    """Simple data source type for fallback."""
+    CONTRACTS = "contratos"
+    SERVANTS = "servidores"
+    EXPENSES = "despesas"
+
+class UniversalSearchRequest(BaseModel):
+    """Universal search request model."""
+    query: str
+    data_source: str
+    filters: Dict[str, Any] = Field(default_factory=dict)
+    max_results: int = Field(default=100)
+
+# Simple fallback agent will be imported lazily if needed
+enhanced_zumbi = None
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["chat"])
@@ -212,7 +224,16 @@ async def send_message(
                 )
                 
                 # Run investigation
-                investigation_result = await enhanced_zumbi.investigate_universal(investigation_request)
+                # NOTE: Enhanced Zumbi temporarily disabled to fix circular import
+                investigation_result = None
+                if investigation_result is None:
+                    # Return a simple error for now
+                    return {
+                        "response": "Desculpe, o sistema de investigação está temporariamente indisponível. Por favor, tente novamente mais tarde.",
+                        "session_id": session_id,
+                        "message_id": str(uuid.uuid4()),
+                        "timestamp": datetime.utcnow().isoformat()
+                    }
                 
                 # Format response
                 message = f"🏹 **Investigação Concluída**\n\n"
