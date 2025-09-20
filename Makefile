@@ -4,7 +4,7 @@
 .DEFAULT_GOAL := help
 
 # Variables
-PYTHON := python3.11
+PYTHON := python3
 PIP := $(PYTHON) -m pip
 PYTEST := $(PYTHON) -m pytest
 BLACK := $(PYTHON) -m black

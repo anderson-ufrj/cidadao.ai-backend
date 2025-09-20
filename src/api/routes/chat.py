@@ -31,6 +31,8 @@ router = APIRouter(tags=["chat"])
 intent_detector = IntentDetector()
 
 # Drummond agent handled by factory to avoid import issues
+# Initialize master agent
+master_agent = MasterAgent()
 
 class ChatRequest(BaseModel):
     """Chat message request"""
