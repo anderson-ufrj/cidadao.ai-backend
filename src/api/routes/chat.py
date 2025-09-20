@@ -113,11 +113,13 @@ async def send_message(
         
         if target_agent == "drummond":
             # Use Drummond for conversational intents
+            drummond_loaded = False
             try:
                 drummond_agent = await get_drummond_agent()
                 
                 if drummond_agent:
                     response = await drummond_agent.process(agent_message, context)
+                    drummond_loaded = True
                 else:
                     raise Exception("Drummond agent not available")
                 agent_id = "drummond"
@@ -127,7 +129,41 @@ async def send_message(
                 logger.error(f"Error processing with Drummond: {e}")
                 import traceback
                 traceback.print_exc()
-                raise
+                # Fall through to simple responses
+            
+            # If Drummond failed, use simple responses
+            if not drummond_loaded:
+                logger.info("Using fallback responses for conversational intents")
+                
+                # Simple responses based on intent
+                if intent.type == IntentType.GREETING:
+                    message = "Olá! Sou o Cidadão.AI. Como posso ajudá-lo com transparência governamental?"
+                elif intent.type == IntentType.HELP_REQUEST:
+                    message = "Posso ajudar você a investigar contratos, analisar gastos públicos e detectar anomalias. Experimente perguntar 'quero investigar contratos da saúde'!"
+                elif intent.type == IntentType.ABOUT_SYSTEM:
+                    message = "O Cidadão.AI é um sistema multi-agente para análise de transparência governamental. Temos agentes especializados em investigação, análise e geração de relatórios."
+                elif intent.type == IntentType.THANKS:
+                    message = "De nada! Estou sempre aqui para ajudar com a transparência pública."
+                elif intent.type == IntentType.GOODBYE:
+                    message = "Até logo! Volte sempre que precisar de informações sobre gastos públicos."
+                else:
+                    message = "Interessante sua pergunta! Posso ajudá-lo a investigar contratos ou analisar gastos públicos. O que gostaria de explorar?"
+                
+                response = AgentResponse(
+                    agent_name="Drummond (Simplificado)",
+                    status=AgentStatus.COMPLETED,
+                    result={
+                        "message": message,
+                        "intent_type": intent.type.value,
+                        "status": "fallback"
+                    },
+                    metadata={
+                        "confidence": 0.8,
+                        "simplified": True
+                    }
+                )
+                agent_id = "drummond"
+                agent_name = "Carlos Drummond de Andrade"
         elif target_agent == "abaporu" and intent.type == IntentType.INVESTIGATE:
             # Handle investigation requests with Zumbi
             try:
