@@ -1,6 +1,8 @@
 """
 Chat API endpoints for conversational interface
+VERSION: 2025-09-20 13:45:00 - Lazy initialization fix
 """
+print("=== CHAT.PY LOADING - VERSION 13:45:00 ===")
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
@@ -16,7 +18,6 @@ from src.api.dependencies import get_current_optional_user
 from src.api.routes.chat_drummond_factory import get_drummond_agent
 from src.agents.deodoro import AgentMessage, AgentContext, AgentResponse, AgentStatus
 from src.agents.abaporu import MasterAgent
-from src.services.chat_service_with_cache import chat_service
 from src.services.chat_service import IntentDetector, IntentType
 from src.api.models.pagination import CursorPaginationResponse
 
@@ -27,6 +28,16 @@ from app import enhanced_zumbi, UniversalSearchRequest, DataSourceType
 
 logger = get_logger(__name__)
 router = APIRouter(tags=["chat"])
+
+# Import chat service with error handling
+try:
+    from src.services.chat_service_with_cache import chat_service
+    if chat_service is None:
+        from src.services.chat_service_with_cache import get_chat_service
+        chat_service = get_chat_service()
+except Exception as e:
+    logger.warning(f"Failed to import chat_service: {e}")
+    chat_service = None
 
 # Services are already initialized
 intent_detector = IntentDetector()
