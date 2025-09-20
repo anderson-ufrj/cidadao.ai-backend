@@ -18,9 +18,14 @@ if __name__ == "__main__":
     # Get port from environment (HuggingFace uses 7860)
     port = int(os.getenv("PORT", 7860))
     
-    # Log startup
-    print(f"🚀 Starting Cidadão.AI Full Multi-Agent System on port {port}")
-    print("🤖 All agents available: Drummond, Zumbi, Anita, Tiradentes, and more!")
+    # Log startup with version
+    print("=" * 60)
+    print(f"🚀 Starting Cidadão.AI Full Multi-Agent System v2.0")
+    print(f"📅 Deploy timestamp: 2025-09-20 13:29:00 -03")
+    print(f"🔧 Fixed: MasterAgent import added")
+    print(f"🤖 All agents available: Drummond, Zumbi, Anita, Tiradentes, and more!")
+    print(f"🌐 Running on port {port}")
+    print("=" * 60)
     
     # Run the complete API
     uvicorn.run(
