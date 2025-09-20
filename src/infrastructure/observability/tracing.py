@@ -185,10 +185,14 @@ class TracingManager:
             trace.set_tracer_provider(self.tracer_provider)
         
         # Create tracer
-        self.tracer = trace.get_tracer(
-            __name__,
-            version=self.config.service_version
-        )
+        if OPENTELEMETRY_BASIC:
+            self.tracer = trace.get_tracer(
+                __name__,
+                version=self.config.service_version
+            )
+        else:
+            # Mock tracer accepts version as positional arg
+            self.tracer = trace.get_tracer(__name__)
         
         # Setup propagators
         self._setup_propagators()
