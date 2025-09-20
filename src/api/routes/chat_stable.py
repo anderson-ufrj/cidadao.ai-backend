@@ -9,7 +9,9 @@ from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, HTTPException, Depends
 from pydantic import BaseModel, Field
 import httpx
-from src.infrastructure.logging.logger import logger
+from src.core import get_logger
+
+logger = get_logger(__name__)
 from src.infrastructure.ai_tools.clients.maritaca_client import MaritacaClient
 from src.core.intent_detection import IntentDetector, IntentType
 
