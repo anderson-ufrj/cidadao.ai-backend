@@ -115,7 +115,8 @@ class MetricsManager:
         self.register_metric(MetricConfig(
             name="cidadao_ai_anomaly_confidence_score",
             description="Confidence score of detected anomalies",
-            labels=["anomaly_type"]
+            labels=["anomaly_type"],
+            buckets=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 0.95, 0.99]
         ), MetricType.HISTOGRAM)
         
         # External API metrics
@@ -224,11 +225,13 @@ class MetricsManager:
                 registry=self.registry
             )
         elif metric_type == MetricType.HISTOGRAM:
+            # Use default buckets if not specified
+            buckets = config.buckets if config.buckets is not None else Histogram.DEFAULT_BUCKETS
             metric = Histogram(
                 config.name,
                 config.description,
                 labelnames=config.labels or [],
-                buckets=config.buckets,
+                buckets=buckets,
                 registry=self.registry
             )
         elif metric_type == MetricType.GAUGE:
