@@ -13,7 +13,7 @@ from src.core import get_logger
 
 logger = get_logger(__name__)
 from src.services.maritaca_client import MaritacaClient, MaritacaModel
-from src.core.intent_detection import IntentDetector, IntentType
+from src.services.chat_service import IntentDetector, IntentType
 
 router = APIRouter(prefix="/api/v1/chat")
 
@@ -27,7 +27,10 @@ def get_maritaca_client():
     if maritaca_client is None:
         api_key = os.getenv("MARITACA_API_KEY")
         if api_key:
-            maritaca_client = MaritacaClient(api_key=api_key)
+            maritaca_client = MaritacaClient(
+                api_key=api_key,
+                model=MaritacaModel.SABIA_3  # Using standard model for stability
+            )
     return maritaca_client
 
 def get_intent_detector():
@@ -110,18 +113,22 @@ async def process_with_maritaca(message: str, intent_type: IntentType, session_i
             elif intent_type == IntentType.ANALYSIS:
                 system_prompt += "\nO usuário quer uma análise. Explique que tipo de análise você pode fornecer."
             
-            response = await client.chat(
-                message=message,
-                system_prompt=system_prompt,
+            messages = [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": message}
+            ]
+            
+            response = await client.chat_completion(
+                messages=messages,
                 temperature=0.7,
                 max_tokens=300
             )
             
-            if response and isinstance(response, dict):
+            if response:
                 return {
-                    "message": response.get("content", get_fallback_response(intent_type)),
+                    "message": response.content if hasattr(response, 'content') else str(response),
                     "agent_used": "maritaca_ai",
-                    "model": "sabia-3",
+                    "model": response.model if hasattr(response, 'model') else "sabia-3",
                     "success": True
                 }
         except Exception as e:
