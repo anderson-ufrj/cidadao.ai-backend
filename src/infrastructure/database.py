@@ -5,6 +5,7 @@ Suporte para PostgreSQL, Redis Cluster, e cache inteligente
 
 import asyncio
 import logging
+import os
 from typing import Dict, List, Optional, Any, Union
 from datetime import datetime, timedelta
 import json
@@ -487,6 +488,7 @@ class DatabaseManager:
 
 # Singleton instance
 _db_manager: Optional[DatabaseManager] = None
+_db_pool: Optional[asyncpg.Pool] = None
 
 async def get_database_manager() -> DatabaseManager:
     """Obter instância singleton do database manager"""
@@ -499,6 +501,26 @@ async def get_database_manager() -> DatabaseManager:
         await _db_manager.initialize()
     
     return _db_manager
+
+async def get_db_pool() -> asyncpg.Pool:
+    """Get PostgreSQL connection pool for direct queries"""
+    global _db_pool
+    
+    if _db_pool is None:
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            raise ValueError("DATABASE_URL environment variable is required")
+        
+        _db_pool = await asyncpg.create_pool(
+            database_url,
+            min_size=10,
+            max_size=20,
+            command_timeout=60,
+            max_queries=50000,
+            max_inactive_connection_lifetime=300
+        )
+    
+    return _db_pool
 
 
 async def cleanup_database():
