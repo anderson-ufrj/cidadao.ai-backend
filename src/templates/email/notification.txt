@@ -1,0 +1,28 @@
+{{ title }}
+{{ '=' * title|length }}
+
+{{ message }}
+
+{% if details %}
+Detalhes:
+{% for key, value in details.items() %}
+- {{ key }}: {{ value }}
+{% endfor %}
+{% endif %}
+
+{% if action_url %}
+{{ action_text | default('Ver Detalhes') }}: {{ action_url }}
+{% endif %}
+
+{% if severity %}
+Nível de Severidade: {{ severity | upper }}
+{% endif %}
+
+--
+{{ app_name }}
+{{ app_url }}
+
+Você está recebendo este e-mail porque está inscrito para receber notificações do {{ app_name }}.
+Para ajustar suas preferências de notificação, acesse sua conta em nosso sistema.
+
+Este é um e-mail automático. Por favor, não responda diretamente a este endereço.

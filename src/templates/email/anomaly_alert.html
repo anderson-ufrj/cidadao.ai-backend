@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2 style="color: #e74c3c;">⚠️ Alerta de Anomalia Detectada</h2>
+
+<div class="alert alert-danger">
+    <strong>ATENÇÃO:</strong> Uma anomalia {{ severity | default('significativa') }} foi detectada em nossa análise.
+</div>
+
+<div style="margin: 20px 0;">
+    <h3>Detalhes da Anomalia</h3>
+    <table style="width: 100%; border-collapse: collapse;">
+        <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><strong>Tipo:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #ecf0f1;">{{ anomaly_type }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><strong>Severidade:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #ecf0f1;">
+                <span style="color: {% if severity == 'critical' %}#e74c3c{% elif severity == 'high' %}#f39c12{% elif severity == 'medium' %}#f1c40f{% else %}#3498db{% endif %};">
+                    {{ severity | upper }}
+                </span>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><strong>Data de Detecção:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #ecf0f1;">{{ detection_date }}</td>
+        </tr>
+        <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><strong>Fonte de Dados:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #ecf0f1;">{{ data_source }}</td>
+        </tr>
+        {% if confidence_score %}
+        <tr>
+            <td style="padding: 10px; border-bottom: 1px solid #ecf0f1;"><strong>Confiança:</strong></td>
+            <td style="padding: 10px; border-bottom: 1px solid #ecf0f1;">{{ confidence_score }}%</td>
+        </tr>
+        {% endif %}
+    </table>
+</div>
+
+{% if description %}
+<div style="margin: 20px 0;">
+    <h3>Descrição</h3>
+    <p>{{ description }}</p>
+</div>
+{% endif %}
+
+{% if affected_entities %}
+<div style="margin: 20px 0;">
+    <h3>Entidades Afetadas</h3>
+    <ul>
+    {% for entity in affected_entities %}
+        <li>{{ entity }}</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if potential_impact %}
+<div style="background-color: #fff3cd; padding: 15px; border-left: 4px solid #f39c12; margin: 20px 0;">
+    <h4 style="margin-top: 0;">Impacto Potencial</h4>
+    <p>{{ potential_impact }}</p>
+</div>
+{% endif %}
+
+{% if recommended_actions %}
+<div style="margin: 20px 0;">
+    <h3>Ações Recomendadas</h3>
+    <ol>
+    {% for action in recommended_actions %}
+        <li>{{ action }}</li>
+    {% endfor %}
+    </ol>
+</div>
+{% endif %}
+
+<p style="text-align: center; margin: 30px 0;">
+    <a href="{{ app_url }}/anomalies/{{ anomaly_id }}" class="button" style="background-color: #e74c3c;">
+        Investigar Anomalia
+    </a>
+</p>
+
+<hr style="margin: 30px 0; border: none; border-top: 1px solid #ecf0f1;">
+
+<p style="background-color: #f8f9fa; padding: 15px; border-radius: 5px;">
+    <strong>Nota:</strong> Este alerta foi gerado automaticamente pelo sistema de detecção de anomalias do {{ app_name }}. 
+    É importante revisar e validar estas informações antes de tomar qualquer ação.
+</p>
+
+<p style="color: #7f8c8d; font-size: 14px;">
+    Para ajustar seus alertas de anomalias, acesse as configurações de notificação em sua conta.
+</p>
+{% endblock %}
