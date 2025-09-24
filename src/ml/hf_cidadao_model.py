@@ -14,7 +14,7 @@ from transformers import (
 )
 from transformers.modeling_outputs import SequenceClassifierOutput, BaseModelOutput
 from typing import Optional, Dict, List, Union, Tuple
-import json
+from src.core import json_utils
 import logging
 from pathlib import Path
 

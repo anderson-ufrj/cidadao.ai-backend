@@ -14,8 +14,7 @@ from uuid import uuid4
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, Response
 from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel, Field as PydanticField, validator
-import json
-
+from src.core import json_utils
 from src.core import get_logger
 from src.agents import ReporterAgent, AgentContext
 from src.api.middleware.authentication import get_current_user
@@ -340,7 +339,7 @@ async def download_report(
         }
         
         return Response(
-            content=json.dumps(json_content, indent=2, ensure_ascii=False),
+            content=json_utils.dumps(json_content, indent=2, ensure_ascii=False),
             media_type="application/json",
             headers={
                 "Content-Disposition": f"attachment; filename={title}.json"

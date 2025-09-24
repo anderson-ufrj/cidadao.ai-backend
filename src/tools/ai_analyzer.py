@@ -6,7 +6,7 @@ Date: 2025-01-15
 """
 
 import asyncio
-import json
+from src.core import json_utils
 import re
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional, Tuple
@@ -207,7 +207,7 @@ AMOSTRA DOS DADOS:
         
         # Add sample data
         for i, item in enumerate(data.get("data", [])[:3], 1):
-            data_summary += f"\\n{i}. {json.dumps(item, indent=2, ensure_ascii=False)[:500]}...\\n"
+            data_summary += f"\\n{i}. {json_utils.dumps(item, indent=2, ensure_ascii=False)[:500]}...\\n"
         
         if analysis_type == "comprehensive":
             prompt = f"""Você é o Cidadão.AI, especialista em análise de transparência pública brasileira.

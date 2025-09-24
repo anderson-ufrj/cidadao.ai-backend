@@ -5,7 +5,7 @@ Sistema de avaliação inspirado no padrão Kimi K2, mas otimizado para
 análise de transparência governamental brasileira.
 """
 
-import json
+from src.core import json_utils
 import numpy as np
 import pandas as pd
 from typing import Dict, List, Optional, Tuple, Any
@@ -133,7 +133,7 @@ class TransparencyBenchmarkSuite:
         
         # Carregar dados
         with open(self.config.test_data_path, 'r', encoding='utf-8') as f:
-            all_test_data = json.load(f)
+            all_test_data = json_utils.load(f)
         
         # Organizar por tarefa
         for task in self.config.tasks:
@@ -158,7 +158,7 @@ class TransparencyBenchmarkSuite:
         output_dir.mkdir(parents=True, exist_ok=True)
         
         with open(self.config.test_data_path, 'w', encoding='utf-8') as f:
-            json.dump(synthetic_data, f, ensure_ascii=False, indent=2)
+            json_utils.dump(synthetic_data, f, ensure_ascii=False, indent=2)
         
         logger.info(f"💾 Dados sintéticos salvos em {self.config.test_data_path}")
 
@@ -333,7 +333,7 @@ class TransparencyBenchmarkSuite:
         
         if baseline_path.exists():
             with open(baseline_path, 'r') as f:
-                self.baseline_results = json.load(f)
+                self.baseline_results = json_utils.load(f)
             logger.info("📋 Baselines carregados para comparação")
         else:
             # Definir baselines teóricos
@@ -718,7 +718,7 @@ class TransparencyBenchmarkSuite:
         results_dict = asdict(results)
         
         with open(results_path, 'w', encoding='utf-8') as f:
-            json.dump(results_dict, f, ensure_ascii=False, indent=2)
+            json_utils.dump(results_dict, f, ensure_ascii=False, indent=2)
         
         logger.info(f"💾 Resultados salvos em {results_path}")
 

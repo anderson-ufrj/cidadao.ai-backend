@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
-import json
+from src.core import json_utils
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass

@@ -6,7 +6,7 @@ like New Relic, Datadog, Dynatrace, and Elastic APM.
 """
 
 import asyncio
-import json
+from src.core import json_utils
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
@@ -182,7 +182,7 @@ class DatadogIntegration:
         for event in events:
             dd_event = {
                 "title": f"Cidadão.AI {event.event_type}",
-                "text": json.dumps(event.data, indent=2),
+                "text": json_utils.dumps(event.data, indent=2),
                 "date_happened": int(event.timestamp.timestamp()),
                 "priority": "normal",
                 "tags": [f"{k}:{v}" for k, v in event.tags.items()],
@@ -320,7 +320,7 @@ class ElasticAPMIntegration:
                 headers["Authorization"] = f"Bearer {self.secret_token}"
             
             # Convert to NDJSON format
-            ndjson_data = json.dumps(data) + '\n'
+            ndjson_data = json_utils.dumps(data) + '\n'
             
             async with httpx.AsyncClient() as client:
                 response = await client.post(

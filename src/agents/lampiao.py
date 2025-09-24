@@ -13,8 +13,7 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass
 from enum import Enum
-import json
-
+from src.core import json_utils
 import numpy as np
 import pandas as pd
 from pydantic import BaseModel, Field as PydanticField

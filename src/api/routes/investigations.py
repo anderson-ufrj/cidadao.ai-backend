@@ -14,8 +14,7 @@ from uuid import uuid4
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field as PydanticField, validator
-import json
-
+from src.core import json_utils
 from src.core import get_logger
 from src.agents import InvestigatorAgent, AgentContext
 from src.api.middleware.authentication import get_current_user
@@ -198,7 +197,7 @@ async def stream_investigation_results(
                     "anomalies_detected": current_investigation["anomalies_detected"],
                     "timestamp": datetime.utcnow().isoformat()
                 }
-                yield f"data: {json.dumps(update_data)}\n\n"
+                yield f"data: {json_utils.dumps(update_data)}\n\n"
                 last_update = current_investigation["progress"]
             
             # Send anomaly results as they're found
@@ -210,7 +209,7 @@ async def stream_investigation_results(
                     "result": result,
                     "timestamp": datetime.utcnow().isoformat()
                 }
-                yield f"data: {json.dumps(result_data)}\n\n"
+                yield f"data: {json_utils.dumps(result_data)}\n\n"
             
             # Mark results as sent
             current_investigation["sent_results"] = current_investigation["results"].copy()
@@ -224,7 +223,7 @@ async def stream_investigation_results(
                     "total_anomalies": len(current_investigation["results"]),
                     "timestamp": datetime.utcnow().isoformat()
                 }
-                yield f"data: {json.dumps(completion_data)}\n\n"
+                yield f"data: {json_utils.dumps(completion_data)}\n\n"
                 break
             
             await asyncio.sleep(1)  # Poll every second

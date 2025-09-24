@@ -13,8 +13,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
 from pydantic import BaseModel, Field as PydanticField, validator
-import json
-
+from src.core import json_utils
 from src.core import get_logger
 from src.agents import AnalystAgent, AgentContext
 from src.api.middleware.authentication import get_current_user
