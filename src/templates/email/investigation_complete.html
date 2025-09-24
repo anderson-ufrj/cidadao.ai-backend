@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Investigação Concluída</h2>
+
+<p>Olá,</p>
+
+<p>Sua investigação foi concluída com sucesso. Aqui está um resumo dos resultados:</p>
+
+<div style="background-color: #ecf0f1; padding: 20px; border-radius: 5px; margin: 20px 0;">
+    <h3>Resumo da Investigação</h3>
+    <ul>
+        <li><strong>ID da Investigação:</strong> {{ investigation_id }}</li>
+        <li><strong>Data de Início:</strong> {{ start_date }}</li>
+        <li><strong>Data de Conclusão:</strong> {{ end_date }}</li>
+        <li><strong>Duração:</strong> {{ duration }}</li>
+        <li><strong>Status:</strong> <span style="color: #27ae60;">Concluída</span></li>
+    </ul>
+</div>
+
+{% if summary %}
+<div style="margin: 20px 0;">
+    <h3>Resumo Executivo</h3>
+    <p>{{ summary }}</p>
+</div>
+{% endif %}
+
+{% if anomalies_count %}
+<div class="alert alert-warning">
+    <strong>Anomalias Detectadas:</strong> {{ anomalies_count }}
+    {% if critical_anomalies %}
+    <br><strong>Anomalias Críticas:</strong> {{ critical_anomalies }}
+    {% endif %}
+</div>
+{% endif %}
+
+{% if findings %}
+<div style="margin: 20px 0;">
+    <h3>Principais Descobertas</h3>
+    <ul>
+    {% for finding in findings %}
+        <li>{{ finding }}</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if recommendations %}
+<div style="margin: 20px 0;">
+    <h3>Recomendações</h3>
+    <ol>
+    {% for recommendation in recommendations %}
+        <li>{{ recommendation }}</li>
+    {% endfor %}
+    </ol>
+</div>
+{% endif %}
+
+<p style="text-align: center; margin: 30px 0;">
+    <a href="{{ app_url }}/investigations/{{ investigation_id }}" class="button">Ver Relatório Completo</a>
+</p>
+
+{% if confidence_score %}
+<p style="text-align: center; color: #7f8c8d;">
+    <small>Confiança na Análise: {{ confidence_score }}%</small>
+</p>
+{% endif %}
+
+<hr style="margin: 30px 0; border: none; border-top: 1px solid #ecf0f1;">
+
+<p style="color: #7f8c8d; font-size: 14px;">
+    Esta investigação foi realizada pelos agentes de IA do {{ app_name }}. 
+    Para mais informações sobre nossa metodologia, visite nossa documentação.
+</p>
+{% endblock %}

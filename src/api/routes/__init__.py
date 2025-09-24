@@ -6,6 +6,6 @@ Date: 2025-01-24
 License: Proprietary - All rights reserved
 """
 
-from . import health, investigations, analysis, reports, chat, websocket_chat, cqrs, resilience, observability, monitoring, chaos
+from . import health, investigations, analysis, reports, chat, websocket_chat, cqrs, resilience, observability, monitoring, chaos, notifications
 
-__all__ = ["health", "investigations", "analysis", "reports", "chat", "websocket_chat", "cqrs", "resilience", "observability", "monitoring", "chaos"]
+__all__ = ["health", "investigations", "analysis", "reports", "chat", "websocket_chat", "cqrs", "resilience", "observability", "monitoring", "chaos", "notifications"]
