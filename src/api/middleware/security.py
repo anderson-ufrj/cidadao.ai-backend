@@ -23,6 +23,7 @@ from starlette.types import ASGIApp
 
 from src.core import get_logger, settings
 from src.core.audit import audit_logger, AuditEventType, AuditSeverity, AuditContext
+from src.services.rate_limit_service import get_rate_limiter
 
 
 class SecurityConfig:
