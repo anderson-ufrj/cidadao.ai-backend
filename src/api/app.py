@@ -26,6 +26,7 @@ from src.api.middleware.authentication import AuthenticationMiddleware
 from src.api.middleware.logging_middleware import LoggingMiddleware
 from src.api.middleware.security import SecurityMiddleware
 from src.api.middleware.compression import CompressionMiddleware
+from src.api.middleware.metrics_middleware import MetricsMiddleware, setup_http_metrics
 from src.infrastructure.observability import (
     CorrelationMiddleware,
     tracing_manager,
@@ -62,6 +63,9 @@ async def lifespan(app: FastAPI):
         environment=settings.app_env,
         build_info={"deployment": "hf-fastapi"}
     )
+    
+    # Setup HTTP metrics
+    setup_http_metrics()
     
     # Initialize global resources here
     # - Database connections
@@ -167,6 +171,9 @@ app.add_middleware(
 
 # Add observability middleware
 app.add_middleware(CorrelationMiddleware, generate_request_id=True)
+
+# Add metrics middleware for automatic HTTP metrics
+app.add_middleware(MetricsMiddleware)
 
 # Add compression middleware
 from src.api.middleware.compression import add_compression_middleware
