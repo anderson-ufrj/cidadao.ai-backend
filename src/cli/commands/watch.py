@@ -1,8 +1,27 @@
 """Watch command for monitoring anomalies."""
 
 import click
-import time
+import asyncio
 from typing import Optional
+
+
+async def async_watch(
+    threshold: float,
+    interval: int,
+    org: Optional[str],
+    notify: bool,
+    log_file: Optional[str]
+):
+    """Async monitoring loop."""
+    from datetime import datetime
+    
+    try:
+        while True:
+            click.echo(f"🔍 Verificando anomalias... {datetime.now().strftime('%H:%M:%S')}")
+            click.echo("⚠️  Funcionalidade em desenvolvimento")
+            await asyncio.sleep(interval)
+    except asyncio.CancelledError:
+        pass
 
 
 @click.command()
@@ -38,11 +57,7 @@ def watch_command(
     click.echo("🚀 Monitor ativo. Pressione Ctrl+C para parar.")
     
     try:
-        # TODO: Implement actual monitoring logic
-        while True:
-            click.echo(f"🔍 Verificando anomalias... {time.strftime('%H:%M:%S')}")
-            click.echo("⚠️  Funcionalidade em desenvolvimento")
-            time.sleep(interval)
+        asyncio.run(async_watch(threshold, interval, org, notify, log_file))
     except KeyboardInterrupt:
         click.echo("\n⏹️  Monitor parado pelo usuário")
 
