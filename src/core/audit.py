@@ -162,7 +162,9 @@ class AuditEvent(BaseModel):
         """Calculate checksum for data integrity."""
         # Create a deterministic string representation
         data_dict = self.model_dump(exclude={"checksum"})
-        data_str = json_utils.dumps(data_dict, sort_keys=True, default=str)
+        # Sort dict for deterministic ordering
+        import json
+        data_str = json.dumps(data_dict, sort_keys=True, default=str)
         return hashlib.sha256(data_str.encode()).hexdigest()
     
     def validate_integrity(self) -> bool:
