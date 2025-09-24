@@ -15,8 +15,8 @@ from enum import Enum
 
 from pydantic import BaseModel, Field as PydanticField
 
-from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage
-from src.core import get_logger
+from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentResponse
+from src.core import get_logger, AgentStatus
 from src.core.exceptions import AgentExecutionError
 
 
@@ -83,7 +83,6 @@ class ReporterAgent(BaseAgent):
     
     def __init__(
         self,
-        agent_id: str = "reporter",
         default_language: str = "pt",
         max_report_length: int = 10000,  # words
     ):
@@ -91,14 +90,27 @@ class ReporterAgent(BaseAgent):
         Initialize the Reporter Agent.
         
         Args:
-            agent_id: Unique identifier for this agent
             default_language: Default language for reports
             max_report_length: Maximum report length in words
         """
-        super().__init__(agent_id)
+        super().__init__(
+            name="Tiradentes",
+            description="Tiradentes - Agent specialized in generating natural language reports",
+            capabilities=[
+                "investigation_report_generation",
+                "pattern_analysis_reporting",
+                "executive_summary_creation",
+                "multi_format_rendering",
+                "audience_adaptation",
+                "data_visualization",
+                "recommendation_generation",
+                "transparency_reporting"
+            ],
+            max_retries=3,
+            timeout=60
+        )
         self.default_language = default_language
         self.max_length = max_report_length
-        self.logger = get_logger(__name__)
         
         # Report generators registry
         self.report_generators = {
@@ -120,48 +132,58 @@ class ReporterAgent(BaseAgent):
         
         self.logger.info(
             "tiradentes_initialized",
-            agent_id=agent_id,
+            agent_name=self.name,
             default_language=default_language,
             max_length=max_report_length,
         )
     
-    async def execute(
+    async def initialize(self) -> None:
+        """Initialize agent resources."""
+        self.logger.info(f"{self.name} agent initialized")
+    
+    async def shutdown(self) -> None:
+        """Cleanup agent resources."""
+        self.logger.info(f"{self.name} agent shutting down")
+    
+    async def process(
         self,
         message: AgentMessage,
         context: AgentContext
-    ) -> AgentMessage:
+    ) -> AgentResponse:
         """
-        Execute report generation based on the incoming message.
+        Process report generation request and return formatted report.
         
         Args:
             message: Report request message
             context: Agent execution context
             
         Returns:
-            Generated report message
+            AgentResponse with generated report
         """
         try:
             self.logger.info(
                 "report_generation_started",
                 investigation_id=context.investigation_id,
-                agent_id=self.agent_id,
-                message_type=message.message_type,
+                agent_name=self.name,
+                action=message.action,
             )
             
             # Parse report request
-            if message.message_type == "report_request":
-                request = ReportRequest(**message.content)
+            if message.action == "generate_report":
+                request = ReportRequest(**message.payload)
             else:
                 raise AgentExecutionError(
-                    f"Unsupported message type: {message.message_type}",
-                    agent_id=self.agent_id
+                    f"Unsupported action: {message.action}",
+                    agent_id=self.name
                 )
             
             # Validate input data
             if not request.investigation_results and not request.analysis_results:
-                return AgentMessage(
-                    message_type="report_error",
-                    content={
+                return AgentResponse(
+                    agent_name=self.name,
+                    status=AgentStatus.ERROR,
+                    error="No data provided for report generation",
+                    result={
                         "status": "error",
                         "error": "No data provided for report generation",
                         "investigation_id": context.investigation_id,
@@ -184,7 +206,7 @@ class ReporterAgent(BaseAgent):
                 "metadata": {
                     "investigation_id": context.investigation_id,
                     "timestamp": datetime.utcnow().isoformat(),
-                    "agent_id": self.agent_id,
+                    "agent_name": self.name,
                     "target_audience": request.target_audience,
                     "language": request.language,
                     "sections_count": len(report_sections),
@@ -200,9 +222,10 @@ class ReporterAgent(BaseAgent):
                 sections_count=len(report_sections),
             )
             
-            return AgentMessage(
-                message_type="report_result",
-                content=result,
+            return AgentResponse(
+                agent_name=self.name,
+                status=AgentStatus.COMPLETED,
+                result=result,
                 metadata={"investigation_id": context.investigation_id}
             )
             
@@ -211,12 +234,14 @@ class ReporterAgent(BaseAgent):
                 "report_generation_failed",
                 investigation_id=context.investigation_id,
                 error=str(e),
-                agent_id=self.agent_id,
+                agent_name=self.name,
             )
             
-            return AgentMessage(
-                message_type="report_error",
-                content={
+            return AgentResponse(
+                agent_name=self.name,
+                status=AgentStatus.ERROR,
+                error=str(e),
+                result={
                     "status": "error",
                     "error": str(e),
                     "investigation_id": context.investigation_id,
@@ -245,7 +270,7 @@ class ReporterAgent(BaseAgent):
         else:
             raise AgentExecutionError(
                 f"Unsupported report type: {request.report_type}",
-                agent_id=self.agent_id
+                agent_id=self.name
             )
     
     async def _generate_investigation_report(
