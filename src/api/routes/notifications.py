@@ -10,8 +10,16 @@ from src.services.notification_service import (
     NotificationLevel,
     Notification
 )
-from src.services.webhook_service import webhook_service, WebhookConfig
-from src.models.notification_models import NotificationPreference
+# Optional imports
+try:
+    from src.services.webhook_service import webhook_service, WebhookConfig
+    from src.models.notification_models import NotificationPreference
+    WEBHOOK_SUPPORT = True
+except (ImportError, AttributeError):
+    webhook_service = None
+    WebhookConfig = None
+    NotificationPreference = None
+    WEBHOOK_SUPPORT = False
 from src.api.dependencies import get_current_user
 from src.core.logging import get_logger
 
@@ -228,6 +236,9 @@ async def get_webhooks(
     current_user: dict = Depends(get_current_user)
 ) -> List[Dict[str, Any]]:
     """Get user's webhook configurations."""
+    if not WEBHOOK_SUPPORT or not webhook_service:
+        return []
+    
     webhooks = webhook_service.list_webhooks()
     
     # Filter by user (in production, this would be from database)
