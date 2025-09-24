@@ -27,6 +27,7 @@ email-validator>=2.0.0
 orjson>=3.9.10
 brotli>=1.1.0
 python-json-logger>=2.0.7
+aiofiles>=23.2.1
 
 # Simple GraphQL support
 graphql-core>=3.2.0
