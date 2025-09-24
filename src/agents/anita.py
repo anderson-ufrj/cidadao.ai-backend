@@ -16,8 +16,8 @@ from collections import defaultdict, Counter
 import numpy as np
 from pydantic import BaseModel, Field as PydanticField
 
-from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage
-from src.core import get_logger
+from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentResponse
+from src.core import get_logger, AgentStatus
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
 from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFilter
 from src.ml.spectral_analyzer import SpectralAnalyzer, SpectralFeatures, PeriodicPattern
@@ -83,7 +83,6 @@ class AnalystAgent(BaseAgent):
     
     def __init__(
         self,
-        agent_id: str = "analyst",
         min_correlation_threshold: float = 0.3,
         significance_threshold: float = 0.05,
         trend_detection_window: int = 6,  # months
@@ -92,16 +91,29 @@ class AnalystAgent(BaseAgent):
         Initialize the Analyst Agent.
         
         Args:
-            agent_id: Unique identifier for this agent
             min_correlation_threshold: Minimum correlation coefficient to report
             significance_threshold: P-value threshold for statistical significance
             trend_detection_window: Number of periods for trend analysis
         """
-        super().__init__(agent_id)
+        super().__init__(
+            name="Anita",
+            description="Anita Garibaldi - Agent specialized in pattern analysis and correlation detection",
+            capabilities=[
+                "spending_trend_analysis",
+                "organizational_comparison",
+                "vendor_behavior_analysis",
+                "seasonal_pattern_detection",
+                "value_distribution_analysis",
+                "correlation_analysis",
+                "efficiency_metrics",
+                "predictive_modeling"
+            ],
+            max_retries=3,
+            timeout=60
+        )
         self.correlation_threshold = min_correlation_threshold
         self.significance_threshold = significance_threshold
         self.trend_window = trend_detection_window
-        self.logger = get_logger(__name__)
         
         # Initialize spectral analyzer for frequency-domain analysis
         self.spectral_analyzer = SpectralAnalyzer()
@@ -121,50 +133,59 @@ class AnalystAgent(BaseAgent):
         
         self.logger.info(
             "analyst_agent_initialized",
-            agent_id=agent_id,
+            agent_name=self.name,
             correlation_threshold=min_correlation_threshold,
             significance_threshold=significance_threshold,
         )
     
-    async def execute(
+    async def initialize(self) -> None:
+        """Initialize agent resources."""
+        self.logger.info(f"{self.name} agent initialized")
+    
+    async def shutdown(self) -> None:
+        """Cleanup agent resources."""
+        self.logger.info(f"{self.name} agent shutting down")
+    
+    async def process(
         self,
         message: AgentMessage,
         context: AgentContext
-    ) -> AgentMessage:
+    ) -> AgentResponse:
         """
-        Execute pattern analysis based on the incoming message.
+        Process pattern analysis request and return insights.
         
         Args:
             message: Analysis request message
             context: Agent execution context
             
         Returns:
-            Analysis results with patterns and correlations
+            AgentResponse with patterns and correlations
         """
         try:
             self.logger.info(
                 "analysis_started",
                 investigation_id=context.investigation_id,
-                agent_id=self.agent_id,
-                message_type=message.message_type,
+                agent_name=self.name,
+                action=message.action,
             )
             
             # Parse analysis request
-            if message.message_type == "analysis_request":
-                request = AnalysisRequest(**message.content)
+            if message.action == "analyze":
+                request = AnalysisRequest(**message.payload)
             else:
                 raise AgentExecutionError(
-                    f"Unsupported message type: {message.message_type}",
-                    agent_id=self.agent_id
+                    f"Unsupported action: {message.action}",
+                    agent_id=self.name
                 )
             
             # Fetch data for analysis
             analysis_data = await self._fetch_analysis_data(request, context)
             
             if not analysis_data:
-                return AgentMessage(
-                    message_type="analysis_result",
-                    content={
+                return AgentResponse(
+                    agent_name=self.name,
+                    status=AgentStatus.COMPLETED,
+                    result={
                         "status": "no_data",
                         "message": "No data found for the specified criteria",
                         "patterns": [],
@@ -194,7 +215,7 @@ class AnalystAgent(BaseAgent):
                 "metadata": {
                     "investigation_id": context.investigation_id,
                     "timestamp": datetime.utcnow().isoformat(),
-                    "agent_id": self.agent_id,
+                    "agent_name": self.name,
                     "records_analyzed": len(analysis_data),
                     "patterns_found": len(patterns),
                     "correlations_found": len(correlations),
@@ -209,9 +230,10 @@ class AnalystAgent(BaseAgent):
                 correlations_found=len(correlations),
             )
             
-            return AgentMessage(
-                message_type="analysis_result",
-                content=result,
+            return AgentResponse(
+                agent_name=self.name,
+                status=AgentStatus.COMPLETED,
+                result=result,
                 metadata={"investigation_id": context.investigation_id}
             )
             
@@ -220,12 +242,14 @@ class AnalystAgent(BaseAgent):
                 "analysis_failed",
                 investigation_id=context.investigation_id,
                 error=str(e),
-                agent_id=self.agent_id,
+                agent_name=self.name,
             )
             
-            return AgentMessage(
-                message_type="analysis_error",
-                content={
+            return AgentResponse(
+                agent_name=self.name,
+                status=AgentStatus.ERROR,
+                error=str(e),
+                result={
                     "status": "error",
                     "error": str(e),
                     "investigation_id": context.investigation_id,
