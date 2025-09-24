@@ -3,7 +3,7 @@ Advanced caching system with Redis, memory cache, and intelligent cache strategi
 Provides multi-level caching, cache warming, and performance optimization.
 """
 
-import json
+from src.core import json_utils
 import hashlib
 import asyncio
 import time
@@ -194,7 +194,7 @@ class RedisCache:
                 return pickle.loads(data)
             except:
                 # Fallback to JSON
-                return json.loads(data.decode('utf-8'))
+                return json_utils.loads(data.decode('utf-8'))
                 
         except Exception as e:
             logger.error(f"Redis get error for key {key}: {e}")
@@ -210,7 +210,7 @@ class RedisCache:
             if serialize_method == "pickle":
                 data = pickle.dumps(value)
             else:
-                data = json.dumps(value, default=str).encode('utf-8')
+                data = json_utils.dumps(value).encode('utf-8')
             
             # Compress if requested
             if compress and len(data) > 1024:  # Only compress larger items
@@ -375,7 +375,7 @@ def cache_key_generator(*args, **kwargs) -> str:
         "args": args,
         "kwargs": sorted(kwargs.items())
     }
-    key_string = json.dumps(key_data, sort_keys=True, default=str)
+    key_string = json_utils.dumps(key_data)
     return hashlib.md5(key_string.encode()).hexdigest()
 
 

@@ -16,8 +16,7 @@ from transformers import (
     AutoModel, AutoTokenizer, AutoConfig,
     pipeline, Pipeline
 )
-import json
-
+from src.core import json_utils
 # Adicionar src ao path
 sys.path.append(str(Path(__file__).parent.parent))
 

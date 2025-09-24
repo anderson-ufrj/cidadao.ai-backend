@@ -6,7 +6,7 @@ Date: 2025-01-15
 """
 
 import asyncio
-import json
+from src.core import json_utils
 from datetime import datetime, timedelta
 from typing import Dict, Any, Optional
 import logging
@@ -373,6 +373,6 @@ if __name__ == "__main__":
     # Run tests when executed directly
     async def main():
         results = await run_api_tests()
-        print(json.dumps(results, indent=2))
+        print(json_utils.dumps(results, indent=2))
     
     asyncio.run(main())

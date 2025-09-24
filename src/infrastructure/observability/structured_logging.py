@@ -5,7 +5,7 @@ This module provides enhanced logging capabilities with automatic
 trace context injection and structured log formatting.
 """
 
-import json
+from src.core import json_utils
 import logging
 import time
 from typing import Dict, Any, Optional, Union, List
@@ -158,7 +158,7 @@ class StructuredLogRecord:
     
     def to_json(self) -> str:
         """Convert to JSON string."""
-        return json.dumps(self.to_dict(), ensure_ascii=False)
+        return json_utils.dumps(self.to_dict(), ensure_ascii=False)
 
 
 class TraceContextFormatter(jsonlogger.JsonFormatter):

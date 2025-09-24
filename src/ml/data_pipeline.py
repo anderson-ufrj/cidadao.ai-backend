@@ -9,7 +9,7 @@ import asyncio
 import aiohttp
 import pandas as pd
 import numpy as np
-import json
+from src.core import json_utils
 import re
 from typing import Dict, List, Optional, Tuple, Any
 from pathlib import Path
@@ -702,19 +702,19 @@ class TransparencyDataProcessor:
             output_path = output_dir / f"{split_name}.json"
             
             with open(output_path, 'w', encoding='utf-8') as f:
-                json.dump(split_data, f, ensure_ascii=False, indent=2)
+                json_utils.dump(split_data, f, ensure_ascii=False, indent=2)
             
             logger.info(f"💾 {split_name} salvo em {output_path}")
         
         # Salvar estatísticas
         stats_path = output_dir / "processing_stats.json"
         with open(stats_path, 'w', encoding='utf-8') as f:
-            json.dump(self.stats, f, indent=2)
+            json_utils.dump(self.stats, f, indent=2)
         
         # Salvar configuração
         config_path = output_dir / "pipeline_config.json"
         with open(config_path, 'w', encoding='utf-8') as f:
-            json.dump(self.config.__dict__, f, indent=2)
+            json_utils.dump(self.config.__dict__, f, indent=2)
         
         logger.info(f"📈 Estatísticas e configuração salvas em {output_dir}")
 

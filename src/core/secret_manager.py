@@ -10,8 +10,7 @@ from dataclasses import dataclass
 from enum import Enum
 import structlog
 from pydantic import BaseModel, SecretStr, Field
-import json
-
+from src.core import json_utils
 from .vault_client import VaultClient, VaultConfig, VaultStatus, get_vault_client
 
 logger = structlog.get_logger(__name__)

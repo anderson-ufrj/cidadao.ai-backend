@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 from transformers import AutoModel, AutoTokenizer, AutoConfig
 from transformers.modeling_outputs import BaseModelOutput
-import json
+from src.core import json_utils
 import logging
 from dataclasses import dataclass
 from pathlib import Path
@@ -558,7 +558,7 @@ class CidadaoAIForTransparency(nn.Module):
         
         # Salvar configuração
         with open(save_dir / "config.json", "w") as f:
-            json.dump(self.config.__dict__, f, indent=2)
+            json_utils.dump(self.config.__dict__, f, indent=2)
         
         logger.info(f"Modelo salvo em {save_path}")
 
@@ -569,7 +569,7 @@ class CidadaoAIForTransparency(nn.Module):
         
         # Carregar configuração
         with open(load_dir / "config.json", "r") as f:
-            config_dict = json.load(f)
+            config_dict = json_utils.load(f)
         
         config = CidadaoModelConfig(**config_dict)
         model = cls(config)

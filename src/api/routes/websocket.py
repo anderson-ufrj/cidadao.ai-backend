@@ -2,7 +2,7 @@
 WebSocket routes for real-time communication with message batching.
 """
 
-import json
+from src.core import json_utils
 import asyncio
 import uuid
 from typing import Optional
@@ -71,7 +71,7 @@ async def websocket_endpoint(
             data = await websocket.receive_text()
             
             try:
-                message = json.loads(data)
+                message = json_utils.loads(data)
                 
                 # Handle ping for keepalive
                 if message.get("type") == "ping":
@@ -87,7 +87,7 @@ async def websocket_endpoint(
                     # Process with legacy handler
                     await websocket_handler.handle_message(websocket, message)
                 
-            except json.JSONDecodeError:
+            except json_utils.JSONDecodeError:
                 await websocket_manager.send_message(
                     connection_id,
                     {
@@ -165,10 +165,10 @@ async def investigation_websocket(
             data = await websocket.receive_text()
             
             try:
-                message = json.loads(data)
+                message = json_utils.loads(data)
                 await websocket_handler.handle_message(websocket, message)
                 
-            except json.JSONDecodeError:
+            except json_utils.JSONDecodeError:
                 error_msg = WebSocketMessage(
                     type="error",
                     data={"message": "Invalid JSON format"}
@@ -239,10 +239,10 @@ async def analysis_websocket(
             data = await websocket.receive_text()
             
             try:
-                message = json.loads(data)
+                message = json_utils.loads(data)
                 await websocket_handler.handle_message(websocket, message)
                 
-            except json.JSONDecodeError:
+            except json_utils.JSONDecodeError:
                 error_msg = WebSocketMessage(
                     type="error", 
                     data={"message": "Invalid JSON format"}

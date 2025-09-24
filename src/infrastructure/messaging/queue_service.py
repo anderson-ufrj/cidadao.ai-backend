@@ -10,7 +10,7 @@ from typing import Dict, Any, Optional, Callable, List, Union
 from datetime import datetime, timedelta
 import uuid
 from enum import Enum
-import json
+from src.core import json_utils
 from dataclasses import dataclass, asdict
 import time
 
