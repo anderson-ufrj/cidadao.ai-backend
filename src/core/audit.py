@@ -9,6 +9,7 @@ License: Proprietary - All rights reserved
 from src.core import json_utils
 import hashlib
 import asyncio
+import aiofiles
 from datetime import datetime, timezone
 from enum import Enum
 from pathlib import Path
@@ -286,9 +287,9 @@ class AuditLogger:
     async def _write_to_file(self, event: AuditEvent):
         """Write audit event to file."""
         try:
-            with open(self.audit_file, "a", encoding="utf-8") as f:
+            async with aiofiles.open(self.audit_file, "a", encoding="utf-8") as f:
                 event_json = event.model_dump_json()
-                f.write(f"{event_json}\n")
+                await f.write(f"{event_json}\n")
         except Exception as e:
             self.logger.error(
                 "audit_file_write_error",
