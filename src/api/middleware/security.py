@@ -63,22 +63,76 @@ class SecurityConfig:
     
     # Suspicious patterns
     SUSPICIOUS_PATTERNS = [
-        r"<script[^>]*>.*?</script>",  # XSS
-        r"javascript:",  # XSS
+        # XSS patterns
+        r"<script[^>]*>.*?</script>",  # XSS script tags
+        r"javascript:",  # XSS javascript protocol
         r"on\w+\s*=",  # Event handlers
-        r"union\s+select",  # SQL injection
-        r"drop\s+table",  # SQL injection
-        r"insert\s+into",  # SQL injection
-        r"delete\s+from",  # SQL injection
-        r"update\s+\w+\s+set",  # SQL injection
-        r"exec\s*\(",  # Command injection
-        r"system\s*\(",  # Command injection
-        r"eval\s*\(",  # Code injection
-        r"\.\./",  # Path traversal (with dot prefix)
-        r"\.\.\\",  # Path traversal (Windows)
-        r"file://",  # Local file inclusion
-        r"ftp://",  # FTP access
+        r"<iframe[^>]*>",  # Iframe injection
+        r"<object[^>]*>",  # Object injection
+        r"<embed[^>]*>",  # Embed injection
+        r"vbscript:",  # VBScript protocol
+        r"data:.*base64",  # Data URI with base64
+        
+        # SQL injection patterns
+        r"union\s+select",  # SQL union select
+        r"union\s+all\s+select",  # SQL union all select
+        r"drop\s+table",  # SQL drop table
+        r"drop\s+database",  # SQL drop database
+        r"insert\s+into",  # SQL insert
+        r"delete\s+from",  # SQL delete
+        r"update\s+\w+\s+set",  # SQL update
+        r"select\s+.*\s+from",  # SQL select
+        r"or\s+1\s*=\s*1",  # SQL boolean injection
+        r"or\s+'1'\s*=\s*'1'",  # SQL boolean injection quoted
+        r";\s*--",  # SQL comment injection
+        r"xp_cmdshell",  # SQL Server command execution
+        r"exec\s+sp_",  # SQL Server stored procedures
+        
+        # Command injection patterns
+        r"exec\s*\(",  # Command execution
+        r"system\s*\(",  # System command
+        r"eval\s*\(",  # Code evaluation
+        r"`[^`]+`",  # Backtick command substitution
+        r"\$\([^)]+\)",  # Command substitution
+        r"&&",  # Command chaining
+        r"\|\|",  # Command chaining
+        r";\s*\w+",  # Command separator
+        r"\|",  # Pipe character
+        
+        # Path traversal patterns
+        r"\.\./",  # Unix path traversal
+        r"\.\.\\",  # Windows path traversal
+        r"/etc/passwd",  # Common target file
+        r"c:\\windows",  # Windows system path
+        r"/proc/self",  # Linux proc access
+        
+        # File inclusion patterns
+        r"file://",  # Local file protocol
+        r"ftp://",  # FTP protocol
+        r"gopher://",  # Gopher protocol
+        r"dict://",  # Dict protocol
+        r"php://",  # PHP wrappers
+        r"data://",  # Data protocol
+        
+        # XXE patterns
+        r"<!ENTITY",  # XML entity
+        r"SYSTEM\s+[\"']",  # System entity
+        
+        # LDAP injection
+        r"\(\w+\s*=\s*\*\)",  # LDAP wildcard
+        r"\(\w+\s*=\s*\)",  # LDAP empty
     ]
+    
+    # Endpoints that are exempt from suspicious pattern checks
+    PATTERN_CHECK_EXEMPT_PATHS = {
+        "/docs",
+        "/redoc",
+        "/openapi.json",
+        "/api/v1/debug",
+        "/api/v1/agents/status",
+        "/health",
+        "/metrics"
+    }
 
 
 class IPBlockList:
@@ -262,11 +316,12 @@ class RequestValidator:
         if request.url.query:
             path_and_query += "?" + request.url.query
             
-        # Check for suspicious patterns in path and query only
-        # Temporarily disabled for debugging - TODO: Re-enable with better patterns
-        # for pattern in self.suspicious_patterns:
-        #     if pattern.search(path_and_query):
-        #         return False, "Suspicious pattern in URL"
+        # Check if path is exempt from pattern checking
+        if request.url.path not in SecurityConfig.PATTERN_CHECK_EXEMPT_PATHS:
+            # Check for suspicious patterns in path and query only
+            for pattern in self.suspicious_patterns:
+                if pattern.search(path_and_query):
+                    return False, "Suspicious pattern in URL"
         
         # Check for double encoding
         if "%25" in path_and_query:
