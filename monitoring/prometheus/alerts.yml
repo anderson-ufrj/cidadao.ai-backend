@@ -1,0 +1,262 @@
+groups:
+  - name: cidadao_ai_critical_alerts
+    interval: 30s
+    rules:
+      # API Availability Alerts
+      - alert: APIHighErrorRate
+        expr: |
+          (
+            sum(rate(cidadao_ai_http_errors_total[5m]))
+            /
+            sum(rate(cidadao_ai_http_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "High API error rate detected"
+          description: "API error rate is {{ $value | humanizePercentage }} over the last 5 minutes, exceeding the 5% threshold"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/api-high-error-rate"
+
+      - alert: APIDown
+        expr: up{job="cidadao-ai-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+          pagerduty: true
+        annotations:
+          summary: "Cidadão.AI API is down"
+          description: "The API service has been down for more than 1 minute"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/api-down"
+
+      # Latency Alerts
+      - alert: APIHighLatency
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(cidadao_ai_request_duration_seconds_bucket[5m])) by (le)
+          ) > 2.0
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "High API latency detected"
+          description: "P95 latency is {{ $value }}s, exceeding the 2s threshold"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/api-high-latency"
+
+      - alert: APICriticalLatency
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(cidadao_ai_request_duration_seconds_bucket[5m])) by (le)
+          ) > 5.0
+        for: 3m
+        labels:
+          severity: critical
+          team: backend
+          pagerduty: true
+        annotations:
+          summary: "Critical API latency detected"
+          description: "P95 latency is {{ $value }}s, exceeding the 5s critical threshold"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/api-critical-latency"
+
+      # Agent Performance Alerts
+      - alert: AgentHighFailureRate
+        expr: |
+          (
+            sum(rate(cidadao_ai_agent_tasks_total{status="failed"}[5m])) by (agent_name)
+            /
+            sum(rate(cidadao_ai_agent_tasks_total[5m])) by (agent_name)
+          ) > 0.10
+        for: 5m
+        labels:
+          severity: warning
+          team: ml
+        annotations:
+          summary: "Agent {{ $labels.agent_name }} has high failure rate"
+          description: "Agent {{ $labels.agent_name }} failure rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/agent-high-failure-rate"
+
+      - alert: AllAgentsFailing
+        expr: |
+          (
+            sum(rate(cidadao_ai_agent_tasks_total{status="failed"}[5m]))
+            /
+            sum(rate(cidadao_ai_agent_tasks_total[5m]))
+          ) > 0.50
+        for: 2m
+        labels:
+          severity: critical
+          team: ml
+          pagerduty: true
+        annotations:
+          summary: "Multiple agents are failing"
+          description: "Overall agent failure rate is {{ $value | humanizePercentage }}, indicating systemic issues"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/all-agents-failing"
+
+      # Investigation Alerts
+      - alert: InvestigationBacklog
+        expr: cidadao_ai_active_investigations > 100
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "High number of active investigations"
+          description: "{{ $value }} investigations are currently active, indicating potential processing delays"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/investigation-backlog"
+
+      - alert: InvestigationProcessingStalled
+        expr: |
+          rate(cidadao_ai_investigations_total{status="completed"}[10m]) == 0
+          and
+          cidadao_ai_active_investigations > 10
+        for: 15m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Investigation processing appears to be stalled"
+          description: "No investigations completed in the last 15 minutes despite {{ $value }} active investigations"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/investigation-stalled"
+
+      # Cache Performance Alerts
+      - alert: LowCacheHitRate
+        expr: |
+          (
+            sum(rate(cidadao_ai_cache_operations_total{result="hit"}[5m]))
+            /
+            sum(rate(cidadao_ai_cache_operations_total[5m]))
+          ) < 0.70
+        for: 10m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Cache hit rate below threshold"
+          description: "Cache hit rate is {{ $value | humanizePercentage }}, below the 70% threshold"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/low-cache-hit-rate"
+
+      # Circuit Breaker Alerts
+      - alert: CircuitBreakerOpen
+        expr: cidadao_ai_circuit_breaker_state{state="open"} == 1
+        for: 2m
+        labels:
+          severity: warning
+          team: backend
+        annotations:
+          summary: "Circuit breaker {{ $labels.service_name }} is open"
+          description: "Service {{ $labels.service_name }} circuit breaker has been open for more than 2 minutes"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/circuit-breaker-open"
+
+      - alert: MultipleCircuitBreakersOpen
+        expr: |
+          count(cidadao_ai_circuit_breaker_state{state="open"} == 1) >= 3
+        for: 1m
+        labels:
+          severity: critical
+          team: backend
+          pagerduty: true
+        annotations:
+          summary: "Multiple circuit breakers are open"
+          description: "{{ $value }} circuit breakers are currently open, indicating widespread service issues"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/multiple-circuit-breakers"
+
+      # Resource Utilization Alerts
+      - alert: HighMemoryUsage
+        expr: |
+          (
+            container_memory_usage_bytes{pod=~"cidadao-ai-.*"}
+            /
+            container_spec_memory_limit_bytes{pod=~"cidadao-ai-.*"}
+          ) > 0.90
+        for: 5m
+        labels:
+          severity: warning
+          team: devops
+        annotations:
+          summary: "High memory usage in {{ $labels.pod }}"
+          description: "Memory usage is {{ $value | humanizePercentage }} of the limit"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/high-memory-usage"
+
+      - alert: HighCPUUsage
+        expr: |
+          (
+            rate(container_cpu_usage_seconds_total{pod=~"cidadao-ai-.*"}[5m])
+          ) > 0.80
+        for: 10m
+        labels:
+          severity: warning
+          team: devops
+        annotations:
+          summary: "High CPU usage in {{ $labels.pod }}"
+          description: "CPU usage is {{ $value | humanizePercentage }} over the last 10 minutes"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/high-cpu-usage"
+
+      # Database Connection Alerts
+      - alert: DatabaseConnectionPoolExhausted
+        expr: |
+          (
+            cidadao_ai_database_connections_in_use
+            /
+            cidadao_ai_database_connections_total
+          ) > 0.90
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+        annotations:
+          summary: "Database connection pool near exhaustion"
+          description: "{{ $value | humanizePercentage }} of database connections are in use"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/db-connection-pool"
+
+      # Anomaly Detection Alerts
+      - alert: HighAnomalyDetectionRate
+        expr: |
+          sum(rate(cidadao_ai_anomalies_detected_total[1h])) > 100
+        for: 5m
+        labels:
+          severity: warning
+          team: compliance
+        annotations:
+          summary: "Unusually high rate of anomaly detections"
+          description: "{{ $value }} anomalies detected per hour, which is unusually high"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/high-anomaly-rate"
+
+      # SLO Violation Alerts
+      - alert: SLOViolationAPIAvailability
+        expr: |
+          (
+            1 - (
+              sum(increase(cidadao_ai_http_errors_total[1h]))
+              /
+              sum(increase(cidadao_ai_http_requests_total[1h]))
+            )
+          ) < 0.99
+        for: 5m
+        labels:
+          severity: critical
+          team: backend
+          slo: true
+        annotations:
+          summary: "API Availability SLO violation"
+          description: "API availability is {{ $value | humanizePercentage }}, below the 99% SLO"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/slo-availability"
+
+      - alert: SLOViolationLatency
+        expr: |
+          (
+            sum(increase(cidadao_ai_request_duration_seconds_bucket{le="0.2"}[1h]))
+            /
+            sum(increase(cidadao_ai_request_duration_seconds_count[1h]))
+          ) < 0.95
+        for: 5m
+        labels:
+          severity: warning
+          team: backend
+          slo: true
+        annotations:
+          summary: "Latency SLO violation"
+          description: "Only {{ $value | humanizePercentage }} of requests completed under 200ms, below the 95% SLO"
+          runbook_url: "https://wiki.cidadao.ai/runbooks/slo-latency"
