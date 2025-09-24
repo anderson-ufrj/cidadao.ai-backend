@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field as PydanticField
 
 from src.core import AgentStatus, get_logger
 from src.core.exceptions import AgentError, AgentExecutionError
-from src.core.monitoring import AGENT_TASK_COUNT, AGENT_TASK_DURATION
+from src.infrastructure.observability.metrics import metrics_manager, BusinessMetrics
 import time
 
 
@@ -188,23 +188,29 @@ class BaseAgent(ABC):
                     retry=retries,
                 )
                 
-                # Process the message with timing
-                with AGENT_TASK_DURATION.labels(
-                    agent_type=self.name,
-                    task_type=action
-                ).time():
-                    response = await self.process(message, context)
+                # Process the message
+                response = await self.process(message, context)
                 
                 # Calculate processing time
                 processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
                 response.processing_time_ms = processing_time
                 
-                # Record successful execution
-                AGENT_TASK_COUNT.labels(
-                    agent_type=self.name,
+                # Record metrics using centralized metrics manager
+                metrics_manager.increment_counter(
+                    "cidadao_ai_agent_tasks_total",
+                    labels={
+                        "agent_name": self.name,
+                        "task_type": action,
+                        "status": "completed"
+                    }
+                )
+                
+                BusinessMetrics.record_agent_task(
+                    agent_name=self.name,
                     task_type=action,
-                    status="completed"
-                ).inc()
+                    duration_seconds=processing_time / 1000.0,
+                    status="success"
+                )
                 
                 # Update status
                 self.status = AgentStatus.COMPLETED
@@ -233,11 +239,14 @@ class BaseAgent(ABC):
                 )
                 
                 # Record retry attempt
-                AGENT_TASK_COUNT.labels(
-                    agent_type=self.name,
-                    task_type=action,
-                    status="retry"
-                ).inc()
+                metrics_manager.increment_counter(
+                    "cidadao_ai_agent_tasks_total",
+                    labels={
+                        "agent_name": self.name,
+                        "task_type": action,
+                        "status": "retry"
+                    }
+                )
                 
                 retries += 1
                 if retries <= self.max_retries:
@@ -245,11 +254,21 @@ class BaseAgent(ABC):
                     await self._wait(2 ** retries)
         
         # All retries exhausted - record failure
-        AGENT_TASK_COUNT.labels(
-            agent_type=self.name,
+        metrics_manager.increment_counter(
+            "cidadao_ai_agent_tasks_total",
+            labels={
+                "agent_name": self.name,
+                "task_type": action,
+                "status": "failed"
+            }
+        )
+        
+        BusinessMetrics.record_agent_task(
+            agent_name=self.name,
             task_type=action,
+            duration_seconds=(datetime.utcnow() - start_time).total_seconds(),
             status="failed"
-        ).inc()
+        )
         
         self.status = AgentStatus.ERROR
         

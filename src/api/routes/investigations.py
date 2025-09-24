@@ -19,6 +19,7 @@ from src.core import get_logger
 from src.agents import InvestigatorAgent, AgentContext
 from src.api.middleware.authentication import get_current_user
 from src.tools import TransparencyAPIFilter
+from src.infrastructure.observability.metrics import track_time, count_calls, BusinessMetrics
 
 
 logger = get_logger(__name__)
@@ -105,6 +106,8 @@ _active_investigations: Dict[str, Dict[str, Any]] = {}
 
 
 @router.post("/start", response_model=Dict[str, str])
+@count_calls("cidadao_ai_investigation_requests_total", labels={"operation": "start"})
+@track_time("cidadao_ai_investigation_start_duration_seconds")
 async def start_investigation(
     request: InvestigationRequest,
     background_tasks: BackgroundTasks,
@@ -149,6 +152,13 @@ async def start_investigation(
         data_source=request.data_source,
         user_id=current_user.get("user_id"),
     )
+    
+    # Track business metrics
+    BusinessMetrics.record_investigation_created(
+        priority="medium",
+        user_type="authenticated"
+    )
+    BusinessMetrics.update_active_investigations(len(_active_investigations))
     
     return {
         "investigation_id": investigation_id,
@@ -394,6 +404,7 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
     This function runs the actual anomaly detection using InvestigatorAgent.
     """
     investigation = _active_investigations[investigation_id]
+    start_time = datetime.utcnow()
     
     try:
         # Update status
@@ -462,12 +473,32 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
         investigation["progress"] = 1.0
         investigation["current_phase"] = "completed"
         
+        # Calculate duration
+        duration = (datetime.utcnow() - start_time).total_seconds()
+        
         logger.info(
             "investigation_completed",
             investigation_id=investigation_id,
             anomalies_found=len(results),
             records_analyzed=investigation["records_processed"],
         )
+        
+        # Track business metrics
+        BusinessMetrics.record_investigation_completed(
+            investigation_type=request.data_source,
+            duration_seconds=duration,
+            priority="medium"
+        )
+        BusinessMetrics.update_active_investigations(len(_active_investigations) - 1)
+        
+        # Track anomalies found
+        for result in results:
+            BusinessMetrics.record_anomaly_detected(
+                anomaly_type=result.anomaly_type,
+                severity=result.severity,
+                data_source=request.data_source,
+                confidence_score=result.confidence
+            )
         
     except Exception as e:
         logger.error(
