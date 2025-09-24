@@ -8,7 +8,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import Optional, Dict, Any, List
 import asyncio
-import json
+from src.core import json_utils
 import uuid
 from datetime import datetime
 
@@ -389,18 +389,18 @@ async def stream_message(request: ChatRequest):
     async def generate():
         try:
             # Send initial event
-            yield f"data: {json.dumps({'type': 'start', 'timestamp': datetime.utcnow().isoformat()})}\n\n"
+            yield f"data: {json_utils.dumps({'type': 'start', 'timestamp': datetime.utcnow().isoformat()})}\n\n"
             
             # Detect intent
-            yield f"data: {json.dumps({'type': 'detecting', 'message': 'Analisando sua mensagem...'})}\n\n"
+            yield f"data: {json_utils.dumps({'type': 'detecting', 'message': 'Analisando sua mensagem...'})}\n\n"
             await asyncio.sleep(0.5)
             
             intent = await intent_detector.detect(request.message)
-            yield f"data: {json.dumps({'type': 'intent', 'intent': intent.type.value, 'confidence': intent.confidence})}\n\n"
+            yield f"data: {json_utils.dumps({'type': 'intent', 'intent': intent.type.value, 'confidence': intent.confidence})}\n\n"
             
             # Select agent
             agent = await chat_service.get_agent_for_intent(intent)
-            yield f"data: {json.dumps({'type': 'agent_selected', 'agent_id': agent.agent_id, 'agent_name': agent.name})}\n\n"
+            yield f"data: {json_utils.dumps({'type': 'agent_selected', 'agent_id': agent.agent_id, 'agent_name': agent.name})}\n\n"
             await asyncio.sleep(0.3)
             
             # Process message in chunks (simulate typing)
@@ -412,19 +412,19 @@ async def stream_message(request: ChatRequest):
             for i, word in enumerate(words):
                 chunk += word + " "
                 if i % 3 == 0:  # Send every 3 words
-                    yield f"data: {json.dumps({'type': 'chunk', 'content': chunk.strip()})}\n\n"
+                    yield f"data: {json_utils.dumps({'type': 'chunk', 'content': chunk.strip()})}\n\n"
                     chunk = ""
                     await asyncio.sleep(0.1)
             
             if chunk:  # Send remaining words
-                yield f"data: {json.dumps({'type': 'chunk', 'content': chunk.strip()})}\n\n"
+                yield f"data: {json_utils.dumps({'type': 'chunk', 'content': chunk.strip()})}\n\n"
             
             # Send completion
-            yield f"data: {json.dumps({'type': 'complete', 'suggested_actions': ['start_investigation', 'learn_more']})}\n\n"
+            yield f"data: {json_utils.dumps({'type': 'complete', 'suggested_actions': ['start_investigation', 'learn_more']})}\n\n"
             
         except Exception as e:
             logger.error(f"Stream error: {str(e)}")
-            yield f"data: {json.dumps({'type': 'error', 'message': 'Erro ao processar mensagem'})}\n\n"
+            yield f"data: {json_utils.dumps({'type': 'error', 'message': 'Erro ao processar mensagem'})}\n\n"
     
     return StreamingResponse(
         generate(),

@@ -6,7 +6,7 @@ Date: 2025-01-15
 """
 
 import asyncio
-import json
+from src.core import json_utils
 from datetime import datetime, timedelta
 from typing import Dict, Any, List, Optional, Union
 import logging

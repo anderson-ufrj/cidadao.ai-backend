@@ -10,7 +10,7 @@ This module provides WebSocket connections for:
 
 from typing import Dict, List, Set, Optional, Any
 from datetime import datetime
-import json
+from src.core import json_utils
 import asyncio
 from uuid import uuid4
 

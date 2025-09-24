@@ -1,7 +1,7 @@
 """Distributed rate limiting service using Redis"""
 
 import time
-import json
+from src.core import json_utils
 from typing import Dict, Optional, Tuple
 from datetime import datetime, timedelta
 import redis.asyncio as redis

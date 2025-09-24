@@ -6,7 +6,7 @@ Date: 2025-01-15
 License: Proprietary - All rights reserved
 """
 
-import json
+from src.core import json_utils
 import hashlib
 import asyncio
 from datetime import datetime, timezone
@@ -161,7 +161,7 @@ class AuditEvent(BaseModel):
         """Calculate checksum for data integrity."""
         # Create a deterministic string representation
         data_dict = self.model_dump(exclude={"checksum"})
-        data_str = json.dumps(data_dict, sort_keys=True, default=str)
+        data_str = json_utils.dumps(data_dict, sort_keys=True, default=str)
         return hashlib.sha256(data_str.encode()).hexdigest()
     
     def validate_integrity(self) -> bool:
@@ -516,7 +516,7 @@ class AuditLogger:
         events = await self.query_events(filter_options)
         
         if format.lower() == "json":
-            return json.dumps([event.model_dump() for event in events], indent=2, default=str)
+            return json_utils.dumps([event.model_dump() for event in events], indent=2, default=str)
         
         elif format.lower() == "csv":
             import csv

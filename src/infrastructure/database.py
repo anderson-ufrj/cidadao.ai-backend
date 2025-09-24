@@ -8,7 +8,7 @@ import logging
 import os
 from typing import Dict, List, Optional, Any, Union
 from datetime import datetime, timedelta
-import json
+from src.core import json_utils
 import hashlib
 from enum import Enum
 from contextlib import asynccontextmanager
@@ -310,8 +310,8 @@ class DatabaseManager:
                     investigation.user_id,
                     investigation.query,
                     investigation.status,
-                    json.dumps(investigation.results) if investigation.results else None,
-                    json.dumps(investigation.metadata),
+                    json_utils.dumps(investigation.results) if investigation.results else None,
+                    json_utils.dumps(investigation.metadata),
                     investigation.created_at,
                     investigation.updated_at,
                     investigation.completed_at,
@@ -365,8 +365,8 @@ class DatabaseManager:
                         user_id=row["user_id"],
                         query=row["query"],
                         status=row["status"],
-                        results=json.loads(row["results"]) if row["results"] else None,
-                        metadata=json.loads(row["metadata"]) if row["metadata"] else {},
+                        results=json_utils.loads(row["results"]) if row["results"] else None,
+                        metadata=json_utils.loads(row["metadata"]) if row["metadata"] else {},
                         created_at=row["created_at"],
                         updated_at=row["updated_at"],
                         completed_at=row["completed_at"],
@@ -397,7 +397,7 @@ class DatabaseManager:
             if layer == CacheLayer.REDIS:
                 ttl = ttl or self.config.cache_ttl_medium
                 if isinstance(value, (dict, list)):
-                    value = json.dumps(value)
+                    value = json_utils.dumps(value)
                 await self.redis_cluster.setex(key, ttl, value)
                 return True
                 
@@ -414,7 +414,7 @@ class DatabaseManager:
                 if result:
                     self.metrics["cache_hits"] += 1
                     try:
-                        return json.loads(result)
+                        return json_utils.loads(result)
                     except:
                         return result
                 else:

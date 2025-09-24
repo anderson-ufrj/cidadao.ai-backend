@@ -7,7 +7,7 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
-import json
+from src.core import json_utils
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union, AsyncGenerator
 from dataclasses import dataclass
@@ -455,12 +455,12 @@ class MaritacaClient:
                                     break
                                 
                                 try:
-                                    chunk_data = json.loads(data_str)
+                                    chunk_data = json_utils.loads(data_str)
                                     if "choices" in chunk_data and chunk_data["choices"]:
                                         delta = chunk_data["choices"][0].get("delta", {})
                                         if "content" in delta:
                                             yield delta["content"]
-                                except json.JSONDecodeError:
+                                except json_utils.JSONDecodeError:
                                     self.logger.warning(
                                         "maritaca_stream_parse_error",
                                         data=data_str

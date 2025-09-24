@@ -13,7 +13,7 @@ from dataclasses import dataclass, field
 from enum import Enum
 import structlog
 from pathlib import Path
-import json
+from src.core import json_utils
 
 logger = structlog.get_logger(__name__)
 
@@ -449,7 +449,7 @@ class VaultClient:
                     
                     # Return the specific field or the entire secret
                     if isinstance(secret_data, dict):
-                        return secret_data.get("value") or json.dumps(secret_data)
+                        return secret_data.get("value") or json_utils.dumps(secret_data)
                     else:
                         return str(secret_data)
                 

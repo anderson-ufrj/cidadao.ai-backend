@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from typing import Dict, List, Optional, Union, Generator
 import asyncio
 import torch
-import json
+from src.core import json_utils
 import logging
 from pathlib import Path
 from datetime import datetime
@@ -662,7 +662,7 @@ async def upload_file(file: UploadFile = File(...)):
             
         elif file.filename.endswith('.json'):
             # Processar JSON
-            data = json.loads(content.decode('utf-8'))
+            data = json_utils.loads(content.decode('utf-8'))
             if isinstance(data, list):
                 texts = [str(item) for item in data]
             else:

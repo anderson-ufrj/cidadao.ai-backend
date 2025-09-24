@@ -7,7 +7,7 @@ Date: 2025-01-24
 License: Proprietary - All rights reserved
 """
 
-import json
+from src.core import json_utils
 from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -318,7 +318,7 @@ class ContextMemoryAgent(BaseAgent):
             await self.redis_client.setex(
                 key,
                 timedelta(days=self.memory_decay_days),
-                json.dumps(memory_entry)
+                json_utils.dumps(memory_entry)
             )
             
             # Store in vector store for semantic search
@@ -326,7 +326,7 @@ class ContextMemoryAgent(BaseAgent):
             if content:
                 await self.vector_store.add_documents([{
                     "id": memory_entry["id"],
-                    "content": json.dumps(content),
+                    "content": json_utils.dumps(content),
                     "metadata": memory_entry,
                 }])
             
@@ -373,7 +373,7 @@ class ContextMemoryAgent(BaseAgent):
                         f"{self.episodic_key}:{memory_id}"
                     )
                     if memory_data:
-                        memories.append(json.loads(memory_data))
+                        memories.append(json_utils.loads(memory_data))
             
             self.logger.info(
                 "episodic_memories_retrieved",
@@ -415,13 +415,13 @@ class ContextMemoryAgent(BaseAgent):
             await self.redis_client.setex(
                 key,
                 timedelta(days=self.memory_decay_days * 2),  # Semantic memories last longer
-                json.dumps(memory_entry.model_dump())
+                json_utils.dumps(memory_entry.model_dump())
             )
             
             # Store in vector store
             await self.vector_store.add_documents([{
                 "id": memory_entry.id,
-                "content": f"{concept}: {json.dumps(content)}",
+                "content": f"{concept}: {json_utils.dumps(content)}",
                 "metadata": memory_entry.model_dump(),
             }])
             
@@ -461,7 +461,7 @@ class ContextMemoryAgent(BaseAgent):
                         f"{self.semantic_key}:{memory_id}"
                     )
                     if memory_data:
-                        memories.append(json.loads(memory_data))
+                        memories.append(json_utils.loads(memory_data))
             
             self.logger.info(
                 "semantic_memories_retrieved",
@@ -513,7 +513,7 @@ class ContextMemoryAgent(BaseAgent):
             await self.redis_client.setex(
                 key,
                 timedelta(hours=24),  # Conversations expire after 24 hours
-                json.dumps(memory_entry.model_dump())
+                json_utils.dumps(memory_entry.model_dump())
             )
             
             # Manage conversation size
@@ -555,7 +555,7 @@ class ContextMemoryAgent(BaseAgent):
             for key in keys[:limit]:
                 memory_data = await self.redis_client.get(key)
                 if memory_data:
-                    memories.append(json.loads(memory_data))
+                    memories.append(json_utils.loads(memory_data))
             
             # Reverse to get chronological order
             memories.reverse()
@@ -675,7 +675,7 @@ class ContextMemoryAgent(BaseAgent):
         for key in keys[:limit]:
             memory_data = await self.redis_client.get(key)
             if memory_data:
-                memories.append(json.loads(memory_data))
+                memories.append(json_utils.loads(memory_data))
         
         # Sort by timestamp (most recent first)
         memories.sort(
