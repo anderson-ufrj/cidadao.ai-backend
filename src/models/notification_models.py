@@ -156,8 +156,8 @@ class NotificationHistoryDB(Base):
     channels_delivered = Column(JSON, default=[])
     delivery_status = Column(JSON, default={})  # Channel -> status mapping
     
-    # Metadata
-    metadata = Column(JSON, default={})
+    # Metadata (renamed to avoid SQLAlchemy reserved word)
+    notification_metadata = Column('metadata', JSON, default={})
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     read_at = Column(DateTime, nullable=True)
     
