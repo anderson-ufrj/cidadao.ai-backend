@@ -691,8 +691,8 @@ if __name__ == "__main__":
             await asyncio.sleep(0.1)  # Simulate work
             return {"result": f"Investigation of '{query}' by {self.name}"}
         
-        def analyze(self, data: Dict) -> Dict[str, Any]:
-            time.sleep(0.05)  # Simulate work
+        async def analyze(self, data: Dict) -> Dict[str, Any]:
+            await asyncio.sleep(0.05)  # Simulate work
             return {"analysis": f"Analysis by {self.name}", "data_size": len(data)}
     
     async def test_agent_pool():
