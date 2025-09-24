@@ -14,9 +14,21 @@ from enum import Enum
 from pydantic import BaseModel, Field
 import structlog
 
-from src.services.email_service import email_service, EmailMessage
-from src.services.webhook_service import webhook_service, WebhookEvent
-from src.models.notification_models import NotificationPreference, NotificationChannel
+# Optional imports for advanced features
+try:
+    from src.services.email_service import email_service, EmailMessage
+    from src.services.webhook_service import webhook_service, WebhookEvent
+    from src.models.notification_models import NotificationPreference, NotificationChannel
+    ADVANCED_FEATURES_AVAILABLE = True
+except (ImportError, AttributeError):
+    # Fallback for environments without email/webhook support
+    email_service = None
+    webhook_service = None
+    EmailMessage = None
+    WebhookEvent = None
+    NotificationPreference = None
+    NotificationChannel = None
+    ADVANCED_FEATURES_AVAILABLE = False
 from src.core.logging import get_logger
 from src.core import json_utils
 
@@ -107,10 +119,10 @@ class NotificationService:
         # Send through each channel
         tasks = []
         
-        if "email" in channels:
+        if "email" in channels and ADVANCED_FEATURES_AVAILABLE and email_service:
             tasks.append(self._send_email(user_id, notification))
             
-        if "webhook" in channels:
+        if "webhook" in channels and ADVANCED_FEATURES_AVAILABLE and webhook_service:
             tasks.append(self._send_webhook(notification))
             
         if "push" in channels:
@@ -231,6 +243,9 @@ class NotificationService:
             
     async def _send_email(self, user_id: str, notification: Notification) -> bool:
         """Send notification via email."""
+        if not ADVANCED_FEATURES_AVAILABLE or not email_service or not EmailMessage:
+            return False
+            
         try:
             # Get user email (would come from database)
             user_email = f"{user_id}@example.com"  # Placeholder
@@ -276,6 +291,9 @@ class NotificationService:
     
     async def _send_webhook(self, notification: Notification) -> bool:
         """Send notification via webhook."""
+        if not ADVANCED_FEATURES_AVAILABLE or not webhook_service or not WebhookEvent:
+            return False
+            
         try:
             # Map notification type to webhook event
             event_map = {
