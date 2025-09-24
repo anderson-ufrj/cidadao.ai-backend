@@ -1,0 +1,175 @@
+global:
+  # SMTP configuration for email alerts
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@cidadao.ai'
+  smtp_auth_username: 'alerts@cidadao.ai'
+  smtp_auth_password: 'YOUR_APP_PASSWORD'
+  smtp_require_tls: true
+  
+  # Slack webhook URL
+  slack_api_url: 'YOUR_SLACK_WEBHOOK_URL'
+  
+  # PagerDuty configuration
+  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+
+# Templates for alert formatting
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# The root route for all alerts
+route:
+  # Default receiver for alerts
+  receiver: 'default'
+  
+  # Group alerts by these labels
+  group_by: ['alertname', 'cluster', 'service', 'severity']
+  
+  # Wait before sending grouped alerts
+  group_wait: 30s
+  
+  # How long to wait before sending new alerts for a group
+  group_interval: 5m
+  
+  # How long to wait before repeating alerts
+  repeat_interval: 12h
+  
+  # Child routes for specific routing
+  routes:
+    # Critical alerts go to PagerDuty
+    - match:
+        severity: critical
+        pagerduty: 'true'
+      receiver: pagerduty
+      continue: true
+      
+    # All critical alerts also go to Slack
+    - match:
+        severity: critical
+      receiver: slack-critical
+      
+    # Warning alerts go to Slack
+    - match:
+        severity: warning
+      receiver: slack-warning
+      
+    # SLO violations have special handling
+    - match:
+        slo: 'true'
+      receiver: slo-violations
+      group_interval: 1h
+      repeat_interval: 4h
+      
+    # ML team alerts
+    - match:
+        team: ml
+      receiver: ml-team
+      
+    # Backend team alerts
+    - match:
+        team: backend
+      receiver: backend-team
+
+# Receivers define notification destinations
+receivers:
+  # Default receiver - logs only
+  - name: 'default'
+    webhook_configs:
+      - url: 'http://localhost:9093/api/v1/alerts'
+        send_resolved: true
+
+  # PagerDuty for critical incidents
+  - name: 'pagerduty'
+    pagerduty_configs:
+      - service_key: 'YOUR_PAGERDUTY_SERVICE_KEY'
+        description: '{{ .GroupLabels.alertname }} - {{ .CommonAnnotations.summary }}'
+        details:
+          firing: '{{ .Alerts.Firing | len }}'
+          resolved: '{{ .Alerts.Resolved | len }}'
+          description: '{{ .CommonAnnotations.description }}'
+          runbook: '{{ .CommonAnnotations.runbook_url }}'
+
+  # Slack channels for different severities
+  - name: 'slack-critical'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_CRITICAL_WEBHOOK'
+        channel: '#alerts-critical'
+        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: 'danger'
+        actions:
+          - type: button
+            text: 'View Dashboard'
+            url: 'https://grafana.cidadao.ai/d/cidadao-ai-overview'
+          - type: button
+            text: 'Runbook'
+            url: '{{ .CommonAnnotations.runbook_url }}'
+
+  - name: 'slack-warning'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_WARNING_WEBHOOK'
+        channel: '#alerts-warning'
+        title: '⚠️ WARNING: {{ .GroupLabels.alertname }}'
+        text: '{{ range .Alerts }}{{ .Annotations.description }}{{ end }}'
+        send_resolved: true
+        color: 'warning'
+
+  # SLO violations channel
+  - name: 'slo-violations'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_SLO_WEBHOOK'
+        channel: '#slo-violations'
+        title: '📊 SLO Violation: {{ .GroupLabels.alertname }}'
+        text: |
+          *Service:* Cidadão.AI Backend
+          *SLO:* {{ .GroupLabels.alertname }}
+          *Current Value:* {{ .CommonAnnotations.description }}
+          *Time:* {{ .StartsAt.Format "15:04:05 MST" }}
+        send_resolved: true
+        color: '#ff9800'
+    email_configs:
+      - to: 'slo-team@cidadao.ai'
+        headers:
+          Subject: 'SLO Violation: {{ .GroupLabels.alertname }}'
+
+  # Team-specific receivers
+  - name: 'ml-team'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_ML_WEBHOOK'
+        channel: '#ml-alerts'
+        title: '🤖 ML Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ .CommonAnnotations.description }}'
+    email_configs:
+      - to: 'ml-team@cidadao.ai'
+
+  - name: 'backend-team'
+    slack_configs:
+      - api_url: 'YOUR_SLACK_BACKEND_WEBHOOK'
+        channel: '#backend-alerts'
+        title: '🔧 Backend Alert: {{ .GroupLabels.alertname }}'
+        text: '{{ .CommonAnnotations.description }}'
+    email_configs:
+      - to: 'backend-team@cidadao.ai'
+
+# Inhibition rules prevent certain alerts when others are firing
+inhibit_rules:
+  # Don't alert on high latency if API is down
+  - source_match:
+      alertname: 'APIDown'
+    target_match:
+      alertname: 'APIHighLatency'
+    equal: ['service']
+    
+  # Don't alert on agent failures if all agents are failing
+  - source_match:
+      alertname: 'AllAgentsFailing'
+    target_match:
+      alertname: 'AgentHighFailureRate'
+    equal: ['service']
+    
+  # Don't alert on cache hit rate if Redis is down
+  - source_match:
+      alertname: 'RedisDown'
+    target_match:
+      alertname: 'LowCacheHitRate'
+    equal: ['service']
