@@ -10,10 +10,10 @@ from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from uuid import uuid4
 
 from src.agents.anita import (
-    AnitaAgent,
+    AnalystAgent,
     PatternResult,
     CorrelationResult,
-    PatternAnalysisRequest,
+    AnalysisRequest,
 )
 from src.agents.deodoro import (
     AgentContext,
@@ -170,11 +170,10 @@ def anita_agent(mock_transparency_api, mock_spectral_analyzer):
     with patch("src.agents.anita.TransparencyAPIClient", return_value=mock_transparency_api), \
          patch("src.agents.anita.SpectralAnalyzer", return_value=mock_spectral_analyzer):
         
-        agent = AnitaAgent(
-            pattern_significance_threshold=0.7,
-            correlation_threshold=0.6,
-            max_analysis_depth=5,
-            semantic_similarity_threshold=0.8
+        agent = AnalystAgent(
+            min_correlation_threshold=0.3,
+            significance_threshold=0.05,
+            trend_detection_window=6
         )
         return agent
 
@@ -186,10 +185,9 @@ class TestAnitaAgent:
     def test_agent_initialization(self, anita_agent):
         """Test Anita agent initialization."""
         assert anita_agent.name == "Anita"
-        assert anita_agent.pattern_significance_threshold == 0.7
-        assert anita_agent.correlation_threshold == 0.6
-        assert anita_agent.max_analysis_depth == 5
-        assert anita_agent.semantic_similarity_threshold == 0.8
+        assert anita_agent.correlation_threshold == 0.3
+        assert anita_agent.significance_threshold == 0.05
+        assert anita_agent.trend_window == 6
         
         # Check capabilities
         expected_capabilities = [
@@ -210,7 +208,7 @@ class TestAnitaAgent:
         message = AgentMessage(
             sender="investigator_agent",
             recipient="Anita",
-            action="analyze_temporal_patterns",
+            action="analyze",
             payload={
                 "data_type": "expenses",
                 "time_window": "2024-01-01:2024-06-30",
@@ -241,7 +239,7 @@ class TestAnitaAgent:
         message = AgentMessage(
             sender="analyst_agent",
             recipient="Anita",
-            action="detect_correlations",
+            action="analyze",
             payload={
                 "variables": ["contract_values", "expense_amounts", "supplier_count"],
                 "correlation_methods": ["pearson", "spearman", "mutual_information"],
@@ -278,7 +276,7 @@ class TestAnitaAgent:
         message = AgentMessage(
             sender="master_agent",
             recipient="Anita", 
-            action="semantic_route",
+            action="analyze",
             payload={
                 "queries": queries,
                 "route_to_specialists": True,
@@ -305,7 +303,7 @@ class TestAnitaAgent:
         message = AgentMessage(
             sender="tiradentes_agent",
             recipient="Anita",
-            action="analyze_supplier_concentration",
+            action="analyze",
             payload={
                 "analysis_scope": "ministry_level",
                 "include_geographic_analysis": True,
@@ -335,7 +333,7 @@ class TestAnitaAgent:
         message = AgentMessage(
             sender="machado_agent",
             recipient="Anita",
-            action="analyze_network_patterns",
+            action="analyze",
             payload={
                 "network_type": "supplier_ministry_relationships",
                 "include_centrality_measures": True,
@@ -366,7 +364,7 @@ class TestAnitaAgent:
         message = AgentMessage(
             sender="investigator_agent", 
             recipient="Anita",
-            action="score_anomalies",
+            action="analyze",
             payload={
                 "data_points": [
                     {"value": 1000000, "date": "2024-01-01", "entity": "supplier_a"},
@@ -398,7 +396,7 @@ class TestAnitaAgent:
         message = AgentMessage(
             sender="analyst_agent",
             recipient="Anita",
-            action="forecast_trends",
+            action="analyze",
             payload={
                 "historical_data": {
                     "2024-01": 1000000,
@@ -438,7 +436,7 @@ class TestAnitaAgent:
         message = AgentMessage(
             sender="quality_agent",
             recipient="Anita",
-            action="analyze_temporal_patterns",
+            action="analyze",
             payload={
                 "data_type": "contracts",
                 "significance_filter": True
@@ -460,7 +458,7 @@ class TestAnitaAgent:
         message = AgentMessage(
             sender="comprehensive_analyst",
             recipient="Anita",
-            action="multi_dimensional_analysis",
+            action="analyze",
             payload={
                 "dimensions": ["temporal", "geographic", "categorical", "financial"],
                 "interaction_analysis": True,
@@ -498,7 +496,7 @@ class TestAnitaAgent:
         message = AgentMessage(
             sender="test_agent",
             recipient="Anita",
-            action="analyze_temporal_patterns",
+            action="analyze",
             payload={"data_type": "contracts"}
         )
         
@@ -519,7 +517,7 @@ class TestAnitaAgent:
             AgentMessage(
                 sender="concurrent_tester",
                 recipient="Anita",
-                action="analyze_temporal_patterns",
+                action="analyze",
                 payload={"data_type": f"data_stream_{i}"}
             )
             for i in range(3)
@@ -542,7 +540,7 @@ class TestAnitaAgent:
         message = AgentMessage(
             sender="cache_tester",
             recipient="Anita",
-            action="analyze_temporal_patterns",
+            action="analyze",
             payload={
                 "data_type": "expenses",
                 "cache_results": True,

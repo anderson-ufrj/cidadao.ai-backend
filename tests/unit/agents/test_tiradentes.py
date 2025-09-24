@@ -9,10 +9,10 @@ from unittest.mock import Mock, AsyncMock, patch, MagicMock
 from uuid import uuid4
 
 from src.agents.tiradentes import (
-    TiradentesAgent,
-    InvestigationRequest,
-    AnomalyReport,
-    CorruptionIndicator,
+    ReporterAgent,
+    ReportRequest,
+    ReportType,
+    ReportFormat,
 )
 from src.agents.deodoro import (
     AgentContext,
@@ -138,33 +138,31 @@ def agent_context():
 
 
 @pytest.fixture
-def tiradentes_agent(mock_data_service, mock_ai_service):
-    """Create Tiradentes agent with mocked dependencies."""
-    with patch("src.agents.tiradentes.DataService", return_value=mock_data_service), \
-         patch("src.agents.tiradentes.AIService", return_value=mock_ai_service):
-        
-        agent = TiradentesAgent(
-            anomaly_threshold=0.7,
-            correlation_threshold=0.8,
-            max_investigation_depth=3
-        )
-        return agent
+def tiradentes_agent():
+    """Create Tiradentes agent (ReporterAgent)."""
+    agent = ReporterAgent(
+        default_language="pt",
+        max_report_length=10000
+    )
+    return agent
 
 
 class TestTiradentesAgent:
-    """Test suite for Tiradentes (Investigation Agent)."""
+    """Test suite for Tiradentes (Reporter Agent)."""
     
     @pytest.mark.unit
     def test_agent_initialization(self, tiradentes_agent):
         """Test Tiradentes agent initialization."""
         assert tiradentes_agent.name == "Tiradentes"
-        assert tiradentes_agent.anomaly_threshold == 0.7
-        assert tiradentes_agent.correlation_threshold == 0.8
-        assert tiradentes_agent.max_investigation_depth == 3
+        assert tiradentes_agent.default_language == "pt"
+        assert tiradentes_agent.max_length == 10000
         
         # Check capabilities
         expected_capabilities = [
-            "anomaly_detection",
+            "investigation_report_generation",
+            "pattern_analysis_reporting",
+            "executive_summary_creation",
+            "multi_format_rendering",
             "corruption_analysis", 
             "investigation_planning",
             "pattern_recognition",
