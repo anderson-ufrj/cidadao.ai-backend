@@ -16,8 +16,8 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel, Field as PydanticField
 
-from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage
-from src.core import get_logger
+from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentResponse
+from src.core import get_logger, AgentStatus
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
 from src.core.monitoring import (
     INVESTIGATIONS_TOTAL, ANOMALIES_DETECTED, INVESTIGATION_DURATION,
@@ -70,7 +70,6 @@ class InvestigatorAgent(BaseAgent):
     
     def __init__(
         self,
-        agent_id: str = "investigator",
         price_anomaly_threshold: float = 2.5,  # Standard deviations
         concentration_threshold: float = 0.7,   # 70% concentration trigger
         duplicate_similarity_threshold: float = 0.85,  # 85% similarity
@@ -79,16 +78,28 @@ class InvestigatorAgent(BaseAgent):
         Initialize the Investigator Agent.
         
         Args:
-            agent_id: Unique identifier for this agent
             price_anomaly_threshold: Number of standard deviations for price anomalies
             concentration_threshold: Threshold for vendor concentration (0-1)
             duplicate_similarity_threshold: Threshold for duplicate detection (0-1)
         """
-        super().__init__(agent_id)
+        super().__init__(
+            name="Zumbi",
+            description="Zumbi dos Palmares - Agent specialized in detecting anomalies and suspicious patterns in government data",
+            capabilities=[
+                "price_anomaly_detection",
+                "temporal_pattern_analysis",
+                "vendor_concentration_analysis",
+                "duplicate_contract_detection",
+                "payment_pattern_analysis",
+                "spectral_analysis",
+                "explainable_ai"
+            ],
+            max_retries=3,
+            timeout=60
+        )
         self.price_threshold = price_anomaly_threshold
         self.concentration_threshold = concentration_threshold
         self.duplicate_threshold = duplicate_similarity_threshold
-        self.logger = get_logger(__name__)
         
         # Initialize models client for ML inference (only if enabled)
         from src.core import settings
@@ -113,25 +124,33 @@ class InvestigatorAgent(BaseAgent):
         
         self.logger.info(
             "zumbi_initialized",
-            agent_id=agent_id,
+            agent_name=self.name,
             price_threshold=price_anomaly_threshold,
             concentration_threshold=concentration_threshold,
         )
     
-    async def execute(
+    async def initialize(self) -> None:
+        """Initialize agent resources."""
+        self.logger.info(f"{self.name} agent initialized")
+    
+    async def shutdown(self) -> None:
+        """Cleanup agent resources."""
+        self.logger.info(f"{self.name} agent shutting down")
+    
+    async def process(
         self,
         message: AgentMessage,
         context: AgentContext
-    ) -> AgentMessage:
+    ) -> AgentResponse:
         """
-        Execute investigation based on the incoming message.
+        Process investigation request and return anomaly detection results.
         
         Args:
             message: Investigation request message
             context: Agent execution context
             
         Returns:
-            Investigation results with detected anomalies
+            AgentResponse with detected anomalies
         """
         investigation_start_time = time.time()
         
@@ -139,13 +158,13 @@ class InvestigatorAgent(BaseAgent):
             self.logger.info(
                 "investigation_started",
                 investigation_id=context.investigation_id,
-                agent_id=self.agent_id,
-                message_type=message.message_type,
+                agent_name=self.name,
+                action=message.action,
             )
             
             # Parse investigation request
-            if message.message_type == "investigation_request":
-                request = InvestigationRequest(**message.content)
+            if message.action == "investigate":
+                request = InvestigationRequest(**message.payload)
                 
                 # Record investigation start
                 INVESTIGATIONS_TOTAL.labels(
@@ -156,8 +175,8 @@ class InvestigatorAgent(BaseAgent):
                 
             else:
                 raise AgentExecutionError(
-                    f"Unsupported message type: {message.message_type}",
-                    agent_id=self.agent_id
+                    f"Unsupported action: {message.action}",
+                    agent_id=self.name
                 )
             
             # Fetch data for investigation
@@ -171,9 +190,10 @@ class InvestigatorAgent(BaseAgent):
             ).inc(len(contracts_data) if contracts_data else 0)
             
             if not contracts_data:
-                return AgentMessage(
-                    message_type="investigation_result",
-                    content={
+                return AgentResponse(
+                    agent_name=self.name,
+                    status=AgentStatus.COMPLETED,
+                    result={
                         "status": "no_data",
                         "message": "No data found for the specified criteria",
                         "anomalies": [],
@@ -209,7 +229,7 @@ class InvestigatorAgent(BaseAgent):
                 "metadata": {
                     "investigation_id": context.investigation_id,
                     "timestamp": datetime.utcnow().isoformat(),
-                    "agent_id": self.agent_id,
+                    "agent_name": self.name,
                     "records_analyzed": len(contracts_data),
                     "anomalies_detected": len(anomalies),
                 }
@@ -236,9 +256,10 @@ class InvestigatorAgent(BaseAgent):
                 duration_seconds=investigation_duration,
             )
             
-            return AgentMessage(
-                message_type="investigation_result",
-                content=result,
+            return AgentResponse(
+                agent_name=self.name,
+                status=AgentStatus.COMPLETED,
+                result=result,
                 metadata={"investigation_id": context.investigation_id}
             )
             
@@ -254,12 +275,14 @@ class InvestigatorAgent(BaseAgent):
                 "investigation_failed",
                 investigation_id=context.investigation_id,
                 error=str(e),
-                agent_id=self.agent_id,
+                agent_name=self.name,
             )
             
-            return AgentMessage(
-                message_type="investigation_error",
-                content={
+            return AgentResponse(
+                agent_name=self.name,
+                status=AgentStatus.ERROR,
+                error=str(e),
+                result={
                     "status": "error",
                     "error": str(e),
                     "investigation_id": context.investigation_id,
