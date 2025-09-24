@@ -6,7 +6,7 @@ Inspirado nas técnicas do Kimi K2, mas otimizado para análise governamental.
 """
 
 import os
-import json
+from src.core import json_utils
 import torch
 import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
@@ -104,12 +104,12 @@ class TransparencyDataset(Dataset):
         
         if data_file.suffix == '.json':
             with open(data_file, 'r', encoding='utf-8') as f:
-                data = json.load(f)
+                data = json_utils.load(f)
         elif data_file.suffix == '.jsonl':
             data = []
             with open(data_file, 'r', encoding='utf-8') as f:
                 for line in f:
-                    data.append(json.loads(line))
+                    data.append(json_utils.loads(line))
         else:
             # Assumir dados do Portal da Transparência em formato estruturado
             data = self._load_transparency_data(data_path)
@@ -657,7 +657,7 @@ class CidadaoTrainer:
         output_dir = Path(self.config.output_dir)
         
         with open(output_dir / "training_history.json", "w") as f:
-            json.dump(self.training_history, f, indent=2)
+            json_utils.dump(self.training_history, f, indent=2)
         
         # Plotar curvas de treinamento
         self._plot_training_curves()

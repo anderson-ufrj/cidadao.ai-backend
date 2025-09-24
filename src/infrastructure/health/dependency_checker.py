@@ -11,8 +11,7 @@ from typing import Dict, Any, List, Optional, Callable, Union
 from datetime import datetime, timedelta
 from enum import Enum
 from dataclasses import dataclass, field
-import json
-
+from src.core import json_utils
 import httpx
 import redis.asyncio as redis
 from sqlalchemy import text

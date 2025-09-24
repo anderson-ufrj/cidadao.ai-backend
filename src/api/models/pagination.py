@@ -9,8 +9,7 @@ from typing import Generic, List, Optional, TypeVar, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field
 import base64
-import json
-
+from src.core import json_utils
 from src.core import get_logger
 
 logger = get_logger(__name__)
@@ -31,7 +30,7 @@ class CursorInfo(BaseModel):
             "i": self.id,
             "d": self.direction
         }
-        json_str = json.dumps(data, separators=(',', ':'))
+        json_str = json_utils.dumps(data, separators=(',', ':'))
         return base64.urlsafe_b64encode(json_str.encode()).decode()
     
     @classmethod
@@ -39,7 +38,7 @@ class CursorInfo(BaseModel):
         """Decode cursor from base64 string."""
         try:
             json_str = base64.urlsafe_b64decode(cursor).decode()
-            data = json.loads(json_str)
+            data = json_utils.loads(json_str)
             return cls(
                 timestamp=datetime.fromisoformat(data["t"]),
                 id=data["i"],

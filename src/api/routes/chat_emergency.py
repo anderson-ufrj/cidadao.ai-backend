@@ -4,7 +4,7 @@ This endpoint ensures the chat always works, even if other services fail
 """
 
 import os
-import json
+from src.core import json_utils
 from datetime import datetime
 from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, HTTPException

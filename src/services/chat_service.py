@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 import re
-import json
+from src.core import json_utils
 from collections import defaultdict
 
 from src.core import get_logger

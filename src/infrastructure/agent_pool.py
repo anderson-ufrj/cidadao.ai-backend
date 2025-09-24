@@ -11,7 +11,7 @@ from typing import Dict, List, Optional, Any, Type, Callable, Union
 from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 from enum import Enum
-import json
+from src.core import json_utils
 from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
 import multiprocessing as mp
 from dataclasses import dataclass, field

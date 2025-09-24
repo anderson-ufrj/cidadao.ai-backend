@@ -5,7 +5,7 @@ Author: Anderson H. Silva
 Date: 2025-01-15
 """
 
-import json
+from src.core import json_utils
 import re
 from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple

@@ -3,7 +3,7 @@ WebSocket manager for real-time communication in Cidadão.AI
 Handles investigation streaming, analysis updates, and notifications
 """
 
-import json
+from src.core import json_utils
 import asyncio
 import logging
 from typing import Dict, List, Set, Optional

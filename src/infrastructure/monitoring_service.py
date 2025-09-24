@@ -11,7 +11,7 @@ from typing import Dict, List, Optional, Any, Callable, Union
 from datetime import datetime, timedelta
 from contextlib import asynccontextmanager
 from functools import wraps
-import json
+from src.core import json_utils
 import psutil
 import traceback
 from enum import Enum

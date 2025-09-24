@@ -7,7 +7,7 @@ import asyncio
 import logging
 import time
 import hashlib
-import json
+from src.core import json_utils
 import pickle
 import gzip
 from typing import Dict, List, Optional, Any, Union, Callable, Tuple

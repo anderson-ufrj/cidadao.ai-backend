@@ -9,7 +9,7 @@ This service provides:
 """
 
 import hashlib
-import json
+from src.core import json_utils
 from typing import Optional, Any, Dict, List
 from datetime import datetime, timedelta
 import asyncio
@@ -345,7 +345,7 @@ class CacheService:
     ) -> bool:
         """Cache search/query results."""
         # Create deterministic key from query and filters
-        filter_str = json.dumps(filters, sort_keys=True)
+        filter_str = json_utils.dumps(filters, sort_keys=True)
         key = self._generate_key("search", query, filter_str)
         
         cache_data = {
@@ -362,7 +362,7 @@ class CacheService:
         filters: Dict[str, Any]
     ) -> Optional[List[Dict[str, Any]]]:
         """Get cached search results."""
-        filter_str = json.dumps(filters, sort_keys=True)
+        filter_str = json_utils.dumps(filters, sort_keys=True)
         key = self._generate_key("search", query, filter_str)
         
         cache_data = await self.get(key)
