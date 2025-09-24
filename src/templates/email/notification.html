@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ title }}</h2>
+
+{% if message %}
+<p>{{ message }}</p>
+{% endif %}
+
+{% if details %}
+<div class="details">
+    <h3>Detalhes:</h3>
+    <ul>
+    {% for key, value in details.items() %}
+        <li><strong>{{ key }}:</strong> {{ value }}</li>
+    {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% if action_url %}
+<p style="text-align: center; margin: 30px 0;">
+    <a href="{{ action_url }}" class="button">{{ action_text | default('Ver Detalhes') }}</a>
+</p>
+{% endif %}
+
+{% if severity %}
+<div class="alert alert-{{ severity }}">
+    <strong>Nível de Severidade:</strong> {{ severity | upper }}
+</div>
+{% endif %}
+
+<hr style="margin: 30px 0; border: none; border-top: 1px solid #ecf0f1;">
+
+<p style="color: #7f8c8d; font-size: 14px;">
+    Você está recebendo este e-mail porque está inscrito para receber notificações do {{ app_name }}.
+    Para ajustar suas preferências de notificação, acesse sua conta em nosso sistema.
+</p>
+{% endblock %}
