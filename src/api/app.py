@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI):
     initialize_app_info(
         version="1.0.0",
         environment=settings.app_env,
-        build_info={"deployment": "hf-fastapi"}
+        build_info={"deployment": "huggingface"}
     )
     
     # Setup HTTP metrics
