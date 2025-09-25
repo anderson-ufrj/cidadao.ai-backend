@@ -44,3 +44,6 @@ class DataService:
         """Clear service cache."""
         self._cache.clear()
         self._last_updated = datetime.now()
+
+# Create singleton instance
+data_service = DataService()
