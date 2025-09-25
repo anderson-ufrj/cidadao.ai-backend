@@ -163,11 +163,17 @@ class ConnectionPoolService:
     ) -> AsyncEngine:
         """Create database connection pool."""
         try:
+            # Filter out pool-specific config when using NullPool
+            nullpool_config = {
+                k: v for k, v in config.items() 
+                if k not in ['pool_size', 'max_overflow', 'pool_timeout', 'pool_use_lifo']
+            }
+            
             # Create engine with async-compatible pool
             engine = create_async_engine(
                 url,
                 poolclass=NullPool,
-                **config
+                **nullpool_config
             )
             
             # Initialize stats
