@@ -88,7 +88,7 @@ class APIKey(BaseModel):
     last_error_at = Column(DateTime)
     
     # Metadata
-    metadata = Column(JSON, default=dict)
+    meta_info = Column(JSON, default=dict)
     
     # Indexes for performance
     __table_args__ = (
@@ -230,7 +230,7 @@ class APIKey(BaseModel):
                 "allowed_ips": self.allowed_ips,
                 "allowed_origins": self.allowed_origins,
                 "scopes": self.scopes,
-                "metadata": self.metadata
+                "metadata": self.meta_info
             })
         
         return data
