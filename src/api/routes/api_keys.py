@@ -171,9 +171,9 @@ async def get_client_keys(
 @router.post("/{api_key_id}/rotate", response_model=APIKeyCreateResponse)
 async def rotate_api_key(
     api_key_id: str,
+    background_tasks: BackgroundTasks,
     reason: str = Query(..., description="Rotation reason"),
     grace_period_hours: int = Query(24, ge=1, le=168, description="Grace period in hours"),
-    background_tasks: BackgroundTasks,
     db=Depends(get_db),
     current_user: User = Depends(require_admin)
 ) -> APIKeyCreateResponse:
