@@ -181,19 +181,26 @@ Este documento apresenta um roadmap estruturado para melhorias no backend do Cid
 **Entregáveis**: 13/17 agentes operacionais, APIs de visualização completas e otimizadas para Next.js frontend ✅
 
 #### Sprint 9 (Semanas 17-18)
-**Tema: Agentes Especializados**
+**Tema: Agentes Especializados e Integração**
 
-1. **Últimos Agentes**
-   - [ ] Carlos Drummond (Communication) - comunicação avançada
-   - [ ] Obaluaiê (Health) - análise de saúde pública
-   - [ ] Integração completa com memory (Nanã)
+1. **Ativação de Agentes Já Implementados**
+   - [ ] Dandara (Social Justice) - monitoramento de políticas de inclusão
+   - [ ] Machado de Assis (Text Analysis) - análise de documentos governamentais
+   - [ ] Ativar Carlos Drummond no __init__.py (já funcional com Maritaca.AI)
+   - [ ] Integrar Obaluaiê (Corruption Detector) - já implementado
 
-2. **ML Pipeline**
+2. **Último Agente e Integração**
+   - [ ] Identificar e implementar o 17º agente final
+   - [ ] Integração completa com Nanã (memory system)
+   - [ ] Testes de orquestração com todos os 17 agentes
+
+3. **ML Pipeline**
    - [ ] Training pipeline completo
    - [ ] Model versioning
    - [ ] A/B testing framework
 
-**Entregáveis**: 17/17 agentes operacionais
+**Status Atual**: 16/17 agentes implementados (Drummond e Obaluaiê já existem!)
+**Entregáveis**: 17/17 agentes operacionais e integrados
 
 ### 🔵 **FASE 4: INTEGRAÇÕES & ESCALA** (Sprints 10-12)
 *Foco: Integrações Governamentais e Performance*
