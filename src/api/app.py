@@ -77,6 +77,15 @@ async def lifespan(app: FastAPI):
     from src.services.cache_warming_service import cache_warming_service
     warming_task = asyncio.create_task(cache_warming_service.start_warming_scheduler())
     
+    # Initialize memory system
+    from src.services.memory_startup import setup_memory_on_startup, periodic_memory_optimization
+    memory_agent = await setup_memory_on_startup()
+    
+    # Start periodic memory optimization if enabled
+    memory_task = None
+    if settings.get("ENABLE_MEMORY_OPTIMIZATION", True):
+        memory_task = asyncio.create_task(periodic_memory_optimization())
+    
     yield
     
     # Shutdown
@@ -88,6 +97,18 @@ async def lifespan(app: FastAPI):
         await warming_task
     except asyncio.CancelledError:
         pass
+    
+    # Stop memory optimization
+    if memory_task:
+        memory_task.cancel()
+        try:
+            await memory_task
+        except asyncio.CancelledError:
+            pass
+    
+    # Cleanup memory system
+    from src.services.memory_startup import cleanup_memory_on_shutdown
+    await cleanup_memory_on_shutdown()
     
     # Log shutdown event
     await audit_logger.log_event(

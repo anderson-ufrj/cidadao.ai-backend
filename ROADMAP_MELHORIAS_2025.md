@@ -189,10 +189,10 @@ Este documento apresenta um roadmap estruturado para melhorias no backend do Cid
    - [x] Ativar Carlos Drummond no __init__.py (já funcional com Maritaca.AI)
    - [x] Integrar Obaluaiê (Corruption Detector) - já implementado
 
-2. **Último Agente e Integração**
+2. **Último Agente e Integração** ✅ (100% Completo)
    - [x] Oxóssi (Fraud Hunter) - implementado como o 17º agente
-   - [ ] Integração completa com Nanã (memory system)
-   - [ ] Testes de orquestração com todos os 17 agentes
+   - [x] Integração completa com Nanã (memory system)
+   - [x] Testes de orquestração com todos os 17 agentes
 
 3. **ML Pipeline**
    - [ ] Training pipeline completo

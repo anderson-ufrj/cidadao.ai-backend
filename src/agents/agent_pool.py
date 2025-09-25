@@ -215,18 +215,22 @@ class AgentPool:
                     self._all_agents.add(agent)
                     self._stats["lazy_loaded"] += 1
                     logger.debug(f"Created agent {agent_name} using lazy loader")
-                    return agent
                 except Exception:
                     # Fallback to direct instantiation
                     logger.debug(f"Lazy loader failed for {agent_name}, using direct instantiation")
-            
-            # Direct instantiation
-            agent = agent_type()
-            self._all_agents.add(agent)
+                    agent = agent_type()
+                    self._all_agents.add(agent)
+            else:
+                # Direct instantiation
+                agent = agent_type()
+                self._all_agents.add(agent)
             
             # Initialize if needed
             if hasattr(agent, 'initialize'):
                 await agent.initialize()
+            
+            # Integrate with memory system if available
+            await self._integrate_agent_memory(agent)
             
             return agent
             
@@ -280,6 +284,23 @@ class AgentPool:
                     logger.error(f"Error cleaning up agent: {e}")
                 
                 logger.debug(f"Evicted idle agent {agent_type.__name__}")
+    
+    async def _integrate_agent_memory(self, agent: BaseAgent):
+        """Integrate agent with memory system if available."""
+        try:
+            from src.services.agent_memory_integration import get_memory_integration
+            
+            memory_integration = get_memory_integration()
+            if memory_integration:
+                await memory_integration.integrate_agent(agent)
+                logger.info(f"Integrated {agent.agent_id} with memory system")
+            else:
+                logger.debug("Memory integration not available")
+                
+        except ImportError:
+            logger.debug("Memory integration module not available")
+        except Exception as e:
+            logger.error(f"Failed to integrate agent with memory: {e}")
     
     async def _maintain_minimum_pool(self):
         """Ensure minimum pool size for each agent type."""
