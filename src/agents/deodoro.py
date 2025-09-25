@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field as PydanticField
 from src.core import AgentStatus, get_logger
 from src.core.exceptions import AgentError, AgentExecutionError
 from src.infrastructure.observability.metrics import metrics_manager, BusinessMetrics
+from src.services.agent_metrics import MetricsCollector
 import time
 
 
