@@ -289,7 +289,10 @@ class ConnectionPoolService:
         
         engine = self._engines.get(pool_name)
         if not engine:
-            raise ValueError(f"Database pool '{pool_name}' not found")
+            # No database available - return None
+            logger.warning(f"Database pool '{pool_name}' not found - running without database")
+            yield None
+            return
         
         # Track wait time
         start_time = time.time()
