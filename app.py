@@ -21,7 +21,7 @@ if __name__ == "__main__":
     # Log startup with version
     print("=" * 60)
     print(f"🚀 Starting Cidadão.AI Full Multi-Agent System v2.0")
-    print(f"📅 Deploy timestamp: 2025-09-20 13:46:00 -03")
+    print(f"📅 Deploy timestamp: 2025-09-25 17:46:00 -03")
     print(f"🔧 VERSION: MAIN BRANCH - Full multi-agent system")
     print(f"✅ Fixed: Lazy initialization + MasterAgent import")
     print(f"🤖 All agents available: Drummond, Zumbi, Anita, Tiradentes, and more!")

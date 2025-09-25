@@ -288,13 +288,24 @@ class PortalTransparenciaService:
             response.raise_for_status()
             
             data = response.json()
-            return {
-                "servidores": data.get("resultado", []),
-                "total": data.get("quantidadeTotal", 0),
-                "pagina": page,
-                "tamanho_pagina": size,
-                "timestamp": datetime.utcnow().isoformat()
-            }
+            
+            # Handle both list and object responses
+            if isinstance(data, list):
+                return {
+                    "servidores": data,
+                    "total": len(data),
+                    "pagina": page,
+                    "tamanho_pagina": size,
+                    "timestamp": datetime.utcnow().isoformat()
+                }
+            else:
+                return {
+                    "servidores": data.get("resultado", []),
+                    "total": data.get("quantidadeTotal", 0),
+                    "pagina": page,
+                    "tamanho_pagina": size,
+                    "timestamp": datetime.utcnow().isoformat()
+                }
         except Exception as e:
             logger.error(f"Error fetching servants: {e}")
             raise TransparencyAPIError(f"Failed to fetch servants: {str(e)}")
