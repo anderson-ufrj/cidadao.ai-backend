@@ -165,6 +165,56 @@ class AgentLazyLoader:
             priority=5,
             preload=False
         )
+        
+        self.register_agent(
+            name="Dandara",
+            module_path="src.agents.dandara",
+            class_name="DandaraAgent",
+            description="Social justice and equity monitoring specialist",
+            capabilities=["social_equity", "inclusion_policies", "justice_analysis"],
+            priority=5,
+            preload=False
+        )
+        
+        self.register_agent(
+            name="Machado",
+            module_path="src.agents.machado",
+            class_name="MachadoAgent",
+            description="Government document analysis and text processing",
+            capabilities=["text_analysis", "document_processing", "nlp"],
+            priority=5,
+            preload=False
+        )
+        
+        self.register_agent(
+            name="Obaluaie",
+            module_path="src.agents.obaluaie",
+            class_name="CorruptionDetectorAgent",
+            description="Corruption detection and systemic pattern analysis",
+            capabilities=["corruption_detection", "fraud_detection", "systemic_analysis"],
+            priority=8,
+            preload=False
+        )
+        
+        self.register_agent(
+            name="OscarNiemeyer",
+            module_path="src.agents.oscar_niemeyer",
+            class_name="OscarNiemeyerAgent",
+            description="Data aggregation and visualization metadata specialist",
+            capabilities=["data_aggregation", "visualization", "multidimensional_analysis"],
+            priority=5,
+            preload=False
+        )
+        
+        self.register_agent(
+            name="Lampiao",
+            module_path="src.agents.lampiao",
+            class_name="LampiaoAgent",
+            description="Regional analysis and geographic data specialist",
+            capabilities=["regional_analysis", "spatial_statistics", "inequality_measurement"],
+            priority=5,
+            preload=False
+        )
     
     def register_agent(
         self,
