@@ -13,7 +13,7 @@ from enum import Enum
 import hashlib
 
 from src.core import get_logger
-from src.core.cache import cache_service
+from src.services.cache_service import cache_service
 from src.services.data_service import data_service
 from src.services.investigation_service import investigation_service
 from src.core.config import settings
