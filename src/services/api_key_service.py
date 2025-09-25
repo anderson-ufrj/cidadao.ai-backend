@@ -16,7 +16,7 @@ from sqlalchemy.orm import selectinload
 from src.core import get_logger
 from src.models.api_key import APIKey, APIKeyRotation, APIKeyStatus, APIKeyTier
 from src.core.exceptions import ValidationError, NotFoundError, AuthenticationError
-from src.infrastructure.cache import CacheService
+from src.core.cache import CacheService
 from src.services.notification_service import NotificationService
 
 logger = get_logger(__name__)

@@ -14,7 +14,7 @@ from collections import defaultdict
 import time
 
 from src.core import get_logger
-from src.infrastructure.cache import get_redis_client
+from src.core.cache import get_redis_client
 from src.core.exceptions import RateLimitExceeded
 
 logger = get_logger(__name__)
