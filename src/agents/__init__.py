@@ -38,6 +38,9 @@ from .bonifacio import BonifacioAgent
 from .maria_quiteria import MariaQuiteriaAgent
 from .oscar_niemeyer import OscarNiemeyerAgent
 from .lampiao import LampiaoAgent
+from .dandara import DandaraAgent
+from .machado import MachadoAgent
+from .obaluaie import CorruptionDetectorAgent
 # Commenting out drummond import to avoid import-time issues on HuggingFace Spaces
 # from .drummond import CommunicationAgent
 from .agent_pool import agent_pool, get_agent_pool
@@ -62,6 +65,9 @@ __all__ = [
     "MariaQuiteriaAgent",
     "OscarNiemeyerAgent",
     "LampiaoAgent",
+    "DandaraAgent",
+    "MachadoAgent",
+    "CorruptionDetectorAgent",
     # Agent aliases
     "ZumbiAgent",
     "AnitaAgent", 
