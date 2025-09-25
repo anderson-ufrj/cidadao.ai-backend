@@ -3,18 +3,29 @@
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 **Author**: Anderson Henrique da Silva  
-**Last Updated**: 2025-09-24 14:52:00 -03:00 (São Paulo, Brazil)
+**Last Updated**: 2025-09-25 18:00:00 -03:00 (São Paulo, Brazil)
 
 ## Project Overview
 
-Cidadão.AI Backend is an enterprise-grade multi-agent AI system for Brazilian government transparency analysis. It specializes in detecting anomalies, irregular patterns, and potential fraud in public contracts using advanced ML techniques including spectral analysis (FFT), machine learning models, and explainable AI.
+Cidadão.AI Backend is a multi-agent AI system for Brazilian government transparency analysis. Currently deployed on HuggingFace Spaces with 8 of 17 planned agents fully operational.
 
-### Key Features
-- **Multi-Agent System**: 17 specialized AI agents with Brazilian cultural identities (8 fully operational)
-- **Anomaly Detection**: Z-score, Isolation Forest, spectral analysis, and custom ML models
-- **Portal da Transparência Integration**: Real data with API key, demo data without
-- **Enterprise Features**: JWT auth, OAuth2, rate limiting, circuit breakers, caching
-- **Performance**: Cache hit rate >90%, agent response <2s, API P95 <200ms
+### Current Implementation State
+
+✅ **Working Features**:
+- 8 fully operational agents (Abaporu, Zumbi, Anita, Tiradentes, Senna, Nanã, Bonifácio, Machado)
+- Portal da Transparência integration (22% of endpoints working, 78% return 403)
+- Chat API with Portuguese intent detection
+- SSE streaming for real-time responses
+- FFT spectral analysis for anomaly detection
+- In-memory caching (Redis optional)
+- Prometheus/Grafana monitoring configured
+
+🚧 **Partial/Planned**:
+- 9 agents with structure but incomplete implementation
+- ML models defined but not trained
+- PostgreSQL integration (using in-memory currently)
+- WebSocket for real-time investigations
+- Advanced caching strategies
 
 ## Critical Development Commands
 
@@ -23,213 +34,165 @@ Cidadão.AI Backend is an enterprise-grade multi-agent AI system for Brazilian g
 # Install all dependencies including dev tools
 make install-dev
 
-# Setup database with migrations (if needed)
-make db-upgrade
-
-# Initialize database with seed data
-make setup-db
+# For HuggingFace deployment (minimal deps)
+pip install -r requirements-minimal.txt
 ```
 
 ### Development Workflow
 ```bash
-# Run FastAPI with hot reload (port 8000)
+# Run locally with full features
 make run-dev
+# OR
+python -m src.api.app
 
-# Run tests - ALWAYS run before committing
-make test              # All tests
+# Run HuggingFace version (simplified)
+python app.py
+
+# Run tests - ALWAYS before committing
+make test              # All tests (80% coverage required)
 make test-unit         # Unit tests only  
 make test-agents       # Multi-agent system tests
-make test-coverage     # With coverage report
 
-# Code quality - MUST pass before committing
-make format            # Format with black and isort
-make lint              # Run ruff linter
-make type-check        # Run mypy type checking
-make check             # Run all checks (lint, type-check, test)
+# Code quality - MUST pass
+make format            # Black + isort
+make lint              # Ruff linter
+make type-check        # MyPy
+make check             # All checks
 
-# Quick check before pushing
-make ci                # Full CI pipeline locally
+# Full CI locally
+make ci
 ```
 
-### Running a Single Test
+### Testing Specific Components
 ```bash
-# Using pytest directly
+# Test a specific agent
 python -m pytest tests/unit/agents/test_zumbi.py -v
-python -m pytest tests/unit/agents/test_zumbi.py::TestZumbiAgent::test_analyze_contract -v
 
-# With coverage for specific module
-python -m pytest tests/unit/agents/test_zumbi.py --cov=src.agents.zumbi --cov-report=term-missing
+# Test with coverage
+python -m pytest tests/unit/agents/test_zumbi.py --cov=src.agents.zumbi
+
+# Test API endpoints
+python -m pytest tests/integration/test_chat_simple.py -v
 ```
 
-### Other Commands
+### Monitoring & Debugging
 ```bash
 # Start monitoring stack
-make monitoring-up     # Prometheus + Grafana
+make monitoring-up
+# Grafana: http://localhost:3000 (admin/cidadao123)
 
-# Database operations
-make migrate          # Create new migration
-make db-reset        # Reset database (careful!)
-
-# Interactive shell with app context
+# Interactive shell
 make shell
 
-# Docker services
-make docker-up       # Start all services
-make docker-down     # Stop services
+# Check agent status
+curl http://localhost:8000/api/v1/agents/status
 ```
 
 ## Architecture Overview
 
-### Multi-Agent System Structure
-
+### Multi-Agent Communication Flow
 ```
-User Request → API → Master Agent (Abaporu)
-                           ↓
-                   Agent Orchestration
-                           ↓
-        Investigation (Zumbi) + Analysis (Anita)
-                           ↓
-                 Report Generation (Tiradentes)
-                           ↓
-                     User Response
+User → Chat API → Intent Detection → Agent Router (Senna)
+                                           ↓
+                                    Agent Selection
+                                           ↓
+                          Direct Agent or Master (Abaporu)
+                                           ↓
+                                  Result + Response
 ```
 
-### Agent Base Classes
-- **BaseAgent**: Abstract base for all agents with retry logic and monitoring
-- **ReflectiveAgent**: Adds self-reflection with quality threshold (0.8) and max 3 iterations
-- **AgentMessage**: Structured communication between agents
-- **AgentContext**: Shared context during investigations
+### Key Implementation Details
 
-### Key Agent States
-- `IDLE`: Waiting for tasks
-- `THINKING`: Processing/analyzing  
-- `ACTING`: Executing actions
-- `WAITING`: Awaiting resources
-- `ERROR`: Error state
-- `COMPLETED`: Task finished
+1. **Agent States**: IDLE, THINKING, ACTING, WAITING, ERROR, COMPLETED
+2. **Quality Threshold**: 0.8 for reflective agents (max 3 iterations)
+3. **Anomaly Thresholds**: 
+   - Price: 2.5 standard deviations
+   - Supplier concentration: 70%
+   - Duplicate contracts: 85% similarity
+4. **API Rate Limits**: Configurable tiers per endpoint
+5. **Cache TTL**: Short (5min), Medium (1hr), Long (24hr)
 
-### Performance Optimizations
-- **Agent Pooling**: Pre-initialized instances with lifecycle management
-- **Parallel Processing**: Concurrent agent execution with strategies
-- **Caching**: Multi-layer (Memory → Redis → Database) with TTLs
-- **JSON**: orjson for 3x faster serialization
-- **Compression**: Brotli for optimal bandwidth usage
+## Portal da Transparência Integration
 
-### Key Services
-1. **Investigation Service**: Coordinates multi-agent investigations
-2. **Chat Service**: Real-time conversation with streaming support
-3. **Data Service**: Portal da Transparência integration
-4. **Cache Service**: Distributed caching with Redis
-5. **LLM Pool**: Connection pooling for AI providers
+### Working Endpoints (22%)
+- `/api/v1/transparency/contracts` - Requires codigoOrgao parameter
+- `/api/v1/transparency/servants` - Search by CPF only
+- `/api/v1/transparency/agencies` - Organization info
 
-## Important Development Notes
-
-### Testing Requirements
-- Target coverage: 80% (currently ~80%)
-- Always run `make test` before committing
-- Multi-agent tests are critical: `make test-agents`
-- Use markers: `@pytest.mark.unit`, `@pytest.mark.integration`
-
-### Code Quality Standards
-- Black line length: 88 characters
-- Strict MyPy type checking enabled
-- Ruff configured with extensive rules
-- Pre-commit hooks installed with `make install-dev`
+### Blocked Endpoints (78% return 403)
+- Expenses, suppliers, parliamentary amendments, benefits
+- No official documentation about access tiers
+- Salary/remuneration data not available
 
 ### Environment Variables
-Required for full functionality:
-- `DATABASE_URL`: PostgreSQL connection
-- `REDIS_URL`: Redis connection
-- `JWT_SECRET_KEY`, `SECRET_KEY`: Security keys
-- `GROQ_API_KEY`: LLM provider
-- `TRANSPARENCY_API_KEY`: Portal da Transparência (optional - uses demo data if missing)
-
-### API Endpoints
-
-Key endpoints:
 ```bash
-# Chat endpoints
-POST /api/v1/chat/message          # Send message
-POST /api/v1/chat/stream           # Stream response (SSE)
-GET  /api/v1/chat/history/{session_id}/paginated
-
-# Investigation endpoints  
-POST /api/v1/investigations/analyze
-GET  /api/v1/investigations/{id}
-
-# Agent endpoints
-POST /api/agents/zumbi             # Anomaly detection
-GET  /api/v1/agents/status         # All agents status
-
-# WebSocket
-WS   /api/v1/ws/chat/{session_id}
+TRANSPARENCY_API_KEY=your-key  # For real data (optional)
+GROQ_API_KEY=your-key         # LLM provider (required)
+JWT_SECRET_KEY=your-secret    # Auth (required)
+DATABASE_URL=postgresql://... # DB (optional, uses memory)
+REDIS_URL=redis://...        # Cache (optional)
 ```
 
-### Database Schema
-Uses SQLAlchemy with async PostgreSQL. Key models:
-- `Investigation`: Main investigation tracking
-- `ChatSession`: Chat history and context
-- `Agent`: Agent instances and state
-- `Cache`: Distributed cache entries
-
-Migrations managed with Alembic: `make migrate` and `make db-upgrade`
-
-### Security Considerations
-- JWT tokens with refresh support
-- Rate limiting per endpoint/agent
-- Circuit breakers for external APIs
-- Audit logging for all operations
-- Input validation with Pydantic
-- CORS properly configured
-
-### Common Issues & Solutions
+## Common Issues & Solutions
 
 1. **Import errors**: Run `make install-dev`
-2. **Database errors**: Check migrations with `make db-upgrade`  
-3. **Type errors**: Run `make type-check` to catch early
-4. **Cache issues**: Monitor at `/api/v1/chat/cache/stats`
-5. **Agent timeouts**: Check agent pool health
-6. **Test failures**: Often missing environment variables
+2. **Test failures**: Check environment variables
+3. **Agent timeouts**: Verify GROQ_API_KEY is set
+4. **403 on Portal API**: Expected - most endpoints blocked
+5. **Redis errors**: Optional - system works without it
 
-### Monitoring & Observability
+## Development Tips
 
-```bash
-# Start monitoring
-make monitoring-up
+### Adding New Features
+1. Write tests first (TDD approach)
+2. Update API docs (docstrings)
+3. Run `make check` before committing
+4. Keep agents focused on single responsibility
 
-# Access dashboards
-Grafana: http://localhost:3000 (admin/cidadao123)
-Prometheus: http://localhost:9090
+### Performance Optimization
+- Use async/await throughout
+- Leverage caching for expensive operations
+- Profile with `make profile` (if available)
+- Monitor agent pool usage
 
-# Key metrics
-- Agent response times
-- Cache hit rates  
-- API latency (P50, P95, P99)
-- Error rates by endpoint
+### Debugging Agents
+```python
+# Enable debug logging
+import logging
+logging.getLogger("src.agents").setLevel(logging.DEBUG)
+
+# Check agent state
+agent = AgentPool.get_agent("zumbi")
+print(agent.get_state())
 ```
 
-### Development Tips
+## Deployment Notes
 
-1. **Agent Development**:
-   - Extend `BaseAgent` or `ReflectiveAgent`
-   - Implement `process()` method
-   - Use `AgentMessage` for communication
-   - Add tests in `tests/unit/agents/`
+### HuggingFace Spaces
+- Uses `app.py` (simplified version)
+- No PostgreSQL/Redis required
+- Automatic deployment on push
+- Environment variables in Spaces settings
 
-2. **API Development**:
-   - Routes in `src/api/routes/`
-   - Use dependency injection
-   - Add OpenAPI documentation
-   - Include rate limiting
+### Local Development
+- Full `src.api.app` with all features
+- Optional PostgreSQL/Redis
+- Complete agent system
+- Development tools available
 
-3. **Performance**:
-   - Profile with `make profile`
-   - Check cache stats regularly
-   - Monitor agent pool usage
-   - Use async operations throughout
+## Current Limitations
 
-4. **Debugging**:
-   - Use `make shell` for interactive debugging
-   - Check logs in structured format
-   - Use correlation IDs for tracing
-   - Monitor with Grafana dashboards
+1. **Database**: In-memory only (PostgreSQL integration incomplete)
+2. **ML Models**: Basic threshold-based detection (no trained models)
+3. **Portal API**: 78% of endpoints return 403 Forbidden
+4. **WebSocket**: Partial implementation for investigations
+5. **Some Agents**: 9 of 17 agents have incomplete implementation
+
+## Testing Requirements
+
+- **Coverage Target**: 80% (enforced)
+- **Test Markers**: @pytest.mark.unit, @pytest.mark.integration
+- **Async Tests**: Use pytest-asyncio
+- **Mocking**: Mock external APIs in tests
+
+Remember: This is a production system deployed on HuggingFace Spaces. Always test thoroughly and maintain backwards compatibility.

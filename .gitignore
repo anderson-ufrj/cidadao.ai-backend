@@ -1,5 +1,10 @@
 # Local archive - planning and internal docs
 .local-archive/
+.archive/
+
+# Virtual environments
+venv/
+venv_new/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -227,6 +232,19 @@ audit_logs/
 # Test outputs
 test_output/
 .benchmarks/
+
+# Exploratory test files created during investigation
+tests/exploratory/
+test_*.py
+teste_*.py
+analise_*.py
+buscar_*.py
+check_*.py
+servidor_dados.json
+doc_*.html
+
+# Temporary reorganization scripts
+reorganizar_repo.sh
 
 # Fine-tuning datasets
 datasets/
