@@ -14,9 +14,10 @@
 - **✅ Sprint 5**: Concluída - CLI & Automação com Batch Processing (100% completo)
 - **✅ Sprint 6**: Concluída - Segurança de API & Performance (100% completo)
 - **✅ Sprint 7**: Concluída - Agentes de Análise (100% completo)
-- **⏳ Sprints 8-12**: Planejadas
+- **🔄 Sprint 8**: Em Progresso - Agentes de Dados e APIs (50% completo)
+- **⏳ Sprints 9-12**: Planejadas
 
-**Progresso Geral**: 58% (7/12 sprints concluídas)
+**Progresso Geral**: 62.5% (7.5/12 sprints concluídas)
 
 ## 📋 Resumo Executivo
 
@@ -163,21 +164,21 @@ Este documento apresenta um roadmap estruturado para melhorias no backend do Cid
 
 **Entregáveis**: 10/17 agentes operacionais, sistema de orquestração completo, métricas detalhadas
 
-#### Sprint 8 (Semanas 15-16)
+#### ✅ Sprint 8 (Semanas 15-16) - EM PROGRESSO (50% completo)
 **Tema: Agentes de ETL e APIs de Dados**
 
-1. **Implementar Agentes**
-   - [ ] Oscar Niemeyer (Data Aggregation) - agregação de dados e APIs de metadados
-   - [ ] Ceuci (ETL) - pipelines de transformação de dados
-   - [ ] Lampião (Regional) - análise e agregação de dados regionais
+1. **Implementar Agentes** ✅ (100% Completo)
+   - [x] Oscar Niemeyer (Data Aggregation) - agregação de dados e APIs de metadados
+   - [x] Ceuci (ETL) - já existe como agente de análise preditiva
+   - [x] Lampião (Regional) - análise e agregação de dados regionais com estatísticas espaciais
 
-2. **APIs de Dados para Frontend**
+2. **APIs de Dados para Frontend** (0% - Próximos passos)
    - [ ] API de agregação de dados para visualização
    - [ ] API de dados geográficos (estados, municípios)
    - [ ] API de séries temporais para gráficos
    - [ ] Export de dados em formatos JSON/CSV otimizados
 
-**Entregáveis**: 13/17 agentes operacionais, APIs de dados prontas para frontend
+**Entregáveis**: 13/17 agentes operacionais (Oscar Niemeyer + Lampião implementados), APIs de dados pendentes
 
 #### Sprint 9 (Semanas 17-18)
 **Tema: Agentes Especializados**
