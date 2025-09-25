@@ -14,7 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.agents.lampiao import LampiaoAgent, RegionType
 from src.core.auth import get_current_user
 from src.core.database import get_db
-from src.core.cache import CacheService, CacheKey
+from src.services.cache_service import CacheService
 from src.core.rate_limit import RateLimiter, rate_limit
 from src.core import get_logger
 from src.services.agent_lazy_loader import AgentLazyLoader
@@ -195,10 +195,7 @@ async def get_geographic_boundaries(
     Currently supports state-level boundaries with plans to add municipalities.
     """
     try:
-        cache_key = CacheKey(
-            prefix="geo_boundaries",
-            params={"region_type": region_type.value, "simplified": simplified}
-        )
+        cache_key = f"geo_boundaries:{region_type.value}:{simplified}"
         
         # Try to get from cache
         cached_data = await cache_service.get(cache_key)
