@@ -11,7 +11,8 @@ from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from pydantic import BaseModel, Field
 
 from src.core import get_logger
-from src.api.middleware.authentication import get_current_user, User
+from src.api.middleware.authentication import get_current_user
+from src.api.auth import User
 from src.api.middleware.rate_limiting import RateLimitTier, get_rate_limit_tier
 from src.agents import ZumbiAgent, AnitaAgent, TiradentesAgent, BonifacioAgent, AgentContext
 from src.infrastructure.observability.metrics import track_time, count_calls
