@@ -36,6 +36,7 @@ TiradentesAgent = ReporterAgent
 from .ayrton_senna import SemanticRouter
 from .bonifacio import BonifacioAgent
 from .maria_quiteria import MariaQuiteriaAgent
+from .oscar_niemeyer import OscarNiemeyerAgent
 # Commenting out drummond import to avoid import-time issues on HuggingFace Spaces
 # from .drummond import CommunicationAgent
 from .agent_pool import agent_pool, get_agent_pool
@@ -58,6 +59,7 @@ __all__ = [
     "SemanticRouter",
     "BonifacioAgent",
     "MariaQuiteriaAgent",
+    "OscarNiemeyerAgent",
     # Agent aliases
     "ZumbiAgent",
     "AnitaAgent", 
