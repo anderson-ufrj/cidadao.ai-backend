@@ -12,10 +12,10 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.agents.lampiao import LampiaoAgent, RegionType
-from src.core.auth import get_current_user
-from src.core.database import get_db
+from src.api.middleware.authentication import get_current_user
+from src.db.session import get_session as get_db
 from src.services.cache_service import CacheService
-from src.core.rate_limit import RateLimiter, rate_limit
+from src.infrastructure.rate_limiter import RateLimiter
 from src.core import get_logger
 from src.services.agent_lazy_loader import AgentLazyLoader
 from src.agents.deodoro import AgentContext, AgentMessage
@@ -26,7 +26,7 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/geo", tags=["geographic"])
 
 # Rate limiter for geographic endpoints
-geo_rate_limiter = RateLimiter(calls=50, period=60)  # 50 calls per minute
+# geo_rate_limiter = RateLimiter()  # TODO: Configure rate limiter properly
 
 # Cache service
 cache_service = CacheService()
@@ -182,7 +182,7 @@ BRAZIL_REGIONS = {
 
 
 @router.get("/boundaries/{region_type}", response_model=GeographicBoundary)
-@rate_limit(geo_rate_limiter)
+# @rate_limit(geo_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_geographic_boundaries(
     region_type: RegionType = Path(..., description="Type of region boundaries to retrieve"),
     simplified: bool = Query(True, description="Return simplified boundaries for performance"),
@@ -266,7 +266,7 @@ async def get_geographic_boundaries(
 
 
 @router.get("/regions", response_model=List[BrazilianRegion])
-@rate_limit(geo_rate_limiter)
+# @rate_limit(geo_rate_limiter)  # TODO: Implement rate_limit decorator
 async def list_regions(
     region_type: RegionType = Query(RegionType.STATE, description="Type of regions to list"),
     parent_id: Optional[str] = Query(None, description="Filter by parent region"),
@@ -338,7 +338,7 @@ async def list_regions(
 
 
 @router.get("/regions/{region_id}", response_model=BrazilianRegion)
-@rate_limit(geo_rate_limiter)
+# @rate_limit(geo_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_region_details(
     region_id: str = Path(..., description="Region identifier"),
     include_geometry: bool = Query(False, description="Include GeoJSON geometry"),
@@ -415,7 +415,7 @@ async def get_region_details(
 
 
 @router.get("/data/{metric}", response_model=GeographicDataResponse)
-@rate_limit(geo_rate_limiter)
+# @rate_limit(geo_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_geographic_data(
     metric: str = Path(..., description="Metric to retrieve (e.g., contracts, spending)"),
     region_type: RegionType = Query(RegionType.STATE, description="Geographic aggregation level"),
@@ -512,7 +512,7 @@ async def get_geographic_data(
 
 
 @router.get("/coordinates/{region_id}")
-@rate_limit(geo_rate_limiter)
+# @rate_limit(geo_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_region_coordinates(
     region_id: str = Path(..., description="Region identifier"),
     current_user: Dict[str, Any] = Depends(get_current_user),
