@@ -31,7 +31,7 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/visualization", tags=["visualization"])
 
 # Rate limiter for visualization endpoints
-viz_rate_limiter = RateLimiter(calls=30, period=60)  # 30 calls per minute
+# viz_rate_limiter = RateLimiter()  # TODO: Configure rate limiter properly
 
 # Lazy load agents
 agent_loader = AgentLazyLoader()
