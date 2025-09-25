@@ -216,7 +216,7 @@ class AgentMetricsService:
             # Update Prometheus metric
             agent_memory_usage.labels(agent_name=agent_name).set(memory_bytes)
     
-    @cache_result(ttl_seconds=30)
+    @cache_result(prefix="agent_stats", ttl=30)
     async def get_agent_stats(self, agent_name: str) -> Dict[str, Any]:
         """Get comprehensive stats for a specific agent."""
         async with self._lock:
