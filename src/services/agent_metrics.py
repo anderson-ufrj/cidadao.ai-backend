@@ -21,7 +21,7 @@ from prometheus_client import (
 )
 
 from src.core import get_logger
-from src.core.cache import cache_result
+from src.services.cache_service import cache_result
 
 
 logger = get_logger("agent.metrics")
