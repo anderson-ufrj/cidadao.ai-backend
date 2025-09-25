@@ -183,14 +183,14 @@ Este documento apresenta um roadmap estruturado para melhorias no backend do Cid
 #### Sprint 9 (Semanas 17-18)
 **Tema: Agentes Especializados e Integração**
 
-1. **Ativação de Agentes Já Implementados**
-   - [ ] Dandara (Social Justice) - monitoramento de políticas de inclusão
-   - [ ] Machado de Assis (Text Analysis) - análise de documentos governamentais
-   - [ ] Ativar Carlos Drummond no __init__.py (já funcional com Maritaca.AI)
-   - [ ] Integrar Obaluaiê (Corruption Detector) - já implementado
+1. **Ativação de Agentes Já Implementados** ✅ (100% Completo)
+   - [x] Dandara (Social Justice) - monitoramento de políticas de inclusão
+   - [x] Machado de Assis (Text Analysis) - análise de documentos governamentais
+   - [x] Ativar Carlos Drummond no __init__.py (já funcional com Maritaca.AI)
+   - [x] Integrar Obaluaiê (Corruption Detector) - já implementado
 
 2. **Último Agente e Integração**
-   - [ ] Identificar e implementar o 17º agente final
+   - [x] Oxóssi (Fraud Hunter) - implementado como o 17º agente
    - [ ] Integração completa com Nanã (memory system)
    - [ ] Testes de orquestração com todos os 17 agentes
 
@@ -199,8 +199,8 @@ Este documento apresenta um roadmap estruturado para melhorias no backend do Cid
    - [ ] Model versioning
    - [ ] A/B testing framework
 
-**Status Atual**: 16/17 agentes implementados (Drummond e Obaluaiê já existem!)
-**Entregáveis**: 17/17 agentes operacionais e integrados
+**Status Atual**: 17/17 agentes implementados! ✅
+**Entregáveis**: 17/17 agentes operacionais, integração com memória e ML pipeline pendentes
 
 ### 🔵 **FASE 4: INTEGRAÇÕES & ESCALA** (Sprints 10-12)
 *Foco: Integrações Governamentais e Performance*
