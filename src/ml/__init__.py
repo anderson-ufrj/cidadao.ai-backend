@@ -1,19 +1,37 @@
-"""Machine Learning models and utilities for Cidadao.AI.
+"""
+ML Pipeline Module
 
-This module provides ML capabilities including:
-- Anomaly detection algorithms
-- Pattern analysis and correlation detection
-- Predictive models for spending analysis
-
-Status: Stub implementation - Full ML models planned for enhancement phase.
+This module provides machine learning capabilities including:
+- Model training pipeline
+- Model versioning
+- A/B testing framework
 """
 
-from .anomaly_detector import AnomalyDetector
-from .pattern_analyzer import PatternAnalyzer
-from .models import MLModel
+from src.ml.training_pipeline import (
+    MLTrainingPipeline,
+    training_pipeline,
+    get_training_pipeline
+)
+
+from src.ml.ab_testing import (
+    ABTestFramework,
+    ABTestStatus,
+    TrafficAllocationStrategy,
+    ab_testing,
+    get_ab_testing
+)
+
 
 __all__ = [
-    "AnomalyDetector",
-    "PatternAnalyzer", 
-    "MLModel"
+    # Training Pipeline
+    "MLTrainingPipeline",
+    "training_pipeline",
+    "get_training_pipeline",
+    
+    # A/B Testing
+    "ABTestFramework",
+    "ABTestStatus", 
+    "TrafficAllocationStrategy",
+    "ab_testing",
+    "get_ab_testing"
 ]
