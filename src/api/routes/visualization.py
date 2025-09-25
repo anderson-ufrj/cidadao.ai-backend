@@ -21,7 +21,7 @@ from src.agents.lampiao import LampiaoAgent, RegionType
 from src.api.middleware.authentication import get_current_user
 from src.db.session import get_session as get_db
 from src.services.cache_service import CacheService
-from src.core.rate_limit import RateLimiter, rate_limit
+from src.infrastructure.rate_limiter import RateLimiter, rate_limit
 from src.core import get_logger
 from src.services.agent_lazy_loader import AgentLazyLoader
 from src.agents.deodoro import AgentContext
