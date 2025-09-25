@@ -262,6 +262,16 @@ class Settings(BaseSettings):
     cache_ttl_seconds: int = Field(default=3600, description="Cache TTL")
     cache_max_size: int = Field(default=1000, description="Max cache size")
     
+    # Compression
+    compression_enabled: bool = Field(default=True, description="Enable response compression")
+    compression_min_size: int = Field(default=1024, description="Min size to compress (bytes)")
+    compression_gzip_level: int = Field(default=6, description="Gzip compression level (1-9)")
+    compression_brotli_quality: int = Field(default=4, description="Brotli quality (0-11)")
+    compression_algorithms: List[str] = Field(
+        default=["gzip", "br", "deflate"],
+        description="Enabled compression algorithms"
+    )
+    
     # Feature Flags
     enable_fine_tuning: bool = Field(default=False, description="Enable fine-tuning")
     enable_autonomous_crawling: bool = Field(default=False, description="Enable crawling")
