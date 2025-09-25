@@ -521,6 +521,12 @@ app.include_router(
     tags=["Geographic Data"]
 )
 
+from src.api.routes import ml_pipeline
+app.include_router(
+    ml_pipeline.router,
+    tags=["ML Pipeline"]
+)
+
 
 # Global exception handler
 @app.exception_handler(CidadaoAIError)
