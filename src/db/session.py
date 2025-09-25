@@ -28,7 +28,7 @@ async def get_session(
         read_only: Use read replica if available
         
     Yields:
-        AsyncSession instance
+        AsyncSession instance or None if no database available
     """
     async with connection_pool_service.get_db_session(
         pool_name="main",
@@ -52,7 +52,9 @@ async def init_database():
             error=str(e),
             exc_info=True
         )
-        raise
+        # Don't raise - allow app to start without database
+        # This is needed for HuggingFace Spaces deployment
+        logger.warning("Running without database connection - some features may be limited")
 
 
 async def close_database():
