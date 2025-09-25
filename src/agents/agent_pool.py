@@ -65,7 +65,8 @@ class AgentPool:
         min_size: int = 2,
         max_size: int = 10,
         idle_timeout: int = 300,  # 5 minutes
-        max_agent_lifetime: int = 3600  # 1 hour
+        max_agent_lifetime: int = 3600,  # 1 hour
+        use_lazy_loading: bool = True
     ):
         """
         Initialize agent pool.
@@ -75,11 +76,13 @@ class AgentPool:
             max_size: Maximum pool size per agent type
             idle_timeout: Seconds before removing idle agents
             max_agent_lifetime: Maximum agent lifetime in seconds
+            use_lazy_loading: Enable lazy loading for agents
         """
         self.min_size = min_size
         self.max_size = max_size
         self.idle_timeout = idle_timeout
         self.max_agent_lifetime = max_agent_lifetime
+        self._use_lazy_loading = use_lazy_loading
         
         # Pool storage: agent_type -> list of entries
         self._pools: Dict[Type[BaseAgent], List[AgentPoolEntry]] = {}
@@ -92,7 +95,8 @@ class AgentPool:
             "created": 0,
             "reused": 0,
             "evicted": 0,
-            "errors": 0
+            "errors": 0,
+            "lazy_loaded": 0
         }
         
         # Cleanup task
@@ -103,7 +107,13 @@ class AgentPool:
         """Start the agent pool and cleanup task."""
         self._running = True
         self._cleanup_task = asyncio.create_task(self._cleanup_loop())
-        logger.info("Agent pool started")
+        
+        # Initialize lazy loader if enabled
+        if self._use_lazy_loading:
+            from src.services.agent_lazy_loader import agent_lazy_loader
+            await agent_lazy_loader.start()
+        
+        logger.info("Agent pool started", lazy_loading=self._use_lazy_loading)
     
     async def stop(self):
         """Stop the agent pool and cleanup resources."""
@@ -126,6 +136,12 @@ class AgentPool:
                     logger.error(f"Error cleaning up agent: {e}")
         
         self._pools.clear()
+        
+        # Stop lazy loader if enabled
+        if self._use_lazy_loading:
+            from src.services.agent_lazy_loader import agent_lazy_loader
+            await agent_lazy_loader.stop()
+        
         logger.info("Agent pool stopped")
     
     @asynccontextmanager
@@ -187,6 +203,24 @@ class AgentPool:
     async def _create_agent(self, agent_type: Type[BaseAgent]) -> BaseAgent:
         """Create and initialize a new agent."""
         try:
+            # Check if we should use lazy loader
+            if hasattr(agent_type, '__name__') and self._use_lazy_loading:
+                # Try to get from lazy loader
+                from src.services.agent_lazy_loader import agent_lazy_loader
+                agent_name = agent_type.__name__.replace('Agent', '')
+                
+                try:
+                    # Use lazy loader to create agent
+                    agent = await agent_lazy_loader.create_agent(agent_name)
+                    self._all_agents.add(agent)
+                    self._stats["lazy_loaded"] += 1
+                    logger.debug(f"Created agent {agent_name} using lazy loader")
+                    return agent
+                except Exception:
+                    # Fallback to direct instantiation
+                    logger.debug(f"Lazy loader failed for {agent_name}, using direct instantiation")
+            
+            # Direct instantiation
             agent = agent_type()
             self._all_agents.add(agent)
             
