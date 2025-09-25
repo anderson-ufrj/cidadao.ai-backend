@@ -3,7 +3,7 @@
 **Autor**: Anderson Henrique da Silva  
 **Data**: 2025-09-24 14:52:00 -03:00  
 **Versão**: 1.1  
-**Última Atualização**: 2025-09-25 - Sprint 4 concluída 100%
+**Última Atualização**: 2025-09-25 - Sprint 5 concluída 100%
 
 ## 📊 Status do Progresso
 
@@ -11,9 +11,10 @@
 - **✅ Sprint 2**: Concluída - Refatoração de Agentes e Performance
 - **✅ Sprint 3**: Concluída - Infraestrutura de Testes e Monitoramento
 - **✅ Sprint 4**: Concluída - Sistema de Notificações e Exports (100% completo)
-- **⏳ Sprints 5-12**: Planejadas
+- **✅ Sprint 5**: Concluída - CLI & Automação com Batch Processing (100% completo)
+- **⏳ Sprints 6-12**: Planejadas
 
-**Progresso Geral**: 33% (4/12 sprints concluídas)
+**Progresso Geral**: 42% (5/12 sprints concluídas)
 
 ## 📋 Resumo Executivo
 
@@ -105,21 +106,23 @@ Este documento apresenta um roadmap estruturado para melhorias no backend do Cid
 
 **Entregáveis**: Sistema de notificações e exports 100% funcional ✅
 
-#### Sprint 5 (Semanas 9-10)
+#### ✅ Sprint 5 (Semanas 9-10) - CONCLUÍDA
 **Tema: CLI & Automação**
 
-1. **CLI Commands**
-   - [ ] Implementar `cidadao investigate`
-   - [ ] Implementar `cidadao analyze`
-   - [ ] Implementar `cidadao report`
-   - [ ] Implementar `cidadao watch`
+1. **CLI Commands** ✅ (100% Completo - 2025-09-25)
+   - [x] Implementar `cidadao investigate` com streaming e múltiplos formatos de saída
+   - [x] Implementar `cidadao analyze` com análise de padrões e visualização em dashboard
+   - [x] Implementar `cidadao report` com geração de relatórios e download em PDF/Excel/Markdown
+   - [x] Implementar `cidadao watch` com monitoramento em tempo real e alertas
 
-2. **Batch Processing**
-   - [ ] Sistema de filas com prioridade
-   - [ ] Job scheduling (Celery)
-   - [ ] Retry mechanisms
+2. **Batch Processing** ✅ (100% Completo - 2025-09-25)
+   - [x] Sistema de filas com prioridade usando heapq e async workers
+   - [x] Integração Celery para job scheduling com 5 níveis de prioridade
+   - [x] Retry mechanisms com políticas configuráveis (exponential backoff, circuit breaker)
+   - [x] Batch service completo com API REST para submissão e monitoramento
+   - [x] Tasks Celery para investigação, análise, relatórios, export e monitoramento
 
-**Entregáveis**: CLI funcional, processamento em lote
+**Entregáveis**: CLI totalmente funcional com comandos ricos em features, sistema de batch processing enterprise-grade com Celery, filas de prioridade e retry avançado ✅
 
 #### Sprint 6 (Semanas 11-12)
 **Tema: Segurança Avançada**
