@@ -2,8 +2,8 @@
 
 **Autor**: Anderson Henrique da Silva  
 **Data**: 2025-09-24 14:52:00 -03:00  
-**Versão**: 1.1  
-**Última Atualização**: 2025-09-25 - Sprint 6 concluída (100%)
+**Versão**: 1.2  
+**Última Atualização**: 2025-09-25 - Sprint 8 iniciada
 
 ## 📊 Status do Progresso
 
@@ -164,19 +164,20 @@ Este documento apresenta um roadmap estruturado para melhorias no backend do Cid
 **Entregáveis**: 10/17 agentes operacionais, sistema de orquestração completo, métricas detalhadas
 
 #### Sprint 8 (Semanas 15-16)
-**Tema: Agentes de Visualização e ETL**
+**Tema: Agentes de ETL e APIs de Dados**
 
 1. **Implementar Agentes**
-   - [ ] Oscar Niemeyer (Visualization) - geração de gráficos
-   - [ ] Ceuci (ETL) - pipelines de dados
-   - [ ] Lampião (Regional) - análise regional
+   - [ ] Oscar Niemeyer (Data Aggregation) - agregação de dados e APIs de metadados
+   - [ ] Ceuci (ETL) - pipelines de transformação de dados
+   - [ ] Lampião (Regional) - análise e agregação de dados regionais
 
-2. **Visualizações**
-   - [ ] Dashboard interativo
-   - [ ] Mapas geográficos
-   - [ ] Export de visualizações
+2. **APIs de Dados para Frontend**
+   - [ ] API de agregação de dados para visualização
+   - [ ] API de dados geográficos (estados, municípios)
+   - [ ] API de séries temporais para gráficos
+   - [ ] Export de dados em formatos JSON/CSV otimizados
 
-**Entregáveis**: 15/17 agentes operacionais
+**Entregáveis**: 13/17 agentes operacionais, APIs de dados prontas para frontend
 
 #### Sprint 9 (Semanas 17-18)
 **Tema: Agentes Especializados**
