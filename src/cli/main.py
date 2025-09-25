@@ -28,7 +28,7 @@ from src.cli.commands import (
     analyze,
     investigate,
     report,
-    watch_command,
+    watch,
 )
 from src.core.config import get_settings
 
@@ -48,7 +48,7 @@ console = Console()
 app.command("investigate", help="🔍 Executar investigações de anomalias em dados públicos")(investigate)
 app.command("analyze", help="📊 Analisar padrões e correlações em dados governamentais")(analyze)
 app.command("report", help="📋 Gerar relatórios detalhados de investigações")(report)
-app.command("watch", help="👀 Monitorar dados em tempo real para anomalias")(watch_command)
+app.command("watch", help="👀 Monitorar dados em tempo real para anomalias")(watch)
 
 
 @app.command("version")
