@@ -34,7 +34,7 @@ class IPWhitelist(BaseModel):
     created_by = Column(String(255), nullable=False)
     created_at = Column(DateTime(timezone=True), nullable=False, default=lambda: datetime.now(timezone.utc))
     expires_at = Column(DateTime(timezone=True), nullable=True)
-    metadata = Column(JSON, default=dict)
+    meta_info = Column(JSON, default=dict)
     
     # CIDR support
     is_cidr = Column(Boolean, default=False)
@@ -84,7 +84,7 @@ class IPWhitelistService:
         environment: str = "production",
         expires_at: Optional[datetime] = None,
         is_cidr: bool = False,
-        metadata: Optional[Dict[str, Any]] = None
+        meta_info: Optional[Dict[str, Any]] = None
     ) -> IPWhitelist:
         """Add IP address or CIDR range to whitelist."""
         try:
@@ -125,7 +125,7 @@ class IPWhitelistService:
             expires_at=expires_at,
             is_cidr=is_cidr,
             cidr_prefix=cidr_prefix,
-            metadata=metadata or {}
+            meta_info=meta_info or {}
         )
         
         session.add(entry)
@@ -238,7 +238,7 @@ class IPWhitelistService:
         active: Optional[bool] = None,
         description: Optional[str] = None,
         expires_at: Optional[datetime] = None,
-        metadata: Optional[Dict[str, Any]] = None
+        meta_info: Optional[Dict[str, Any]] = None
     ) -> Optional[IPWhitelist]:
         """Update whitelist entry."""
         result = await session.execute(
@@ -258,8 +258,8 @@ class IPWhitelistService:
             entry.description = description
         if expires_at is not None:
             entry.expires_at = expires_at
-        if metadata is not None:
-            entry.metadata = metadata
+        if meta_info is not None:
+            entry.meta_info = meta_info
         
         await session.commit()
         await self._invalidate_cache()
