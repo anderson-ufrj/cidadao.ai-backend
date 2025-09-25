@@ -37,3 +37,10 @@ graphql-core>=3.2.0
 # Basic OpenTelemetry without complex dependencies
 opentelemetry-api==1.21.0
 opentelemetry-sdk==1.21.0
+
+# Export libraries
+reportlab>=4.0.9
+openpyxl>=3.1.2
+markdown>=3.5.1
+beautifulsoup4>=4.12.2
+weasyprint>=60.2
