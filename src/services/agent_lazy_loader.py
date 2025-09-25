@@ -215,6 +215,16 @@ class AgentLazyLoader:
             priority=5,
             preload=False
         )
+        
+        self.register_agent(
+            name="Oxossi",
+            module_path="src.agents.oxossi",
+            class_name="OxossiAgent",
+            description="Fraud detection and tracking specialist with precision hunting capabilities",
+            capabilities=["fraud_detection", "pattern_recognition", "financial_forensics", "evidence_tracking"],
+            priority=9,
+            preload=False
+        )
     
     def register_agent(
         self,
