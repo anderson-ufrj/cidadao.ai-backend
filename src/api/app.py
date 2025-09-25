@@ -10,11 +10,11 @@ import asyncio
 from contextlib import asynccontextmanager
 from typing import Dict, Any
 
-from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
+from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 # from fastapi.middleware.trustedhost import TrustedHostMiddleware  # Disabled for HuggingFace
 from fastapi.responses import JSONResponse
-from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
 from fastapi.openapi.utils import get_openapi
 
 from src.core import get_logger, settings
@@ -165,6 +165,8 @@ app = FastAPI(
     lifespan=lifespan,
     docs_url=None,  # Disable default docs
     redoc_url=None,  # Disable redoc
+    openapi_url="/openapi.json",  # Explicit OpenAPI URL
+    root_path="",  # Important for proxy environments
 )
 
 # Add security middleware (order matters!)
@@ -285,10 +287,11 @@ def custom_openapi():
         "url": "https://cidadao.ai/logo.png"
     }
     
-    # Add servers
+    # Add servers - include HuggingFace Spaces
     openapi_schema["servers"] = [
         {"url": "http://localhost:8000", "description": "Development server"},
         {"url": "https://api.cidadao.ai", "description": "Production server"},
+        {"url": "https://neural-thinker-cidadao-ai-backend.hf.space", "description": "HuggingFace Spaces"},
     ]
     
     # Add security schemes
@@ -314,14 +317,55 @@ app.openapi = custom_openapi
 
 # Custom documentation endpoint
 @app.get("/docs", include_in_schema=False)
-async def custom_swagger_ui_html():
+async def custom_swagger_ui_html(request: Request):
     """Custom Swagger UI with branding."""
+    # Get the base URL from request headers (important for proxy environments)
+    root_path = request.scope.get("root_path", "")
+    
+    # In HuggingFace Spaces, we need to handle the proxy headers
+    forwarded_proto = request.headers.get("x-forwarded-proto", "http")
+    forwarded_host = request.headers.get("x-forwarded-host", request.headers.get("host", "localhost"))
+    
+    # Build the correct OpenAPI URL
+    if "hf.space" in forwarded_host:
+        # HuggingFace Spaces specific handling
+        openapi_url = "/openapi.json"
+    else:
+        # Standard deployment
+        openapi_url = f"{root_path}/openapi.json" if root_path else "/openapi.json"
+    
     return get_swagger_ui_html(
-        openapi_url=app.openapi_url,
+        openapi_url=openapi_url,
         title=f"{app.title} - Documentação",
         swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
         swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
         swagger_favicon_url="https://cidadao.ai/favicon.ico",
+    )
+
+
+# Custom ReDoc endpoint
+@app.get("/redoc", include_in_schema=False)
+async def custom_redoc_html(request: Request):
+    """Custom ReDoc with branding."""
+    # Get the base URL from request headers (important for proxy environments)
+    root_path = request.scope.get("root_path", "")
+    
+    # In HuggingFace Spaces, we need to handle the proxy headers
+    forwarded_host = request.headers.get("x-forwarded-host", request.headers.get("host", "localhost"))
+    
+    # Build the correct OpenAPI URL
+    if "hf.space" in forwarded_host:
+        # HuggingFace Spaces specific handling
+        openapi_url = "/openapi.json"
+    else:
+        # Standard deployment
+        openapi_url = f"{root_path}/openapi.json" if root_path else "/openapi.json"
+    
+    return get_redoc_html(
+        openapi_url=openapi_url,
+        title=f"{app.title} - Documentação",
+        redoc_js_url="https://cdn.jsdelivr.net/npm/redoc/bundles/redoc.standalone.js",
+        redoc_favicon_url="https://cidadao.ai/favicon.ico",
     )
 
 
@@ -686,14 +730,32 @@ async def root():
 async def test_portal():
     """Test Portal da Transparência integration status."""
     import os
+    from src.services.chat_data_integration import chat_data_integration
+    
+    # Test the service is available
+    integration_available = False
+    try:
+        if chat_data_integration:
+            integration_available = True
+    except:
+        pass
+    
     return {
         "portal_integration": "enabled",
         "api_key_configured": bool(os.getenv("TRANSPARENCY_API_KEY")),
+        "integration_service_available": integration_available,
         "endpoints": {
-            "chat_stable": "/api/v1/chat/stable",
+            "chat_message": "/api/v1/chat/message",
+            "chat_stream": "/api/v1/chat/stream",
             "test_portal": "/api/v1/chat/test-portal/{query}",
             "debug_status": "/api/v1/chat/debug/portal-status"
-        }
+        },
+        "demo_mode": not bool(os.getenv("TRANSPARENCY_API_KEY")),
+        "example_queries": [
+            "Liste os últimos 3 contratos do ministério da saúde",
+            "Mostre contratos com valor acima de 1 milhão",
+            "Quais empresas têm mais contratos com o governo?"
+        ]
     }
 
 # API info endpoint

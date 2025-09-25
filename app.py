@@ -28,11 +28,13 @@ if __name__ == "__main__":
     print(f"🌐 Running on port {port}")
     print("=" * 60)
     
-    # Run the complete API
+    # Run the complete API with HuggingFace Spaces compatibility
     uvicorn.run(
         app, 
         host="0.0.0.0", 
         port=port,
         forwarded_allow_ips="*",  # Allow all proxy IPs for HuggingFace
-        proxy_headers=True  # Trust proxy headers from HuggingFace
+        proxy_headers=True,  # Trust proxy headers from HuggingFace
+        root_path="",  # Important for correct URL generation
+        access_log=True  # Enable access logging
     )
