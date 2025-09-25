@@ -15,7 +15,7 @@ from sqlalchemy.orm import selectinload
 
 from src.core import get_logger
 from src.models.api_key import APIKey, APIKeyRotation, APIKeyStatus, APIKeyTier
-from src.core.exceptions import ValidationError, ResourceResourceNotFoundError, AuthenticationError
+from src.core.exceptions import ValidationError, ResourceNotFoundError, AuthenticationError
 from src.core.cache import CacheService
 from src.services.notification_service import NotificationService
 
