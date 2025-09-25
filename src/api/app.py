@@ -214,6 +214,19 @@ app.add_middleware(
     strategy="sliding_window"
 )
 
+# Add query tracking middleware for cache optimization
+from src.api.middleware.query_tracking import QueryTrackingMiddleware
+app.add_middleware(
+    QueryTrackingMiddleware,
+    tracked_paths=[
+        "/api/v1/investigations",
+        "/api/v1/contracts", 
+        "/api/v1/analysis",
+        "/api/v1/reports"
+    ],
+    sample_rate=0.1 if settings.is_production else 1.0  # 10% sampling in production
+)
+
 
 # Custom OpenAPI schema
 def custom_openapi():
@@ -392,12 +405,26 @@ app.include_router(
 
 # Import and include admin routes
 from src.api.routes.admin import ip_whitelist as admin_ip_whitelist
+from src.api.routes.admin import cache_warming as admin_cache_warming
+from src.api.routes.admin import database_optimization as admin_db_optimization
 from src.api.routes import api_keys
 
 app.include_router(
     admin_ip_whitelist.router,
     prefix="/api/v1/admin",
     tags=["Admin - IP Whitelist"]
+)
+
+app.include_router(
+    admin_cache_warming.router,
+    prefix="/api/v1/admin",
+    tags=["Admin - Cache Warming"]
+)
+
+app.include_router(
+    admin_db_optimization.router,
+    prefix="/api/v1/admin",
+    tags=["Admin - Database Optimization"]
 )
 
 app.include_router(
