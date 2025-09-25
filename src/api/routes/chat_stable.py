@@ -18,6 +18,11 @@ from src.services.chat_data_integration import chat_data_integration
 
 router = APIRouter(prefix="/api/v1/chat")
 
+@router.get("/health")
+async def chat_stable_health():
+    """Simple health check for chat stable router"""
+    return {"status": "ok", "router": "chat_stable", "portal_integration": "enabled"}
+
 # Initialize services with lazy loading
 maritaca_client = None
 intent_detector = None
