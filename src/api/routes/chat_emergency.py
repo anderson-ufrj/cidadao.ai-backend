@@ -88,7 +88,7 @@ async def try_maritaca(message: str) -> Optional[str]:
                         },
                         {"role": "user", "content": message}
                     ],
-                    "model": "sabia-3",
+                    "model": "sabiazinho-3",
                     "temperature": 0.7,
                     "max_tokens": 400
                 }
@@ -123,7 +123,7 @@ async def chat_emergency(request: ChatRequest) -> ChatResponse:
             confidence=0.95,
             suggested_actions=["investigate_contracts", "analyze_expenses", "generate_report"],
             metadata={
-                "model": "sabia-3",
+                "model": "sabiazinho-3",
                 "backend": "maritaca_ai",
                 "timestamp": datetime.utcnow().isoformat()
             }
