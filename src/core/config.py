@@ -159,19 +159,34 @@ class Settings(BaseSettings):
     cors_origins: List[str] = Field(
         default=[
             "http://localhost:3000",
-            "http://localhost:8000", 
+            "http://localhost:3001",
+            "http://localhost:8000",
+            "http://127.0.0.1:3000",
             "https://cidadao-ai-frontend.vercel.app",
+            "https://cidadao-ai.vercel.app",
             "https://*.vercel.app",
-            "https://neural-thinker-cidadao-ai-backend.hf.space"
+            "https://neural-thinker-cidadao-ai-backend.hf.space",
+            "https://*.hf.space"
         ],
         description="CORS allowed origins"
     )
     cors_allow_credentials: bool = Field(default=True, description="Allow credentials")
     cors_allow_methods: List[str] = Field(
-        default=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        default=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
         description="Allowed methods"
     )
     cors_allow_headers: List[str] = Field(default=["*"], description="Allowed headers")
+    cors_exposed_headers: List[str] = Field(
+        default=[
+            "X-RateLimit-Limit",
+            "X-RateLimit-Remaining",
+            "X-RateLimit-Reset",
+            "X-Request-ID",
+            "X-Total-Count"
+        ],
+        description="Exposed headers"
+    )
+    cors_max_age: int = Field(default=3600, description="CORS max age in seconds")
     
     # Rate Limiting
     rate_limit_per_minute: int = Field(default=60, description="Rate limit per minute")
