@@ -21,7 +21,6 @@ class Base(DeclarativeBase):
     pass
 
 
-@as_declarative()
 class BaseModel(Base):
     """
     Base model with common fields for all tables.
