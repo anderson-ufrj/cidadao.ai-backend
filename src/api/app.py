@@ -287,6 +287,13 @@ app.include_router(
     tags=["Reports"]
 )
 
+from src.api.routes import export
+app.include_router(
+    export.router,
+    prefix="/api/v1/export",
+    tags=["Export"]
+)
+
 app.include_router(
     chat.router,
     prefix="/api/v1/chat",
