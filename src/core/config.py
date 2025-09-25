@@ -178,6 +178,11 @@ class Settings(BaseSettings):
     rate_limit_per_hour: int = Field(default=1000, description="Rate limit per hour")
     rate_limit_per_day: int = Field(default=10000, description="Rate limit per day")
     
+    # IP Whitelist
+    ip_whitelist_enabled: bool = Field(default=True, description="Enable IP whitelist in production")
+    ip_whitelist_strict: bool = Field(default=False, description="Strict mode - reject if IP unknown")
+    ip_whitelist_cache_ttl: int = Field(default=300, description="IP whitelist cache TTL seconds")
+    
     # Celery
     celery_broker_url: str = Field(
         default="redis://localhost:6379/1",
