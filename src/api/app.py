@@ -27,6 +27,8 @@ from src.api.middleware.logging_middleware import LoggingMiddleware
 from src.api.middleware.security import SecurityMiddleware
 from src.api.middleware.compression import CompressionMiddleware
 from src.api.middleware.metrics_middleware import MetricsMiddleware, setup_http_metrics
+from src.api.middleware.ip_whitelist import IPWhitelistMiddleware
+from src.api.middleware.rate_limit import RateLimitMiddleware as RateLimitMiddlewareV2
 from src.infrastructure.observability import (
     CorrelationMiddleware,
     tracing_manager,
@@ -183,6 +185,39 @@ add_compression_middleware(
     gzip_level=6,
     brotli_quality=4,
     exclude_paths={"/health", "/metrics", "/health/metrics", "/api/v1/ws", "/api/v1/observability"}
+)
+
+# Add IP whitelist middleware (only in production)
+if settings.is_production or settings.app_env == "staging":
+    app.add_middleware(
+        IPWhitelistMiddleware,
+        enabled=True,
+        excluded_paths=[
+            "/health",
+            "/healthz",
+            "/ping",
+            "/ready",
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/metrics",
+            "/static",
+            "/favicon.ico",
+            "/_next",
+            "/api/v1/auth/login",
+            "/api/v1/auth/register", 
+            "/api/v1/auth/refresh",
+            "/api/v1/public",
+            "/api/v1/webhooks/incoming"
+        ],
+        strict_mode=False  # Allow requests if IP can't be determined
+    )
+
+# Add rate limiting middleware v2
+app.add_middleware(
+    RateLimitMiddlewareV2,
+    default_tier="free",
+    strategy="sliding_window"
 )
 
 
@@ -359,6 +394,22 @@ app.include_router(
 app.include_router(
     notifications.router,
     tags=["Notifications"]
+)
+
+# Import and include admin routes
+from src.api.routes.admin import ip_whitelist as admin_ip_whitelist
+from src.api.routes import api_keys
+
+app.include_router(
+    admin_ip_whitelist.router,
+    prefix="/api/v1/admin",
+    tags=["Admin - IP Whitelist"]
+)
+
+app.include_router(
+    api_keys.router,
+    prefix="/api/v1",
+    tags=["API Keys"]
 )
 
 
