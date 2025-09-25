@@ -25,9 +25,9 @@ from rich.panel import Panel
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from src.cli.commands import (
-    analyze_command,
-    investigate_command,
-    report_command,
+    analyze,
+    investigate,
+    report,
     watch_command,
 )
 from src.core.config import get_settings
@@ -45,9 +45,9 @@ app = typer.Typer(
 console = Console()
 
 # Add commands to main app
-app.command("investigate", help="🔍 Executar investigações de anomalias em dados públicos")(investigate_command)
-app.command("analyze", help="📊 Analisar padrões e correlações em dados governamentais")(analyze_command)
-app.command("report", help="📋 Gerar relatórios detalhados de investigações")(report_command)
+app.command("investigate", help="🔍 Executar investigações de anomalias em dados públicos")(investigate)
+app.command("analyze", help="📊 Analisar padrões e correlações em dados governamentais")(analyze)
+app.command("report", help="📋 Gerar relatórios detalhados de investigações")(report)
 app.command("watch", help="👀 Monitorar dados em tempo real para anomalias")(watch_command)
 
 
