@@ -427,6 +427,7 @@ from src.api.routes.admin import cache_warming as admin_cache_warming
 from src.api.routes.admin import database_optimization as admin_db_optimization
 from src.api.routes.admin import compression as admin_compression
 from src.api.routes.admin import connection_pools as admin_conn_pools
+from src.api.routes.admin import agent_lazy_loading as admin_lazy_loading
 from src.api.routes import api_keys
 
 app.include_router(
@@ -457,6 +458,12 @@ app.include_router(
     admin_conn_pools.router,
     prefix="/api/v1/admin",
     tags=["Admin - Connection Pools"]
+)
+
+app.include_router(
+    admin_lazy_loading.router,
+    prefix="/api/v1/admin",
+    tags=["Admin - Agent Lazy Loading"]
 )
 
 app.include_router(
