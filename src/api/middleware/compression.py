@@ -17,6 +17,7 @@ from starlette.datastructures import MutableHeaders
 
 from src.core import get_logger
 from src.core.json_utils import dumps_bytes, loads
+from src.services.compression_service import compression_service, CompressionAlgorithm
 
 try:
     import brotli
@@ -124,39 +125,28 @@ class CompressionMiddleware(BaseHTTPMiddleware):
         async for chunk in response.body_iterator:
             body += chunk
         
-        # Check size threshold
-        if len(body) < self.minimum_size:
-            # Return original response
-            return Response(
-                content=body,
-                status_code=response.status_code,
-                headers=dict(response.headers),
-                media_type=response.media_type
-            )
-        
-        # Choose best compression method
-        if accepts_br and HAS_BROTLI:
-            # Brotli typically achieves better compression
-            compressed_body = self._compress_brotli(body)
-            encoding = "br"
-        elif accepts_gzip:
-            compressed_body = self._compress_gzip(body)
-            encoding = "gzip"
-        else:
-            # Should not reach here, but just in case
-            return Response(
-                content=body,
-                status_code=response.status_code,
-                headers=dict(response.headers),
-                media_type=response.media_type
-            )
-        
-        # Calculate compression ratio
-        compression_ratio = (1 - len(compressed_body) / len(body)) * 100
-        logger.debug(
-            f"Compressed response with {encoding}: {len(body)} → {len(compressed_body)} bytes "
-            f"({compression_ratio:.1f}% reduction)"
+        # Use compression service for optimal compression
+        compressed_body, encoding, metrics = compression_service.compress(
+            data=body,
+            content_type=response.media_type or "application/octet-stream",
+            accept_encoding=accept_encoding
         )
+        
+        # If no compression applied, return original
+        if encoding == "identity":
+            return Response(
+                content=body,
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                media_type=response.media_type
+            )
+        
+        # Log compression metrics
+        if metrics.get("ratio"):
+            logger.debug(
+                f"Compressed response with {encoding}: {metrics['original_size']} → {metrics['compressed_size']} bytes "
+                f"({metrics['ratio']:.1%} reduction, {metrics.get('compression_time_ms', 0):.1f}ms)"
+            )
         
         # Update headers
         headers = MutableHeaders(response.headers)

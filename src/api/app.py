@@ -69,15 +69,25 @@ async def lifespan(app: FastAPI):
     # Setup HTTP metrics
     setup_http_metrics()
     
-    # Initialize global resources here
-    # - Database connections
-    # - Background tasks
-    # - Cache connections
+    # Initialize connection pools
+    from src.db.session import init_database
+    await init_database()
+    
+    # Initialize cache warming scheduler
+    from src.services.cache_warming_service import cache_warming_service
+    warming_task = asyncio.create_task(cache_warming_service.start_warming_scheduler())
     
     yield
     
     # Shutdown
     logger.info("cidadao_ai_api_shutting_down")
+    
+    # Stop cache warming
+    warming_task.cancel()
+    try:
+        await warming_task
+    except asyncio.CancelledError:
+        pass
     
     # Log shutdown event
     await audit_logger.log_event(
@@ -89,10 +99,9 @@ async def lifespan(app: FastAPI):
     # Shutdown observability
     tracing_manager.shutdown()
     
-    # Cleanup resources here
-    # - Close database connections
-    # - Stop background tasks
-    # - Clean up cache
+    # Close database connections
+    from src.db.session import close_database
+    await close_database()
 
 
 # Create FastAPI application
@@ -175,10 +184,19 @@ app.add_middleware(MetricsMiddleware)
 from src.api.middleware.compression import add_compression_middleware
 add_compression_middleware(
     app,
-    minimum_size=1024,
-    gzip_level=6,
-    brotli_quality=4,
+    minimum_size=settings.compression_min_size,
+    gzip_level=settings.compression_gzip_level,
+    brotli_quality=settings.compression_brotli_quality,
     exclude_paths={"/health", "/metrics", "/health/metrics", "/api/v1/ws", "/api/v1/observability"}
+)
+
+# Add streaming compression middleware
+from src.api.middleware.streaming_compression import StreamingCompressionMiddleware
+app.add_middleware(
+    StreamingCompressionMiddleware,
+    minimum_size=256,
+    compression_level=settings.compression_gzip_level,
+    chunk_size=8192
 )
 
 # Add IP whitelist middleware (only in production)
@@ -407,6 +425,8 @@ app.include_router(
 from src.api.routes.admin import ip_whitelist as admin_ip_whitelist
 from src.api.routes.admin import cache_warming as admin_cache_warming
 from src.api.routes.admin import database_optimization as admin_db_optimization
+from src.api.routes.admin import compression as admin_compression
+from src.api.routes.admin import connection_pools as admin_conn_pools
 from src.api.routes import api_keys
 
 app.include_router(
@@ -425,6 +445,18 @@ app.include_router(
     admin_db_optimization.router,
     prefix="/api/v1/admin",
     tags=["Admin - Database Optimization"]
+)
+
+app.include_router(
+    admin_compression.router,
+    prefix="/api/v1/admin",
+    tags=["Admin - Compression"]
+)
+
+app.include_router(
+    admin_conn_pools.router,
+    prefix="/api/v1/admin",
+    tags=["Admin - Connection Pools"]
 )
 
 app.include_router(
