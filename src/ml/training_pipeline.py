@@ -52,7 +52,7 @@ class MLTrainingPipeline:
         """Initialize the training pipeline."""
         self.experiment_name = experiment_name
         self.mlflow_client = None
-        self.models_dir = Path(settings.get("ML_MODELS_DIR", "./models"))
+        self.models_dir = Path(getattr(settings, "ML_MODELS_DIR", "./models"))
         self.models_dir.mkdir(exist_ok=True)
         
         # Supported algorithms
@@ -70,7 +70,7 @@ class MLTrainingPipeline:
     def _initialize_mlflow(self):
         """Initialize MLflow tracking."""
         try:
-            mlflow.set_tracking_uri(settings.get("MLFLOW_TRACKING_URI", "file:./mlruns"))
+            mlflow.set_tracking_uri(getattr(settings, "MLFLOW_TRACKING_URI", "file:./mlruns"))
             mlflow.set_experiment(self.experiment_name)
             self.mlflow_client = MlflowClient()
             logger.info(f"MLflow initialized with experiment: {self.experiment_name}")
@@ -514,10 +514,12 @@ class MLTrainingPipeline:
         return count
 
 
-# Global training pipeline instance
-training_pipeline = MLTrainingPipeline()
+# Global training pipeline instance (lazy initialization)
+_training_pipeline = None
 
-
-async def get_training_pipeline() -> MLTrainingPipeline:
-    """Get the global training pipeline instance."""
-    return training_pipeline
+def get_training_pipeline() -> MLTrainingPipeline:
+    """Get or create the global training pipeline instance."""
+    global _training_pipeline
+    if _training_pipeline is None:
+        _training_pipeline = MLTrainingPipeline()
+    return _training_pipeline
