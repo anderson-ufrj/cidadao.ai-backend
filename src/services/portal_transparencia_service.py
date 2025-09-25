@@ -124,6 +124,11 @@ class PortalTransparenciaService:
             logger.info("Returning cached contracts data")
             return cached
             
+        # Demo mode if no API key
+        if not self.api_key:
+            logger.warning("No API key configured - returning demo data")
+            return self._get_demo_contracts(params)
+            
         try:
             response = await self.client.get(
                 self.ENDPOINTS["contratos"],
@@ -455,6 +460,83 @@ class PortalTransparenciaService:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         """Async context manager exit."""
         await self.close()
+        
+    def _get_demo_contracts(self, params: Dict[str, Any]) -> Dict[str, Any]:
+        """Get demo contracts when no API key is available."""
+        from datetime import datetime
+        
+        demo_contracts = [
+            {
+                "id": "CTR-2024-001",
+                "numero": "001/2024",
+                "objeto": "Aquisição de medicamentos para tratamento de COVID-19 e outras doenças respiratórias",
+                "valorTotal": 2500000.00,
+                "dataAssinatura": "2024-01-15",
+                "dataPublicacao": "2024-01-16",
+                "vigenciaInicio": "2024-01-20",
+                "vigenciaFim": "2025-01-20",
+                "situacao": "Ativo",
+                "modalidadeCompra": "Pregão Eletrônico",
+                "cnpjFornecedor": "12345678000190",
+                "nomeFantasiaFornecedor": "Farmacêutica Nacional S.A.",
+                "orgaoContratante": {
+                    "codigo": "26000",
+                    "nome": "Ministério da Saúde",
+                    "sigla": "MS"
+                }
+            },
+            {
+                "id": "CTR-2024-002", 
+                "numero": "002/2024",
+                "objeto": "Contratação de serviços de manutenção hospitalar para unidades de saúde",
+                "valorTotal": 8750000.00,
+                "dataAssinatura": "2024-02-01",
+                "dataPublicacao": "2024-02-02",
+                "vigenciaInicio": "2024-02-05",
+                "vigenciaFim": "2025-02-05",
+                "situacao": "Ativo",
+                "modalidadeCompra": "Concorrência",
+                "cnpjFornecedor": "98765432000123",
+                "nomeFantasiaFornecedor": "Engenharia e Manutenção LTDA",
+                "orgaoContratante": {
+                    "codigo": "26000",
+                    "nome": "Ministério da Saúde",
+                    "sigla": "MS"
+                }
+            },
+            {
+                "id": "CTR-2024-003",
+                "numero": "003/2024",
+                "objeto": "Fornecimento de equipamentos de proteção individual (EPIs) para profissionais de saúde",
+                "valorTotal": 3200000.00,
+                "dataAssinatura": "2024-03-10",
+                "dataPublicacao": "2024-03-11",
+                "vigenciaInicio": "2024-03-15",
+                "vigenciaFim": "2025-03-15",
+                "situacao": "Ativo",
+                "modalidadeCompra": "Pregão Eletrônico",
+                "cnpjFornecedor": "11223344000155",
+                "nomeFantasiaFornecedor": "Proteção Médica Distribuidora",
+                "orgaoContratante": {
+                    "codigo": "26000",
+                    "nome": "Ministério da Saúde",
+                    "sigla": "MS"
+                }
+            }
+        ]
+        
+        # Filter by organization if specified
+        if params.get("codigoOrgao"):
+            demo_contracts = [c for c in demo_contracts if c["orgaoContratante"]["codigo"] == params["codigoOrgao"]]
+            
+        return {
+            "contratos": demo_contracts[:params.get("tamanhoPagina", 100)],
+            "total": len(demo_contracts),
+            "pagina": params.get("pagina", 1),
+            "tamanho_pagina": params.get("tamanhoPagina", 100),
+            "timestamp": datetime.utcnow().isoformat(),
+            "demo_mode": True
+        }
 
 
 # Singleton instance
