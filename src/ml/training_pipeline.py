@@ -30,7 +30,7 @@ from mlflow.tracking import MlflowClient
 from src.core import get_logger, settings
 from src.core.exceptions import CidadaoAIError
 from src.core.cache import get_redis_client
-from src.models.ml_models import AnomalyDetectorModel
+# from src.models.ml_models import AnomalyDetectorModel  # TODO: Create this model
 
 
 logger = get_logger(__name__)
