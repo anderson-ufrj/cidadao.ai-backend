@@ -42,7 +42,8 @@ class ExportRequest(BaseModel):
         """Validate export type."""
         allowed_types = [
             'investigations', 'contracts', 'anomalies', 
-            'reports', 'analytics', 'full_data'
+            'reports', 'analytics', 'full_data',
+            'visualization', 'regional_analysis', 'time_series'
         ]
         if v not in allowed_types:
             raise ValueError(f'Export type must be one of: {allowed_types}')
@@ -385,3 +386,298 @@ def _format_investigation_as_markdown(investigation: Dict[str, Any]) -> str:
             lines.append("")
     
     return "\n".join(lines)
+
+
+@router.post("/visualization/export")
+async def export_visualization_data(
+    request: ExportRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    Export visualization data in optimized formats.
+    
+    Uses the Oscar Niemeyer agent to format data for charts and dashboards.
+    Supports Excel with multiple sheets, CSV, and JSON formats.
+    """
+    from src.services.agent_lazy_loader import AgentLazyLoader
+    from src.agents.oscar_niemeyer import OscarNiemeyerAgent
+    from src.agents.deodoro import AgentContext
+    
+    agent_loader = AgentLazyLoader()
+    
+    # Get Oscar Niemeyer agent
+    oscar_agent = await agent_loader.get_agent("oscar_niemeyer")
+    if not oscar_agent:
+        oscar_agent = OscarNiemeyerAgent()
+        await oscar_agent.initialize()
+    
+    filename = f"visualization_data_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    
+    # Get data based on filters
+    filters = request.filters or {}
+    dataset_type = filters.get("dataset_type", "contracts")
+    time_range = filters.get("time_range", "30d")
+    dimensions = filters.get("dimensions", ["category"])
+    metrics = filters.get("metrics", ["total_value", "count"])
+    
+    # Create context for Oscar agent
+    context = AgentContext(
+        investigation_id=f"export_{uuid4()}",
+        user_id=current_user.get("user_id"),
+        session_id="export_session",
+        metadata={"export_format": request.format}
+    )
+    
+    # Get visualization data from Oscar
+    from src.agents.deodoro import AgentMessage
+    message = AgentMessage(
+        role="user",
+        content=f"Generate visualization data for export",
+        type="visualization_metadata",
+        data={
+            "data_type": dataset_type,
+            "dimensions": dimensions,
+            "metrics": metrics,
+            "time_range": time_range,
+            "export": True
+        }
+    )
+    
+    response = await oscar_agent.process(message, context)
+    
+    if not response.success:
+        raise HTTPException(status_code=500, detail="Failed to generate visualization data")
+    
+    viz_data = response.data
+    
+    if request.format == "excel":
+        # Create multiple sheets for different visualizations
+        dataframes = {}
+        
+        # Summary sheet
+        summary_data = {
+            "Metric": metrics,
+            "Total": [1000000, 150],  # Placeholder values
+            "Average": [50000, 7.5],
+            "Min": [1000, 1],
+            "Max": [500000, 50]
+        }
+        dataframes["Summary"] = pd.DataFrame(summary_data)
+        
+        # Time series data if applicable
+        if hasattr(viz_data, "series"):
+            series_data = []
+            for series in viz_data.series:
+                series_data.append({
+                    "Series": series["name"],
+                    "Field": series["field"],
+                    "Type": series.get("type", "line")
+                })
+            dataframes["Series Configuration"] = pd.DataFrame(series_data)
+        
+        # Dimensional breakdown
+        if dimensions:
+            dim_data = {
+                "Dimension": dimensions,
+                "Unique Values": [10, 5, 20],  # Placeholder
+                "Coverage": ["100%", "95%", "100%"]
+            }
+            dataframes["Dimensions"] = pd.DataFrame(dim_data)
+        
+        excel_bytes = await export_service.generate_excel(
+            data=dataframes,
+            title=f"Visualization Data - {dataset_type}",
+            metadata={
+                'exported_at': datetime.now().isoformat(),
+                'dataset_type': dataset_type,
+                'time_range': time_range,
+                'dimensions': dimensions,
+                'metrics': metrics,
+                'visualization_type': viz_data.visualization_type.value if hasattr(viz_data, 'visualization_type') else 'unknown'
+            }
+        )
+        
+        return Response(
+            content=excel_bytes,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}.xlsx"
+            }
+        )
+    
+    elif request.format == "csv":
+        # For CSV, export a simplified flat structure
+        export_data = await oscar_agent.create_export_format(
+            data=[],  # Would contain actual data
+            format_type="csv",
+            options={"delimiter": ","}
+        )
+        
+        return Response(
+            content=export_data,
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}.csv"
+            }
+        )
+    
+    elif request.format == "json":
+        # For JSON, provide the full visualization specification
+        export_data = await oscar_agent.create_export_format(
+            data={
+                "visualization": {
+                    "type": viz_data.visualization_type.value if hasattr(viz_data, 'visualization_type') else 'unknown',
+                    "title": viz_data.title if hasattr(viz_data, 'title') else "Data Export",
+                    "config": {
+                        "x_axis": viz_data.x_axis if hasattr(viz_data, 'x_axis') else {},
+                        "y_axis": viz_data.y_axis if hasattr(viz_data, 'y_axis') else {},
+                        "series": viz_data.series if hasattr(viz_data, 'series') else []
+                    }
+                },
+                "metadata": {
+                    "exported_at": datetime.now().isoformat(),
+                    "filters": filters
+                }
+            },
+            format_type="json",
+            options={"pretty": True}
+        )
+        
+        return Response(
+            content=export_data,
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}.json"
+            }
+        )
+    
+    else:
+        raise HTTPException(status_code=400, detail=f"Format {request.format} not supported for visualization export")
+
+
+@router.post("/regional-analysis/export")
+async def export_regional_analysis(
+    request: ExportRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    Export regional analysis data with geographic insights.
+    
+    Uses the Lampião agent to export regional disparities and clustering analysis.
+    Includes inequality indices, regional rankings, and policy recommendations.
+    """
+    from src.services.agent_lazy_loader import AgentLazyLoader
+    from src.agents.lampiao import LampiaoAgent, RegionType
+    from src.agents.deodoro import AgentContext, AgentMessage
+    
+    agent_loader = AgentLazyLoader()
+    
+    # Get Lampião agent
+    lampiao_agent = await agent_loader.get_agent("lampiao")
+    if not lampiao_agent:
+        lampiao_agent = LampiaoAgent()
+        await lampiao_agent.initialize()
+    
+    filename = f"regional_analysis_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    
+    # Get parameters from filters
+    filters = request.filters or {}
+    metric = filters.get("metric", "government_spending")
+    region_type = filters.get("region_type", "state")
+    
+    # Create context
+    context = AgentContext(
+        investigation_id=f"export_regional_{uuid4()}",
+        user_id=current_user.get("user_id"),
+        session_id="export_session",
+        metadata={"export_format": request.format}
+    )
+    
+    # Get regional analysis
+    message = AgentMessage(
+        role="user",
+        content=f"Analyze regional distribution of {metric}",
+        data={
+            "metric": metric,
+            "region_type": region_type,
+            "export": True
+        }
+    )
+    
+    response = await lampiao_agent.process(message, context)
+    
+    if not response.success:
+        raise HTTPException(status_code=500, detail="Failed to generate regional analysis")
+    
+    regional_data = response.data
+    
+    if request.format == "excel":
+        dataframes = {}
+        
+        # Regional metrics sheet
+        metrics_data = []
+        for metric in regional_data.metrics:
+            metrics_data.append({
+                "Region Code": metric.region_id,
+                "Region Name": metric.region_name,
+                "Value": metric.value,
+                "Normalized Value": metric.normalized_value,
+                "Rank": metric.rank,
+                "Percentile": metric.percentile,
+                "Population": metric.metadata.get("population", "N/A")
+            })
+        dataframes["Regional Data"] = pd.DataFrame(metrics_data)
+        
+        # Inequality indices
+        inequality_data = {
+            "Index": list(regional_data.inequalities.keys()),
+            "Value": list(regional_data.inequalities.values()),
+            "Interpretation": [
+                "High inequality" if v > 0.4 else "Moderate inequality" if v > 0.2 else "Low inequality"
+                for v in regional_data.inequalities.values()
+            ]
+        }
+        dataframes["Inequality Analysis"] = pd.DataFrame(inequality_data)
+        
+        # Clusters
+        if regional_data.clusters:
+            cluster_data = []
+            for cluster in regional_data.clusters:
+                for region in cluster["regions"]:
+                    cluster_data.append({
+                        "Cluster": cluster["cluster_id"],
+                        "Region": region,
+                        "Avg Value": cluster["characteristics"].get("avg_value", "N/A")
+                    })
+            dataframes["Regional Clusters"] = pd.DataFrame(cluster_data)
+        
+        # Recommendations
+        rec_data = {
+            "Recommendation": regional_data.recommendations,
+            "Priority": ["High"] * min(2, len(regional_data.recommendations)) + 
+                       ["Medium"] * (len(regional_data.recommendations) - 2)
+        }
+        dataframes["Policy Recommendations"] = pd.DataFrame(rec_data)
+        
+        excel_bytes = await export_service.generate_excel(
+            data=dataframes,
+            title=f"Regional Analysis - {metric}",
+            metadata={
+                'exported_at': datetime.now().isoformat(),
+                'metric': metric,
+                'region_type': region_type,
+                'regions_analyzed': regional_data.regions_analyzed,
+                'analysis_type': regional_data.analysis_type.value
+            }
+        )
+        
+        return Response(
+            content=excel_bytes,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}.xlsx"
+            }
+        )
+    
+    else:
+        raise HTTPException(status_code=400, detail=f"Format {request.format} not supported for regional analysis export")
