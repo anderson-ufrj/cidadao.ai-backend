@@ -14,7 +14,7 @@ from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 # from fastapi.middleware.trustedhost import TrustedHostMiddleware  # Disabled for HuggingFace
 from fastapi.responses import JSONResponse
-from fastapi.openapi.docs import get_swagger_ui_html, get_redoc_html
+# Swagger UI imports removed - using FastAPI defaults now
 from fastapi.openapi.utils import get_openapi
 
 from src.core import get_logger, settings
@@ -163,10 +163,10 @@ app = FastAPI(
         "url": "https://github.com/anderson-ufrj/cidadao.ai/blob/main/LICENSE",
     },
     lifespan=lifespan,
-    docs_url=None,  # Disable default docs
-    redoc_url=None,  # Disable redoc
+    docs_url="/docs",  # Use default FastAPI docs
+    redoc_url="/redoc",  # Use default FastAPI redoc
     openapi_url="/openapi.json",  # Explicit OpenAPI URL
-    root_path="",  # Important for proxy environments
+    root_path=""  # Important for proxy environments
 )
 
 # Add security middleware (order matters!)
@@ -315,58 +315,7 @@ def custom_openapi():
 app.openapi = custom_openapi
 
 
-# Custom documentation endpoint
-@app.get("/docs", include_in_schema=False)
-async def custom_swagger_ui_html(request: Request):
-    """Custom Swagger UI with branding."""
-    # Get the base URL from request headers (important for proxy environments)
-    root_path = request.scope.get("root_path", "")
-    
-    # In HuggingFace Spaces, we need to handle the proxy headers
-    forwarded_proto = request.headers.get("x-forwarded-proto", "http")
-    forwarded_host = request.headers.get("x-forwarded-host", request.headers.get("host", "localhost"))
-    
-    # Build the correct OpenAPI URL
-    if "hf.space" in forwarded_host:
-        # HuggingFace Spaces specific handling
-        openapi_url = "/openapi.json"
-    else:
-        # Standard deployment
-        openapi_url = f"{root_path}/openapi.json" if root_path else "/openapi.json"
-    
-    return get_swagger_ui_html(
-        openapi_url=openapi_url,
-        title=f"{app.title} - Documentação",
-        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js",
-        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css",
-        swagger_favicon_url="https://cidadao.ai/favicon.ico",
-    )
-
-
-# Custom ReDoc endpoint
-@app.get("/redoc", include_in_schema=False)
-async def custom_redoc_html(request: Request):
-    """Custom ReDoc with branding."""
-    # Get the base URL from request headers (important for proxy environments)
-    root_path = request.scope.get("root_path", "")
-    
-    # In HuggingFace Spaces, we need to handle the proxy headers
-    forwarded_host = request.headers.get("x-forwarded-host", request.headers.get("host", "localhost"))
-    
-    # Build the correct OpenAPI URL
-    if "hf.space" in forwarded_host:
-        # HuggingFace Spaces specific handling
-        openapi_url = "/openapi.json"
-    else:
-        # Standard deployment
-        openapi_url = f"{root_path}/openapi.json" if root_path else "/openapi.json"
-    
-    return get_redoc_html(
-        openapi_url=openapi_url,
-        title=f"{app.title} - Documentação",
-        redoc_js_url="https://cdn.jsdelivr.net/npm/redoc/bundles/redoc.standalone.js",
-        redoc_favicon_url="https://cidadao.ai/favicon.ico",
-    )
+# Documentation endpoints are now handled by FastAPI defaults
 
 
 # Include routers with security
