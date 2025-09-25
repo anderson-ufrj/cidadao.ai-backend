@@ -29,7 +29,7 @@ def get_maritaca_client():
         if api_key:
             maritaca_client = MaritacaClient(
                 api_key=api_key,
-                model=MaritacaModel.SABIA_3  # Using standard model for stability
+                model=MaritacaModel.SABIAZINHO_3  # Using efficient model for cost optimization
             )
     return maritaca_client
 
@@ -128,7 +128,7 @@ async def process_with_maritaca(message: str, intent_type: IntentType, session_i
                 return {
                     "message": response.content if hasattr(response, 'content') else str(response),
                     "agent_used": "maritaca_ai",
-                    "model": response.model if hasattr(response, 'model') else "sabia-3",
+                    "model": response.model if hasattr(response, 'model') else "sabiazinho-3",
                     "success": True
                 }
         except Exception as e:
@@ -143,7 +143,7 @@ async def process_with_maritaca(message: str, intent_type: IntentType, session_i
                     headers={"authorization": f"Bearer {os.getenv('MARITACA_API_KEY')}"},
                     json={
                         "messages": [{"role": "user", "content": message}],
-                        "model": "sabia-3",
+                        "model": "sabiazinho-3",
                         "temperature": 0.7
                     }
                 )
@@ -152,7 +152,7 @@ async def process_with_maritaca(message: str, intent_type: IntentType, session_i
                     return {
                         "message": data.get("answer", get_fallback_response(intent_type)),
                         "agent_used": "maritaca_direct",
-                        "model": "sabia-3",
+                        "model": "sabiazinho-3",
                         "success": True
                     }
         except Exception as e:
