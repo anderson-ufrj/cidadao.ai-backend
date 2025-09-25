@@ -148,10 +148,20 @@ class AgentLazyLoader:
         
         self.register_agent(
             name="JoseBonifacio",
-            module_path="src.agents.legacy.jose_bonifacio",
-            class_name="JoseBonifacioAgent",
+            module_path="src.agents.bonifacio",
+            class_name="BonifacioAgent",
             description="Policy and governance analyst",
             capabilities=["policy_analysis", "governance", "regulation"],
+            priority=5,
+            preload=False
+        )
+        
+        self.register_agent(
+            name="MariaQuiteria",
+            module_path="src.agents.maria_quiteria",
+            class_name="MariaQuiteriaAgent",
+            description="Security auditor and system integrity guardian",
+            capabilities=["security_audit", "threat_detection", "compliance"],
             priority=5,
             preload=False
         )
