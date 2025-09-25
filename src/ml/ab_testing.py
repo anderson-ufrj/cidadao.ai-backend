@@ -15,7 +15,7 @@ import numpy as np
 from scipy import stats
 
 from src.core import get_logger
-from src.infrastructure.cache.redis_client import get_redis_client
+from src.core.cache import get_redis_client
 from src.ml.training_pipeline import training_pipeline
 
 

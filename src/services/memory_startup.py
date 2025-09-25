@@ -10,7 +10,7 @@ from typing import Optional
 
 from src.agents.nana import ContextMemoryAgent
 from src.services.agent_memory_integration import initialize_memory_integration
-from src.infrastructure.cache.redis_client import get_redis_client
+from src.core.cache import get_redis_client
 from src.core import get_logger
 from src.core.config import settings
 
