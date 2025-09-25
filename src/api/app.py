@@ -675,9 +675,26 @@ async def root():
         "description": "API para investigação inteligente de dados públicos brasileiros",
         "documentation": "/docs",
         "health": "/health",
-        "status": "operational"
+        "status": "operational",
+        "portal_integration": "active",
+        "last_update": "2025-01-25 15:00:00 UTC"
     }
 
+
+# Test Portal endpoint
+@app.get("/test-portal", include_in_schema=False)
+async def test_portal():
+    """Test Portal da Transparência integration status."""
+    import os
+    return {
+        "portal_integration": "enabled",
+        "api_key_configured": bool(os.getenv("TRANSPARENCY_API_KEY")),
+        "endpoints": {
+            "chat_stable": "/api/v1/chat/stable",
+            "test_portal": "/api/v1/chat/test-portal/{query}",
+            "debug_status": "/api/v1/chat/debug/portal-status"
+        }
+    }
 
 # API info endpoint
 @app.get("/api/v1/info", tags=["General"])
