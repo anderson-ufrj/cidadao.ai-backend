@@ -20,6 +20,7 @@ from src.agents.deodoro import AgentMessage, AgentContext, AgentResponse, AgentS
 from src.agents.abaporu import MasterAgent
 from src.services.chat_service import IntentDetector, IntentType
 from src.api.models.pagination import CursorPaginationResponse
+from src.services.chat_data_integration import chat_data_integration
 
 # Import models for the simple fallback agent
 class DataSourceType:
@@ -127,6 +128,25 @@ async def send_message(
         intent = await intent_detector.detect(request.message)
         logger.info(f"Detected intent: {intent.type} with confidence {intent.confidence}")
         
+        # Check if user is asking for specific government data
+        portal_data = None
+        message_lower = request.message.lower()
+        data_keywords = ["contratos", "gastos", "despesas", "licitação", "fornecedor", "servidor", 
+                         "órgão", "ministério", "prefeitura", "cnpj", "valor", "empresa"]
+        
+        should_fetch_data = any(keyword in message_lower for keyword in data_keywords)
+        
+        # If user is asking for data and intent suggests investigation/analysis
+        if should_fetch_data and intent.type in [IntentType.INVESTIGATE, IntentType.ANALYZE, IntentType.UNKNOWN]:
+            try:
+                logger.info(f"Fetching real data from Portal da Transparência for query: {request.message}")
+                portal_result = await chat_data_integration.process_user_query(request.message, request.context)
+                if portal_result and portal_result.get("data"):
+                    portal_data = portal_result
+                    logger.info(f"Found {portal_result.get('data', {}).get('total', 0)} records from Portal da Transparência")
+            except Exception as e:
+                logger.warning(f"Portal da Transparência integration failed: {e}")
+        
         # Determine target agent based on intent
         if intent.type in [IntentType.GREETING, IntentType.CONVERSATION, IntentType.HELP_REQUEST, 
                           IntentType.ABOUT_SYSTEM, IntentType.SMALLTALK, IntentType.THANKS, IntentType.GOODBYE]:
@@ -139,17 +159,22 @@ async def send_message(
             target_agent = "abaporu"  # Default to master agent
             logger.info(f"Defaulting to Abaporu for intent type: {intent.type}")
             
-        # Create agent message
+        # Create agent message with Portal data if available
+        payload_data = {
+            "user_message": request.message,
+            "intent": intent.dict(),
+            "context": request.context or {},
+            "session": session.to_dict()
+        }
+        
+        if portal_data:
+            payload_data["portal_data"] = portal_data
+            
         agent_message = AgentMessage(
             sender="user",
             recipient=target_agent,
             action="process_chat",
-            payload={
-                "user_message": request.message,
-                "intent": intent.dict(),
-                "context": request.context or {},
-                "session": session.to_dict()
-            },
+            payload=payload_data,
             context={
                 "investigation_id": session.current_investigation_id,
                 "user_id": session.user_id,
@@ -360,6 +385,29 @@ async def send_message(
         else:
             message_text = str(response)
             requires_input = None
+        
+        # If we have Portal data and no agent processed it, use the Portal response
+        if portal_data and portal_data.get("response") and agent_id == "system":
+            message_text = portal_data["response"]
+            agent_id = "portal_transparencia"
+            agent_name = "Portal da Transparência"
+            
+        # Build metadata
+        metadata = {
+            "intent_type": intent.type.value,
+            "processing_time": response.metadata.get("processing_time", 0) if hasattr(response, 'metadata') else 0,
+            "is_demo_mode": not bool(current_user),
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+        # Add Portal da Transparência data to metadata if available
+        if portal_data:
+            metadata["portal_data"] = {
+                "type": portal_data.get("data_type"),
+                "entities_found": portal_data.get("entities", {}),
+                "total_records": portal_data.get("data", {}).get("total", 0) if portal_data.get("data") else 0,
+                "has_data": bool(portal_data.get("data"))
+            }
             
         return ChatResponse(
             session_id=session_id,
@@ -369,12 +417,7 @@ async def send_message(
             confidence=response.metadata.get("confidence", intent.confidence) if hasattr(response, 'metadata') else intent.confidence,
             suggested_actions=suggested_actions,
             requires_input=requires_input,
-            metadata={
-                "intent_type": intent.type.value,
-                "processing_time": response.metadata.get("processing_time", 0) if hasattr(response, 'metadata') else 0,
-                "is_demo_mode": not bool(current_user),
-                "timestamp": datetime.utcnow().isoformat()
-            }
+            metadata=metadata
         )
         
     except Exception as e:
