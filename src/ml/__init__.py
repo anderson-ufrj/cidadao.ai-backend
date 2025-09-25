@@ -9,7 +9,6 @@ This module provides machine learning capabilities including:
 
 from src.ml.training_pipeline import (
     MLTrainingPipeline,
-    training_pipeline,
     get_training_pipeline
 )
 
