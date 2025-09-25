@@ -11,8 +11,7 @@ license: mit
 
 # 🏛️ Cidadão.AI - Backend
 
-> **Sistema multi-agente de IA para transparência pública brasileira**  
-> **Enterprise-grade multi-agent AI system for Brazilian government transparency analysis**
+> **Sistema multi-agente de IA para transparência pública brasileira**
 
 [![Open Gov](https://img.shields.io/badge/Open-Government-blue.svg)](https://www.opengovpartnership.org/)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](./LICENSE)
@@ -21,171 +20,255 @@ license: mit
 [![Test Coverage](https://img.shields.io/badge/coverage-80%25-brightgreen.svg)](./tests)
 [![Security](https://img.shields.io/badge/security-A+-brightgreen.svg)](./tests/unit/test_security_middleware.py)
 
+**Autor**: Anderson Henrique da Silva  
+**Última Atualização**: 2025-09-25 18:05:00 -03:00 (São Paulo, Brasil)
+
+[English version below](#-cidadãoai---backend-english)
+
+## 📊 Estado Atual da Implementação
+
+### ✅ O que está funcionando
+
+- **8 de 17 agentes operacionais** com identidades culturais brasileiras
+- **Integração com Portal da Transparência** (real com API key, demo sem)
+- **API RESTful completa** com 40+ endpoints implementados
+- **Chat em tempo real** com detecção de intenções em português
+- **Análise espectral FFT** para detecção de padrões periódicos
+- **Sistema de cache multi-camadas** (memória → Redis → banco)
+- **Monitoramento** com Prometheus e Grafana configurados
+- **Deploy em produção** no HuggingFace Spaces
+
+### 🚧 Em desenvolvimento
+
+- **9 agentes parcialmente implementados** (estrutura pronta, lógica incompleta)
+- **Modelos ML avançados** (arquitetura definida, treinamento pendente)
+- **Integração completa com PostgreSQL** (usando memória atualmente)
+- **WebSocket para investigações** (parcialmente implementado)
+
+## 🚀 Início Rápido
+
+### 🎯 Como executar
+
+**Desenvolvimento Local:**
+```bash
+# Clone o repositório
+git clone https://github.com/anderson-ufrj/cidadao.ai-backend
+cd cidadao.ai-backend
+
+# Crie ambiente virtual
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
+
+# Instale dependências
+make install-dev
+
+# Execute o servidor
+make run-dev
+# Acesse: http://localhost:8000/docs
+```
+
+**Deploy no HuggingFace Spaces:**
+```bash
+# Usa app.py simplificado para deploy rápido
+# Deploy automático via push para HuggingFace
+git push huggingface main
+```
+
+### 🔑 Configuração da API
+
+```bash
+# Copie o arquivo de exemplo
+cp .env.example .env
+
+# Configure as variáveis essenciais:
+TRANSPARENCY_API_KEY=sua-chave  # Para dados reais do Portal da Transparência
+JWT_SECRET_KEY=gere-uma-chave-segura
+GROQ_API_KEY=sua-chave-groq     # Para LLM dos agentes
+```
+
+**Importante**: 
+- ✅ **Com API key**: Análise de dados reais do governo
+- 🔄 **Sem API key**: Funciona com dados demo para teste
+
+## 🤖 Agentes Implementados
+
+### ✅ Totalmente Operacionais (8)
+
+1. **🎯 Abaporu** - Mestre orquestrador de investigações
+2. **🔍 Zumbi dos Palmares** - Detecção de anomalias com análise espectral
+3. **📊 Anita Garibaldi** - Análise de padrões e tendências
+4. **📝 Tiradentes** - Geração de relatórios multi-formato
+5. **🏎️ Ayrton Senna** - Roteamento semântico inteligente
+6. **🧠 Nanã** - Memória episódica, semântica e conversacional
+7. **⚖️ José Bonifácio** - Avaliação de eficácia de políticas
+8. **📚 Machado de Assis** - Análise textual avançada com NER
+
+### 🚧 Em Desenvolvimento (9)
+
+- Dandara (Justiça Social), Lampião (Análise Regional), Maria Quitéria (Segurança)
+- Oscar Niemeyer (Visualização), Drummond (Comunicação), Ceúci (ETL)
+- Obaluaié (Saúde), Oxossi (Caçador de Dados), Drummond Simple (Chat básico)
+
+## 📡 API Endpoints Principais
+
+### 💬 Chat e Conversação
+```
+POST /api/v1/chat/message         # Enviar mensagem
+POST /api/v1/chat/stream          # Resposta em streaming (SSE)
+GET  /api/v1/chat/suggestions     # Sugestões de ações
+GET  /api/v1/chat/history/{id}    # Histórico paginado
+```
+
+### 🔍 Investigações
+```
+POST /api/v1/investigations/analyze  # Iniciar investigação
+GET  /api/v1/investigations/{id}     # Status da investigação
+POST /api/agents/zumbi              # Análise de anomalias direta
+```
+
+### 📊 Portal da Transparência
+```
+GET /api/v1/transparency/contracts     # Contratos (funciona!)
+GET /api/v1/transparency/servants      # Servidores públicos (funciona!)
+GET /api/v1/transparency/expenses      # Despesas (bloqueado - 403)
+GET /api/v1/transparency/suppliers     # Fornecedores (bloqueado - 403)
+```
+
+**Nota**: Descobrimos que 78% dos endpoints da API oficial retornam 403 Forbidden
+
+### 🏥 Monitoramento
+```
+GET /health                    # Health check básico
+GET /health/detailed           # Status detalhado do sistema
+GET /api/v1/chat/cache/stats   # Estatísticas de cache
+GET /metrics                   # Métricas Prometheus
+```
+
+## 🏗️ Arquitetura Técnica
+
+### 🧠 Sistema Multi-Agente
+```
+Usuário → API → Agente Mestre (Abaporu)
+                       ↓
+              Orquestração de Agentes
+                       ↓
+      Investigação (Zumbi) + Análise (Anita)
+                       ↓
+           Geração de Relatório (Tiradentes)
+```
+
+### 🛠️ Stack Tecnológico
+- **Backend**: FastAPI + Python 3.11
+- **Agentes**: Classes base com reflexão e retry
+- **ML**: Análise espectral FFT + detecção por threshold
+- **Cache**: Redis (quando disponível) + memória
+- **Deploy**: Docker + HuggingFace Spaces
+- **Monitoramento**: Prometheus + Grafana
+
+### 📊 Capacidades de ML/IA
+- **Detecção de Anomalias**: Z-score (2.5 desvios padrão)
+- **Análise Espectral**: FFT para padrões periódicos
+- **Análise de Fornecedores**: Concentração > 70%
+- **Detecção de Duplicatas**: Similaridade > 85%
+- **Classificação de Despesas**: Baseada em palavras-chave
+
+## 🧪 Testes e Qualidade
+
+```bash
+# Executar todos os testes
+make test
+
+# Com cobertura
+make test-coverage
+
+# Verificar qualidade
+make check  # lint + type-check + test
+```
+
+- **Cobertura**: 80% (meta alcançada!)
+- **96 arquivos de teste**
+- **Categorias**: unit, integration, e2e, performance
+
+## 📚 Documentação
+
+- **API Interativa**: http://localhost:8000/docs
+- **ReDoc**: http://localhost:8000/redoc
+- **Arquitetura**: [docs/architecture/](./docs/architecture/)
+- **Guias**: [docs/development/](./docs/development/)
+
+## 🚀 Deployment
+
+### Docker Local
+```bash
+docker-compose up -d
+```
+
+### Com Monitoramento
+```bash
+docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+# Grafana: http://localhost:3000 (admin/cidadao123)
+```
+
+### HuggingFace Spaces
+```bash
+git remote add hf https://huggingface.co/spaces/SEU_USUARIO/cidadao-ai
+git push hf main
+```
+
+## 🤝 Como Contribuir
+
+1. Fork o projeto
+2. Crie sua feature branch (`git checkout -b feature/NovaFuncionalidade`)
+3. Escreva testes
+4. Commit suas mudanças (`git commit -m 'feat: adiciona nova funcionalidade'`)
+5. Push para a branch (`git push origin feature/NovaFuncionalidade`)
+6. Abra um Pull Request
+
+## 📄 Licença
+
+Distribuído sob a licença MIT. Veja [LICENSE](LICENSE) para mais informações.
+
+## 🙏 Agradecimentos
+
+- Portal da Transparência pelo acesso aos dados públicos
+- Comunidade open source brasileira
+- Todas as figuras históricas que inspiram nossos agentes
+
+---
+
+# 🏛️ Cidadão.AI - Backend (English)
+
+> **Multi-agent AI system for Brazilian government transparency analysis**
+
 **Author**: Anderson Henrique da Silva  
-**Last Updated**: 2025-09-25 10:24:00 -03 (São Paulo, Brazil)
+**Last Updated**: 2025-09-25 18:05:00 -03:00 (São Paulo, Brazil)
 
-## 📢 Latest Updates
+## 📊 Current Implementation Status
 
-- ✅ **Sprint 9 Complete**: All 17 agents operational with memory integration
-- ✅ **ML Pipeline**: Training, versioning, and A/B testing framework added
-- ✅ **Security Fix**: Chrome client hints headers now properly handled
-- ✅ **75% Project Progress**: 9/12 sprints completed
+### ✅ What's Working
+
+- **8 of 17 agents operational** with Brazilian cultural identities
+- **Portal da Transparência integration** (real with API key, demo without)
+- **Complete RESTful API** with 40+ implemented endpoints
+- **Real-time chat** with Portuguese intent detection
+- **FFT spectral analysis** for periodic pattern detection
+- **Multi-layer cache system** (memory → Redis → database)
+- **Monitoring** with Prometheus and Grafana configured
+- **Production deployment** on HuggingFace Spaces
+
+### 🚧 In Development
+
+- **9 partially implemented agents** (structure ready, logic incomplete)
+- **Advanced ML models** (architecture defined, training pending)
+- **Complete PostgreSQL integration** (currently using memory)
+- **WebSocket for investigations** (partially implemented)
 
 ## 🚀 Quick Start
 
-### 🎯 **Deployment Options**
-
-**HuggingFace Spaces (Cloud):**
-```bash
-# Uses simplified app.py for fast cloud deployment
-# Automatic deployment via Git push to HuggingFace
-# Optimized for minimal dependencies and fast startup
-```
+### 🎯 How to Run
 
 **Local Development:**
-```bash
-# Full-featured version with complete agent system
-python -m src.api.app
-# OR using uvicorn directly:
-uvicorn src.api.app:app --reload --port 8000
-```
-
-### 🔑 **Dados Reais vs Demo**
-
-O sistema detecta automaticamente se você tem acesso à API do Portal da Transparência:
-
-- **✅ Com `TRANSPARENCY_API_KEY`**: Análise de **dados reais** de contratos públicos
-- **🔄 Sem chave API**: Funciona com **dados demo** para demonstração
-
-📚 **[Documentação completa da integração →](docs/PORTAL_TRANSPARENCIA_INTEGRATION.md)**
-
-## 📊 Test Coverage & Quality
-
-### 🛡️ **Enterprise-Grade Testing**
-
-Our comprehensive test suite ensures reliability and security:
-
-- **Overall Coverage**: ~80% (up from 45%)
-- **Security Tests**: 90% coverage
-- **1,400+ Test Cases**: Comprehensive scenarios
-- **28 Test Modules**: Organized by component
-
-### 📈 **Coverage by Component**
-
-| Component | Coverage | Status |
-|-----------|----------|--------|
-| 🔐 Security & Auth | ~90% | ✅ Excellent |
-| 🤖 Multi-Agent System | ~85% | ✅ Very Good |
-| 📊 ML Pipeline | ~85% | ✅ Very Good |
-| 🌐 API Endpoints | ~90% | ✅ Excellent |
-| 💾 Infrastructure | ~80% | ✅ Good |
-| 🧠 Memory Systems | ~90% | ✅ Excellent |
-
-### 🧪 **Test Categories**
-
-- **Unit Tests**: Component isolation testing
-- **Integration Tests**: API and service integration
-- **E2E Tests**: Complete workflow validation
-- **Security Tests**: Vulnerability and attack prevention
-- **Performance Tests**: Load and stress testing foundations
-
-## 🏗️ Architecture
-
-### 🤖 **Multi-Agent System**
-
-**Status**: 8 agents fully operational, 7 partially implemented, 16/17 total
-
-#### ✅ **Fully Operational Agents**:
-- **🎯 Abaporu** (Master): Investigation orchestrator and coordinator
-- **🔍 Zumbi dos Palmares** (Investigator): Advanced anomaly detection with FFT
-- **📊 Anita Garibaldi** (Analyst): Pattern analysis and trend detection
-- **📝 Tiradentes** (Reporter): Multi-format adaptive report generation
-- **🧠 Nanã** (Memory): Episodic, semantic and conversational memory
-- **🏎️ Ayrton Senna** (Router): Semantic routing with intent detection
-- **📚 Machado de Assis** (Textual): Document analysis with NER and compliance
-- **⚖️ Dandara** (Social Justice): Equity analysis with social coefficients
-
-#### ⚠️ **In Development** (7 agents):
-- José Bonifácio (Policy Analyst), Carlos Drummond (Communication)
-- Maria Quitéria (Security), Oscar Niemeyer (Visualization)
-- Ceuci (ETL), Obaluaiê (Health), Lampião (Regional)
-
-### 💬 **Chat & Real-time Features**
-
-- **Conversational Interface**: Natural language chat in Portuguese
-- **Intent Detection**: 7 intent types with entity extraction
-- **SSE Streaming**: Real-time response streaming
-- **WebSocket**: Bidirectional communication
-- **Smart Caching**: Redis cache for frequent responses
-- **Cursor Pagination**: Efficient message history
-- **Gzip Compression**: 70-90% bandwidth reduction
-
-### 🔒 **Security Features**
-
-- **JWT Authentication**: Secure token-based auth
-- **Rate Limiting**: Multi-window protection
-- **Attack Prevention**: SQL injection, XSS, CSRF protection
-- **Audit Trail**: Complete activity logging
-- **Secret Management**: HashiCorp Vault integration
-
-### 📊 **ML Capabilities**
-
-- **Anomaly Detection**: Statistical and ML-based methods
-- **Spectral Analysis**: Frequency-domain pattern detection
-- **Pattern Recognition**: Temporal and behavioral analysis
-- **Ensemble Methods**: Combined detection strategies
-- **Explainable AI**: Transparent decision-making
-
-### 💾 **Infrastructure**
-
-- **Multi-Level Cache**: L1 (Memory) → L2 (Redis) → L3 (Disk)
-- **Database**: PostgreSQL with async SQLAlchemy
-- **Message Queue**: Event-driven architecture
-- **Monitoring**: Prometheus + Grafana integration
-- **Circuit Breakers**: Fault tolerance patterns
-
-### 🚄 **Performance Optimizations** (NEW!)
-
-- **JSON Serialization**: orjson for 3x faster processing
-- **Compression**: Brotli + Gzip with smart content detection
-- **Connection Pooling**: HTTP/2 multiplexing for LLM providers
-- **Agent Pooling**: Pre-warmed instances with lifecycle management
-- **Parallel Processing**: Async agent execution strategies
-- **Batch Operations**: Bulk API endpoints for efficiency
-- **Query Optimization**: Smart indexes and materialized views
-- **GraphQL API**: Flexible data fetching with Strawberry
-- **WebSocket Batching**: Message aggregation with compression
-- **CQRS Pattern**: Separated read/write models
-
-### 📊 **Observability & Monitoring** (NEW!)
-
-- **Health Checks**: Comprehensive dependency monitoring
-- **SLA/SLO Tracking**: Error budgets and compliance alerts
-- **Distributed Tracing**: OpenTelemetry integration
-- **Structured Logging**: JSON format with correlation IDs
-- **Business Metrics**: Custom Prometheus metrics
-- **Grafana Dashboards**: System and agent performance views
-- **Alert Rules**: 25+ Prometheus rules for proactive monitoring
-- **APM Integration**: Hooks for New Relic, Datadog, Elastic
-- **Chaos Engineering**: Controlled failure injection endpoints
-
-## 🔧 Development
-
-### Prerequisites
-
-```bash
-# Python 3.11+
-python --version
-
-# PostgreSQL
-psql --version
-
-# Redis (optional, for caching)
-redis-server --version
-```
-
-### Installation
-
 ```bash
 # Clone repository
 git clone https://github.com/anderson-ufrj/cidadao.ai-backend
@@ -194,233 +277,185 @@ cd cidadao.ai-backend
 # Create virtual environment
 python -m venv venv
 source venv/bin/activate  # Linux/Mac
-# or
-venv\Scripts\activate  # Windows
+venv\Scripts\activate     # Windows
 
 # Install dependencies
-pip install -r requirements.txt
+make install-dev
 
-# Development dependencies
-pip install -r requirements-dev.txt
+# Run server
+make run-dev
+# Access: http://localhost:8000/docs
 ```
 
-### Environment Variables
+**Deploy to HuggingFace Spaces:**
+```bash
+# Uses simplified app.py for quick deployment
+# Automatic deployment via push to HuggingFace
+git push huggingface main
+```
+
+### 🔑 API Configuration
 
 ```bash
-# Copy example environment
+# Copy example file
 cp .env.example .env
 
-# Edit with your configurations
-# Key variables:
-DATABASE_URL=postgresql+asyncpg://user:pass@localhost/cidadaoai
-REDIS_URL=redis://localhost:6379
-JWT_SECRET_KEY=your-secret-key
-TRANSPARENCY_API_KEY=your-api-key  # Optional
+# Configure essential variables:
+TRANSPARENCY_API_KEY=your-key  # For real Portal da Transparência data
+JWT_SECRET_KEY=generate-secure-key
+GROQ_API_KEY=your-groq-key     # For agent LLM
 ```
 
-### Running Tests
+**Important**: 
+- ✅ **With API key**: Real government data analysis
+- 🔄 **Without API key**: Works with demo data for testing
+
+## 🤖 Implemented Agents
+
+### ✅ Fully Operational (8)
+
+1. **🎯 Abaporu** - Master investigation orchestrator
+2. **🔍 Zumbi dos Palmares** - Anomaly detection with spectral analysis
+3. **📊 Anita Garibaldi** - Pattern and trend analysis
+4. **📝 Tiradentes** - Multi-format report generation
+5. **🏎️ Ayrton Senna** - Intelligent semantic routing
+6. **🧠 Nanã** - Episodic, semantic and conversational memory
+7. **⚖️ José Bonifácio** - Policy effectiveness evaluation
+8. **📚 Machado de Assis** - Advanced text analysis with NER
+
+### 🚧 In Development (9)
+
+- Dandara (Social Justice), Lampião (Regional Analysis), Maria Quitéria (Security)
+- Oscar Niemeyer (Visualization), Drummond (Communication), Ceúci (ETL)
+- Obaluaié (Health), Oxossi (Data Hunter), Drummond Simple (Basic chat)
+
+## 📡 Main API Endpoints
+
+### 💬 Chat and Conversation
+```
+POST /api/v1/chat/message         # Send message
+POST /api/v1/chat/stream          # Streaming response (SSE)
+GET  /api/v1/chat/suggestions     # Action suggestions
+GET  /api/v1/chat/history/{id}    # Paginated history
+```
+
+### 🔍 Investigations
+```
+POST /api/v1/investigations/analyze  # Start investigation
+GET  /api/v1/investigations/{id}     # Investigation status
+POST /api/agents/zumbi              # Direct anomaly analysis
+```
+
+### 📊 Portal da Transparência
+```
+GET /api/v1/transparency/contracts     # Contracts (works!)
+GET /api/v1/transparency/servants      # Public servants (works!)
+GET /api/v1/transparency/expenses      # Expenses (blocked - 403)
+GET /api/v1/transparency/suppliers     # Suppliers (blocked - 403)
+```
+
+**Note**: We discovered that 78% of official API endpoints return 403 Forbidden
+
+### 🏥 Monitoring
+```
+GET /health                    # Basic health check
+GET /health/detailed           # Detailed system status
+GET /api/v1/chat/cache/stats   # Cache statistics
+GET /metrics                   # Prometheus metrics
+```
+
+## 🏗️ Technical Architecture
+
+### 🧠 Multi-Agent System
+```
+User → API → Master Agent (Abaporu)
+                    ↓
+            Agent Orchestration
+                    ↓
+    Investigation (Zumbi) + Analysis (Anita)
+                    ↓
+         Report Generation (Tiradentes)
+```
+
+### 🛠️ Tech Stack
+- **Backend**: FastAPI + Python 3.11
+- **Agents**: Base classes with reflection and retry
+- **ML**: FFT spectral analysis + threshold detection
+- **Cache**: Redis (when available) + memory
+- **Deploy**: Docker + HuggingFace Spaces
+- **Monitoring**: Prometheus + Grafana
+
+### 📊 ML/AI Capabilities
+- **Anomaly Detection**: Z-score (2.5 standard deviations)
+- **Spectral Analysis**: FFT for periodic patterns
+- **Supplier Analysis**: Concentration > 70%
+- **Duplicate Detection**: Similarity > 85%
+- **Expense Classification**: Keyword-based
+
+## 🧪 Testing and Quality
 
 ```bash
 # Run all tests
 make test
 
-# Run with coverage
+# With coverage
 make test-coverage
 
-# Run specific categories
-make test-unit
-make test-integration
-make test-security
-
-# Run specific test file
-pytest tests/unit/test_auth.py -v
+# Check quality
+make check  # lint + type-check + test
 ```
 
-### Code Quality
+- **Coverage**: 80% (goal achieved!)
+- **96 test files**
+- **Categories**: unit, integration, e2e, performance
 
-```bash
-# Format code
-make format
+## 📚 Documentation
 
-# Run linters
-make lint
-
-# Type checking
-make type-check
-
-# All checks
-make check
-```
-
-## 📚 API Documentation
-
-### Interactive Documentation
-
-- **Swagger UI**: http://localhost:8000/docs
+- **Interactive API**: http://localhost:8000/docs
 - **ReDoc**: http://localhost:8000/redoc
-
-### Main Endpoints
-
-```bash
-# Health Check
-GET /health
-GET /health/metrics
-
-# Authentication
-POST /api/v1/auth/login
-POST /api/v1/auth/refresh
-POST /api/v1/auth/logout
-
-# Chat (NEW!)
-POST /api/v1/chat/message              # Send message
-POST /api/v1/chat/stream               # Stream response (SSE)
-GET  /api/v1/chat/suggestions          # Quick actions
-GET  /api/v1/chat/history/{session_id} # Get history
-GET  /api/v1/chat/history/{session_id}/paginated # Cursor pagination
-DELETE /api/v1/chat/history/{session_id} # Clear history
-GET  /api/v1/chat/cache/stats          # Cache statistics
-GET  /api/v1/chat/agents               # List agents
-
-# WebSocket (NEW!)
-WS   /api/v1/ws/chat/{session_id}     # Real-time chat
-WS   /api/v1/ws/investigations/{id}   # Investigation updates
-
-# Investigations
-POST /api/v1/investigations
-GET  /api/v1/investigations/{id}
-GET  /api/v1/investigations
-
-# Analysis
-POST /api/v1/analysis/contracts
-POST /api/v1/analysis/spending-patterns
-POST /api/v1/analysis/vendor-concentration
-
-# Reports
-POST /api/v1/reports/investigation/{id}
-GET  /api/v1/reports/investigation/{id}/export
-
-# Batch Operations (NEW!)
-POST /api/v1/batch/investigations      # Bulk create investigations
-POST /api/v1/batch/contracts/analyze  # Bulk contract analysis
-POST /api/v1/batch/reports/generate    # Bulk report generation
-
-# GraphQL (NEW!)
-POST /graphql                          # GraphQL endpoint
-GET  /graphql                          # GraphQL playground
-
-# Monitoring (NEW!)
-GET  /api/v1/monitoring/health/detailed
-GET  /api/v1/monitoring/slo            # SLO compliance status
-POST /api/v1/monitoring/slo/metric     # Record SLO metric
-GET  /api/v1/monitoring/alerts/violations
-GET  /api/v1/monitoring/dashboard/summary
-
-# Observability (NEW!)
-GET  /api/v1/observability/traces      # Distributed traces
-GET  /api/v1/observability/metrics/custom
-GET  /api/v1/observability/logs/structured
-GET  /api/v1/observability/correlation/{id}
-
-# Chaos Engineering (NEW!)
-GET  /api/v1/chaos/status              # Chaos experiments status
-POST /api/v1/chaos/inject/latency      # Inject latency
-POST /api/v1/chaos/inject/errors       # Inject errors
-POST /api/v1/chaos/stop/{experiment}   # Stop experiment
-```
+- **Architecture**: [docs/architecture/](./docs/architecture/)
+- **Guides**: [docs/development/](./docs/development/)
 
 ## 🚀 Deployment
 
-### Docker
-
+### Local Docker
 ```bash
-# Build image
-docker build -t cidadao-ai-backend .
-
-# Run container
-docker run -p 8000:8000 --env-file .env cidadao-ai-backend
+docker-compose up -d
 ```
 
-### Docker Compose
-
+### With Monitoring
 ```bash
-# Start all services
-docker-compose up -d
-
-# With monitoring stack
 docker-compose -f docker-compose.yml -f docker-compose.monitoring.yml up -d
+# Grafana: http://localhost:3000 (admin/cidadao123)
 ```
 
 ### HuggingFace Spaces
-
 ```bash
-# Deploy to HuggingFace Spaces
-git remote add huggingface https://huggingface.co/spaces/YOUR_USERNAME/cidadao-ai-backend
-git push huggingface main
+git remote add hf https://huggingface.co/spaces/YOUR_USER/cidadao-ai
+git push hf main
 ```
 
-## 📊 Monitoring
+## 🤝 How to Contribute
 
-### Prometheus Metrics
-
-Available at `/health/metrics`:
-
-- Request count and duration
-- Agent task execution metrics
-- Anomaly detection counts
-- Cache hit rates
-- System resources
-
-### Grafana Dashboards
-
-Pre-configured dashboards for:
-- System Overview
-- Agent Performance
-- API Metrics
-- Security Events
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Workflow
-
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/AmazingFeature`)
-3. Write tests for new features
-4. Ensure tests pass (`make test`)
-5. Commit changes (`git commit -m 'feat: add amazing feature'`)
-6. Push to branch (`git push origin feature/AmazingFeature`)
-7. Open Pull Request
-
-### Commit Convention
-
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
-
-- `feat`: New feature
-- `fix`: Bug fix
-- `test`: Test additions or fixes
-- `docs`: Documentation changes
-- `refactor`: Code refactoring
-- `chore`: Maintenance tasks
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/NewFeature`)
+3. Write tests
+4. Commit your changes (`git commit -m 'feat: add new feature'`)
+5. Push to the branch (`git push origin feature/NewFeature`)
+6. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+Distributed under the MIT License. See [LICENSE](LICENSE) for more information.
 
 ## 🙏 Acknowledgments
 
 - Portal da Transparência for public data access
-- Brazilian open government initiatives
-- Open source community
-
-## 📞 Contact
-
-- **Project Lead**: Anderson Henrique
-- **GitHub**: [anderson-ufrj](https://github.com/anderson-ufrj)
-- **Issues**: [GitHub Issues](https://github.com/anderson-ufrj/cidadao.ai-backend/issues)
+- Brazilian open source community
+- All historical figures that inspire our agents
 
 ---
 
 <div align="center">
-  <strong>🇧🇷 Made with ❤️ for Brazilian transparency and accountability 🇧🇷</strong>
-</div># Deploy trigger: sáb 20 set 2025 16:51:59 -03
+  <strong>🇧🇷 Made with ❤️ for Brazilian public transparency 🇧🇷</strong>
+</div>
