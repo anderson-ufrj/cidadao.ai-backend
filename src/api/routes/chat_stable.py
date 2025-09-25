@@ -355,3 +355,29 @@ async def test_portal_integration(query: str):
             "query": query,
             "error": str(e)
         }
+
+@router.get("/debug/portal-status")
+async def debug_portal_status():
+    """Debug endpoint to check Portal da Transparência configuration"""
+    import os
+    from src.core.config import settings
+    
+    # Check environment variable
+    env_key = os.getenv("TRANSPARENCY_API_KEY")
+    
+    # Check settings
+    settings_key = None
+    if hasattr(settings, 'transparency_api_key') and settings.transparency_api_key:
+        settings_key = "Configured"
+    
+    # Check service
+    service_key = None
+    if hasattr(chat_data_integration, 'portal') and chat_data_integration.portal.api_key:
+        service_key = "Loaded"
+    
+    return {
+        "env_variable": "Found" if env_key else "Not Found",
+        "settings_config": settings_key or "Not Configured",
+        "service_loaded": service_key or "Not Loaded",
+        "portal_base_url": chat_data_integration.portal.BASE_URL if hasattr(chat_data_integration, 'portal') else "Not initialized"
+    }
