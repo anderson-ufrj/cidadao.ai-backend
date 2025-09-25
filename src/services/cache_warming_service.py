@@ -18,7 +18,7 @@ from src.services.data_service import data_service
 from src.services.investigation_service import investigation_service
 from src.core.config import settings
 from src.db.session import get_session
-from src.models import Investigation
+from src.infrastructure.database import Investigation
 
 logger = get_logger(__name__)
 
