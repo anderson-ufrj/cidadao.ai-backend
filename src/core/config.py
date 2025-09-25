@@ -114,8 +114,8 @@ class Settings(BaseSettings):
         description="Maritaca AI base URL"
     )
     maritaca_model: str = Field(
-        default="sabia-3",
-        description="Default Maritaca AI model (sabia-3, sabia-3-medium, sabia-3-large)"
+        default="sabiazinho-3",
+        description="Default Maritaca AI model (sabiazinho-3, sabia-3, sabia-3-medium, sabia-3-large)"
     )
     
     # Vector Store

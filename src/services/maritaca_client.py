@@ -80,7 +80,7 @@ class MaritacaClient:
         self,
         api_key: str,
         base_url: str = "https://chat.maritaca.ai/api",
-        model: str = MaritacaModel.SABIA_3,
+        model: str = MaritacaModel.SABIAZINHO_3,
         timeout: int = 60,
         max_retries: int = 3,
         circuit_breaker_threshold: int = 5,
@@ -562,7 +562,7 @@ class MaritacaClient:
 # Factory function for easy client creation
 def create_maritaca_client(
     api_key: str,
-    model: str = MaritacaModel.SABIA_3,
+    model: str = MaritacaModel.SABIAZINHO_3,
     **kwargs
 ) -> MaritacaClient:
     """
