@@ -370,6 +370,12 @@ class ReportTemplateError(ReportError):
     pass
 
 
+# Orchestration exceptions
+class OrchestrationError(CidadaoAIError):
+    """Base exception for orchestration errors."""
+    pass
+
+
 # Custom HTTP exception handlers
 def create_error_response(
     error: CidadaoAIError,
