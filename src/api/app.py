@@ -161,15 +161,9 @@ app.add_middleware(
 #         allowed_hosts=["localhost", "127.0.0.1", "*.cidadao.ai", "testserver"]
 #     )
 
-# CORS middleware with secure configuration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.cors_origins,
-    allow_credentials=settings.cors_allow_credentials,
-    allow_methods=settings.cors_allow_methods,
-    allow_headers=settings.cors_allow_headers,
-    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining"]
-)
+# Enhanced CORS middleware for Vercel integration
+from src.api.middleware.cors_enhanced import setup_cors
+setup_cors(app)
 
 # Add observability middleware
 app.add_middleware(CorrelationMiddleware, generate_request_id=True)
