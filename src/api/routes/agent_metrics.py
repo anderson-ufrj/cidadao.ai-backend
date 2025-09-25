@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from prometheus_client import CONTENT_TYPE_LATEST
 
 from src.core import get_logger
-from src.models.user import User
+from src.api.auth import User
 from src.api.dependencies import get_current_user
 from src.services.agent_metrics import agent_metrics_service
 
