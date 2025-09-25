@@ -15,7 +15,7 @@ import time
 
 from src.core import get_logger
 from src.core.cache import get_redis_client
-from src.core.exceptions import RateLimitExceeded
+from src.core.exceptions import RateLimitError
 
 logger = get_logger(__name__)
 
