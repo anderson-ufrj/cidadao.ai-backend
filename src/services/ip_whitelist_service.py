@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 import json
 
 from src.core import get_logger
-from src.infrastructure.cache import cache_service
+from src.core.cache import cache_service
 from src.core.config import settings
 from src.models.base import BaseModel
 from sqlalchemy import Column, String, Boolean, DateTime, Integer, JSON
