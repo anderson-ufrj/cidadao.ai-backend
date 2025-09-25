@@ -14,6 +14,7 @@ from src.core import get_logger
 logger = get_logger(__name__)
 from src.services.maritaca_client import MaritacaClient, MaritacaModel
 from src.services.chat_service import IntentDetector, IntentType
+from src.services.chat_data_integration import chat_data_integration
 
 router = APIRouter(prefix="/api/v1/chat")
 
@@ -95,8 +96,37 @@ def get_fallback_response(intent_type: IntentType, context: Optional[Dict] = Non
     responses = FALLBACK_RESPONSES.get(intent_type, FALLBACK_RESPONSES[IntentType.UNKNOWN])
     return random.choice(responses)
 
-async def process_with_maritaca(message: str, intent_type: IntentType, session_id: str) -> Dict[str, Any]:
-    """Process message with Maritaca AI with multiple fallback layers"""
+async def process_with_maritaca(message: str, intent_type: IntentType, session_id: str, context: Optional[Dict] = None) -> Dict[str, Any]:
+    """Process message with Maritaca AI with multiple fallback layers and Portal da Transparência integration"""
+    
+    # Check if user is asking for specific government data
+    message_lower = message.lower()
+    data_keywords = ["contratos", "gastos", "despesas", "licitação", "fornecedor", "servidor", 
+                     "órgão", "ministério", "prefeitura", "cnpj", "valor", "empresa"]
+    
+    should_fetch_data = any(keyword in message_lower for keyword in data_keywords)
+    portal_data = None
+    
+    # If user is asking for data, fetch from Portal da Transparência
+    if should_fetch_data and (intent_type in [IntentType.INVESTIGATE, IntentType.ANALYZE, IntentType.UNKNOWN]):
+        try:
+            logger.info(f"Fetching real data from Portal da Transparência for query: {message}")
+            portal_result = await chat_data_integration.process_user_query(message, context)
+            if portal_result and portal_result.get("data"):
+                portal_data = portal_result
+                # If we have data, return the formatted response directly
+                if portal_result.get("response"):
+                    return {
+                        "message": portal_result["response"],
+                        "agent_used": "portal_transparencia_ai",
+                        "model": "sabiazinho-3",
+                        "success": True,
+                        "data": portal_result.get("data"),
+                        "entities": portal_result.get("entities"),
+                        "data_type": portal_result.get("data_type")
+                    }
+        except Exception as e:
+            logger.warning(f"Portal da Transparência integration failed: {str(e)}")
     
     # Layer 1: Try Maritaca AI
     client = get_maritaca_client()
@@ -113,6 +143,10 @@ async def process_with_maritaca(message: str, intent_type: IntentType, session_i
             elif intent_type == IntentType.ANALYZE:
                 system_prompt += "\nO usuário quer uma análise. Explique que tipo de análise você pode fornecer."
             
+            # Add portal data context if available
+            if portal_data and portal_data.get("data"):
+                system_prompt += f"\n\nDados reais do Portal da Transparência: {str(portal_data['data'])[:1000]}"
+            
             messages = [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": message}
@@ -125,20 +159,28 @@ async def process_with_maritaca(message: str, intent_type: IntentType, session_i
             )
             
             if response:
-                return {
+                result = {
                     "message": response.content if hasattr(response, 'content') else str(response),
                     "agent_used": "maritaca_ai",
                     "model": response.model if hasattr(response, 'model') else "sabiazinho-3",
                     "success": True
                 }
+                # Add portal data if available
+                if portal_data:
+                    result.update({
+                        "data": portal_data.get("data"),
+                        "entities": portal_data.get("entities"),
+                        "data_type": portal_data.get("data_type")
+                    })
+                return result
         except Exception as e:
             logger.warning(f"Maritaca AI failed: {str(e)}")
     
     # Layer 2: Try simple HTTP request to Maritaca
     if os.getenv("MARITACA_API_KEY"):
         try:
-            async with httpx.AsyncClient(timeout=5.0) as client:
-                response = await client.post(
+            async with httpx.AsyncClient(timeout=5.0) as http_client:
+                response = await http_client.post(
                     "https://chat.maritaca.ai/api/chat/inference",
                     headers={"authorization": f"Bearer {os.getenv('MARITACA_API_KEY')}"},
                     json={
@@ -149,22 +191,36 @@ async def process_with_maritaca(message: str, intent_type: IntentType, session_i
                 )
                 if response.status_code == 200:
                     data = response.json()
-                    return {
+                    result = {
                         "message": data.get("answer", get_fallback_response(intent_type)),
                         "agent_used": "maritaca_direct",
                         "model": "sabiazinho-3",
                         "success": True
                     }
+                    if portal_data:
+                        result.update({
+                            "data": portal_data.get("data"),
+                            "entities": portal_data.get("entities"),
+                            "data_type": portal_data.get("data_type")
+                        })
+                    return result
         except Exception as e:
             logger.warning(f"Direct Maritaca request failed: {str(e)}")
     
     # Layer 3: Smart fallback based on intent
-    return {
+    result = {
         "message": get_fallback_response(intent_type, {"session_id": session_id}),
         "agent_used": "fallback_intelligent",
         "model": "rule_based",
         "success": True
     }
+    if portal_data:
+        result.update({
+            "data": portal_data.get("data"),
+            "entities": portal_data.get("entities"),
+            "data_type": portal_data.get("data_type")
+        })
+    return result
 
 @router.post("/stable", response_model=ChatResponse)
 async def chat_stable(request: ChatRequest) -> ChatResponse:
@@ -204,7 +260,8 @@ async def chat_stable(request: ChatRequest) -> ChatResponse:
         result = await process_with_maritaca(
             message=request.message,
             intent_type=intent_type,
-            session_id=session_id
+            session_id=session_id,
+            context=request.context
         )
         
         # Determine agent info based on intent
@@ -229,6 +286,25 @@ async def chat_stable(request: ChatRequest) -> ChatResponse:
             IntentType.UNKNOWN: ["help", "examples", "start_investigation"]
         }
         
+        # Build metadata with Portal data if available
+        metadata = {
+            "intent_type": intent_type.value,
+            "processing_time": 0,
+            "agent_used": result["agent_used"],
+            "model": result["model"],
+            "timestamp": datetime.utcnow().isoformat(),
+            "stable_version": True
+        }
+        
+        # Add Portal da Transparência data to metadata if available
+        if result.get("data"):
+            metadata["portal_data"] = {
+                "type": result.get("data_type"),
+                "entities_found": result.get("entities", {}),
+                "total_records": result.get("data", {}).get("total", 0),
+                "has_data": True
+            }
+        
         return ChatResponse(
             session_id=session_id,
             agent_id=agent_id,
@@ -236,14 +312,7 @@ async def chat_stable(request: ChatRequest) -> ChatResponse:
             message=result["message"],
             confidence=confidence,
             suggested_actions=suggested_actions.get(intent_type, ["help"]),
-            metadata={
-                "intent_type": intent_type.value,
-                "processing_time": 0,
-                "agent_used": result["agent_used"],
-                "model": result["model"],
-                "timestamp": datetime.utcnow().isoformat(),
-                "stable_version": True
-            }
+            metadata=metadata
         )
         
     except Exception as e:
@@ -262,3 +331,27 @@ async def chat_stable(request: ChatRequest) -> ChatResponse:
                 "timestamp": datetime.utcnow().isoformat()
             }
         )
+
+@router.get("/test-portal/{query}")
+async def test_portal_integration(query: str):
+    """
+    Test endpoint to verify Portal da Transparência integration
+    Example: /api/v1/chat/test-portal/contratos%20ministerio%20saude
+    """
+    try:
+        result = await chat_data_integration.process_user_query(query)
+        return {
+            "success": True,
+            "query": query,
+            "data_type": result.get("data_type"),
+            "entities_found": result.get("entities"),
+            "total_records": result.get("data", {}).get("total", 0) if result.get("data") else 0,
+            "response": result.get("response"),
+            "sample_data": result.get("data", {}).get("dados", [])[:3] if result.get("data") else []
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "query": query,
+            "error": str(e)
+        }
