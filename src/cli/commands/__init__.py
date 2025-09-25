@@ -12,11 +12,11 @@ Status: Stub implementation - Full CLI planned for production phase.
 from .investigate import investigate
 from .analyze import analyze
 from .report import report
-from .watch import watch_command
+from .watch import watch
 
 __all__ = [
     "investigate",
     "analyze", 
     "report",
-    "watch_command"
+    "watch"
 ]
