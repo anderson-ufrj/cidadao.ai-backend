@@ -251,10 +251,6 @@ Este documento apresenta um roadmap estruturado para melhorias no backend do Cid
    - [ ] Comentários e anotações
    - [ ] Workspaces compartilhados
 
-2. **Mobile & PWA**
-   - [ ] Progressive Web App
-   - [ ] Offline capabilities
-   - [ ] Push notifications
 
 **Entregáveis**: Platform enterprise-ready
 
