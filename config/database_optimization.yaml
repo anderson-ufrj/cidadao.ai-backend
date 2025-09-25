@@ -1,0 +1,111 @@
+# Database Optimization Configuration
+
+# Thresholds for identifying issues
+thresholds:
+  slow_query_seconds: 1.0
+  cache_hit_ratio_min: 0.90
+  dead_tuple_ratio_max: 0.20
+  unused_index_days: 30
+
+# Automatic index creation rules
+auto_indexes:
+  # Create indexes on foreign keys
+  foreign_keys: true
+  
+  # Create indexes on frequently filtered columns
+  frequent_filters:
+    min_calls: 100
+    enabled: true
+  
+  # Create indexes on frequently joined columns
+  frequent_joins:
+    min_calls: 50
+    enabled: true
+
+# Table-specific optimizations
+table_optimizations:
+  investigations:
+    # Partition by created_at if > 10M rows
+    partition_threshold: 10000000
+    partition_by: created_at
+    partition_interval: monthly
+    
+  chat_messages:
+    # Archive old messages
+    archive_after_days: 90
+    archive_to_table: chat_messages_archive
+    
+  audit_logs:
+    # Compress old logs
+    compress_after_days: 30
+    compression_level: 9
+
+# Vacuum settings
+vacuum:
+  # Run VACUUM on tables with > 20% dead tuples
+  dead_tuple_threshold: 0.20
+  
+  # Run VACUUM FULL on tables with > 50% dead tuples
+  full_vacuum_threshold: 0.50
+  
+  # Exclude tables from automatic vacuum
+  exclude_tables:
+    - spatial_ref_sys
+    - pg_stat_statements
+
+# Statistics update settings
+statistics:
+  # Update statistics if stale
+  stale_threshold_days: 7
+  
+  # Sample size for ANALYZE
+  default_statistics_target: 100
+  
+  # Tables requiring higher statistics
+  high_statistics_tables:
+    investigations: 500
+    contracts: 500
+
+# Monitoring and alerting
+monitoring:
+  # Alert if slow queries exceed threshold
+  slow_query_alert_count: 10
+  
+  # Alert if cache hit ratio drops
+  cache_hit_alert_threshold: 0.85
+  
+  # Alert if connections near limit
+  connection_alert_percentage: 0.90
+
+# Scheduled optimization tasks
+schedule:
+  # Run full optimization
+  full_optimization:
+    cron: "0 2 * * SUN"  # Sunday 2 AM
+    enabled: true
+    
+  # Update statistics only
+  update_statistics:
+    cron: "0 3 * * *"    # Daily 3 AM
+    enabled: true
+    
+  # Check missing indexes
+  check_indexes:
+    cron: "0 4 * * MON,THU"  # Monday & Thursday 4 AM
+    enabled: true
+    
+  # Vacuum high-activity tables
+  vacuum_tables:
+    cron: "0 5 * * *"    # Daily 5 AM
+    enabled: true
+
+# Performance recommendations
+recommendations:
+  # Suggest configuration changes
+  suggest_config_changes: true
+  
+  # Suggest query rewrites
+  suggest_query_rewrites: true
+  
+  # Suggest schema changes
+  suggest_schema_changes: true
