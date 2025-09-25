@@ -408,7 +408,7 @@ async def _system_health_check_async() -> Dict[str, Any]:
     
     # Check Redis (cache/queue)
     try:
-        from src.infrastructure.cache import get_redis_client
+        from src.core.cache import get_redis_client
         redis = await get_redis_client()
         await redis.ping()
         health_status["components"]["redis"] = "healthy"

@@ -235,7 +235,7 @@ def analyze_cache_patterns() -> Dict[str, Any]:
         logger.info("Analyzing cache access patterns")
         
         import asyncio
-        from src.infrastructure.cache import cache_service
+        from src.core.cache import cache_service
         
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
