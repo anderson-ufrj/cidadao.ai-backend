@@ -1,4 +1,4 @@
-"""CLI commands for Cidadão.AI.
+"""CLI commands for Cidadï¿½o.AI.
 
 This module provides command-line interface commands for:
 - Investigation operations
@@ -9,14 +9,14 @@ This module provides command-line interface commands for:
 Status: Stub implementation - Full CLI planned for production phase.
 """
 
-from .investigate import investigate_command
-from .analyze import analyze_command
-from .report import report_command
+from .investigate import investigate
+from .analyze import analyze
+from .report import report
 from .watch import watch_command
 
 __all__ = [
-    "investigate_command",
-    "analyze_command", 
-    "report_command",
+    "investigate",
+    "analyze", 
+    "report",
     "watch_command"
 ]
