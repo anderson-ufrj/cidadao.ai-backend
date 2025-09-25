@@ -25,7 +25,7 @@ if MARITACA_API_KEY:
     try:
         maritaca_client = MaritacaClient(
             api_key=MARITACA_API_KEY,
-            model=MaritacaModel.SABIA_3
+            model=MaritacaModel.SABIAZINHO_3
         )
         logger.info("Maritaca AI client initialized successfully")
     except Exception as e:
