@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 import time
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
-from sqlalchemy.pool import NullPool, QueuePool, StaticPool
+from sqlalchemy.pool import NullPool, StaticPool
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text, event
 import redis.asyncio as redis
@@ -163,10 +163,10 @@ class ConnectionPoolService:
     ) -> AsyncEngine:
         """Create database connection pool."""
         try:
-            # Create engine with custom pool
+            # Create engine with async-compatible pool
             engine = create_async_engine(
                 url,
-                poolclass=QueuePool,
+                poolclass=NullPool,
                 **config
             )
             
