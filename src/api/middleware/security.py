@@ -293,7 +293,12 @@ class RequestValidator:
             "host", "connection", "upgrade-insecure-requests",
             "authorization", "x-api-key", "content-type", "content-length",
             "cookie", "cache-control", "pragma", "expires",
-            "if-none-match", "if-modified-since"
+            "if-none-match", "if-modified-since",
+            # Chrome client hints headers
+            "sec-ch-ua", "sec-ch-ua-mobile", "sec-ch-ua-platform",
+            "sec-fetch-dest", "sec-fetch-mode", "sec-fetch-site", "sec-fetch-user",
+            # Other security headers
+            "dnt", "x-requested-with", "x-csrf-token"
         }
         for name, value in request.headers.items():
             if name.lower() in skip_headers:
