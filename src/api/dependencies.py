@@ -7,7 +7,7 @@ from fastapi import Request, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.middleware.authentication import get_current_user as _get_current_user
-from src.core.dependencies import get_db_session
+from src.db.session import get_session as get_db_session
 
 
 def get_current_user(request: Request) -> Dict[str, Any]:
