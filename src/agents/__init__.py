@@ -28,7 +28,14 @@ from .abaporu import (
 from .zumbi import InvestigatorAgent
 from .anita import AnalystAgent
 from .tiradentes import ReporterAgent
+
+# Agent aliases for new naming convention
+ZumbiAgent = InvestigatorAgent
+AnitaAgent = AnalystAgent
+TiradentesAgent = ReporterAgent
 from .ayrton_senna import SemanticRouter
+from .bonifacio import BonifacioAgent
+from .maria_quiteria import MariaQuiteriaAgent
 # Commenting out drummond import to avoid import-time issues on HuggingFace Spaces
 # from .drummond import CommunicationAgent
 from .agent_pool import agent_pool, get_agent_pool
@@ -49,6 +56,12 @@ __all__ = [
     "AnalystAgent",
     "ReporterAgent",
     "SemanticRouter",
+    "BonifacioAgent",
+    "MariaQuiteriaAgent",
+    # Agent aliases
+    "ZumbiAgent",
+    "AnitaAgent", 
+    "TiradentesAgent",
     # "CommunicationAgent",  # Commented out to avoid import issues
     # Memory Agent
     "ContextMemoryAgent",
