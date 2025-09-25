@@ -19,7 +19,7 @@ from src.agents.oscar_niemeyer import (
 )
 from src.agents.lampiao import LampiaoAgent, RegionType
 from src.api.middleware.authentication import get_current_user
-from src.core.database import get_db
+from src.db.session import get_session as get_db
 from src.services.cache_service import CacheService
 from src.core.rate_limit import RateLimiter, rate_limit
 from src.core import get_logger
