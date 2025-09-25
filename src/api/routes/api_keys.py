@@ -16,7 +16,7 @@ from src.core import get_logger
 from src.api.dependencies import get_current_user, get_db, require_admin
 from src.services.api_key_service import APIKeyService
 from src.models.api_key import APIKeyTier, APIKeyStatus
-from src.models import User
+from src.api.auth import User
 
 logger = get_logger(__name__)
 
