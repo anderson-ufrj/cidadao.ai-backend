@@ -19,7 +19,7 @@ from src.infrastructure.rate_limiter import RateLimiter
 from src.core import get_logger
 from src.services.agent_lazy_loader import AgentLazyLoader
 from src.agents.deodoro import AgentContext, AgentMessage
-from src.core.exceptions import NotFoundError
+from src.core.exceptions import ResourceNotFoundError
 
 
 logger = get_logger(__name__)
@@ -400,9 +400,9 @@ async def get_region_details(
             )
             
         else:
-            raise NotFoundError(f"Region '{region_id}' not found")
+            raise ResourceNotFoundError(f"Region '{region_id}' not found")
             
-    except NotFoundError:
+    except ResourceNotFoundError:
         raise HTTPException(status_code=404, detail=f"Region '{region_id}' not found")
     except Exception as e:
         logger.error(
