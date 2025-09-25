@@ -16,7 +16,7 @@ from scipy import stats
 
 from src.core import get_logger
 from src.core.cache import get_redis_client
-from src.ml.training_pipeline import training_pipeline
+from src.ml.training_pipeline import get_training_pipeline
 
 
 logger = get_logger(__name__)
@@ -94,8 +94,9 @@ class ABTestFramework:
             raise ValueError("Traffic split must sum to 1.0")
         
         # Load models to verify they exist
-        await training_pipeline.load_model(*model_a)
-        await training_pipeline.load_model(*model_b)
+        pipeline = get_training_pipeline()
+        await pipeline.load_model(*model_a)
+        await pipeline.load_model(*model_b)
         
         test_config = {
             "test_id": f"ab_test_{test_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
@@ -450,7 +451,8 @@ class ABTestFramework:
         
         # Promote winning model
         model_info = test_config[winner]
-        success = await training_pipeline.promote_model(
+        pipeline = get_training_pipeline()
+        success = await pipeline.promote_model(
             model_info["model_id"],
             model_info["version"],
             "production"
