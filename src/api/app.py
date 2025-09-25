@@ -83,7 +83,7 @@ async def lifespan(app: FastAPI):
     
     # Start periodic memory optimization if enabled
     memory_task = None
-    if settings.get("ENABLE_MEMORY_OPTIMIZATION", True):
+    if getattr(settings, "ENABLE_MEMORY_OPTIMIZATION", True):
         memory_task = asyncio.create_task(periodic_memory_optimization())
     
     yield
