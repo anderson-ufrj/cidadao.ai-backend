@@ -29,7 +29,7 @@ from mlflow.tracking import MlflowClient
 
 from src.core import get_logger, settings
 from src.core.exceptions import CidadaoAIError
-from src.infrastructure.cache.redis_client import get_redis_client
+from src.core.cache import get_redis_client
 from src.models.ml_models import AnomalyDetectorModel
 
 
