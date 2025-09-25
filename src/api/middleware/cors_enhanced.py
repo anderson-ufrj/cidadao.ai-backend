@@ -212,14 +212,9 @@ def setup_cors(app: ASGIApp) -> None:
     
     This replaces the default CORSMiddleware with our enhanced version.
     """
-    # Remove existing CORS middleware if present
-    middlewares = []
-    for middleware in app.middleware:
-        if not isinstance(middleware, CORSMiddleware):
-            middlewares.append(middleware)
-    app.middleware = middlewares
-    
     # Add enhanced CORS middleware
+    # Note: In FastAPI/Starlette, middleware is added in a stack manner
+    # The last added middleware is the outermost (runs first)
     app.add_middleware(
         EnhancedCORSMiddleware,
         allowed_origins=settings.cors_origins,
