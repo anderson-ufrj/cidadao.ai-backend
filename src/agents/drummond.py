@@ -489,7 +489,6 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         
         # Atualizar contexto conversacional
         await self.conversational_memory.add_message(
-            session_id=context.session_id,
             role="user",
             content=message
         )
