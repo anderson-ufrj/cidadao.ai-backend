@@ -195,4 +195,10 @@ print(agent.get_state())
 - **Async Tests**: Use pytest-asyncio
 - **Mocking**: Mock external APIs in tests
 
+## Git Commit Guidelines
+
+- **IMPORTANT**: Do NOT include in commits:
+  - `🤖 Generated with [Claude Code](https://claude.ai/code)`
+  - `Co-Authored-By: Claude <noreply@anthropic.com>` 
+
 Remember: This is a production system deployed on HuggingFace Spaces. Always test thoroughly and maintain backwards compatibility.

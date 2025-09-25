@@ -32,13 +32,12 @@ echo -e "${YELLOW}📍 Current branch: $CURRENT_BRANCH${NC}"
 echo -e "${YELLOW}💾 Stashing local changes...${NC}"
 git stash
 
-# Switch to hf-fastapi branch
-echo -e "${YELLOW}🔄 Switching to hf-fastapi branch...${NC}"
-git checkout hf-fastapi
+# Stay on main branch
+echo -e "${YELLOW}📍 Staying on main branch...${NC}"
 
 # Pull latest changes
 echo -e "${YELLOW}📥 Pulling latest changes...${NC}"
-git pull origin hf-fastapi
+git pull origin main
 
 # Apply the monitoring updates
 echo -e "${YELLOW}📝 Applying monitoring updates...${NC}"
@@ -138,7 +137,7 @@ git commit -m "feat: add embedded monitoring dashboard for HF Spaces
 
 # Push to HuggingFace
 echo -e "${YELLOW}🚀 Pushing to HuggingFace...${NC}"
-git push origin hf-fastapi
+git push huggingface main
 
 # Return to original branch
 echo -e "${YELLOW}🔄 Returning to $CURRENT_BRANCH branch...${NC}"
