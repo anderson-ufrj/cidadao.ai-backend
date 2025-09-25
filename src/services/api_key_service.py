@@ -15,7 +15,7 @@ from sqlalchemy.orm import selectinload
 
 from src.core import get_logger
 from src.models.api_key import APIKey, APIKeyRotation, APIKeyStatus, APIKeyTier
-from src.core.exceptions import ValidationError, NotFoundError, AuthenticationError
+from src.core.exceptions import ValidationError, ResourceResourceNotFoundError, AuthenticationError
 from src.core.cache import CacheService
 from src.services.notification_service import NotificationService
 
@@ -200,7 +200,7 @@ class APIKeyService:
         # Get existing key
         api_key = await self.get_by_id(api_key_id)
         if not api_key:
-            raise NotFoundError(f"API key {api_key_id} not found")
+            raise ResourceNotFoundError(f"API key {api_key_id} not found")
         
         # Mark as rotating
         old_status = api_key.status
@@ -321,7 +321,7 @@ class APIKeyService:
         """
         api_key = await self.get_by_id(api_key_id)
         if not api_key:
-            raise NotFoundError(f"API key {api_key_id} not found")
+            raise ResourceNotFoundError(f"API key {api_key_id} not found")
         
         api_key.status = APIKeyStatus.REVOKED
         api_key.metadata["revocation"] = {
@@ -386,7 +386,7 @@ class APIKeyService:
         """Update custom rate limits for a key."""
         api_key = await self.get_by_id(api_key_id)
         if not api_key:
-            raise NotFoundError(f"API key {api_key_id} not found")
+            raise ResourceNotFoundError(f"API key {api_key_id} not found")
         
         if per_minute is not None:
             api_key.rate_limit_per_minute = per_minute
@@ -408,7 +408,7 @@ class APIKeyService:
         """Get usage statistics for an API key."""
         api_key = await self.get_by_id(api_key_id)
         if not api_key:
-            raise NotFoundError(f"API key {api_key_id} not found")
+            raise ResourceNotFoundError(f"API key {api_key_id} not found")
         
         # This would integrate with your metrics system
         # For now, return basic stats
