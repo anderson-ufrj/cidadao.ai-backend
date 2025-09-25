@@ -32,6 +32,7 @@ celery_app = Celery(
         "src.infrastructure.queue.tasks.report_tasks",
         "src.infrastructure.queue.tasks.export_tasks",
         "src.infrastructure.queue.tasks.monitoring_tasks",
+        "src.infrastructure.queue.tasks.maintenance_tasks",
     ]
 )
 

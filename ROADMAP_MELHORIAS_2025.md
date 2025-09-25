@@ -125,20 +125,23 @@ Este documento apresenta um roadmap estruturado para melhorias no backend do Cid
 **Entregáveis**: CLI totalmente funcional com comandos ricos em features, sistema de batch processing enterprise-grade com Celery, filas de prioridade e retry avançado ✅
 
 #### Sprint 6 (Semanas 11-12)
-**Tema: Segurança Avançada**
+**Tema: Segurança de API & Performance**
 
-1. **Autenticação**
-   - [ ] Two-factor authentication (2FA)
-   - [ ] API key rotation automática
-   - [ ] Session management com Redis
-   - [ ] Account lockout mechanism
+1. **Segurança de API**
+   - [ ] API key rotation automática para integrações
+   - [ ] Rate limiting avançado por endpoint/cliente
+   - [ ] Request signing/HMAC para webhooks
+   - [ ] IP whitelist para ambientes produtivos
+   - [ ] CORS configuration refinada
 
-2. **Compliance**
-   - [ ] LGPD compliance tools
-   - [ ] Audit log encryption
-   - [ ] Data retention automation
+2. **Performance & Caching**
+   - [ ] Cache warming strategies
+   - [ ] Database query optimization (índices)
+   - [ ] Response compression (Brotli/Gzip)
+   - [ ] Connection pooling optimization
+   - [ ] Lazy loading para agentes
 
-**Entregáveis**: Segurança enterprise-grade
+**Entregáveis**: API segura e otimizada para produção
 
 ### 🟢 **FASE 3: AGENTES AVANÇADOS** (Sprints 7-9)
 *Foco: Completar Sistema Multi-Agente*
