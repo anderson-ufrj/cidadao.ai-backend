@@ -7,7 +7,7 @@ License: Proprietary - All rights reserved
 """
 
 import time
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 from enum import Enum
 import gzip
 import zlib
