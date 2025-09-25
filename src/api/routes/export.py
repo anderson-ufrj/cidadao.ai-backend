@@ -679,5 +679,298 @@ async def export_regional_analysis(
             }
         )
     
+    elif request.format == "csv":
+        # For CSV, create a flat structure with all regional data
+        csv_data = []
+        for metric_data in regional_data.metrics:
+            csv_data.append({
+                "region_id": metric_data.region_id,
+                "region_name": metric_data.region_name,
+                "metric": metric,
+                "value": metric_data.value,
+                "normalized_value": metric_data.normalized_value,
+                "rank": metric_data.rank,
+                "percentile": metric_data.percentile,
+                "population": metric_data.metadata.get("population", 0),
+                "area_km2": metric_data.metadata.get("area", 0),
+                "gini_index": regional_data.inequalities.get("gini", 0),
+                "theil_index": regional_data.inequalities.get("theil_l", 0),
+                "analysis_type": regional_data.analysis_type.value,
+                "timestamp": datetime.now().isoformat()
+            })
+        
+        df = pd.DataFrame(csv_data)
+        csv_bytes = await export_service.generate_csv(df)
+        
+        return Response(
+            content=csv_bytes,
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}.csv"
+            }
+        )
+    
+    elif request.format == "json":
+        # For JSON, provide complete structured data optimized for visualization
+        export_data = {
+            "metadata": {
+                "exported_at": datetime.now().isoformat(),
+                "metric": metric,
+                "region_type": region_type,
+                "analysis_type": regional_data.analysis_type.value,
+                "regions_analyzed": regional_data.regions_analyzed
+            },
+            "data": {
+                "regions": [
+                    {
+                        "id": m.region_id,
+                        "name": m.region_name,
+                        "value": m.value,
+                        "normalized_value": m.normalized_value,
+                        "rank": m.rank,
+                        "percentile": m.percentile,
+                        "metadata": m.metadata
+                    }
+                    for m in regional_data.metrics
+                ],
+                "statistics": regional_data.statistics,
+                "inequalities": regional_data.inequalities,
+                "clusters": regional_data.clusters,
+                "recommendations": [
+                    {
+                        "text": rec,
+                        "priority": "high" if i < 2 else "medium"
+                    }
+                    for i, rec in enumerate(regional_data.recommendations)
+                ]
+            },
+            "visualization_hints": {
+                "chart_type": "choropleth_map",
+                "color_scale": "viridis",
+                "value_field": "value",
+                "region_id_field": "id",
+                "tooltip_fields": ["name", "value", "rank", "percentile"]
+            }
+        }
+        
+        return Response(
+            content=json_utils.dumps(export_data, indent=2, ensure_ascii=False),
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}.json"
+            }
+        )
+    
     else:
         raise HTTPException(status_code=400, detail=f"Format {request.format} not supported for regional analysis export")
+
+
+@router.post("/time-series/export")
+async def export_time_series_data(
+    request: ExportRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    Export time series data optimized for visualization.
+    
+    Formats historical data, trends, and optionally forecasts 
+    in formats suitable for charting libraries.
+    """
+    from src.services.agent_lazy_loader import AgentLazyLoader
+    from src.agents.oscar_niemeyer import OscarNiemeyerAgent, TimeGranularity
+    from src.agents.deodoro import AgentContext
+    
+    agent_loader = AgentLazyLoader()
+    
+    # Get Oscar Niemeyer agent
+    oscar_agent = await agent_loader.get_agent("oscar_niemeyer")
+    if not oscar_agent:
+        oscar_agent = OscarNiemeyerAgent()
+        await oscar_agent.initialize()
+    
+    filename = f"time_series_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+    
+    # Get parameters from filters
+    filters = request.filters or {}
+    metric = filters.get("metric", "total_value")
+    start_date = filters.get("start_date")
+    end_date = filters.get("end_date")
+    granularity = filters.get("granularity", "day")
+    include_forecast = filters.get("include_forecast", False)
+    
+    # Create context
+    context = AgentContext(
+        investigation_id=f"export_ts_{uuid4()}",
+        user_id=current_user.get("user_id"),
+        session_id="export_session",
+        metadata={"export_format": request.format}
+    )
+    
+    # Get time series data
+    granularity_enum = TimeGranularity[granularity.upper()] if granularity.upper() in TimeGranularity.__members__ else TimeGranularity.DAY
+    time_series_data = await oscar_agent.generate_time_series(
+        metric,
+        start_date,
+        end_date,
+        granularity_enum,
+        context
+    )
+    
+    if request.format == "excel":
+        # Create Excel with time series data
+        dataframes = {}
+        
+        # Main time series data
+        ts_data = []
+        for i, (time_point, value) in enumerate(zip(time_series_data.time_points, time_series_data.values)):
+            ts_data.append({
+                "Date": time_point,
+                "Value": value,
+                "Metric": metric,
+                "Index": i
+            })
+        dataframes["Time Series"] = pd.DataFrame(ts_data)
+        
+        # Summary statistics
+        summary_data = {
+            "Metric": metric,
+            "Start Date": time_series_data.time_points[0] if time_series_data.time_points else None,
+            "End Date": time_series_data.time_points[-1] if time_series_data.time_points else None,
+            "Data Points": len(time_series_data.values),
+            "Min Value": min(time_series_data.values) if time_series_data.values else 0,
+            "Max Value": max(time_series_data.values) if time_series_data.values else 0,
+            "Mean Value": sum(time_series_data.values) / len(time_series_data.values) if time_series_data.values else 0,
+            "Granularity": granularity
+        }
+        dataframes["Summary"] = pd.DataFrame([summary_data])
+        
+        excel_bytes = await export_service.generate_excel(
+            data=dataframes,
+            title=f"Time Series - {metric}",
+            metadata={
+                'exported_at': datetime.now().isoformat(),
+                'metric': metric,
+                'granularity': granularity,
+                'data_points': len(ts_data)
+            }
+        )
+        
+        return Response(
+            content=excel_bytes,
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}.xlsx"
+            }
+        )
+    
+    elif request.format == "csv":
+        # Create CSV with time series data
+        ts_data = []
+        for time_point, value in zip(time_series_data.time_points, time_series_data.values):
+            ts_data.append({
+                "timestamp": time_point.isoformat(),
+                "value": value,
+                "metric": metric,
+                "granularity": granularity
+            })
+        
+        df = pd.DataFrame(ts_data)
+        csv_bytes = await export_service.generate_csv(df)
+        
+        return Response(
+            content=csv_bytes,
+            media_type="text/csv",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}.csv"
+            }
+        )
+    
+    elif request.format == "json":
+        # JSON format optimized for charting libraries (Chart.js, D3.js, etc.)
+        export_data = {
+            "metadata": {
+                "exported_at": datetime.now().isoformat(),
+                "metric": metric,
+                "granularity": granularity,
+                "aggregation_type": time_series_data.aggregation_type.value,
+                "data_points": len(time_series_data.values)
+            },
+            "data": {
+                "labels": [tp.isoformat() for tp in time_series_data.time_points],
+                "datasets": [{
+                    "label": metric.replace("_", " ").title(),
+                    "data": time_series_data.values,
+                    "borderColor": "rgb(75, 192, 192)",
+                    "backgroundColor": "rgba(75, 192, 192, 0.2)"
+                }]
+            },
+            "options": {
+                "responsive": True,
+                "plugins": {
+                    "title": {
+                        "display": True,
+                        "text": f"{metric.replace('_', ' ').title()} - Time Series"
+                    },
+                    "tooltip": {
+                        "mode": "index",
+                        "intersect": False
+                    }
+                },
+                "scales": {
+                    "x": {
+                        "display": True,
+                        "title": {
+                            "display": True,
+                            "text": "Date"
+                        }
+                    },
+                    "y": {
+                        "display": True,
+                        "title": {
+                            "display": True,
+                            "text": metric.replace("_", " ").title()
+                        }
+                    }
+                }
+            }
+        }
+        
+        # Add forecast data if requested
+        if include_forecast:
+            # Simple forecast placeholder
+            forecast_points = 7
+            last_value = time_series_data.values[-1] if time_series_data.values else 0
+            last_time = time_series_data.time_points[-1] if time_series_data.time_points else datetime.utcnow()
+            
+            forecast_labels = []
+            forecast_values = []
+            for i in range(forecast_points):
+                if granularity == "day":
+                    next_time = last_time + timedelta(days=i+1)
+                else:
+                    next_time = last_time + timedelta(days=(i+1)*30)
+                
+                forecast_labels.append(next_time.isoformat())
+                forecast_values.append(last_value * (1 + 0.02 * (i+1)))
+            
+            export_data["data"]["datasets"].append({
+                "label": "Forecast",
+                "data": forecast_values,
+                "borderColor": "rgb(255, 99, 132)",
+                "backgroundColor": "rgba(255, 99, 132, 0.2)",
+                "borderDash": [5, 5]
+            })
+            
+            # Extend labels for forecast
+            export_data["data"]["labels"].extend(forecast_labels)
+        
+        return Response(
+            content=json_utils.dumps(export_data, indent=2, ensure_ascii=False),
+            media_type="application/json",
+            headers={
+                "Content-Disposition": f"attachment; filename={filename}.json"
+            }
+        )
+    
+    else:
+        raise HTTPException(status_code=400, detail=f"Format {request.format} not supported for time series export")
