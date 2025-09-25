@@ -18,7 +18,7 @@ from src.agents.oscar_niemeyer import (
     TimeGranularity,
 )
 from src.agents.lampiao import LampiaoAgent, RegionType
-from src.core.auth import get_current_user
+from src.api.middleware.authentication import get_current_user
 from src.core.database import get_db
 from src.services.cache_service import CacheService
 from src.core.rate_limit import RateLimiter, rate_limit
