@@ -1,0 +1,36 @@
+databases:
+  - name: cidadao-db
+    plan: free
+    databaseName: cidadao
+    user: cidadao
+
+services:
+  - type: web
+    name: cidadao-api
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: cidadao-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: cidadao-redis
+          property: connectionString
+      - key: MARITACA_API_KEY
+        sync: false
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: SECRET_KEY
+        generateValue: true
+      - key: APP_ENV
+        value: production
+      - key: PYTHONUNBUFFERED
+        value: 1
+    
+  - type: redis
+    name: cidadao-redis
+    plan: free
+    ipAllowList: []
