@@ -41,9 +41,9 @@ async def initialize_memory_system() -> Optional[ContextMemoryAgent]:
         memory_agent = ContextMemoryAgent(
             redis_client=redis_client,
             vector_store=vector_store,
-            max_episodic_memories=settings.get("MAX_EPISODIC_MEMORIES", 10000),
-            max_conversation_turns=settings.get("MAX_CONVERSATION_TURNS", 100),
-            memory_decay_days=settings.get("MEMORY_DECAY_DAYS", 90)
+            max_episodic_memories=getattr(settings, "MAX_EPISODIC_MEMORIES", 10000),
+            max_conversation_turns=getattr(settings, "MAX_CONVERSATION_TURNS", 100),
+            memory_decay_days=getattr(settings, "MEMORY_DECAY_DAYS", 90)
         )
         
         # Initialize the memory agent
@@ -53,9 +53,9 @@ async def initialize_memory_system() -> Optional[ContextMemoryAgent]:
         memory_integration = await initialize_memory_integration(memory_agent)
         
         # Configure memory integration settings
-        memory_integration.auto_store = settings.get("AUTO_STORE_MEMORIES", True)
-        memory_integration.auto_retrieve = settings.get("AUTO_RETRIEVE_MEMORIES", True)
-        memory_integration.cache_ttl = settings.get("MEMORY_CACHE_TTL", 300)
+        memory_integration.auto_store = getattr(settings, "AUTO_STORE_MEMORIES", True)
+        memory_integration.auto_retrieve = getattr(settings, "AUTO_RETRIEVE_MEMORIES", True)
+        memory_integration.cache_ttl = getattr(settings, "MEMORY_CACHE_TTL", 300)
         
         logger.info("Memory system initialized successfully")
         logger.info(f"Auto-store: {memory_integration.auto_store}")
@@ -197,7 +197,7 @@ async def setup_memory_on_startup():
     if memory_agent:
         await integrate_existing_agents()
         # Optionally demonstrate memory sharing
-        if settings.get("DEMO_MEMORY_SHARING", False):
+        if getattr(settings, "DEMO_MEMORY_SHARING", False):
             await demonstrate_memory_sharing()
     return memory_agent
 
@@ -226,7 +226,7 @@ async def periodic_memory_optimization():
     while True:
         try:
             # Wait for configured interval (default: 24 hours)
-            interval = settings.get("MEMORY_OPTIMIZATION_INTERVAL", 86400)
+            interval = getattr(settings, "MEMORY_OPTIMIZATION_INTERVAL", 86400)
             await asyncio.sleep(interval)
             
             # Run optimization
