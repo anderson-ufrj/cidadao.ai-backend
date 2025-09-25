@@ -16,7 +16,8 @@ from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel, Field as PydanticField, validator
 from src.core import json_utils
 from src.core import get_logger
-from src.agents import ReporterAgent, AgentContext
+from src.agents.tiradentes import ReporterAgent
+from src.agents import AgentContext
 from src.api.middleware.authentication import get_current_user
 
 
@@ -346,6 +347,34 @@ async def download_report(
             }
         )
     
+    elif format == "pdf":
+        # Check if content is base64 encoded PDF
+        import base64
+        try:
+            # If content is already a base64 PDF, decode it
+            if report["output_format"] == "pdf":
+                pdf_bytes = base64.b64decode(content)
+            else:
+                # Convert markdown/html content to PDF
+                from src.services.export_service import export_service
+                pdf_bytes = await export_service.generate_pdf(
+                    content=content,
+                    title=report["title"],
+                    metadata=report["metadata"],
+                    format_type="report"
+                )
+            
+            return Response(
+                content=pdf_bytes,
+                media_type="application/pdf",
+                headers={
+                    "Content-Disposition": f"attachment; filename={title}.pdf"
+                }
+            )
+        except Exception as e:
+            logger.error("pdf_download_error", error=str(e), report_id=report_id)
+            raise HTTPException(status_code=500, detail="Failed to generate PDF")
+    
     else:
         raise HTTPException(status_code=400, detail="Unsupported format")
 
@@ -458,47 +487,56 @@ async def _generate_report(report_id: str, request: ReportRequest):
         report["current_phase"] = "content_generation"
         report["progress"] = 0.3
         
-        # Generate report content based on type
-        if request.report_type == "executive_summary":
-            content = await reporter.generate_executive_summary(
-                investigation_ids=request.investigation_ids,
-                analysis_ids=request.analysis_ids,
-                time_range=request.time_range,
-                context=context
-            )
-        elif request.report_type == "detailed_analysis":
-            content = await reporter.generate_detailed_analysis(
-                data_sources=request.data_sources,
-                analysis_ids=request.analysis_ids,
-                time_range=request.time_range,
-                context=context
-            )
-        elif request.report_type == "investigation_report":
-            content = await reporter.generate_investigation_report(
-                investigation_ids=request.investigation_ids,
-                include_evidence=True,
-                context=context
-            )
-        else:
-            content = await reporter.generate_custom_report(
-                report_type=request.report_type,
-                title=request.title,
-                data_sources=request.data_sources,
-                investigation_ids=request.investigation_ids,
-                analysis_ids=request.analysis_ids,
-                context=context
-            )
+        # Create report request for Tiradentes
+        from src.agents.tiradentes import ReportRequest as TiradentesReportRequest, ReportType, ReportFormat
+        
+        # Map report type
+        report_type_map = {
+            "executive_summary": ReportType.EXECUTIVE_SUMMARY,
+            "detailed_analysis": ReportType.ANALYSIS_REPORT,
+            "investigation_report": ReportType.INVESTIGATION_REPORT,
+            "transparency_dashboard": ReportType.COMBINED_REPORT,
+            "comparative_analysis": ReportType.TREND_ANALYSIS,
+            "audit_report": ReportType.INVESTIGATION_REPORT,
+        }
+        
+        # Map format
+        format_map = {
+            "markdown": ReportFormat.MARKDOWN,
+            "html": ReportFormat.HTML,
+            "json": ReportFormat.JSON,
+            "pdf": ReportFormat.PDF,
+        }
+        
+        tiradentes_request = TiradentesReportRequest(
+            report_type=report_type_map.get(request.report_type, ReportType.INVESTIGATION_REPORT),
+            format=format_map.get(request.output_format, ReportFormat.MARKDOWN),
+            target_audience=request.target_audience,
+            language="pt-BR",
+        )
+        
+        # Process with Tiradentes
+        from src.agents import AgentMessage
+        message = AgentMessage(
+            agent_id=reporter.agent_id,
+            content={
+                "request": tiradentes_request,
+                "investigation_ids": request.investigation_ids,
+                "analysis_ids": request.analysis_ids,
+                "data_sources": request.data_sources,
+                "time_range": request.time_range,
+            },
+            requires_response=True
+        )
+        
+        result = await reporter.process(message, context)
+        content = result.data.get("report_content", "")
         
         report["current_phase"] = "formatting"
         report["progress"] = 0.7
         
-        # Format content according to output format
-        if request.output_format == "html":
-            formatted_content = await reporter.format_as_html(content, request.title)
-        elif request.output_format == "json":
-            formatted_content = await reporter.format_as_json(content, report)
-        else:
-            formatted_content = content  # Keep as markdown
+        # Content is already formatted by Tiradentes based on the format requested
+        formatted_content = content
         
         report["current_phase"] = "finalization"
         report["progress"] = 0.9

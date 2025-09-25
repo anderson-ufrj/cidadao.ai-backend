@@ -18,6 +18,7 @@ from pydantic import BaseModel, Field as PydanticField
 from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentResponse
 from src.core import get_logger, AgentStatus
 from src.core.exceptions import AgentExecutionError
+from src.services.export_service import export_service
 
 
 class ReportFormat(str, Enum):
@@ -127,6 +128,7 @@ class ReporterAgent(BaseAgent):
             ReportFormat.MARKDOWN: self._render_markdown,
             ReportFormat.HTML: self._render_html,
             ReportFormat.JSON: self._render_json,
+            ReportFormat.PDF: self._render_pdf,
             ReportFormat.EXECUTIVE_SUMMARY: self._render_executive_summary,
         }
         
@@ -1035,3 +1037,31 @@ class ReporterAgent(BaseAgent):
             content.append("")
         
         return "\n".join(content)
+    
+    async def _render_pdf(
+        self,
+        sections: List[ReportSection],
+        request: ReportRequest,
+        context: AgentContext
+    ) -> str:
+        """Render report in PDF format and return base64 encoded string."""
+        # First convert sections to markdown
+        markdown_content = await self._render_markdown(sections, request, context)
+        
+        # Generate PDF using export service
+        pdf_bytes = await export_service.generate_pdf(
+            content=markdown_content,
+            title=f"Relatório: {request.report_type.value.replace('_', ' ').title()}",
+            metadata={
+                'generated_at': datetime.utcnow().isoformat(),
+                'report_type': request.report_type.value,
+                'investigation_id': context.investigation_id,
+                'target_audience': request.target_audience,
+                'author': 'Agente Tiradentes - Cidadão.AI'
+            },
+            format_type="report"
+        )
+        
+        # Return base64 encoded PDF for easy transmission
+        import base64
+        return base64.b64encode(pdf_bytes).decode('utf-8')
