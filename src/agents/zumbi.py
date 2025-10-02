@@ -26,6 +26,7 @@ from src.core.monitoring import (
 from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFilter
 from src.tools.models_client import ModelsClient, get_models_client
 from src.ml.spectral_analyzer import SpectralAnalyzer, SpectralAnomaly
+from src.tools.dados_gov_tool import DadosGovTool
 import time
 
 
@@ -53,6 +54,7 @@ class InvestigationRequest(BaseModel):
     value_threshold: Optional[float] = PydanticField(default=None, description="Minimum value threshold for contracts")
     anomaly_types: Optional[List[str]] = PydanticField(default=None, description="Specific types of anomalies to look for")
     max_records: int = PydanticField(default=100, description="Maximum records to analyze")
+    enable_open_data_enrichment: bool = PydanticField(default=True, description="Enable enrichment with dados.gov.br open data")
 
 
 class InvestigatorAgent(BaseAgent):
@@ -92,7 +94,8 @@ class InvestigatorAgent(BaseAgent):
                 "duplicate_contract_detection",
                 "payment_pattern_analysis",
                 "spectral_analysis",
-                "explainable_ai"
+                "explainable_ai",
+                "open_data_enrichment"
             ],
             max_retries=3,
             timeout=60
@@ -111,6 +114,9 @@ class InvestigatorAgent(BaseAgent):
         
         # Initialize spectral analyzer for frequency-domain analysis (fallback)
         self.spectral_analyzer = SpectralAnalyzer()
+        
+        # Initialize dados.gov.br tool for accessing open data
+        self.dados_gov_tool = DadosGovTool()
         
         # Anomaly detection methods registry
         self.anomaly_detectors = {
@@ -200,6 +206,13 @@ class InvestigatorAgent(BaseAgent):
                         "summary": {"total_records": 0, "anomalies_found": 0}
                     },
                     metadata={"investigation_id": context.investigation_id}
+                )
+            
+            # Enrich data with open data information if available
+            if request.enable_open_data_enrichment:
+                contracts_data = await self._enrich_with_open_data(
+                    contracts_data,
+                    context
                 )
             
             # Run anomaly detection
@@ -370,6 +383,68 @@ class InvestigatorAgent(BaseAgent):
                     continue
         
         return all_contracts[:request.max_records]
+    
+    async def _enrich_with_open_data(
+        self,
+        contracts_data: List[Dict[str, Any]],
+        context: AgentContext
+    ) -> List[Dict[str, Any]]:
+        """
+        Enrich contract data with information from dados.gov.br.
+        
+        Args:
+            contracts_data: Contract records
+            context: Agent context
+            
+        Returns:
+            Enriched contract data
+        """
+        # Extract unique organizations from contracts
+        organizations = set()
+        for contract in contracts_data:
+            org_name = contract.get("orgao", {}).get("nome", "")
+            if org_name:
+                organizations.add(org_name)
+        
+        # Search for related datasets for each organization
+        related_datasets = {}
+        for org_name in organizations:
+            try:
+                # Search for datasets from this organization
+                result = await self.dados_gov_tool._execute(
+                    query=f"{org_name}, licitações, contratos",
+                    action="search",
+                    limit=5
+                )
+                
+                if result.success and result.data:
+                    related_datasets[org_name] = result.data.get("datasets", [])
+                    
+                    self.logger.info(
+                        "open_data_found",
+                        organization=org_name,
+                        datasets_count=len(related_datasets[org_name]),
+                        investigation_id=context.investigation_id,
+                    )
+            except Exception as e:
+                self.logger.warning(
+                    "open_data_search_failed",
+                    organization=org_name,
+                    error=str(e),
+                    investigation_id=context.investigation_id,
+                )
+        
+        # Enrich contracts with open data references
+        for contract in contracts_data:
+            org_name = contract.get("orgao", {}).get("nome", "")
+            if org_name in related_datasets:
+                contract["_open_data_available"] = True
+                contract["_related_datasets"] = related_datasets[org_name]
+            else:
+                contract["_open_data_available"] = False
+                contract["_related_datasets"] = []
+        
+        return contracts_data
     
     async def _run_anomaly_detection(
         self,
