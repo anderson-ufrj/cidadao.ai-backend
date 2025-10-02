@@ -16,6 +16,7 @@ from src.core import get_logger
 from src.core.exceptions import ValidationError
 from src.api.dependencies import get_current_optional_user
 from src.api.routes.chat_drummond_factory import get_drummond_agent
+from src.api.routes.chat_zumbi_integration import run_zumbi_investigation, format_investigation_message
 from src.agents.deodoro import AgentMessage, AgentContext, AgentResponse, AgentStatus
 from src.agents.abaporu import MasterAgent
 from src.services.chat_service import IntentDetector, IntentType
@@ -269,47 +270,69 @@ async def send_message(
                     max_results=10
                 )
                 
-                # Run investigation
-                # NOTE: Enhanced Zumbi temporarily disabled to fix circular import
-                investigation_result = None
-                if investigation_result is None:
-                    # Return a properly formatted response
+                # Run investigation with Zumbi agent
+                logger.info("Running Zumbi investigation with dados.gov.br integration")
+                
+                # Extract organization codes from intent entities if available
+                org_codes = None
+                if intent.entities:
+                    orgs = [e.value for e in intent.entities if e.type == "organization"]
+                    if orgs:
+                        # Map organization names to codes if needed
+                        org_codes = orgs  # For now, use as-is
+                
+                # Run investigation with dados.gov.br enabled
+                investigation_result = await run_zumbi_investigation(
+                    query=request.message,
+                    organization_codes=org_codes,
+                    enable_open_data=True,  # Always enable dados.gov.br search
+                    session_id=session_id,
+                    user_id=session.user_id
+                )
+                
+                if investigation_result["status"] == "error":
+                    # Return error response
                     return ChatResponse(
                         session_id=session_id,
-                        agent_id="system",
-                        agent_name="Sistema",
-                        message="Desculpe, o sistema de investigação está temporariamente indisponível. Por favor, tente novamente mais tarde.",
+                        agent_id="zumbi",
+                        agent_name="Zumbi dos Palmares",
+                        message=f"❌ Erro na investigação: {investigation_result['error']}",
                         confidence=0.0,
-                        metadata={"status": "investigation_unavailable"}
+                        metadata={"status": "error", "error": investigation_result["error"]}
                     )
                 
-                # Format response
-                message = f"🏹 **Investigação Concluída**\n\n"
-                message += f"Fonte de dados: {investigation_result.data_source}\n"
-                message += f"Resultados encontrados: {investigation_result.total_found}\n"
-                message += f"Anomalias detectadas: {investigation_result.anomalies_detected}\n\n"
+                # Format response using the integration helper
+                message = format_investigation_message(investigation_result)
                 
-                if investigation_result.results:
-                    message += "**Principais achados:**\n"
-                    for i, result in enumerate(investigation_result.results[:3], 1):
-                        if investigation_result.data_source == "contratos":
-                            message += f"{i}. Contrato {result.get('numero', 'N/A')} - R$ {result.get('valor', 0):,.2f}\n"
-                        elif investigation_result.data_source == "servidores":
-                            message += f"{i}. {result.get('nome', 'N/A')} - {result.get('cargo', 'N/A')}\n"
+                # Add suggested actions if anomalies were found
+                suggested_actions = []
+                if investigation_result["anomalies_found"] > 0:
+                    suggested_actions.append("🔍 Ver detalhes das anomalias")
+                    suggested_actions.append("📊 Gerar relatório completo")
+                    if investigation_result.get("open_data_available"):
+                        suggested_actions.append("📂 Explorar dados abertos relacionados")
                 else:
-                    message += "Nenhum resultado encontrado para esta busca.\n"
+                    suggested_actions.append("🔎 Refinar busca")
+                    suggested_actions.append("📈 Analisar outros períodos")
                 
                 response = AgentResponse(
                     agent_name="Zumbi dos Palmares",
                     status=AgentStatus.COMPLETED,
                     result={
                         "message": message,
-                        "investigation_data": investigation_result.dict(),
-                        "status": "investigation_completed"
+                        "investigation_summary": {
+                            "anomalies_found": investigation_result["anomalies_found"],
+                            "records_analyzed": investigation_result["records_analyzed"],
+                            "open_data_available": investigation_result.get("open_data_available", False),
+                            "datasets_count": len(investigation_result.get("related_datasets", []))
+                        },
+                        "status": "completed",
+                        "suggested_actions": suggested_actions
                     },
                     metadata={
-                        "confidence": investigation_result.confidence_score,
-                        "processing_time": investigation_result.processing_time_ms
+                        "confidence": 0.9,
+                        "investigation_id": session.current_investigation_id,
+                        "dados_gov_enabled": True
                     }
                 )
                 agent_id = "zumbi"
@@ -370,10 +393,19 @@ async def send_message(
         
         # Prepare suggested actions based on response
         suggested_actions = []
-        if intent.type == IntentType.INVESTIGATE and not session.current_investigation_id:
-            suggested_actions = ["start_investigation", "view_examples", "learn_more"]
-        elif session.current_investigation_id:
-            suggested_actions = ["view_progress", "generate_report", "new_investigation"]
+        
+        # Check if response has custom suggested actions
+        if hasattr(response, 'result') and isinstance(response.result, dict):
+            custom_actions = response.result.get("suggested_actions", [])
+            if custom_actions:
+                suggested_actions = custom_actions
+        
+        # Fall back to default actions if no custom ones
+        if not suggested_actions:
+            if intent.type == IntentType.INVESTIGATE and not session.current_investigation_id:
+                suggested_actions = ["start_investigation", "view_examples", "learn_more"]
+            elif session.current_investigation_id:
+                suggested_actions = ["view_progress", "generate_report", "new_investigation"]
         
         # Extract message from response
         if hasattr(response, 'result') and isinstance(response.result, dict):
