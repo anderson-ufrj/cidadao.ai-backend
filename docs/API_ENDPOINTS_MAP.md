@@ -1,6 +1,7 @@
 # 🗺️ Mapa Completo de Endpoints da API Cidadão.AI
 
-**Última atualização**: Janeiro 2025  
+**Autor**: Anderson Henrique da Silva  
+**Última atualização**: Outubro 2025  
 **Total de endpoints**: 529 endpoints  
 **Status**: 490 ativos, 39 inativos
 
