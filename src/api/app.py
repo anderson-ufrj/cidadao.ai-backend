@@ -21,6 +21,7 @@ from src.core import get_logger, settings
 from src.core.exceptions import CidadaoAIError, create_error_response
 from src.core.audit import audit_logger, AuditEventType, AuditSeverity, AuditContext
 from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat, websocket_chat, batch, graphql, cqrs, resilience, observability, chat_simple, chat_stable, chat_optimized, chat_emergency, notifications, agents, orchestration, agent_metrics, visualization, geographic
+from src.api.v1 import dados_gov
 from src.api.middleware.rate_limiting import RateLimitMiddleware
 from src.api.middleware.authentication import AuthenticationMiddleware
 from src.api.middleware.logging_middleware import LoggingMiddleware
@@ -484,6 +485,12 @@ app.include_router(
     api_keys.router,
     prefix="/api/v1",
     tags=["API Keys"]
+)
+
+app.include_router(
+    dados_gov.router,
+    prefix="/api/v1",
+    tags=["Dados.gov.br"]
 )
 
 app.include_router(
