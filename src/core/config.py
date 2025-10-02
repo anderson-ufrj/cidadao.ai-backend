@@ -74,6 +74,12 @@ class Settings(BaseSettings):
         description="Portal da Transparência API header key name"
     )
     
+    # Dados.gov.br API Configuration
+    dados_gov_api_key: Optional[SecretStr] = Field(
+        default=None,
+        description="Dados.gov.br API key (if required)"
+    )
+    
     # LLM Configuration
     llm_provider: str = Field(
         default="groq",
@@ -403,6 +409,8 @@ class Settings(BaseSettings):
                 config_data["together_api_key"] = api_secrets.together_api_key
             if api_secrets.huggingface_api_key:
                 config_data["huggingface_api_key"] = api_secrets.huggingface_api_key
+            if hasattr(api_secrets, "dados_gov_api_key") and api_secrets.dados_gov_api_key:
+                config_data["dados_gov_api_key"] = api_secrets.dados_gov_api_key
         
         # Create Settings instance with secrets
         # Environment variables will still be used for non-secret configuration
