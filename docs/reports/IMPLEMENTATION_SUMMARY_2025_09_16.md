@@ -1,5 +1,8 @@
 # 📋 Resumo das Implementações - 16 de Setembro de 2025
 
+**Author**: Anderson Henrique da Silva
+**Date**: 2025-09-16
+
 ## 🎯 Objetivo Inicial
 Implementar interface de chat conversacional no backend com suporte completo para mobile/PWA.
 
