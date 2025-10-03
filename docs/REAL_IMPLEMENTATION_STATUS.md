@@ -26,16 +26,16 @@
 
 ### ✅ Categoria A: Produção (100% Funcionais) - 8 agentes
 
-| # | Agente | Arquivo | Tamanho | Métodos | Testes | Status |
-|---|--------|---------|---------|---------|--------|--------|
-| 1 | **Zumbi dos Palmares** | `zumbi.py` | 53KB | 19 | ✅ 15+ testes | Detecção de anomalias com FFT |
-| 2 | **Anita Garibaldi** | `anita.py` | 61KB | ~30 | ✅ 12+ testes | Análise de padrões e tendências |
-| 3 | **Tiradentes** | `tiradentes.py` | 42KB | ~25 | ✅ 10+ testes | Geração de relatórios multi-formato |
-| 4 | **Abaporu** | `abaporu.py` | 24KB | ~15 | ✅ 8+ testes | Orquestrador master |
-| 5 | **Ayrton Senna** | `ayrton_senna.py` | 22KB | ~12 | ✅ 6+ testes | Roteamento semântico |
-| 6 | **Nanã** | `nana.py` | 25KB | ~15 | ✅ 8+ testes | Memória episódica/semântica |
-| 7 | **José Bonifácio** | `bonifacio.py` | 26KB | ~18 | ✅ 7+ testes | Avaliação de políticas |
-| 8 | **Machado de Assis** | `machado.py` | 23KB | ~14 | ✅ 6+ testes | Análise textual com NER |
+| # | Agente | Arquivo | Tamanho | Métodos | Testes | Documentação | Status |
+|---|--------|---------|---------|---------|--------|--------------|--------|
+| 1 | **Zumbi dos Palmares** | `zumbi.py` | 53KB | 19 | ✅ 15+ testes | [📄 Docs](./agents/zumbi.md) | Detecção de anomalias com FFT |
+| 2 | **Anita Garibaldi** | `anita.py` | 61KB | ~30 | ✅ 12+ testes | [📄 Docs](./agents/anita.md) | Análise de padrões e tendências |
+| 3 | **Tiradentes** | `tiradentes.py` | 42KB | ~25 | ✅ 10+ testes | [📄 Docs](./agents/tiradentes.md) | Geração de relatórios multi-formato |
+| 4 | **Abaporu** | `abaporu.py` | 24KB | ~15 | ✅ 8+ testes | [📄 Docs](./agents/abaporu.md) | Orquestrador master |
+| 5 | **Ayrton Senna** | `ayrton_senna.py` | 22KB | ~12 | ✅ 6+ testes | [📄 Docs](./agents/ayrton_senna.md) | Roteamento semântico |
+| 6 | **Nanã** | `nana.py` | 25KB | ~15 | ✅ 8+ testes | [📄 Docs](./agents/nana.md) | Memória episódica/semântica |
+| 7 | **José Bonifácio** | `bonifacio.py` | 26KB | ~18 | ✅ 7+ testes | [📄 Docs](./agents/bonifacio.md) | Avaliação de políticas |
+| 8 | **Machado de Assis** | `machado.py` | 23KB | ~14 | ✅ 6+ testes | [📄 Docs](./agents/machado.md) | Análise textual com NER |
 
 **Características Comuns**:
 - ✅ Todas as capacidades implementadas
@@ -49,13 +49,13 @@
 
 ### ⚠️ Categoria B: Beta (90-95% Completos) - 5 agentes
 
-| # | Agente | Arquivo | Tamanho | Status | O que falta |
-|---|--------|---------|---------|--------|-------------|
-| 9 | **Carlos Drummond** | `drummond.py` | 39KB (24 métodos) | **95%** | Comentado no `__init__.py` por problemas de import no HF |
-| 10 | **Oxóssi** | `oxossi.py` | 39KB (~20 métodos) | **100%** | 0 TODOs, 0 NotImplementedError - **PRONTO!** |
-| 11 | **Lampião** | `lampiao.py` | 28KB (~18 métodos) | **95%** | 3 TODOs em métodos secundários |
-| 12 | **Maria Quitéria** | `maria_quiteria.py` | 32KB (~20 métodos) | **95%** | Alguns métodos de auditoria avançada |
-| 13 | **Oscar Niemeyer** | `oscar_niemeyer.py` | 22KB (~15 métodos) | **90%** | Visualizações avançadas pendentes |
+| # | Agente | Arquivo | Tamanho | Status | Documentação | O que falta |
+|---|--------|---------|---------|--------|--------------|-------------|
+| 9 | **Carlos Drummond** | `drummond.py` | 39KB (24 métodos) | **95%** | [📄 Docs](./agents/drummond.md) | Comentado no `__init__.py` por problemas de import no HF |
+| 10 | **Oxóssi** | `oxossi.py` | 39KB (~20 métodos) | **100%** | [📄 Docs](./agents/oxossi.md) | 0 TODOs, 0 NotImplementedError - **PRONTO!** |
+| 11 | **Lampião** | `lampiao.py` | 28KB (~18 métodos) | **95%** | [📄 Docs](./agents/lampiao.md) | 3 TODOs em métodos secundários |
+| 12 | **Maria Quitéria** | `maria_quiteria.py` | 32KB (~20 métodos) | **95%** | [📄 Docs](./agents/maria_quiteria.md) | Alguns métodos de auditoria avançada |
+| 13 | **Oscar Niemeyer** | `oscar_niemeyer.py` | 22KB (~15 métodos) | **90%** | [📄 Docs](./agents/oscar_niemeyer.md) | Visualizações avançadas pendentes |
 
 **Características Comuns**:
 - ✅ Estrutura completa
