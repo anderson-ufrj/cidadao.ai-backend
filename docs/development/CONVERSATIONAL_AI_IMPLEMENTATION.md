@@ -1,7 +1,7 @@
 # Implementação da IA Conversacional - Carlos Drummond de Andrade
 
-**Data**: 2025-09-19  
-**Autor**: Time de Engenharia Senior
+**Author**: Anderson Henrique da Silva
+**Date**: 2025-09-19
 
 ## Resumo das Mudanças
 
