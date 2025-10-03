@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 
-from src.core.auth import get_current_user
+from src.api.auth import get_current_user
 from src.core.exceptions import ValidationError
 from src.services.dados_gov_service import DadosGovService
 from src.tools.dados_gov_api import DadosGovAPIError
