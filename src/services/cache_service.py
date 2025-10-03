@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 import asyncio
 from functools import wraps
 import zlib  # For compression
+from enum import Enum
 
 import redis.asyncio as redis
 from redis.asyncio.connection import ConnectionPool
@@ -25,6 +26,14 @@ from src.core.exceptions import CacheError
 from src.core.json_utils import dumps, loads, dumps_bytes
 
 logger = get_logger(__name__)
+
+
+class CacheTTL(Enum):
+    """Cache Time-To-Live constants."""
+    SHORT = 300  # 5 minutes
+    MEDIUM = 1800  # 30 minutes
+    LONG = 3600  # 1 hour
+    VERY_LONG = 86400  # 24 hours
 
 
 class CacheService:
