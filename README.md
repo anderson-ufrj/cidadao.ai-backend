@@ -27,7 +27,7 @@ license: mit
 
 ## 📊 Estado Atual da Implementação
 
-> 💡 **Status Real**: Veja [docs/REAL_IMPLEMENTATION_STATUS.md](./docs/REAL_IMPLEMENTATION_STATUS.md) para análise detalhada do código vs documentação
+> 💡 **Status Real**: Veja [docs/reports/REAL_IMPLEMENTATION_STATUS.md](./docs/reports/REAL_IMPLEMENTATION_STATUS.md) para análise detalhada do código vs documentação
 
 ### ✅ O que está funcionando
 
