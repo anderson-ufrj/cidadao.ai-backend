@@ -106,7 +106,7 @@ class DadosGovService:
             await self.cache.set(
                 cache_key,
                 search_result.model_dump(),
-                ttl=CacheTTL.MEDIUM,
+                ttl=CacheTTL.MEDIUM.value,
             )
             
             return search_result
@@ -140,7 +140,7 @@ class DadosGovService:
             await self.cache.set(
                 cache_key,
                 dataset.model_dump(),
-                ttl=CacheTTL.LONG,
+                ttl=CacheTTL.LONG.value,
             )
             
             return dataset
@@ -368,7 +368,7 @@ class DadosGovService:
             await self.cache.set(
                 cache_key,
                 [org.model_dump() for org in organizations],
-                ttl=CacheTTL.LONG,
+                ttl=CacheTTL.LONG.value,
             )
             
             return organizations
