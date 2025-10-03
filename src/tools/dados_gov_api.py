@@ -14,12 +14,12 @@ import httpx
 from pydantic import BaseModel, Field
 
 from src.core.config import settings
-from src.core.exceptions import ExternalAPIError
+from src.core.exceptions import ExternalServiceError
 
 logger = logging.getLogger(__name__)
 
 
-class DadosGovAPIError(ExternalAPIError):
+class DadosGovAPIError(ExternalServiceError):
     """Custom exception for Dados.gov.br API errors"""
     pass
 

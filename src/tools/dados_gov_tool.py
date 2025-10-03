@@ -8,35 +8,42 @@ Open Data Portal (dados.gov.br) to enhance their investigations.
 import json
 import logging
 from typing import Any, Dict, List, Optional, Union
+from dataclasses import dataclass
 
 from src.services.dados_gov_service import DadosGovService
-from src.tools.base import BaseTool, ToolResult
 from src.tools.dados_gov_api import DadosGovAPIError
 
 logger = logging.getLogger(__name__)
 
 
-class DadosGovTool(BaseTool):
+@dataclass
+class ToolResult:
+    """Result from tool execution"""
+    success: bool
+    data: Any
+    error: Optional[str] = None
+
+
+class DadosGovTool:
     """
     Tool for accessing Brazilian Open Data Portal (dados.gov.br).
-    
+
     This tool enables agents to search for government datasets,
     analyze data availability, and find specific types of public data.
     """
-    
+
     name = "dados_gov_search"
     description = (
         "Search and analyze Brazilian government open data from dados.gov.br. "
         "Use this to find datasets about government spending, contracts, "
         "education, health, and other public data."
     )
-    
+
     def __init__(self):
         """Initialize the dados.gov.br tool"""
-        super().__init__()
         self.service = DadosGovService()
-        
-    async def _execute(
+
+    async def execute(
         self,
         query: Optional[str] = None,
         action: str = "search",
