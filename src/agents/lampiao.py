@@ -245,12 +245,20 @@ class LampiaoAgent(BaseAgent):
             "significance_level": 0.05
         }
         
-        # Brazilian regions data
-        self.brazil_regions = self._initialize_brazil_regions()
-        
+        # Brazilian states/regions data (IBGE)
+        self.states_data = self._initialize_brazil_regions()
+        self.brazil_regions = self.states_data  # Alias for compatibility
+
+        # Geographic data (initialized by initialize())
+        self.geographic_boundaries = {}
+        self.regional_indicators = {}
+        self.region_index = {}
+        self.capital_index = {}
+        self.state_name_index = {}
+
         # Spatial weights matrices cache
         self.spatial_weights = {}
-        
+
         # Analysis results cache
         self.analysis_cache = {}
     
@@ -901,3 +909,14 @@ class LampiaoAgent(BaseAgent):
         except Exception as e:
             self.logger.error(f"Failed to load IBGE indicators: {e}")
             self.regional_indicators = {}
+
+    async def shutdown(self) -> None:
+        """Cleanup agent resources."""
+        self.logger.info("Lampião agent shutting down...")
+        # Clear cached data
+        self.geographic_boundaries = {}
+        self.regional_indicators = {}
+        self.region_index = {}
+        self.capital_index = {}
+        self.state_name_index = {}
+        self.logger.info("Lampião agent shutdown complete")
