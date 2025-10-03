@@ -20,30 +20,33 @@ license: mit
 [![Test Coverage](https://img.shields.io/badge/coverage-80%25-brightgreen.svg)](./tests)
 [![Security](https://img.shields.io/badge/security-A+-brightgreen.svg)](./tests/unit/test_security_middleware.py)
 
-**Autor**: Anderson Henrique da Silva  
-**Última Atualização**: 2025-09-25 18:05:00 -03:00 (São Paulo, Brasil)
+**Autor**: Anderson Henrique da Silva
+**Última Atualização**: 2025-10-03 08:31:53 -03:00 (São Paulo, Brasil)
 
 [English version below](#-cidadãoai---backend-english)
 
 ## 📊 Estado Atual da Implementação
 
+> 💡 **Status Real**: Veja [docs/REAL_IMPLEMENTATION_STATUS.md](./docs/REAL_IMPLEMENTATION_STATUS.md) para análise detalhada do código vs documentação
+
 ### ✅ O que está funcionando
 
-- **8 de 17 agentes operacionais** com identidades culturais brasileiras
-- **Integração com Portal da Transparência** (real com API key, demo sem)
-- **API RESTful completa** com 40+ endpoints implementados
+- **8 agentes 100% operacionais** + **5 agentes 90-95% prontos** (13 agentes utilizáveis!)
+- **218 endpoints REST API** organizados em 34 routers especializados
+- **Integração com Portal da Transparência** (22% endpoints funcionando) + dados.gov.br
+- **PostgreSQL implementado** com connection pooling (fallback in-memory opcional)
+- **Redis multi-layer cache** funcionando em produção
 - **Chat em tempo real** com detecção de intenções em português
 - **Análise espectral FFT** para detecção de padrões periódicos
-- **Sistema de cache multi-camadas** (memória → Redis → banco)
-- **Monitoramento** com Prometheus e Grafana configurados
+- **Monitoramento completo** - Prometheus, Grafana, OpenTelemetry, tracing
 - **Deploy em produção** no HuggingFace Spaces
 
-### 🚧 Em desenvolvimento
+### 🚧 Em desenvolvimento ativo
 
-- **9 agentes parcialmente implementados** (estrutura pronta, lógica incompleta)
+- **4 agentes** em estágio Alpha/inicial (Dandara, Niemeyer, Ceuci, Obaluaié)
 - **Modelos ML avançados** (arquitetura definida, treinamento pendente)
-- **Integração completa com PostgreSQL** (usando memória atualmente)
-- **WebSocket para investigações** (parcialmente implementado)
+- **WebSocket para investigações** (60% implementado)
+- **GraphQL API** (50% implementado)
 
 ## 🚀 Início Rápido
 
@@ -93,22 +96,31 @@ GROQ_API_KEY=sua-chave-groq     # Para LLM dos agentes
 
 ## 🤖 Agentes Implementados
 
-### ✅ Totalmente Operacionais (8)
+> 📚 **Documentação Completa**: Veja [docs/agents/](./docs/agents/) para guias detalhados de cada agente
 
-1. **🎯 Abaporu** - Mestre orquestrador de investigações
-2. **🔍 Zumbi dos Palmares** - Detecção de anomalias com análise espectral
+### ✅ Produção - 100% Operacionais (8)
+
+1. **🎯 Abaporu** - Mestre orquestrador de investigações ([docs](./docs/agents/abaporu.md))
+2. **🔍 Zumbi dos Palmares** - Detecção de anomalias com análise espectral ([docs](./docs/agents/zumbi.md))
 3. **📊 Anita Garibaldi** - Análise de padrões e tendências
 4. **📝 Tiradentes** - Geração de relatórios multi-formato
 5. **🏎️ Ayrton Senna** - Roteamento semântico inteligente
 6. **🧠 Nanã** - Memória episódica, semântica e conversacional
 7. **⚖️ José Bonifácio** - Avaliação de eficácia de políticas
-8. **📚 Machado de Assis** - Análise textual avançada com NER
+8. **📚 Machado de Assis** - Análise textual avançada com NER ([docs](./docs/agents/machado.md))
 
-### 🚧 Em Desenvolvimento (9)
+### ⚠️ Beta - 90-95% Prontos (5)
 
-- Dandara (Justiça Social), Lampião (Análise Regional), Maria Quitéria (Segurança)
-- Oscar Niemeyer (Visualização), Drummond (Comunicação), Ceúci (ETL)
-- Obaluaié (Saúde), Oxossi (Caçador de Dados), Drummond Simple (Chat básico)
+9. **🏹 Oxóssi** - Caçador de fraudes (100% implementado!) ([docs](./docs/agents/oxossi.md))
+10. **📢 Carlos Drummond** - Comunicador multi-canal (95%) ([docs](./docs/agents/drummond.md))
+11. **🏜️ Lampião** - Análise regional/geográfica (95%) ([docs](./docs/agents/lampiao.md))
+12. **🛡️ Maria Quitéria** - Auditoria e segurança (95%)
+13. **🏗️ Oscar Niemeyer** - Visualização de dados (90%)
+
+### 🚧 Alpha - Em Desenvolvimento (4)
+
+- **Dandara** (Justiça Social, 70%), **Niemeyer** (Visualização Alt, 50%)
+- **Ceúci** (ETL, 60%), **Obaluaié** (Detecção Corrupção, 40%)
 
 ## 📡 API Endpoints Principais
 
@@ -186,9 +198,10 @@ make test-coverage
 make check  # lint + type-check + test
 ```
 
-- **Cobertura**: 80% (meta alcançada!)
-- **96 arquivos de teste**
-- **Categorias**: unit, integration, e2e, performance
+- **Cobertura**: ~70-80% (meta em progresso)
+- **51 arquivos de teste** (27 unit agents + 24 integration)
+- **423 métodos test_*** (289 unit + 134 integration)
+- **Categorias**: unit, integration, e2e, performance, multiagent
 
 ## 📚 Documentação
 
