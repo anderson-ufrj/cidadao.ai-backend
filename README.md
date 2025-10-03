@@ -21,7 +21,7 @@ license: mit
 [![Security](https://img.shields.io/badge/security-A+-brightgreen.svg)](./tests/unit/test_security_middleware.py)
 
 **Autor**: Anderson Henrique da Silva
-**Última Atualização**: 2025-10-03 08:31:53 -03:00 (São Paulo, Brasil)
+**Última Atualização**: 2025-10-03 10:30:00 -03:00 (São Paulo, Brasil)
 
 [English version below](#-cidadãoai---backend-english)
 
@@ -31,21 +31,22 @@ license: mit
 
 ### ✅ O que está funcionando
 
-- **8 agentes 100% operacionais** + **5 agentes 90-95% prontos** (13 agentes utilizáveis!)
-- **218 endpoints REST API** organizados em 34 routers especializados
-- **Integração com Portal da Transparência** (22% endpoints funcionando) + dados.gov.br
-- **PostgreSQL implementado** com connection pooling (fallback in-memory opcional)
+- **8 agentes 100% operacionais** + **5 agentes 90-100% prontos** = **13 agentes utilizáveis!**
+- **218 endpoints REST API** (não 40+) organizados em 34 routers especializados
+- **PostgreSQL implementado** com connection pooling + migrations (não "planejado")
 - **Redis multi-layer cache** funcionando em produção
-- **Chat em tempo real** com detecção de intenções em português
-- **Análise espectral FFT** para detecção de padrões periódicos
-- **Monitoramento completo** - Prometheus, Grafana, OpenTelemetry, tracing
-- **Deploy em produção** no HuggingFace Spaces
+- **Integração Portal da Transparência** (22% endpoints) + **dados.gov.br** como fallback
+- **Chat em tempo real** com SSE streaming + detecção de intenções em português
+- **Análise espectral FFT** + anomaly detection com 9 tipos de análise
+- **Monitoramento completo** - Prometheus, Grafana, OpenTelemetry, distributed tracing
+- **Circuit breakers** + retry logic + rate limiting por endpoint
+- **Deploy em produção** no HuggingFace Spaces com auto-scaling
 
 ### 🚧 Em desenvolvimento ativo
 
-- **4 agentes** em estágio Alpha/inicial (Dandara, Niemeyer, Ceuci, Obaluaié)
+- **4 agentes Alpha** (Dandara 70%, Ceúci 60%, Niemeyer 50%, Obaluaié 40%)
 - **Modelos ML avançados** (arquitetura definida, treinamento pendente)
-- **WebSocket para investigações** (60% implementado)
+- **WebSocket** para investigações em tempo real (60% implementado)
 - **GraphQL API** (50% implementado)
 
 ## 🚀 Início Rápido
@@ -109,13 +110,13 @@ GROQ_API_KEY=sua-chave-groq     # Para LLM dos agentes
 7. **⚖️ José Bonifácio** - Avaliação de eficácia de políticas
 8. **📚 Machado de Assis** - Análise textual avançada com NER ([docs](./docs/agents/machado.md))
 
-### ⚠️ Beta - 90-95% Prontos (5)
+### ⚠️ Beta - 90-100% Prontos (5)
 
-9. **🏹 Oxóssi** - Caçador de fraudes (100% implementado!) ([docs](./docs/agents/oxossi.md))
+9. **🏹 Oxóssi** - Caçador de fraudes com 10 padrões de detecção (100%!) ([docs](./docs/agents/oxossi.md))
 10. **📢 Carlos Drummond** - Comunicador multi-canal (95%) ([docs](./docs/agents/drummond.md))
-11. **🏜️ Lampião** - Análise regional/geográfica (95%) ([docs](./docs/agents/lampiao.md))
-12. **🛡️ Maria Quitéria** - Auditoria e segurança (95%)
-13. **🏗️ Oscar Niemeyer** - Visualização de dados (90%)
+11. **🏜️ Lampião** - Análise regional/geográfica com dados IBGE (95%) ([docs](./docs/agents/lampiao.md))
+12. **🛡️ Maria Quitéria** - Auditoria e compliance LGPD (95%) ([docs](./docs/agents/maria_quiteria.md))
+13. **🏗️ Oscar Niemeyer** - Visualização e agregação de dados (90%) ([docs](./docs/agents/oscar_niemeyer.md))
 
 ### 🚧 Alpha - Em Desenvolvimento (4)
 
