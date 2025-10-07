@@ -1,0 +1,53 @@
+# Dockerfile for Celery Workers Only
+# Author: Anderson Henrique da Silva
+# Date: 2025-10-07 18:20:00
+#
+# Lightweight container optimized for running Celery workers
+# Does NOT include FastAPI server
+
+FROM python:3.11-slim
+
+LABEL maintainer="Anderson Henrique da Silva"
+LABEL description="Cidadão.AI Celery Workers for 24/7 Auto-Investigation"
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements
+COPY requirements.txt .
+
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir celery[redis] flower
+
+# Copy source code
+COPY src/ /app/src/
+COPY alembic/ /app/alembic/
+COPY alembic.ini /app/
+
+# Create non-root user
+RUN useradd -m -u 1000 celery && \
+    chown -R celery:celery /app
+
+# Create log directory
+RUN mkdir -p /var/log/celery && \
+    chown -R celery:celery /var/log/celery
+
+# Switch to non-root user
+USER celery
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+  CMD celery -A src.infrastructure.queue.celery_app inspect ping || exit 1
+
+# Default command (can be overridden in docker-compose)
+CMD ["celery", "-A", "src.infrastructure.queue.celery_app", "worker", "--loglevel=info"]
