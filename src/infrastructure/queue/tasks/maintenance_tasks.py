@@ -16,7 +16,7 @@ from celery.utils.log import get_task_logger
 from src.infrastructure.queue.celery_app import celery_app
 from src.services.api_key_service import APIKeyService
 from src.services.cache_service import CacheService
-from src.core.dependencies import get_db_session
+from src.db.simple_session import get_db_session
 from src.core.config import get_settings
 
 logger = get_task_logger(__name__)
