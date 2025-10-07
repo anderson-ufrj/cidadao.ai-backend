@@ -20,6 +20,7 @@ from src.agents import InvestigatorAgent, AgentContext
 from src.api.middleware.authentication import get_current_user
 from src.tools import TransparencyAPIFilter
 from src.infrastructure.observability.metrics import track_time, count_calls, BusinessMetrics
+from src.services.investigation_service_selector import investigation_service
 
 
 logger = get_logger(__name__)
@@ -115,13 +116,39 @@ async def start_investigation(
 ):
     """
     Start a new investigation for anomaly detection.
-    
+
     Creates and queues an investigation task that will analyze government data
     for irregularities and suspicious patterns.
     """
-    investigation_id = str(uuid4())
-    
-    # Store investigation metadata
+    try:
+        # Create investigation in database (Supabase via REST API on HuggingFace)
+        db_investigation = await investigation_service.create(
+            user_id=current_user.get("user_id"),
+            query=request.query,
+            data_source=request.data_source,
+            filters=request.filters,
+            anomaly_types=request.anomaly_types
+        )
+
+        investigation_id = db_investigation.id if hasattr(db_investigation, 'id') else db_investigation['id']
+
+        logger.info(
+            "investigation_created_in_database",
+            investigation_id=investigation_id,
+            query=request.query,
+            data_source=request.data_source,
+            user_id=current_user.get("user_id"),
+        )
+
+    except Exception as e:
+        # Fallback to in-memory if database fails
+        logger.warning(
+            "Failed to save investigation to database, using in-memory fallback",
+            error=str(e)
+        )
+        investigation_id = str(uuid4())
+
+    # Keep in-memory copy for backward compatibility and fast access
     _active_investigations[investigation_id] = {
         "id": investigation_id,
         "status": "started",
@@ -137,14 +164,14 @@ async def start_investigation(
         "anomalies_detected": 0,
         "results": [],
     }
-    
+
     # Start investigation in background
     background_tasks.add_task(
         _run_investigation,
         investigation_id,
         request
     )
-    
+
     logger.info(
         "investigation_started",
         investigation_id=investigation_id,
@@ -152,14 +179,14 @@ async def start_investigation(
         data_source=request.data_source,
         user_id=current_user.get("user_id"),
     )
-    
+
     # Track business metrics
     BusinessMetrics.record_investigation_created(
         priority="medium",
         user_type="authenticated"
     )
     BusinessMetrics.update_active_investigations(len(_active_investigations))
-    
+
     return {
         "investigation_id": investigation_id,
         "status": "started",
@@ -411,22 +438,44 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
         investigation["status"] = "running"
         investigation["current_phase"] = "data_retrieval"
         investigation["progress"] = 0.1
-        
+
+        # Update in database
+        try:
+            await investigation_service.update_status(
+                investigation_id=investigation_id,
+                status="running",
+                progress=0.1,
+                current_phase="data_retrieval"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to update investigation status in database: {e}")
+
         # Create agent context
         context = AgentContext(
             conversation_id=investigation_id,
             user_id=investigation["user_id"],
             session_data={"investigation_query": request.query}
         )
-        
+
         # Initialize InvestigatorAgent
         investigator = InvestigatorAgent()
-        
+
         # Prepare filters for data retrieval
         filters = TransparencyAPIFilter(**request.filters)
-        
+
         investigation["current_phase"] = "anomaly_detection"
         investigation["progress"] = 0.3
+
+        # Update progress in database
+        try:
+            await investigation_service.update_status(
+                investigation_id=investigation_id,
+                status="running",
+                progress=0.3,
+                current_phase="anomaly_detection"
+            )
+        except Exception as e:
+            logger.warning(f"Failed to update investigation progress in database: {e}")
         
         # Execute investigation
         results = await investigator.investigate_anomalies(
@@ -472,10 +521,34 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
         investigation["completed_at"] = datetime.utcnow()
         investigation["progress"] = 1.0
         investigation["current_phase"] = "completed"
-        
+
+        # Save final results to database
+        try:
+            await investigation_service.update_status(
+                investigation_id=investigation_id,
+                status="completed",
+                progress=1.0,
+                current_phase="completed",
+                total_records_analyzed=investigation["records_processed"],
+                anomalies_found=investigation["anomalies_detected"],
+                summary=summary,
+                confidence_score=investigation["confidence_score"],
+                results=investigation["results"]
+            )
+            logger.info(
+                "investigation_saved_to_database",
+                investigation_id=investigation_id
+            )
+        except Exception as e:
+            logger.error(
+                "Failed to save investigation results to database",
+                investigation_id=investigation_id,
+                error=str(e)
+            )
+
         # Calculate duration
         duration = (datetime.utcnow() - start_time).total_seconds()
-        
+
         logger.info(
             "investigation_completed",
             investigation_id=investigation_id,
@@ -506,8 +579,24 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
             investigation_id=investigation_id,
             error=str(e),
         )
-        
+
         investigation["status"] = "failed"
         investigation["completed_at"] = datetime.utcnow()
         investigation["current_phase"] = "failed"
         investigation["error"] = str(e)
+
+        # Save failure to database
+        try:
+            await investigation_service.update_status(
+                investigation_id=investigation_id,
+                status="failed",
+                progress=investigation.get("progress", 0.0),
+                current_phase="failed",
+                error=str(e)
+            )
+        except Exception as db_error:
+            logger.error(
+                "Failed to save investigation failure to database",
+                investigation_id=investigation_id,
+                error=str(db_error)
+            )
