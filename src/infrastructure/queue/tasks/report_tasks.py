@@ -16,7 +16,7 @@ from celery.utils.log import get_task_logger
 from src.infrastructure.queue.celery_app import celery_app, priority_task, TaskPriority
 from src.services.report_service import ReportService
 from src.services.export_service import ExportService
-from src.core.dependencies import get_db_session
+from src.db.simple_session import get_db_session
 from src.agents import get_agent_pool
 
 logger = get_task_logger(__name__)
