@@ -16,7 +16,7 @@ from celery.utils.log import get_task_logger
 
 from src.infrastructure.queue.celery_app import celery_app, priority_task, TaskPriority
 from src.services.data_service import DataService
-from src.services.ml.pattern_detector import PatternDetector
+from src.ml.pattern_analyzer import PatternAnalyzer
 from src.db.simple_session import get_db_session
 from src.agents import get_agent_pool
 
@@ -273,12 +273,8 @@ async def _temporal_analysis_async(
             raise ValueError(f"Unknown data source: {data_source}")
         
         # Analyze trends
-        pattern_detector = PatternDetector()
-        trends = await pattern_detector.detect_temporal_patterns(
-            data=data,
-            window=time_window,
-            metrics=metrics or ["count", "total_value", "average_value"]
-        )
+        pattern_analyzer = PatternAnalyzer()
+        trends = await pattern_analyzer.predict(data)
         
         return {
             "data_source": data_source,
