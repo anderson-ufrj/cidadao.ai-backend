@@ -21,6 +21,7 @@ from src.api.middleware.authentication import get_current_user
 from src.tools import TransparencyAPIFilter
 from src.infrastructure.observability.metrics import track_time, count_calls, BusinessMetrics
 from src.services.investigation_service_selector import investigation_service
+from src.services.forensic_enrichment_service import forensic_enrichment_service
 
 
 logger = get_logger(__name__)
@@ -486,27 +487,62 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
             context=context
         )
         
-        investigation["current_phase"] = "analysis"
+        investigation["current_phase"] = "forensic_enrichment"
         investigation["progress"] = 0.7
-        
-        # Process results
-        investigation["results"] = [
-            {
-                "anomaly_id": str(uuid4()),
-                "type": result.anomaly_type,
-                "severity": result.severity,
-                "confidence": result.confidence,
-                "description": result.description,
-                "explanation": result.explanation if request.include_explanations else "",
-                "affected_records": result.affected_data,
-                "suggested_actions": result.recommendations,
-                "metadata": result.metadata,
-            }
-            for result in results
-        ]
+
+        # Process results with forensic enrichment
+        enriched_results = []
+        for result in results:
+            try:
+                # Extract contract data from affected entities
+                contract_data = result.affected_entities[0] if result.affected_entities else {}
+
+                # Get comparative data from remaining affected entities or metadata
+                comparative_data = result.affected_entities[1:] if len(result.affected_entities) > 1 else None
+
+                # Build basic anomaly structure
+                basic_anomaly = {
+                    "type": result.anomaly_type,
+                    "severity": result.severity,
+                    "confidence": result.confidence,
+                    "description": result.description,
+                    "explanation": result.explanation if request.include_explanations else "",
+                    "recommendations": result.recommendations,
+                    "metadata": result.metadata,
+                }
+
+                # Enrich with forensic details
+                forensic_result = await forensic_enrichment_service.enrich_anomaly(
+                    basic_anomaly=basic_anomaly,
+                    contract_data=contract_data,
+                    comparative_data=comparative_data
+                )
+
+                enriched_results.append(forensic_result.to_dict())
+
+            except Exception as e:
+                logger.warning(
+                    "Failed to enrich anomaly with forensic details, using basic result",
+                    error=str(e),
+                    anomaly_type=result.anomaly_type
+                )
+                # Fallback to basic result if enrichment fails
+                enriched_results.append({
+                    "anomaly_id": str(uuid4()),
+                    "type": result.anomaly_type,
+                    "severity": result.severity,
+                    "confidence": result.confidence,
+                    "description": result.description,
+                    "explanation": result.explanation if request.include_explanations else "",
+                    "affected_records": result.affected_entities,
+                    "suggested_actions": result.recommendations,
+                    "metadata": result.metadata,
+                })
+
+        investigation["results"] = enriched_results
         
         investigation["anomalies_detected"] = len(results)
-        investigation["records_processed"] = sum(len(r.affected_data) for r in results)
+        investigation["records_processed"] = sum(len(r.affected_entities) for r in results)
         
         # Generate summary
         investigation["current_phase"] = "summary_generation"
