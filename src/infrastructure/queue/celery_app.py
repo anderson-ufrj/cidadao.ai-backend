@@ -24,8 +24,8 @@ settings = get_settings()
 # Configure Celery
 celery_app = Celery(
     "cidadao_ai",
-    broker=settings.REDIS_URL,
-    backend=settings.REDIS_URL,
+    broker=settings.redis_url,
+    backend=settings.redis_url,
     include=[
         "src.infrastructure.queue.tasks.investigation_tasks",
         "src.infrastructure.queue.tasks.analysis_tasks",
