@@ -33,6 +33,7 @@ celery_app = Celery(
         "src.infrastructure.queue.tasks.export_tasks",
         "src.infrastructure.queue.tasks.monitoring_tasks",
         "src.infrastructure.queue.tasks.maintenance_tasks",
+        "src.infrastructure.queue.tasks.auto_investigation_tasks",
     ]
 )
 
@@ -253,6 +254,29 @@ celery_app.conf.beat_schedule = {
     "health-check": {
         "task": "tasks.health_check",
         "schedule": timedelta(minutes=5),  # Every 5 minutes
+    },
+    # 24/7 Auto-Investigation Tasks
+    "auto-monitor-new-contracts-6h": {
+        "task": "tasks.auto_monitor_new_contracts",
+        "schedule": timedelta(hours=6),  # Every 6 hours
+        "args": (6,),  # Look back 6 hours
+        "options": {"queue": "normal"}
+    },
+    "auto-monitor-priority-orgs-4h": {
+        "task": "tasks.auto_monitor_priority_orgs",
+        "schedule": timedelta(hours=4),  # Every 4 hours
+        "options": {"queue": "high"}
+    },
+    "auto-reanalyze-historical-weekly": {
+        "task": "tasks.auto_reanalyze_historical",
+        "schedule": timedelta(days=7),  # Weekly
+        "args": (6, 100),  # 6 months back, 100 per batch
+        "options": {"queue": "low"}
+    },
+    "auto-investigation-health-hourly": {
+        "task": "tasks.auto_investigation_health_check",
+        "schedule": timedelta(hours=1),  # Every hour
+        "options": {"queue": "high"}
     }
 }
 
