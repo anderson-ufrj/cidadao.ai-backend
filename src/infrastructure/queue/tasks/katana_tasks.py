@@ -18,6 +18,7 @@ from celery.utils.log import get_task_logger
 from src.infrastructure.queue.celery_app import celery_app
 from src.services.katana_service import KatanaService
 from src.services.investigation_service_selector import investigation_service
+from src.services.supabase_anomaly_service import supabase_anomaly_service
 from src.db.simple_session import get_db_session
 from src.agents import get_agent_pool
 
@@ -105,40 +106,66 @@ async def _monitor_katana_async() -> Dict[str, Any]:
                 analysis_type="anomaly"
             )
 
-            # If anomaly detected, create investigation
+            # Save dispensa to Supabase first
+            await supabase_anomaly_service.save_katana_dispensa(
+                dispensa_id=formatted_dispensa.get("id"),
+                dispensa_data=formatted_dispensa
+            )
+
+            # If anomaly detected, create investigation and anomaly records
             if analysis.anomaly_detected:
+                # Create investigation in Supabase
+                investigation = await supabase_anomaly_service.create_investigation(
+                    query=f"Análise automática de dispensa de licitação - {formatted_dispensa.get('numero')}",
+                    context={
+                        "source": "katana_scan",
+                        "dispensa": formatted_dispensa,
+                        "anomaly_analysis": {
+                            "score": analysis.anomaly_score,
+                            "indicators": analysis.indicators,
+                            "recommendations": analysis.recommendations
+                        }
+                    },
+                    initiated_by="auto_investigation_katana"
+                )
+
+                # Create anomaly record in Supabase
+                anomaly = await supabase_anomaly_service.create_anomaly(
+                    investigation_id=investigation["id"],
+                    source="katana_scan",
+                    source_id=formatted_dispensa.get("id"),
+                    anomaly_type=analysis.anomaly_type if hasattr(analysis, 'anomaly_type') else "general",
+                    anomaly_score=analysis.anomaly_score,
+                    title=f"Anomalia detectada: Dispensa {formatted_dispensa.get('numero')}",
+                    description=f"Análise automática detectou anomalia com score {analysis.anomaly_score:.4f}",
+                    indicators=analysis.indicators if analysis.indicators else [],
+                    recommendations=analysis.recommendations if analysis.recommendations else [],
+                    contract_data=formatted_dispensa,
+                    metadata={
+                        "agent": "zumbi",
+                        "analysis_timestamp": datetime.now().isoformat(),
+                        "threshold_used": 0.7
+                    }
+                )
+
                 anomalies.append({
+                    "anomaly_id": anomaly["id"],
                     "dispensa_id": formatted_dispensa.get("id"),
                     "anomaly_score": analysis.anomaly_score,
+                    "severity": anomaly["severity"],
                     "indicators": analysis.indicators
                 })
 
-                # Create investigation record
-                async with get_db_session() as db:
-                    inv_service = investigation_service(db)
+                investigations_created += 1
 
-                    investigation = await inv_service.create(
-                        query=f"Análise automática de dispensa de licitação - {formatted_dispensa.get('numero')}",
-                        context={
-                            "source": "katana_scan",
-                            "dispensa": formatted_dispensa,
-                            "anomaly_analysis": {
-                                "score": analysis.anomaly_score,
-                                "indicators": analysis.indicators,
-                                "recommendations": analysis.recommendations
-                            }
-                        },
-                        initiated_by="auto_investigation_katana"
-                    )
-
-                    investigations_created += 1
-
-                    logger.info(
-                        "investigation_created_for_dispensa",
-                        dispensa_id=formatted_dispensa.get("id"),
-                        investigation_id=investigation.id,
-                        anomaly_score=analysis.anomaly_score
-                    )
+                logger.info(
+                    "investigation_and_anomaly_created_in_supabase",
+                    dispensa_id=formatted_dispensa.get("id"),
+                    investigation_id=investigation["id"],
+                    anomaly_id=anomaly["id"],
+                    anomaly_score=analysis.anomaly_score,
+                    severity=anomaly["severity"]
+                )
 
         except Exception as e:
             logger.error(
