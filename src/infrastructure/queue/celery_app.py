@@ -31,6 +31,7 @@ celery_app = Celery(
         "src.infrastructure.queue.tasks.analysis_tasks",
         "src.infrastructure.queue.tasks.auto_investigation_tasks",
         "src.infrastructure.queue.tasks.katana_tasks",
+        "src.infrastructure.queue.tasks.alert_tasks",
         # Temporarily disabled - missing service dependencies
         # "src.infrastructure.queue.tasks.report_tasks",
         # "src.infrastructure.queue.tasks.export_tasks",
@@ -290,6 +291,18 @@ celery_app.conf.beat_schedule = {
         "task": "tasks.katana_health_check",
         "schedule": timedelta(hours=1),  # Every hour
         "options": {"queue": "normal"}
+    },
+    # Alert Tasks
+    "critical-anomalies-summary-daily": {
+        "task": "tasks.send_critical_anomalies_summary",
+        "schedule": timedelta(hours=24),  # Daily summary
+        "args": (24,),  # Last 24 hours
+        "options": {"queue": "normal"}
+    },
+    "process-pending-alerts-hourly": {
+        "task": "tasks.process_pending_alerts",
+        "schedule": timedelta(hours=1),  # Retry failed alerts every hour
+        "options": {"queue": "high"}
     }
 }
 
