@@ -29,12 +29,13 @@ celery_app = Celery(
     include=[
         "src.infrastructure.queue.tasks.investigation_tasks",
         "src.infrastructure.queue.tasks.analysis_tasks",
+        "src.infrastructure.queue.tasks.auto_investigation_tasks",
+        "src.infrastructure.queue.tasks.katana_tasks",
         # Temporarily disabled - missing service dependencies
         # "src.infrastructure.queue.tasks.report_tasks",
         # "src.infrastructure.queue.tasks.export_tasks",
         # "src.infrastructure.queue.tasks.monitoring_tasks",
         # "src.infrastructure.queue.tasks.maintenance_tasks",
-        # "src.infrastructure.queue.tasks.auto_investigation_tasks",
     ]
 )
 
@@ -278,6 +279,17 @@ celery_app.conf.beat_schedule = {
         "task": "tasks.auto_investigation_health_check",
         "schedule": timedelta(hours=1),  # Every hour
         "options": {"queue": "high"}
+    },
+    # Katana Scan Integration
+    "katana-monitor-dispensas-6h": {
+        "task": "tasks.monitor_katana_dispensas",
+        "schedule": timedelta(hours=6),  # Every 6 hours
+        "options": {"queue": "high"}
+    },
+    "katana-health-check-hourly": {
+        "task": "tasks.katana_health_check",
+        "schedule": timedelta(hours=1),  # Every hour
+        "options": {"queue": "normal"}
     }
 }
 
