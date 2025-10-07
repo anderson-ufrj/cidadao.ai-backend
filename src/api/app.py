@@ -15,7 +15,6 @@ from fastapi.middleware.cors import CORSMiddleware
 # from fastapi.middleware.trustedhost import TrustedHostMiddleware  # Disabled for HuggingFace
 from fastapi.responses import JSONResponse
 # Swagger UI imports removed - using FastAPI defaults now
-from fastapi.openapi.utils import get_openapi
 
 from src.core import get_logger, settings
 from src.core.exceptions import CidadaoAIError, create_error_response
@@ -270,53 +269,8 @@ app.add_middleware(
 )
 
 
-# Custom OpenAPI schema
-def custom_openapi():
-    """Generate custom OpenAPI schema."""
-    if app.openapi_schema:
-        return app.openapi_schema
-    
-    openapi_schema = get_openapi(
-        title=app.title,
-        version=app.version,
-        description=app.description,
-        routes=app.routes,
-    )
-    
-    # Add custom API info
-    openapi_schema["info"]["x-logo"] = {
-        "url": "https://cidadao.ai/logo.png"
-    }
-    
-    # Add servers - include HuggingFace Spaces
-    openapi_schema["servers"] = [
-        {"url": "http://localhost:8000", "description": "Development server"},
-        {"url": "https://api.cidadao.ai", "description": "Production server"},
-        {"url": "https://neural-thinker-cidadao-ai-backend.hf.space", "description": "HuggingFace Spaces"},
-    ]
-    
-    # Add security schemes
-    openapi_schema["components"]["securitySchemes"] = {
-        "ApiKeyAuth": {
-            "type": "apiKey",
-            "in": "header",
-            "name": "X-API-Key"
-        },
-        "BearerAuth": {
-            "type": "http",
-            "scheme": "bearer",
-            "bearerFormat": "JWT"
-        }
-    }
-    
-    app.openapi_schema = openapi_schema
-    return app.openapi_schema
-
-
-app.openapi = custom_openapi
-
-
 # Documentation endpoints are now handled by FastAPI defaults
+# Using standard Swagger UI without customization for better compatibility
 
 
 # Include routers with security
