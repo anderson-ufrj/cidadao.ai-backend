@@ -29,11 +29,12 @@ celery_app = Celery(
     include=[
         "src.infrastructure.queue.tasks.investigation_tasks",
         "src.infrastructure.queue.tasks.analysis_tasks",
-        "src.infrastructure.queue.tasks.report_tasks",
-        "src.infrastructure.queue.tasks.export_tasks",
-        "src.infrastructure.queue.tasks.monitoring_tasks",
-        "src.infrastructure.queue.tasks.maintenance_tasks",
-        "src.infrastructure.queue.tasks.auto_investigation_tasks",
+        # Temporarily disabled - missing service dependencies
+        # "src.infrastructure.queue.tasks.report_tasks",
+        # "src.infrastructure.queue.tasks.export_tasks",
+        # "src.infrastructure.queue.tasks.monitoring_tasks",
+        # "src.infrastructure.queue.tasks.maintenance_tasks",
+        # "src.infrastructure.queue.tasks.auto_investigation_tasks",
     ]
 )
 
