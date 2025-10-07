@@ -1,36 +1,94 @@
-databases:
-  - name: cidadao-db
-    plan: free
-    databaseName: cidadao
-    user: cidadao
+# Render.com Configuration
+# Author: Anderson Henrique da Silva
+# Date: 2025-10-07 18:30:00
+#
+# Deploy to Render with Infrastructure as Code
+# Just push this file and Render creates everything automatically
 
 services:
+  # FastAPI Web Service
   - type: web
-    name: cidadao-api
-    runtime: docker
-    plan: free
-    dockerfilePath: ./Dockerfile
+    name: cidadao-ai-api
+    env: python
+    region: oregon
+    plan: starter  # $7/month
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn src.api.app:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    autoDeploy: true
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: cidadao-db
-          property: connectionString
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ENVIRONMENT
+        value: production
+      - key: SUPABASE_URL
+        sync: false  # Set manually in dashboard
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false  # Set manually in dashboard
+      - key: GROQ_API_KEY
+        sync: false  # Set manually in dashboard
       - key: REDIS_URL
         fromService:
-          name: cidadao-redis
+          type: redis
+          name: cidadao-ai-redis
           property: connectionString
-      - key: MARITACA_API_KEY
-        sync: false
-      - key: JWT_SECRET_KEY
-        generateValue: true
-      - key: SECRET_KEY
-        generateValue: true
-      - key: APP_ENV
+
+  # Celery Worker Service
+  - type: worker
+    name: cidadao-ai-worker
+    env: python
+    region: oregon
+    plan: starter  # $7/month
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A src.infrastructure.queue.celery_app worker --loglevel=info --queues=critical,high,default,low,background --concurrency=4
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ENVIRONMENT
         value: production
-      - key: PYTHONUNBUFFERED
-        value: 1
-    
-  - type: redis
-    name: cidadao-redis
-    plan: free
-    ipAllowList: []
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: TRANSPARENCY_API_KEY
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: cidadao-ai-redis
+          property: connectionString
+
+  # Celery Beat Service (Scheduler)
+  - type: worker
+    name: cidadao-ai-beat
+    env: python
+    region: oregon
+    plan: starter  # $7/month
+    branch: main
+    buildCommand: pip install -r requirements.txt
+    startCommand: celery -A src.infrastructure.queue.celery_app beat --loglevel=info
+    autoDeploy: true
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: ENVIRONMENT
+        value: production
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: cidadao-ai-redis
+          property: connectionString
+
+# Redis Database
+databases:
+  - name: cidadao-ai-redis
+    plan: starter  # $10/month (or free with limited resources)
+    region: oregon
+
+# Total Cost: $31/month ($7 + $7 + $7 + $10)
+# Alternative: Use only Worker+Beat = $14/month + keep API on HuggingFace (FREE)
