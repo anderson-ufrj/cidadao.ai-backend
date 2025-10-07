@@ -4,9 +4,9 @@ Simple database session management for SQLite.
 
 import os
 from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Optional
 
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine, create_async_engine, async_sessionmaker
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -14,25 +14,40 @@ load_dotenv()
 # Get DATABASE_URL from environment
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./cidadao_ai.db")
 
-# Create async engine
-engine = create_async_engine(
-    DATABASE_URL,
-    echo=False,
-    pool_pre_ping=True,
-)
+# Lazy initialization
+_engine: Optional[AsyncEngine] = None
+_session_factory: Optional[async_sessionmaker] = None
 
-# Create session factory
-AsyncSessionLocal = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False,
-)
+
+def _get_engine() -> AsyncEngine:
+    """Get or create the async engine (lazy initialization)."""
+    global _engine
+    if _engine is None:
+        _engine = create_async_engine(
+            DATABASE_URL,
+            echo=False,
+            pool_pre_ping=True,
+        )
+    return _engine
+
+
+def _get_session_factory() -> async_sessionmaker:
+    """Get or create the session factory (lazy initialization)."""
+    global _session_factory
+    if _session_factory is None:
+        _session_factory = async_sessionmaker(
+            _get_engine(),
+            class_=AsyncSession,
+            expire_on_commit=False,
+        )
+    return _session_factory
 
 
 @asynccontextmanager
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """Get database session context manager."""
-    async with AsyncSessionLocal() as session:
+    factory = _get_session_factory()
+    async with factory() as session:
         try:
             yield session
             await session.commit()
