@@ -1,0 +1,17 @@
+# Nixpacks Configuration for Railway
+# Author: Anderson Henrique da Silva
+# Date: 2025-10-07 21:30:00
+#
+# This tells nixpacks how to build and run the application
+
+[phases.setup]
+nixPkgs = ["python311", "postgresql"]
+
+[phases.install]
+cmds = ["pip install -r requirements.txt"]
+
+[phases.build]
+cmds = []
+
+[start]
+cmd = "uvicorn src.api.app:app --host 0.0.0.0 --port ${PORT:-8000}"
