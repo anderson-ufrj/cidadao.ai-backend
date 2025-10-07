@@ -21,47 +21,48 @@ from .analysis_tasks import (
     temporal_analysis,
 )
 
-from .report_tasks import (
-    generate_report,
-    generate_executive_summary,
-    batch_report_generation,
-)
+# Temporarily disabled - missing dependencies (report_service, export_service, etc.)
+# from .report_tasks import (
+#     generate_report,
+#     generate_executive_summary,
+#     batch_report_generation,
+# )
 
-from .export_tasks import (
-    export_to_pdf,
-    export_to_excel,
-    export_bulk_data,
-)
+# from .export_tasks import (
+#     export_to_pdf,
+#     export_to_excel,
+#     export_bulk_data,
+# )
 
-from .monitoring_tasks import (
-    monitor_anomalies,
-    check_data_updates,
-    send_alerts,
-)
+# from .monitoring_tasks import (
+#     monitor_anomalies,
+#     check_data_updates,
+#     send_alerts,
+# )
 
 __all__ = [
     # Investigation tasks
     "run_investigation",
     "analyze_contracts_batch",
     "detect_anomalies_batch",
-    
+
     # Analysis tasks
     "analyze_patterns",
     "correlation_analysis",
     "temporal_analysis",
-    
-    # Report tasks
-    "generate_report",
-    "generate_executive_summary",
-    "batch_report_generation",
-    
-    # Export tasks
-    "export_to_pdf",
-    "export_to_excel",
-    "export_bulk_data",
-    
-    # Monitoring tasks
-    "monitor_anomalies",
-    "check_data_updates",
-    "send_alerts",
+
+    # Report tasks - Temporarily disabled
+    # "generate_report",
+    # "generate_executive_summary",
+    # "batch_report_generation",
+
+    # Export tasks - Temporarily disabled
+    # "export_to_pdf",
+    # "export_to_excel",
+    # "export_bulk_data",
+
+    # Monitoring tasks - Temporarily disabled
+    # "monitor_anomalies",
+    # "check_data_updates",
+    # "send_alerts",
 ]
