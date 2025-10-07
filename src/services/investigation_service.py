@@ -1,5 +1,5 @@
 """
-Investigation service for managing investigations.
+Investigation service for managing investigations with database persistence.
 
 This module provides a service layer for investigation operations,
 abstracting the database and agent interactions.
@@ -8,88 +8,105 @@ abstracting the database and agent interactions.
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 import uuid
-from dataclasses import dataclass
+
+from sqlalchemy import select, update
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core import get_logger
+from src.db.simple_session import get_db_session
+from src.models.investigation import Investigation
 from src.agents import MasterAgent, get_agent_pool
 from src.agents.deodoro import AgentContext
 
 logger = get_logger(__name__)
 
 
-@dataclass
-class InvestigationModel:
-    """Investigation data model."""
-    id: str
-    user_id: str
-    query: str
-    status: str
-    confidence_score: float
-    created_at: datetime
-    completed_at: Optional[datetime] = None
-    processing_time_ms: Optional[float] = None
-    metadata: Optional[Dict[str, Any]] = None
-
-
 class InvestigationService:
     """
-    Service for managing investigations.
-    
-    This is a simplified implementation. In production,
-    this would interact with the database.
+    Service for managing investigations with SQLite/PostgreSQL persistence.
     """
-    
+
     def __init__(self):
         """Initialize investigation service."""
-        self._investigations: Dict[str, InvestigationModel] = {}
+        pass
     
     async def create(
         self,
         user_id: str,
         query: str,
-        data_sources: Optional[List[str]] = None,
-        priority: str = "medium",
-        context: Optional[Dict[str, Any]] = None
-    ) -> InvestigationModel:
+        data_source: str = "contracts",
+        filters: Optional[Dict[str, Any]] = None,
+        anomaly_types: Optional[List[str]] = None,
+        session_id: Optional[str] = None,
+    ) -> Investigation:
         """
-        Create a new investigation.
-        
+        Create a new investigation in the database.
+
         Args:
             user_id: User ID
             query: Investigation query
-            data_sources: Data sources to use
-            priority: Investigation priority
-            context: Additional context
-            
+            data_source: Data source to investigate
+            filters: Query filters
+            anomaly_types: Types of anomalies to detect
+            session_id: Optional session ID
+
         Returns:
             Created investigation
         """
-        investigation_id = str(uuid.uuid4())
-        
-        investigation = InvestigationModel(
-            id=investigation_id,
-            user_id=user_id,
-            query=query,
-            status="pending",
-            confidence_score=0.0,
-            created_at=datetime.utcnow(),
-            metadata={
-                "data_sources": data_sources or [],
-                "priority": priority,
-                "context": context or {}
-            }
-        )
-        
-        self._investigations[investigation_id] = investigation
-        
-        # Start investigation asynchronously
-        import asyncio
-        asyncio.create_task(self._execute_investigation(investigation))
-        
-        logger.info(f"Created investigation {investigation_id} for user {user_id}")
-        return investigation
+        async with get_db_session() as db:
+            investigation = Investigation(
+                user_id=user_id,
+                session_id=session_id,
+                query=query,
+                data_source=data_source,
+                status="pending",
+                filters=filters or {},
+                anomaly_types=anomaly_types or [],
+                progress=0.0,
+            )
+
+            db.add(investigation)
+            await db.commit()
+            await db.refresh(investigation)
+
+            logger.info(f"Created investigation {investigation.id} for user {user_id}")
+            return investigation
     
-    async def _execute_investigation(self, investigation: InvestigationModel):
+    async def update_status(
+        self,
+        investigation_id: str,
+        status: str,
+        progress: Optional[float] = None,
+        current_phase: Optional[str] = None,
+        **kwargs
+    ) -> Investigation:
+        """Update investigation status and progress."""
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(Investigation).where(Investigation.id == investigation_id)
+            )
+            investigation = result.scalar_one_or_none()
+
+            if not investigation:
+                raise ValueError(f"Investigation {investigation_id} not found")
+
+            investigation.status = status
+            if progress is not None:
+                investigation.progress = progress
+            if current_phase is not None:
+                investigation.current_phase = current_phase
+
+            # Update other fields
+            for key, value in kwargs.items():
+                if hasattr(investigation, key):
+                    setattr(investigation, key, value)
+
+            await db.commit()
+            await db.refresh(investigation)
+
+            return investigation
+
+    async def _execute_investigation(self, investigation: Investigation):
         """Execute investigation using agents."""
         try:
             start_time = datetime.utcnow()
@@ -127,85 +144,69 @@ class InvestigationService:
             investigation.status = "failed"
             investigation.completed_at = datetime.utcnow()
     
-    async def get_by_id(self, investigation_id: str) -> Optional[InvestigationModel]:
-        """Get investigation by ID."""
-        return self._investigations.get(investigation_id)
+    async def get_by_id(self, investigation_id: str) -> Optional[Investigation]:
+        """Get investigation by ID from database."""
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(Investigation).where(Investigation.id == investigation_id)
+            )
+            return result.scalar_one_or_none()
     
     async def search(
         self,
-        filters: Optional[List[Any]] = None,
+        user_id: Optional[str] = None,
+        status: Optional[str] = None,
         limit: int = 20,
         offset: int = 0,
-        order_by: Optional[str] = None,
-        order_dir: str = "desc"
-    ) -> List[InvestigationModel]:
-        """
-        Search investigations with filters.
-        
-        This is a simplified implementation.
-        In production, this would query the database.
-        """
-        # Get all investigations
-        investigations = list(self._investigations.values())
-        
-        # Sort by created_at desc by default
-        investigations.sort(
-            key=lambda x: x.created_at,
-            reverse=(order_dir == "desc")
-        )
-        
-        # Apply pagination
-        start = offset
-        end = offset + limit
-        
-        return investigations[start:end]
+    ) -> List[Investigation]:
+        """Search investigations with filters."""
+        async with get_db_session() as db:
+            query = select(Investigation)
+
+            if user_id:
+                query = query.where(Investigation.user_id == user_id)
+            if status:
+                query = query.where(Investigation.status == status)
+
+            query = query.order_by(Investigation.created_at.desc())
+            query = query.limit(limit).offset(offset)
+
+            result = await db.execute(query)
+            return list(result.scalars().all())
     
-    async def cancel(self, investigation_id: str, user_id: str) -> InvestigationModel:
-        """
-        Cancel an investigation.
-        
-        Args:
-            investigation_id: Investigation ID
-            user_id: User ID (for authorization)
-            
-        Returns:
-            Updated investigation
-        """
-        investigation = self._investigations.get(investigation_id)
-        
-        if not investigation:
-            raise ValueError(f"Investigation {investigation_id} not found")
-        
-        if investigation.user_id != user_id:
-            raise ValueError("Unauthorized")
-        
-        if investigation.status in ["completed", "failed", "cancelled"]:
-            raise ValueError(f"Cannot cancel investigation in {investigation.status} status")
-        
-        investigation.status = "cancelled"
-        investigation.completed_at = datetime.utcnow()
-        
-        logger.info(f"Investigation {investigation_id} cancelled by user {user_id}")
-        return investigation
+    async def cancel(self, investigation_id: str, user_id: str) -> Investigation:
+        """Cancel an investigation."""
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(Investigation).where(Investigation.id == investigation_id)
+            )
+            investigation = result.scalar_one_or_none()
+
+            if not investigation:
+                raise ValueError(f"Investigation {investigation_id} not found")
+
+            if investigation.user_id != user_id:
+                raise ValueError("Unauthorized")
+
+            if investigation.status in ["completed", "failed", "cancelled"]:
+                raise ValueError(f"Cannot cancel investigation in {investigation.status} status")
+
+            investigation.status = "cancelled"
+            investigation.completed_at = datetime.utcnow()
+
+            await db.commit()
+            await db.refresh(investigation)
+
+            logger.info(f"Investigation {investigation_id} cancelled by user {user_id}")
+            return investigation
     
     async def get_user_investigations(
         self,
         user_id: str,
         limit: int = 10
-    ) -> List[InvestigationModel]:
+    ) -> List[Investigation]:
         """Get investigations for a user."""
-        user_investigations = [
-            inv for inv in self._investigations.values()
-            if inv.user_id == user_id
-        ]
-        
-        # Sort by created_at desc
-        user_investigations.sort(
-            key=lambda x: x.created_at,
-            reverse=True
-        )
-        
-        return user_investigations[:limit]
+        return await self.search(user_id=user_id, limit=limit)
 
 
 # Global service instance
