@@ -113,10 +113,10 @@ async def _monitor_katana_async() -> Dict[str, Any]:
                 dispensa_data=formatted_dispensa
             )
 
-            # If anomaly detected, create investigation and anomaly records
+            # If anomaly detected, create auto investigation and anomaly records
             if analysis.anomaly_detected:
-                # Create investigation in Supabase
-                investigation = await supabase_anomaly_service.create_investigation(
+                # Create AUTO investigation in Supabase (not user investigation)
+                auto_investigation = await supabase_anomaly_service.create_auto_investigation(
                     query=f"Análise automática de dispensa de licitação - {formatted_dispensa.get('numero')}",
                     context={
                         "source": "katana_scan",
@@ -130,9 +130,10 @@ async def _monitor_katana_async() -> Dict[str, Any]:
                     initiated_by="auto_investigation_katana"
                 )
 
-                # Create anomaly record in Supabase
+                # Create anomaly record in Supabase (linked to auto_investigation)
                 anomaly = await supabase_anomaly_service.create_anomaly(
-                    investigation_id=investigation["id"],
+                    investigation_id=None,  # Not a user investigation
+                    auto_investigation_id=auto_investigation["id"],  # Link to auto investigation
                     source="katana_scan",
                     source_id=formatted_dispensa.get("id"),
                     anomaly_type=analysis.anomaly_type if hasattr(analysis, 'anomaly_type') else "general",
@@ -160,9 +161,9 @@ async def _monitor_katana_async() -> Dict[str, Any]:
                 investigations_created += 1
 
                 logger.info(
-                    "investigation_and_anomaly_created_in_supabase",
+                    "auto_investigation_and_anomaly_created_in_supabase",
                     dispensa_id=formatted_dispensa.get("id"),
-                    investigation_id=investigation["id"],
+                    auto_investigation_id=auto_investigation["id"],
                     anomaly_id=anomaly["id"],
                     anomaly_score=analysis.anomaly_score,
                     severity=anomaly["severity"]

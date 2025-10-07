@@ -32,26 +32,27 @@ class SupabaseAnomalyService:
             "Prefer": "return=representation"
         }
 
-    async def create_investigation(
+    async def create_auto_investigation(
         self,
         query: str,
         context: Dict[str, Any],
         initiated_by: str
     ) -> Dict[str, Any]:
         """
-        Create an investigation record in Supabase.
+        Create an AUTO investigation record in Supabase (not user investigation).
+        This is for 24/7 autonomous system investigations.
 
         Args:
             query: Investigation query
             context: Investigation context
-            initiated_by: Who initiated the investigation
+            initiated_by: Who initiated (e.g., 'auto_investigation_katana')
 
         Returns:
-            Created investigation record
+            Created auto_investigation record
         """
         async with httpx.AsyncClient() as client:
             response = await client.post(
-                f"{self.supabase_url}/rest/v1/investigations",
+                f"{self.supabase_url}/rest/v1/auto_investigations",
                 headers=self.headers,
                 json={
                     "query": query,
@@ -76,13 +77,14 @@ class SupabaseAnomalyService:
         indicators: List[str],
         recommendations: List[str],
         contract_data: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]] = None
+        metadata: Optional[Dict[str, Any]] = None,
+        auto_investigation_id: Optional[UUID] = None
     ) -> Dict[str, Any]:
         """
         Create an anomaly record in Supabase.
 
         Args:
-            investigation_id: Related investigation ID
+            investigation_id: Related user investigation ID (optional)
             source: Source system (portal_transparencia, katana_scan)
             source_id: ID from source system
             anomaly_type: Type of anomaly
@@ -93,6 +95,7 @@ class SupabaseAnomalyService:
             recommendations: List of recommendations
             contract_data: Full contract/dispensa data
             metadata: Additional metadata
+            auto_investigation_id: Related auto investigation ID (optional)
 
         Returns:
             Created anomaly record
@@ -122,9 +125,13 @@ class SupabaseAnomalyService:
             "status": "detected"
         }
 
-        # Add investigation_id if provided
+        # Add investigation_id if provided (user investigation)
         if investigation_id:
             anomaly_data["investigation_id"] = str(investigation_id)
+
+        # Add auto_investigation_id if provided (system investigation)
+        if auto_investigation_id:
+            anomaly_data["auto_investigation_id"] = str(auto_investigation_id)
 
         async with httpx.AsyncClient() as client:
             response = await client.post(
