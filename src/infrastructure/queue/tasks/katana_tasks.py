@@ -19,6 +19,7 @@ from src.infrastructure.queue.celery_app import celery_app
 from src.services.katana_service import KatanaService
 from src.services.investigation_service_selector import investigation_service
 from src.services.supabase_anomaly_service import supabase_anomaly_service
+from src.services.alert_service import alert_service
 from src.db.simple_session import get_db_session
 from src.agents import get_agent_pool
 
@@ -166,6 +167,28 @@ async def _monitor_katana_async() -> Dict[str, Any]:
                     anomaly_score=analysis.anomaly_score,
                     severity=anomaly["severity"]
                 )
+
+                # Send alert for high/critical severity anomalies
+                if anomaly["severity"] in ("high", "critical"):
+                    try:
+                        alert_result = await alert_service.send_anomaly_alert(
+                            anomaly_id=anomaly["id"],
+                            anomaly_data=anomaly,
+                            alert_types=["webhook", "dashboard"]
+                        )
+
+                        logger.info(
+                            "alerts_sent_for_anomaly",
+                            anomaly_id=anomaly["id"],
+                            alerts_sent=len(alert_result.get("alerts_sent", [])),
+                            alerts_failed=len(alert_result.get("alerts_failed", []))
+                        )
+                    except Exception as alert_error:
+                        logger.error(
+                            "failed_to_send_alerts",
+                            anomaly_id=anomaly["id"],
+                            error=str(alert_error)
+                        )
 
         except Exception as e:
             logger.error(
