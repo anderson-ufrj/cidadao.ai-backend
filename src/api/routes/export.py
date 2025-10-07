@@ -20,7 +20,7 @@ from src.core import json_utils
 from src.core import get_logger
 from src.api.middleware.authentication import get_current_user
 from src.services.export_service import export_service
-from src.services.investigation_service import investigation_service
+from src.services.investigation_service_selector import investigation_service
 from src.services.data_service import data_service
 
 logger = get_logger(__name__)

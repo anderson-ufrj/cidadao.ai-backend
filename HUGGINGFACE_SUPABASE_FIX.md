@@ -39,23 +39,54 @@ realtime>=2.0.0
 supafunc>=0.3.0
 ```
 
-### 2. Arquivo requirements-hf.txt Criado
+### 2. Criado Investigation Service Selector Inteligente
 
-Backup completo com todas as dependências necessárias para HuggingFace Spaces.
+**Arquivo**: `src/services/investigation_service_selector.py`
 
-### 3. Commit Forçado
+Este módulo **detecta automaticamente** o ambiente e escolhe o serviço correto:
 
-```bash
-git commit -m "fix(deps): force Supabase client installation for HuggingFace
-
-BREAKING: HuggingFace Spaces MUST rebuild to install these dependencies."
+```python
+# HuggingFace Spaces → REST API
+# Local com PostgreSQL → Conexão direta
+# Fallback → In-memory
 ```
 
-A mensagem `BREAKING` no commit force o HuggingFace a fazer **rebuild completo**, ignorando cache.
+**Funcionalidades**:
+- ✅ Detecta variável `SPACE_ID` (HuggingFace Spaces)
+- ✅ Verifica configuração `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`
+- ✅ Seleciona REST API automaticamente para HuggingFace
+- ✅ Usa conexão direta se PostgreSQL disponível localmente
 
-### 4. Push para Ambos Remotes
+### 3. Código Atualizado Para Usar Serviço Inteligente
+
+**Arquivos modificados**:
+- `src/api/graphql/schema.py` → Usa REST API automático
+- `src/api/routes/export.py` → Usa REST API automático
+- `src/services/cache_warming_service.py` → Usa REST API automático
+- `src/infrastructure/queue/tasks/investigation_tasks.py` → Usa REST API automático
+
+**Antes**:
+```python
+from src.services.investigation_service import investigation_service  # ❌ PostgreSQL direto
+```
+
+**Depois**:
+```python
+from src.services.investigation_service_selector import investigation_service  # ✅ Auto-seleciona
+```
+
+### 4. Commit e Push
 
 ```bash
+git add .
+git commit -m "fix(supabase): auto-detect environment and use REST API on HuggingFace
+
+- Created investigation_service_selector.py for smart service selection
+- Detects HuggingFace Spaces via SPACE_ID environment variable
+- Automatically uses REST API when on HuggingFace
+- Falls back to PostgreSQL direct connection when available
+- Updated all service imports to use selector"
+
 git push origin main
 git push huggingface main
 ```
@@ -116,6 +147,8 @@ Deve retornar:
 
 Use esta lista para confirmar que tudo está funcionando:
 
+- [x] **Código atualizado** - Seletor automático criado
+- [x] **Imports modificados** - Todas rotas usando novo serviço
 - [ ] **Rebuild iniciado** - HuggingFace mostra "Building..."
 - [ ] **Dependências instaladas** - Logs mostram `Successfully installed supabase-2.x.x`
 - [ ] **Serviço inicializado** - Logs mostram `Supabase REST service initialized successfully`
@@ -175,11 +208,12 @@ CMD ["python", "app.py"]
 
 Após confirmar que o Supabase REST API está funcionando:
 
-1. **Atualizar código dos agentes** para usar `investigation_service_supabase_rest`
-2. **Testar fluxo completo** de investigação
-3. **Verificar persistência** no Supabase Dashboard
-4. **Monitorar performance** (REST API tem ~20-30ms de latência vs ~5-10ms conexão direta)
-5. **Documentar diferenças** para equipe
+1. ✅ **Código atualizado** - Seletor automático implementado
+2. ✅ **Imports modificados** - Todas rotas usando serviço inteligente
+3. **Testar fluxo completo** de investigação no HuggingFace
+4. **Verificar persistência** no Supabase Dashboard
+5. **Monitorar performance** (REST API tem ~20-30ms de latência vs ~5-10ms conexão direta)
+6. **Documentar logs de sucesso** para referência futura
 
 ## 🎯 Resultado Esperado
 
@@ -204,9 +238,10 @@ SELECT * FROM investigations ORDER BY created_at DESC LIMIT 1;
 
 ---
 
-**Status**: 🟡 **AGUARDANDO REBUILD** (iniciado em 2025-10-07 20:20)
+**Status**: 🟢 **CÓDIGO PRONTO - AGUARDANDO DEPLOY** (atualizado em 2025-10-07 20:45)
 
-**Próxima verificação**: Checar logs em 3-5 minutos
+**Próxima ação**: Commit e push para HuggingFace, então monitorar logs
 
 **Autor**: Anderson H. Silva
 **Data**: 2025-10-07
+**Última atualização**: 2025-10-07 20:45 (Solução completa com seletor automático)

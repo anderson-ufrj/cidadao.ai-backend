@@ -15,7 +15,7 @@ from strawberry import ID
 from src.core import get_logger
 from src.agents import MasterAgent, get_agent_pool
 from src.infrastructure.query_cache import cached_query
-from src.services.investigation_service import investigation_service
+from src.services.investigation_service_selector import investigation_service
 
 logger = get_logger(__name__)
 

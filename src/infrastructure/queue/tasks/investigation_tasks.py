@@ -14,7 +14,7 @@ from celery import group, chain
 from celery.utils.log import get_task_logger
 
 from src.infrastructure.queue.celery_app import celery_app, priority_task, TaskPriority
-from src.services.investigation_service import InvestigationService
+from src.services.investigation_service_selector import investigation_service as InvestigationService
 from src.services.data_service import DataService
 from src.core.dependencies import get_db_session
 from src.agents import get_agent_pool
