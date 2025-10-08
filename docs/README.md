@@ -149,7 +149,7 @@ Found a typo? Want to improve a guide?
 
 - **Issues**: [GitHub Issues](https://github.com/anderson-ufrj/cidadao.ai-backend/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/anderson-ufrj/cidadao.ai-backend/discussions)
-- **Email**: anderson@cidadao.ai
+- **Email**: andersonhs27@gmail.com
 
 ---
 

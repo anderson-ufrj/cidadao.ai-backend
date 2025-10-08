@@ -489,4 +489,4 @@ celery_app.conf.task_routes = {
 **Data**: 2025-10-07
 **Status**: ✅ Produção
 
-Para dúvidas sobre a migração: anderson@cidadao.ai
+Para dúvidas sobre a migração: andersonhs27@gmail.com
