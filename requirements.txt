@@ -1,4 +1,3 @@
-# Minimal requirements for HuggingFace Spaces
 # Core API dependencies only - no complex OpenTelemetry
 
 fastapi>=0.109.0
