@@ -10,7 +10,7 @@ from typing import Dict, Any
 from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
 from pydantic import BaseModel
 
-from src.core.auth import get_current_user
+from src.api.routes.auth import get_current_user
 from src.infrastructure.queue.tasks.katana_tasks import (
     monitor_katana_dispensas,
     katana_health_check
