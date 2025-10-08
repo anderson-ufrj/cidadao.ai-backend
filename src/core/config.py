@@ -49,7 +49,15 @@ class Settings(BaseSettings):
     database_pool_size: int = Field(default=10, description="DB pool size")
     database_pool_overflow: int = Field(default=20, description="DB pool overflow")
     database_pool_timeout: int = Field(default=30, description="DB pool timeout")
-    
+
+    # Supabase
+    supabase_url: str = Field(
+        description="Supabase project URL (REQUIRED)"
+    )
+    supabase_service_role_key: SecretStr = Field(
+        description="Supabase service role key (REQUIRED)"
+    )
+
     # Redis
     redis_url: str = Field(
         default="redis://localhost:6379/0",
@@ -336,7 +344,7 @@ class Settings(BaseSettings):
         sensitive_fields = [
             "secret_key", "jwt_secret_key", "transparency_api_key",
             "groq_api_key", "together_api_key", "huggingface_api_key",
-            "redis_password", "database_url"
+            "redis_password", "database_url", "supabase_service_role_key"
         ]
         for field in sensitive_fields:
             if field in data:
