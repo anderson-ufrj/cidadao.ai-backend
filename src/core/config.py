@@ -180,7 +180,10 @@ class Settings(BaseSettings):
             "https://cidadao-ai.vercel.app",
             "https://*.vercel.app",
             "https://neural-thinker-cidadao-ai-backend.hf.space",
-            "https://*.hf.space"
+            "https://*.hf.space",
+            "http://cidadao-api-production.up.railway.app",
+            "https://cidadao-api-production.up.railway.app",
+            "https://*.railway.app"
         ],
         description="CORS allowed origins"
     )
