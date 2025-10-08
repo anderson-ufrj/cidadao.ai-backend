@@ -1,60 +1,114 @@
-# Requirements Management
+# 📦 Requirements Files
 
-This project uses **pyproject.toml as the single source of truth** for all dependencies. The files in this directory are convenience wrappers.
+This directory contains organized Python dependencies for different environments.
 
-## ✅ Recommended Installation Methods
+## Files Overview
 
-### Development Environment
+| File | Purpose | Usage |
+|------|---------|-------|
+| `base.txt` | Core dependencies | Base requirements for all environments |
+| `production.txt` | Production extras | Additional deps for Railway/production |
+| `dev.txt` | Development tools | Testing, linting, formatting tools |
+| `hf.txt` | HuggingFace Spaces | **DEPRECATED** - HF-specific deps |
+| `hf-deprecated.txt` | HF full deps | **DEPRECATED** - Archive |
+
+## Installation
+
+### Railway Production (Recommended)
+
 ```bash
-pip install -e .[dev]
+# Railway uses root requirements.txt
+pip install -r requirements.txt
 ```
 
-### HuggingFace Spaces Deployment  
+### Local Development
+
 ```bash
-pip install -e .[hf]
+# Full development environment
+pip install -r requirements.txt
+pip install -r requirements/dev.txt
+
+# Or use Make
+make install-dev
 ```
 
-### Production Deployment
+### Base Dependencies Only
+
 ```bash
-pip install -e .[prod]  
+pip install -r requirements/base.txt
 ```
 
-### Base Installation Only
+## Root requirements.txt
+
+The **root `requirements.txt`** is the **primary production file** used by Railway.
+
+It includes all necessary dependencies for:
+- FastAPI application
+- Celery Worker + Beat
+- Redis integration
+- Supabase connectivity
+- Multi-agent system
+- LLM integrations (Groq, OpenAI)
+
+## Deprecated Files
+
+### HuggingFace Files (No Longer Used)
+
+- `hf.txt` - HuggingFace Spaces minimal deps
+- `hf-deprecated.txt` - HF full dependencies
+
+**Reason for deprecation**: Migrated to Railway on 2025-10-07.
+
+See: [Migration Documentation](../docs/deployment/migration-hf-to-railway.md)
+
+## Maintenance
+
+### Adding a New Dependency
+
+1. **For production**: Add to root `requirements.txt`
+2. **For base**: Add to `requirements/base.txt`
+3. **For dev only**: Add to `requirements/dev.txt`
+
+### Updating Dependencies
+
 ```bash
-pip install -e .
+# Check for outdated packages
+pip list --outdated
+
+# Update requirements
+pip freeze > requirements.txt
+
+# Test installation
+pip install -r requirements.txt --dry-run
 ```
 
-## 📁 File Structure
+## Dependencies by Category
 
-- **`base.txt`** - References base dependencies from pyproject.toml
-- **`dev.txt`** - References development dependencies 
-- **`hf.txt`** - References HuggingFace minimal dependencies
-- **`production.txt`** - References production dependencies
+### Core API (base.txt)
+- FastAPI, Uvicorn
+- Pydantic, Pydantic-settings
+- HTTPx (async HTTP)
+- Redis, PostgreSQL drivers
 
-## 🔧 Maintenance
+### Background Tasks (production.txt)
+- Celery
+- Redis (broker + backend)
+- Kombu (messaging)
 
-All dependency management is done in `pyproject.toml`. To update:
+### LLM & Agents (production.txt)
+- LangChain
+- Groq SDK
+- OpenAI SDK
 
-1. Edit dependencies in `pyproject.toml`
-2. Run `pip install -e .[dev]` to install updated dependencies
-3. For HuggingFace deployment, regenerate `requirements.txt`:
-   ```bash
-   python3 -c "
-   import tomllib
-   with open('pyproject.toml', 'rb') as f: 
-       data = tomllib.load(f)
-       deps = data['project']['optional-dependencies']['hf']
-       with open('requirements.txt', 'w') as out:
-           out.write('# Generated from pyproject.toml[hf]\n\n')
-           for dep in deps:
-               out.write(dep + '\n')
-   "
-   ```
+### Development (dev.txt)
+- pytest, pytest-asyncio
+- black, ruff, mypy
+- coverage
+- pre-commit
 
-## 🎯 Single Source of Truth
+## Notes
 
-- **Primary**: `pyproject.toml` (defines all dependencies)
-- **HuggingFace**: `requirements.txt` (generated from pyproject.toml[hf])
-- **Convenience**: `requirements/*.txt` (reference pyproject.toml sections)
-
-This approach ensures consistency across all environments and deployment scenarios.
+- **DO NOT** modify `hf*.txt` files (deprecated)
+- Always test locally before updating production
+- Keep `requirements.txt` synchronized with Railway deployment
+- Document breaking changes in CHANGELOG.md
