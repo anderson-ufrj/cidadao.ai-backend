@@ -52,7 +52,7 @@
     height: 280px;
     background: url('/static/images/operarios_tarsila.png');
     background-size: cover;
-    background-position: center;
+    background-position: center bottom;
     background-repeat: no-repeat;
     border-radius: 8px;
     margin-bottom: 10px;
