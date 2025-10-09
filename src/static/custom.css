@@ -42,58 +42,73 @@
 /* Banner com imagem "Operários" */
 .swagger-ui .info {
     position: relative;
-    margin-bottom: 30px;
+    margin-bottom: 40px;
 }
 
 .swagger-ui .info::before {
     content: "";
     display: block;
     width: 100%;
-    height: 250px;
+    height: 280px;
     background: url('/static/images/operarios_tarsila.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     border-radius: 8px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     border: 3px solid var(--amarelo-brasil);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Legenda da imagem */
+.swagger-ui .info hgroup.main::before {
+    content: '"Operários" - Tarsila do Amaral (1933)';
+    display: block;
+    text-align: center;
+    font-size: 13px;
+    font-style: italic;
+    color: #6c757d;
+    margin-bottom: 20px;
+    font-family: Georgia, serif;
 }
 
 /* Título da API */
 .swagger-ui .info .title {
     color: var(--verde-brasil) !important;
-    font-size: 42px !important;
-    font-weight: 800 !important;
+    font-size: 36px !important;
+    font-weight: 700 !important;
     text-align: center;
-    margin: 20px 0 !important;
-    text-shadow: 2px 2px 4px rgba(0, 155, 58, 0.2);
+    margin: 20px 0 10px 0 !important;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    letter-spacing: -0.5px;
 }
 
-/* Descrição da API */
+/* Adicionar subtítulo elegante */
+.swagger-ui .info .title::after {
+    content: "Investigação inteligente de dados públicos brasileiros com IA multi-agente";
+    display: block;
+    font-size: 16px;
+    font-weight: 400;
+    color: #6c757d;
+    margin-top: 12px;
+    letter-spacing: 0;
+    line-height: 1.6;
+}
+
+/* Ocultar a descrição markdown crua */
 .swagger-ui .info .description {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    padding: 25px;
-    border-radius: 8px;
-    border-left: 5px solid var(--verde-brasil);
-    border-right: 5px solid var(--amarelo-brasil);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: none !important;
 }
 
-.swagger-ui .info .description h1 {
-    color: var(--verde-brasil) !important;
-    border-bottom: 3px solid var(--amarelo-brasil);
-    padding-bottom: 10px;
-    margin-top: 25px;
+/* Melhorar tipografia geral */
+.swagger-ui {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
 }
 
-.swagger-ui .info .description h2 {
-    color: var(--azul-brasil) !important;
-    margin-top: 20px;
-}
-
-.swagger-ui .info .description h3 {
-    color: var(--verde-brasil) !important;
+.swagger-ui .opblock-tag {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
 }
 
 /* Tags/Categorias com cores brasileiras */

@@ -129,82 +129,8 @@ async def lifespan(app: FastAPI):
 
 # Create FastAPI application
 app = FastAPI(
-    title="Cidadão.AI API",
-    description="""
-    # 🏛️ Plataforma de Transparência Pública com IA
-
-    *Inspirado na obra "Operários" de Tarsila do Amaral (1933) - representando a diversidade do povo brasileiro*
-
-    API para investigação inteligente de dados públicos brasileiros usando multi-agente de IA.
-
-    ---
-
-    ## 🎯 Funcionalidades Principais
-
-    ### 🔍 Investigação
-    Detecção automática de anomalias e irregularidades em contratos públicos, despesas governamentais e licitações.
-
-    ### 📊 Análise
-    Identificação de padrões, correlações e tendências em dados públicos através de algoritmos avançados de ML.
-
-    ### 📝 Relatórios
-    Geração automatizada de relatórios detalhados em linguagem natural com insights acionáveis.
-
-    ### 🌐 Transparência
-    Acesso democrático e simplificado a informações governamentais complexas.
-
-    ---
-
-    ## 🤖 Sistema Multi-Agente
-
-    ### Agentes Investigadores
-    - **Zumbi dos Palmares** 🗡️ - Detecção de anomalias e padrões suspeitos
-    - **Anita Garibaldi** 🔍 - Análise de padrões temporais e correlações
-    - **Tiradentes** 📋 - Geração de relatórios e documentação
-
-    ### Agentes Especializados
-    - **José Bonifácio** 🎭 - Análise de comportamento organizacional
-    - **Maria Quitéria** ⚔️ - Detecção de fraudes e irregularidades
-    - **Machado de Assis** ✍️ - Processamento de linguagem natural
-    - **Drummond** 🎨 - Visualização e apresentação de dados
-
-    ---
-
-    ## 📦 Fontes de Dados
-
-    - Portal da Transparência do Governo Federal
-    - Tribunal de Contas dos Estados (TCE)
-    - Portais CKAN de dados abertos
-    - Dados.gov.br
-    - APIs estaduais e municipais (2500+ municípios)
-
-    ---
-
-    ## 🔐 Autenticação
-
-    A API usa autenticação JWT e suporta OAuth2 (Google, GitHub, Microsoft).
-    Endpoints públicos disponíveis sem autenticação para demonstração.
-
-    ---
-
-    ## 📚 Versioning
-
-    **Versão Atual**: v1.0.0
-    **Base URL**: `/api/v1/`
-    **Documentação**: `/docs` (Swagger) ou `/redoc` (ReDoc)
-
-    Futuras versões da API serão disponibilizadas em `/api/v2/` mantendo backward compatibility.
-
-    ---
-
-    ## 🚀 Getting Started
-
-    1. Obtenha uma API key em `/api/v1/api-keys`
-    2. Autentique em `/api/v1/auth/login`
-    3. Explore os endpoints de investigação em `/api/v1/investigations`
-    4. Use o chat inteligente em `/api/v1/chat/message`
-
-    """,
+    title="🏛️ Cidadão.AI - Plataforma de Transparência Pública",
+    description="API para investigação inteligente de dados públicos brasileiros usando sistema multi-agente de IA. Inspirado na obra 'Operários' de Tarsila do Amaral, representando a diversidade do povo brasileiro.",
     version="1.0.0",
     contact={
         "name": "Cidadão.AI",
