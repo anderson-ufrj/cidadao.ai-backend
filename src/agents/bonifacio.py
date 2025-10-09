@@ -1252,5 +1252,262 @@ class BonifacioAgent(BaseAgent):
             return "Weak - Significant pathway dysfunction detected"
     
     async def _apply_cost_effectiveness_framework(self, request, evaluation):
-        """Apply cost-effectiveness evaluation framework."""
-        pass  # Implementation would depend on specific requirements
+        """
+        Apply cost-effectiveness evaluation framework.
+
+        Focuses on economic analysis: comparing costs to outcomes
+        to determine value for money.
+
+        Calculates various cost-effectiveness ratios and comparative metrics.
+        """
+        total_cost = evaluation.investment["executed"]
+        beneficiaries = evaluation.beneficiaries["reached_population"]
+
+        # Calculate various cost-effectiveness metrics
+        cost_effectiveness = {
+            "cost_analysis": {
+                "total_investment": total_cost,
+                "planned_budget": evaluation.investment["planned"],
+                "budget_variance": evaluation.investment["deviation_percentage"],
+                "cost_per_beneficiary": evaluation.investment["cost_per_beneficiary"],
+                "cost_classification": self._classify_cost_level(evaluation.investment["cost_per_beneficiary"], request.policy_area or "social")
+            },
+            "effectiveness_analysis": {
+                "efficacy_score": evaluation.effectiveness_score["efficacy"],
+                "efficiency_score": evaluation.effectiveness_score["efficiency"],
+                "overall_effectiveness": evaluation.effectiveness_score["effectiveness"],
+                "service_quality": evaluation.effectiveness_score["cost_effectiveness"]
+            },
+            "cost_effectiveness_ratios": {
+                "cost_per_unit_outcome": self._calculate_cost_per_outcome(total_cost, evaluation.indicators),
+                "incremental_cost_effectiveness": self._calculate_incremental_cost_effectiveness(evaluation),
+                "average_cost_effectiveness": round(total_cost / max(1, len(evaluation.indicators) * beneficiaries), 6),
+                "marginal_cost_per_improvement": self._calculate_marginal_cost(total_cost, evaluation.indicators)
+            },
+            "value_for_money": {
+                "social_roi": evaluation.roi_social,
+                "roi_classification": self._classify_roi(evaluation.roi_social),
+                "cost_benefit_ratio": max(0, evaluation.roi_social + 1),  # Convert ROI to ratio
+                "economic_efficiency": round(evaluation.effectiveness_score["effectiveness"] / (evaluation.investment["cost_per_beneficiary"] / 10000), 3)
+            },
+            "comparative_analysis": {
+                "cost_percentile": self._calculate_cost_percentile(evaluation.investment["cost_per_beneficiary"], request.policy_area or "social"),
+                "effectiveness_percentile": self._calculate_percentile(
+                    evaluation.effectiveness_score["effectiveness"],
+                    average=0.65,
+                    excellent=0.80,
+                    poor=0.40
+                ),
+                "value_rating": self._calculate_value_rating(evaluation)
+            },
+            "optimization_opportunities": {
+                "cost_reduction_potential": self._identify_cost_reduction_opportunities(evaluation),
+                "effectiveness_improvement_potential": self._identify_effectiveness_improvements(evaluation),
+                "reallocation_recommendations": self._suggest_resource_reallocation(evaluation)
+            },
+            "sensitivity_analysis": {
+                "cost_sensitivity": self._analyze_cost_sensitivity(evaluation),
+                "outcome_sensitivity": self._analyze_outcome_sensitivity(evaluation),
+                "roi_sensitivity_to_cost": self._calculate_roi_cost_sensitivity(evaluation)
+            }
+        }
+
+        return cost_effectiveness
+
+    def _classify_cost_level(self, cost_per_beneficiary: float, policy_area: str) -> str:
+        """Classify cost level relative to policy area benchmarks."""
+        # Brazilian policy cost benchmarks (R$ per beneficiary per year)
+        benchmarks = {
+            "health": {"low": 2000, "high": 8000},
+            "education": {"low": 3000, "high": 10000},
+            "security": {"low": 1500, "high": 6000},
+            "social": {"low": 500, "high": 3000},
+            "infrastructure": {"low": 5000, "high": 20000},
+            "environment": {"low": 1000, "high": 5000}
+        }
+
+        benchmark = benchmarks.get(policy_area, {"low": 1000, "high": 5000})
+
+        if cost_per_beneficiary < benchmark["low"]:
+            return "Very Low Cost"
+        elif cost_per_beneficiary < benchmark["low"] * 1.5:
+            return "Low Cost"
+        elif cost_per_beneficiary < benchmark["high"]:
+            return "Moderate Cost"
+        elif cost_per_beneficiary < benchmark["high"] * 1.5:
+            return "High Cost"
+        else:
+            return "Very High Cost"
+
+    def _calculate_cost_per_outcome(self, total_cost: float, indicators: List[PolicyIndicator]) -> Dict[str, float]:
+        """Calculate cost per unit of outcome improvement."""
+        cost_per_outcome = {}
+
+        for ind in indicators:
+            improvement = max(0.01, ind.current_value - ind.baseline_value)  # Avoid division by zero
+            cost_per_outcome[ind.name] = round(total_cost / improvement, 2)
+
+        return cost_per_outcome
+
+    def _calculate_incremental_cost_effectiveness(self, evaluation: PolicyEvaluation) -> float:
+        """Calculate incremental cost-effectiveness ratio (ICER)."""
+        # ICER = (Cost_intervention - Cost_alternative) / (Effect_intervention - Effect_alternative)
+        # Simplified: comparing to baseline (no intervention)
+        incremental_effect = evaluation.effectiveness_score["effectiveness"] - 0.5  # Baseline = 0.5
+        incremental_cost = evaluation.investment["executed"]
+
+        if incremental_effect > 0:
+            return round(incremental_cost / incremental_effect, 2)
+        else:
+            return float('inf')
+
+    def _calculate_marginal_cost(self, total_cost: float, indicators: List[PolicyIndicator]) -> float:
+        """Calculate marginal cost per percentage point improvement."""
+        total_improvement = sum(max(0, ind.current_value - ind.baseline_value) for ind in indicators)
+
+        if total_improvement > 0:
+            return round(total_cost / total_improvement, 2)
+        else:
+            return 0.0
+
+    def _classify_roi(self, roi: float) -> str:
+        """Classify social ROI level."""
+        if roi >= 3.0:
+            return "Excellent - Very high social return"
+        elif roi >= 2.0:
+            return "Very Good - High social return"
+        elif roi >= 1.0:
+            return "Good - Positive social return"
+        elif roi >= 0.0:
+            return "Moderate - Break-even or slight return"
+        elif roi >= -0.5:
+            return "Poor - Negative return"
+        else:
+            return "Very Poor - Significant loss"
+
+    def _calculate_cost_percentile(self, cost_per_beneficiary: float, policy_area: str) -> int:
+        """Calculate cost percentile compared to similar policies."""
+        # Average costs for Brazilian policies (R$ per beneficiary)
+        avg_costs = {
+            "health": 4000,
+            "education": 6000,
+            "security": 3000,
+            "social": 1500,
+            "infrastructure": 10000,
+            "environment": 2500
+        }
+
+        avg_cost = avg_costs.get(policy_area, 3000)
+        excellent_cost = avg_cost * 0.6  # 40% below average
+        poor_cost = avg_cost * 1.8  # 80% above average
+
+        # Lower cost = higher percentile (better)
+        return self._calculate_percentile(
+            -cost_per_beneficiary,  # Negative because lower is better
+            average=-avg_cost,
+            excellent=-excellent_cost,
+            poor=-poor_cost
+        )
+
+    def _calculate_value_rating(self, evaluation: PolicyEvaluation) -> str:
+        """Calculate overall value-for-money rating."""
+        effectiveness = evaluation.effectiveness_score["effectiveness"]
+        roi = evaluation.roi_social
+        cost_eff = evaluation.effectiveness_score["cost_effectiveness"]
+
+        value_score = (effectiveness * 0.4 + min(1.0, (roi + 1) / 3) * 0.3 + cost_eff * 0.3)
+
+        if value_score >= 0.80:
+            return "Excellent Value"
+        elif value_score >= 0.70:
+            return "Very Good Value"
+        elif value_score >= 0.60:
+            return "Good Value"
+        elif value_score >= 0.50:
+            return "Fair Value"
+        else:
+            return "Poor Value"
+
+    def _identify_cost_reduction_opportunities(self, evaluation: PolicyEvaluation) -> List[str]:
+        """Identify potential cost reduction opportunities."""
+        opportunities = []
+
+        if abs(evaluation.investment["deviation_percentage"]) > 15:
+            opportunities.append("Improve budget planning to reduce execution variance")
+
+        if evaluation.effectiveness_score["efficiency"] < 0.7:
+            opportunities.append("Optimize resource utilization to improve efficiency")
+
+        if evaluation.investment["cost_per_beneficiary"] > 5000:
+            opportunities.append("Explore economies of scale through expanded coverage")
+
+        return opportunities if opportunities else ["Current cost structure appears optimized"]
+
+    def _identify_effectiveness_improvements(self, evaluation: PolicyEvaluation) -> List[str]:
+        """Identify opportunities to improve effectiveness."""
+        improvements = []
+
+        if evaluation.beneficiaries["coverage_rate"] < 85:
+            improvements.append(f"Increase coverage from {evaluation.beneficiaries['coverage_rate']:.0f}% to 85%+")
+
+        if evaluation.effectiveness_score["efficacy"] < 0.8:
+            improvements.append("Strengthen program design to better achieve targets")
+
+        deteriorating = [ind for ind in evaluation.indicators if ind.trend == "deteriorating"]
+        if deteriorating:
+            improvements.append(f"Address performance decline in {len(deteriorating)} indicators")
+
+        return improvements if improvements else ["Effectiveness metrics are performing well"]
+
+    def _suggest_resource_reallocation(self, evaluation: PolicyEvaluation) -> List[str]:
+        """Suggest potential resource reallocation strategies."""
+        suggestions = []
+
+        # Identify underperforming and outperforming indicators
+        improvements = [(ind.name, ind.current_value - ind.baseline_value) for ind in evaluation.indicators]
+        improvements_sorted = sorted(improvements, key=lambda x: x[1])
+
+        if len(improvements_sorted) >= 2:
+            worst_indicator = improvements_sorted[0][0]
+            best_indicator = improvements_sorted[-1][0]
+
+            suggestions.append(f"Consider reallocating resources from '{best_indicator}' to improve '{worst_indicator}'")
+
+        if evaluation.roi_social < 1.0:
+            suggestions.append("Focus resources on highest-ROI activities to improve overall return")
+
+        return suggestions if suggestions else ["Current resource allocation appears balanced"]
+
+    def _analyze_cost_sensitivity(self, evaluation: PolicyEvaluation) -> str:
+        """Analyze sensitivity of outcomes to cost changes."""
+        if evaluation.effectiveness_score["cost_effectiveness"] > 0.8:
+            return "Low sensitivity - Outcomes robust to cost variations"
+        elif evaluation.effectiveness_score["cost_effectiveness"] > 0.6:
+            return "Moderate sensitivity - Some outcome impact from cost changes"
+        else:
+            return "High sensitivity - Outcomes highly dependent on cost levels"
+
+    def _analyze_outcome_sensitivity(self, evaluation: PolicyEvaluation) -> str:
+        """Analyze stability of outcomes."""
+        stable = len([ind for ind in evaluation.indicators if ind.trend != "deteriorating"])
+        total = len(evaluation.indicators)
+
+        if stable / total >= 0.85:
+            return "Low sensitivity - Outcomes stable and resilient"
+        elif stable / total >= 0.65:
+            return "Moderate sensitivity - Some outcome volatility"
+        else:
+            return "High sensitivity - Outcomes vulnerable to disruption"
+
+    def _calculate_roi_cost_sensitivity(self, evaluation: PolicyEvaluation) -> Dict[str, float]:
+        """Calculate how ROI changes with cost variations."""
+        current_roi = evaluation.roi_social
+        current_cost = evaluation.investment["executed"]
+
+        # Simulate cost changes
+        return {
+            "roi_at_minus_20_percent_cost": round(current_roi * 1.25, 3),  # ROI improves with lower cost
+            "roi_at_current_cost": current_roi,
+            "roi_at_plus_20_percent_cost": round(current_roi * 0.80, 3),  # ROI worsens with higher cost
+            "roi_elasticity": round(-0.25 / 0.20, 2)  # % change ROI / % change cost
+        }
