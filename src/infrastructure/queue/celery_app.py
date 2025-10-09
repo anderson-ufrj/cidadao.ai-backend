@@ -32,6 +32,7 @@ celery_app = Celery(
         "src.infrastructure.queue.tasks.auto_investigation_tasks",
         "src.infrastructure.queue.tasks.katana_tasks",
         "src.infrastructure.queue.tasks.alert_tasks",
+        "src.infrastructure.queue.tasks.network_tasks",  # Network graph analysis
         # Temporarily disabled - missing service dependencies
         # "src.infrastructure.queue.tasks.report_tasks",
         # "src.infrastructure.queue.tasks.export_tasks",
@@ -302,6 +303,34 @@ celery_app.conf.beat_schedule = {
     "process-pending-alerts-hourly": {
         "task": "tasks.process_pending_alerts",
         "schedule": timedelta(hours=1),  # Retry failed alerts every hour
+        "options": {"queue": "high"}
+    },
+    # Network Graph Analysis Tasks
+    "calculate-network-metrics-daily": {
+        "task": "tasks.calculate_network_metrics",
+        "schedule": timedelta(hours=24),  # Daily recalculation
+        "options": {"queue": "background"}
+    },
+    "detect-suspicious-networks-6h": {
+        "task": "tasks.detect_suspicious_networks",
+        "schedule": timedelta(hours=6),  # Every 6 hours
+        "args": (7,),  # Analyze last 7 days
+        "options": {"queue": "high"}
+    },
+    "enrich-investigations-with-graph-6h": {
+        "task": "tasks.enrich_recent_investigations_with_graph",
+        "schedule": timedelta(hours=6),  # Every 6 hours
+        "args": (6,),  # Enrich last 6 hours
+        "options": {"queue": "normal"}
+    },
+    "update-entity-risk-scores-daily": {
+        "task": "tasks.update_entity_risk_scores",
+        "schedule": timedelta(hours=24),  # Daily update
+        "options": {"queue": "background"}
+    },
+    "network-health-check-hourly": {
+        "task": "tasks.network_health_check",
+        "schedule": timedelta(hours=1),  # Every hour
         "options": {"queue": "high"}
     }
 }
