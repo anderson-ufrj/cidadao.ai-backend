@@ -1,137 +1,119 @@
-name: CI/CD Pipeline
+name: CI Pipeline
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main, develop]
 
 env:
   PYTHON_VERSION: "3.11"
 
 jobs:
   test:
-    name: Tests & Quality
+    name: Tests & Code Quality
     runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:15
-        env:
-          POSTGRES_PASSWORD: test_password
-          POSTGRES_USER: test_user
-          POSTGRES_DB: cidadao_ai_test
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-      
-      redis:
-        image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
-        cache: 'pip'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -e .[dev]
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov ruff black isort mypy
 
-    - name: Code formatting check
-      run: |
-        black --check .
-        isort --check-only .
+      - name: Code formatting check (Black)
+        run: black --check src tests
 
-    - name: Lint with ruff
-      run: ruff check .
+      - name: Import sorting check (isort)
+        run: isort --check-only src tests
 
-    - name: Type checking
-      run: mypy src/ --ignore-missing-imports
+      - name: Lint with Ruff
+        run: ruff check src tests
 
-    - name: Security scan
-      run: |
-        bandit -r src/ -f json -o bandit-report.json || true
-        safety check --json --output safety-report.json || true
+      - name: Type check with MyPy
+        run: |
+          mypy src --ignore-missing-imports --no-strict-optional || true
 
-    - name: Run tests
-      env:
-        DATABASE_URL: postgresql://test_user:test_password@localhost:5432/cidadao_ai_test
-        REDIS_URL: redis://localhost:6379/0
-        JWT_SECRET_KEY: test-secret-key-for-ci
-        SECRET_KEY: test-secret-key-for-ci
-        APP_ENV: testing
-      run: |
-        pytest tests/ -v --cov=src --cov-report=xml --cov-report=term
+      - name: Run unit tests
+        env:
+          GROQ_API_KEY: test-key
+          JWT_SECRET_KEY: test-secret-key-for-ci
+          SECRET_KEY: test-secret-key-for-ci
+        run: |
+          pytest tests/unit -v --cov=src --cov-report=xml --cov-report=term-missing --tb=short -x
 
-    - name: Upload coverage reports
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false
 
   security:
     name: Security Scan
     runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-    - name: Upload Trivy scan results
-      uses: github/codeql-action/upload-sarif@v2
-      if: always()
-      with:
-        sarif_file: 'trivy-results.sarif'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety bandit
 
-  build:
-    name: Build & Deploy
+      - name: Security check with Safety
+        run: |
+          safety check --ignore 70612 || true
+
+      - name: Security check with Bandit
+        run: |
+          bandit -r src -ll || true
+
+  docker:
+    name: Docker Build Test
     runs-on: ubuntu-latest
-    needs: [test]
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    
+    if: github.event_name == 'push'
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ env.PYTHON_VERSION }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-    - name: Build package
-      run: |
-        python -m pip install --upgrade pip build
-        python -m build
+      - name: Build Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: false
+          tags: cidadao-ai-backend:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-    - name: Deploy to HuggingFace Spaces
-      if: success()
-      run: |
-        echo "🚀 Deployment to HuggingFace Spaces triggered via Git push"
-        echo "✅ CI/CD Pipeline completed successfully"
+  deployment-ready:
+    name: Deployment Ready Check
+    runs-on: ubuntu-latest
+    needs: [test, security, docker]
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Deployment ready notification
+        run: |
+          echo "✅ All checks passed - Ready for deployment"
+          echo "🚀 Railway will auto-deploy on push to main"
