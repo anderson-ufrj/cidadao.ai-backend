@@ -21,7 +21,7 @@ from src.infrastructure.queue.tasks.auto_investigation_tasks import (
     auto_investigation_health_check
 )
 
-router = APIRouter(prefix="/tasks", tags=["Tasks"])
+router = APIRouter(prefix="/tasks")
 
 
 class TaskResponse(BaseModel):

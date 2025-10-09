@@ -23,7 +23,7 @@ from src.tools.dados_gov_models import (
 )
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/dados-gov", tags=["dados.gov.br"])
+router = APIRouter(prefix="/dados-gov")
 
 
 class DatasetSearchRequest(BaseModel):

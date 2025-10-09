@@ -294,19 +294,16 @@ app.include_router(
 
 app.include_router(
     auth.router,
-    prefix="/api/v1/auth",
     tags=["Authentication"]
 )
 
 app.include_router(
     oauth.router,
-    prefix="/api/v1/auth/oauth",
     tags=["OAuth2"]
 )
 
 app.include_router(
     audit.router,
-    prefix="/api/v1/audit",
     tags=["Audit & Security"]
 )
 
@@ -349,7 +346,6 @@ app.include_router(
 
 app.include_router(
     batch.router,
-    prefix="/api/v1/batch",
     tags=["Batch Operations"]
 )
 
@@ -362,27 +358,23 @@ app.include_router(
 # CQRS endpoints
 app.include_router(
     cqrs.router,
-    prefix="/api/v1/cqrs",
     tags=["CQRS"]
 )
 
 # Resilience monitoring endpoints
 app.include_router(
     resilience.router,
-    prefix="/api/v1/resilience",
     tags=["Resilience"]
 )
 
 # Observability monitoring endpoints
 app.include_router(
     observability.router,
-    prefix="/api/v1/observability",
     tags=["Observability"]
 )
 
 app.include_router(
     notifications.router,
-    prefix="/api/v1/notifications",
     tags=["Notifications"]
 )
 
@@ -463,26 +455,22 @@ app.include_router(
 
 app.include_router(
     visualization.router,
-    prefix="/api/v1/visualization",
     tags=["Data Visualization"]
 )
 
 app.include_router(
     geographic.router,
-    prefix="/api/v1/geographic",
     tags=["Geographic Data"]
 )
 
 from src.api.routes import ml_pipeline
 app.include_router(
     ml_pipeline.router,
-    prefix="/api/v1/ml",
     tags=["ML Pipeline"]
 )
 
 app.include_router(
     tasks.router,
-    prefix="/api/v1/tasks",
     tags=["Tasks & Background Jobs"]
 )
 

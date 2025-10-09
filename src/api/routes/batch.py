@@ -24,7 +24,7 @@ from src.agents.parallel_processor import (
 from src.services.chat_service_with_cache import chat_service
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/api/v1/batch", tags=["batch"])
+router = APIRouter(prefix="/api/v1/batch")
 
 
 class BatchOperation(BaseModel):
