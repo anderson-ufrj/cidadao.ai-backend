@@ -16,6 +16,7 @@ from .base import TransparencyAPIClient
 from .state_apis.rondonia import RondoniaAPIClient
 from .state_apis.ckan_client import CKANClient
 from .tce_apis.tce_pe import TCEPernambucoClient
+from .tce_apis.tce_ce import TCECearaClient
 
 
 class APIType(Enum):
@@ -52,6 +53,7 @@ class TransparencyAPIRegistry:
 
         # TCE APIs
         self.register("PE-tce", TCEPernambucoClient, APIType.TCE)
+        self.register("CE-tce", TCECearaClient, APIType.TCE)
 
         # CKAN states (will be instantiated on demand)
         ckan_states = {
