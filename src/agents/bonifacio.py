@@ -1056,8 +1056,200 @@ class BonifacioAgent(BaseAgent):
             return "high"  # Weak institutions vulnerable to external factors
     
     async def _apply_theory_of_change_framework(self, request, evaluation):
-        """Apply theory of change evaluation framework."""
-        pass  # Implementation would depend on specific requirements
+        """
+        Apply theory of change evaluation framework.
+
+        Theory of Change maps the complete causal pathway from problem
+        to solution, including assumptions, risks, and enabling conditions.
+
+        More comprehensive than Logic Model or Results Chain.
+        """
+        policy_area = request.policy_area or "social"
+
+        theory_of_change = {
+            "problem_statement": {
+                "policy_area": policy_area,
+                "target_population": evaluation.beneficiaries["target_population"],
+                "current_state_indicators": {
+                    ind.name: {
+                        "baseline": ind.baseline_value,
+                        "current": ind.current_value,
+                        "gap": ind.target_value - ind.current_value
+                    }
+                    for ind in evaluation.indicators
+                }
+            },
+            "desired_long_term_change": {
+                "vision": self._define_policy_vision(policy_area),
+                "target_state": {
+                    ind.name: ind.target_value
+                    for ind in evaluation.indicators
+                },
+                "impact_level_goal": "VERY_HIGH",
+                "sustainability_goal": 85
+            },
+            "causal_pathways": {
+                "pathway_1_direct_service": {
+                    "preconditions": ["Budget availability", "Institutional capacity", "Political will"],
+                    "activities": self._identify_policy_activities(policy_area),
+                    "intermediate_outcomes": ["Service access improved", "Beneficiary engagement high"],
+                    "final_outcomes": ["Quality of life improved", "Societal indicators improved"],
+                    "pathway_strength": evaluation.effectiveness_score["efficiency"] * evaluation.beneficiaries["coverage_rate"] / 100
+                },
+                "pathway_2_capacity_building": {
+                    "preconditions": ["Skilled staff", "Training infrastructure", "Knowledge transfer systems"],
+                    "activities": ["Staff training", "Institutional development", "Systems strengthening"],
+                    "intermediate_outcomes": ["Institutional capacity increased", "Service quality improved"],
+                    "final_outcomes": ["Sustainable policy delivery", "Long-term impact achieved"],
+                    "pathway_strength": evaluation.sustainability_score / 100
+                },
+                "pathway_3_systemic_change": {
+                    "preconditions": ["Political support", "Inter-institutional coordination", "Public awareness"],
+                    "activities": ["Advocacy", "Policy dialogue", "Coalition building"],
+                    "intermediate_outcomes": ["Policy environment improved", "Stakeholder alignment achieved"],
+                    "final_outcomes": ["System-level transformation", "Societal norms shifted"],
+                    "pathway_strength": self._estimate_systemic_change_potential(evaluation)
+                }
+            },
+            "key_assumptions": {
+                "institutional": [
+                    f"Institutions have capacity={evaluation.sustainability_score}/100",
+                    f"Budget execution reliable={abs(100-abs(evaluation.investment['deviation_percentage'])):.0f}%",
+                    "Coordination mechanisms functional"
+                ],
+                "political": [
+                    f"Political support maintained={self._estimate_political_support(evaluation)}/100",
+                    "Policy priority sustained",
+                    "Leadership committed"
+                ],
+                "social": [
+                    f"Beneficiary engagement high={evaluation.beneficiaries['coverage_rate']:.0f}%",
+                    "Community acceptance strong",
+                    "Behavioral change sustainable"
+                ],
+                "economic": [
+                    f"ROI positive={evaluation.roi_social:.2f}",
+                    "Cost-effectiveness demonstrated",
+                    "Resource sustainability ensured"
+                ]
+            },
+            "risks_and_mitigation": {
+                "implementation_risks": self._identify_implementation_risks(evaluation),
+                "external_risks": self._identify_external_risks(policy_area),
+                "mitigation_strategies": self._propose_risk_mitigation(evaluation)
+            },
+            "monitoring_and_learning": {
+                "indicators_tracked": len(evaluation.indicators),
+                "data_quality": evaluation.analysis_confidence,
+                "feedback_mechanisms": ["Quarterly reviews", "Stakeholder consultations", "Impact evaluations"],
+                "adaptive_management": evaluation.sustainability_score >= 70
+            },
+            "theory_validation": {
+                "evidence_strength": evaluation.analysis_confidence,
+                "assumptions_holding": self._validate_assumptions(evaluation),
+                "pathways_functioning": self._assess_pathway_functionality(evaluation),
+                "theory_confidence": round((evaluation.analysis_confidence + evaluation.effectiveness_score["effectiveness"]) / 2, 3)
+            }
+        }
+
+        return theory_of_change
+
+    def _define_policy_vision(self, policy_area: str) -> str:
+        """Define long-term vision by policy area."""
+        visions = {
+            "health": "Universal access to quality healthcare with improved population health outcomes",
+            "education": "Equitable access to quality education fostering human development",
+            "security": "Safe communities with effective, accountable justice systems",
+            "social": "Inclusive society with reduced poverty and inequality",
+            "infrastructure": "Modern, sustainable infrastructure enabling economic development",
+            "environment": "Environmental sustainability with climate resilience and biodiversity conservation"
+        }
+        return visions.get(policy_area, "Improved quality of life for all citizens")
+
+    def _estimate_systemic_change_potential(self, evaluation: PolicyEvaluation) -> float:
+        """Estimate potential for system-level transformation."""
+        coverage_breadth = evaluation.beneficiaries["coverage_rate"] / 100
+        effectiveness = evaluation.effectiveness_score["effectiveness"]
+        sustainability = evaluation.sustainability_score / 100
+        roi = min(1.0, max(0.0, (evaluation.roi_social + 1) / 4))
+
+        return round((coverage_breadth * 0.25 + effectiveness * 0.35 + sustainability * 0.25 + roi * 0.15), 3)
+
+    def _identify_implementation_risks(self, evaluation: PolicyEvaluation) -> List[str]:
+        """Identify key implementation risks."""
+        risks = []
+
+        if abs(evaluation.investment["deviation_percentage"]) > 15:
+            risks.append("Budget execution volatility - deviation exceeds 15%")
+
+        if evaluation.beneficiaries["coverage_rate"] < 75:
+            risks.append(f"Low coverage rate - only {evaluation.beneficiaries['coverage_rate']:.0f}% reached")
+
+        deteriorating = [ind for ind in evaluation.indicators if ind.trend == "deteriorating"]
+        if deteriorating:
+            risks.append(f"Performance decline in {len(deteriorating)} indicators")
+
+        if evaluation.sustainability_score < 65:
+            risks.append("Institutional capacity concerns - sustainability score low")
+
+        return risks if risks else ["No major implementation risks identified"]
+
+    def _identify_external_risks(self, policy_area: str) -> List[str]:
+        """Identify external risks by policy area."""
+        common_risks = ["Economic downturn", "Political instability", "Climate events"]
+
+        area_risks = {
+            "health": ["Pandemic outbreaks", "Health system overload", "Demographic changes"],
+            "education": ["Teacher shortages", "Technological disruption", "Demographic shifts"],
+            "security": ["Rising crime rates", "Organized crime", "Social unrest"],
+            "social": ["Economic inequality growth", "Migration pressures", "Social polarization"],
+            "infrastructure": ["Natural disasters", "Technology obsolescence", "Urbanization pressures"],
+            "environment": ["Climate change acceleration", "Biodiversity loss", "Resource scarcity"]
+        }
+
+        return common_risks + area_risks.get(policy_area, [])
+
+    def _propose_risk_mitigation(self, evaluation: PolicyEvaluation) -> List[str]:
+        """Propose risk mitigation strategies."""
+        strategies = []
+
+        if evaluation.sustainability_score < 70:
+            strategies.append("Strengthen institutional capacity through training and systems development")
+
+        if evaluation.beneficiaries["coverage_rate"] < 80:
+            strategies.append("Expand outreach programs to increase beneficiary coverage")
+
+        if abs(evaluation.investment["deviation_percentage"]) > 10:
+            strategies.append("Implement enhanced budget monitoring and control mechanisms")
+
+        if evaluation.roi_social < 1.0:
+            strategies.append("Optimize resource allocation to improve social return on investment")
+
+        return strategies if strategies else ["Maintain current monitoring and adaptive management practices"]
+
+    def _validate_assumptions(self, evaluation: PolicyEvaluation) -> float:
+        """Validate if key assumptions are holding true."""
+        # Assumptions validated by performance metrics
+        budget_assumption = 1.0 - (abs(evaluation.investment["deviation_percentage"]) / 100)
+        budget_assumption = max(0.0, min(1.0, budget_assumption))
+
+        coverage_assumption = evaluation.beneficiaries["coverage_rate"] / 100
+        effectiveness_assumption = evaluation.effectiveness_score["effectiveness"]
+        sustainability_assumption = evaluation.sustainability_score / 100
+
+        return round((budget_assumption + coverage_assumption + effectiveness_assumption + sustainability_assumption) / 4, 3)
+
+    def _assess_pathway_functionality(self, evaluation: PolicyEvaluation) -> str:
+        """Assess if causal pathways are functioning as theorized."""
+        improving = len([ind for ind in evaluation.indicators if ind.trend == "improving"])
+        total = len(evaluation.indicators)
+
+        if improving / total >= 0.75:
+            return "Strong - Most pathways functioning well"
+        elif improving / total >= 0.50:
+            return "Moderate - Some pathways need strengthening"
+        else:
+            return "Weak - Significant pathway dysfunction detected"
     
     async def _apply_cost_effectiveness_framework(self, request, evaluation):
         """Apply cost-effectiveness evaluation framework."""
