@@ -50,16 +50,14 @@
     display: block;
     width: 100%;
     height: 250px;
-    background:
-        linear-gradient(to bottom, rgba(0, 155, 58, 0.85), rgba(0, 39, 118, 0.9)),
-        url('/static/images/operarios_tarsila.png');
+    background: url('/static/images/operarios_tarsila.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     border-radius: 8px;
     margin-bottom: 20px;
     border: 3px solid var(--amarelo-brasil);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Título da API */
