@@ -20,7 +20,7 @@ from src.core.audit import (
 )
 from src.api.auth import get_current_user, require_admin, User
 
-router = APIRouter(prefix="/audit", tags=["audit"])
+router = APIRouter(prefix="/audit")
 
 
 class AuditEventResponse(BaseModel):
