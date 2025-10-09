@@ -16,6 +16,15 @@ Created: 2025-10-09 14:15:27 -03 (Minas Gerais, Brazil)
 License: Proprietary - All rights reserved
 """
 
+from .registry import registry, TransparencyAPIRegistry
+from .base import TransparencyAPIClient
+
 __version__ = "1.0.0"
 __author__ = "Anderson Henrique da Silva"
 __created__ = "2025-10-09 14:15:27 -03"
+
+__all__ = [
+    "registry",
+    "TransparencyAPIRegistry",
+    "TransparencyAPIClient",
+]
