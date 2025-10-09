@@ -21,7 +21,7 @@ from fastapi.openapi.docs import get_swagger_ui_html
 from src.core import get_logger, settings
 from src.core.exceptions import CidadaoAIError, create_error_response
 from src.core.audit import audit_logger, AuditEventType, AuditSeverity, AuditContext
-from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat, websocket_chat, batch, graphql, cqrs, resilience, observability, notifications, agents, orchestration, agent_metrics, visualization, geographic, tasks, transparency
+from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat, websocket_chat, batch, graphql, cqrs, resilience, observability, notifications, agents, orchestration, agent_metrics, visualization, geographic, tasks, transparency, network
 from src.api.v1 import dados_gov
 from src.api.middleware.rate_limiting import RateLimitMiddleware
 from src.api.middleware.authentication import AuthenticationMiddleware
@@ -497,6 +497,12 @@ app.include_router(
     transparency.router,
     prefix="/api/v1/transparency",
     tags=["Transparency APIs"]
+)
+
+# Network Graph Analysis endpoints
+app.include_router(
+    network.router,
+    tags=["Network Analysis"]
 )
 
 
