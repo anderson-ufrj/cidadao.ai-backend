@@ -588,20 +588,260 @@ class ContextMemoryAgent(BaseAgent):
         payload: Dict[str, Any],
         context: AgentContext,
     ) -> Dict[str, Any]:
-        """Forget specific memories or old memories."""
-        # Implementation for forgetting memories
-        forgotten_count = 0
-        return {"status": "completed", "forgotten_count": forgotten_count}
+        """
+        Forget specific memories or old memories.
+
+        Strategies:
+        - By age: Remove memories older than specified days
+        - By importance: Remove low-importance memories
+        - By ID: Remove specific memory by ID
+        - By pattern: Remove memories matching pattern
+        """
+        try:
+            strategy = payload.get("strategy", "age")  # age, importance, id, pattern
+            forgotten_count = 0
+
+            if strategy == "age":
+                # Remove memories older than specified days
+                max_age_days = payload.get("max_age_days", self.memory_decay_days)
+                cutoff_date = datetime.utcnow() - timedelta(days=max_age_days)
+
+                # Get all episodic memory keys
+                pattern = f"{self.episodic_key}:*"
+                keys = await self.redis_client.keys(pattern)
+
+                for key in keys:
+                    memory_data = await self.redis_client.get(key)
+                    if memory_data:
+                        memory = json_utils.loads(memory_data)
+                        timestamp = datetime.fromisoformat(memory.get("timestamp", datetime.utcnow().isoformat()))
+
+                        if timestamp < cutoff_date:
+                            await self.redis_client.delete(key)
+                            # Also remove from vector store
+                            await self.vector_store.delete_documents([memory.get("id")])
+                            forgotten_count += 1
+
+            elif strategy == "importance":
+                # Remove memories below importance threshold
+                min_importance = payload.get("min_importance", MemoryImportance.LOW)
+
+                pattern = f"{self.episodic_key}:*"
+                keys = await self.redis_client.keys(pattern)
+
+                for key in keys:
+                    memory_data = await self.redis_client.get(key)
+                    if memory_data:
+                        memory = json_utils.loads(memory_data)
+                        importance = MemoryImportance(memory.get("importance", MemoryImportance.LOW.value))
+
+                        # Remove if importance is below threshold
+                        if importance.value < min_importance.value:
+                            await self.redis_client.delete(key)
+                            await self.vector_store.delete_documents([memory.get("id")])
+                            forgotten_count += 1
+
+            elif strategy == "id":
+                # Remove specific memory by ID
+                memory_id = payload.get("memory_id")
+                if memory_id:
+                    key = f"{self.episodic_key}:{memory_id}"
+                    if await self.redis_client.exists(key):
+                        await self.redis_client.delete(key)
+                        await self.vector_store.delete_documents([memory_id])
+                        forgotten_count = 1
+
+            elif strategy == "pattern":
+                # Remove memories matching content pattern
+                search_pattern = payload.get("pattern", "")
+                if search_pattern:
+                    # Search in vector store
+                    results = await self.vector_store.similarity_search(
+                        query=search_pattern,
+                        limit=100
+                    )
+
+                    for result in results:
+                        memory_id = result.get("id")
+                        if memory_id:
+                            await self.redis_client.delete(f"{self.episodic_key}:{memory_id}")
+                            await self.vector_store.delete_documents([memory_id])
+                            forgotten_count += 1
+
+            self.logger.info(
+                "memories_forgotten",
+                strategy=strategy,
+                count=forgotten_count
+            )
+
+            return {
+                "status": "completed",
+                "forgotten_count": forgotten_count,
+                "strategy": strategy
+            }
+
+        except Exception as e:
+            self.logger.error(f"Failed to forget memories: {str(e)}")
+            return {"status": "error", "forgotten_count": 0, "error": str(e)}
     
     async def _consolidate_memories(
         self,
         payload: Dict[str, Any],
         context: AgentContext,
     ) -> Dict[str, Any]:
-        """Consolidate similar memories."""
-        # Implementation for memory consolidation
-        consolidated_count = 0
-        return {"status": "completed", "consolidated_count": consolidated_count}
+        """
+        Consolidate similar memories to reduce redundancy.
+
+        Process:
+        1. Find similar memories using vector similarity
+        2. Merge similar memories keeping most important
+        3. Update combined memory with aggregated information
+        4. Remove duplicate/merged memories
+        """
+        try:
+            similarity_threshold = payload.get("similarity_threshold", 0.85)
+            consolidated_count = 0
+            merged_groups = []
+
+            # Get all episodic memories
+            pattern = f"{self.episodic_key}:*"
+            keys = await self.redis_client.keys(pattern)
+
+            if len(keys) < 2:
+                return {"status": "completed", "consolidated_count": 0, "message": "Not enough memories to consolidate"}
+
+            # Load all memories
+            memories = []
+            for key in keys:
+                memory_data = await self.redis_client.get(key)
+                if memory_data:
+                    memories.append(json_utils.loads(memory_data))
+
+            # Find similar memories using vector store
+            processed_ids = set()
+
+            for memory in memories:
+                memory_id = memory.get("id")
+
+                if memory_id in processed_ids:
+                    continue
+
+                # Search for similar memories
+                content_str = json_utils.dumps(memory.get("content", {}))
+                similar = await self.vector_store.similarity_search(
+                    query=content_str,
+                    limit=10,
+                    similarity_threshold=similarity_threshold
+                )
+
+                # Group similar memories (excluding self)
+                similar_ids = [s.get("id") for s in similar if s.get("id") != memory_id]
+
+                if similar_ids:
+                    # Mark all as processed
+                    processed_ids.add(memory_id)
+                    processed_ids.update(similar_ids)
+
+                    # Collect similar memories
+                    similar_memories = [memory] + [
+                        m for m in memories if m.get("id") in similar_ids
+                    ]
+
+                    # Consolidate: keep highest importance, merge content
+                    consolidated = await self._merge_similar_memories(similar_memories)
+
+                    # Store consolidated memory
+                    key = f"{self.episodic_key}:{consolidated['id']}"
+                    await self.redis_client.setex(
+                        key,
+                        timedelta(days=self.memory_decay_days),
+                        json_utils.dumps(consolidated)
+                    )
+
+                    # Update vector store
+                    await self.vector_store.add_documents([{
+                        "id": consolidated["id"],
+                        "content": json_utils.dumps(consolidated.get("content", {})),
+                        "metadata": consolidated
+                    }])
+
+                    # Remove original memories
+                    for similar_id in similar_ids:
+                        await self.redis_client.delete(f"{self.episodic_key}:{similar_id}")
+                        await self.vector_store.delete_documents([similar_id])
+
+                    consolidated_count += len(similar_ids)
+                    merged_groups.append({
+                        "consolidated_id": consolidated["id"],
+                        "merged_count": len(similar_ids),
+                        "merged_ids": similar_ids
+                    })
+
+            self.logger.info(
+                "memories_consolidated",
+                count=consolidated_count,
+                groups=len(merged_groups)
+            )
+
+            return {
+                "status": "completed",
+                "consolidated_count": consolidated_count,
+                "merged_groups": len(merged_groups),
+                "groups": merged_groups
+            }
+
+        except Exception as e:
+            self.logger.error(f"Failed to consolidate memories: {str(e)}")
+            return {"status": "error", "consolidated_count": 0, "error": str(e)}
+
+    async def _merge_similar_memories(
+        self,
+        memories: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        Merge similar memories into one consolidated memory.
+
+        Strategy:
+        - Keep ID of most important memory
+        - Keep highest importance level
+        - Merge tags (unique union)
+        - Aggregate metadata
+        - Use most recent timestamp
+        """
+        # Sort by importance (descending)
+        importance_order = {
+            MemoryImportance.CRITICAL.value: 4,
+            MemoryImportance.HIGH.value: 3,
+            MemoryImportance.MEDIUM.value: 2,
+            MemoryImportance.LOW.value: 1
+        }
+
+        sorted_memories = sorted(
+            memories,
+            key=lambda m: (
+                importance_order.get(m.get("importance", MemoryImportance.LOW.value), 0),
+                m.get("timestamp", "")
+            ),
+            reverse=True
+        )
+
+        # Base: most important/recent memory
+        consolidated = sorted_memories[0].copy()
+
+        # Merge tags from all memories
+        all_tags = set(consolidated.get("tags", []))
+        for memory in sorted_memories[1:]:
+            all_tags.update(memory.get("tags", []))
+
+        consolidated["tags"] = list(all_tags)
+
+        # Aggregate metadata
+        consolidated["metadata"] = consolidated.get("metadata", {})
+        consolidated["metadata"]["consolidated_from"] = [m.get("id") for m in sorted_memories]
+        consolidated["metadata"]["consolidated_count"] = len(sorted_memories)
+        consolidated["metadata"]["consolidation_timestamp"] = datetime.utcnow().isoformat()
+
+        return consolidated
     
     def _calculate_importance(self, investigation_result: Any) -> MemoryImportance:
         """Calculate importance of an investigation result."""
