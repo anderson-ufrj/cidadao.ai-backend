@@ -1,0 +1,235 @@
+/* Cidadão.AI - Tema Brasil 🇧🇷 */
+/* Inspirado nas cores da bandeira brasileira e na obra "Operários" de Tarsila do Amaral */
+
+:root {
+    --verde-brasil: #009B3A;
+    --amarelo-brasil: #FFDF00;
+    --azul-brasil: #002776;
+    --branco-brasil: #FFFFFF;
+    --cinza-escuro: #2b3e50;
+}
+
+/* Header com imagem de Tarsila do Amaral */
+.swagger-ui .topbar {
+    background: linear-gradient(135deg, var(--verde-brasil) 0%, var(--amarelo-brasil) 100%) !important;
+    border-bottom: 4px solid var(--azul-brasil);
+    padding: 15px 0 !important;
+}
+
+.swagger-ui .topbar .wrapper {
+    max-width: 1460px;
+}
+
+/* Logo/Título customizado */
+.swagger-ui .topbar .link {
+    display: flex !important;
+    align-items: center !important;
+    gap: 15px;
+}
+
+.swagger-ui .topbar .link::before {
+    content: "🏛️";
+    font-size: 32px;
+}
+
+.swagger-ui .topbar .link span {
+    color: var(--cinza-escuro) !important;
+    font-weight: 700 !important;
+    font-size: 24px !important;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Banner com imagem "Operários" */
+.swagger-ui .info {
+    position: relative;
+    margin-bottom: 30px;
+}
+
+.swagger-ui .info::before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 250px;
+    background:
+        linear-gradient(to bottom, rgba(0, 155, 58, 0.85), rgba(0, 39, 118, 0.9)),
+        url('/static/images/operarios_tarsila.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 3px solid var(--amarelo-brasil);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Título da API */
+.swagger-ui .info .title {
+    color: var(--verde-brasil) !important;
+    font-size: 42px !important;
+    font-weight: 800 !important;
+    text-align: center;
+    margin: 20px 0 !important;
+    text-shadow: 2px 2px 4px rgba(0, 155, 58, 0.2);
+}
+
+/* Descrição da API */
+.swagger-ui .info .description {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 25px;
+    border-radius: 8px;
+    border-left: 5px solid var(--verde-brasil);
+    border-right: 5px solid var(--amarelo-brasil);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.swagger-ui .info .description h1 {
+    color: var(--verde-brasil) !important;
+    border-bottom: 3px solid var(--amarelo-brasil);
+    padding-bottom: 10px;
+    margin-top: 25px;
+}
+
+.swagger-ui .info .description h2 {
+    color: var(--azul-brasil) !important;
+    margin-top: 20px;
+}
+
+.swagger-ui .info .description h3 {
+    color: var(--verde-brasil) !important;
+}
+
+/* Tags/Categorias com cores brasileiras */
+.swagger-ui .opblock-tag {
+    border-left: 4px solid var(--verde-brasil) !important;
+    background: linear-gradient(90deg, rgba(0, 155, 58, 0.05) 0%, transparent 100%);
+}
+
+.swagger-ui .opblock-tag:hover {
+    background: linear-gradient(90deg, rgba(0, 155, 58, 0.1) 0%, transparent 100%);
+}
+
+/* Botões com cores brasileiras */
+.swagger-ui .btn.execute {
+    background: var(--verde-brasil) !important;
+    border-color: var(--verde-brasil) !important;
+    color: white !important;
+    font-weight: 600;
+}
+
+.swagger-ui .btn.execute:hover {
+    background: #007a2e !important;
+    box-shadow: 0 4px 8px rgba(0, 155, 58, 0.3);
+}
+
+.swagger-ui .btn.authorize {
+    background: var(--azul-brasil) !important;
+    border-color: var(--azul-brasil) !important;
+    color: white !important;
+}
+
+.swagger-ui .btn.authorize svg {
+    fill: white !important;
+}
+
+/* Métodos HTTP com destaque */
+.swagger-ui .opblock.opblock-post {
+    border-color: var(--verde-brasil) !important;
+    background: rgba(0, 155, 58, 0.05);
+}
+
+.swagger-ui .opblock.opblock-get {
+    border-color: var(--azul-brasil) !important;
+    background: rgba(0, 39, 118, 0.05);
+}
+
+.swagger-ui .opblock.opblock-put {
+    border-color: var(--amarelo-brasil) !important;
+    background: rgba(255, 223, 0, 0.05);
+}
+
+.swagger-ui .opblock.opblock-delete {
+    border-color: #dc3545 !important;
+    background: rgba(220, 53, 69, 0.05);
+}
+
+/* Headers dos métodos HTTP */
+.swagger-ui .opblock-post .opblock-summary-method {
+    background: var(--verde-brasil) !important;
+}
+
+.swagger-ui .opblock-get .opblock-summary-method {
+    background: var(--azul-brasil) !important;
+}
+
+/* Responses com destaque */
+.swagger-ui .responses-inner h4 {
+    color: var(--verde-brasil) !important;
+}
+
+/* Schemas */
+.swagger-ui .model-box {
+    border-color: var(--amarelo-brasil) !important;
+}
+
+.swagger-ui .model-title {
+    color: var(--azul-brasil) !important;
+}
+
+/* Try it out */
+.swagger-ui .try-out__btn {
+    border-color: var(--verde-brasil) !important;
+    color: var(--verde-brasil) !important;
+}
+
+.swagger-ui .try-out__btn.cancel {
+    border-color: #dc3545 !important;
+    color: #dc3545 !important;
+}
+
+/* Authorization modal */
+.swagger-ui .dialog-ux .modal-ux-header {
+    background: var(--verde-brasil) !important;
+    border-bottom: 3px solid var(--amarelo-brasil);
+}
+
+/* Scrollbar customizada */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, var(--verde-brasil) 0%, var(--azul-brasil) 100%);
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--azul-brasil);
+}
+
+/* Destacar código de exemplo */
+.swagger-ui .highlight-code {
+    border-left: 3px solid var(--verde-brasil);
+}
+
+/* Rodapé brasileiro */
+.swagger-ui .info::after {
+    content: "🇧🇷 Feito com 💚 para o povo brasileiro 💛";
+    display: block;
+    text-align: center;
+    padding: 20px;
+    margin-top: 30px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--cinza-escuro);
+    background: linear-gradient(90deg,
+        var(--verde-brasil) 0%,
+        var(--amarelo-brasil) 50%,
+        var(--azul-brasil) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
