@@ -22,6 +22,7 @@ from src.tools import TransparencyAPIFilter
 from src.infrastructure.observability.metrics import track_time, count_calls, BusinessMetrics
 from src.services.investigation_service_selector import investigation_service
 from src.services.forensic_enrichment_service import forensic_enrichment_service
+from src.config.system_users import SYSTEM_AUTO_MONITOR_USER_ID
 
 
 logger = get_logger(__name__)
@@ -636,3 +637,165 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
                 investigation_id=investigation_id,
                 error=str(db_error)
             )
+
+
+# ============================================================================
+# PUBLIC ENDPOINTS (No Authentication Required)
+# ============================================================================
+# These endpoints are used by system processes like Celery Beat for
+# automatic investigations and other automated workflows.
+# ============================================================================
+
+
+class PublicInvestigationRequest(BaseModel):
+    """Public request model for system-created investigations."""
+
+    query: str = PydanticField(description="Investigation query")
+    data_source: str = PydanticField(default="contracts", description="Data source")
+    filters: Dict[str, Any] = PydanticField(default_factory=dict, description="Filters")
+    anomaly_types: List[str] = PydanticField(
+        default=["price", "vendor", "temporal", "payment"],
+        description="Anomaly types"
+    )
+    # System identification (for audit)
+    system_name: str = PydanticField(default="auto_investigation_service", description="System creating investigation")
+
+    @validator('data_source')
+    def validate_data_source(cls, v):
+        """Validate data source."""
+        allowed_sources = ['contracts', 'expenses', 'agreements', 'biddings', 'servants']
+        if v not in allowed_sources:
+            raise ValueError(f'Data source must be one of: {allowed_sources}')
+        return v
+
+
+@router.post("/public/create", response_model=Dict[str, str])
+@count_calls("cidadao_ai_public_investigation_requests_total", labels={"operation": "public_create"})
+@track_time("cidadao_ai_public_investigation_create_duration_seconds")
+async def create_public_investigation(
+    request: PublicInvestigationRequest,
+    background_tasks: BackgroundTasks
+):
+    """
+    Create investigation without authentication (for system processes).
+
+    This endpoint is used by automated processes like Celery Beat auto-investigations.
+    Investigations are created with the system user ID.
+
+    **Security Note**: This endpoint should be protected at the infrastructure level
+    (firewall, API gateway) to prevent abuse.
+    """
+    try:
+        # Create investigation with system user
+        db_investigation = await investigation_service.create(
+            user_id=SYSTEM_AUTO_MONITOR_USER_ID,
+            query=request.query,
+            data_source=request.data_source,
+            filters={
+                **request.filters,
+                "system_created": True,
+                "system_name": request.system_name
+            },
+            anomaly_types=request.anomaly_types
+        )
+
+        investigation_id = db_investigation.id if hasattr(db_investigation, 'id') else db_investigation['id']
+
+        logger.info(
+            "public_investigation_created",
+            investigation_id=investigation_id,
+            query=request.query[:100],
+            data_source=request.data_source,
+            system_name=request.system_name,
+            user_id=SYSTEM_AUTO_MONITOR_USER_ID
+        )
+
+        # Keep in-memory copy for backward compatibility
+        _active_investigations[investigation_id] = {
+            "id": investigation_id,
+            "status": "started",
+            "query": request.query,
+            "data_source": request.data_source,
+            "filters": request.filters,
+            "anomaly_types": request.anomaly_types,
+            "user_id": SYSTEM_AUTO_MONITOR_USER_ID,
+            "system_created": True,
+            "system_name": request.system_name,
+            "started_at": datetime.utcnow(),
+            "progress": 0.0,
+            "current_phase": "initializing",
+            "records_processed": 0,
+            "anomalies_detected": 0,
+            "results": [],
+        }
+
+        # Start investigation in background
+        background_tasks.add_task(
+            _run_investigation,
+            investigation_id,
+            InvestigationRequest(
+                query=request.query,
+                data_source=request.data_source,
+                filters=request.filters,
+                anomaly_types=request.anomaly_types
+            )
+        )
+
+        # Track business metrics
+        BusinessMetrics.record_investigation_created(
+            priority="medium",
+            user_type="system"
+        )
+        BusinessMetrics.update_active_investigations(len(_active_investigations))
+
+        return {
+            "investigation_id": investigation_id,
+            "status": "started",
+            "message": "System investigation queued for processing",
+            "system_user_id": SYSTEM_AUTO_MONITOR_USER_ID
+        }
+
+    except Exception as e:
+        logger.error(
+            "public_investigation_creation_failed",
+            error=str(e),
+            system_name=request.system_name,
+            exc_info=True
+        )
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to create investigation: {str(e)}"
+        )
+
+
+@router.get("/public/health", response_model=Dict[str, Any])
+async def public_health_check():
+    """
+    Health check for public investigation endpoints.
+
+    Returns system status and basic metrics.
+    """
+    try:
+        # Quick check of investigation service
+        test_success = True
+        try:
+            # Just verify the service is accessible
+            _ = investigation_service
+        except Exception as e:
+            test_success = False
+            logger.error("Investigation service health check failed", error=str(e))
+
+        return {
+            "status": "healthy" if test_success else "degraded",
+            "timestamp": datetime.utcnow().isoformat(),
+            "system_user_configured": bool(SYSTEM_AUTO_MONITOR_USER_ID),
+            "investigation_service_available": test_success,
+            "active_investigations": len(_active_investigations)
+        }
+    except Exception as e:
+        logger.error("Public health check failed", error=str(e))
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "timestamp": datetime.utcnow().isoformat()
+        }
