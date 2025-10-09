@@ -4,6 +4,9 @@
 #
 # Railway will automatically create separate services from this file
 
+# Run database migrations before deploying
+release: python -m alembic upgrade head
+
 # Main API server
 web: uvicorn src.api.app:app --host 0.0.0.0 --port $PORT
 
