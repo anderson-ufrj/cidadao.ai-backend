@@ -17,6 +17,10 @@ from .state_apis.rondonia import RondoniaAPIClient
 from .state_apis.ckan_client import CKANClient
 from .tce_apis.tce_pe import TCEPernambucoClient
 from .tce_apis.tce_ce import TCECearaClient
+from .tce_apis.tce_rj import TCERioDeJaneiroClient
+from .tce_apis.tce_sp import TCESaoPauloClient
+from .tce_apis.tce_mg import TCEMinasGeraisClient
+from .tce_apis.tce_ba import TCEBahiaClient
 
 
 class APIType(Enum):
@@ -54,6 +58,10 @@ class TransparencyAPIRegistry:
         # TCE APIs
         self.register("PE-tce", TCEPernambucoClient, APIType.TCE)
         self.register("CE-tce", TCECearaClient, APIType.TCE)
+        self.register("RJ-tce", TCERioDeJaneiroClient, APIType.TCE)
+        self.register("SP-tce", TCESaoPauloClient, APIType.TCE)
+        self.register("MG-tce", TCEMinasGeraisClient, APIType.TCE)
+        self.register("BA-tce", TCEBahiaClient, APIType.TCE)
 
         # CKAN states (will be instantiated on demand)
         ckan_states = {
