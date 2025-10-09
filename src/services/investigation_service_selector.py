@@ -9,7 +9,10 @@ This allows the same code to work in both environments without modification.
 """
 
 import os
+import logging
 from typing import TYPE_CHECKING
+
+logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
     from src.services.investigation_service import InvestigationService
@@ -45,20 +48,24 @@ def get_investigation_service() -> "InvestigationService":
                 "Add these to your Space secrets: https://huggingface.co/spaces/YOUR_SPACE/settings"
             )
 
+        logger.info("🚀 Using Supabase REST service for investigations (HuggingFace Spaces)")
         from src.services.investigation_service_supabase_rest import investigation_service_supabase_rest
         return investigation_service_supabase_rest
 
     # Priority 2: If REST API config available, prefer it (more portable)
     if _has_supabase_rest_config():
+        logger.info("🚀 Using Supabase REST service for investigations (Railway/VPS)")
         from src.services.investigation_service_supabase_rest import investigation_service_supabase_rest
         return investigation_service_supabase_rest
 
     # Priority 3: If PostgreSQL config available, use direct connection
     if _has_postgres_config():
+        logger.info("🔌 Using Supabase direct PostgreSQL connection for investigations")
         from src.services.investigation_service_supabase import investigation_service_supabase
         return investigation_service_supabase
 
     # Fallback: Use in-memory service (no persistence)
+    logger.warning("⚠️  Using IN-MEMORY investigation service (no persistence!) - Configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for persistence")
     from src.services.investigation_service import investigation_service
     return investigation_service
 
