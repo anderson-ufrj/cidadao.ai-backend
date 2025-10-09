@@ -10,13 +10,13 @@ Módulo de integração unificada com APIs de transparência pública brasileira
 
 ### APIs Implementadas
 - **1 Estado:** Rondônia (API REST direta)
-- **2 TCEs:** Pernambuco, Ceará
+- **6 TCEs:** Pernambuco, Ceará, Rio de Janeiro, São Paulo, Minas Gerais, Bahia
 - **5 CKAN:** São Paulo, Rio de Janeiro, Rio Grande do Sul, Santa Catarina, Bahia
 
 ### Estatísticas
-- **8 APIs** ativas
-- **420+ municípios** com dados fiscais (TCEs)
-- **6 estados** com dados abertos (CKAN + diretos)
+- **12 APIs** ativas
+- **2.500+ municípios** com dados fiscais (TCEs)
+- **8 estados** com cobertura total (TCEs + CKAN + diretos)
 
 ## 🚀 Uso Rápido
 
@@ -78,7 +78,71 @@ sp_apis = registry.get_state_apis('SP')  # Retorna [CKANClient]
 - Formato: JSON, XML, CSV, HTML
 - Schema: `/method.format?params`
 
-### 4. CKAN Portals (5 estados)
+### 4. TCE Rio de Janeiro
+**Chave:** `RJ-tce`
+**Base:** `https://www.tcerj.tc.br/portaldados/api`
+**Métodos:**
+- `get_contracts(year, municipality_code)` - Contratos
+- `get_suppliers(municipality_code)` - Fornecedores
+- `get_bidding_processes(year, municipality_code)` - Licitações
+- `get_expenses(year, municipality_code)` - Despesas
+- `get_revenue(year, municipality_code)` - Receitas
+
+**Características:**
+- ✅ 92 municípios do RJ
+- Formato: JSON
+- RESTful API padrão
+
+### 5. TCE São Paulo
+**Chave:** `SP-tce`
+**Base:** `https://transparencia.tce.sp.gov.br/api`
+**Métodos:**
+- `get_municipalities()` - Lista 645 municípios SP
+- `get_contracts(year, municipality_code)` - Contratos
+- `get_suppliers(municipality_code)` - Fornecedores
+- `get_bidding_processes(year, municipality_code)` - Licitações
+- `get_expenses(year, municipality_code)` - Despesas
+- `get_government_entities(municipality_code)` - Órgãos
+
+**Características:**
+- ✅ 645 municípios de SP
+- Formato: JSON
+- API mais completa do Brasil
+
+### 6. TCE Minas Gerais
+**Chave:** `MG-tce`
+**Base:** `https://www.tce.mg.gov.br/TCETransparenciaAPI/api`
+**Métodos:**
+- `get_municipalities()` - Lista 853 municípios MG
+- `get_contracts(year, municipality_code)` - Contratos
+- `get_suppliers(municipality_code)` - Fornecedores
+- `get_bidding_processes(year, municipality_code)` - Licitações
+- `get_expenses(year, municipality_code)` - Despesas
+- `get_revenue(year, municipality_code)` - Receitas
+- `get_public_works(year, municipality_code)` - Obras públicas
+
+**Características:**
+- ✅ 853 municípios de MG
+- Formato: JSON
+- Endpoint exclusivo de obras públicas
+
+### 7. TCE Bahia
+**Chave:** `BA-tce`
+**Base:** `https://sistemas.tce.ba.gov.br/egestaoapi`
+**Métodos:**
+- `get_municipalities()` - Lista 417 municípios BA
+- `get_contracts(year, municipality_code)` - Contratos
+- `get_suppliers(municipality_code)` - Fornecedores
+- `get_bidding_processes(year, municipality_code)` - Licitações
+- `get_expenses(year, municipality_code)` - Despesas
+- `get_revenue(year, municipality_code)` - Receitas
+
+**Características:**
+- ✅ 417 municípios da BA
+- Formato: JSON
+- API versionada (v1)
+
+### 8. CKAN Portals (5 estados)
 **Chaves:** `SP-ckan`, `RJ-ckan`, `RS-ckan`, `SC-ckan`, `BA-ckan`
 **Métodos:**
 - `list_datasets(limit, offset)` - Lista datasets
@@ -185,14 +249,19 @@ for api in pe_apis:
 ## 🎯 Próximas Integrações
 
 ### Estados Prioritários
-- [ ] TCE Rio de Janeiro
-- [ ] TCE São Paulo (municípios)
+- [x] TCE Rio de Janeiro ✅
+- [x] TCE São Paulo ✅
+- [x] TCE Minas Gerais ✅
+- [x] TCE Bahia ✅
+- [ ] TCE Rio Grande do Sul
+- [ ] TCE Santa Catarina
 - [ ] Amazonas (Estado)
 - [ ] Minas Gerais (Estado)
 
 ### Funcionalidades
 - [ ] Bulk data export
-- [ ] Data caching layer
+- [ ] Data caching layer (em progresso)
+- [ ] Health check endpoints (em progresso)
 - [ ] Webhook notifications
 - [ ] GraphQL unified API
 
