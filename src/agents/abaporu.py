@@ -615,21 +615,56 @@ class MasterAgent(ReflectiveAgent):
     ) -> str:
         """Create prompt for investigation planning."""
         return f"""
-        Você é um especialista em investigação de gastos públicos. 
-        Crie um plano detalhado para investigar: "{query}"
-        
-        Contexto da memória: {memory_context}
-        
-        Agentes disponíveis:
-        - InvestigatorAgent: detecta anomalias
-        - AnalystAgent: analisa padrões
-        - ReporterAgent: gera relatórios
-        
-        Forneça um plano estruturado com:
-        1. Objetivo da investigação
-        2. Passos específicos
-        3. Agentes necessários
-        4. Critérios de qualidade
+        Você é um especialista em transparência pública e análise de gastos governamentais brasileiros.
+
+        INVESTIGAÇÃO SOLICITADA: "{query}"
+
+        CONTEXTO DE MEMÓRIA: {memory_context if memory_context else "Nenhum contexto anterior disponível"}
+
+        AGENTES ESPECIALIZADOS DISPONÍVEIS:
+
+        1. **Zumbi dos Palmares** - Detector de Anomalias
+           - Análise FFT espectral de contratos
+           - Detecção de superfaturamento (>2.5σ)
+           - Identificação de concentração de fornecedores (>70%)
+           - Contratos emergenciais suspeitos
+
+        2. **Anita Garibaldi** - Analista de Padrões
+           - Análise temporal de gastos
+           - Padrões de licitação
+           - Correlação entre fornecedores
+           - Tendências e sazonalidade
+
+        3. **José Bonifácio** - Analista de Políticas Públicas
+           - Avaliação de efetividade (ROI social)
+           - Análise de impacto e beneficiários
+           - Frameworks: Logic Model, Theory of Change, Cost-Effectiveness
+           - Sustentabilidade de programas
+
+        4. **Lampião** - Analista Regional
+           - Desigualdade regional (Gini, Theil, Williamson)
+           - Análise geográfica IBGE
+           - Hot spots e cold spots (Getis-Ord G*)
+           - Otimização de alocação de recursos
+
+        5. **Oscar Niemeyer** - Arquiteto de Dados
+           - Agregação multidimensional
+           - Séries temporais
+           - Metadados para visualização
+           - Exportação (JSON, CSV)
+
+        6. **Tiradentes** - Repórter
+           - Geração de relatórios executivos
+           - Síntese de achados
+           - Comunicação clara
+           - Recomendações
+
+        FORNEÇA UM PLANO DETALHADO COM:
+        1. Objetivo claro da investigação
+        2. Sequência de agentes a utilizar (em ordem ou paralelo)
+        3. Parâmetros específicos para cada agente
+        4. Critérios de qualidade esperados
+        5. Fontes de dados a consultar (Portal da Transparência, TCEs, APIs estaduais)
         """
     
     def _create_explanation_prompt(
@@ -638,16 +673,62 @@ class MasterAgent(ReflectiveAgent):
         query: str,
     ) -> str:
         """Create prompt for explanation generation."""
+        findings_count = len(findings)
+        anomaly_count = len([f for f in findings if f.get("anomaly_score", 0) > 0.7])
+
         return f"""
-        Explique em português claro os resultados da investigação sobre: "{query}"
-        
-        Achados: {findings}
-        
-        Forneça uma explicação que:
-        1. Resumo dos principais achados
-        2. Explique por que são suspeitos
-        3. Contextualize com dados normais
-        4. Sugira próximos passos
+        Você é um jornalista investigativo especializado em transparência pública brasileira.
+
+        INVESTIGAÇÃO: "{query}"
+
+        ACHADOS DA ANÁLISE ({findings_count} total, {anomaly_count} com alta suspeita):
+        {findings}
+
+        TAREFA: Crie uma explicação clara e objetiva em português que um cidadão comum possa entender.
+
+        ESTRUTURA OBRIGATÓRIA:
+
+        **1. RESUMO EXECUTIVO (2-3 frases)**
+        - O que foi encontrado em linguagem simples
+        - Qual o impacto financeiro ou social
+        - Nível de gravidade (baixo/médio/alto/crítico)
+
+        **2. ACHADOS PRINCIPAIS**
+        Para cada achado importante:
+        - Descrição clara do que foi identificado
+        - Por que é suspeito ou irregular
+        - Valores e datas específicas
+        - Entidades envolvidas (órgãos, fornecedores, municípios)
+
+        **3. CONTEXTO COMPARATIVO**
+        - Como esses valores/padrões diferem do normal
+        - Comparação com médias históricas
+        - Comparação com outras regiões (se aplicável)
+        - Referências a legislação (LGL, LRF, etc.)
+
+        **4. ANÁLISE DE IMPACTO**
+        - Quanto dinheiro público está envolvido
+        - Quantas pessoas/municípios afetados
+        - Quais serviços públicos podem ter sido prejudicados
+        - Dano potencial à população
+
+        **5. PRÓXIMOS PASSOS RECOMENDADOS**
+        - Investigações mais aprofundadas necessárias
+        - Órgãos de controle que deveriam ser acionados (TCU, TCE, MPF, CGU)
+        - Dados adicionais que poderiam ser coletados
+        - Possíveis ações judiciais ou administrativas
+
+        **6. NÍVEL DE CONFIANÇA**
+        - Qual a certeza dessa análise (0-100%)
+        - Quais fontes foram usadas
+        - Quais limitações existem nos dados
+
+        IMPORTANTE:
+        - Use linguagem clara e acessível (evite jargões técnicos excessivos)
+        - Seja preciso com números e datas
+        - Cite as fontes (Portal da Transparência, IBGE, TCE, etc.)
+        - Mantenha tom profissional e factual (sem sensacionalismo)
+        - Se houver incerteza, deixe isso claro
         """
     
     def _parse_investigation_plan(
@@ -655,25 +736,129 @@ class MasterAgent(ReflectiveAgent):
         plan_response: str,
         query: str,
     ) -> InvestigationPlan:
-        """Parse LLM response into investigation plan."""
-        # This is a simplified parser - in production, use more robust parsing
+        """
+        Parse LLM response or create intelligent investigation plan based on query.
+
+        Creates context-aware plans based on query keywords:
+        - Contract/supplier keywords → Zumbi (anomaly detection)
+        - Policy/effectiveness keywords → Bonifácio (policy analysis)
+        - Geographic/regional keywords → Lampião (regional analysis)
+        - Report/visualization keywords → Tiradentes + Niemeyer
+        """
+        query_lower = query.lower()
+
+        steps = []
+        required_agents = []
+
+        # Analyze query to determine needed agents
+        needs_anomaly_detection = any(keyword in query_lower for keyword in [
+            "suspeito", "anomalia", "fraud", "irregularidade", "contrato",
+            "licitação", "superfaturamento", "emergencial"
+        ])
+
+        needs_policy_analysis = any(keyword in query_lower for keyword in [
+            "política", "efetividade", "impacto", "resultado", "beneficiário",
+            "programa", "projeto", "investimento"
+        ])
+
+        needs_regional_analysis = any(keyword in query_lower for keyword in [
+            "região", "estado", "município", "geográfico", "territorial",
+            "norte", "nordeste", "sul", "sudeste", "centro-oeste"
+        ])
+
+        needs_reporting = any(keyword in query_lower for keyword in [
+            "relatório", "resumo", "análise", "explicação", "documento"
+        ])
+
+        # Build investigation plan
+        if needs_anomaly_detection:
+            steps.append({
+                "agent": "Zumbi",
+                "action": "detect_anomalies",
+                "parameters": {"query": query},
+                "depends_on": []
+            })
+            required_agents.append("Zumbi")
+
+        if needs_policy_analysis:
+            steps.append({
+                "agent": "Bonifácio",
+                "action": "analyze_policy",
+                "parameters": {"query": query},
+                "depends_on": []
+            })
+            required_agents.append("Bonifácio")
+
+        if needs_regional_analysis:
+            steps.append({
+                "agent": "Lampião",
+                "action": "analyze_regions",
+                "parameters": {"query": query},
+                "depends_on": []
+            })
+            required_agents.append("Lampião")
+
+        # Always include analyst for pattern analysis if anomalies detected
+        if needs_anomaly_detection:
+            steps.append({
+                "agent": "Anita",
+                "action": "analyze_patterns",
+                "parameters": {"query": query},
+                "depends_on": ["Zumbi"]  # Depends on anomaly detection
+            })
+            required_agents.append("Anita")
+
+        # Add data aggregation for visualizations
+        if needs_regional_analysis or len(steps) > 2:
+            steps.append({
+                "agent": "OscarNiemeyer",
+                "action": "aggregate_data",
+                "parameters": {"query": query},
+                "depends_on": required_agents.copy()  # Depends on all previous
+            })
+            required_agents.append("OscarNiemeyer")
+
+        # Add reporting if requested
+        if needs_reporting or len(steps) > 1:
+            steps.append({
+                "agent": "Tiradentes",
+                "action": "generate_report",
+                "parameters": {"query": query},
+                "depends_on": required_agents.copy()  # Depends on all previous
+            })
+            required_agents.append("Tiradentes")
+
+        # Fallback: if no steps matched, do basic anomaly detection
+        if not steps:
+            steps = [{
+                "agent": "Zumbi",
+                "action": "detect_anomalies",
+                "parameters": {"query": query},
+                "depends_on": []
+            }]
+            required_agents = ["Zumbi"]
+
+        # Estimate time based on complexity
+        estimated_time = 30 + (len(steps) * 15)  # Base 30s + 15s per step
+
+        # Quality criteria based on investigation type
+        quality_criteria = {
+            "min_confidence": 0.75 if needs_anomaly_detection else 0.70,
+            "min_findings": 1,
+            "min_sources": 2 if len(required_agents) > 1 else 1
+        }
+
         return InvestigationPlan(
-            objective=f"Investigar: {query}",
-            steps=[
-                {
-                    "agent": "InvestigatorAgent",
-                    "action": "detect_anomalies",
-                    "parameters": {"query": query},
-                },
-                {
-                    "agent": "AnalystAgent",
-                    "action": "analyze_patterns",
-                    "parameters": {"query": query},
-                },
-            ],
-            required_agents=["InvestigatorAgent", "AnalystAgent"],
-            estimated_time=60,
-            quality_criteria={"min_confidence": 0.7, "min_findings": 1},
+            objective=f"Investigar transparência pública: {query}",
+            steps=steps,
+            required_agents=list(set(required_agents)),
+            estimated_time=estimated_time,
+            quality_criteria=quality_criteria,
+            fallback_strategies=[
+                "Reduzir threshold de anomalias se poucos resultados",
+                "Expandir período de análise",
+                "Incluir dados de fontes secundárias"
+            ]
         )
     
     async def _monitor_progress(
@@ -703,9 +888,135 @@ class MasterAgent(ReflectiveAgent):
         payload: Dict[str, Any],
         context: AgentContext,
     ) -> Dict[str, Any]:
-        """Adapt investigation strategy based on results."""
-        # Implementation would analyze current results and modify strategy
+        """
+        Adapt investigation strategy based on current results.
+
+        Adaptation strategies:
+        - Low findings → Expand search criteria or time period
+        - Low confidence → Add more data sources
+        - High anomaly rate → Increase analysis depth
+        - Geographic concentration → Add regional analysis
+        """
+        investigation_id = context.investigation_id
+        current_results = payload.get("current_results", {})
+        current_plan = self.active_investigations.get(investigation_id)
+
+        if not current_plan:
+            return {
+                "status": "error",
+                "message": "No active investigation found"
+            }
+
+        changes = []
+        new_steps = []
+
+        # Extract metrics from current results
+        findings_count = len(current_results.get("findings", []))
+        confidence_score = current_results.get("confidence_score", 0.0)
+        sources_count = len(current_results.get("sources", []))
+        anomaly_rate = current_results.get("anomaly_rate", 0.0)
+
+        # Adaptation logic
+        if findings_count < current_plan.quality_criteria.get("min_findings", 1):
+            # Few findings → Expand search
+            changes.append("Expandir critérios de busca")
+            changes.append("Reduzir threshold de anomalias de 2.5σ para 2.0σ")
+
+            # Add step to search with relaxed criteria
+            new_steps.append({
+                "agent": "Zumbi",
+                "action": "detect_anomalies",
+                "parameters": {
+                    "query": payload.get("query", ""),
+                    "sensitivity": "high",  # More sensitive
+                    "threshold": 2.0  # Lower threshold
+                },
+                "depends_on": []
+            })
+
+        if confidence_score < current_plan.quality_criteria.get("min_confidence", 0.7):
+            # Low confidence → More sources
+            changes.append("Adicionar fontes de dados adicionais")
+            changes.append("Incluir análise de padrões históricos")
+
+            # Add Anita for pattern analysis if not present
+            if "Anita" not in current_plan.required_agents:
+                new_steps.append({
+                    "agent": "Anita",
+                    "action": "analyze_patterns",
+                    "parameters": {"query": payload.get("query", "")},
+                    "depends_on": ["Zumbi"]
+                })
+                changes.append("Adicionar agente Anita para análise de padrões")
+
+        if sources_count < current_plan.quality_criteria.get("min_sources", 2):
+            # Few sources → Diversify
+            changes.append("Diversificar fontes de dados")
+
+            # Add regional analysis if not present
+            if "Lampião" not in current_plan.required_agents:
+                new_steps.append({
+                    "agent": "Lampião",
+                    "action": "analyze_regions",
+                    "parameters": {"query": payload.get("query", "")},
+                    "depends_on": []
+                })
+                changes.append("Adicionar análise regional com Lampião")
+
+        if anomaly_rate > 0.3:  # More than 30% anomalies
+            # High anomaly rate → Deep analysis
+            changes.append("Aumentar profundidade da análise")
+            changes.append("Adicionar análise de políticas públicas")
+
+            # Add Bonifácio for policy analysis
+            if "Bonifácio" not in current_plan.required_agents:
+                new_steps.append({
+                    "agent": "Bonifácio",
+                    "action": "analyze_policy",
+                    "parameters": {"query": payload.get("query", "")},
+                    "depends_on": []
+                })
+                changes.append("Adicionar José Bonifácio para análise de políticas")
+
+        # Check if concentrated in specific region
+        geographic_concentration = current_results.get("geographic_concentration", 0.0)
+        if geographic_concentration > 0.7:  # 70% in one region
+            changes.append("Detectada concentração geográfica")
+            if "Lampião" not in current_plan.required_agents:
+                new_steps.append({
+                    "agent": "Lampião",
+                    "action": "analyze_inequality",
+                    "parameters": {"metric": "contract_distribution"},
+                    "depends_on": []
+                })
+                changes.append("Adicionar análise de desigualdade regional")
+
+        # Update plan with new steps
+        if new_steps:
+            current_plan.steps.extend(new_steps)
+            # Update required agents
+            for step in new_steps:
+                agent = step.get("agent")
+                if agent and agent not in current_plan.required_agents:
+                    current_plan.required_agents.append(agent)
+
+        # Log adaptation
+        self.logger.info(
+            "strategy_adapted",
+            investigation_id=investigation_id,
+            changes_count=len(changes),
+            new_steps_count=len(new_steps),
+            reason=f"findings={findings_count}, confidence={confidence_score:.2f}"
+        )
+
         return {
             "status": "adapted",
-            "changes": ["Added additional data source", "Increased confidence threshold"],
+            "changes": changes,
+            "new_steps": new_steps,
+            "metrics": {
+                "findings_count": findings_count,
+                "confidence_score": confidence_score,
+                "sources_count": sources_count,
+                "anomaly_rate": anomaly_rate
+            }
         }
