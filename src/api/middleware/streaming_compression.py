@@ -79,11 +79,17 @@ class StreamingCompressionMiddleware:
         if scope["type"] != "http":
             await self.app(scope, receive, send)
             return
-        
+
+        # Skip compression for documentation endpoints (fixes Swagger UI)
+        path = scope.get("path", "")
+        if path in ["/docs", "/redoc", "/openapi.json"] or path.startswith("/docs/") or path.startswith("/redoc/"):
+            await self.app(scope, receive, send)
+            return
+
         # Check accept-encoding
         headers = dict(scope.get("headers", []))
         accept_encoding = headers.get(b"accept-encoding", b"").decode().lower()
-        
+
         if "gzip" not in accept_encoding:
             await self.app(scope, receive, send)
             return
