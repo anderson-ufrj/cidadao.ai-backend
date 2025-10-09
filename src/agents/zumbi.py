@@ -27,6 +27,7 @@ from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFil
 from src.tools.models_client import ModelsClient, get_models_client
 from src.ml.spectral_analyzer import SpectralAnalyzer, SpectralAnomaly
 from src.tools.dados_gov_tool import DadosGovTool
+from src.services.transparency_apis import get_transparency_collector
 import time
 
 
@@ -309,80 +310,113 @@ class InvestigatorAgent(BaseAgent):
         context: AgentContext
     ) -> List[Dict[str, Any]]:
         """
-        Fetch data from Portal da Transparência for investigation.
-        
+        Fetch data from multiple transparency sources for investigation.
+
+        Uses TransparencyDataCollector to access federal, state, TCE, and CKAN APIs
+        across Brazil, providing comprehensive coverage of 2500+ municipalities.
+
         Args:
             request: Investigation parameters
             context: Agent context
-            
+
         Returns:
-            List of contract records for analysis
+            List of contract records for analysis from multiple sources
         """
-        all_contracts = []
-        
-        # Default organization codes if not specified
-        org_codes = request.organization_codes or ["26000", "20000", "25000"]  # Health, Presidency, Education
-        
-        async with TransparencyAPIClient() as client:
-            for org_code in org_codes:
-                try:
-                    # Create filters for this organization
-                    filters = TransparencyAPIFilter(
-                        codigo_orgao=org_code,
-                        ano=2024,  # Current year
-                        pagina=1,
-                        tamanho_pagina=min(request.max_records // len(org_codes), 50)
-                    )
-                    
-                    # Add date range if specified
-                    if request.date_range:
-                        filters.data_inicio = request.date_range[0]
-                        filters.data_fim = request.date_range[1]
-                    
-                    # Add value threshold if specified
-                    if request.value_threshold:
-                        filters.valor_inicial = request.value_threshold
-                    
-                    # Fetch contracts
-                    response = await client.get_contracts(filters)
-                    
-                    # Record API data fetched
-                    TRANSPARENCY_API_DATA_FETCHED.labels(
-                        endpoint="contracts",
-                        organization=org_code,
-                        status="success"
-                    ).inc(len(response.data))
-                    
-                    # Add organization code to each contract
-                    for contract in response.data:
-                        contract["_org_code"] = org_code
-                    
-                    all_contracts.extend(response.data)
-                    
-                    self.logger.info(
-                        "data_fetched",
-                        org_code=org_code,
-                        records=len(response.data),
-                        investigation_id=context.investigation_id,
-                    )
-                    
-                except Exception as e:
-                    # Record API fetch failure
-                    TRANSPARENCY_API_DATA_FETCHED.labels(
-                        endpoint="contracts",
-                        organization=org_code,
-                        status="failed"
-                    ).inc()
-                    
-                    self.logger.warning(
-                        "data_fetch_failed",
-                        org_code=org_code,
-                        error=str(e),
-                        investigation_id=context.investigation_id,
-                    )
-                    continue
-        
-        return all_contracts[:request.max_records]
+        collector = get_transparency_collector()
+
+        # Determine year from date range or use current year
+        year = 2024
+        if request.date_range:
+            try:
+                # Extract year from date range (format: DD/MM/YYYY)
+                year_part = request.date_range[0].split("/")[2]
+                year = int(year_part)
+            except (IndexError, ValueError):
+                pass
+
+        try:
+            # Collect contracts from multiple sources
+            # Note: TransparencyDataCollector aggregates data from:
+            # - Federal Portal da Transparência
+            # - 6 TCE APIs (PE, CE, RJ, SP, MG, BA) covering 2500+ municipalities
+            # - 5 CKAN portals (SP, RJ, RS, SC, BA)
+            # - 1 State API (RO)
+            result = await collector.collect_contracts(
+                state=None,  # Collect from all available states
+                municipality_code=None,  # All municipalities
+                year=year,
+                start_date=request.date_range[0] if request.date_range else None,
+                end_date=request.date_range[1] if request.date_range else None,
+                validate=True  # Enable data validation
+            )
+
+            contracts_data = result['contracts']
+
+            # Apply value threshold filter if specified
+            if request.value_threshold and contracts_data:
+                contracts_data = [
+                    contract for contract in contracts_data
+                    if (contract.get('valorInicial') or contract.get('valorGlobal') or 0) >= request.value_threshold
+                ]
+
+            # Record metrics for multi-source data collection
+            DATA_RECORDS_PROCESSED.labels(
+                data_source="transparency_apis_multi_source",
+                agent="zumbi",
+                operation="fetch"
+            ).inc(len(contracts_data))
+
+            # Record data from each source
+            for source in result.get('sources', []):
+                source_name = source.replace(" (cached)", "")
+                TRANSPARENCY_API_DATA_FETCHED.labels(
+                    endpoint="contracts",
+                    organization=source_name,
+                    status="success"
+                ).inc()
+
+            # Log errors from sources that failed
+            for error in result.get('errors', []):
+                TRANSPARENCY_API_DATA_FETCHED.labels(
+                    endpoint="contracts",
+                    organization=error.get('api', 'unknown'),
+                    status="failed"
+                ).inc()
+
+                self.logger.warning(
+                    "source_fetch_failed",
+                    api=error.get('api'),
+                    error=error.get('error'),
+                    investigation_id=context.investigation_id,
+                )
+
+            self.logger.info(
+                "multi_source_data_fetched",
+                total_contracts=result['total'],
+                sources_count=len(result['sources']),
+                sources=result['sources'],
+                errors_count=len(result['errors']),
+                year=year,
+                investigation_id=context.investigation_id,
+            )
+
+            return contracts_data[:request.max_records]
+
+        except Exception as e:
+            # Fallback to empty list on catastrophic failure
+            self.logger.error(
+                "multi_source_fetch_failed",
+                error=str(e),
+                investigation_id=context.investigation_id,
+            )
+
+            TRANSPARENCY_API_DATA_FETCHED.labels(
+                endpoint="contracts",
+                organization="multi_source",
+                status="failed"
+            ).inc()
+
+            return []
     
     async def _enrich_with_open_data(
         self,
