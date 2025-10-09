@@ -10,7 +10,7 @@ from pydantic import BaseModel, EmailStr
 
 from ..auth import auth_manager, get_current_user, require_admin, security, User
 
-router = APIRouter(prefix="/auth", tags=["authentication"])
+router = APIRouter(prefix="/auth")
 
 # Request/Response Models
 class LoginRequest(BaseModel):
