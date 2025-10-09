@@ -273,10 +273,7 @@ class BonifacioAgent(BaseAgent):
         policy_id = hashlib.md5(
             f"{request.policy_name}{request.policy_area}".encode()
         ).hexdigest()[:12]
-        
-        # Simulate comprehensive evaluation (replace with real implementation)
-        await asyncio.sleep(3)  # Simulate processing time
-        
+
         # Determine analysis period
         if request.analysis_period:
             period_start = datetime.strptime(request.analysis_period[0], "%Y-%m-%d")
