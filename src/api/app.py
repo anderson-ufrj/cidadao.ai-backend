@@ -129,28 +129,77 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="Cidadão.AI API",
     description="""
-    **Plataforma de Transparência Pública com IA**
+    # 🏛️ Plataforma de Transparência Pública com IA
 
-    API para investigação inteligente de dados públicos brasileiros.
+    API para investigação inteligente de dados públicos brasileiros usando multi-agente de IA.
 
-    ## Funcionalidades
+    ---
 
-    * **Investigação** - Detecção de anomalias e irregularidades
-    * **Análise** - Padrões e correlações em dados públicos
-    * **Relatórios** - Geração de relatórios em linguagem natural
-    * **Transparência** - Acesso democrático a informações governamentais
+    ## 🎯 Funcionalidades Principais
 
-    ## Agentes Especializados
+    ### 🔍 Investigação
+    Detecção automática de anomalias e irregularidades em contratos públicos, despesas governamentais e licitações.
 
-    * **InvestigatorAgent** - Detecção de anomalias com IA explicável
-    * **AnalystAgent** - Análise de padrões e correlações
-    * **ReporterAgent** - Geração de relatórios inteligentes
+    ### 📊 Análise
+    Identificação de padrões, correlações e tendências em dados públicos através de algoritmos avançados de ML.
 
-    ## Fontes de Dados
+    ### 📝 Relatórios
+    Geração automatizada de relatórios detalhados em linguagem natural com insights acionáveis.
 
-    * Portal da Transparência do Governo Federal
-    * Contratos, despesas, licitações e convênios públicos
-    * Dados de servidores e empresas sancionadas
+    ### 🌐 Transparência
+    Acesso democrático e simplificado a informações governamentais complexas.
+
+    ---
+
+    ## 🤖 Sistema Multi-Agente
+
+    ### Agentes Investigadores
+    - **Zumbi dos Palmares** 🗡️ - Detecção de anomalias e padrões suspeitos
+    - **Anita Garibaldi** 🔍 - Análise de padrões temporais e correlações
+    - **Tiradentes** 📋 - Geração de relatórios e documentação
+
+    ### Agentes Especializados
+    - **José Bonifácio** 🎭 - Análise de comportamento organizacional
+    - **Maria Quitéria** ⚔️ - Detecção de fraudes e irregularidades
+    - **Machado de Assis** ✍️ - Processamento de linguagem natural
+    - **Drummond** 🎨 - Visualização e apresentação de dados
+
+    ---
+
+    ## 📦 Fontes de Dados
+
+    - Portal da Transparência do Governo Federal
+    - Tribunal de Contas dos Estados (TCE)
+    - Portais CKAN de dados abertos
+    - Dados.gov.br
+    - APIs estaduais e municipais (2500+ municípios)
+
+    ---
+
+    ## 🔐 Autenticação
+
+    A API usa autenticação JWT e suporta OAuth2 (Google, GitHub, Microsoft).
+    Endpoints públicos disponíveis sem autenticação para demonstração.
+
+    ---
+
+    ## 📚 Versioning
+
+    **Versão Atual**: v1.0.0
+    **Base URL**: `/api/v1/`
+    **Documentação**: `/docs` (Swagger) ou `/redoc` (ReDoc)
+
+    Futuras versões da API serão disponibilizadas em `/api/v2/` mantendo backward compatibility.
+
+    ---
+
+    ## 🚀 Getting Started
+
+    1. Obtenha uma API key em `/api/v1/api-keys`
+    2. Autentique em `/api/v1/auth/login`
+    3. Explore os endpoints de investigação em `/api/v1/investigations`
+    4. Use o chat inteligente em `/api/v1/chat/message`
+
     """,
     version="1.0.0",
     contact={
@@ -162,11 +211,12 @@ app = FastAPI(
         "name": "Proprietary",
         "url": "https://github.com/anderson-ufrj/cidadao.ai/blob/main/LICENSE",
     },
+    terms_of_service="https://github.com/anderson-ufrj/cidadao.ai/blob/main/TERMS.md",
     lifespan=lifespan,
     docs_url="/docs",
     redoc_url="/redoc",
     openapi_url="/openapi.json",
-    # Force Swagger UI to use CDN for assets (fixes Railway deployment)
+    # Enhanced Swagger UI configuration
     swagger_ui_parameters={
         "syntaxHighlight.theme": "monokai",
         "tryItOutEnabled": True,
@@ -174,6 +224,11 @@ app = FastAPI(
         "filter": True,
         "showExtensions": True,
         "showCommonExtensions": True,
+        "persistAuthorization": True,
+        "displayOperationId": False,
+        "defaultModelsExpandDepth": 2,
+        "defaultModelExpandDepth": 2,
+        "docExpansion": "list",  # "list", "full", "none"
     }
 )
 
@@ -390,37 +445,37 @@ from src.api.routes import api_keys
 app.include_router(
     admin_ip_whitelist.router,
     prefix="/api/v1/admin",
-    tags=["Admin - IP Whitelist"]
+    tags=["Admin"]
 )
 
 app.include_router(
     admin_cache_warming.router,
     prefix="/api/v1/admin",
-    tags=["Admin - Cache Warming"]
+    tags=["Admin"]
 )
 
 app.include_router(
     admin_db_optimization.router,
     prefix="/api/v1/admin",
-    tags=["Admin - Database Optimization"]
+    tags=["Admin"]
 )
 
 app.include_router(
     admin_compression.router,
     prefix="/api/v1/admin",
-    tags=["Admin - Compression"]
+    tags=["Admin"]
 )
 
 app.include_router(
     admin_conn_pools.router,
     prefix="/api/v1/admin",
-    tags=["Admin - Connection Pools"]
+    tags=["Admin"]
 )
 
 app.include_router(
     admin_lazy_loading.router,
     prefix="/api/v1/admin",
-    tags=["Admin - Agent Lazy Loading"]
+    tags=["Admin"]
 )
 
 app.include_router(
