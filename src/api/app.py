@@ -19,7 +19,7 @@ from fastapi.responses import JSONResponse
 from src.core import get_logger, settings
 from src.core.exceptions import CidadaoAIError, create_error_response
 from src.core.audit import audit_logger, AuditEventType, AuditSeverity, AuditContext
-from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat, websocket_chat, batch, graphql, cqrs, resilience, observability, chat_simple, chat_stable, chat_optimized, chat_emergency, notifications, agents, orchestration, agent_metrics, visualization, geographic, tasks, transparency
+from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat, websocket_chat, batch, graphql, cqrs, resilience, observability, notifications, agents, orchestration, agent_metrics, visualization, geographic, tasks, transparency
 from src.api.v1 import dados_gov
 from src.api.middleware.rate_limiting import RateLimitMiddleware
 from src.api.middleware.authentication import AuthenticationMiddleware
@@ -294,19 +294,19 @@ app.include_router(
 
 app.include_router(
     auth.router,
-    prefix="/auth",
+    prefix="/api/v1/auth",
     tags=["Authentication"]
 )
 
 app.include_router(
     oauth.router,
-    prefix="/auth/oauth",
+    prefix="/api/v1/auth/oauth",
     tags=["OAuth2"]
 )
 
 app.include_router(
     audit.router,
-    prefix="/audit",
+    prefix="/api/v1/audit",
     tags=["Audit & Security"]
 )
 
@@ -342,27 +342,6 @@ app.include_router(
 )
 
 app.include_router(
-    chat_simple.router,
-    prefix="/api/v1/chat",
-    tags=["Chat Simple"]
-)
-
-app.include_router(
-    chat_stable.router,
-    tags=["Chat Stable"]
-)
-
-app.include_router(
-    chat_optimized.router,
-    tags=["Chat Optimized"]
-)
-
-app.include_router(
-    chat_emergency.router,
-    tags=["Chat Emergency"]
-)
-
-app.include_router(
     websocket_chat.router,
     prefix="/api/v1",
     tags=["WebSocket"]
@@ -370,6 +349,7 @@ app.include_router(
 
 app.include_router(
     batch.router,
+    prefix="/api/v1/batch",
     tags=["Batch Operations"]
 )
 
@@ -382,23 +362,27 @@ app.include_router(
 # CQRS endpoints
 app.include_router(
     cqrs.router,
+    prefix="/api/v1/cqrs",
     tags=["CQRS"]
 )
 
 # Resilience monitoring endpoints
 app.include_router(
     resilience.router,
+    prefix="/api/v1/resilience",
     tags=["Resilience"]
 )
 
 # Observability monitoring endpoints
 app.include_router(
     observability.router,
+    prefix="/api/v1/observability",
     tags=["Observability"]
 )
 
 app.include_router(
     notifications.router,
+    prefix="/api/v1/notifications",
     tags=["Notifications"]
 )
 
@@ -479,22 +463,26 @@ app.include_router(
 
 app.include_router(
     visualization.router,
+    prefix="/api/v1/visualization",
     tags=["Data Visualization"]
 )
 
 app.include_router(
     geographic.router,
+    prefix="/api/v1/geographic",
     tags=["Geographic Data"]
 )
 
 from src.api.routes import ml_pipeline
 app.include_router(
     ml_pipeline.router,
+    prefix="/api/v1/ml",
     tags=["ML Pipeline"]
 )
 
 app.include_router(
     tasks.router,
+    prefix="/api/v1/tasks",
     tags=["Tasks & Background Jobs"]
 )
 
