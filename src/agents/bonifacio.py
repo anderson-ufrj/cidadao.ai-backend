@@ -960,8 +960,100 @@ class BonifacioAgent(BaseAgent):
         return round((coverage_factor * 0.3 + effectiveness_factor * 0.4 + roi_factor * 0.3), 3)
     
     async def _apply_results_chain_framework(self, request, evaluation):
-        """Apply results chain evaluation framework."""
-        pass  # Implementation would depend on specific requirements
+        """
+        Apply results chain evaluation framework.
+
+        Results Chain emphasizes causal linkages between policy stages:
+        Resources → Activities → Outputs → Outcomes → Impacts
+
+        Focus on attribution and contribution analysis.
+        """
+        # Calculate causal strength between stages
+        input_activity_link = evaluation.effectiveness_score["efficiency"]  # Resources utilized well
+        activity_output_link = evaluation.beneficiaries["coverage_rate"] / 100  # Activities reach targets
+        output_outcome_link = evaluation.effectiveness_score["efficacy"]  # Outputs achieve targets
+
+        improving_ratio = len([ind for ind in evaluation.indicators if ind.trend == "improving"]) / len(evaluation.indicators) if evaluation.indicators else 0.5
+        outcome_impact_link = improving_ratio  # Outcomes lead to impact
+
+        results_chain = {
+            "stage_1_resources": {
+                "budget_allocated": evaluation.investment["planned"],
+                "budget_utilized": evaluation.investment["executed"],
+                "utilization_rate": (evaluation.investment["executed"] / evaluation.investment["planned"]) if evaluation.investment["planned"] > 0 else 0,
+                "causal_strength_to_activities": input_activity_link
+            },
+            "stage_2_activities": {
+                "policy_actions": self._identify_policy_activities(request.policy_area or "social"),
+                "implementation_quality": evaluation.effectiveness_score["efficiency"],
+                "institutional_support": evaluation.sustainability_score / 100,
+                "causal_strength_to_outputs": activity_output_link
+            },
+            "stage_3_outputs": {
+                "direct_beneficiaries": evaluation.beneficiaries["reached_population"],
+                "services_quantity": evaluation.beneficiaries["reached_population"],
+                "delivery_efficiency": evaluation.effectiveness_score["efficiency"],
+                "causal_strength_to_outcomes": output_outcome_link
+            },
+            "stage_4_outcomes": {
+                "behavioral_changes": {
+                    "beneficiary_engagement": evaluation.beneficiaries["coverage_rate"] / 100,
+                    "service_adoption": evaluation.effectiveness_score["efficacy"],
+                    "knowledge_improvement": evaluation.effectiveness_score["effectiveness"] * 0.8
+                },
+                "institutional_outcomes": {
+                    "capacity_building": evaluation.sustainability_score / 100,
+                    "policy_integration": min(1.0, evaluation.sustainability_score / 75.0)
+                },
+                "causal_strength_to_impact": outcome_impact_link
+            },
+            "stage_5_impacts": {
+                "social_change": {
+                    "improved_indicators": len([ind for ind in evaluation.indicators if ind.trend == "improving"]),
+                    "deteriorated_indicators": len([ind for ind in evaluation.indicators if ind.trend == "deteriorating"]),
+                    "societal_benefit_value": evaluation.roi_social
+                },
+                "sustainability_prospects": {
+                    "institutional_sustainability": evaluation.sustainability_score,
+                    "financial_sustainability": 100 - abs(evaluation.investment["deviation_percentage"]),
+                    "political_support": self._estimate_political_support(evaluation)
+                },
+                "overall_impact_level": evaluation.impact_level.value
+            },
+            "causal_attribution": {
+                "overall_chain_strength": round(input_activity_link * activity_output_link * output_outcome_link * outcome_impact_link, 3),
+                "contribution_confidence": self._calculate_contribution_confidence(evaluation),
+                "external_factors_influence": self._estimate_external_factors_influence(evaluation)
+            }
+        }
+
+        return results_chain
+
+    def _estimate_political_support(self, evaluation: PolicyEvaluation) -> int:
+        """Estimate political support based on policy performance."""
+        base_support = 60
+        performance_bonus = int(evaluation.effectiveness_score["effectiveness"] * 30)
+        roi_bonus = int(min(20, max(-10, evaluation.roi_social * 10)))
+        return min(100, base_support + performance_bonus + roi_bonus)
+
+    def _calculate_contribution_confidence(self, evaluation: PolicyEvaluation) -> float:
+        """Calculate confidence in policy's contribution to outcomes."""
+        # Based on data quality and indicator significance
+        avg_significance = statistics.mean([ind.statistical_significance for ind in evaluation.indicators]) if evaluation.indicators else 0.5
+        data_quality = evaluation.analysis_confidence
+        indicator_consistency = len([ind for ind in evaluation.indicators if ind.trend == "improving"]) / len(evaluation.indicators) if evaluation.indicators else 0.5
+
+        return round((avg_significance * 0.4 + data_quality * 0.3 + indicator_consistency * 0.3), 3)
+
+    def _estimate_external_factors_influence(self, evaluation: PolicyEvaluation) -> str:
+        """Estimate influence of external factors on results."""
+        # Based on policy sustainability and indicator volatility
+        if evaluation.sustainability_score >= 75:
+            return "low"  # Strong institutional capacity buffers external shocks
+        elif evaluation.sustainability_score >= 60:
+            return "moderate"
+        else:
+            return "high"  # Weak institutions vulnerable to external factors
     
     async def _apply_theory_of_change_framework(self, request, evaluation):
         """Apply theory of change evaluation framework."""
