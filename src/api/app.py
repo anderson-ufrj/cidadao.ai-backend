@@ -13,7 +13,9 @@ from typing import Dict, Any
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 # from fastapi.middleware.trustedhost import TrustedHostMiddleware  # Disabled for HuggingFace
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.openapi.docs import get_swagger_ui_html
 # Swagger UI imports removed - using FastAPI defaults now
 
 from src.core import get_logger, settings
@@ -131,6 +133,8 @@ app = FastAPI(
     description="""
     # 🏛️ Plataforma de Transparência Pública com IA
 
+    *Inspirado na obra "Operários" de Tarsila do Amaral (1933) - representando a diversidade do povo brasileiro*
+
     API para investigação inteligente de dados públicos brasileiros usando multi-agente de IA.
 
     ---
@@ -213,10 +217,10 @@ app = FastAPI(
     },
     terms_of_service="https://github.com/anderson-ufrj/cidadao.ai/blob/main/TERMS.md",
     lifespan=lifespan,
-    docs_url="/docs",
+    docs_url=None,  # Disable default docs, using custom endpoint below
     redoc_url="/redoc",
     openapi_url="/openapi.json",
-    # Enhanced Swagger UI configuration
+    # Enhanced Swagger UI configuration with Brazilian theme
     swagger_ui_parameters={
         "syntaxHighlight.theme": "monokai",
         "tryItOutEnabled": True,
@@ -229,8 +233,35 @@ app = FastAPI(
         "defaultModelsExpandDepth": 2,
         "defaultModelExpandDepth": 2,
         "docExpansion": "list",  # "list", "full", "none"
-    }
+    },
+    swagger_ui_init_oauth=None
 )
+
+
+# Custom Swagger UI endpoint with Brazilian theme
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    """Custom Swagger UI with Brazilian theme CSS."""
+    html_response = get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=app.title + " - Documentação",
+        oauth2_redirect_url=app.swagger_ui_oauth2_redirect_url,
+        swagger_js_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui-bundle.js",
+        swagger_css_url="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5.9.0/swagger-ui.css",
+        swagger_favicon_url="🏛️",
+        init_oauth=app.swagger_ui_init_oauth,
+        swagger_ui_parameters=app.swagger_ui_parameters,
+    )
+
+    # Inject custom CSS
+    html_content = html_response.body.decode()
+    html_content = html_content.replace(
+        "</head>",
+        '<link rel="stylesheet" type="text/css" href="/static/custom.css"></head>'
+    )
+
+    return HTMLResponse(content=html_content)
+
 
 # Add security middleware (order matters!)
 app.add_middleware(SecurityMiddleware)
@@ -335,6 +366,12 @@ app.add_middleware(
     sample_rate=0.1 if settings.is_production else 1.0  # 10% sampling in production
 )
 
+
+# Mount static files for images and CSS
+import os
+static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
+if os.path.exists(static_path):
+    app.mount("/static", StaticFiles(directory=static_path), name="static")
 
 # Documentation endpoints are now handled by FastAPI defaults
 # Using standard Swagger UI without customization for better compatibility
