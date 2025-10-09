@@ -149,11 +149,15 @@ db-downgrade: ## Rollback database migration
 
 celery: ## Start Celery worker
 	@echo "$(BLUE)Starting Celery worker...$(NC)"
-	celery -A src.core.celery_app worker --loglevel=info
+	celery -A src.infrastructure.queue.celery_app worker --loglevel=info
+
+celery-beat: ## Start Celery Beat scheduler (24/7 auto-investigations)
+	@echo "$(BLUE)Starting Celery Beat scheduler...$(NC)"
+	celery -A src.infrastructure.queue.celery_app beat --loglevel=info
 
 celery-flower: ## Start Celery Flower monitoring
 	@echo "$(BLUE)Starting Celery Flower...$(NC)"
-	celery -A src.core.celery_app flower
+	celery -A src.infrastructure.queue.celery_app flower
 
 monitoring-up: ## Start monitoring stack (Prometheus + Grafana)
 	@echo "$(BLUE)Starting monitoring services...$(NC)"
