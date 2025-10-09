@@ -28,7 +28,7 @@ from src.agents.deodoro import AgentContext
 
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/api/v1/visualization", tags=["visualization"])
+router = APIRouter(prefix="/api/v1/visualization")
 
 # Rate limiter for visualization endpoints
 # viz_rate_limiter = RateLimiter()  # TODO: Configure rate limiter properly

@@ -42,7 +42,7 @@ class UniversalSearchRequest(BaseModel):
 enhanced_zumbi = None
 
 logger = get_logger(__name__)
-router = APIRouter(tags=["chat"])
+router = APIRouter()
 
 # Import chat service with error handling
 try:

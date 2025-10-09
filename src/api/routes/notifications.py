@@ -24,7 +24,7 @@ from src.api.dependencies import get_current_user
 from src.core.logging import get_logger
 
 logger = get_logger(__name__)
-router = APIRouter(prefix="/api/v1/notifications", tags=["notifications"])
+router = APIRouter(prefix="/api/v1/notifications")
 
 
 class NotificationResponse(BaseModel):

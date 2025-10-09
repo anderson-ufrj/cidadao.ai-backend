@@ -12,7 +12,7 @@ from src.core.oauth_config import OAuthProvider
 from src.api.oauth import oauth_manager
 from src.api.auth import auth_manager, get_current_user, require_admin, User
 
-router = APIRouter(prefix="/auth/oauth", tags=["oauth"])
+router = APIRouter(prefix="/auth/oauth")
 
 
 class OAuthUrlResponse(BaseModel):
