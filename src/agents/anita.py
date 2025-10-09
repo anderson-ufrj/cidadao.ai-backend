@@ -14,6 +14,7 @@ from dataclasses import dataclass
 from collections import defaultdict, Counter
 
 import numpy as np
+import pandas as pd
 from pydantic import BaseModel, Field as PydanticField
 
 from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentResponse
@@ -21,6 +22,7 @@ from src.core import get_logger, AgentStatus
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
 from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFilter
 from src.ml.spectral_analyzer import SpectralAnalyzer, SpectralFeatures, PeriodicPattern
+from src.services.transparency_apis import get_transparency_collector
 
 
 @dataclass
@@ -263,70 +265,105 @@ class AnalystAgent(BaseAgent):
         context: AgentContext
     ) -> List[Dict[str, Any]]:
         """
-        Fetch comprehensive data for pattern analysis.
-        
+        Fetch comprehensive data for pattern analysis from multiple transparency sources.
+
+        Uses TransparencyDataCollector to access federal, state, TCE, and CKAN APIs
+        across Brazil, enabling comprehensive pattern and correlation analysis.
+
         Args:
             request: Analysis parameters
             context: Agent context
-            
+
         Returns:
-            List of contract records for analysis
+            List of contract records for analysis with temporal metadata
         """
+        collector = get_transparency_collector()
         all_contracts = []
-        
-        # Expanded organization codes for broader analysis
-        org_codes = request.organization_codes or [
-            "26000",  # Ministério da Saúde
-            "20000",  # Presidência da República
-            "25000",  # Ministério da Educação
-            "36000",  # Ministério da Defesa
-            "44000",  # Ministério do Desenvolvimento Social
-            "30000",  # Ministério da Justiça
-        ]
-        
-        async with TransparencyAPIClient() as client:
-            for org_code in org_codes:
-                try:
-                    # Fetch data for multiple months to enable trend analysis
-                    for month in range(1, 13):  # Full year
-                        filters = TransparencyAPIFilter(
-                            codigo_orgao=org_code,
-                            ano=2024,
-                            mes=month,
-                            pagina=1,
-                            tamanho_pagina=min(20, request.max_records // (len(org_codes) * 12))
-                        )
-                        
-                        response = await client.get_contracts(filters)
-                        
-                        # Enrich each contract with metadata
-                        for contract in response.data:
-                            contract["_org_code"] = org_code
+
+        # Determine year for analysis
+        year = 2024
+
+        try:
+            # Collect contracts from multiple sources
+            # TransparencyDataCollector aggregates data from:
+            # - Federal Portal da Transparência
+            # - 6 TCE APIs (PE, CE, RJ, SP, MG, BA)
+            # - 5 CKAN portals (SP, RJ, RS, SC, BA)
+            # - 1 State API (RO)
+            result = await collector.collect_contracts(
+                state=None,  # Collect from all states
+                municipality_code=None,  # All municipalities
+                year=year,
+                validate=True  # Enable data validation
+            )
+
+            contracts_data = result['contracts']
+
+            # Enrich contracts with temporal metadata for time-series analysis
+            for contract in contracts_data:
+                # Extract month from date fields if available
+                date_str = (
+                    contract.get("dataAssinatura") or
+                    contract.get("dataPublicacao") or
+                    contract.get("dataInicio")
+                )
+
+                if date_str:
+                    try:
+                        # Parse date (DD/MM/YYYY format)
+                        date_parts = date_str.split("/")
+                        if len(date_parts) == 3:
+                            day, month, year_val = int(date_parts[0]), int(date_parts[1]), int(date_parts[2])
                             contract["_month"] = month
-                            contract["_year"] = 2024
-                            contract["_fetch_timestamp"] = datetime.utcnow().isoformat()
-                        
-                        all_contracts.extend(response.data)
-                        
-                        # Rate limiting consideration
-                        await asyncio.sleep(0.1)
-                    
-                    self.logger.info(
-                        "organization_data_fetched",
-                        org_code=org_code,
-                        total_records=len([c for c in all_contracts if c.get("_org_code") == org_code]),
-                        investigation_id=context.investigation_id,
-                    )
-                    
-                except Exception as e:
-                    self.logger.warning(
-                        "organization_data_fetch_failed",
-                        org_code=org_code,
-                        error=str(e),
-                        investigation_id=context.investigation_id,
-                    )
-                    continue
-        
+                            contract["_year"] = year_val
+                    except (ValueError, IndexError):
+                        # Fallback to current year if date parsing fails
+                        contract["_month"] = None
+                        contract["_year"] = year
+
+                # Add fetch timestamp for tracking
+                contract["_fetch_timestamp"] = datetime.utcnow().isoformat()
+
+                # Preserve or add organization code
+                if not contract.get("_org_code"):
+                    # Extract org code from contract data if available
+                    orgao = contract.get("orgao", {})
+                    if isinstance(orgao, dict):
+                        org_code = orgao.get("codigo") or orgao.get("codigoSIAFI")
+                        if org_code:
+                            contract["_org_code"] = str(org_code)
+
+            all_contracts.extend(contracts_data)
+
+            # Log multi-source fetch success
+            self.logger.info(
+                "multi_source_analysis_data_fetched",
+                total_contracts=result['total'],
+                sources_count=len(result['sources']),
+                sources=result['sources'],
+                errors_count=len(result['errors']),
+                contracts_with_dates=len([c for c in contracts_data if c.get("_month")]),
+                investigation_id=context.investigation_id,
+            )
+
+            # Log any source failures
+            for error in result.get('errors', []):
+                self.logger.warning(
+                    "source_analysis_fetch_failed",
+                    api=error.get('api'),
+                    error=error.get('error'),
+                    investigation_id=context.investigation_id,
+                )
+
+        except Exception as e:
+            self.logger.error(
+                "multi_source_analysis_fetch_failed",
+                error=str(e),
+                investigation_id=context.investigation_id,
+            )
+            # Return empty list on catastrophic failure
+            return []
+
         return all_contracts[:request.max_records]
     
     async def _run_pattern_analysis(
