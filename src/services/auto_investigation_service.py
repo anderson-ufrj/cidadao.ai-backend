@@ -18,6 +18,7 @@ from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFil
 from src.agents import InvestigatorAgent, AgentContext
 from src.services.investigation_service_selector import investigation_service
 from src.models.forensic_investigation import AnomalySeverity
+from src.config.system_users import SYSTEM_AUTO_MONITOR_USER_ID
 
 logger = get_logger(__name__)
 
@@ -329,7 +330,7 @@ class AutoInvestigationService:
             try:
                 # Create investigation record
                 investigation = await investigation_service.create(
-                    user_id="system_auto_monitor",
+                    user_id=SYSTEM_AUTO_MONITOR_USER_ID,
                     query=f"Auto-investigation: {contract.get('objeto', 'N/A')[:100]}",
                     data_source="contracts",
                     filters={
@@ -349,7 +350,7 @@ class AutoInvestigationService:
                 # Create agent context
                 context = AgentContext(
                     conversation_id=investigation_id,
-                    user_id="system_auto_monitor",
+                    user_id=SYSTEM_AUTO_MONITOR_USER_ID,
                     session_data={
                         "auto_investigation": True,
                         "contract_data": contract
