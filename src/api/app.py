@@ -130,24 +130,24 @@ app = FastAPI(
     title="Cidadão.AI API",
     description="""
     **Plataforma de Transparência Pública com IA**
-    
+
     API para investigação inteligente de dados públicos brasileiros.
-    
+
     ## Funcionalidades
-    
+
     * **Investigação** - Detecção de anomalias e irregularidades
     * **Análise** - Padrões e correlações em dados públicos
     * **Relatórios** - Geração de relatórios em linguagem natural
     * **Transparência** - Acesso democrático a informações governamentais
-    
+
     ## Agentes Especializados
-    
+
     * **InvestigatorAgent** - Detecção de anomalias com IA explicável
     * **AnalystAgent** - Análise de padrões e correlações
     * **ReporterAgent** - Geração de relatórios inteligentes
-    
+
     ## Fontes de Dados
-    
+
     * Portal da Transparência do Governo Federal
     * Contratos, despesas, licitações e convênios públicos
     * Dados de servidores e empresas sancionadas
@@ -156,17 +156,25 @@ app = FastAPI(
     contact={
         "name": "Cidadão.AI",
         "url": "https://github.com/anderson-ufrj/cidadao.ai",
-        "email": "contato@cidadao.ai",
+        "email": "andersonhs27@gmail.com",
     },
     license_info={
         "name": "Proprietary",
         "url": "https://github.com/anderson-ufrj/cidadao.ai/blob/main/LICENSE",
     },
     lifespan=lifespan,
-    docs_url="/docs",  # Use default FastAPI docs
-    redoc_url="/redoc",  # Use default FastAPI redoc
-    openapi_url="/openapi.json",  # Explicit OpenAPI URL
-    root_path=""  # Important for proxy environments
+    docs_url="/docs",
+    redoc_url="/redoc",
+    openapi_url="/openapi.json",
+    # Force Swagger UI to use CDN for assets (fixes Railway deployment)
+    swagger_ui_parameters={
+        "syntaxHighlight.theme": "monokai",
+        "tryItOutEnabled": True,
+        "displayRequestDuration": True,
+        "filter": True,
+        "showExtensions": True,
+        "showCommonExtensions": True,
+    }
 )
 
 # Add security middleware (order matters!)
@@ -203,17 +211,21 @@ app.add_middleware(CorrelationMiddleware, generate_request_id=True)
 # Add metrics middleware for automatic HTTP metrics
 app.add_middleware(MetricsMiddleware)
 
-# Add compression middleware
+# Add compression middleware (exclude docs to prevent Swagger UI breakage)
 from src.api.middleware.compression import add_compression_middleware
 add_compression_middleware(
     app,
     minimum_size=settings.compression_min_size,
     gzip_level=settings.compression_gzip_level,
     brotli_quality=settings.compression_brotli_quality,
-    exclude_paths={"/health", "/metrics", "/health/metrics", "/api/v1/ws", "/api/v1/observability"}
+    exclude_paths={
+        "/health", "/metrics", "/health/metrics",
+        "/api/v1/ws", "/api/v1/observability",
+        "/docs", "/redoc", "/openapi.json"  # Exclude docs to fix Swagger UI
+    }
 )
 
-# Add streaming compression middleware
+# Add streaming compression middleware (exclude docs)
 from src.api.middleware.streaming_compression import StreamingCompressionMiddleware
 app.add_middleware(
     StreamingCompressionMiddleware,
