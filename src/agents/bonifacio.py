@@ -888,8 +888,76 @@ class BonifacioAgent(BaseAgent):
     
     # Framework application methods
     async def _apply_logic_model_framework(self, request, evaluation):
-        """Apply logic model evaluation framework."""
-        pass  # Implementation would depend on specific requirements
+        """
+        Apply logic model evaluation framework.
+
+        Logic Model: Inputs → Activities → Outputs → Outcomes → Impact
+        Structured approach to map policy resources to results.
+        """
+        policy_area = request.policy_area or "social"
+
+        # Map policy components to logic model stages
+        logic_model = {
+            "inputs": {
+                "financial_resources": evaluation.investment["executed"],
+                "planned_budget": evaluation.investment["planned"],
+                "human_resources_estimate": int(evaluation.beneficiaries["reached_population"] * 0.001),  # Staff estimate
+                "institutional_capacity": evaluation.sustainability_score
+            },
+            "activities": {
+                "implementation_actions": self._identify_policy_activities(policy_area),
+                "coverage_rate": evaluation.beneficiaries["coverage_rate"],
+                "geographic_scope": request.geographical_scope or "federal",
+                "duration_months": 12  # Annual policy cycle
+            },
+            "outputs": {
+                "services_delivered": evaluation.beneficiaries["reached_population"],
+                "target_achievement": evaluation.effectiveness_score["efficacy"],
+                "budget_execution_rate": (evaluation.investment["executed"] / evaluation.investment["planned"] * 100) if evaluation.investment["planned"] > 0 else 0,
+                "indicators_tracked": len(evaluation.indicators)
+            },
+            "outcomes": {
+                "short_term": {
+                    "beneficiaries_served": evaluation.beneficiaries["reached_population"],
+                    "service_quality": evaluation.effectiveness_score["efficiency"],
+                    "indicators_improving": len([ind for ind in evaluation.indicators if ind.trend == "improving"])
+                },
+                "medium_term": {
+                    "behavior_change_estimate": evaluation.effectiveness_score["effectiveness"] * 0.7,
+                    "institutional_strengthening": evaluation.sustainability_score / 100,
+                    "policy_sustainability_score": evaluation.sustainability_score
+                }
+            },
+            "impact": {
+                "social_roi": evaluation.roi_social,
+                "impact_level": evaluation.impact_level.value,
+                "long_term_sustainability": evaluation.sustainability_score,
+                "societal_change_potential": self._estimate_societal_impact(evaluation)
+            }
+        }
+
+        return logic_model
+
+    def _identify_policy_activities(self, policy_area: str) -> List[str]:
+        """Identify typical policy activities by area."""
+        activities_by_area = {
+            "health": ["Preventive care programs", "Hospital infrastructure", "Vaccination campaigns", "Health education"],
+            "education": ["Teacher training", "School infrastructure", "Curriculum development", "Student support programs"],
+            "security": ["Police training", "Community policing", "Crime prevention programs", "Justice system modernization"],
+            "social": ["Cash transfers", "Social assistance", "Job training", "Community development"],
+            "infrastructure": ["Road construction", "Urban planning", "Public transportation", "Utilities expansion"],
+            "environment": ["Conservation programs", "Environmental monitoring", "Sustainable development", "Climate adaptation"]
+        }
+        return activities_by_area.get(policy_area, ["General policy activities"])
+
+    def _estimate_societal_impact(self, evaluation: PolicyEvaluation) -> float:
+        """Estimate potential for broad societal change."""
+        # Based on coverage, effectiveness, and ROI
+        coverage_factor = evaluation.beneficiaries["coverage_rate"] / 100
+        effectiveness_factor = evaluation.effectiveness_score["effectiveness"]
+        roi_factor = min(1.0, max(0.0, (evaluation.roi_social + 1) / 3))  # Normalize ROI to 0-1
+
+        return round((coverage_factor * 0.3 + effectiveness_factor * 0.4 + roi_factor * 0.3), 3)
     
     async def _apply_results_chain_framework(self, request, evaluation):
         """Apply results chain evaluation framework."""
