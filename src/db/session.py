@@ -42,21 +42,10 @@ get_db = get_session
 
 
 async def init_database():
-    """Initialize database connection pools."""
-    import os
-
-    # Skip PostgreSQL direct connection on HuggingFace Spaces
-    # HuggingFace blocks port 5432, use REST API services instead
-    is_huggingface = os.getenv("SPACE_ID") is not None or os.getenv("SPACE_AUTHOR_NAME") is not None
-
-    if is_huggingface:
-        logger.info("HuggingFace Spaces detected - skipping direct PostgreSQL connection")
-        logger.info("Using Supabase REST API services for data persistence")
-        return
-
+    """Initialize database connection pools for Railway deployment."""
     try:
         await connection_pool_service.initialize()
-        logger.info("Database connection pools initialized")
+        logger.info("Database connection pools initialized successfully (Railway + Supabase)")
     except Exception as e:
         logger.error(
             "Failed to initialize database pools",
