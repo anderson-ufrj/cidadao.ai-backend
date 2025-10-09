@@ -387,40 +387,90 @@ class MariaQuiteriaAgent(BaseAgent):
         context: AgentContext
     ) -> Dict[str, Any]:
         """Perform comprehensive security analysis."""
-        
-        # Simulate security analysis
-        await asyncio.sleep(2)
-        
-        # Generate security assessment
-        threat_level = np.random.choice(
-            [SecurityThreatLevel.MINIMAL, SecurityThreatLevel.LOW, 
-             SecurityThreatLevel.MEDIUM, SecurityThreatLevel.HIGH],
-            p=[0.3, 0.4, 0.25, 0.05]
-        )
-        
-        security_score = np.random.uniform(0.6, 0.95)
-        vulnerabilities_found = np.random.randint(0, 5)
-        
+
+        # Extract system information from request
+        system_name = request_data.get("system_name", "unknown")
+        recent_events = request_data.get("security_events", [])
+        system_age_days = request_data.get("system_age_days", 365)
+
+        # Calculate vulnerability score based on system characteristics
+        # Newer systems typically have fewer vulnerabilities
+        base_vulnerability_score = min(5, max(0, int(system_age_days / 180)))  # 0-5 based on age
+
+        # Adjust based on recent security events
+        critical_events = len([e for e in recent_events if e.get("severity") == "critical"])
+        base_vulnerability_score = min(5, base_vulnerability_score + critical_events)
+
+        vulnerabilities_found = base_vulnerability_score
+
+        # Calculate security score (0.0 to 1.0)
+        # Base score starts at 0.95, reduced by vulnerabilities and events
+        security_score = 0.95 - (vulnerabilities_found * 0.05) - (critical_events * 0.03)
+        security_score = max(0.60, min(1.0, security_score))
+
+        # Determine threat level based on security score and vulnerabilities
+        if vulnerabilities_found >= 4 or critical_events >= 2:
+            threat_level = SecurityThreatLevel.HIGH
+        elif vulnerabilities_found >= 2 or critical_events >= 1:
+            threat_level = SecurityThreatLevel.MEDIUM
+        elif vulnerabilities_found >= 1:
+            threat_level = SecurityThreatLevel.LOW
+        else:
+            threat_level = SecurityThreatLevel.MINIMAL
+
+        # Calculate compliance scores based on security score
+        # LGPD: Brazilian data protection law (stricter penalties)
+        lgpd_compliance = min(1.0, security_score + 0.05)  # Slightly higher baseline
+
+        # ISO27001: Information security management
+        iso27001_compliance = security_score - 0.05  # Slightly lower (more strict)
+
+        # OWASP: Web application security
+        owasp_compliance = security_score - 0.10  # Even stricter for web security
+
+        # Ensure all scores are in valid range
+        lgpd_compliance = round(max(0.75, min(1.0, lgpd_compliance)), 2)
+        iso27001_compliance = round(max(0.70, min(0.95, iso27001_compliance)), 2)
+        owasp_compliance = round(max(0.65, min(0.90, owasp_compliance)), 2)
+
+        # Generate recommendations based on actual findings
+        recommendations = []
+        if vulnerabilities_found >= 3:
+            recommendations.append("Patch critical vulnerabilities immediately")
+        if vulnerabilities_found >= 1:
+            recommendations.append("Update security patches")
+        if lgpd_compliance < 0.90:
+            recommendations.append("Implement multi-factor authentication")
+            recommendations.append("Review data protection policies for LGPD compliance")
+        if iso27001_compliance < 0.85:
+            recommendations.append("Review access control policies")
+            recommendations.append("Enable comprehensive audit logging")
+        if owasp_compliance < 0.80:
+            recommendations.append("Conduct web application security audit")
+        if critical_events > 0:
+            recommendations.append("Investigate recent security incidents")
+
+        # Always recommend training if not perfect
+        if security_score < 1.0:
+            recommendations.append("Conduct regular security training")
+
+        # Analysis confidence based on data availability
+        analysis_confidence = 0.90 if recent_events else 0.85
+
         return {
             "security_assessment": {
                 "overall_threat_level": threat_level.value,
                 "security_score": round(security_score, 2),
                 "vulnerabilities_found": vulnerabilities_found,
                 "compliance_status": {
-                    "LGPD": round(np.random.uniform(0.8, 1.0), 2),
-                    "ISO27001": round(np.random.uniform(0.75, 0.95), 2),
-                    "OWASP": round(np.random.uniform(0.7, 0.9), 2)
+                    "LGPD": lgpd_compliance,
+                    "ISO27001": iso27001_compliance,
+                    "OWASP": owasp_compliance
                 }
             },
-            "recommendations": [
-                "Implement multi-factor authentication",
-                "Update security patches",
-                "Review access control policies",
-                "Enable audit logging",
-                "Conduct regular security training"
-            ][:vulnerabilities_found + 1],
+            "recommendations": recommendations[:7],  # Top 7 recommendations
             "timestamp": datetime.utcnow().isoformat(),
-            "analysis_confidence": round(np.random.uniform(0.85, 0.95), 2)
+            "analysis_confidence": round(analysis_confidence, 2)
         }
     
     async def detect_intrusions(
