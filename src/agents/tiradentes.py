@@ -986,22 +986,173 @@ class ReporterAgent(BaseAgent):
         
         return "\n".join(f"• {rec}" for rec in recommendations[:5])
     
-    # Placeholder methods for analysis report sections
+    # Analysis report section generators
     def _create_analysis_executive_summary(self, analysis_data: Dict[str, Any], audience: str) -> str:
         """Create executive summary for analysis results."""
-        return "Resumo executivo da análise de padrões (placeholder)"
+        summary = analysis_data.get("summary", {})
+        patterns = analysis_data.get("patterns", [])
+        correlations = analysis_data.get("correlations", [])
+        insights = analysis_data.get("insights", [])
+
+        total_records = summary.get("total_records", 0)
+        patterns_found = len(patterns)
+        correlations_found = len(correlations)
+
+        if audience == "executive":
+            return f"""
+            **Síntese da Análise de Dados**
+
+            A análise de {total_records} registros identificou {patterns_found} padrões significativos
+            e {correlations_found} correlações relevantes que indicam tendências e comportamentos sistemáticos.
+
+            **Principais Descobertas:**
+            • {len([p for p in patterns if p.get("confidence", 0) > 0.8])} padrões de alta confiabilidade
+            • {len([c for c in correlations if abs(c.get("strength", 0)) > 0.7])} correlações fortes detectadas
+            • {len(insights)} insights estratégicos identificados
+
+            **Ação Requerida:** Aprofundar investigação nos padrões de alta confiabilidade e
+            implementar monitoramento contínuo das correlações identificadas.
+            """
+
+        return f"""
+        ## Resumo Executivo da Análise
+
+        ### Escopo da Análise
+        - **Registros analisados:** {total_records}
+        - **Padrões identificados:** {patterns_found}
+        - **Correlações encontradas:** {correlations_found}
+        - **Insights gerados:** {len(insights)}
+
+        ### Principais Descobertas
+        {self._format_top_patterns(patterns[:5])}
+
+        ### Correlações Significativas
+        {self._format_top_correlations(correlations[:3])}
+
+        ### Recomendações Estratégicas
+        1. Aprofundar análise dos padrões de alta confiabilidade
+        2. Monitorar continuamente as correlações identificadas
+        3. Implementar alertas para desvios dos padrões esperados
+        """
     
     def _create_analysis_overview(self, analysis_data: Dict[str, Any], summary: Dict[str, Any]) -> str:
         """Create analysis overview section."""
-        return "Visão geral da análise de dados (placeholder)"
+        metadata = analysis_data.get("metadata", {})
+        patterns = analysis_data.get("patterns", [])
+
+        # Calculate pattern type distribution
+        pattern_types = {}
+        for pattern in patterns:
+            ptype = pattern.get("type", "unknown")
+            pattern_types[ptype] = pattern_types.get(ptype, 0) + 1
+
+        return f"""
+        ## Metodologia da Análise de Dados
+
+        **Objetivo:** Identificação de padrões, correlações e tendências em dados públicos
+
+        **Parâmetros da Análise:**
+        - Registros processados: {summary.get("total_records", 0):,}
+        - Período analisado: {metadata.get("timestamp", "N/A")[:10]}
+        - Algoritmos utilizados: Análise estatística, detecção de padrões, correlação temporal
+
+        **Técnicas Aplicadas:**
+        - Análise de séries temporais
+        - Detecção de outliers estatísticos
+        - Análise de correlação multivariada
+        - Clustering e agrupamento de dados
+
+        ## Distribuição de Padrões Identificados
+        {self._format_pattern_distribution(pattern_types)}
+
+        ## Métricas de Qualidade
+        - Confiabilidade média: {summary.get("average_confidence", 0):.1%}
+        - Cobertura de dados: {summary.get("data_coverage", 0):.1%}
+        - Taxa de detecção: {summary.get("detection_rate", 0):.1%}
+        """
     
     def _create_pattern_sections(self, patterns: List[Dict[str, Any]], audience: str) -> List[ReportSection]:
         """Create pattern analysis sections."""
-        return [ReportSection(title="Padrões Detectados", content="Análise de padrões (placeholder)", importance=3)]
+        sections = []
+
+        # Group patterns by type
+        pattern_groups = {}
+        for pattern in patterns:
+            ptype = pattern.get("type", "unknown")
+            if ptype not in pattern_groups:
+                pattern_groups[ptype] = []
+            pattern_groups[ptype].append(pattern)
+
+        # Create section for each pattern type
+        for ptype, group_patterns in pattern_groups.items():
+            title = self._get_pattern_type_title(ptype)
+            content = self._format_pattern_group(group_patterns, audience)
+
+            # Determine importance based on confidence and count
+            high_confidence_count = len([p for p in group_patterns if p.get("confidence", 0) > 0.8])
+            importance = 4 if high_confidence_count > 0 else 3
+
+            sections.append(ReportSection(
+                title=title,
+                content=content,
+                importance=importance
+            ))
+
+        # If no patterns, create a single informative section
+        if not sections:
+            sections.append(ReportSection(
+                title="Padrões Detectados",
+                content="Nenhum padrão significativo foi identificado na análise dos dados.",
+                importance=2
+            ))
+
+        return sections
     
     def _create_correlation_section(self, correlations: List[Dict[str, Any]]) -> str:
         """Create correlation analysis section."""
-        return "Análise de correlações (placeholder)"
+        if not correlations:
+            return "Nenhuma correlação significativa foi identificada entre as variáveis analisadas."
+
+        # Separate correlations by strength
+        strong_correlations = [c for c in correlations if abs(c.get("strength", 0)) > 0.7]
+        moderate_correlations = [c for c in correlations if 0.4 < abs(c.get("strength", 0)) <= 0.7]
+
+        content_parts = []
+
+        content_parts.append("## Análise de Correlações Estatísticas")
+        content_parts.append("")
+
+        if strong_correlations:
+            content_parts.append("### Correlações Fortes (|r| > 0.7)")
+            for corr in strong_correlations[:5]:  # Top 5
+                var1 = corr.get("variable1", "Variável 1")
+                var2 = corr.get("variable2", "Variável 2")
+                strength = corr.get("strength", 0)
+                direction = "positiva" if strength > 0 else "negativa"
+
+                content_parts.append(f"**{var1} ↔ {var2}**")
+                content_parts.append(f"- Força: {abs(strength):.2f} ({direction})")
+                content_parts.append(f"- Significância: {corr.get('p_value', 0):.4f}")
+                content_parts.append(f"- Interpretação: {corr.get('interpretation', 'N/A')}")
+                content_parts.append("")
+
+        if moderate_correlations:
+            content_parts.append("### Correlações Moderadas (0.4 < |r| ≤ 0.7)")
+            for corr in moderate_correlations[:3]:  # Top 3
+                var1 = corr.get("variable1", "Variável 1")
+                var2 = corr.get("variable2", "Variável 2")
+                strength = corr.get("strength", 0)
+
+                content_parts.append(f"• {var1} ↔ {var2}: {abs(strength):.2f}")
+
+            content_parts.append("")
+
+        content_parts.append("### Implicações das Correlações")
+        content_parts.append("- As correlações fortes indicam relações sistemáticas entre as variáveis")
+        content_parts.append("- Correlações negativas sugerem comportamentos inversos")
+        content_parts.append("- Recomenda-se aprofundar a análise causal das correlações identificadas")
+
+        return "\n".join(content_parts)
     
     def _create_insights_section(self, insights: List[str]) -> str:
         """Create insights section."""
@@ -1009,24 +1160,547 @@ class ReporterAgent(BaseAgent):
     
     def _create_combined_executive_summary(self, inv_data: Dict[str, Any], analysis_data: Dict[str, Any], audience: str) -> str:
         """Create combined executive summary."""
-        return "Resumo executivo consolidado (placeholder)"
+        # Extract investigation data
+        inv_summary = inv_data.get("summary", {}) if inv_data else {}
+        anomalies = inv_data.get("anomalies", []) if inv_data else []
+
+        # Extract analysis data
+        analysis_summary = analysis_data.get("summary", {}) if analysis_data else {}
+        patterns = analysis_data.get("patterns", []) if analysis_data else []
+        insights = analysis_data.get("insights", []) if analysis_data else []
+
+        total_records = max(
+            inv_summary.get("total_records", 0),
+            analysis_summary.get("total_records", 0)
+        )
+        anomalies_found = inv_summary.get("anomalies_found", 0)
+        patterns_found = len(patterns)
+        risk_score = inv_summary.get("risk_score", 0)
+
+        if audience == "executive":
+            return f"""
+            **Síntese Consolidada: Investigação & Análise**
+
+            A análise integrada de {total_records} registros combinou detecção de anomalias com
+            identificação de padrões, revelando {anomalies_found} anomalias e {patterns_found} padrões
+            sistemáticos que requerem atenção.
+
+            **Achados Críticos:**
+            • Nível de risco: {risk_score:.1f}/10
+            • {len([a for a in anomalies if a.get("severity", 0) > 0.7])} anomalias de alta severidade
+            • {len([p for p in patterns if p.get("confidence", 0) > 0.8])} padrões de alta confiabilidade
+            • {len(insights)} insights estratégicos identificados
+
+            **Ação Executiva:** Implementar medidas corretivas para anomalias críticas e
+            estabelecer monitoramento contínuo dos padrões identificados.
+            """
+
+        return f"""
+        ## Resumo Executivo Consolidado
+
+        ### Visão Geral Integrada
+        Esta análise consolida os resultados da investigação de anomalias com a análise de padrões,
+        proporcionando uma visão holística dos dados públicos analisados.
+
+        **Escopo Total:**
+        - Registros analisados: {total_records:,}
+        - Anomalias detectadas: {anomalies_found}
+        - Padrões identificados: {patterns_found}
+        - Score de risco: {risk_score:.1f}/10
+
+        ### Principais Descobertas
+
+        **Da Investigação de Anomalias:**
+        {self._format_anomaly_summary(anomalies[:3])}
+
+        **Da Análise de Padrões:**
+        {self._format_top_patterns(patterns[:3])}
+
+        ### Insights Estratégicos
+        {self._format_key_insights(insights[:5])}
+
+        ### Recomendações Consolidadas
+        1. Priorizar investigação das {len([a for a in anomalies if a.get("severity", 0) > 0.7])} anomalias críticas
+        2. Implementar monitoramento dos {len([p for p in patterns if p.get("confidence", 0) > 0.8])} padrões de alta confiabilidade
+        3. Aprofundar análise das correlações identificadas
+        4. Estabelecer alertas automáticos para desvios futuros
+        """
     
     def _create_combined_conclusions(self, inv_data: Dict[str, Any], analysis_data: Dict[str, Any]) -> str:
         """Create combined conclusions."""
-        return "Conclusões consolidadas (placeholder)"
+        # Extract investigation data
+        inv_summary = inv_data.get("summary", {}) if inv_data else {}
+        anomalies = inv_data.get("anomalies", []) if inv_data else []
+
+        # Extract analysis data
+        patterns = analysis_data.get("patterns", []) if analysis_data else []
+        correlations = analysis_data.get("correlations", []) if analysis_data else []
+        insights = analysis_data.get("insights", []) if analysis_data else []
+
+        risk_score = inv_summary.get("risk_score", 0)
+        high_severity_anomalies = len([a for a in anomalies if a.get("severity", 0) > 0.7])
+        high_confidence_patterns = len([p for p in patterns if p.get("confidence", 0) > 0.8])
+        strong_correlations = len([c for c in correlations if abs(c.get("strength", 0)) > 0.7])
+
+        # Determine overall assessment
+        if risk_score >= 7 or high_severity_anomalies >= 5:
+            overall_assessment = "CRÍTICO"
+            urgency = "URGENTE"
+        elif risk_score >= 4 or high_severity_anomalies >= 2:
+            overall_assessment = "ALTO"
+            urgency = "PRIORITÁRIO"
+        else:
+            overall_assessment = "MODERADO"
+            urgency = "MONITORAMENTO"
+
+        return f"""
+        ## Conclusões Consolidadas
+
+        ### Avaliação Geral
+        **Nível de Criticidade: {overall_assessment}** (Risk Score: {risk_score:.1f}/10)
+
+        A análise integrada dos dados revelou indicadores que exigem atenção **{urgency}**.
+        A combinação de anomalias detectadas com padrões sistemáticos sugere a necessidade de
+        intervenção e monitoramento contínuo.
+
+        ### Principais Conclusões
+
+        **1. Anomalias Identificadas:**
+        - {len(anomalies)} anomalias detectadas no total
+        - {high_severity_anomalies} de alta severidade requerem ação imediata
+        - Valor potencialmente afetado: R$ {inv_summary.get("suspicious_value", 0):,.2f}
+
+        **2. Padrões Sistemáticos:**
+        - {len(patterns)} padrões identificados na análise de dados
+        - {high_confidence_patterns} padrões de alta confiabilidade confirmados
+        - Padrões indicam comportamentos recorrentes que necessitam investigação
+
+        **3. Correlações Relevantes:**
+        - {len(correlations)} correlações identificadas entre variáveis
+        - {strong_correlations} correlações fortes que indicam relações causais potenciais
+        - Recomenda-se aprofundar análise causal destas correlações
+
+        ### Impacto e Implicações
+
+        **Impacto Financeiro:**
+        Os achados sugerem potencial impacto financeiro estimado em R$ {inv_summary.get("suspicious_value", 0):,.2f},
+        considerando apenas as anomalias de alta severidade identificadas.
+
+        **Impacto Operacional:**
+        Os padrões sistemáticos detectados indicam possíveis falhas nos processos de controle e
+        monitoramento, exigindo revisão dos procedimentos atuais.
+
+        **Impacto Legal e Reputacional:**
+        As irregularidades identificadas podem ter implicações legais e de conformidade,
+        requerendo atenção de autoridades competentes.
+
+        ### Recomendações Finais
+
+        **Ações Imediatas:**
+        1. Investigar em profundidade as {high_severity_anomalies} anomalias críticas
+        2. Suspender processos com indicadores de alto risco
+        3. Acionar controladoria e órgãos de fiscalização
+
+        **Ações de Médio Prazo:**
+        1. Implementar monitoramento contínuo dos {high_confidence_patterns} padrões identificados
+        2. Revisar e fortalecer controles internos
+        3. Capacitar equipes em detecção de irregularidades
+
+        **Ações Estratégicas:**
+        1. Estabelecer sistema de alertas automatizados
+        2. Implementar análise preditiva para prevenir futuras irregularidades
+        3. Desenvolver cultura de transparência e compliance
+
+        ### Próximos Passos
+
+        1. **Curto Prazo (1-7 dias):** Investigação detalhada das anomalias críticas
+        2. **Médio Prazo (1-3 meses):** Implementação de controles e monitoramento
+        3. **Longo Prazo (3-12 meses):** Avaliação de eficácia e ajustes do sistema
+
+        ---
+
+        *Análise concluída em {datetime.utcnow().strftime('%d/%m/%Y %H:%M')} UTC*
+        *Recomenda-se revisão periódica das conclusões e atualização baseada em novos dados*
+        """
     
     def _create_high_priority_anomaly_summary(self, anomalies: List[Dict[str, Any]]) -> str:
         """Create high priority anomaly summary."""
-        return "Resumo de anomalias de alta prioridade (placeholder)"
+        if not anomalies:
+            return "Nenhuma anomalia de alta prioridade foi identificada."
+
+        content_parts = []
+
+        content_parts.append("## Anomalias Críticas - Ação Imediata Requerida")
+        content_parts.append("")
+        content_parts.append(f"**Total de anomalias críticas:** {len(anomalies)}")
+        content_parts.append("")
+
+        # Calculate total suspicious value
+        total_suspicious = sum(a.get("value", 0) for a in anomalies)
+        content_parts.append(f"**Valor total suspeito:** R$ {total_suspicious:,.2f}")
+        content_parts.append("")
+
+        # Group by type for summary
+        types_count = {}
+        for anomaly in anomalies:
+            atype = anomaly.get("type", "unknown")
+            types_count[atype] = types_count.get(atype, 0) + 1
+
+        content_parts.append("### Distribuição por Tipo")
+        for atype, count in sorted(types_count.items(), key=lambda x: x[1], reverse=True):
+            type_name = self._get_anomaly_type_name(atype)
+            content_parts.append(f"- **{type_name.title()}:** {count} casos")
+        content_parts.append("")
+
+        # Detail top anomalies
+        content_parts.append("### Anomalias Mais Críticas")
+        content_parts.append("")
+
+        # Sort by severity
+        sorted_anomalies = sorted(anomalies, key=lambda a: a.get("severity", 0), reverse=True)
+
+        for i, anomaly in enumerate(sorted_anomalies[:5], 1):  # Top 5
+            content_parts.append(f"**{i}. {anomaly.get('description', 'Anomalia detectada')}**")
+            content_parts.append(f"- **Severidade:** {anomaly.get('severity', 0):.2f}/1.00")
+            content_parts.append(f"- **Tipo:** {self._get_anomaly_type_name(anomaly.get('type', 'unknown'))}")
+            content_parts.append(f"- **Valor afetado:** R$ {anomaly.get('value', 0):,.2f}")
+            content_parts.append(f"- **Explicação:** {anomaly.get('explanation', 'N/A')}")
+
+            recommendations = anomaly.get("recommendations", [])
+            if recommendations:
+                content_parts.append(f"- **Ação recomendada:** {recommendations[0]}")
+
+            content_parts.append("")
+
+        # Urgency warning
+        content_parts.append("### ⚠️ Aviso de Urgência")
+        content_parts.append("")
+        content_parts.append("Estas anomalias apresentam características que indicam potencial irregularidade grave.")
+        content_parts.append("Recomenda-se:")
+        content_parts.append("1. **Suspensão imediata** dos processos identificados")
+        content_parts.append("2. **Investigação detalhada** por equipe especializada")
+        content_parts.append("3. **Notificação** às autoridades competentes")
+        content_parts.append("4. **Preservação** de toda documentação relacionada")
+
+        return "\n".join(content_parts)
     
     def _create_category_anomaly_summary(self, category: str, anomalies: List[Dict[str, Any]]) -> str:
         """Create category-specific anomaly summary."""
-        return f"Resumo de anomalias da categoria {category} (placeholder)"
+        if not anomalies:
+            return f"Nenhuma anomalia detectada na categoria {category}."
+
+        category_name = self._get_anomaly_type_name(category)
+
+        content_parts = []
+
+        content_parts.append(f"## Análise: {category_name.title()}")
+        content_parts.append("")
+        content_parts.append(f"**Total de anomalias:** {len(anomalies)}")
+        content_parts.append("")
+
+        # Calculate statistics
+        total_value = sum(a.get("value", 0) for a in anomalies)
+        avg_severity = sum(a.get("severity", 0) for a in anomalies) / len(anomalies) if anomalies else 0
+        high_severity = len([a for a in anomalies if a.get("severity", 0) > 0.7])
+
+        content_parts.append("### Estatísticas da Categoria")
+        content_parts.append(f"- **Valor total afetado:** R$ {total_value:,.2f}")
+        content_parts.append(f"- **Severidade média:** {avg_severity:.2f}/1.00")
+        content_parts.append(f"- **Casos de alta severidade:** {high_severity}")
+        content_parts.append("")
+
+        # Category-specific insights
+        content_parts.append("### Descrição da Categoria")
+        category_descriptions = {
+            "price_anomaly": "Anomalias de preço indicam valores significativamente diferentes da média de mercado, "
+                           "sugerindo possível superfaturamento ou subfaturamento.",
+            "vendor_concentration": "Concentração de fornecedores indica que poucos fornecedores dominam um grande volume "
+                                  "de contratos, reduzindo competitividade e aumentando riscos.",
+            "temporal_patterns": "Padrões temporais suspeitos indicam concentração anormal de contratos em períodos específicos, "
+                               "sugerindo possível direcionamento.",
+            "duplicate_contracts": "Contratos duplicados indicam possível pagamento múltiplo pelo mesmo serviço ou produto.",
+            "payment_patterns": "Padrões de pagamento irregulares indicam possíveis problemas no processo de liquidação financeira."
+        }
+
+        description = category_descriptions.get(category, f"Anomalias do tipo {category_name}.")
+        content_parts.append(description)
+        content_parts.append("")
+
+        # Top cases
+        content_parts.append("### Casos Mais Relevantes")
+        content_parts.append("")
+
+        sorted_anomalies = sorted(anomalies, key=lambda a: a.get("severity", 0), reverse=True)
+
+        for i, anomaly in enumerate(sorted_anomalies[:3], 1):  # Top 3
+            content_parts.append(f"**{i}. {anomaly.get('description', 'Anomalia detectada')}**")
+            content_parts.append(f"- Severidade: {anomaly.get('severity', 0):.2f}")
+            content_parts.append(f"- Valor: R$ {anomaly.get('value', 0):,.2f}")
+
+            explanation = anomaly.get('explanation', '')
+            if explanation:
+                # Truncate long explanations
+                if len(explanation) > 150:
+                    explanation = explanation[:150] + "..."
+                content_parts.append(f"- Detalhes: {explanation}")
+
+            content_parts.append("")
+
+        # Recommendations for this category
+        content_parts.append("### Recomendações Específicas")
+        category_recommendations = {
+            "price_anomaly": [
+                "Realizar pesquisa de mercado para validar preços praticados",
+                "Revisar processo de formação de preço de referência",
+                "Investigar possível conluio entre fornecedores"
+            ],
+            "vendor_concentration": [
+                "Ampliar base de fornecedores cadastrados",
+                "Revisar critérios de qualificação de fornecedores",
+                "Implementar rodízio de fornecedores quando possível"
+            ],
+            "temporal_patterns": [
+                "Distribuir licitações de forma mais equilibrada ao longo do ano",
+                "Revisar processos de urgência e dispensa",
+                "Implementar planejamento de compras mais eficiente"
+            ],
+            "duplicate_contracts": [
+                "Implementar sistema de verificação de duplicidade",
+                "Revisar processo de controle de contratos",
+                "Auditar pagamentos realizados"
+            ],
+            "payment_patterns": [
+                "Revisar processo de liquidação e pagamento",
+                "Implementar controles de alçada e segregação de funções",
+                "Auditar contas bancárias e beneficiários"
+            ]
+        }
+
+        recommendations = category_recommendations.get(category, [
+            "Aprofundar investigação dos casos identificados",
+            "Implementar controles específicos para esta categoria",
+            "Monitorar continuamente para detectar novos casos"
+        ])
+
+        for rec in recommendations:
+            content_parts.append(f"• {rec}")
+
+        return "\n".join(content_parts)
     
     def _create_trend_analysis_content(self, patterns: List[Dict[str, Any]]) -> str:
         """Create trend analysis content."""
-        return "Análise de tendências (placeholder)"
+        if not patterns:
+            return "Nenhuma tendência significativa foi identificada na análise temporal dos dados."
+
+        content_parts = []
+
+        content_parts.append("## Análise de Tendências Temporais")
+        content_parts.append("")
+        content_parts.append(f"**Total de tendências identificadas:** {len(patterns)}")
+        content_parts.append("")
+
+        # Classify trends by direction
+        upward_trends = [p for p in patterns if p.get("direction", "").lower() == "upward"]
+        downward_trends = [p for p in patterns if p.get("direction", "").lower() == "downward"]
+        stable_trends = [p for p in patterns if p.get("direction", "").lower() == "stable"]
+
+        content_parts.append("### Distribuição de Tendências")
+        content_parts.append(f"- **Tendências ascendentes:** {len(upward_trends)}")
+        content_parts.append(f"- **Tendências descendentes:** {len(downward_trends)}")
+        content_parts.append(f"- **Tendências estáveis:** {len(stable_trends)}")
+        content_parts.append("")
+
+        # Analyze upward trends
+        if upward_trends:
+            content_parts.append("### Tendências Ascendentes")
+            content_parts.append("*Indicam aumento ao longo do tempo*")
+            content_parts.append("")
+
+            for trend in sorted(upward_trends, key=lambda p: p.get("confidence", 0), reverse=True)[:3]:
+                content_parts.append(f"**{trend.get('description', 'Tendência identificada')}**")
+                content_parts.append(f"- Confiabilidade: {trend.get('confidence', 0):.1%}")
+                content_parts.append(f"- Taxa de crescimento: {trend.get('rate', 0):.1f}% ao período")
+
+                significance = trend.get('significance', '')
+                if significance:
+                    content_parts.append(f"- Significância: {significance}")
+
+                content_parts.append("")
+
+        # Analyze downward trends
+        if downward_trends:
+            content_parts.append("### Tendências Descendentes")
+            content_parts.append("*Indicam redução ao longo do tempo*")
+            content_parts.append("")
+
+            for trend in sorted(downward_trends, key=lambda p: p.get("confidence", 0), reverse=True)[:3]:
+                content_parts.append(f"**{trend.get('description', 'Tendência identificada')}**")
+                content_parts.append(f"- Confiabilidade: {trend.get('confidence', 0):.1%}")
+                content_parts.append(f"- Taxa de redução: {abs(trend.get('rate', 0)):.1f}% ao período")
+
+                significance = trend.get('significance', '')
+                if significance:
+                    content_parts.append(f"- Significância: {significance}")
+
+                content_parts.append("")
+
+        # Temporal patterns analysis
+        content_parts.append("### Padrões Temporais Identificados")
+        content_parts.append("")
+
+        # Check for seasonal patterns
+        seasonal = [p for p in patterns if "seasonal" in p.get("type", "").lower()]
+        if seasonal:
+            content_parts.append("**Padrões Sazonais:**")
+            for pattern in seasonal[:2]:
+                content_parts.append(f"• {pattern.get('description', 'Padrão sazonal')}")
+            content_parts.append("")
+
+        # Check for cyclical patterns
+        cyclical = [p for p in patterns if "cyclical" in p.get("type", "").lower()]
+        if cyclical:
+            content_parts.append("**Padrões Cíclicos:**")
+            for pattern in cyclical[:2]:
+                content_parts.append(f"• {pattern.get('description', 'Padrão cíclico')}")
+            content_parts.append("")
+
+        # Projections and implications
+        content_parts.append("### Projeções e Implicações")
+        content_parts.append("")
+
+        if upward_trends:
+            content_parts.append("**Tendências Ascendentes:**")
+            content_parts.append("- Podem indicar crescimento de atividade ou aumento de custos")
+            content_parts.append("- Requerem monitoramento para identificar causas raiz")
+            content_parts.append("- Se relacionadas a anomalias, sugerem agravamento do problema")
+            content_parts.append("")
+
+        if downward_trends:
+            content_parts.append("**Tendências Descendentes:**")
+            content_parts.append("- Podem indicar melhoria de controles ou redução de atividade")
+            content_parts.append("- Se relacionadas a anomalias, sugerem eficácia de medidas corretivas")
+            content_parts.append("- Requerem validação para confirmar causas")
+            content_parts.append("")
+
+        # Recommendations
+        content_parts.append("### Recomendações Baseadas em Tendências")
+        content_parts.append("")
+        content_parts.append("1. **Monitoramento Contínuo:** Acompanhar evolução das tendências identificadas")
+        content_parts.append("2. **Análise de Causas:** Investigar fatores que determinam as tendências")
+        content_parts.append("3. **Projeções Futuras:** Utilizar tendências para prever comportamentos futuros")
+        content_parts.append("4. **Ajuste de Controles:** Adaptar controles baseado nas tendências observadas")
+
+        # Statistical confidence note
+        content_parts.append("")
+        content_parts.append("---")
+        content_parts.append("*Nota: A confiabilidade das tendências é baseada em análise estatística dos dados históricos.*")
+        content_parts.append("*Tendências com confiabilidade > 80% são consideradas altamente robustas.*")
+
+        return "\n".join(content_parts)
     
+    # Helper methods for pattern and correlation formatting
+
+    def _format_top_patterns(self, patterns: List[Dict[str, Any]]) -> str:
+        """Format top patterns for summary sections."""
+        if not patterns:
+            return "Nenhum padrão significativo identificado."
+
+        lines = []
+        for i, pattern in enumerate(patterns[:5], 1):  # Top 5
+            desc = pattern.get('description', 'Padrão detectado')
+            confidence = pattern.get('confidence', 0)
+            lines.append(f"{i}. **{desc}** (confiabilidade: {confidence:.1%})")
+
+        return "\n".join(lines)
+
+    def _format_top_correlations(self, correlations: List[Dict[str, Any]]) -> str:
+        """Format top correlations for summary sections."""
+        if not correlations:
+            return "Nenhuma correlação significativa identificada."
+
+        lines = []
+        for i, corr in enumerate(correlations[:3], 1):  # Top 3
+            var1 = corr.get('variable1', 'Variável 1')
+            var2 = corr.get('variable2', 'Variável 2')
+            strength = corr.get('strength', 0)
+            direction = "positiva" if strength > 0 else "negativa"
+            lines.append(f"{i}. {var1} ↔ {var2}: {abs(strength):.2f} ({direction})")
+
+        return "\n".join(lines)
+
+    def _format_pattern_distribution(self, pattern_types: Dict[str, int]) -> str:
+        """Format pattern type distribution."""
+        if not pattern_types:
+            return "Nenhuma distribuição de padrões disponível."
+
+        lines = []
+        for ptype, count in sorted(pattern_types.items(), key=lambda x: x[1], reverse=True):
+            type_name = self._get_pattern_type_name(ptype)
+            lines.append(f"- **{type_name}:** {count} padrões")
+
+        return "\n".join(lines)
+
+    def _get_pattern_type_title(self, ptype: str) -> str:
+        """Get human-readable title for pattern type."""
+        titles = {
+            "temporal": "Padrões Temporais",
+            "seasonal": "Padrões Sazonais",
+            "cyclical": "Padrões Cíclicos",
+            "trend": "Tendências",
+            "correlation": "Padrões de Correlação",
+            "cluster": "Agrupamentos de Dados",
+            "outlier": "Padrões de Outliers",
+            "frequency": "Padrões de Frequência"
+        }
+        return titles.get(ptype, ptype.replace("_", " ").title())
+
+    def _get_pattern_type_name(self, ptype: str) -> str:
+        """Get human-readable name for pattern type."""
+        names = {
+            "temporal": "padrões temporais",
+            "seasonal": "padrões sazonais",
+            "cyclical": "padrões cíclicos",
+            "trend": "tendências",
+            "correlation": "padrões de correlação",
+            "cluster": "agrupamentos",
+            "outlier": "outliers",
+            "frequency": "padrões de frequência"
+        }
+        return names.get(ptype, ptype.replace("_", " "))
+
+    def _format_pattern_group(self, patterns: List[Dict[str, Any]], audience: str) -> str:
+        """Format a group of patterns."""
+        content = []
+
+        for pattern in sorted(patterns, key=lambda p: p.get("confidence", 0), reverse=True)[:5]:  # Top 5
+            content.append(f"**{pattern.get('description', 'Padrão detectado')}**")
+            content.append(f"- Confiabilidade: {pattern.get('confidence', 0):.1%}")
+
+            frequency = pattern.get('frequency', '')
+            if frequency:
+                content.append(f"- Frequência: {frequency}")
+
+            impact = pattern.get('impact', '')
+            if impact:
+                content.append(f"- Impacto: {impact}")
+
+            if audience == "technical":
+                # Add technical details for technical audience
+                statistical_sig = pattern.get('statistical_significance', '')
+                if statistical_sig:
+                    content.append(f"- Significância estatística: {statistical_sig}")
+
+            content.append("")
+
+        return "\n".join(content)
+
+    def _format_key_insights(self, insights: List[str]) -> str:
+        """Format key insights for summary sections."""
+        if not insights:
+            return "Nenhum insight estratégico disponível."
+
+        return "\n".join(f"• {insight}" for insight in insights[:5])  # Top 5
+
     def _format_anomaly_group(self, anomalies: List[Dict[str, Any]], audience: str) -> str:
         """Format a group of anomalies."""
         content = []
@@ -1035,7 +1709,7 @@ class ReporterAgent(BaseAgent):
             content.append(f"Severidade: {anomaly.get('severity', 0):.2f}")
             content.append(f"Explicação: {anomaly.get('explanation', 'N/A')}")
             content.append("")
-        
+
         return "\n".join(content)
     
     async def _render_pdf(
