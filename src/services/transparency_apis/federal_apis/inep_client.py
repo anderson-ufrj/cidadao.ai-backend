@@ -22,6 +22,8 @@ import httpx
 from pydantic import BaseModel, Field as PydanticField
 
 from src.core import get_logger
+from .exceptions import NetworkError, TimeoutError, ServerError, exception_from_response
+from .retry import retry_with_backoff
 
 
 logger = get_logger(__name__)
@@ -137,6 +139,84 @@ class INEPClient:
         """Async context manager exit."""
         await self.close()
 
+    @retry_with_backoff(max_attempts=3, base_delay=1.0, max_delay=30.0)
+    async def _make_request(self, url: str, method: str = "GET", **kwargs) -> Dict[str, Any]:
+        """
+        Make HTTP request with automatic retry and error handling.
+
+        Args:
+            url: Request URL
+            method: HTTP method (GET, POST, etc)
+            **kwargs: Additional arguments for httpx request
+
+        Returns:
+            JSON response data
+
+        Raises:
+            NetworkError: On connection/network issues
+            TimeoutError: On request timeout
+            ServerError: On server errors (5xx)
+            FederalAPIError: On other API errors
+        """
+        try:
+            self.logger.debug(f"Making {method} request to {url}")
+
+            if method.upper() == "GET":
+                response = await self.client.get(url, **kwargs)
+            elif method.upper() == "POST":
+                response = await self.client.post(url, **kwargs)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+
+            # Check for HTTP errors
+            if response.status_code >= 500:
+                error_msg = f"Server error: {response.status_code}"
+                raise ServerError(
+                    error_msg,
+                    api_name="INEP",
+                    status_code=response.status_code,
+                    response_data={"url": url}
+                )
+            elif response.status_code >= 400:
+                error_msg = f"Client error: {response.status_code}"
+                raise exception_from_response(
+                    response.status_code,
+                    error_msg,
+                    api_name="INEP",
+                    response_data={"url": url}
+                )
+
+            # Parse JSON response
+            try:
+                data = response.json()
+                return data
+            except Exception as e:
+                self.logger.error(f"Failed to parse JSON response: {e}")
+                raise
+
+        except httpx.TimeoutException as e:
+            self.logger.error(f"Request timeout: {url}")
+            raise TimeoutError(
+                f"Request timed out",
+                api_name="INEP",
+                timeout_seconds=self.timeout,
+                original_error=e
+            )
+        except httpx.NetworkError as e:
+            self.logger.error(f"Network error: {url}")
+            raise NetworkError(
+                f"Network error: {str(e)}",
+                api_name="INEP",
+                original_error=e
+            )
+        except (ServerError, TimeoutError, NetworkError):
+            # Re-raise our custom exceptions as-is (they'll be caught by retry decorator)
+            raise
+        except Exception as e:
+            # Catch-all for unexpected errors
+            self.logger.error(f"Unexpected error in _make_request: {e}", exc_info=True)
+            raise
+
     @cache_with_ttl(ttl_seconds=86400)  # 24 hours cache
     async def search_datasets(self, query: str, limit: int = 100) -> Dict[str, Any]:
         """
@@ -149,27 +229,19 @@ class INEPClient:
         Returns:
             Dataset search results
         """
-        try:
-            url = f"{self.DADOS_GOV_URL}/package_search"
-            params = {
-                "q": f"inep {query}",
-                "fq": "organization:inep",
-                "rows": limit
-            }
+        url = f"{self.DADOS_GOV_URL}/package_search"
+        params = {
+            "q": f"inep {query}",
+            "fq": "organization:inep",
+            "rows": limit
+        }
 
-            self.logger.info(f"Searching INEP datasets: query={query}")
+        self.logger.info(f"Searching INEP datasets: query={query}")
 
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
+        data = await self._make_request(url, params=params)
 
-            data = response.json()
-
-            self.logger.info(f"Found {data.get('result', {}).get('count', 0)} datasets")
-            return data
-
-        except Exception as e:
-            self.logger.error(f"Error searching datasets: {e}")
-            raise
+        self.logger.info(f"Found {data.get('result', {}).get('count', 0)} datasets")
+        return data
 
     @cache_with_ttl(ttl_seconds=7200)  # 2 hours cache
     async def get_school_census_data(
@@ -193,36 +265,28 @@ class INEPClient:
             - Infrastructure indicators
             - Teacher data
         """
-        try:
-            self.logger.info(f"Fetching school census: state={state_code}, municipality={municipality_code}, year={year}")
+        self.logger.info(f"Fetching school census: state={state_code}, municipality={municipality_code}, year={year}")
 
-            dataset_id = self.DATASETS["school_census"]
-            url = f"{self.DADOS_GOV_URL}/package_show"
-            params = {"id": dataset_id}
+        dataset_id = self.DATASETS["school_census"]
+        url = f"{self.DADOS_GOV_URL}/package_show"
+        params = {"id": dataset_id}
 
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
+        data = await self._make_request(url, params=params)
 
-            data = response.json()
+        result = {
+            "timestamp": datetime.now().isoformat(),
+            "source": "INEP/Censo Escolar",
+            "filters": {
+                "state": state_code,
+                "municipality": municipality_code,
+                "year": year or "latest"
+            },
+            "dataset_info": data.get("result", {}),
+            "note": "School census data available as CSV/microdata files in resources"
+        }
 
-            result = {
-                "timestamp": datetime.now().isoformat(),
-                "source": "INEP/Censo Escolar",
-                "filters": {
-                    "state": state_code,
-                    "municipality": municipality_code,
-                    "year": year or "latest"
-                },
-                "dataset_info": data.get("result", {}),
-                "note": "School census data available as CSV/microdata files in resources"
-            }
-
-            self.logger.info("Fetched school census data")
-            return result
-
-        except Exception as e:
-            self.logger.error(f"Error fetching school census: {e}")
-            raise
+        self.logger.info("Fetched school census data")
+        return result
 
     @cache_with_ttl(ttl_seconds=7200)
     async def get_ideb_indicators(
@@ -244,37 +308,29 @@ class INEPClient:
         Returns:
             IDEB indicators by location and education level
         """
-        try:
-            self.logger.info(f"Fetching IDEB data: state={state_code}, municipality={municipality_code}, year={year}")
+        self.logger.info(f"Fetching IDEB data: state={state_code}, municipality={municipality_code}, year={year}")
 
-            dataset_id = self.DATASETS["ideb"]
-            url = f"{self.DADOS_GOV_URL}/package_show"
-            params = {"id": dataset_id}
+        dataset_id = self.DATASETS["ideb"]
+        url = f"{self.DADOS_GOV_URL}/package_show"
+        params = {"id": dataset_id}
 
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
+        data = await self._make_request(url, params=params)
 
-            data = response.json()
+        result = {
+            "timestamp": datetime.now().isoformat(),
+            "source": "INEP/IDEB",
+            "filters": {
+                "state": state_code,
+                "municipality": municipality_code,
+                "year": year or "latest",
+                "education_level": education_level or "all"
+            },
+            "dataset_info": data.get("result", {}),
+            "note": "IDEB data available in dataset resources - typically as Excel or CSV"
+        }
 
-            result = {
-                "timestamp": datetime.now().isoformat(),
-                "source": "INEP/IDEB",
-                "filters": {
-                    "state": state_code,
-                    "municipality": municipality_code,
-                    "year": year or "latest",
-                    "education_level": education_level or "all"
-                },
-                "dataset_info": data.get("result", {}),
-                "note": "IDEB data available in dataset resources - typically as Excel or CSV"
-            }
-
-            self.logger.info("Fetched IDEB indicators")
-            return result
-
-        except Exception as e:
-            self.logger.error(f"Error fetching IDEB indicators: {e}")
-            raise
+        self.logger.info("Fetched IDEB indicators")
+        return result
 
     @cache_with_ttl(ttl_seconds=7200)
     async def get_enem_results(
@@ -292,35 +348,27 @@ class INEPClient:
         Returns:
             ENEM performance data
         """
-        try:
-            self.logger.info(f"Fetching ENEM results: state={state_code}, year={year}")
+        self.logger.info(f"Fetching ENEM results: state={state_code}, year={year}")
 
-            dataset_id = self.DATASETS["enem"]
-            url = f"{self.DADOS_GOV_URL}/package_show"
-            params = {"id": dataset_id}
+        dataset_id = self.DATASETS["enem"]
+        url = f"{self.DADOS_GOV_URL}/package_show"
+        params = {"id": dataset_id}
 
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
+        data = await self._make_request(url, params=params)
 
-            data = response.json()
+        result = {
+            "timestamp": datetime.now().isoformat(),
+            "source": "INEP/ENEM",
+            "filters": {
+                "state": state_code,
+                "year": year or "latest"
+            },
+            "dataset_info": data.get("result", {}),
+            "note": "ENEM microdata available as large CSV files"
+        }
 
-            result = {
-                "timestamp": datetime.now().isoformat(),
-                "source": "INEP/ENEM",
-                "filters": {
-                    "state": state_code,
-                    "year": year or "latest"
-                },
-                "dataset_info": data.get("result", {}),
-                "note": "ENEM microdata available as large CSV files"
-            }
-
-            self.logger.info("Fetched ENEM results")
-            return result
-
-        except Exception as e:
-            self.logger.error(f"Error fetching ENEM results: {e}")
-            raise
+        self.logger.info("Fetched ENEM results")
+        return result
 
     @cache_with_ttl(ttl_seconds=3600)
     async def get_school_infrastructure(
@@ -343,35 +391,27 @@ class INEPClient:
             - Sports facilities
             - Accessibility features
         """
-        try:
-            self.logger.info(f"Fetching school infrastructure: state={state_code}, municipality={municipality_code}")
+        self.logger.info(f"Fetching school infrastructure: state={state_code}, municipality={municipality_code}")
 
-            dataset_id = self.DATASETS["schools"]
-            url = f"{self.DADOS_GOV_URL}/package_show"
-            params = {"id": dataset_id}
+        dataset_id = self.DATASETS["schools"]
+        url = f"{self.DADOS_GOV_URL}/package_show"
+        params = {"id": dataset_id}
 
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
+        data = await self._make_request(url, params=params)
 
-            data = response.json()
+        result = {
+            "timestamp": datetime.now().isoformat(),
+            "source": "INEP/Censo Escolar - Escolas",
+            "filters": {
+                "state": state_code,
+                "municipality": municipality_code
+            },
+            "dataset_info": data.get("result", {}),
+            "note": "School-level infrastructure data in census microdata"
+        }
 
-            result = {
-                "timestamp": datetime.now().isoformat(),
-                "source": "INEP/Censo Escolar - Escolas",
-                "filters": {
-                    "state": state_code,
-                    "municipality": municipality_code
-                },
-                "dataset_info": data.get("result", {}),
-                "note": "School-level infrastructure data in census microdata"
-            }
-
-            self.logger.info("Fetched school infrastructure data")
-            return result
-
-        except Exception as e:
-            self.logger.error(f"Error fetching school infrastructure: {e}")
-            raise
+        self.logger.info("Fetched school infrastructure data")
+        return result
 
     @cache_with_ttl(ttl_seconds=7200)
     async def get_teacher_statistics(
@@ -393,35 +433,27 @@ class INEPClient:
             - Subject areas
             - Employment status
         """
-        try:
-            self.logger.info(f"Fetching teacher statistics: state={state_code}, municipality={municipality_code}")
+        self.logger.info(f"Fetching teacher statistics: state={state_code}, municipality={municipality_code}")
 
-            dataset_id = self.DATASETS["teachers"]
-            url = f"{self.DADOS_GOV_URL}/package_show"
-            params = {"id": dataset_id}
+        dataset_id = self.DATASETS["teachers"]
+        url = f"{self.DADOS_GOV_URL}/package_show"
+        params = {"id": dataset_id}
 
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
+        data = await self._make_request(url, params=params)
 
-            data = response.json()
+        result = {
+            "timestamp": datetime.now().isoformat(),
+            "source": "INEP/Censo Escolar - Docentes",
+            "filters": {
+                "state": state_code,
+                "municipality": municipality_code
+            },
+            "dataset_info": data.get("result", {}),
+            "note": "Teacher microdata available in census files"
+        }
 
-            result = {
-                "timestamp": datetime.now().isoformat(),
-                "source": "INEP/Censo Escolar - Docentes",
-                "filters": {
-                    "state": state_code,
-                    "municipality": municipality_code
-                },
-                "dataset_info": data.get("result", {}),
-                "note": "Teacher microdata available in census files"
-            }
-
-            self.logger.info("Fetched teacher statistics")
-            return result
-
-        except Exception as e:
-            self.logger.error(f"Error fetching teacher statistics: {e}")
-            raise
+        self.logger.info("Fetched teacher statistics")
+        return result
 
     async def get_education_indicators(
         self,
@@ -446,38 +478,33 @@ class INEPClient:
             - Infrastructure metrics
             - Teacher statistics
         """
-        try:
-            self.logger.info(f"Fetching education indicators: state={state_code}, municipality={municipality_code}, year={year}")
+        self.logger.info(f"Fetching education indicators: state={state_code}, municipality={municipality_code}, year={year}")
 
-            # Fetch multiple datasets in parallel
-            results = await asyncio.gather(
-                self.get_school_census_data(state_code, municipality_code, year),
-                self.get_ideb_indicators(state_code, municipality_code, year),
-                self.get_school_infrastructure(state_code, municipality_code),
-                self.get_teacher_statistics(state_code, municipality_code),
-                return_exceptions=True
-            )
+        # Fetch multiple datasets in parallel
+        results = await asyncio.gather(
+            self.get_school_census_data(state_code, municipality_code, year),
+            self.get_ideb_indicators(state_code, municipality_code, year),
+            self.get_school_infrastructure(state_code, municipality_code),
+            self.get_teacher_statistics(state_code, municipality_code),
+            return_exceptions=True
+        )
 
-            # Organize results
-            education_data = {
-                "timestamp": datetime.now().isoformat(),
-                "source": "INEP",
-                "location": {
-                    "state": state_code,
-                    "municipality": municipality_code
-                },
-                "year": year or "latest",
-                "school_census": results[0] if not isinstance(results[0], Exception) else None,
-                "ideb": results[1] if not isinstance(results[1], Exception) else None,
-                "infrastructure": results[2] if not isinstance(results[2], Exception) else None,
-                "teachers": results[3] if not isinstance(results[3], Exception) else None,
-                "errors": [str(r) for r in results if isinstance(r, Exception)],
-                "note": "INEP data typically requires downloading microdata files for detailed analysis"
-            }
+        # Organize results
+        education_data = {
+            "timestamp": datetime.now().isoformat(),
+            "source": "INEP",
+            "location": {
+                "state": state_code,
+                "municipality": municipality_code
+            },
+            "year": year or "latest",
+            "school_census": results[0] if not isinstance(results[0], Exception) else None,
+            "ideb": results[1] if not isinstance(results[1], Exception) else None,
+            "infrastructure": results[2] if not isinstance(results[2], Exception) else None,
+            "teachers": results[3] if not isinstance(results[3], Exception) else None,
+            "errors": [str(r) for r in results if isinstance(r, Exception)],
+            "note": "INEP data typically requires downloading microdata files for detailed analysis"
+        }
 
-            self.logger.info("Fetched comprehensive education indicators")
-            return education_data
-
-        except Exception as e:
-            self.logger.error(f"Error fetching education indicators: {e}")
-            raise
+        self.logger.info("Fetched comprehensive education indicators")
+        return education_data
