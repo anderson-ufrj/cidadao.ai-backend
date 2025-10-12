@@ -152,17 +152,25 @@ def exception_from_response(
     """
     exception_class = HTTP_EXCEPTION_MAP.get(status_code, FederalAPIError)
 
-    # Extract retry_after for rate limit errors
-    if status_code == 429 and response_data:
-        retry_after = response_data.get("retry_after")
+    # Special handling for RateLimitError (429) - it defines status_code internally
+    if status_code == 429:
+        retry_after = response_data.get("retry_after") if response_data else None
         return exception_class(
             message,
             api_name=api_name,
-            status_code=status_code,
             response_data=response_data,
             retry_after=retry_after
         )
 
+    # Special handling for NotFoundError (404) - it defines status_code internally
+    if status_code == 404:
+        return exception_class(
+            message,
+            api_name=api_name,
+            response_data=response_data
+        )
+
+    # For all other exceptions, pass status_code
     return exception_class(
         message,
         api_name=api_name,
