@@ -1,28 +1,132 @@
 """
-Unit tests for Drummond Agent - Literary and communication analysis specialist.
+Unit tests for Drummond Communication Agent - Carlos Drummond de Andrade.
+
+Author: Anderson H. Silva
+Date: 2025-10-12
 """
 
 import pytest
-from unittest.mock import AsyncMock
-from src.agents.drummond import DrummondAgent
+from unittest.mock import Mock, patch
+from src.agents.drummond import CommunicationAgent
 from src.agents.deodoro import AgentContext, AgentMessage, AgentStatus
+from src.services.chat_service import Intent, IntentType
+
 
 @pytest.fixture
 def drummond_agent():
-    return DrummondAgent()
+    """Create Drummond agent instance."""
+    return CommunicationAgent()
+
+
+@pytest.fixture
+def context():
+    """Create agent context."""
+    return AgentContext(
+        investigation_id="test-inv",
+        session_id="test-session",
+        user_id="test-user"
+    )
+
 
 class TestDrummondAgent:
+    """Test suite for Drummond Communication Agent."""
+
     @pytest.mark.unit
     def test_agent_initialization(self, drummond_agent):
-        assert drummond_agent.name == "Drummond"
-        assert "communication_analysis" in drummond_agent.capabilities
-    
+        """Test agent initializes correctly."""
+        assert drummond_agent.name == "CommunicationAgent"
+        assert "process_chat" in drummond_agent.capabilities
+        assert "send_notification" in drummond_agent.capabilities
+        assert drummond_agent.communication_config["max_daily_messages_per_user"] == 10
+
     @pytest.mark.unit
-    async def test_communication_analysis(self, drummond_agent):
-        context = AgentContext(investigation_id="comm-test")
-        message = AgentMessage(
-            sender="test", recipient="Drummond", action="analyze_communication",
-            payload={"document_id": "doc_001"}
+    @pytest.mark.asyncio
+    async def test_generate_greeting_morning(self, drummond_agent):
+        """Test morning greeting generation."""
+        with patch('src.agents.drummond.datetime') as mock_dt:
+            mock_dt.now.return_value = Mock(hour=9)
+
+            greeting = await drummond_agent.generate_greeting()
+
+            assert "content" in greeting
+            assert "metadata" in greeting
+            assert len(greeting["content"]) > 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_handle_smalltalk(self, drummond_agent):
+        """Test smalltalk handling."""
+        response = await drummond_agent.handle_smalltalk("Como está o tempo?")
+
+        assert "content" in response
+        assert "metadata" in response
+        assert response["metadata"]["style"] == "poetic_philosophical"
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_explain_system(self, drummond_agent):
+        """Test system explanation."""
+        explanation = await drummond_agent.explain_system()
+
+        assert "content" in explanation
+        assert "Cidadão.AI" in explanation["content"]
+        assert "metadata" in explanation
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_determine_handoff_investigate(self, drummond_agent):
+        """Test handoff determination for investigation."""
+        intent = Intent(
+            type=IntentType.INVESTIGATE,
+            confidence=0.9,
+            entities={},
+            suggested_agent="zumbi"
         )
-        response = await drummond_agent.process(message, context)
-        assert response.status == AgentStatus.COMPLETED
+
+        handoff = await drummond_agent.determine_handoff(intent)
+
+        assert handoff == "zumbi"
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_chat_greeting(self, drummond_agent):
+        """Test processing conversational greeting."""
+        from src.memory.conversational import ConversationContext
+        from src.services.chat_service import Intent, IntentType
+
+        conv_context = ConversationContext(
+            session_id="test-session",
+            user_id="test-user"
+        )
+
+        intent = Intent(
+            type=IntentType.GREETING,
+            confidence=0.95,
+            entities={},
+            suggested_agent="drummond"
+        )
+
+        response = await drummond_agent.process_conversation(
+            message="Oi",
+            context=conv_context,
+            intent=intent
+        )
+
+        assert "content" in response
+        assert len(response["content"]) > 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_initialize(self, drummond_agent):
+        """Test agent initialization."""
+        await drummond_agent.initialize()
+
+        assert "corruption_alert" in drummond_agent.message_templates
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_shutdown(self, drummond_agent):
+        """Test agent shutdown."""
+        await drummond_agent.shutdown()
+
+        assert len(drummond_agent.communication_history) == 0
