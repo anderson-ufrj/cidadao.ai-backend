@@ -22,6 +22,8 @@ import httpx
 from pydantic import BaseModel, Field as PydanticField
 
 from src.core import get_logger
+from .exceptions import NetworkError, TimeoutError, ServerError, exception_from_response
+from .retry import retry_with_backoff
 
 
 logger = get_logger(__name__)
@@ -127,6 +129,84 @@ class IBGEClient:
         """Async context manager exit."""
         await self.close()
 
+    @retry_with_backoff(max_attempts=3, base_delay=1.0, max_delay=30.0)
+    async def _make_request(self, url: str, method: str = "GET", **kwargs) -> Dict[str, Any]:
+        """
+        Make HTTP request with automatic retry and error handling.
+
+        Args:
+            url: Request URL
+            method: HTTP method (GET, POST, etc)
+            **kwargs: Additional arguments for httpx request
+
+        Returns:
+            JSON response data
+
+        Raises:
+            NetworkError: On connection/network issues
+            TimeoutError: On request timeout
+            ServerError: On server errors (5xx)
+            FederalAPIError: On other API errors
+        """
+        try:
+            self.logger.debug(f"Making {method} request to {url}")
+
+            if method.upper() == "GET":
+                response = await self.client.get(url, **kwargs)
+            elif method.upper() == "POST":
+                response = await self.client.post(url, **kwargs)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+
+            # Check for HTTP errors
+            if response.status_code >= 500:
+                error_msg = f"Server error: {response.status_code}"
+                raise ServerError(
+                    error_msg,
+                    api_name="IBGE",
+                    status_code=response.status_code,
+                    response_data={"url": url}
+                )
+            elif response.status_code >= 400:
+                error_msg = f"Client error: {response.status_code}"
+                raise exception_from_response(
+                    response.status_code,
+                    error_msg,
+                    api_name="IBGE",
+                    response_data={"url": url}
+                )
+
+            # Parse JSON response
+            try:
+                data = response.json()
+                return data
+            except Exception as e:
+                self.logger.error(f"Failed to parse JSON response: {e}")
+                raise
+
+        except httpx.TimeoutException as e:
+            self.logger.error(f"Request timeout: {url}")
+            raise TimeoutError(
+                f"Request timed out",
+                api_name="IBGE",
+                timeout_seconds=self.timeout,
+                original_error=e
+            )
+        except httpx.NetworkError as e:
+            self.logger.error(f"Network error: {url}")
+            raise NetworkError(
+                f"Network error: {str(e)}",
+                api_name="IBGE",
+                original_error=e
+            )
+        except (ServerError, TimeoutError, NetworkError):
+            # Re-raise our custom exceptions as-is (they'll be caught by retry decorator)
+            raise
+        except Exception as e:
+            # Catch-all for unexpected errors
+            self.logger.error(f"Unexpected error in _make_request: {e}", exc_info=True)
+            raise
+
     @cache_with_ttl(ttl_seconds=86400)  # 24 hours cache
     async def get_municipalities(self, state_id: Optional[str] = None) -> List[IBGELocation]:
         """
@@ -138,26 +218,18 @@ class IBGEClient:
         Returns:
             List of municipalities
         """
-        try:
-            if state_id:
-                url = f"{self.LOCALIDADES_URL}/estados/{state_id}/municipios"
-            else:
-                url = f"{self.LOCALIDADES_URL}/municipios"
+        if state_id:
+            url = f"{self.LOCALIDADES_URL}/estados/{state_id}/municipios"
+        else:
+            url = f"{self.LOCALIDADES_URL}/municipios"
 
-            self.logger.info(f"Fetching municipalities: state_id={state_id}")
+        self.logger.info(f"Fetching municipalities: state_id={state_id}")
 
-            response = await self.client.get(url)
-            response.raise_for_status()
+        data = await self._make_request(url)
+        municipalities = [IBGELocation(**m) for m in data]
 
-            data = response.json()
-            municipalities = [IBGELocation(**m) for m in data]
-
-            self.logger.info(f"Fetched {len(municipalities)} municipalities")
-            return municipalities
-
-        except Exception as e:
-            self.logger.error(f"Error fetching municipalities: {e}")
-            raise
+        self.logger.info(f"Fetched {len(municipalities)} municipalities")
+        return municipalities
 
     @cache_with_ttl(ttl_seconds=86400)  # 24 hours cache
     async def get_states(self) -> List[IBGELocation]:
@@ -167,23 +239,15 @@ class IBGEClient:
         Returns:
             List of states
         """
-        try:
-            url = f"{self.LOCALIDADES_URL}/estados"
+        url = f"{self.LOCALIDADES_URL}/estados"
 
-            self.logger.info("Fetching states")
+        self.logger.info("Fetching states")
 
-            response = await self.client.get(url)
-            response.raise_for_status()
+        data = await self._make_request(url)
+        states = [IBGELocation(**s) for s in data]
 
-            data = response.json()
-            states = [IBGELocation(**s) for s in data]
-
-            self.logger.info(f"Fetched {len(states)} states")
-            return states
-
-        except Exception as e:
-            self.logger.error(f"Error fetching states: {e}")
-            raise
+        self.logger.info(f"Fetched {len(states)} states")
+        return states
 
     @cache_with_ttl(ttl_seconds=3600)  # 1 hour cache
     async def get_population(
@@ -201,33 +265,25 @@ class IBGEClient:
         Returns:
             Population data
         """
-        try:
-            # População estimada (agregado 6579)
-            url = f"{self.AGREGADOS_URL}/6579/periodos"
+        # População estimada (agregado 6579)
+        url = f"{self.AGREGADOS_URL}/6579/periodos"
 
-            if year:
-                url += f"/{year}"
-            else:
-                url += "/all"
+        if year:
+            url += f"/{year}"
+        else:
+            url += "/all"
 
-            if location_id:
-                url += f"/variaveis/9324?localidades=N6[{location_id}]"
-            else:
-                url += "/variaveis/9324?localidades=N1[all]"
+        if location_id:
+            url += f"/variaveis/9324?localidades=N6[{location_id}]"
+        else:
+            url += "/variaveis/9324?localidades=N1[all]"
 
-            self.logger.info(f"Fetching population: location={location_id}, year={year}")
+        self.logger.info(f"Fetching population: location={location_id}, year={year}")
 
-            response = await self.client.get(url)
-            response.raise_for_status()
+        data = await self._make_request(url)
 
-            data = response.json()
-
-            self.logger.info(f"Fetched population data")
-            return data
-
-        except Exception as e:
-            self.logger.error(f"Error fetching population: {e}")
-            raise
+        self.logger.info("Fetched population data")
+        return data
 
     @cache_with_ttl(ttl_seconds=3600)
     async def get_demographic_data(
