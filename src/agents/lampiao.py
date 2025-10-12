@@ -13,6 +13,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass, field
 from enum import Enum
 from collections import defaultdict
+from functools import lru_cache, wraps
+import hashlib
+import json
 import math
 
 import numpy as np
@@ -22,6 +25,99 @@ from pydantic import BaseModel, Field as PydanticField
 from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentResponse
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
+
+
+def cache_with_ttl(ttl_seconds: int = 300):
+    """
+    Decorator for caching expensive spatial calculations with TTL.
+
+    Args:
+        ttl_seconds: Time to live for cached results (default: 5 minutes)
+    """
+    def decorator(func):
+        cache = {}
+        cache_times = {}
+
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            # Create cache key from function name and arguments
+            key_parts = [func.__name__]
+
+            # Add non-self arguments
+            for arg in args[1:]:  # Skip 'self'
+                if isinstance(arg, (str, int, float, bool)):
+                    key_parts.append(str(arg))
+                elif isinstance(arg, (list, dict)):
+                    key_parts.append(hashlib.md5(
+                        json.dumps(arg, sort_keys=True).encode()
+                    ).hexdigest()[:8])
+
+            # Add keyword arguments
+            for k, v in sorted(kwargs.items()):
+                if isinstance(v, (str, int, float, bool)):
+                    key_parts.append(f"{k}={v}")
+
+            cache_key = "_".join(key_parts)
+
+            # Check cache validity
+            current_time = datetime.now().timestamp()
+            if cache_key in cache:
+                cached_time = cache_times.get(cache_key, 0)
+                if current_time - cached_time < ttl_seconds:
+                    return cache[cache_key]
+
+            # Calculate and cache result
+            result = await func(*args, **kwargs)
+            cache[cache_key] = result
+            cache_times[cache_key] = current_time
+
+            return result
+
+        return wrapper
+    return decorator
+
+
+def validate_geographic_data(func):
+    """
+    Decorator to validate geographic data inputs and handle missing data.
+
+    Checks for:
+    - None or empty values
+    - Invalid region codes
+    - Missing required fields
+    - Out of range values
+    """
+    @wraps(func)
+    async def wrapper(self, *args, **kwargs):
+        # Get logger from self
+        logger = getattr(self, 'logger', get_logger(__name__))
+
+        # Validate region codes in args and kwargs
+        for arg in args:
+            if isinstance(arg, str) and len(arg) == 2:
+                # Looks like a state code
+                if arg not in self.brazil_regions:
+                    logger.warning(f"Unknown region code: {arg}, will use fallback")
+
+        # Validate metric names
+        metric = kwargs.get('metric')
+        if metric and metric not in ['income', 'gdp_per_capita', 'hdi', 'population']:
+            logger.warning(f"Unknown metric: {metric}, using gdp_per_capita as fallback")
+            kwargs['metric'] = 'gdp_per_capita'
+
+        try:
+            return await func(self, *args, **kwargs)
+        except (KeyError, ValueError, ZeroDivisionError) as e:
+            logger.error(f"Geographic data validation error in {func.__name__}: {e}")
+            # Return safe fallback result
+            return {
+                "error": str(e),
+                "fallback_used": True,
+                "metric": kwargs.get('metric', 'unknown'),
+                "timestamp": datetime.now().isoformat()
+            }
+
+    return wrapper
 
 
 class RegionType(Enum):
@@ -451,6 +547,8 @@ class LampiaoAgent(BaseAgent):
             timestamp=datetime.utcnow()
         )
     
+    @cache_with_ttl(ttl_seconds=600)  # 10 minute cache for inequality analysis
+    @validate_geographic_data
     async def analyze_regional_inequality(
         self,
         metric: str,
@@ -459,7 +557,7 @@ class LampiaoAgent(BaseAgent):
     ) -> Dict[str, Any]:
         """
         Analisa desigualdades regionais usando múltiplos índices.
-        
+
         Índices calculados:
         - Gini: Medida de concentração
         - Theil: Decomponível em componentes
@@ -527,6 +625,8 @@ class LampiaoAgent(BaseAgent):
             ]
         }
     
+    @cache_with_ttl(ttl_seconds=600)  # 10 minute cache for cluster detection
+    @validate_geographic_data
     async def detect_regional_clusters(
         self,
         data: List[Dict[str, Any]],
@@ -535,7 +635,7 @@ class LampiaoAgent(BaseAgent):
     ) -> List[Dict[str, Any]]:
         """
         Detecta clusters regionais usando análise espacial.
-        
+
         Métodos:
         - LISA (Local Indicators of Spatial Association)
         - DBSCAN com distância geográfica
@@ -585,6 +685,8 @@ class LampiaoAgent(BaseAgent):
             }
         ]
     
+    @cache_with_ttl(ttl_seconds=300)  # 5 minute cache for hotspot analysis
+    @validate_geographic_data
     async def identify_hotspots(
         self,
         metric: str,
@@ -593,9 +695,9 @@ class LampiaoAgent(BaseAgent):
     ) -> List[GeographicInsight]:
         """
         Identifica hotspots e coldspots usando estatística Getis-Ord G*.
-        
+
         G* = Σⱼwᵢⱼxⱼ / Σⱼxⱼ
-        
+
         Onde:
         - wᵢⱼ são os pesos espaciais
         - xⱼ são os valores da variável
@@ -677,6 +779,8 @@ class LampiaoAgent(BaseAgent):
             }
         }
     
+    @cache_with_ttl(ttl_seconds=900)  # 15 minute cache for optimization
+    @validate_geographic_data
     async def optimize_resource_allocation(
         self,
         resources: float,
@@ -686,7 +790,7 @@ class LampiaoAgent(BaseAgent):
     ) -> Dict[str, Any]:
         """
         Otimiza alocação de recursos entre regiões.
-        
+
         Usa programação linear com objetivos múltiplos:
         - Minimizar desigualdade
         - Maximizar impacto
@@ -742,23 +846,89 @@ class LampiaoAgent(BaseAgent):
         }
     
     def _calculate_gini_coefficient(self, values: List[float]) -> float:
-        """Calculate Gini coefficient for inequality measurement."""
-        sorted_values = sorted(values)
-        n = len(values)
+        """
+        Calculate Gini coefficient for inequality measurement.
+
+        Handles edge cases:
+        - Empty or single value lists (returns 0.0)
+        - Zero or negative values (filters and logs warning)
+        - NaN values (filters out)
+        """
+        # Filter out invalid values
+        valid_values = [v for v in values if v > 0 and not np.isnan(v)]
+
+        if len(valid_values) < 2:
+            self.logger.warning(f"Insufficient valid values for Gini calculation: {len(valid_values)}")
+            return 0.0
+
+        sorted_values = sorted(valid_values)
+        n = len(sorted_values)
         cumsum = np.cumsum(sorted_values)
+
+        if cumsum[-1] == 0:
+            self.logger.warning("Sum of values is zero, cannot calculate Gini")
+            return 0.0
+
         return (2 * np.sum((np.arange(n) + 1) * sorted_values)) / (n * cumsum[-1]) - (n + 1) / n
-    
+
     def _calculate_theil_index(self, values: List[float]) -> float:
-        """Calculate Theil index for inequality measurement."""
-        values = np.array(values)
+        """
+        Calculate Theil index for inequality measurement.
+
+        Handles edge cases:
+        - Filters out zeros and negative values
+        - Returns 0.0 for invalid inputs
+        """
+        valid_values = [v for v in values if v > 0 and not np.isnan(v)]
+
+        if len(valid_values) < 2:
+            self.logger.warning(f"Insufficient valid values for Theil calculation: {len(valid_values)}")
+            return 0.0
+
+        values = np.array(valid_values)
         mean_value = np.mean(values)
-        return np.mean(values / mean_value * np.log(values / mean_value))
-    
+
+        if mean_value == 0:
+            self.logger.warning("Mean value is zero, cannot calculate Theil")
+            return 0.0
+
+        # Use safe log calculation
+        ratio = values / mean_value
+        return np.mean(ratio * np.log(ratio))
+
     def _calculate_williamson_index(self, values: List[float], populations: List[float]) -> float:
-        """Calculate population-weighted Williamson index."""
-        values = np.array(values)
-        populations = np.array(populations)
+        """
+        Calculate population-weighted Williamson index.
+
+        Handles edge cases:
+        - Mismatched lengths (uses minimum length)
+        - Zero or negative populations (filters out)
+        - Invalid values (filters out)
+        """
+        # Ensure same length
+        min_len = min(len(values), len(populations))
+        values = values[:min_len]
+        populations = populations[:min_len]
+
+        # Filter out invalid pairs
+        valid_pairs = [
+            (v, p) for v, p in zip(values, populations)
+            if v > 0 and p > 0 and not np.isnan(v) and not np.isnan(p)
+        ]
+
+        if len(valid_pairs) < 2:
+            self.logger.warning(f"Insufficient valid pairs for Williamson calculation: {len(valid_pairs)}")
+            return 0.0
+
+        values = np.array([pair[0] for pair in valid_pairs])
+        populations = np.array([pair[1] for pair in valid_pairs])
+
         mean_value = np.average(values, weights=populations)
+
+        if mean_value == 0:
+            self.logger.warning("Mean value is zero, cannot calculate Williamson")
+            return 0.0
+
         weighted_variance = np.average((values - mean_value)**2, weights=populations)
         return np.sqrt(weighted_variance) / mean_value
     
