@@ -42,8 +42,7 @@ from .dandara import DandaraAgent
 from .machado import MachadoAgent
 from .obaluaie import CorruptionDetectorAgent
 from .oxossi import OxossiAgent
-# Commenting out drummond import to avoid import-time issues on HuggingFace Spaces
-# from .drummond import CommunicationAgent
+from .drummond import CommunicationAgent
 from .agent_pool import agent_pool, get_agent_pool
 
 __all__ = [
@@ -72,9 +71,9 @@ __all__ = [
     "OxossiAgent",
     # Agent aliases
     "ZumbiAgent",
-    "AnitaAgent", 
+    "AnitaAgent",
     "TiradentesAgent",
-    # "CommunicationAgent",  # Commented out to avoid import issues
+    "CommunicationAgent",
     # Memory Agent
     "ContextMemoryAgent",
     "MemoryEntry",

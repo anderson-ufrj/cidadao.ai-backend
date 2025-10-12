@@ -525,6 +525,33 @@ class MaritacaClient:
                     }
                 )
     
+    async def chat(
+        self,
+        messages: List[Union[MaritacaMessage, Dict[str, str]]],
+        **kwargs
+    ) -> MaritacaResponse:
+        """
+        Simplified chat method that accepts MaritacaMessage objects or dicts.
+
+        Args:
+            messages: List of MaritacaMessage objects or dicts with role/content
+            **kwargs: Additional parameters passed to chat_completion
+
+        Returns:
+            MaritacaResponse with generated content
+        """
+        # Convert MaritacaMessage objects to dicts if needed
+        msg_dicts = []
+        for msg in messages:
+            if isinstance(msg, MaritacaMessage):
+                msg_dicts.append({"role": msg.role, "content": msg.content})
+            elif isinstance(msg, dict):
+                msg_dicts.append(msg)
+            else:
+                raise ValueError(f"Invalid message type: {type(msg)}")
+
+        return await self.chat_completion(messages=msg_dicts, **kwargs)
+
     async def health_check(self) -> Dict[str, Any]:
         """
         Check Maritaca AI API health.

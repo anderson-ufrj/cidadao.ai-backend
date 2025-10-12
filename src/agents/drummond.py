@@ -10,7 +10,7 @@ License: Proprietary - All rights reserved
 import asyncio
 from src.core import json_utils
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union, TYPE_CHECKING
 from dataclasses import dataclass
 from enum import Enum
 
@@ -21,9 +21,11 @@ from pydantic import BaseModel, Field as PydanticField
 from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentResponse, AgentStatus
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
-from src.services.chat_service import IntentType, Intent
 from src.memory.conversational import ConversationalMemory, ConversationContext
 from src.services.maritaca_client import MaritacaClient, MaritacaModel, MaritacaMessage
+
+if TYPE_CHECKING:
+    from src.services.chat_service import IntentType, Intent
 
 
 class CommunicationChannel(Enum):
@@ -473,11 +475,11 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         self,
         message: str,
         context: ConversationContext,
-        intent: Optional[Intent] = None
+        intent: Optional["Intent"] = None
     ) -> Dict[str, Any]:
         """
         Processa mensagem conversacional com contexto.
-        
+
         PIPELINE CONVERSACIONAL:
         1. Análise de contexto e histórico
         2. Detecção de sentimento e tom
@@ -485,14 +487,16 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         4. Decisão de handoff se necessário
         5. Atualização de memória conversacional
         """
+        from src.services.chat_service import IntentType
+
         self.logger.info(f"Processing conversational message: {message[:50]}...")
-        
+
         # Atualizar contexto conversacional
         await self.conversational_memory.add_message(
             role="user",
             content=message
         )
-        
+
         # Determinar tipo de resposta baseado no intent
         if intent:
             if intent.type == IntentType.GREETING:
@@ -750,11 +754,13 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
             "metadata": {"type": "contextual", "fallback": True}
         }
     
-    async def determine_handoff(self, intent: Optional[Intent]) -> Optional[str]:
+    async def determine_handoff(self, intent: Optional["Intent"]) -> Optional[str]:
         """Decide quando passar para agente especializado."""
+        from src.services.chat_service import IntentType
+
         if not intent:
             return None
-        
+
         # Task-specific intents that need handoff
         handoff_mapping = {
             IntentType.INVESTIGATE: "zumbi",
@@ -781,6 +787,8 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
             
             # Handle conversational messages
             if action == "process_chat":
+                from src.services.chat_service import Intent
+
                 user_message = payload.get("user_message", "")
                 intent_data = payload.get("intent", {})
                 intent = Intent(**intent_data) if isinstance(intent_data, dict) else None
