@@ -1,0 +1,427 @@
+"""
+DataSUS API Client
+
+Client for Brazilian Health Ministry (DataSUS) data.
+Provides access to health statistics, hospital data, and public health indicators.
+
+API Documentation: https://opendatasus.saude.gov.br/
+
+Author: Anderson Henrique da Silva
+Created: 2025-10-12
+License: Proprietary - All rights reserved
+"""
+
+import asyncio
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+from functools import wraps
+import hashlib
+import json
+
+import httpx
+from pydantic import BaseModel, Field as Pydanticiel
+
+from src.core import get_logger
+
+
+logger = get_logger(__name__)
+
+
+def cache_with_ttl(ttl_seconds: int = 3600):
+    """Decorator for caching DataSUS API calls with TTL."""
+    def decorator(func):
+        cache = {}
+        cache_times = {}
+
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            # Create cache key
+            key_parts = [func.__name__]
+
+            for arg in args[1:]:  # Skip 'self'
+                if isinstance(arg, (str, int, float, bool)):
+                    key_parts.append(str(arg))
+                elif isinstance(arg, (list, dict)):
+                    key_parts.append(hashlib.md5(
+                        json.dumps(arg, sort_keys=True).encode()
+                    ).hexdigest()[:8])
+
+            cache_key = "_".join(key_parts)
+
+            # Check cache validity
+            current_time = datetime.now().timestamp()
+            if cache_key in cache:
+                cached_time = cache_times.get(cache_key, 0)
+                if current_time - cached_time < ttl_seconds:
+                    logger.debug(f"DataSUS cache hit: {cache_key}")
+                    return cache[cache_key]
+
+            # Calculate and cache result
+            result = await func(*args, **kwargs)
+            cache[cache_key] = result
+            cache_times[cache_key] = current_time
+
+            return result
+
+        return wrapper
+    return decorator
+
+
+class DataSUSIndicator(BaseModel):
+    """DataSUS health indicator."""
+    code: str
+    name: str
+    category: str
+    unit: Optional[str] = None
+
+
+class DataSUSClient:
+    """
+    Client for DataSUS (Brazilian Health Ministry) API.
+
+    Provides access to:
+    - Mortality data (SIM - Sistema de Informação sobre Mortalidade)
+    - Hospital admissions (SIH - Sistema de Informação Hospitalar)
+    - Primary care data (e-SUS APS)
+    - Vaccination data (SI-PNI)
+    - Disease notification (SINAN)
+    - Health infrastructure (CNES - Cadastro Nacional de Estabelecimentos de Saúde)
+    """
+
+    OPENDATASUS_URL = "https://opendatasus.saude.gov.br/api/3/action"
+    CNES_URL = "http://cnes.datasus.gov.br/pages/estabelecimentos/extracao.jsp"
+
+    # Major health datasets on OpenDataSUS
+    DATASETS = {
+        "mortality": "sim-do",  # Sistema de Informação sobre Mortalidade - Declaração de Óbito
+        "hospital_admissions": "sih-rd",  # Sistema de Informação Hospitalar
+        "primary_care": "esus-notifica",  # e-SUS Notifica
+        "vaccination": "si-pni",  # Sistema de Informação do Programa Nacional de Imunizações
+        "health_facilities": "cnes",  # Cadastro Nacional de Estabelecimentos de Saúde
+        "covid19": "covid-19-vacinacao",  # COVID-19 vaccination data
+    }
+
+    def __init__(self, timeout: int = 30):
+        """
+        Initialize DataSUS API client.
+
+        Args:
+            timeout: Request timeout in seconds
+        """
+        self.timeout = timeout
+        self.client = httpx.AsyncClient(
+            timeout=httpx.Timeout(timeout),
+            limits=httpx.Limits(max_keepalive_connections=10, max_connections=20),
+        )
+        self.logger = get_logger(__name__)
+
+        self.logger.info("DataSUS API client initialized")
+
+    async def close(self) -> None:
+        """Close HTTP client."""
+        await self.client.aclose()
+
+    async def __aenter__(self):
+        """Async context manager entry."""
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit."""
+        await self.close()
+
+    @cache_with_ttl(ttl_seconds=86400)  # 24 hours cache
+    async def search_datasets(self, query: str, limit: int = 100) -> Dict[str, Any]:
+        """
+        Search for datasets in OpenDataSUS.
+
+        Args:
+            query: Search query
+            limit: Maximum results
+
+        Returns:
+            Dataset search results
+        """
+        try:
+            url = f"{self.OPENDATASUS_URL}/package_search"
+            params = {
+                "q": query,
+                "rows": limit
+            }
+
+            self.logger.info(f"Searching DataSUS datasets: query={query}")
+
+            response = await self.client.get(url, params=params)
+            response.raise_for_status()
+
+            data = response.json()
+
+            self.logger.info(f"Found {data.get('result', {}).get('count', 0)} datasets")
+            return data
+
+        except Exception as e:
+            self.logger.error(f"Error searching datasets: {e}")
+            raise
+
+    @cache_with_ttl(ttl_seconds=7200)  # 2 hours cache
+    async def get_health_facilities(
+        self,
+        state_code: Optional[str] = None,
+        municipality_code: Optional[str] = None,
+        facility_type: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Get health facilities data from CNES.
+
+        Args:
+            state_code: Two-letter state code (e.g., "RJ", "SP")
+            municipality_code: IBGE municipality code
+            facility_type: Type of facility (hospital, clinic, etc.)
+
+        Returns:
+            Health facilities data
+        """
+        try:
+            # Note: CNES API is complex and often requires form-based access
+            # This is a simplified version - real implementation may need web scraping
+
+            self.logger.info(f"Fetching health facilities: state={state_code}, municipality={municipality_code}")
+
+            # Try to get data from OpenDataSUS CNES dataset
+            dataset_id = self.DATASETS["health_facilities"]
+            url = f"{self.OPENDATASUS_URL}/package_show"
+            params = {"id": dataset_id}
+
+            response = await self.client.get(url, params=params)
+            response.raise_for_status()
+
+            data = response.json()
+
+            # Filter by location if specified
+            result = {
+                "timestamp": datetime.now().isoformat(),
+                "source": "DataSUS/CNES",
+                "filters": {
+                    "state": state_code,
+                    "municipality": municipality_code,
+                    "facility_type": facility_type
+                },
+                "data": data.get("result", {}),
+                "note": "CNES data requires additional processing for specific locations"
+            }
+
+            self.logger.info("Fetched health facilities data")
+            return result
+
+        except Exception as e:
+            self.logger.error(f"Error fetching health facilities: {e}")
+            # Return simulated structure with error
+            return {
+                "timestamp": datetime.now().isoformat(),
+                "source": "DataSUS/CNES",
+                "error": str(e),
+                "note": "CNES API requires form-based access - using fallback data structure"
+            }
+
+    @cache_with_ttl(ttl_seconds=3600)  # 1 hour cache
+    async def get_mortality_statistics(
+        self,
+        state_code: Optional[str] = None,
+        year: Optional[int] = None,
+        cause_category: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Get mortality statistics from SIM.
+
+        Args:
+            state_code: State code
+            year: Year for data
+            cause_category: Disease category (CID-10)
+
+        Returns:
+            Mortality data including:
+            - Deaths by cause
+            - Deaths by age group
+            - Deaths by location
+        """
+        try:
+            self.logger.info(f"Fetching mortality data: state={state_code}, year={year}")
+
+            # Get SIM dataset
+            dataset_id = self.DATASETS["mortality"]
+            url = f"{self.OPENDATASUS_URL}/package_show"
+            params = {"id": dataset_id}
+
+            response = await self.client.get(url, params=params)
+            response.raise_for_status()
+
+            data = response.json()
+
+            result = {
+                "timestamp": datetime.now().isoformat(),
+                "source": "DataSUS/SIM",
+                "filters": {
+                    "state": state_code,
+                    "year": year,
+                    "cause_category": cause_category
+                },
+                "dataset_info": data.get("result", {}),
+                "note": "Full mortality data requires downloading CSV files from resources"
+            }
+
+            self.logger.info("Fetched mortality statistics")
+            return result
+
+        except Exception as e:
+            self.logger.error(f"Error fetching mortality statistics: {e}")
+            raise
+
+    @cache_with_ttl(ttl_seconds=3600)
+    async def get_hospital_admissions(
+        self,
+        state_code: Optional[str] = None,
+        year: Optional[int] = None,
+        procedure_category: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Get hospital admission statistics from SIH.
+
+        Args:
+            state_code: State code
+            year: Year for data
+            procedure_category: Medical procedure category
+
+        Returns:
+            Hospital admission data
+        """
+        try:
+            self.logger.info(f"Fetching hospital admissions: state={state_code}, year={year}")
+
+            dataset_id = self.DATASETS["hospital_admissions"]
+            url = f"{self.OPENDATASUS_URL}/package_show"
+            params = {"id": dataset_id}
+
+            response = await self.client.get(url, params=params)
+            response.raise_for_status()
+
+            data = response.json()
+
+            result = {
+                "timestamp": datetime.now().isoformat(),
+                "source": "DataSUS/SIH",
+                "filters": {
+                    "state": state_code,
+                    "year": year,
+                    "procedure_category": procedure_category
+                },
+                "dataset_info": data.get("result", {}),
+                "note": "Full admission data requires downloading files from resources"
+            }
+
+            self.logger.info("Fetched hospital admissions data")
+            return result
+
+        except Exception as e:
+            self.logger.error(f"Error fetching hospital admissions: {e}")
+            raise
+
+    @cache_with_ttl(ttl_seconds=7200)
+    async def get_vaccination_data(
+        self,
+        state_code: Optional[str] = None,
+        vaccine_type: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Get vaccination coverage data from SI-PNI.
+
+        Args:
+            state_code: State code
+            vaccine_type: Type of vaccine
+
+        Returns:
+            Vaccination coverage data
+        """
+        try:
+            self.logger.info(f"Fetching vaccination data: state={state_code}, vaccine={vaccine_type}")
+
+            dataset_id = self.DATASETS["vaccination"]
+            url = f"{self.OPENDATASUS_URL}/package_show"
+            params = {"id": dataset_id}
+
+            response = await self.client.get(url, params=params)
+            response.raise_for_status()
+
+            data = response.json()
+
+            result = {
+                "timestamp": datetime.now().isoformat(),
+                "source": "DataSUS/SI-PNI",
+                "filters": {
+                    "state": state_code,
+                    "vaccine_type": vaccine_type
+                },
+                "dataset_info": data.get("result", {}),
+                "note": "Vaccination data available in dataset resources"
+            }
+
+            self.logger.info("Fetched vaccination data")
+            return result
+
+        except Exception as e:
+            self.logger.error(f"Error fetching vaccination data: {e}")
+            raise
+
+    async def get_health_indicators(
+        self,
+        state_code: Optional[str] = None,
+        municipality_code: Optional[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Get comprehensive health indicators for a location.
+
+        This is the main method for Dandara agent integration.
+
+        Args:
+            state_code: State code
+            municipality_code: Municipality code
+
+        Returns:
+            Comprehensive health indicators including:
+            - Health facility coverage
+            - Mortality rates
+            - Hospital admission rates
+            - Vaccination coverage
+        """
+        try:
+            self.logger.info(f"Fetching health indicators: state={state_code}, municipality={municipality_code}")
+
+            # Fetch multiple datasets in parallel
+            results = await asyncio.gather(
+                self.get_health_facilities(state_code, municipality_code),
+                self.get_mortality_statistics(state_code),
+                self.get_hospital_admissions(state_code),
+                self.get_vaccination_data(state_code),
+                return_exceptions=True
+            )
+
+            # Organize results
+            health_data = {
+                "timestamp": datetime.now().isoformat(),
+                "source": "DataSUS",
+                "location": {
+                    "state": state_code,
+                    "municipality": municipality_code
+                },
+                "health_facilities": results[0] if not isinstance(results[0], Exception) else None,
+                "mortality": results[1] if not isinstance(results[1], Exception) else None,
+                "hospital_admissions": results[2] if not isinstance(results[2], Exception) else None,
+                "vaccination": results[3] if not isinstance(results[3], Exception) else None,
+                "errors": [str(r) for r in results if isinstance(r, Exception)],
+                "note": "DataSUS data often requires downloading CSV files for detailed analysis"
+            }
+
+            self.logger.info("Fetched comprehensive health indicators")
+            return health_data
+
+        except Exception as e:
+            self.logger.error(f"Error fetching health indicators: {e}")
+            raise
