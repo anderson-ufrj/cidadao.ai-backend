@@ -19,9 +19,11 @@ import hashlib
 import json
 
 import httpx
-from pydantic import BaseModel, Field as Pydanticiel
+from pydantic import BaseModel, Field as PydanticField
 
 from src.core import get_logger
+from .exceptions import NetworkError, TimeoutError, ServerError, exception_from_response
+from .retry import retry_with_backoff
 
 
 logger = get_logger(__name__)
@@ -129,6 +131,84 @@ class DataSUSClient:
         """Async context manager exit."""
         await self.close()
 
+    @retry_with_backoff(max_attempts=3, base_delay=1.0, max_delay=30.0)
+    async def _make_request(self, url: str, method: str = "GET", **kwargs) -> Dict[str, Any]:
+        """
+        Make HTTP request with automatic retry and error handling.
+
+        Args:
+            url: Request URL
+            method: HTTP method (GET, POST, etc)
+            **kwargs: Additional arguments for httpx request
+
+        Returns:
+            JSON response data
+
+        Raises:
+            NetworkError: On connection/network issues
+            TimeoutError: On request timeout
+            ServerError: On server errors (5xx)
+            FederalAPIError: On other API errors
+        """
+        try:
+            self.logger.debug(f"Making {method} request to {url}")
+
+            if method.upper() == "GET":
+                response = await self.client.get(url, **kwargs)
+            elif method.upper() == "POST":
+                response = await self.client.post(url, **kwargs)
+            else:
+                raise ValueError(f"Unsupported HTTP method: {method}")
+
+            # Check for HTTP errors
+            if response.status_code >= 500:
+                error_msg = f"Server error: {response.status_code}"
+                raise ServerError(
+                    error_msg,
+                    api_name="DataSUS",
+                    status_code=response.status_code,
+                    response_data={"url": url}
+                )
+            elif response.status_code >= 400:
+                error_msg = f"Client error: {response.status_code}"
+                raise exception_from_response(
+                    response.status_code,
+                    error_msg,
+                    api_name="DataSUS",
+                    response_data={"url": url}
+                )
+
+            # Parse JSON response
+            try:
+                data = response.json()
+                return data
+            except Exception as e:
+                self.logger.error(f"Failed to parse JSON response: {e}")
+                raise
+
+        except httpx.TimeoutException as e:
+            self.logger.error(f"Request timeout: {url}")
+            raise TimeoutError(
+                f"Request timed out",
+                api_name="DataSUS",
+                timeout_seconds=self.timeout,
+                original_error=e
+            )
+        except httpx.NetworkError as e:
+            self.logger.error(f"Network error: {url}")
+            raise NetworkError(
+                f"Network error: {str(e)}",
+                api_name="DataSUS",
+                original_error=e
+            )
+        except (ServerError, TimeoutError, NetworkError):
+            # Re-raise our custom exceptions as-is (they'll be caught by retry decorator)
+            raise
+        except Exception as e:
+            # Catch-all for unexpected errors
+            self.logger.error(f"Unexpected error in _make_request: {e}", exc_info=True)
+            raise
+
     @cache_with_ttl(ttl_seconds=86400)  # 24 hours cache
     async def search_datasets(self, query: str, limit: int = 100) -> Dict[str, Any]:
         """
@@ -141,26 +221,18 @@ class DataSUSClient:
         Returns:
             Dataset search results
         """
-        try:
-            url = f"{self.OPENDATASUS_URL}/package_search"
-            params = {
-                "q": query,
-                "rows": limit
-            }
+        url = f"{self.OPENDATASUS_URL}/package_search"
+        params = {
+            "q": query,
+            "rows": limit
+        }
 
-            self.logger.info(f"Searching DataSUS datasets: query={query}")
+        self.logger.info(f"Searching DataSUS datasets: query={query}")
 
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
+        data = await self._make_request(url, params=params)
 
-            data = response.json()
-
-            self.logger.info(f"Found {data.get('result', {}).get('count', 0)} datasets")
-            return data
-
-        except Exception as e:
-            self.logger.error(f"Error searching datasets: {e}")
-            raise
+        self.logger.info(f"Found {data.get('result', {}).get('count', 0)} datasets")
+        return data
 
     @cache_with_ttl(ttl_seconds=7200)  # 2 hours cache
     async def get_health_facilities(
@@ -180,47 +252,33 @@ class DataSUSClient:
         Returns:
             Health facilities data
         """
-        try:
-            # Note: CNES API is complex and often requires form-based access
-            # This is a simplified version - real implementation may need web scraping
+        # Note: CNES API is complex and often requires form-based access
+        # This is a simplified version - real implementation may need web scraping
 
-            self.logger.info(f"Fetching health facilities: state={state_code}, municipality={municipality_code}")
+        self.logger.info(f"Fetching health facilities: state={state_code}, municipality={municipality_code}")
 
-            # Try to get data from OpenDataSUS CNES dataset
-            dataset_id = self.DATASETS["health_facilities"]
-            url = f"{self.OPENDATASUS_URL}/package_show"
-            params = {"id": dataset_id}
+        # Try to get data from OpenDataSUS CNES dataset
+        dataset_id = self.DATASETS["health_facilities"]
+        url = f"{self.OPENDATASUS_URL}/package_show"
+        params = {"id": dataset_id}
 
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
+        data = await self._make_request(url, params=params)
 
-            data = response.json()
+        # Filter by location if specified
+        result = {
+            "timestamp": datetime.now().isoformat(),
+            "source": "DataSUS/CNES",
+            "filters": {
+                "state": state_code,
+                "municipality": municipality_code,
+                "facility_type": facility_type
+            },
+            "data": data.get("result", {}),
+            "note": "CNES data requires additional processing for specific locations"
+        }
 
-            # Filter by location if specified
-            result = {
-                "timestamp": datetime.now().isoformat(),
-                "source": "DataSUS/CNES",
-                "filters": {
-                    "state": state_code,
-                    "municipality": municipality_code,
-                    "facility_type": facility_type
-                },
-                "data": data.get("result", {}),
-                "note": "CNES data requires additional processing for specific locations"
-            }
-
-            self.logger.info("Fetched health facilities data")
-            return result
-
-        except Exception as e:
-            self.logger.error(f"Error fetching health facilities: {e}")
-            # Return simulated structure with error
-            return {
-                "timestamp": datetime.now().isoformat(),
-                "source": "DataSUS/CNES",
-                "error": str(e),
-                "note": "CNES API requires form-based access - using fallback data structure"
-            }
+        self.logger.info("Fetched health facilities data")
+        return result
 
     @cache_with_ttl(ttl_seconds=3600)  # 1 hour cache
     async def get_mortality_statistics(
@@ -243,37 +301,29 @@ class DataSUSClient:
             - Deaths by age group
             - Deaths by location
         """
-        try:
-            self.logger.info(f"Fetching mortality data: state={state_code}, year={year}")
+        self.logger.info(f"Fetching mortality data: state={state_code}, year={year}")
 
-            # Get SIM dataset
-            dataset_id = self.DATASETS["mortality"]
-            url = f"{self.OPENDATASUS_URL}/package_show"
-            params = {"id": dataset_id}
+        # Get SIM dataset
+        dataset_id = self.DATASETS["mortality"]
+        url = f"{self.OPENDATASUS_URL}/package_show"
+        params = {"id": dataset_id}
 
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
+        data = await self._make_request(url, params=params)
 
-            data = response.json()
+        result = {
+            "timestamp": datetime.now().isoformat(),
+            "source": "DataSUS/SIM",
+            "filters": {
+                "state": state_code,
+                "year": year,
+                "cause_category": cause_category
+            },
+            "dataset_info": data.get("result", {}),
+            "note": "Full mortality data requires downloading CSV files from resources"
+        }
 
-            result = {
-                "timestamp": datetime.now().isoformat(),
-                "source": "DataSUS/SIM",
-                "filters": {
-                    "state": state_code,
-                    "year": year,
-                    "cause_category": cause_category
-                },
-                "dataset_info": data.get("result", {}),
-                "note": "Full mortality data requires downloading CSV files from resources"
-            }
-
-            self.logger.info("Fetched mortality statistics")
-            return result
-
-        except Exception as e:
-            self.logger.error(f"Error fetching mortality statistics: {e}")
-            raise
+        self.logger.info("Fetched mortality statistics")
+        return result
 
     @cache_with_ttl(ttl_seconds=3600)
     async def get_hospital_admissions(
@@ -293,36 +343,28 @@ class DataSUSClient:
         Returns:
             Hospital admission data
         """
-        try:
-            self.logger.info(f"Fetching hospital admissions: state={state_code}, year={year}")
+        self.logger.info(f"Fetching hospital admissions: state={state_code}, year={year}")
 
-            dataset_id = self.DATASETS["hospital_admissions"]
-            url = f"{self.OPENDATASUS_URL}/package_show"
-            params = {"id": dataset_id}
+        dataset_id = self.DATASETS["hospital_admissions"]
+        url = f"{self.OPENDATASUS_URL}/package_show"
+        params = {"id": dataset_id}
 
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
+        data = await self._make_request(url, params=params)
 
-            data = response.json()
+        result = {
+            "timestamp": datetime.now().isoformat(),
+            "source": "DataSUS/SIH",
+            "filters": {
+                "state": state_code,
+                "year": year,
+                "procedure_category": procedure_category
+            },
+            "dataset_info": data.get("result", {}),
+            "note": "Full admission data requires downloading files from resources"
+        }
 
-            result = {
-                "timestamp": datetime.now().isoformat(),
-                "source": "DataSUS/SIH",
-                "filters": {
-                    "state": state_code,
-                    "year": year,
-                    "procedure_category": procedure_category
-                },
-                "dataset_info": data.get("result", {}),
-                "note": "Full admission data requires downloading files from resources"
-            }
-
-            self.logger.info("Fetched hospital admissions data")
-            return result
-
-        except Exception as e:
-            self.logger.error(f"Error fetching hospital admissions: {e}")
-            raise
+        self.logger.info("Fetched hospital admissions data")
+        return result
 
     @cache_with_ttl(ttl_seconds=7200)
     async def get_vaccination_data(
@@ -340,35 +382,27 @@ class DataSUSClient:
         Returns:
             Vaccination coverage data
         """
-        try:
-            self.logger.info(f"Fetching vaccination data: state={state_code}, vaccine={vaccine_type}")
+        self.logger.info(f"Fetching vaccination data: state={state_code}, vaccine={vaccine_type}")
 
-            dataset_id = self.DATASETS["vaccination"]
-            url = f"{self.OPENDATASUS_URL}/package_show"
-            params = {"id": dataset_id}
+        dataset_id = self.DATASETS["vaccination"]
+        url = f"{self.OPENDATASUS_URL}/package_show"
+        params = {"id": dataset_id}
 
-            response = await self.client.get(url, params=params)
-            response.raise_for_status()
+        data = await self._make_request(url, params=params)
 
-            data = response.json()
+        result = {
+            "timestamp": datetime.now().isoformat(),
+            "source": "DataSUS/SI-PNI",
+            "filters": {
+                "state": state_code,
+                "vaccine_type": vaccine_type
+            },
+            "dataset_info": data.get("result", {}),
+            "note": "Vaccination data available in dataset resources"
+        }
 
-            result = {
-                "timestamp": datetime.now().isoformat(),
-                "source": "DataSUS/SI-PNI",
-                "filters": {
-                    "state": state_code,
-                    "vaccine_type": vaccine_type
-                },
-                "dataset_info": data.get("result", {}),
-                "note": "Vaccination data available in dataset resources"
-            }
-
-            self.logger.info("Fetched vaccination data")
-            return result
-
-        except Exception as e:
-            self.logger.error(f"Error fetching vaccination data: {e}")
-            raise
+        self.logger.info("Fetched vaccination data")
+        return result
 
     async def get_health_indicators(
         self,
@@ -391,37 +425,32 @@ class DataSUSClient:
             - Hospital admission rates
             - Vaccination coverage
         """
-        try:
-            self.logger.info(f"Fetching health indicators: state={state_code}, municipality={municipality_code}")
+        self.logger.info(f"Fetching health indicators: state={state_code}, municipality={municipality_code}")
 
-            # Fetch multiple datasets in parallel
-            results = await asyncio.gather(
-                self.get_health_facilities(state_code, municipality_code),
-                self.get_mortality_statistics(state_code),
-                self.get_hospital_admissions(state_code),
-                self.get_vaccination_data(state_code),
-                return_exceptions=True
-            )
+        # Fetch multiple datasets in parallel
+        results = await asyncio.gather(
+            self.get_health_facilities(state_code, municipality_code),
+            self.get_mortality_statistics(state_code),
+            self.get_hospital_admissions(state_code),
+            self.get_vaccination_data(state_code),
+            return_exceptions=True
+        )
 
-            # Organize results
-            health_data = {
-                "timestamp": datetime.now().isoformat(),
-                "source": "DataSUS",
-                "location": {
-                    "state": state_code,
-                    "municipality": municipality_code
-                },
-                "health_facilities": results[0] if not isinstance(results[0], Exception) else None,
-                "mortality": results[1] if not isinstance(results[1], Exception) else None,
-                "hospital_admissions": results[2] if not isinstance(results[2], Exception) else None,
-                "vaccination": results[3] if not isinstance(results[3], Exception) else None,
-                "errors": [str(r) for r in results if isinstance(r, Exception)],
-                "note": "DataSUS data often requires downloading CSV files for detailed analysis"
-            }
+        # Organize results
+        health_data = {
+            "timestamp": datetime.now().isoformat(),
+            "source": "DataSUS",
+            "location": {
+                "state": state_code,
+                "municipality": municipality_code
+            },
+            "health_facilities": results[0] if not isinstance(results[0], Exception) else None,
+            "mortality": results[1] if not isinstance(results[1], Exception) else None,
+            "hospital_admissions": results[2] if not isinstance(results[2], Exception) else None,
+            "vaccination": results[3] if not isinstance(results[3], Exception) else None,
+            "errors": [str(r) for r in results if isinstance(r, Exception)],
+            "note": "DataSUS data often requires downloading CSV files for detailed analysis"
+        }
 
-            self.logger.info("Fetched comprehensive health indicators")
-            return health_data
-
-        except Exception as e:
-            self.logger.error(f"Error fetching health indicators: {e}")
-            raise
+        self.logger.info("Fetched comprehensive health indicators")
+        return health_data
