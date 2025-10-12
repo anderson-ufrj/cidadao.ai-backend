@@ -24,6 +24,7 @@ from pydantic import BaseModel, Field as PydanticField
 from src.core import get_logger
 from .exceptions import NetworkError, TimeoutError, ServerError, exception_from_response
 from .retry import retry_with_backoff
+from .metrics import FederalAPIMetrics
 
 
 logger = get_logger(__name__)
@@ -56,12 +57,39 @@ def cache_with_ttl(ttl_seconds: int = 3600):
                 cached_time = cache_times.get(cache_key, 0)
                 if current_time - cached_time < ttl_seconds:
                     logger.debug(f"DataSUS cache hit: {cache_key}")
+                    # Record cache hit
+                    FederalAPIMetrics.record_cache_operation(
+                        api_name="DataSUS",
+                        operation="read",
+                        result="hit"
+                    )
                     return cache[cache_key]
+
+            # Cache miss - record it
+            FederalAPIMetrics.record_cache_operation(
+                api_name="DataSUS",
+                operation="read",
+                result="miss"
+            )
 
             # Calculate and cache result
             result = await func(*args, **kwargs)
             cache[cache_key] = result
             cache_times[cache_key] = current_time
+
+            # Record cache write
+            FederalAPIMetrics.record_cache_operation(
+                api_name="DataSUS",
+                operation="write",
+                result="success"
+            )
+
+            # Update cache size gauge
+            FederalAPIMetrics.update_cache_size(
+                api_name="DataSUS",
+                cache_type="memory",
+                size=len(cache)
+            )
 
             return result
 
@@ -150,6 +178,15 @@ class DataSUSClient:
             ServerError: On server errors (5xx)
             FederalAPIError: On other API errors
         """
+        import time
+        start_time = time.time()
+        status_code = 500
+        status = "error"
+        endpoint = url.split("/")[-1] if "/" in url else url
+
+        # Increment active requests
+        FederalAPIMetrics.increment_active_requests("DataSUS")
+
         try:
             self.logger.debug(f"Making {method} request to {url}")
 
@@ -160,9 +197,25 @@ class DataSUSClient:
             else:
                 raise ValueError(f"Unsupported HTTP method: {method}")
 
+            status_code = response.status_code
+
+            # Record response size
+            response_size = len(response.content) if hasattr(response, 'content') else 0
+            FederalAPIMetrics.record_response_size(
+                api_name="DataSUS",
+                endpoint=endpoint,
+                size_bytes=response_size
+            )
+
             # Check for HTTP errors
             if response.status_code >= 500:
                 error_msg = f"Server error: {response.status_code}"
+                # Record error before raising
+                FederalAPIMetrics.record_error(
+                    api_name="DataSUS",
+                    error_type="ServerError",
+                    retryable=True
+                )
                 raise ServerError(
                     error_msg,
                     api_name="DataSUS",
@@ -171,6 +224,13 @@ class DataSUSClient:
                 )
             elif response.status_code >= 400:
                 error_msg = f"Client error: {response.status_code}"
+                # Record error before raising
+                retryable = response.status_code == 429  # Only rate limit is retryable
+                FederalAPIMetrics.record_error(
+                    api_name="DataSUS",
+                    error_type=f"ClientError_{response.status_code}",
+                    retryable=retryable
+                )
                 raise exception_from_response(
                     response.status_code,
                     error_msg,
@@ -181,13 +241,35 @@ class DataSUSClient:
             # Parse JSON response
             try:
                 data = response.json()
+                status = "success"
                 return data
             except Exception as e:
                 self.logger.error(f"Failed to parse JSON response: {e}")
+                status = "error"
+                FederalAPIMetrics.record_error(
+                    api_name="DataSUS",
+                    error_type="JSONParseError",
+                    retryable=False
+                )
                 raise
 
         except httpx.TimeoutException as e:
             self.logger.error(f"Request timeout: {url}")
+            status = "timeout"
+            status_code = 0
+
+            # Record timeout
+            FederalAPIMetrics.record_timeout(
+                api_name="DataSUS",
+                method=method,
+                timeout_seconds=self.timeout
+            )
+            FederalAPIMetrics.record_error(
+                api_name="DataSUS",
+                error_type="TimeoutError",
+                retryable=True
+            )
+
             raise TimeoutError(
                 f"Request timed out",
                 api_name="DataSUS",
@@ -196,6 +278,16 @@ class DataSUSClient:
             )
         except httpx.NetworkError as e:
             self.logger.error(f"Network error: {url}")
+            status = "network_error"
+            status_code = 0
+
+            # Record network error
+            FederalAPIMetrics.record_error(
+                api_name="DataSUS",
+                error_type="NetworkError",
+                retryable=True
+            )
+
             raise NetworkError(
                 f"Network error: {str(e)}",
                 api_name="DataSUS",
@@ -207,7 +299,27 @@ class DataSUSClient:
         except Exception as e:
             # Catch-all for unexpected errors
             self.logger.error(f"Unexpected error in _make_request: {e}", exc_info=True)
+            status = "error"
+            FederalAPIMetrics.record_error(
+                api_name="DataSUS",
+                error_type=type(e).__name__,
+                retryable=False
+            )
             raise
+        finally:
+            # Always record request metrics
+            duration = time.time() - start_time
+            FederalAPIMetrics.record_request(
+                api_name="DataSUS",
+                method=method,
+                endpoint=endpoint,
+                status_code=status_code,
+                duration_seconds=duration,
+                status=status
+            )
+
+            # Decrement active requests
+            FederalAPIMetrics.decrement_active_requests("DataSUS")
 
     @cache_with_ttl(ttl_seconds=86400)  # 24 hours cache
     async def search_datasets(self, query: str, limit: int = 100) -> Dict[str, Any]:
