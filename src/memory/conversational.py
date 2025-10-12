@@ -78,15 +78,42 @@ class ConversationalMemory(BaseMemory):
         if limit:
             return self._messages[-limit:]
         return self._messages
-    
-    def add_message(self, role: str, content: str, metadata: Optional[Dict] = None) -> None:
-        """Add a message to conversation history."""
-        import asyncio
-        asyncio.create_task(self.store(
+
+    async def get_recent_messages(self, session_id: str, limit: int = 10) -> List[Dict]:
+        """
+        Get recent messages for a session.
+
+        Args:
+            session_id: Session identifier
+            limit: Maximum number of messages to return
+
+        Returns:
+            List of recent messages with role and content
+        """
+        # Return recent messages in simplified format
+        recent = self._messages[-limit:] if self._messages else []
+        return [
+            {
+                "role": msg.get("role", "user"),
+                "content": msg.get("value", ""),
+                "timestamp": msg.get("timestamp")
+            }
+            for msg in recent
+        ]
+
+    async def add_message(
+        self,
+        role: str = None,
+        content: str = None,
+        session_id: str = None,
+        metadata: Optional[Dict] = None
+    ) -> None:
+        """Add a message to conversation history (async version)."""
+        await self.store(
             f"msg_{len(self._messages)}",
             content,
             {**(metadata or {}), "role": role}
-        ))
+        )
     
     def set_context(self, key: str, value: Any) -> None:
         """Set conversation context."""
