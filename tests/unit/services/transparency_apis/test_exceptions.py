@@ -2,6 +2,10 @@
 Unit tests for federal API custom exceptions.
 
 Tests the exception hierarchy, context preservation, and factory methods.
+
+Author: Anderson Henrique da Silva
+Created: 2025-10-12 15:53:52 -03
+License: Proprietary - All rights reserved
 """
 
 import pytest
