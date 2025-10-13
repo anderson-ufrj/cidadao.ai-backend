@@ -9,16 +9,20 @@ Created: 2025-10-12 16:19:43 -03
 License: Proprietary - All rights reserved
 """
 
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-import httpx
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from src.services.transparency_apis.federal_apis.datasus_client import DataSUSClient, DataSUSIndicator
+import httpx
+import pytest
+
+from src.services.transparency_apis.federal_apis.datasus_client import (
+    DataSUSClient,
+    DataSUSIndicator,
+)
 from src.services.transparency_apis.federal_apis.exceptions import (
     NetworkError,
-    TimeoutError,
-    ServerError,
     NotFoundError,
+    ServerError,
+    TimeoutError,
 )
 
 
@@ -31,7 +35,7 @@ class TestDataSUSClientInitialization:
 
         assert client.timeout == 30
         assert client.client is not None
-        assert hasattr(client, '_make_request')
+        assert hasattr(client, "_make_request")
 
     def test_client_initialization_with_default_timeout(self):
         """Test DataSUS client uses default timeout."""
@@ -63,15 +67,15 @@ class TestDataSUSSearchDatasets:
                 "count": 2,
                 "results": [
                     {"name": "covid-19", "title": "COVID-19 Data"},
-                    {"name": "vaccination", "title": "Vaccination Data"}
-                ]
-            }
+                    {"name": "vaccination", "title": "Vaccination Data"},
+                ],
+            },
         }
 
         client = DataSUSClient(timeout=10)
 
         # Mock httpx client
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_http_response = MagicMock()
             mock_http_response.status_code = 200
             mock_http_response.json.return_value = mock_response
@@ -97,17 +101,13 @@ class TestDataSUSGetHealthFacilities:
         """Test successful health facilities retrieval."""
         mock_response = {
             "success": True,
-            "result": {
-                "name": "cnes",
-                "title": "CNES Data",
-                "resources": []
-            }
+            "result": {"name": "cnes", "title": "CNES Data", "resources": []},
         }
 
         client = DataSUSClient(timeout=10)
 
         # Mock httpx client
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_http_response = MagicMock()
             mock_http_response.status_code = 200
             mock_http_response.json.return_value = mock_response
@@ -133,17 +133,13 @@ class TestDataSUSGetMortalityStatistics:
         """Test successful mortality statistics retrieval."""
         mock_response = {
             "success": True,
-            "result": {
-                "name": "sim-do",
-                "title": "SIM Data",
-                "resources": []
-            }
+            "result": {"name": "sim-do", "title": "SIM Data", "resources": []},
         }
 
         client = DataSUSClient(timeout=10)
 
         # Mock httpx client
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_http_response = MagicMock()
             mock_http_response.status_code = 200
             mock_http_response.json.return_value = mock_response
@@ -166,17 +162,13 @@ class TestDataSUSGetHospitalAdmissions:
         """Test successful hospital admissions retrieval."""
         mock_response = {
             "success": True,
-            "result": {
-                "name": "sih-rd",
-                "title": "SIH Data",
-                "resources": []
-            }
+            "result": {"name": "sih-rd", "title": "SIH Data", "resources": []},
         }
 
         client = DataSUSClient(timeout=10)
 
         # Mock httpx client
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_http_response = MagicMock()
             mock_http_response.status_code = 200
             mock_http_response.json.return_value = mock_response
@@ -199,23 +191,21 @@ class TestDataSUSGetVaccinationData:
         """Test successful vaccination data retrieval."""
         mock_response = {
             "success": True,
-            "result": {
-                "name": "si-pni",
-                "title": "SI-PNI Data",
-                "resources": []
-            }
+            "result": {"name": "si-pni", "title": "SI-PNI Data", "resources": []},
         }
 
         client = DataSUSClient(timeout=10)
 
         # Mock httpx client
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_http_response = MagicMock()
             mock_http_response.status_code = 200
             mock_http_response.json.return_value = mock_response
             mock_get.return_value = mock_http_response
 
-            result = await client.get_vaccination_data(state_code="RJ", vaccine_type="COVID-19")
+            result = await client.get_vaccination_data(
+                state_code="RJ", vaccine_type="COVID-19"
+            )
 
             assert result["source"] == "DataSUS/SI-PNI"
             assert result["filters"]["state"] == "RJ"
@@ -236,7 +226,7 @@ class TestDataSUSMakeRequest:
         mock_response.status_code = 200
         mock_response.json.return_value = {"data": "test"}
 
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_response
 
             result = await client._make_request("https://test.com", method="GET")
@@ -255,7 +245,7 @@ class TestDataSUSMakeRequest:
         mock_response_404 = MagicMock()
         mock_response_404.status_code = 404
 
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_response_404
 
             with pytest.raises(NotFoundError):
@@ -265,7 +255,7 @@ class TestDataSUSMakeRequest:
         mock_response_500 = MagicMock()
         mock_response_500.status_code = 500
 
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_response_500
 
             with pytest.raises(ServerError):
@@ -275,7 +265,7 @@ class TestDataSUSMakeRequest:
         mock_response_503 = MagicMock()
         mock_response_503.status_code = 503
 
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_response_503
 
             with pytest.raises(ServerError):
@@ -288,7 +278,7 @@ class TestDataSUSMakeRequest:
         """Test _make_request handles httpx NetworkError."""
         client = DataSUSClient(timeout=10)
 
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_get.side_effect = httpx.NetworkError("Connection refused")
 
             with pytest.raises(NetworkError) as exc_info:
@@ -303,7 +293,7 @@ class TestDataSUSMakeRequest:
         """Test _make_request handles httpx TimeoutException."""
         client = DataSUSClient(timeout=10)
 
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_get.side_effect = httpx.TimeoutException("Request timeout")
 
             with pytest.raises(TimeoutError) as exc_info:
@@ -323,10 +313,12 @@ class TestDataSUSMakeRequest:
         mock_response.status_code = 200
         mock_response.json.return_value = {"result": "created"}
 
-        with patch.object(client.client, 'post', new_callable=AsyncMock) as mock_post:
+        with patch.object(client.client, "post", new_callable=AsyncMock) as mock_post:
             mock_post.return_value = mock_response
 
-            result = await client._make_request("https://test.com", method="POST", json={"data": "test"})
+            result = await client._make_request(
+                "https://test.com", method="POST", json={"data": "test"}
+            )
 
             assert result == {"result": "created"}
             mock_post.assert_called_once()
@@ -355,7 +347,7 @@ class TestDataSUSRetryBehavior:
         client = DataSUSClient(timeout=10)
 
         # Check decorator is applied (has __wrapped__ attribute)
-        assert hasattr(client._make_request, '__wrapped__')
+        assert hasattr(client._make_request, "__wrapped__")
 
         await client.close()
 
@@ -365,15 +357,15 @@ class TestDataSUSClientConstants:
 
     def test_client_has_correct_urls(self):
         """Test client has correct base URLs defined."""
-        assert hasattr(DataSUSClient, 'OPENDATASUS_URL')
-        assert hasattr(DataSUSClient, 'CNES_URL')
+        assert hasattr(DataSUSClient, "OPENDATASUS_URL")
+        assert hasattr(DataSUSClient, "CNES_URL")
 
         assert "opendatasus.saude.gov.br" in DataSUSClient.OPENDATASUS_URL
         assert "cnes.datasus.gov.br" in DataSUSClient.CNES_URL
 
     def test_client_has_dataset_mapping(self):
         """Test client has dataset ID mapping."""
-        assert hasattr(DataSUSClient, 'DATASETS')
+        assert hasattr(DataSUSClient, "DATASETS")
         assert isinstance(DataSUSClient.DATASETS, dict)
 
         # Check key datasets are present
@@ -392,7 +384,7 @@ class TestDataSUSIndicatorModel:
             code="IND001",
             name="Infant Mortality Rate",
             category="Mortality",
-            unit="per 1000 live births"
+            unit="per 1000 live births",
         )
 
         assert indicator.code == "IND001"
@@ -403,9 +395,7 @@ class TestDataSUSIndicatorModel:
     def test_indicator_model_optional_unit(self):
         """Test DataSUSIndicator model with optional unit."""
         indicator = DataSUSIndicator(
-            code="IND002",
-            name="Hospital Coverage",
-            category="Infrastructure"
+            code="IND002", name="Hospital Coverage", category="Infrastructure"
         )
 
         assert indicator.code == "IND002"

@@ -7,7 +7,7 @@
 
 ## 🤖 Agents Status Overview
 
-### Active Agents (7/17)
+### Active Agents (9/17)
 
 | Agent | Status | Endpoint | Capabilities |
 |-------|--------|----------|--------------|
@@ -18,6 +18,8 @@
 | **Maria Quitéria** | ✅ Active | `/agents/maria-quiteria` | Security Auditing, LGPD Compliance, Forensics |
 | **Machado de Assis** | ✅ Active | `/agents/machado` | Textual Analysis, NER, Document Processing |
 | **Dandara dos Palmares** | ✅ Active | `/agents/dandara` | Social Equity Analysis, IBGE/DataSUS/INEP Integration |
+| **Lampião** | ✅ Active | `/agents/lampiao` | Regional Analysis, Spatial Statistics, Inequality Measurement |
+| **Oscar Niemeyer** | ✅ Active | `/agents/oscar` | Data Aggregation, Network Graphs, Choropleth Maps |
 
 ### Ready to Activate (1/17)
 
@@ -33,12 +35,10 @@
 | **Ayrton Senna** | 🔧 Infrastructure | Semantic Router/Intent Detection | CRITICAL |
 | **Nanã** | 🔧 Infrastructure | Memory System (Episodic/Semantic) | HIGH |
 
-### Under Development (6/17)
+### Under Development (4/17)
 
 | Agent | Status | Implementation | Notes |
 |-------|--------|----------------|-------|
-| **Lampião** | 🚧 Partial | Structure Only | Anti-Corruption Specialist |
-| **Oscar Niemeyer** | 🚧 Partial | Structure Only | Architectural/Infrastructure Analysis |
 | **Obaluaiê** | 🚧 Partial | Structure Only | Corruption Detection |
 | **Oxossi** | 🚧 Partial | Structure Only | Data Hunting/Investigation |
 | **Ceuci** | 🚧 Partial | Structure Only | Unknown Role |
@@ -270,11 +270,112 @@ POST /api/v1/agents/dandara
 - Population Affected (estimated from IBGE)
 - Confidence Level (0.92 with real data)
 
+#### 8. Lampião - Regional Analysis Specialist
+**File**: `src/agents/lampiao.py`
+**Status**: ✅ Active with Real IBGE Data
+**Role**: Regional Analyst / Spatial Statistics Expert
+
+**Capabilities**:
+- Regional inequality measurement (Gini, Theil, Williamson, Atkinson indices)
+- Spatial autocorrelation analysis (Moran's I, LISA)
+- Hotspot detection (Getis-Ord G*)
+- Geographic boundary analysis with IBGE data
+- Regional disparity mapping
+- Spatial pattern detection
+- Lorenz curve generation
+- Coverage of all 27 Brazilian states
+
+**Real Data Integration**:
+- ✅ IBGE demographic data (population, GDP per capita, HDI)
+- ✅ IBGE geographic boundaries (GeoJSON)
+- ✅ State-level economic indicators
+
+**Statistical Indices**:
+- Gini Spatial Index (0-1)
+- Theil Index (entropy-based)
+- Williamson Index (weighted variation)
+- Atkinson Index (inequality aversion)
+- Coefficient of Variation
+
+**API Endpoint**:
+```
+POST /api/v1/agents/lampiao
+{
+  "query": "Analyze regional inequality in Northeast",
+  "metric": "gdp_per_capita",
+  "region_type": "state",
+  "options": {
+    "calculate_moran": true,
+    "detect_hotspots": true
+  }
+}
+```
+
+**Output**:
+- Gini Index (0-1)
+- Theil Index (0-∞)
+- Moran's I (-1 to 1, spatial autocorrelation)
+- Hotspot/Coldspot Locations
+- Regional Rankings
+- Disparity Visualization Data
+
+#### 9. Oscar Niemeyer - Data Aggregation & Visualization Architect
+**File**: `src/agents/oscar_niemeyer.py`
+**Status**: ✅ Active with Plotly + NetworkX
+**Role**: Data Architect / Visualization Engineer
+
+**Capabilities**:
+- Network graph visualization (NetworkX + Plotly)
+- Fraud relationship network detection
+- Choropleth maps for Brazilian states/municipalities
+- Time series generation with trend and seasonality
+- Geographic aggregation by region (North, Northeast, South, Southeast, Center-West)
+- Multi-dimensional data aggregation
+- Data export formats (JSON, CSV)
+- Interactive graph layouts (force-directed, circular, hierarchical)
+- IBGE GeoJSON integration for accurate boundaries
+
+**Visualization Types**:
+- Network graphs (fraud detection, relationship mapping)
+- Choropleth maps (geographic heat maps)
+- Time series charts (trends, seasonality)
+- Bar charts, pie charts, scatter plots
+- Heatmaps for multi-dimensional data
+
+**API Endpoint**:
+```
+POST /api/v1/agents/oscar
+{
+  "query": "Create network graph of supplier relationships",
+  "action": "network_graph",
+  "options": {
+    "entities": [...],
+    "relationships": [...],
+    "threshold": 0.7,
+    "layout": "force_directed"
+  }
+}
+```
+
+**Actions Supported**:
+- `time_series`: Generate time series visualization
+- `spatial_aggregation`: Aggregate data by geographic region
+- `network_graph`: Create interactive fraud network
+- `choropleth_map`: Generate choropleth map for Brazil
+- `visualization_metadata`: Generate metadata for frontend charts
+
+**Output**:
+- Plotly JSON (interactive visualizations)
+- Node/Edge counts for networks
+- Geographic aggregations
+- Time series with trends
+- Exportable formats (JSON, CSV)
+
 ---
 
 ### 🟡 READY TO ACTIVATE
 
-#### 8. Drummond - Communication Agent
+#### 10. Drummond - Communication Agent
 **File**: `src/agents/drummond.py` / `drummond_simple.py`
 **Status**: 🟡 Needs Review
 **Role**: Communication Specialist / Content Creator

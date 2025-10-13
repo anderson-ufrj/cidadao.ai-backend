@@ -5,10 +5,12 @@ Author: Anderson H. Silva
 Date: 2025-10-12
 """
 
-import pytest
 from unittest.mock import Mock, patch
+
+import pytest
+
+from src.agents.deodoro import AgentContext
 from src.agents.drummond import CommunicationAgent
-from src.agents.deodoro import AgentContext, AgentMessage, AgentStatus
 from src.services.chat_service import Intent, IntentType
 
 
@@ -22,9 +24,7 @@ def drummond_agent():
 def context():
     """Create agent context."""
     return AgentContext(
-        investigation_id="test-inv",
-        session_id="test-session",
-        user_id="test-user"
+        investigation_id="test-inv", session_id="test-session", user_id="test-user"
     )
 
 
@@ -43,7 +43,7 @@ class TestDrummondAgent:
     @pytest.mark.asyncio
     async def test_generate_greeting_morning(self, drummond_agent):
         """Test morning greeting generation."""
-        with patch('src.agents.drummond.datetime') as mock_dt:
+        with patch("src.agents.drummond.datetime") as mock_dt:
             mock_dt.now.return_value = Mock(hour=9)
 
             greeting = await drummond_agent.generate_greeting()
@@ -80,7 +80,7 @@ class TestDrummondAgent:
             type=IntentType.INVESTIGATE,
             confidence=0.9,
             entities={},
-            suggested_agent="zumbi"
+            suggested_agent="zumbi",
         )
 
         handoff = await drummond_agent.determine_handoff(intent)
@@ -95,21 +95,18 @@ class TestDrummondAgent:
         from src.services.chat_service import Intent, IntentType
 
         conv_context = ConversationContext(
-            session_id="test-session",
-            user_id="test-user"
+            session_id="test-session", user_id="test-user"
         )
 
         intent = Intent(
             type=IntentType.GREETING,
             confidence=0.95,
             entities={},
-            suggested_agent="drummond"
+            suggested_agent="drummond",
         )
 
         response = await drummond_agent.process_conversation(
-            message="Oi",
-            context=conv_context,
-            intent=intent
+            message="Oi", context=conv_context, intent=intent
         )
 
         assert "content" in response
