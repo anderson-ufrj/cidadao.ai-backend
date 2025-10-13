@@ -1,5 +1,11 @@
 # Supabase REST API Integration
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## 🚀 Problem Solved
 
 **Issue**: HuggingFace Spaces blocks direct PostgreSQL connections (port 5432) with error `[Errno 101] Network is unreachable`.

@@ -1,3 +1,11 @@
+# Machado
+
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ---
 title: "Machado de Assis - Textual Analysis Agent"
 sidebar_position: 7
@@ -71,7 +79,7 @@ class MachadoAgent(ReflectiveAgent):
             capabilities=[
                 "document_parsing",
                 "ner_extraction",
-                "clause_analysis", 
+                "clause_analysis",
                 "legal_compliance",
                 "readability_assessment",
                 "semantic_analysis"
@@ -92,13 +100,13 @@ document = {
     "type": "contract",
     "content": """
     CONTRATO Nº 123/2024
-    
+
     CLÁUSULA PRIMEIRA - DO OBJETO
     O presente contrato tem por objeto a aquisição de equipamentos
-    médicos, conforme especificações constantes no Anexo I, com 
+    médicos, conforme especificações constantes no Anexo I, com
     pagamento antecipado de 50% do valor total, a critério exclusivo
     da CONTRATANTE, dispensada a apresentação de garantias.
-    
+
     CLÁUSULA SEGUNDA - DO VALOR
     O valor global do presente contrato é de R$ 5.000.000,00
     (cinco milhões de reais), podendo sofrer acréscimos a critério
@@ -121,7 +129,7 @@ result = await machado.process(
     "analysis": {
         "risk_level": "HIGH",
         "confidence": 0.91,
-        
+
         "entities_extracted": {
             "contract_number": "123/2024",
             "value": 5000000.00,
@@ -130,7 +138,7 @@ result = await machado.process(
             "date": "2024-01-15",
             "process": "23000.123456/2024-00"
         },
-        
+
         "suspicious_clauses": [
             {
                 "clause": "PRIMEIRA",
@@ -147,21 +155,21 @@ result = await machado.process(
                 "recommendation": "Limitar a 25% com aditivo formal"
             }
         ],
-        
+
         "compliance_issues": [
             "Ausência de cláusulas obrigatórias",
             "Falta de especificação detalhada do objeto",
             "Pagamento antecipado irregular",
             "Alterações contratuais sem formalização"
         ],
-        
+
         "transparency_metrics": {
             "clarity_score": 0.45,
             "completeness": 0.38,
             "legal_compliance": 0.25,
             "overall_transparency": 0.36
         },
-        
+
         "readability": {
             "flesch_score": 42,
             "interpretation": "Difícil",
@@ -169,7 +177,7 @@ result = await machado.process(
             "jargon_density": 0.28
         }
     },
-    
+
     "alerts": [
         {
             "type": "CRITICAL",
@@ -177,7 +185,7 @@ result = await machado.process(
             "action": "Recomendar revisão completa ou anulação"
         }
     ],
-    
+
     "next_steps": [
         "Investigar processo licitatório",
         "Verificar justificativas para pagamento antecipado",
@@ -193,7 +201,7 @@ result = await machado.process(
 def extract_entities(self, text):
     """Extração avançada de entidades"""
     doc = self.nlp(text)
-    
+
     entities = {
         "organizations": [],
         "people": [],
@@ -201,7 +209,7 @@ def extract_entities(self, text):
         "dates": [],
         "locations": []
     }
-    
+
     for ent in doc.ents:
         if ent.label_ == "ORG":
             entities["organizations"].append(ent.text)
@@ -211,7 +219,7 @@ def extract_entities(self, text):
             value = self.parse_monetary_value(ent.text)
             entities["money"].append(value)
         # ... mais categorias
-    
+
     return entities
 ```
 
@@ -250,12 +258,12 @@ def check_mandatory_clauses(self, contract_text):
         "casos de rescisão",
         "legislação aplicável"
     ]
-    
+
     missing = []
     for clause in mandatory:
         if not self.find_clause(contract_text, clause):
             missing.append(clause)
-    
+
     return {
         "compliant": len(missing) == 0,
         "missing_clauses": missing,
@@ -285,18 +293,18 @@ def check_mandatory_clauses(self, contract_text):
 ```yaml
 machado:
   nlp_model: "pt_core_news_lg"
-  
+
   thresholds:
     min_transparency_score: 0.7
     max_jargon_density: 0.3
     min_readability: 50
-    
+
   analysis:
     enable_spell_check: true
     detect_duplicates: true
     check_references: true
     validate_numbers: true
-    
+
   compliance:
     strict_mode: false
     laws_database: "2024_updated"
@@ -345,7 +353,7 @@ graph LR
     M -->|Irregularidades| Z[Zumbi]
     M -->|Relatório| T[Tiradentes]
     M -->|Questões Sociais| D[Dandara]
-    
+
     A -->|Padrões| M
     Z -->|Contexto| M
 ```
@@ -406,5 +414,5 @@ graph LR
 
 ---
 
-**Anterior:** [🧠 Nanã - Memory Agent](./nana.md)  
+**Anterior:** [🧠 Nanã - Memory Agent](./nana.md)
 **Próximo:** [⚖️ Dandara - Social Justice Agent →](./dandara.md)

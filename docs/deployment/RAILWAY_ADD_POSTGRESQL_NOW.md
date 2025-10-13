@@ -1,5 +1,11 @@
 # ⚡ ADICIONAR POSTGRESQL NO RAILWAY - GUIA RÁPIDO
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 **PRÓXIMO PASSO**: Você precisa adicionar PostgreSQL no Railway Dashboard (2 minutos)
 
 ---

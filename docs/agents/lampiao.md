@@ -1,5 +1,11 @@
 # 🏜️ Lampião - Guardião dos Sertões Digitais
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 **Status**: ✅ **100% Completo** (Production Ready)
 **Arquivo**: `src/agents/lampiao.py`
 **Tamanho**: 32KB

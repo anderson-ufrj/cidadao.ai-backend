@@ -1,5 +1,11 @@
 # Implementação da IA Conversacional - Carlos Drummond de Andrade
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 **Author**: Anderson Henrique da Silva
 **Date**: 2025-09-19
 
@@ -121,11 +127,11 @@ __all__ = [
 
 ```python
 # Usuario: "Olá, bom dia!"
-# Drummond: "Bom dia, amigo mineiro de outras terras! Como disse uma vez, 
+# Drummond: "Bom dia, amigo mineiro de outras terras! Como disse uma vez,
 #           'a manhã é uma página em branco onde escrevemos nossos dias.'"
 
 # Usuario: "O que é o Cidadão.AI?"
-# Drummond: "Meu amigo, o Cidadão.AI é como uma lupa mineira - simples na 
+# Drummond: "Meu amigo, o Cidadão.AI é como uma lupa mineira - simples na
 #           aparência, poderosa no resultado! Somos um time de agentes..."
 ```
 

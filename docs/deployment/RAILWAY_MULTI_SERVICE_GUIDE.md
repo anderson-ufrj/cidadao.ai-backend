@@ -1,5 +1,11 @@
 # Railway Multi-Service Deployment Guide
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 **Author**: Anderson Henrique da Silva
 **Date**: 2025-10-13
 **Architecture**: Multi-service with Procfile

@@ -1,5 +1,11 @@
 # 🏹 Oxóssi - Caçador de Fraudes
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 **Status**: ✅ **100% Completo** (Produção - Pronto para uso)
 **Arquivo**: `src/agents/oxossi.py`
 **Tamanho**: 39KB

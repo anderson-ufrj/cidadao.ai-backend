@@ -1,5 +1,11 @@
 # 📚 Cidadão.AI Backend - Documentation
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 > **Comprehensive documentation for the Cidadão.AI multi-agent transparency platform**
 
 ---

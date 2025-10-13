@@ -1,5 +1,11 @@
 # 🚂 Migração: HuggingFace Spaces → Railway
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 **Data da Migração**: 2025-10-07
 **Status**: ✅ Completa e em Produção
 **Decisão**: Estratégica para suportar sistema 24/7 de investigações autônomas

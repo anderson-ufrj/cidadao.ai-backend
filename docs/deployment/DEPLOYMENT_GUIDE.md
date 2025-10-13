@@ -1,5 +1,11 @@
 # 🚀 Guia de Deploy Completo - Cidadão.AI
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## 📊 Comparação de Opções
 
 | Opção | Custo | Complexidade | Recursos | Recomendado Para |
@@ -83,7 +89,7 @@ save 60 10000
 server {
     listen 80;
     server_name api.cidadao.ai;
-    
+
     location / {
         proxy_pass http://localhost:8000;
         proxy_set_header Host $host;
@@ -91,7 +97,7 @@ server {
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
     }
-    
+
     location /ws {
         proxy_pass http://localhost:8000;
         proxy_http_version 1.1;

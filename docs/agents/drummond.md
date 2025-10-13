@@ -1,5 +1,11 @@
 # 📢 Carlos Drummond de Andrade - Comunicador do Povo
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 **Status**: ⚠️ **95% Completo** (Beta - Pronto para uso com limitações conhecidas)
 **Arquivo**: `src/agents/drummond.py`
 **Tamanho**: 39KB

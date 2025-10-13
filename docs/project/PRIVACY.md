@@ -1,5 +1,11 @@
 # 🔐 Política de Privacidade - Cidadão.AI Backend
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## 📋 Visão Geral
 
 Esta política de privacidade descreve como o Cidadão.AI Backend coleta, usa, armazena e protege dados pessoais em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018) e melhores práticas internacionais de privacidade.
@@ -206,7 +212,7 @@ Esta política de privacidade descreve como o Cidadão.AI Backend coleta, usa, a
 
 **Importante**: Esta política de privacidade é um documento vivo e pode ser atualizada conforme necessário. Recomendamos revisões periódicas para se manter informado sobre como protegemos seus dados.
 
-**Última atualização**: 24 de janeiro de 2025  
+**Última atualização**: 24 de janeiro de 2025
 **Próxima revisão**: 24 de abril de 2025
 
 Para dúvidas sobre esta política, entre em contato: **privacy@cidadao.ai**

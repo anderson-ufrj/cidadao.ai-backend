@@ -1,5 +1,11 @@
 # 🤗 HuggingFace Spaces Deployment Guide
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## 📌 Important: Branch Configuration
 
 **HuggingFace Spaces uses the `main` branch only**.
