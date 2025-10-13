@@ -1,5 +1,11 @@
 # 🚨 Alert System Setup - Cidadão.AI
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 Este guia explica como configurar o sistema de alertas para anomalias detectadas pelo sistema 24/7.
 
 ## 📋 Tipos de Alertas

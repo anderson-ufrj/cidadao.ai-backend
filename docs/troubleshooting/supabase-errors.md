@@ -1,5 +1,11 @@
 # 🔧 HuggingFace Spaces + Supabase REST API Fix
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## 📋 Problema Identificado (2025-10-07 20:19)
 
 Ao analisar os logs do HuggingFace Spaces, identificamos que:

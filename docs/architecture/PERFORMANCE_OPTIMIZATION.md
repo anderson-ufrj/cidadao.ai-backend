@@ -1,6 +1,12 @@
 # 🚄 Performance Optimization Guide
 
-**Author**: Anderson Henrique da Silva  
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
+**Author**: Anderson Henrique da Silva
 **Last Updated**: 2025-09-20 07:28:07 -03 (São Paulo, Brazil)
 
 ## Overview
@@ -137,16 +143,16 @@ results = await processor.process_parallel(
 **Indexes**:
 ```sql
 -- Composite indexes for common queries
-CREATE INDEX idx_investigations_composite 
+CREATE INDEX idx_investigations_composite
 ON investigations(status, user_id, created_at DESC);
 
 -- Partial indexes for filtered queries
-CREATE INDEX idx_active_investigations 
-ON investigations(created_at) 
+CREATE INDEX idx_active_investigations
+ON investigations(created_at)
 WHERE status = 'active';
 
 -- GIN indexes for JSONB
-CREATE INDEX idx_metadata_gin 
+CREATE INDEX idx_metadata_gin
 ON contracts USING gin(metadata);
 ```
 

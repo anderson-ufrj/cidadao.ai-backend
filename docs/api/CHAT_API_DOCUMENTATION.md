@@ -1,7 +1,13 @@
 # 💬 Chat API Documentation
 
-**Status**: ✅ Implementado e Funcional  
-**Versão**: 1.0.0  
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
+**Status**: ✅ Implementado e Funcional
+**Versão**: 1.0.0
 **Data**: Setembro 2025
 
 ## 📋 Visão Geral
