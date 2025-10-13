@@ -93,12 +93,19 @@ def run_migrations_online() -> None:
     # Get configuration from alembic.ini
     configuration = config.get_section(config.config_ini_section)
 
-    # Ensure URL is set
-    if not configuration.get("sqlalchemy.url"):
-        raise ValueError(
-            "DATABASE_URL or SUPABASE_DB_URL environment variable must be set. "
-            "This is required for Railway PostgreSQL migrations."
+    # Get database URL
+    db_url = configuration.get("sqlalchemy.url")
+
+    # Ensure URL is valid
+    if not db_url or db_url.startswith(("http://", "https://", "${", "None")):
+        print(
+            "⚠️  WARNING: No valid DATABASE_URL found. Skipping migrations.\n"
+            "To enable migrations:\n"
+            "1. Add PostgreSQL database in Railway dashboard\n"
+            "2. DATABASE_URL will be automatically provided by Railway\n"
+            "3. Redeploy the application"
         )
+        return
 
     # Create engine
     connectable = engine_from_config(
