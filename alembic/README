@@ -1,0 +1,49 @@
+Cidadão.AI - Database Migrations
+==================================
+
+This directory contains Alembic database migrations for the Cidadão.AI Backend.
+
+Structure:
+----------
+- env.py: Environment configuration (reads DATABASE_URL from environment)
+- versions/: Migration scripts
+- script.py.mako: Template for generating new migrations
+
+Usage:
+------
+
+# Create a new migration
+alembic revision -m "description of changes"
+
+# Auto-generate migration from model changes
+alembic revision --autogenerate -m "description"
+
+# Apply all migrations
+alembic upgrade head
+
+# Revert last migration
+alembic downgrade -1
+
+# Show current revision
+alembic current
+
+# Show migration history
+alembic history
+
+Railway Deployment:
+-------------------
+Migrations run automatically during deployment via the Procfile:
+  release: python -m alembic upgrade head
+
+The DATABASE_URL environment variable is automatically provided by Railway PostgreSQL.
+
+Notes:
+------
+- All migrations are versioned in the versions/ directory
+- Each migration has upgrade() and downgrade() functions
+- Always test migrations locally before deploying
+- Keep migrations small and focused
+- Add proper descriptions to migration messages
+
+Author: Anderson Henrique da Silva
+Updated: 2025-10-13
