@@ -2,8 +2,9 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-**Author**: Anderson Henrique da Silva  
-**Last Updated**: 2025-09-25 18:00:00 -03:00 (São Paulo, Brazil)
+**Author**: Anderson Henrique da Silva
+**Location**: Minas Gerais, Brasil
+**Last Updated**: 2025-10-13 07:03:54 -03:00
 
 ## Project Overview
 
