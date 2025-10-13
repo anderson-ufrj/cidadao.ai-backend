@@ -183,8 +183,9 @@ logs/
 # Redis
 dump.rdb
 
-# ML Models
+# ML Models (trained models, not source code)
 models/
+!src/models/
 *.pkl
 *.joblib
 *.h5
