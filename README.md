@@ -629,6 +629,94 @@ docker-compose -f docker-compose.monitoring.yml up
 
 ---
 
+## 📊 Monitoring & Observability
+
+**Status**: ✅ Full stack configured with Prometheus + Grafana
+
+### Quick Start
+
+```bash
+# 1. Start monitoring stack
+docker-compose -f config/docker/docker-compose.monitoring-minimal.yml up -d
+
+# 2. Start backend with metrics
+make run-dev  # or: python -m src.api.app
+
+# 3. Run warm-up job (keeps metrics populated)
+venv/bin/python scripts/monitoring/warmup_federal_apis.py --daemon
+```
+
+### Access Dashboards
+
+- **Grafana**: http://localhost:3000 (admin/cidadao123)
+- **Prometheus**: http://localhost:9090
+- **Metrics Endpoint**: http://localhost:8000/health/metrics
+
+### Federal APIs Endpoints
+
+All Federal APIs exposed as REST endpoints with automatic Prometheus metrics:
+
+```bash
+# IBGE (Brazilian Geography and Statistics Institute)
+GET  /api/v1/federal/ibge/states                    # All 27 Brazilian states
+POST /api/v1/federal/ibge/municipalities            # Municipalities by state
+POST /api/v1/federal/ibge/population                # Population data
+
+# DataSUS (Brazilian Health Data System)
+POST /api/v1/federal/datasus/search                 # Search health datasets
+POST /api/v1/federal/datasus/indicators             # Health indicators
+
+# INEP (Brazilian Education Data System)
+POST /api/v1/federal/inep/search-institutions       # Search schools/universities
+POST /api/v1/federal/inep/indicators                # Education indicators
+```
+
+### Configured Alerts
+
+**Federal APIs Monitoring** (10 alert rules):
+- ⚠️ High Error Rate (>5% for 2min)
+- 🚨 Critical Error Rate (>25% for 1min)
+- ⚠️ High Latency P95 (>5s for 3min)
+- 🚨 Very High Latency P95 (>10s for 1min)
+- ℹ️ Low Cache Hit Rate (<50% for 5min)
+- 🚨 API Down (>1min)
+- ⚠️ High Retry Rate (>1/s for 3min)
+- ⚠️ Excessive Active Requests (>20 for 2min)
+- 🚨 Prometheus Scrape Failing (>2min)
+- ⚠️ Grafana Down (>5min)
+
+### Warm-up Job
+
+Maintains metrics by periodically calling Federal API endpoints:
+
+```bash
+# Run once
+python scripts/monitoring/warmup_federal_apis.py
+
+# Run continuously (5 min interval)
+python scripts/monitoring/warmup_federal_apis.py --daemon
+
+# Custom interval (10 min)
+python scripts/monitoring/warmup_federal_apis.py --daemon --interval 600
+
+# As systemd service (production)
+sudo systemctl enable cidadao-warmup.service
+sudo systemctl start cidadao-warmup.service
+```
+
+### Metrics Available
+
+- **Request Rate**: requests/sec per API
+- **Error Rate**: percentage of failed requests
+- **Latency**: P50, P95, P99 response times
+- **Cache Performance**: hit rate, operations
+- **Retry Rate**: upstream API stability
+- **Active Requests**: concurrent request count
+
+📚 **Complete Guide**: [Monitoring Documentation](docs/monitoring/README.md)
+
+---
+
 ## 📚 Documentation
 
 ### 🏗️ Architecture & Design
