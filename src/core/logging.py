@@ -9,7 +9,7 @@ License: Proprietary - All rights reserved
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import structlog
 from structlog.processors import CallsiteParameter, CallsiteParameterAdder
@@ -22,7 +22,7 @@ def setup_logging() -> None:
     # Create logs directory if it doesn't exist
     log_dir = Path("logs")
     log_dir.mkdir(exist_ok=True)
-    
+
     # Configure structlog
     structlog.configure(
         processors=[
@@ -42,27 +42,30 @@ def setup_logging() -> None:
                 ]
             ),
             structlog.processors.dict_tracebacks,
-            structlog.processors.JSONRenderer() if settings.is_production
-            else structlog.dev.ConsoleRenderer(colors=True),
+            (
+                structlog.processors.JSONRenderer()
+                if settings.is_production
+                else structlog.dev.ConsoleRenderer(colors=True)
+            ),
         ],
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
         cache_logger_on_first_use=True,
     )
-    
+
     # Configure standard logging
     logging.basicConfig(
         format="%(message)s",
         stream=sys.stdout,
         level=getattr(logging, settings.log_level),
     )
-    
+
     # Configure specific loggers
     logging.getLogger("uvicorn").setLevel(logging.INFO)
     logging.getLogger("sqlalchemy.engine").setLevel(
         logging.INFO if settings.enable_sql_echo else logging.WARNING
     )
-    
+
     # Suppress noisy loggers
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
@@ -73,10 +76,10 @@ def setup_logging() -> None:
 def get_logger(name: str) -> structlog.stdlib.BoundLogger:
     """
     Get a logger instance with the given name.
-    
+
     Args:
         name: Logger name, typically __name__
-        
+
     Returns:
         Configured logger instance
     """
@@ -85,18 +88,18 @@ def get_logger(name: str) -> structlog.stdlib.BoundLogger:
 
 class LogContext:
     """Context manager for adding temporary context to logs."""
-    
+
     def __init__(self, logger: structlog.stdlib.BoundLogger, **kwargs: Any) -> None:
         """Initialize log context."""
         self.logger = logger
         self.context = kwargs
         self.token: Optional[Any] = None
-    
+
     def __enter__(self) -> "LogContext":
         """Enter context and bind values."""
         self.token = structlog.contextvars.bind_contextvars(**self.context)
         return self
-    
+
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
         """Exit context and unbind values."""
         if self.token:
@@ -106,7 +109,7 @@ class LogContext:
 def log_performance(func_name: str, duration_ms: float, **kwargs: Any) -> None:
     """
     Log performance metrics.
-    
+
     Args:
         func_name: Name of the function
         duration_ms: Duration in milliseconds
@@ -114,23 +117,16 @@ def log_performance(func_name: str, duration_ms: float, **kwargs: Any) -> None:
     """
     logger = get_logger(__name__)
     logger.info(
-        "performance_metric",
-        function=func_name,
-        duration_ms=duration_ms,
-        **kwargs
+        "performance_metric", function=func_name, duration_ms=duration_ms, **kwargs
     )
 
 
 def log_api_request(
-    method: str,
-    path: str,
-    status_code: int,
-    duration_ms: float,
-    **kwargs: Any
+    method: str, path: str, status_code: int, duration_ms: float, **kwargs: Any
 ) -> None:
     """
     Log API request details.
-    
+
     Args:
         method: HTTP method
         path: Request path
@@ -145,19 +141,16 @@ def log_api_request(
         path=path,
         status_code=status_code,
         duration_ms=duration_ms,
-        **kwargs
+        **kwargs,
     )
 
 
 def log_agent_action(
-    agent_name: str,
-    action: str,
-    success: bool,
-    **kwargs: Any
+    agent_name: str, action: str, success: bool, **kwargs: Any
 ) -> None:
     """
     Log agent actions.
-    
+
     Args:
         agent_name: Name of the agent
         action: Action performed
@@ -166,11 +159,7 @@ def log_agent_action(
     """
     logger = get_logger(__name__)
     logger.info(
-        "agent_action",
-        agent=agent_name,
-        action=action,
-        success=success,
-        **kwargs
+        "agent_action", agent=agent_name, action=action, success=success, **kwargs
     )
 
 
@@ -179,11 +168,11 @@ def log_investigation(
     query: str,
     findings_count: int,
     confidence_score: float,
-    **kwargs: Any
+    **kwargs: Any,
 ) -> None:
     """
     Log investigation details.
-    
+
     Args:
         investigation_id: Unique investigation ID
         query: Investigation query
@@ -198,18 +187,14 @@ def log_investigation(
         query=query,
         findings_count=findings_count,
         confidence_score=confidence_score,
-        **kwargs
+        **kwargs,
     )
 
 
-def log_error(
-    error_type: str,
-    error_message: str,
-    **kwargs: Any
-) -> None:
+def log_error(error_type: str, error_message: str, **kwargs: Any) -> None:
     """
     Log error details.
-    
+
     Args:
         error_type: Type of error
         error_message: Error message
@@ -217,10 +202,7 @@ def log_error(
     """
     logger = get_logger(__name__)
     logger.error(
-        "error_occurred",
-        error_type=error_type,
-        error_message=error_message,
-        **kwargs
+        "error_occurred", error_type=error_type, error_message=error_message, **kwargs
     )
 
 
@@ -229,12 +211,12 @@ def create_audit_log_entry(
     user_id: Optional[str] = None,
     resource_type: Optional[str] = None,
     resource_id: Optional[str] = None,
-    changes: Optional[Dict[str, Any]] = None,
-    **kwargs: Any
-) -> Dict[str, Any]:
+    changes: Optional[dict[str, Any]] = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
     """
     Create an audit log entry.
-    
+
     Args:
         action: Action performed
         user_id: User who performed action
@@ -242,7 +224,7 @@ def create_audit_log_entry(
         resource_id: ID of resource
         changes: Changes made
         **kwargs: Additional context
-        
+
     Returns:
         Audit log entry dict
     """

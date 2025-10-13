@@ -9,14 +9,9 @@ This module provides command-line interface commands for:
 Status: Stub implementation - Full CLI planned for production phase.
 """
 
-from .investigate import investigate
 from .analyze import analyze
+from .investigate import investigate
 from .report import report
 from .watch import watch
 
-__all__ = [
-    "investigate",
-    "analyze", 
-    "report",
-    "watch"
-]
+__all__ = ["investigate", "analyze", "report", "watch"]

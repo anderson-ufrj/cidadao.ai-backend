@@ -6,74 +6,74 @@ including duration, status codes, and error rates.
 """
 
 import time
-from typing import Callable
+from collections.abc import Callable
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from src.core import get_logger
-from src.infrastructure.observability.metrics import metrics_manager, BusinessMetrics
+from src.infrastructure.observability.metrics import metrics_manager
 
 logger = get_logger(__name__)
 
 
 class MetricsMiddleware(BaseHTTPMiddleware):
     """Middleware for automatic Prometheus metrics collection."""
-    
+
     def __init__(self, app):
         """Initialize metrics middleware."""
         super().__init__(app)
         self.logger = get_logger(__name__)
-    
+
     async def dispatch(self, request: Request, call_next: Callable) -> Response:
         """Process request with automatic metrics collection."""
         start_time = time.time()
-        
+
         # Skip metrics endpoint to avoid recursion
         if request.url.path == "/api/v1/observability/metrics":
             return await call_next(request)
-        
+
         # Extract path template (FastAPI route) for grouping
         path_template = self._get_path_template(request)
         method = request.method
-        
+
         try:
             # Process request
             response = await call_next(request)
-            
+
             # Calculate duration
             duration = time.time() - start_time
-            
+
             # Record metrics
             self._record_request_metrics(
                 method=method,
                 path=path_template,
                 status_code=response.status_code,
-                duration=duration
+                duration=duration,
             )
-            
+
             return response
-            
+
         except Exception as exc:
             # Calculate duration even for errors
             duration = time.time() - start_time
-            
+
             # Record error metrics
             self._record_request_metrics(
                 method=method,
                 path=path_template,
                 status_code=500,  # Default error status
                 duration=duration,
-                error=True
+                error=True,
             )
-            
+
             # Re-raise the exception
             raise exc
-    
+
     def _get_path_template(self, request: Request) -> str:
         """
         Get the path template from FastAPI route.
-        
+
         This extracts the route pattern (e.g., /users/{user_id})
         instead of the actual path (e.g., /users/123) to avoid
         high cardinality in metrics.
@@ -83,36 +83,37 @@ class MetricsMiddleware(BaseHTTPMiddleware):
             route = request.scope["route"]
             if hasattr(route, "path"):
                 return route.path
-        
+
         # Fallback to actual path, but try to generalize it
         path = request.url.path
-        
+
         # Common patterns to generalize
         # Replace UUIDs
         import re
+
         path = re.sub(
-            r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}',
-            '{uuid}',
+            r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+            "{uuid}",
             path,
-            flags=re.IGNORECASE
+            flags=re.IGNORECASE,
         )
-        
+
         # Replace numeric IDs
-        path = re.sub(r'/\d+', '/{id}', path)
-        
+        path = re.sub(r"/\d+", "/{id}", path)
+
         # Limit cardinality for unknown paths
-        if path.count('/') > 5:
-            path = '/unknown/deep/path'
-        
+        if path.count("/") > 5:
+            path = "/unknown/deep/path"
+
         return path
-    
+
     def _record_request_metrics(
         self,
         method: str,
         path: str,
         status_code: int,
         duration: float,
-        error: bool = False
+        error: bool = False,
     ):
         """Record HTTP request metrics."""
         # HTTP request duration histogram
@@ -122,10 +123,10 @@ class MetricsMiddleware(BaseHTTPMiddleware):
             labels={
                 "method": method.upper(),
                 "endpoint": path,
-                "status_code": str(status_code)
-            }
+                "status_code": str(status_code),
+            },
         )
-        
+
         # HTTP request counter
         metrics_manager.increment_counter(
             "cidadao_ai_http_requests_total",
@@ -133,10 +134,10 @@ class MetricsMiddleware(BaseHTTPMiddleware):
                 "method": method.upper(),
                 "endpoint": path,
                 "status_code": str(status_code),
-                "status": "error" if error or status_code >= 400 else "success"
-            }
+                "status": "error" if error or status_code >= 400 else "success",
+            },
         )
-        
+
         # Error rate tracking
         if error or status_code >= 400:
             metrics_manager.increment_counter(
@@ -145,10 +146,10 @@ class MetricsMiddleware(BaseHTTPMiddleware):
                     "method": method.upper(),
                     "endpoint": path,
                     "status_code": str(status_code),
-                    "error_type": self._get_error_type(status_code)
-                }
+                    "error_type": self._get_error_type(status_code),
+                },
             )
-        
+
         # Track slow requests
         if duration > 5.0:  # Requests taking more than 5 seconds
             metrics_manager.increment_counter(
@@ -156,18 +157,18 @@ class MetricsMiddleware(BaseHTTPMiddleware):
                 labels={
                     "method": method.upper(),
                     "endpoint": path,
-                    "duration_bucket": self._get_duration_bucket(duration)
-                }
+                    "duration_bucket": self._get_duration_bucket(duration),
+                },
             )
-        
+
         # Update concurrent requests gauge (simplified - in production use proper tracking)
-        active_requests = getattr(self, '_active_requests', 0)
+        active_requests = getattr(self, "_active_requests", 0)
         metrics_manager.set_gauge(
             "cidadao_ai_http_requests_in_progress",
             active_requests,
-            labels={"method": method.upper()}
+            labels={"method": method.upper()},
         )
-    
+
     def _get_error_type(self, status_code: int) -> str:
         """Categorize error types based on status code."""
         if 400 <= status_code < 500:
@@ -176,7 +177,7 @@ class MetricsMiddleware(BaseHTTPMiddleware):
             return "server_error"
         else:
             return "unknown_error"
-    
+
     def _get_duration_bucket(self, duration: float) -> str:
         """Categorize request duration into buckets."""
         if duration < 1:
@@ -196,43 +197,43 @@ def setup_http_metrics():
     # HTTP requests total counter
     try:
         from src.infrastructure.observability.metrics import MetricConfig, MetricType
-        
+
         metrics_manager.register_metric(
             MetricConfig(
                 name="cidadao_ai_http_requests_total",
                 description="Total HTTP requests received",
-                labels=["method", "endpoint", "status_code", "status"]
+                labels=["method", "endpoint", "status_code", "status"],
             ),
-            MetricType.COUNTER
+            MetricType.COUNTER,
         )
-        
+
         metrics_manager.register_metric(
             MetricConfig(
                 name="cidadao_ai_http_errors_total",
                 description="Total HTTP errors",
-                labels=["method", "endpoint", "status_code", "error_type"]
+                labels=["method", "endpoint", "status_code", "error_type"],
             ),
-            MetricType.COUNTER
+            MetricType.COUNTER,
         )
-        
+
         metrics_manager.register_metric(
             MetricConfig(
                 name="cidadao_ai_slow_requests_total",
                 description="Total slow HTTP requests",
-                labels=["method", "endpoint", "duration_bucket"]
+                labels=["method", "endpoint", "duration_bucket"],
             ),
-            MetricType.COUNTER
+            MetricType.COUNTER,
         )
-        
+
         metrics_manager.register_metric(
             MetricConfig(
                 name="cidadao_ai_http_requests_in_progress",
                 description="HTTP requests currently being processed",
-                labels=["method"]
+                labels=["method"],
             ),
-            MetricType.GAUGE
+            MetricType.GAUGE,
         )
-        
+
         logger.info("HTTP metrics initialized")
     except Exception as e:
         logger.warning(f"Some HTTP metrics may already be registered: {e}")

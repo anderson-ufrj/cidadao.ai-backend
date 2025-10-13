@@ -9,6 +9,7 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
+
 from src.services.transparency_apis import registry
 
 
@@ -30,7 +31,7 @@ async def example_2_get_contracts():
     print("=== Example 2: Get Contracts from TCE-PE ===\n")
 
     # Get TCE-PE client
-    pe_tce = registry.get_client('PE-tce')
+    pe_tce = registry.get_client("PE-tce")
 
     if pe_tce:
         # Test connection
@@ -59,7 +60,7 @@ async def example_3_get_municipalities():
     print("=== Example 3: Get Municipalities from TCE-CE ===\n")
 
     # Get TCE-CE client
-    ce_tce = registry.get_client('CE-tce')
+    ce_tce = registry.get_client("CE-tce")
 
     if ce_tce:
         # Fetch municipalities
@@ -69,7 +70,9 @@ async def example_3_get_municipalities():
 
         # Display first 5
         for i, mun in enumerate(municipalities[:5], 1):
-            print(f"{i}. {mun.get('municipality_name')} (IBGE: {mun.get('municipality_code')})")
+            print(
+                f"{i}. {mun.get('municipality_name')} (IBGE: {mun.get('municipality_code')})"
+            )
 
         print()
 
@@ -78,7 +81,7 @@ async def example_4_multi_state_data():
     """Example 4: Get contracts from multiple states."""
     print("=== Example 4: Multi-State Contract Analysis ===\n")
 
-    states = ['PE', 'CE', 'RJ']
+    states = ["PE", "CE", "RJ"]
     all_contracts = {}
 
     for state_code in states:
@@ -91,7 +94,9 @@ async def example_4_multi_state_data():
             all_contracts[state_code] = contracts
             print(f"  {state_code}: {len(contracts)} contracts")
 
-    print(f"\nTotal contracts across states: {sum(len(c) for c in all_contracts.values())}")
+    print(
+        f"\nTotal contracts across states: {sum(len(c) for c in all_contracts.values())}"
+    )
     print()
 
 
@@ -100,7 +105,7 @@ async def example_5_ckan_search():
     print("=== Example 5: Search CKAN Datasets (São Paulo) ===\n")
 
     # Get SP CKAN client
-    sp_ckan = registry.get_client('SP-ckan')
+    sp_ckan = registry.get_client("SP-ckan")
 
     if sp_ckan:
         # Search for contract-related datasets

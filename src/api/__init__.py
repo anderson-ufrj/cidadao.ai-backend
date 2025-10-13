@@ -22,7 +22,7 @@ Main Components:
 
 Usage:
     from src.api import create_app, get_api_router
-    
+
     app = create_app()
     router = get_api_router()
 

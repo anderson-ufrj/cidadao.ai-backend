@@ -7,57 +7,60 @@ Date: 2025-01-24
 License: Proprietary - All rights reserved
 """
 
-import asyncio
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Optional
 
-from pydantic import BaseModel, Field as PydanticField
+from pydantic import BaseModel
+from pydantic import Field as PydanticField
 
-from src.core import AgentStatus, ReflectionType, get_logger
+from src.core import AgentStatus, ReflectionType
 from src.core.exceptions import AgentExecutionError, InvestigationError
-from .deodoro import (
-    AgentContext,
-    AgentMessage,
-    AgentResponse,
-    ReflectiveAgent,
-)
-from .parallel_processor import (
-    ParallelAgentProcessor,
-    ParallelTask,
-    ParallelStrategy,
-    parallel_processor,
-)
+
+from .deodoro import AgentContext, AgentMessage, AgentResponse, ReflectiveAgent
+from .parallel_processor import ParallelStrategy, ParallelTask, parallel_processor
 
 
 class InvestigationPlan(BaseModel):
     """Plan for conducting an investigation."""
-    
+
     objective: str = PydanticField(..., description="Investigation objective")
-    steps: List[Dict[str, Any]] = PydanticField(..., description="Investigation steps")
-    required_agents: List[str] = PydanticField(..., description="Required agents")
+    steps: list[dict[str, Any]] = PydanticField(..., description="Investigation steps")
+    required_agents: list[str] = PydanticField(..., description="Required agents")
     estimated_time: int = PydanticField(..., description="Estimated time in seconds")
-    quality_criteria: Dict[str, Any] = PydanticField(..., description="Quality criteria")
-    fallback_strategies: List[str] = PydanticField(default_factory=list, description="Fallback strategies")
+    quality_criteria: dict[str, Any] = PydanticField(
+        ..., description="Quality criteria"
+    )
+    fallback_strategies: list[str] = PydanticField(
+        default_factory=list, description="Fallback strategies"
+    )
 
 
 class InvestigationResult(BaseModel):
     """Result of an investigation."""
-    
+
     investigation_id: str = PydanticField(..., description="Investigation ID")
     query: str = PydanticField(..., description="Original query")
-    findings: List[Dict[str, Any]] = PydanticField(..., description="Investigation findings")
+    findings: list[dict[str, Any]] = PydanticField(
+        ..., description="Investigation findings"
+    )
     confidence_score: float = PydanticField(..., description="Confidence in results")
-    sources: List[str] = PydanticField(..., description="Data sources used")
-    explanation: Optional[str] = PydanticField(default=None, description="Explanation of findings")
-    metadata: Dict[str, Any] = PydanticField(default_factory=dict, description="Additional metadata")
+    sources: list[str] = PydanticField(..., description="Data sources used")
+    explanation: Optional[str] = PydanticField(
+        default=None, description="Explanation of findings"
+    )
+    metadata: dict[str, Any] = PydanticField(
+        default_factory=dict, description="Additional metadata"
+    )
     timestamp: datetime = PydanticField(default_factory=datetime.utcnow)
-    processing_time_ms: Optional[float] = PydanticField(default=None, description="Processing time")
+    processing_time_ms: Optional[float] = PydanticField(
+        default=None, description="Processing time"
+    )
 
 
 class MasterAgent(ReflectiveAgent):
     """
     Master agent that orchestrates investigations using other agents.
-    
+
     This agent has self-reflection capabilities and can:
     - Plan investigation strategies
     - Coordinate with other agents
@@ -65,18 +68,18 @@ class MasterAgent(ReflectiveAgent):
     - Adapt strategies based on results
     - Provide comprehensive explanations
     """
-    
+
     def __init__(
         self,
         llm_service: Any,
         memory_agent: Any,
         reflection_threshold: float = 0.8,
         max_reflection_loops: int = 3,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """
         Initialize master agent.
-        
+
         Args:
             llm_service: LLM service instance
             memory_agent: Memory agent instance
@@ -97,54 +100,54 @@ class MasterAgent(ReflectiveAgent):
             ],
             reflection_threshold=reflection_threshold,
             max_reflection_loops=max_reflection_loops,
-            **kwargs
+            **kwargs,
         )
-        
+
         self.llm_service = llm_service
         self.memory_agent = memory_agent
-        self.active_investigations: Dict[str, InvestigationPlan] = {}
-        self.agent_registry: Dict[str, Any] = {}
-        
+        self.active_investigations: dict[str, InvestigationPlan] = {}
+        self.agent_registry: dict[str, Any] = {}
+
         self.logger.info(
             "abaporu_initialized",
             reflection_threshold=reflection_threshold,
             max_reflection_loops=max_reflection_loops,
         )
-    
+
     async def initialize(self) -> None:
         """Initialize master agent."""
         self.logger.info("abaporu_initializing")
-        
+
         # Initialize sub-services
-        if hasattr(self.llm_service, 'initialize'):
+        if hasattr(self.llm_service, "initialize"):
             await self.llm_service.initialize()
-        
-        if hasattr(self.memory_agent, 'initialize'):
+
+        if hasattr(self.memory_agent, "initialize"):
             await self.memory_agent.initialize()
-        
+
         self.status = AgentStatus.IDLE
         self.logger.info("abaporu_initialized")
-    
+
     async def shutdown(self) -> None:
         """Shutdown master agent."""
         self.logger.info("abaporu_shutting_down")
-        
+
         # Cleanup resources
-        if hasattr(self.llm_service, 'shutdown'):
+        if hasattr(self.llm_service, "shutdown"):
             await self.llm_service.shutdown()
-        
-        if hasattr(self.memory_agent, 'shutdown'):
+
+        if hasattr(self.memory_agent, "shutdown"):
             await self.memory_agent.shutdown()
-        
+
         self.active_investigations.clear()
         self.agent_registry.clear()
-        
+
         self.logger.info("abaporu_shutdown_complete")
-    
+
     def register_agent(self, agent_name: str, agent_instance: Any) -> None:
         """
         Register a sub-agent with the master agent.
-        
+
         Args:
             agent_name: Name of the agent
             agent_instance: Agent instance
@@ -155,7 +158,7 @@ class MasterAgent(ReflectiveAgent):
             agent_name=agent_name,
             total_agents=len(self.agent_registry),
         )
-    
+
     async def process(
         self,
         message: AgentMessage,
@@ -163,23 +166,23 @@ class MasterAgent(ReflectiveAgent):
     ) -> AgentResponse:
         """
         Process a message using the master agent.
-        
+
         Args:
             message: Message to process
             context: Agent context
-            
+
         Returns:
             Agent response
         """
         action = message.action
         payload = message.payload
-        
+
         self.logger.info(
             "master_agent_processing",
             action=action,
             investigation_id=context.investigation_id,
         )
-        
+
         try:
             if action == "investigate":
                 result = await self._investigate(payload, context)
@@ -192,16 +195,19 @@ class MasterAgent(ReflectiveAgent):
             else:
                 raise AgentExecutionError(
                     f"Unknown action: {action}",
-                    details={"action": action, "available_actions": self.capabilities}
+                    details={"action": action, "available_actions": self.capabilities},
                 )
-            
+
             return AgentResponse(
                 agent_name=self.name,
                 status=AgentStatus.COMPLETED,
                 result=result,
-                metadata={"action": action, "investigation_id": context.investigation_id},
+                metadata={
+                    "action": action,
+                    "investigation_id": context.investigation_id,
+                },
             )
-            
+
         except Exception as e:
             self.logger.error(
                 "master_agent_processing_failed",
@@ -209,60 +215,63 @@ class MasterAgent(ReflectiveAgent):
                 error=str(e),
                 investigation_id=context.investigation_id,
             )
-            
+
             return AgentResponse(
                 agent_name=self.name,
                 status=AgentStatus.ERROR,
                 error=str(e),
-                metadata={"action": action, "investigation_id": context.investigation_id},
+                metadata={
+                    "action": action,
+                    "investigation_id": context.investigation_id,
+                },
             )
-    
+
     async def _investigate(
         self,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         context: AgentContext,
     ) -> InvestigationResult:
         """
         Conduct a full investigation.
-        
+
         Args:
             payload: Investigation payload with query
             context: Agent context
-            
+
         Returns:
             Investigation result
         """
         query = payload.get("query", "")
         if not query:
             raise InvestigationError("No query provided for investigation")
-        
+
         investigation_id = context.investigation_id
         start_time = datetime.utcnow()
-        
+
         self.logger.info(
             "investigation_started",
             investigation_id=investigation_id,
             query=query,
         )
-        
+
         # Step 1: Create investigation plan
         plan = await self._plan_investigation({"query": query}, context)
         self.active_investigations[investigation_id] = plan
-        
+
         # Step 2: Execute investigation steps in parallel when possible
         findings = []
         sources = []
-        
+
         # Group steps that can be executed in parallel
         parallel_groups = self._group_parallel_steps(plan.steps)
-        
+
         for group_idx, step_group in enumerate(parallel_groups):
             if len(step_group) > 1:
                 # Execute in parallel
                 self.logger.info(
                     f"Executing {len(step_group)} steps in parallel for group {group_idx}"
                 )
-                
+
                 # Create parallel tasks
                 tasks = []
                 for step in step_group:
@@ -279,24 +288,22 @@ class MasterAgent(ReflectiveAgent):
                             timeout=30.0,
                         )
                         tasks.append(task)
-                
+
                 # Execute parallel tasks
                 parallel_results = await parallel_processor.execute_parallel(
-                    tasks,
-                    context,
-                    strategy=ParallelStrategy.BEST_EFFORT
+                    tasks, context, strategy=ParallelStrategy.BEST_EFFORT
                 )
-                
+
                 # Aggregate results
                 aggregated = parallel_processor.aggregate_results(parallel_results)
                 findings.extend(aggregated.get("findings", []))
                 sources.extend(aggregated.get("sources", []))
-                
+
             else:
                 # Execute single step
                 step = step_group[0]
                 step_result = await self._execute_step(step, context)
-                
+
                 if step_result.status == AgentStatus.COMPLETED:
                     findings.extend(step_result.result.get("findings", []))
                     sources.extend(step_result.result.get("sources", []))
@@ -307,16 +314,16 @@ class MasterAgent(ReflectiveAgent):
                         step=step,
                         error=step_result.error,
                     )
-        
+
         # Step 3: Generate explanation
         explanation = await self._generate_explanation(findings, query, context)
-        
+
         # Step 4: Calculate confidence score
         confidence_score = self._calculate_confidence_score(findings, sources)
-        
+
         # Step 5: Create result
         processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
-        
+
         result = InvestigationResult(
             investigation_id=investigation_id,
             query=query,
@@ -331,10 +338,10 @@ class MasterAgent(ReflectiveAgent):
             },
             processing_time_ms=processing_time,
         )
-        
+
         # Store in memory
         await self.memory_agent.store_investigation(result, context)
-        
+
         self.logger.info(
             "investigation_completed",
             investigation_id=investigation_id,
@@ -342,26 +349,28 @@ class MasterAgent(ReflectiveAgent):
             confidence_score=confidence_score,
             processing_time_ms=processing_time,
         )
-        
+
         return result
-    
-    def _group_parallel_steps(self, steps: List[Dict[str, Any]]) -> List[List[Dict[str, Any]]]:
+
+    def _group_parallel_steps(
+        self, steps: list[dict[str, Any]]
+    ) -> list[list[dict[str, Any]]]:
         """
         Group steps that can be executed in parallel.
-        
+
         Steps can be parallel if they don't depend on each other's output.
         """
         groups = []
         current_group = []
         seen_agents = set()
-        
+
         for step in steps:
             agent = step.get("agent", "")
             depends_on = step.get("depends_on", [])
-            
+
             # Check if this step depends on any agent in current group
             depends_on_current = any(dep in seen_agents for dep in depends_on)
-            
+
             if depends_on_current or agent in seen_agents:
                 # Start new group
                 if current_group:
@@ -372,79 +381,82 @@ class MasterAgent(ReflectiveAgent):
                 # Add to current group
                 current_group.append(step)
                 seen_agents.add(agent)
-        
+
         # Add final group
         if current_group:
             groups.append(current_group)
-        
+
         return groups
-    
+
     async def _plan_investigation(
         self,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         context: AgentContext,
     ) -> InvestigationPlan:
         """
         Create an investigation plan.
-        
+
         Args:
             payload: Planning payload
             context: Agent context
-            
+
         Returns:
             Investigation plan
         """
         query = payload.get("query", "")
-        
+
         # Get relevant context from memory
         memory_context = await self.memory_agent.get_relevant_context(query, context)
-        
+
         # Use LLM to generate plan
         planning_prompt = self._create_planning_prompt(query, memory_context)
         plan_response = await self.llm_service.generate(
             prompt=planning_prompt,
             context=context,
         )
-        
+
         # Parse and validate plan
         plan = self._parse_investigation_plan(plan_response, query)
-        
+
         self.logger.info(
             "investigation_plan_created",
             investigation_id=context.investigation_id,
             steps_count=len(plan.steps),
             required_agents=plan.required_agents,
         )
-        
+
         return plan
-    
+
     async def _execute_step(
         self,
-        step: Dict[str, Any],
+        step: dict[str, Any],
         context: AgentContext,
     ) -> AgentResponse:
         """
         Execute a single investigation step.
-        
+
         Args:
             step: Investigation step
             context: Agent context
-            
+
         Returns:
             Step result
         """
         agent_name = step.get("agent")
         action = step.get("action")
         parameters = step.get("parameters", {})
-        
+
         if agent_name not in self.agent_registry:
             raise AgentExecutionError(
                 f"Agent {agent_name} not registered",
-                details={"agent": agent_name, "available_agents": list(self.agent_registry.keys())}
+                details={
+                    "agent": agent_name,
+                    "available_agents": list(self.agent_registry.keys()),
+                },
             )
-        
+
         agent = self.agent_registry[agent_name]
-        
+
         message = AgentMessage(
             sender=self.name,
             recipient=agent_name,
@@ -452,82 +464,84 @@ class MasterAgent(ReflectiveAgent):
             payload=parameters,
             context=context.to_dict(),
         )
-        
+
         return await agent.execute(action, parameters, context)
-    
+
     async def _generate_explanation(
         self,
-        findings: List[Dict[str, Any]],
+        findings: list[dict[str, Any]],
         query: str,
         context: AgentContext,
     ) -> str:
         """
         Generate explanation for investigation findings.
-        
+
         Args:
             findings: Investigation findings
             query: Original query
             context: Agent context
-            
+
         Returns:
             Explanation text
         """
         explanation_prompt = self._create_explanation_prompt(findings, query)
-        
+
         explanation = await self.llm_service.generate(
             prompt=explanation_prompt,
             context=context,
         )
-        
+
         return explanation
-    
+
     def _calculate_confidence_score(
         self,
-        findings: List[Dict[str, Any]],
-        sources: List[str],
+        findings: list[dict[str, Any]],
+        sources: list[str],
     ) -> float:
         """
         Calculate confidence score for investigation results.
-        
+
         Args:
             findings: Investigation findings
             sources: Data sources used
-            
+
         Returns:
             Confidence score (0.0 to 1.0)
         """
         if not findings:
             return 0.0
-        
+
         # Base confidence on number of findings and sources
-        findings_score = min(len(findings) / 10, 1.0)  # More findings = higher confidence
-        sources_score = min(len(sources) / 3, 1.0)      # More sources = higher confidence
-        
+        findings_score = min(
+            len(findings) / 10, 1.0
+        )  # More findings = higher confidence
+        sources_score = min(len(sources) / 3, 1.0)  # More sources = higher confidence
+
         # Average anomaly scores from findings
         anomaly_scores = [f.get("anomaly_score", 0.0) for f in findings]
-        avg_anomaly_score = sum(anomaly_scores) / len(anomaly_scores) if anomaly_scores else 0.0
-        
+        avg_anomaly_score = (
+            sum(anomaly_scores) / len(anomaly_scores) if anomaly_scores else 0.0
+        )
+
         # Weighted average
         confidence = (
-            findings_score * 0.3 +
-            sources_score * 0.2 +
-            avg_anomaly_score * 0.5
+            findings_score * 0.3 + sources_score * 0.2 + avg_anomaly_score * 0.5
         )
-        
+
         return min(confidence, 1.0)
-    
+
     async def reflect(
         self,
         result: Any,
         context: AgentContext,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Reflect on investigation results and provide quality assessment.
-        
+
         Args:
             result: Investigation result
             context: Agent context
-            
+
         Returns:
             Reflection result
         """
@@ -537,33 +551,33 @@ class MasterAgent(ReflectiveAgent):
                 "issues": ["Invalid result type"],
                 "suggestions": ["Fix result format"],
             }
-        
+
         issues = []
         suggestions = []
-        
+
         # Check completeness
         if not result.findings:
             issues.append("No findings generated")
             suggestions.append("Review investigation strategy")
-        
+
         # Check confidence
         if result.confidence_score < 0.5:
             issues.append("Low confidence score")
             suggestions.append("Gather more data or use additional sources")
-        
+
         # Check explanation quality
         if not result.explanation or len(result.explanation.strip()) < 50:
             issues.append("Poor explanation quality")
             suggestions.append("Generate more detailed explanation")
-        
+
         # Check source diversity
         if len(result.sources) < 2:
             issues.append("Limited source diversity")
             suggestions.append("Include more data sources")
-        
+
         # Calculate quality score
         quality_score = self._calculate_quality_score(result, issues)
-        
+
         reflection = {
             "quality_score": quality_score,
             "issues": issues,
@@ -573,45 +587,47 @@ class MasterAgent(ReflectiveAgent):
                 "findings_count": len(result.findings),
                 "confidence_score": result.confidence_score,
                 "sources_count": len(result.sources),
-                "explanation_length": len(result.explanation) if result.explanation else 0,
+                "explanation_length": (
+                    len(result.explanation) if result.explanation else 0
+                ),
             },
         }
-        
+
         self.logger.info(
             "investigation_reflection",
             investigation_id=result.investigation_id,
             quality_score=quality_score,
             issues_count=len(issues),
         )
-        
+
         return reflection
-    
+
     def _calculate_quality_score(
         self,
         result: InvestigationResult,
-        issues: List[str],
+        issues: list[str],
     ) -> float:
         """Calculate quality score based on result and issues."""
         base_score = 1.0
-        
+
         # Deduct points for issues
         penalty_per_issue = 0.2
         score = base_score - (len(issues) * penalty_per_issue)
-        
+
         # Bonus for high confidence
         if result.confidence_score > 0.8:
             score += 0.1
-        
+
         # Bonus for good explanation
         if result.explanation and len(result.explanation) > 100:
             score += 0.1
-        
+
         return max(0.0, min(1.0, score))
-    
+
     def _create_planning_prompt(
         self,
         query: str,
-        memory_context: Dict[str, Any],
+        memory_context: dict[str, Any],
     ) -> str:
         """Create prompt for investigation planning."""
         return f"""
@@ -666,10 +682,10 @@ class MasterAgent(ReflectiveAgent):
         4. Critérios de qualidade esperados
         5. Fontes de dados a consultar (Portal da Transparência, TCEs, APIs estaduais)
         """
-    
+
     def _create_explanation_prompt(
         self,
-        findings: List[Dict[str, Any]],
+        findings: list[dict[str, Any]],
         query: str,
     ) -> str:
         """Create prompt for explanation generation."""
@@ -730,7 +746,7 @@ class MasterAgent(ReflectiveAgent):
         - Mantenha tom profissional e factual (sem sensacionalismo)
         - Se houver incerteza, deixe isso claro
         """
-    
+
     def _parse_investigation_plan(
         self,
         plan_response: str,
@@ -751,91 +767,135 @@ class MasterAgent(ReflectiveAgent):
         required_agents = []
 
         # Analyze query to determine needed agents
-        needs_anomaly_detection = any(keyword in query_lower for keyword in [
-            "suspeito", "anomalia", "fraud", "irregularidade", "contrato",
-            "licitação", "superfaturamento", "emergencial"
-        ])
+        needs_anomaly_detection = any(
+            keyword in query_lower
+            for keyword in [
+                "suspeito",
+                "anomalia",
+                "fraud",
+                "irregularidade",
+                "contrato",
+                "licitação",
+                "superfaturamento",
+                "emergencial",
+            ]
+        )
 
-        needs_policy_analysis = any(keyword in query_lower for keyword in [
-            "política", "efetividade", "impacto", "resultado", "beneficiário",
-            "programa", "projeto", "investimento"
-        ])
+        needs_policy_analysis = any(
+            keyword in query_lower
+            for keyword in [
+                "política",
+                "efetividade",
+                "impacto",
+                "resultado",
+                "beneficiário",
+                "programa",
+                "projeto",
+                "investimento",
+            ]
+        )
 
-        needs_regional_analysis = any(keyword in query_lower for keyword in [
-            "região", "estado", "município", "geográfico", "territorial",
-            "norte", "nordeste", "sul", "sudeste", "centro-oeste"
-        ])
+        needs_regional_analysis = any(
+            keyword in query_lower
+            for keyword in [
+                "região",
+                "estado",
+                "município",
+                "geográfico",
+                "territorial",
+                "norte",
+                "nordeste",
+                "sul",
+                "sudeste",
+                "centro-oeste",
+            ]
+        )
 
-        needs_reporting = any(keyword in query_lower for keyword in [
-            "relatório", "resumo", "análise", "explicação", "documento"
-        ])
+        needs_reporting = any(
+            keyword in query_lower
+            for keyword in ["relatório", "resumo", "análise", "explicação", "documento"]
+        )
 
         # Build investigation plan
         if needs_anomaly_detection:
-            steps.append({
-                "agent": "Zumbi",
-                "action": "detect_anomalies",
-                "parameters": {"query": query},
-                "depends_on": []
-            })
+            steps.append(
+                {
+                    "agent": "Zumbi",
+                    "action": "detect_anomalies",
+                    "parameters": {"query": query},
+                    "depends_on": [],
+                }
+            )
             required_agents.append("Zumbi")
 
         if needs_policy_analysis:
-            steps.append({
-                "agent": "Bonifácio",
-                "action": "analyze_policy",
-                "parameters": {"query": query},
-                "depends_on": []
-            })
+            steps.append(
+                {
+                    "agent": "Bonifácio",
+                    "action": "analyze_policy",
+                    "parameters": {"query": query},
+                    "depends_on": [],
+                }
+            )
             required_agents.append("Bonifácio")
 
         if needs_regional_analysis:
-            steps.append({
-                "agent": "Lampião",
-                "action": "analyze_regions",
-                "parameters": {"query": query},
-                "depends_on": []
-            })
+            steps.append(
+                {
+                    "agent": "Lampião",
+                    "action": "analyze_regions",
+                    "parameters": {"query": query},
+                    "depends_on": [],
+                }
+            )
             required_agents.append("Lampião")
 
         # Always include analyst for pattern analysis if anomalies detected
         if needs_anomaly_detection:
-            steps.append({
-                "agent": "Anita",
-                "action": "analyze_patterns",
-                "parameters": {"query": query},
-                "depends_on": ["Zumbi"]  # Depends on anomaly detection
-            })
+            steps.append(
+                {
+                    "agent": "Anita",
+                    "action": "analyze_patterns",
+                    "parameters": {"query": query},
+                    "depends_on": ["Zumbi"],  # Depends on anomaly detection
+                }
+            )
             required_agents.append("Anita")
 
         # Add data aggregation for visualizations
         if needs_regional_analysis or len(steps) > 2:
-            steps.append({
-                "agent": "OscarNiemeyer",
-                "action": "aggregate_data",
-                "parameters": {"query": query},
-                "depends_on": required_agents.copy()  # Depends on all previous
-            })
+            steps.append(
+                {
+                    "agent": "OscarNiemeyer",
+                    "action": "aggregate_data",
+                    "parameters": {"query": query},
+                    "depends_on": required_agents.copy(),  # Depends on all previous
+                }
+            )
             required_agents.append("OscarNiemeyer")
 
         # Add reporting if requested
         if needs_reporting or len(steps) > 1:
-            steps.append({
-                "agent": "Tiradentes",
-                "action": "generate_report",
-                "parameters": {"query": query},
-                "depends_on": required_agents.copy()  # Depends on all previous
-            })
+            steps.append(
+                {
+                    "agent": "Tiradentes",
+                    "action": "generate_report",
+                    "parameters": {"query": query},
+                    "depends_on": required_agents.copy(),  # Depends on all previous
+                }
+            )
             required_agents.append("Tiradentes")
 
         # Fallback: if no steps matched, do basic anomaly detection
         if not steps:
-            steps = [{
-                "agent": "Zumbi",
-                "action": "detect_anomalies",
-                "parameters": {"query": query},
-                "depends_on": []
-            }]
+            steps = [
+                {
+                    "agent": "Zumbi",
+                    "action": "detect_anomalies",
+                    "parameters": {"query": query},
+                    "depends_on": [],
+                }
+            ]
             required_agents = ["Zumbi"]
 
         # Estimate time based on complexity
@@ -845,7 +905,7 @@ class MasterAgent(ReflectiveAgent):
         quality_criteria = {
             "min_confidence": 0.75 if needs_anomaly_detection else 0.70,
             "min_findings": 1,
-            "min_sources": 2 if len(required_agents) > 1 else 1
+            "min_sources": 2 if len(required_agents) > 1 else 1,
         }
 
         return InvestigationPlan(
@@ -857,23 +917,23 @@ class MasterAgent(ReflectiveAgent):
             fallback_strategies=[
                 "Reduzir threshold de anomalias se poucos resultados",
                 "Expandir período de análise",
-                "Incluir dados de fontes secundárias"
-            ]
+                "Incluir dados de fontes secundárias",
+            ],
         )
-    
+
     async def _monitor_progress(
         self,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         context: AgentContext,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Monitor investigation progress."""
         investigation_id = context.investigation_id
-        
+
         if investigation_id not in self.active_investigations:
             return {"status": "not_found", "message": "Investigation not found"}
-        
+
         plan = self.active_investigations[investigation_id]
-        
+
         return {
             "status": "active",
             "plan": plan.model_dump(),
@@ -882,12 +942,12 @@ class MasterAgent(ReflectiveAgent):
                 "completed_steps": 0,  # Would track actual progress
             },
         }
-    
+
     async def _adapt_strategy(
         self,
-        payload: Dict[str, Any],
+        payload: dict[str, Any],
         context: AgentContext,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Adapt investigation strategy based on current results.
 
@@ -902,10 +962,7 @@ class MasterAgent(ReflectiveAgent):
         current_plan = self.active_investigations.get(investigation_id)
 
         if not current_plan:
-            return {
-                "status": "error",
-                "message": "No active investigation found"
-            }
+            return {"status": "error", "message": "No active investigation found"}
 
         changes = []
         new_steps = []
@@ -923,16 +980,18 @@ class MasterAgent(ReflectiveAgent):
             changes.append("Reduzir threshold de anomalias de 2.5σ para 2.0σ")
 
             # Add step to search with relaxed criteria
-            new_steps.append({
-                "agent": "Zumbi",
-                "action": "detect_anomalies",
-                "parameters": {
-                    "query": payload.get("query", ""),
-                    "sensitivity": "high",  # More sensitive
-                    "threshold": 2.0  # Lower threshold
-                },
-                "depends_on": []
-            })
+            new_steps.append(
+                {
+                    "agent": "Zumbi",
+                    "action": "detect_anomalies",
+                    "parameters": {
+                        "query": payload.get("query", ""),
+                        "sensitivity": "high",  # More sensitive
+                        "threshold": 2.0,  # Lower threshold
+                    },
+                    "depends_on": [],
+                }
+            )
 
         if confidence_score < current_plan.quality_criteria.get("min_confidence", 0.7):
             # Low confidence → More sources
@@ -941,12 +1000,14 @@ class MasterAgent(ReflectiveAgent):
 
             # Add Anita for pattern analysis if not present
             if "Anita" not in current_plan.required_agents:
-                new_steps.append({
-                    "agent": "Anita",
-                    "action": "analyze_patterns",
-                    "parameters": {"query": payload.get("query", "")},
-                    "depends_on": ["Zumbi"]
-                })
+                new_steps.append(
+                    {
+                        "agent": "Anita",
+                        "action": "analyze_patterns",
+                        "parameters": {"query": payload.get("query", "")},
+                        "depends_on": ["Zumbi"],
+                    }
+                )
                 changes.append("Adicionar agente Anita para análise de padrões")
 
         if sources_count < current_plan.quality_criteria.get("min_sources", 2):
@@ -955,12 +1016,14 @@ class MasterAgent(ReflectiveAgent):
 
             # Add regional analysis if not present
             if "Lampião" not in current_plan.required_agents:
-                new_steps.append({
-                    "agent": "Lampião",
-                    "action": "analyze_regions",
-                    "parameters": {"query": payload.get("query", "")},
-                    "depends_on": []
-                })
+                new_steps.append(
+                    {
+                        "agent": "Lampião",
+                        "action": "analyze_regions",
+                        "parameters": {"query": payload.get("query", "")},
+                        "depends_on": [],
+                    }
+                )
                 changes.append("Adicionar análise regional com Lampião")
 
         if anomaly_rate > 0.3:  # More than 30% anomalies
@@ -970,12 +1033,14 @@ class MasterAgent(ReflectiveAgent):
 
             # Add Bonifácio for policy analysis
             if "Bonifácio" not in current_plan.required_agents:
-                new_steps.append({
-                    "agent": "Bonifácio",
-                    "action": "analyze_policy",
-                    "parameters": {"query": payload.get("query", "")},
-                    "depends_on": []
-                })
+                new_steps.append(
+                    {
+                        "agent": "Bonifácio",
+                        "action": "analyze_policy",
+                        "parameters": {"query": payload.get("query", "")},
+                        "depends_on": [],
+                    }
+                )
                 changes.append("Adicionar José Bonifácio para análise de políticas")
 
         # Check if concentrated in specific region
@@ -983,12 +1048,14 @@ class MasterAgent(ReflectiveAgent):
         if geographic_concentration > 0.7:  # 70% in one region
             changes.append("Detectada concentração geográfica")
             if "Lampião" not in current_plan.required_agents:
-                new_steps.append({
-                    "agent": "Lampião",
-                    "action": "analyze_inequality",
-                    "parameters": {"metric": "contract_distribution"},
-                    "depends_on": []
-                })
+                new_steps.append(
+                    {
+                        "agent": "Lampião",
+                        "action": "analyze_inequality",
+                        "parameters": {"metric": "contract_distribution"},
+                        "depends_on": [],
+                    }
+                )
                 changes.append("Adicionar análise de desigualdade regional")
 
         # Update plan with new steps
@@ -1006,7 +1073,7 @@ class MasterAgent(ReflectiveAgent):
             investigation_id=investigation_id,
             changes_count=len(changes),
             new_steps_count=len(new_steps),
-            reason=f"findings={findings_count}, confidence={confidence_score:.2f}"
+            reason=f"findings={findings_count}, confidence={confidence_score:.2f}",
         )
 
         return {
@@ -1017,6 +1084,6 @@ class MasterAgent(ReflectiveAgent):
                 "findings_count": findings_count,
                 "confidence_score": confidence_score,
                 "sources_count": sources_count,
-                "anomaly_rate": anomaly_rate
-            }
+                "anomaly_rate": anomaly_rate,
+            },
         }

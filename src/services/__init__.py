@@ -8,10 +8,10 @@ This module provides service interfaces for:
 Status: Stub implementation - Full services planned for production phase.
 """
 
-from .data_service import DataService
 from .analysis_service import AnalysisService
-from .notification_service import NotificationService
+from .data_service import DataService
 from .maritaca_client import MaritacaClient, MaritacaModel, create_maritaca_client
+from .notification_service import NotificationService
 
 __all__ = [
     "DataService",
@@ -19,5 +19,5 @@ __all__ = [
     "NotificationService",
     "MaritacaClient",
     "MaritacaModel",
-    "create_maritaca_client"
+    "create_maritaca_client",
 ]

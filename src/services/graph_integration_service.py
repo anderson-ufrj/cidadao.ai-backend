@@ -8,11 +8,12 @@ License: Proprietary - All rights reserved
 This service automatically integrates network graph analysis into investigations.
 """
 
-from typing import List, Dict, Any, Optional
+from typing import Any, Optional
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core import get_logger
-from src.models.forensic_investigation import LegalEntity, ForensicAnomalyResult
+from src.models.forensic_investigation import ForensicAnomalyResult
 from src.services.network_analysis_service import get_network_analysis_service
 
 logger = get_logger(__name__)
@@ -36,9 +37,9 @@ class GraphIntegrationService:
     async def integrate_investigation_with_graph(
         self,
         investigation_id: str,
-        forensic_results: List[ForensicAnomalyResult],
-        contract_data: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        forensic_results: list[ForensicAnomalyResult],
+        contract_data: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         """
         Integrate investigation results with entity graph.
 
@@ -71,7 +72,9 @@ class GraphIntegrationService:
             enriched_results.append(enriched)
 
         # Detect suspicious networks
-        suspicious_networks = await self.network_service.detect_suspicious_networks(investigation_id)
+        suspicious_networks = await self.network_service.detect_suspicious_networks(
+            investigation_id
+        )
 
         integration_result = {
             "investigation_id": investigation_id,
@@ -105,7 +108,7 @@ class GraphIntegrationService:
         self,
         anomaly: ForensicAnomalyResult,
         investigation_id: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Enrich anomaly with network analysis data.
 
@@ -128,7 +131,8 @@ class GraphIntegrationService:
 
         for entity in anomaly.involved_entities:
             # Find entity in graph
-            from sqlalchemy import select, or_, and_
+            from sqlalchemy import or_, select
+
             from src.models.entity_graph import EntityNode
 
             query = select(EntityNode).where(
@@ -144,41 +148,42 @@ class GraphIntegrationService:
             if graph_entity:
                 # Get entity's network
                 entity_network = await self.network_service.get_entity_network(
-                    graph_entity.id,
-                    depth=1  # Just immediate connections
+                    graph_entity.id, depth=1  # Just immediate connections
                 )
 
                 # Add network context
-                network_analysis.append({
-                    "entity_id": graph_entity.id,
-                    "entity_name": graph_entity.name,
-                    "entity_type": graph_entity.entity_type,
-                    "historical_data": {
-                        "total_investigations": graph_entity.total_investigations,
-                        "total_contracts": graph_entity.total_contracts,
-                        "total_contract_value": graph_entity.total_contract_value,
-                        "risk_score": graph_entity.risk_score,
-                        "is_sanctioned": graph_entity.is_sanctioned,
-                    },
-                    "network_metrics": {
-                        "degree_centrality": graph_entity.degree_centrality,
-                        "betweenness_centrality": graph_entity.betweenness_centrality,
-                        "closeness_centrality": graph_entity.closeness_centrality,
-                        "eigenvector_centrality": graph_entity.eigenvector_centrality,
-                    },
-                    "connections": {
-                        "node_count": entity_network["node_count"],
-                        "edge_count": entity_network["edge_count"],
-                        "immediate_connections": [
-                            {
-                                "id": node["id"],
-                                "name": node["name"],
-                                "type": node["entity_type"],
-                            }
-                            for node in entity_network["nodes"][:5]  # Top 5
-                        ],
-                    },
-                })
+                network_analysis.append(
+                    {
+                        "entity_id": graph_entity.id,
+                        "entity_name": graph_entity.name,
+                        "entity_type": graph_entity.entity_type,
+                        "historical_data": {
+                            "total_investigations": graph_entity.total_investigations,
+                            "total_contracts": graph_entity.total_contracts,
+                            "total_contract_value": graph_entity.total_contract_value,
+                            "risk_score": graph_entity.risk_score,
+                            "is_sanctioned": graph_entity.is_sanctioned,
+                        },
+                        "network_metrics": {
+                            "degree_centrality": graph_entity.degree_centrality,
+                            "betweenness_centrality": graph_entity.betweenness_centrality,
+                            "closeness_centrality": graph_entity.closeness_centrality,
+                            "eigenvector_centrality": graph_entity.eigenvector_centrality,
+                        },
+                        "connections": {
+                            "node_count": entity_network["node_count"],
+                            "edge_count": entity_network["edge_count"],
+                            "immediate_connections": [
+                                {
+                                    "id": node["id"],
+                                    "name": node["name"],
+                                    "type": node["entity_type"],
+                                }
+                                for node in entity_network["nodes"][:5]  # Top 5
+                            ],
+                        },
+                    }
+                )
 
         # Add network analysis to enriched data
         enriched_data["network_analysis"] = network_analysis
@@ -191,8 +196,8 @@ class GraphIntegrationService:
 
     async def _generate_cross_investigation_insights(
         self,
-        network_analysis: List[Dict[str, Any]],
-    ) -> List[str]:
+        network_analysis: list[dict[str, Any]],
+    ) -> list[str]:
         """Generate insights based on cross-investigation network analysis."""
         insights = []
 
@@ -250,7 +255,7 @@ class GraphIntegrationService:
     async def get_investigation_graph_visualization(
         self,
         investigation_id: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get graph visualization data for a specific investigation.
 
@@ -262,6 +267,7 @@ class GraphIntegrationService:
         """
         # Get all entity references for this investigation
         from sqlalchemy import select
+
         from src.models.entity_graph import EntityInvestigationReference
 
         query = select(EntityInvestigationReference).where(
@@ -290,15 +296,17 @@ class GraphIntegrationService:
         for entity_id in entity_ids:
             entity = await self.db.get(EntityNode, entity_id)
             if entity:
-                nodes.append({
-                    "id": entity.id,
-                    "label": entity.name,
-                    "type": entity.entity_type,
-                    "risk_score": entity.risk_score,
-                    "total_investigations": entity.total_investigations,
-                    "is_sanctioned": entity.is_sanctioned,
-                    "degree": entity.degree_centrality,
-                })
+                nodes.append(
+                    {
+                        "id": entity.id,
+                        "label": entity.name,
+                        "type": entity.entity_type,
+                        "risk_score": entity.risk_score,
+                        "total_investigations": entity.total_investigations,
+                        "is_sanctioned": entity.is_sanctioned,
+                        "degree": entity.degree_centrality,
+                    }
+                )
 
         # Get relationships between these entities
         from src.models.entity_graph import EntityRelationship
@@ -311,15 +319,19 @@ class GraphIntegrationService:
         relationships = list(rel_result.scalars().all())
 
         for rel in relationships:
-            if rel.target_entity_id in entity_ids:  # Only if target is also in investigation
-                edges.append({
-                    "id": rel.id,
-                    "source": rel.source_entity_id,
-                    "target": rel.target_entity_id,
-                    "type": rel.relationship_type,
-                    "strength": rel.strength,
-                    "is_suspicious": rel.is_suspicious,
-                })
+            if (
+                rel.target_entity_id in entity_ids
+            ):  # Only if target is also in investigation
+                edges.append(
+                    {
+                        "id": rel.id,
+                        "source": rel.source_entity_id,
+                        "target": rel.target_entity_id,
+                        "type": rel.relationship_type,
+                        "strength": rel.strength,
+                        "is_suspicious": rel.is_suspicious,
+                    }
+                )
 
         return {
             "investigation_id": investigation_id,

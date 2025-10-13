@@ -6,13 +6,14 @@ Date: 2025-10-07
 License: Proprietary - All rights reserved
 """
 
-from typing import List, Dict, Any, Optional
 from datetime import datetime
+from typing import Any, Optional
 from uuid import UUID
+
 import httpx
 
-from src.core.config import get_settings
 from src.core import get_logger
+from src.core.config import get_settings
 
 settings = get_settings()
 logger = get_logger(__name__)
@@ -29,15 +30,12 @@ class SupabaseAnomalyService:
             "apikey": self.supabase_key,
             "Authorization": f"Bearer {self.supabase_key}",
             "Content-Type": "application/json",
-            "Prefer": "return=representation"
+            "Prefer": "return=representation",
         }
 
     async def create_auto_investigation(
-        self,
-        query: str,
-        context: Dict[str, Any],
-        initiated_by: str
-    ) -> Dict[str, Any]:
+        self, query: str, context: dict[str, Any], initiated_by: str
+    ) -> dict[str, Any]:
         """
         Create an AUTO investigation record in Supabase (not user investigation).
         This is for 24/7 autonomous system investigations.
@@ -58,8 +56,8 @@ class SupabaseAnomalyService:
                     "query": query,
                     "context": context,
                     "initiated_by": initiated_by,
-                    "status": "pending"
-                }
+                    "status": "pending",
+                },
             )
             response.raise_for_status()
             result = response.json()
@@ -74,12 +72,12 @@ class SupabaseAnomalyService:
         anomaly_score: float,
         title: str,
         description: Optional[str],
-        indicators: List[str],
-        recommendations: List[str],
-        contract_data: Dict[str, Any],
-        metadata: Optional[Dict[str, Any]] = None,
-        auto_investigation_id: Optional[UUID] = None
-    ) -> Dict[str, Any]:
+        indicators: list[str],
+        recommendations: list[str],
+        contract_data: dict[str, Any],
+        metadata: Optional[dict[str, Any]] = None,
+        auto_investigation_id: Optional[UUID] = None,
+    ) -> dict[str, Any]:
         """
         Create an anomaly record in Supabase.
 
@@ -122,7 +120,7 @@ class SupabaseAnomalyService:
             "recommendations": recommendations,
             "contract_data": contract_data,
             "metadata": metadata or {},
-            "status": "detected"
+            "status": "detected",
         }
 
         # Add investigation_id if provided (user investigation)
@@ -137,26 +135,26 @@ class SupabaseAnomalyService:
             response = await client.post(
                 f"{self.supabase_url}/rest/v1/anomalies",
                 headers=self.headers,
-                json=anomaly_data
+                json=anomaly_data,
             )
             response.raise_for_status()
             result = response.json()
 
             logger.info(
                 "anomaly_created_in_supabase",
-                anomaly_id=result[0]["id"] if isinstance(result, list) else result["id"],
+                anomaly_id=(
+                    result[0]["id"] if isinstance(result, list) else result["id"]
+                ),
                 source=source,
                 severity=severity,
-                score=anomaly_score
+                score=anomaly_score,
             )
 
             return result[0] if isinstance(result, list) else result
 
     async def save_katana_dispensa(
-        self,
-        dispensa_id: str,
-        dispensa_data: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, dispensa_id: str, dispensa_data: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Save or update a Katana dispensa in Supabase.
 
@@ -178,7 +176,7 @@ class SupabaseAnomalyService:
             "orgao_codigo": dispensa_data.get("orgao", {}).get("codigo"),
             "data": dispensa_data.get("data"),
             "justificativa": dispensa_data.get("justificativa"),
-            "raw_data": dispensa_data
+            "raw_data": dispensa_data,
         }
 
         async with httpx.AsyncClient() as client:
@@ -186,7 +184,7 @@ class SupabaseAnomalyService:
             response = await client.post(
                 f"{self.supabase_url}/rest/v1/katana_dispensas",
                 headers={**self.headers, "Prefer": "resolution=merge-duplicates"},
-                json=dispensa_record
+                json=dispensa_record,
             )
             response.raise_for_status()
             result = response.json()
@@ -198,8 +196,8 @@ class SupabaseAnomalyService:
         severity: Optional[str] = None,
         status: Optional[str] = None,
         limit: int = 100,
-        offset: int = 0
-    ) -> List[Dict[str, Any]]:
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
         """
         Get anomalies from Supabase with filters.
 
@@ -213,11 +211,7 @@ class SupabaseAnomalyService:
         Returns:
             List of anomaly records
         """
-        params = {
-            "limit": limit,
-            "offset": offset,
-            "order": "created_at.desc"
-        }
+        params = {"limit": limit, "offset": offset, "order": "created_at.desc"}
 
         if source:
             params["source"] = f"eq.{source}"
@@ -230,17 +224,14 @@ class SupabaseAnomalyService:
             response = await client.get(
                 f"{self.supabase_url}/rest/v1/anomalies",
                 headers=self.headers,
-                params=params
+                params=params,
             )
             response.raise_for_status()
             return response.json()
 
     async def update_anomaly_status(
-        self,
-        anomaly_id: UUID,
-        status: str,
-        assigned_to: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, anomaly_id: UUID, status: str, assigned_to: Optional[str] = None
+    ) -> dict[str, Any]:
         """
         Update anomaly status.
 
@@ -264,7 +255,7 @@ class SupabaseAnomalyService:
             response = await client.patch(
                 f"{self.supabase_url}/rest/v1/anomalies?id=eq.{anomaly_id}",
                 headers=self.headers,
-                json=update_data
+                json=update_data,
             )
             response.raise_for_status()
             result = response.json()
@@ -277,9 +268,9 @@ class SupabaseAnomalyService:
         severity: str,
         title: str,
         message: str,
-        recipients: List[str],
-        metadata: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        recipients: list[str],
+        metadata: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         """
         Create an alert for an anomaly.
 
@@ -303,14 +294,14 @@ class SupabaseAnomalyService:
             "message": message,
             "recipients": recipients,
             "status": "pending",
-            "metadata": metadata or {}
+            "metadata": metadata or {},
         }
 
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{self.supabase_url}/rest/v1/alerts",
                 headers=self.headers,
-                json=alert_data
+                json=alert_data,
             )
             response.raise_for_status()
             result = response.json()
@@ -319,15 +310,12 @@ class SupabaseAnomalyService:
                 "alert_created_in_supabase",
                 alert_id=result[0]["id"] if isinstance(result, list) else result["id"],
                 anomaly_id=str(anomaly_id),
-                alert_type=alert_type
+                alert_type=alert_type,
             )
 
             return result[0] if isinstance(result, list) else result
 
-    async def get_investigation_summary(
-        self,
-        investigation_id: UUID
-    ) -> Dict[str, Any]:
+    async def get_investigation_summary(self, investigation_id: UUID) -> dict[str, Any]:
         """
         Get investigation summary with anomaly counts.
 
@@ -340,7 +328,7 @@ class SupabaseAnomalyService:
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{self.supabase_url}/rest/v1/investigation_summary?id=eq.{investigation_id}",
-                headers=self.headers
+                headers=self.headers,
             )
             response.raise_for_status()
             result = response.json()
