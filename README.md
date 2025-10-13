@@ -77,7 +77,7 @@ Este é o **Backend API** do ecossistema Cidadão.AI, composto por **4 repositó
 | **Deployment** | HuggingFace Spaces + Railway ready |
 | **Database** | In-memory (PostgreSQL ready) |
 | **Cache** | In-memory (Redis ready) |
-| **Agents** | **17 agents (14 fully operational - 82%, 3 structural - 18%)** |
+| **Agents** | **17 agents (16 fully operational - 94% 🎉, 1 framework base - 6%)** |
 | **Test Coverage** | 80%+ |
 | **API Uptime** | 99.9% |
 
