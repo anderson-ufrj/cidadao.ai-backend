@@ -2,8 +2,8 @@
 
 **Autor**: Anderson Henrique da Silva
 **Localização**: Minas Gerais, Brasil
-**Última Atualização**: 2025-10-13 14:48:57 -03:00
-**Versão**: 2.0.0 - Production Ready (82% Agents Operational)
+**Última Atualização**: 2025-10-13 19:55:00 -03:00
+**Versão**: 2.1.0 - Production Ready (94.4% Agents Operational)
 
 > **Multi-Agent AI System** for Brazilian Government Transparency Analysis
 
@@ -13,7 +13,7 @@
 [![Celery](https://img.shields.io/badge/Celery-5.3+-green?logo=celery&logoColor=white)](https://docs.celeryq.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Democratizing access to public contract data through 17 autonomous AI agents with Brazilian cultural identities.**
+**Democratizing access to public contract data through 18 autonomous AI agents with Brazilian cultural identities.**
 
 ---
 
@@ -77,15 +77,15 @@ Este é o **Backend API** do ecossistema Cidadão.AI, composto por **4 repositó
 | **Deployment** | HuggingFace Spaces + Railway ready |
 | **Database** | In-memory (PostgreSQL ready) |
 | **Cache** | In-memory (Redis ready) |
-| **Agents** | **17 agents (16 fully operational - 94% 🎉, 1 framework base - 6%)** |
+| **Agents** | **18 agents (17 fully operational - 94.4% 🎉, 1 framework base - 5.6%)** |
 | **Test Coverage** | 80%+ |
 | **API Uptime** | 99.9% |
 
 ---
 
-## 🤖 Sistema Multi-Agente (17 Agentes)
+## 🤖 Sistema Multi-Agente (18 Agentes)
 
-O coração do Cidadão.AI é um sistema de **17 agentes autônomos**, cada um com identidade cultural brasileira e especialização única:
+O coração do Cidadão.AI é um sistema de **18 agentes autônomos**, cada um com identidade cultural brasileira e especialização única:
 
 ### 🎯 Camada de Orquestração
 
@@ -155,16 +155,18 @@ Analista de dados especializada em processamento, agregação e análise estatí
 - Time series analysis
 
 #### 🏹 Oxóssi - Fraud Hunter
-**Status**: ✅ 100% Operacional | **Código**: `src/agents/oxossi.py` | [**Docs**](docs/agents/oxossi.md)
+**Status**: ✅ 100% Operacional | **Código**: `src/agents/oxossi.py` (1,057 linhas) | [**Docs**](docs/agents/oxossi.md)
 
-Caçador de fraudes que detecta 10 tipos específicos de fraude em contratos governamentais.
+Caçador de fraudes especializado em detectar 7+ tipos específicos de fraude em contratos governamentais com precisão de caçador.
 
-**Capacidades**:
-- **Bid Rigging** (manipulação de licitações)
-- **Price Fixing** (cartelização de preços)
-- **Phantom Vendors** (fornecedores fantasma)
-- **Invoice Fraud** (fraude em notas fiscais)
-- **Money Laundering** (lavagem de dinheiro)
+**Algoritmos Implementados** (7+ métodos):
+- ✅ **Bid Rigging Detection** - Detecção de manipulação de licitações (threshold: 85% similaridade)
+- ✅ **Price Fixing Detection** - Detecção de cartelização de preços (variance <5%)
+- ✅ **Phantom Vendor Detection** - Identificação de fornecedores fantasma
+- ✅ **Invoice Fraud Detection** - Detecção de fraude em notas fiscais (duplicatas, sequenciais)
+- ✅ **Money Laundering Detection** - Detecção de lavagem de dinheiro (structuring <R$10k)
+- ✅ **Kickback Schemes Detection** - Identificação de esquemas de propina
+- ✅ **Complex Fraud Schemes** - Análise de fraudes complexas multi-tipo
 
 **Exemplo de Uso**:
 ```python
@@ -833,7 +835,7 @@ make ci          # Full CI pipeline locally
 ```
 cidadao.ai-backend/
 ├── src/
-│   ├── agents/                 # 17 AI Agents
+│   ├── agents/                 # 18 AI Agents
 │   │   ├── deodoro.py         # Base architecture (NEW!)
 │   │   ├── abaporu.py         # Master orchestrator
 │   │   ├── zumbi.py           # Anomaly detective
@@ -1127,6 +1129,6 @@ All agents are named after Brazilian historical figures and Afro-Brazilian cultu
 
 *Democratizing government transparency through AI*
 
-**Last Updated**: October 13, 2025 14:48:57 -03:00
-**Version**: 2.0.0 - Production Ready
-**Agent System**: 14/17 operational (82% complete)
+**Last Updated**: October 13, 2025 19:55:00 -03:00
+**Version**: 2.1.0 - Production Ready
+**Agent System**: 17/18 operational (94.4% complete)
