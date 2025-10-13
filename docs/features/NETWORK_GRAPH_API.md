@@ -1,3 +1,11 @@
+# Network Graph Api
+
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ##  🕸️ API de Grafos de Relacionamento - Guia para Frontend
 
 **Sistema de análise de rede cross-investigation para detecção de padrões suspeitos**

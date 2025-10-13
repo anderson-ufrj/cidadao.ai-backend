@@ -1,5 +1,11 @@
 # Test Coverage Summary - Cidadão.AI Backend
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## Tests Created
 
 This document summarizes the comprehensive test suite created to improve code coverage from ~45% to target 80%.

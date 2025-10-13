@@ -1,5 +1,11 @@
 # Agent Lazy Loading Guide
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## Overview
 
 The Cidadão.AI backend implements an advanced lazy loading system for AI agents that optimizes memory usage and improves startup time by loading agents only when needed.
@@ -240,7 +246,7 @@ Response:
    # For 2GB container
    max_loaded_agents = 10
    unload_after_minutes = 15
-   
+
    # For 8GB server
    max_loaded_agents = 50
    unload_after_minutes = 60

@@ -1,5 +1,11 @@
 # 🗺️ Agent Implementation Roadmap
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 **Author**: Anderson Henrique da Silva
 **Created**: October 12, 2025
 **Status**: Active Development

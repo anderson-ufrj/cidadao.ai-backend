@@ -1,5 +1,11 @@
 # API Versioning Strategy - Cidadão.AI
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## 📋 Versioning Overview
 
 The Cidadão.AI API uses **URL-based versioning** for maximum clarity and backward compatibility.
