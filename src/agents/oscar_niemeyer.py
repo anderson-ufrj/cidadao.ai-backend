@@ -19,8 +19,9 @@ import pandas as pd
 from pydantic import BaseModel, Field as PydanticField
 
 from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentResponse
-from src.core import get_logger
+from src.core import get_logger, AgentStatus
 from src.core.exceptions import AgentExecutionError, DataAnalysisError
+import httpx
 
 
 class AggregationType(Enum):
@@ -248,17 +249,24 @@ class OscarNiemeyerAgent(BaseAgent):
     async def initialize(self) -> None:
         """Initialize data aggregation systems."""
         self.logger.info("Initializing Oscar Niemeyer data architecture system...")
-        
+
         # Load aggregation patterns
         await self._load_aggregation_patterns()
-        
+
         # Setup visualization templates
         await self._setup_visualization_templates()
-        
+
         # Initialize spatial indices
         await self._initialize_spatial_indices()
-        
+
         self.logger.info("Oscar Niemeyer ready for data architecture")
+
+    async def shutdown(self) -> None:
+        """Cleanup resources on shutdown."""
+        self.logger.info("Shutting down Oscar Niemeyer agent...")
+        # Clear cache
+        self.aggregation_cache.clear()
+        self.logger.info("Oscar Niemeyer shutdown complete")
     
     async def process(
         self,
@@ -267,11 +275,11 @@ class OscarNiemeyerAgent(BaseAgent):
     ) -> AgentResponse:
         """
         Process data aggregation request.
-        
+
         Args:
             message: Data aggregation request
             context: Agent execution context
-            
+
         Returns:
             Aggregated data with visualization metadata
         """
@@ -279,50 +287,76 @@ class OscarNiemeyerAgent(BaseAgent):
             self.logger.info(
                 "Processing data aggregation request",
                 investigation_id=context.investigation_id,
-                message_type=message.type,
+                action=message.action,
             )
-            
-            # Determine aggregation action
-            action = message.type if hasattr(message, 'type') else "aggregate_data"
-            
+
+            # Get action and payload from new message structure
+            action = message.action
+            payload = message.payload
+
             # Route to appropriate function
             if action == "time_series":
+                # Convert granularity string to enum if needed
+                granularity = payload.get("granularity", TimeGranularity.DAY)
+                if isinstance(granularity, str):
+                    granularity = TimeGranularity(granularity.lower())
+
                 result = await self.generate_time_series(
-                    message.data.get("metric", "total_value"),
-                    message.data.get("start_date"),
-                    message.data.get("end_date"),
-                    message.data.get("granularity", TimeGranularity.DAY),
+                    payload.get("metric", "total_value"),
+                    payload.get("start_date"),
+                    payload.get("end_date"),
+                    granularity,
                     context
                 )
             elif action == "spatial_aggregation":
                 result = await self.aggregate_by_region(
-                    message.data.get("data", []),
-                    message.data.get("region_type", "state"),
-                    message.data.get("metrics", ["total", "average"]),
+                    payload.get("data", []),
+                    payload.get("region_type", "state"),
+                    payload.get("metrics", ["total", "average"]),
                     context
                 )
             elif action == "visualization_metadata":
                 result = await self.generate_visualization_metadata(
-                    message.data.get("data_type"),
-                    message.data.get("dimensions", []),
-                    message.data.get("metrics", []),
+                    payload.get("data_type"),
+                    payload.get("dimensions", []),
+                    payload.get("metrics", []),
+                    context
+                )
+            elif action == "network_graph":
+                result = await self.create_fraud_network(
+                    payload.get("entities", []),
+                    payload.get("relationships", []),
+                    payload.get("threshold", 0.7),
+                    context
+                )
+            elif action == "choropleth_map":
+                result = await self.create_choropleth_map(
+                    payload.get("data", []),
+                    payload.get("geojson_url"),
+                    payload.get("color_column", "value"),
+                    payload.get("location_column", "state_code"),
+                    context
+                )
+            elif action == "fetch_network_data":
+                result = await self.fetch_network_graph_data(
+                    payload.get("entity_id"),
+                    payload.get("depth", 2),
                     context
                 )
             else:
                 # Default aggregation
                 result = await self._perform_multidimensional_aggregation(
-                    message.data if isinstance(message.data, dict) else {"query": str(message.data)},
+                    payload if isinstance(payload, dict) else {"query": str(payload)},
                     context
                 )
-            
+
             return AgentResponse(
                 agent_name=self.name,
-                response_type="data_aggregation",
-                data=result,
-                success=True,
-                context=context,
+                status=AgentStatus.COMPLETED,
+                result=result,
+                metadata={"action": action, "visualization_type": "data_aggregation"},
             )
-            
+
         except Exception as e:
             self.logger.error(
                 "Data aggregation failed",
@@ -330,13 +364,12 @@ class OscarNiemeyerAgent(BaseAgent):
                 error=str(e),
                 exc_info=True,
             )
-            
+
             return AgentResponse(
                 agent_name=self.name,
-                response_type="error",
-                data={"error": str(e), "aggregation_type": "data"},
-                success=False,
-                context=context,
+                status=AgentStatus.ERROR,
+                error=str(e),
+                metadata={"action": message.action, "aggregation_type": "data"},
             )
     
     async def _perform_multidimensional_aggregation(
@@ -396,14 +429,25 @@ class OscarNiemeyerAgent(BaseAgent):
         # Calculate aggregations
         aggregations = {}
         for metric in metrics:
-            values = [p[metric] for p in data_points]
-            aggregations[metric] = {
-                "sum": sum(values),
-                "average": np.mean(values),
-                "min": min(values),
-                "max": max(values),
-                "count": len(values)
-            }
+            # Only calculate if metric exists in data_points
+            values = [p.get(metric, 0) for p in data_points if metric in p]
+            if values:
+                aggregations[metric] = {
+                    "sum": sum(values),
+                    "average": float(np.mean(values)),
+                    "min": min(values),
+                    "max": max(values),
+                    "count": len(values)
+                }
+            else:
+                # If metric not found, create summary with 0s
+                aggregations[metric] = {
+                    "sum": 0,
+                    "average": 0,
+                    "min": 0,
+                    "max": 0,
+                    "count": 0
+                }
         
         # Recommend visualization
         viz_type = self._recommend_visualization(dimensions, metrics)
@@ -639,7 +683,7 @@ class OscarNiemeyerAgent(BaseAgent):
     ) -> Union[str, bytes]:
         """
         Cria formatos de exportação otimizados.
-        
+
         Formatos suportados:
         - JSON (minified, pretty)
         - CSV (with headers, custom delimiter)
@@ -651,13 +695,350 @@ class OscarNiemeyerAgent(BaseAgent):
             if options and options.get("pretty"):
                 return json.dumps(data, indent=2, ensure_ascii=False)
             return json.dumps(data, separators=(',', ':'), ensure_ascii=False)
-        
+
         elif format_type == "csv":
             df = pd.DataFrame(data)
             delimiter = options.get("delimiter", ",") if options else ","
             return df.to_csv(index=False, sep=delimiter)
-        
+
         return str(data)  # Fallback
+
+    async def create_fraud_network(
+        self,
+        entities: List[Dict],
+        relationships: List[Dict],
+        threshold: float = 0.7,
+        context: Optional[AgentContext] = None
+    ) -> Dict[str, Any]:
+        """
+        Create interactive fraud relationship network using NetworkX + Plotly.
+
+        Args:
+            entities: List of entities (suppliers, contracts, etc.)
+            relationships: Connections between entities
+            threshold: Minimum relationship strength to display
+            context: Agent execution context
+
+        Returns:
+            Plotly network graph with interactive features
+        """
+        import networkx as nx
+        import plotly.graph_objects as go
+
+        self.logger.info(
+            "Creating fraud network visualization",
+            entities_count=len(entities),
+            relationships_count=len(relationships),
+            threshold=threshold
+        )
+
+        # Build graph
+        G = nx.Graph()
+
+        # Add nodes (entities)
+        for entity in entities:
+            G.add_node(
+                entity["id"],
+                label=entity.get("name", entity["id"]),
+                suspicion_score=entity.get("score", 0.5),
+                entity_type=entity.get("type", "unknown")
+            )
+
+        # Add edges (relationships) that meet threshold
+        edges_added = 0
+        for rel in relationships:
+            if rel.get("strength", 1.0) >= threshold:
+                G.add_edge(
+                    rel["source"],
+                    rel["target"],
+                    weight=rel.get("strength", 1.0),
+                    relationship_type=rel.get("type", "unknown")
+                )
+                edges_added += 1
+
+        # Detect communities (potential fraud rings)
+        try:
+            communities = list(nx.community.louvain_communities(G))
+            community_count = len(communities)
+        except Exception:
+            communities = []
+            community_count = 0
+
+        # Create spring layout for node positioning
+        pos = nx.spring_layout(G, k=0.5, iterations=50, seed=42)
+
+        # Build edge trace
+        edge_trace = go.Scatter(
+            x=[], y=[],
+            line=dict(width=0.5, color='#888'),
+            hoverinfo='none',
+            mode='lines',
+            showlegend=False
+        )
+
+        # Add edges to trace
+        for edge in G.edges():
+            x0, y0 = pos[edge[0]]
+            x1, y1 = pos[edge[1]]
+            edge_trace['x'] += (x0, x1, None)
+            edge_trace['y'] += (y0, y1, None)
+
+        # Build node trace
+        node_trace = go.Scatter(
+            x=[], y=[],
+            mode='markers+text',
+            hoverinfo='text',
+            marker=dict(
+                showscale=True,
+                colorscale='YlOrRd',
+                size=10,
+                colorbar=dict(
+                    thickness=15,
+                    title='Suspicion Score',
+                    xanchor='left'
+                ),
+                line=dict(width=2, color='white')
+            ),
+            text=[],
+            textposition='top center',
+            showlegend=False
+        )
+
+        # Add nodes to trace
+        node_suspicions = []
+        node_texts = []
+        for node in G.nodes():
+            x, y = pos[node]
+            node_trace['x'] += (x,)
+            node_trace['y'] += (y,)
+
+            suspicion = G.nodes[node].get('suspicion_score', 0.5)
+            label = G.nodes[node].get('label', node)
+            entity_type = G.nodes[node].get('entity_type', 'unknown')
+
+            node_suspicions.append(suspicion)
+            node_texts.append(label)
+
+            # Hover text
+            node_trace['hovertext'] = node_texts
+
+        # Set node colors based on suspicion scores
+        node_trace.marker.color = node_suspicions
+        node_trace.text = node_texts
+
+        # Create figure
+        fig = go.Figure(
+            data=[edge_trace, node_trace],
+            layout=go.Layout(
+                title=dict(
+                    text='Fraud Relationship Network',
+                    font=dict(size=20)
+                ),
+                showlegend=False,
+                hovermode='closest',
+                margin=dict(b=20, l=5, r=5, t=40),
+                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                plot_bgcolor='rgba(0,0,0,0)',
+                paper_bgcolor='rgba(0,0,0,0)'
+            )
+        )
+
+        # Convert to JSON-serializable format
+        fig_json = fig.to_json()
+
+        return {
+            "type": "network_graph",
+            "visualization": fig_json,
+            "metadata": {
+                "communities": community_count,
+                "nodes": G.number_of_nodes(),
+                "edges": edges_added,
+                "threshold_applied": threshold,
+                "avg_suspicion_score": np.mean(node_suspicions) if node_suspicions else 0,
+                "max_suspicion_score": max(node_suspicions) if node_suspicions else 0
+            }
+        }
+
+    async def create_choropleth_map(
+        self,
+        data: List[Dict],
+        geojson_url: Optional[str] = None,
+        color_column: str = "value",
+        location_column: str = "state_code",
+        context: Optional[AgentContext] = None
+    ) -> Dict[str, Any]:
+        """
+        Create choropleth map for Brazilian states/municipalities.
+
+        Args:
+            data: Data with geographic info
+            geojson_url: URL to GeoJSON boundaries (optional)
+            color_column: Column to use for coloring
+            location_column: Column with location codes
+            context: Agent execution context
+
+        Returns:
+            Plotly choropleth map
+        """
+        import plotly.express as px
+
+        self.logger.info(
+            "Creating choropleth map",
+            data_points=len(data),
+            color_column=color_column
+        )
+
+        # Default to Brazilian states GeoJSON
+        if not geojson_url:
+            geojson_url = (
+                "https://raw.githubusercontent.com/codeforamerica/"
+                "click_that_hood/master/public/data/brazil-states.geojson"
+            )
+
+        # Load GeoJSON
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(geojson_url, timeout=10.0)
+                response.raise_for_status()
+                geojson = response.json()
+        except Exception as e:
+            self.logger.error(f"Failed to load GeoJSON: {e}")
+            # Return fallback data structure
+            return {
+                "type": "choropleth",
+                "error": f"Failed to load GeoJSON: {str(e)}",
+                "data_points": len(data)
+            }
+
+        # Convert data to DataFrame for Plotly
+        df = pd.DataFrame(data)
+
+        # Create choropleth
+        fig = px.choropleth(
+            df,
+            geojson=geojson,
+            locations=location_column,
+            color=color_column,
+            color_continuous_scale="Reds",
+            scope="south america",
+            labels={color_column: 'Value'},
+            hover_data=df.columns.tolist()
+        )
+
+        fig.update_geos(
+            fitbounds="locations",
+            visible=False
+        )
+
+        fig.update_layout(
+            title_text='Geographic Distribution - Brazil',
+            geo_scope='south america',
+            height=600,
+            margin=dict(l=0, r=0, t=30, b=0)
+        )
+
+        # Convert to JSON-serializable format
+        fig_json = fig.to_json()
+
+        # Calculate statistics
+        if color_column in df.columns:
+            values = df[color_column].dropna()
+            stats = {
+                "min": float(values.min()) if len(values) > 0 else 0,
+                "max": float(values.max()) if len(values) > 0 else 0,
+                "mean": float(values.mean()) if len(values) > 0 else 0,
+                "median": float(values.median()) if len(values) > 0 else 0
+            }
+        else:
+            stats = {}
+
+        return {
+            "type": "choropleth",
+            "visualization": fig_json,
+            "metadata": {
+                "data_points": len(data),
+                "geojson_source": geojson_url,
+                "color_column": color_column,
+                "location_column": location_column,
+                "statistics": stats
+            }
+        }
+
+    async def fetch_network_graph_data(
+        self,
+        entity_id: str,
+        depth: int = 2,
+        context: Optional[AgentContext] = None
+    ) -> Dict[str, Any]:
+        """
+        Fetch network graph data from Network Graph API.
+
+        Args:
+            entity_id: Central entity ID to explore
+            depth: How many relationship hops to traverse (1-3)
+            context: Agent execution context
+
+        Returns:
+            Network data ready for visualization
+        """
+        self.logger.info(
+            "Fetching network graph data",
+            entity_id=entity_id,
+            depth=depth
+        )
+
+        # Call Network Graph API
+        api_base_url = "http://localhost:8000"  # TODO: Get from config
+        endpoint = f"{api_base_url}/api/v1/network/entities/{entity_id}/network"
+
+        try:
+            async with httpx.AsyncClient() as client:
+                response = await client.get(
+                    endpoint,
+                    params={"depth": depth},
+                    timeout=10.0
+                )
+                response.raise_for_status()
+                network_data = response.json()
+
+            # Transform API response to visualization format
+            entities = []
+            for node in network_data.get("nodes", []):
+                entities.append({
+                    "id": node["id"],
+                    "name": node.get("name", node["id"]),
+                    "type": node.get("entity_type", "unknown"),
+                    "score": node.get("risk_score", 0.5)
+                })
+
+            relationships = []
+            for edge in network_data.get("edges", []):
+                relationships.append({
+                    "source": edge["source_entity_id"],
+                    "target": edge["target_entity_id"],
+                    "type": edge.get("relationship_type", "unknown"),
+                    "strength": edge.get("strength", 1.0)
+                })
+
+            return {
+                "entities": entities,
+                "relationships": relationships,
+                "metadata": {
+                    "center_entity_id": entity_id,
+                    "depth": depth,
+                    "node_count": len(entities),
+                    "edge_count": len(relationships)
+                }
+            }
+
+        except Exception as e:
+            self.logger.error(f"Failed to fetch network data: {e}")
+            return {
+                "entities": [],
+                "relationships": [],
+                "error": str(e)
+            }
     
     def _recommend_visualization(
         self,
