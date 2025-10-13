@@ -23,7 +23,7 @@ Usage:
     # Direct CLI usage
     cidadao --help
     cidadao investigate --help
-    
+
     # Programmatic usage
     from src.cli.main import app
     from src.cli.commands import investigate_command

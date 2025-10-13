@@ -12,26 +12,27 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-from functools import wraps
 import hashlib
 import json
+from datetime import datetime
+from functools import wraps
+from typing import Any, Optional
 
 import httpx
-from pydantic import BaseModel, Field as PydanticField
+from pydantic import BaseModel
 
 from src.core import get_logger
-from .exceptions import NetworkError, TimeoutError, ServerError, exception_from_response
-from .retry import retry_with_backoff
-from .metrics import FederalAPIMetrics
 
+from .exceptions import NetworkError, ServerError, TimeoutError, exception_from_response
+from .metrics import FederalAPIMetrics
+from .retry import retry_with_backoff
 
 logger = get_logger(__name__)
 
 
 def cache_with_ttl(ttl_seconds: int = 3600):
     """Decorator for caching INEP API calls with TTL."""
+
     def decorator(func):
         cache = {}
         cache_times = {}
@@ -45,9 +46,11 @@ def cache_with_ttl(ttl_seconds: int = 3600):
                 if isinstance(arg, (str, int, float, bool)):
                     key_parts.append(str(arg))
                 elif isinstance(arg, (list, dict)):
-                    key_parts.append(hashlib.md5(
-                        json.dumps(arg, sort_keys=True).encode()
-                    ).hexdigest()[:8])
+                    key_parts.append(
+                        hashlib.md5(
+                            json.dumps(arg, sort_keys=True).encode()
+                        ).hexdigest()[:8]
+                    )
 
             cache_key = "_".join(key_parts)
 
@@ -59,17 +62,13 @@ def cache_with_ttl(ttl_seconds: int = 3600):
                     logger.debug(f"INEP cache hit: {cache_key}")
                     # Record cache hit
                     FederalAPIMetrics.record_cache_operation(
-                        api_name="INEP",
-                        operation="read",
-                        result="hit"
+                        api_name="INEP", operation="read", result="hit"
                     )
                     return cache[cache_key]
 
             # Cache miss - record it
             FederalAPIMetrics.record_cache_operation(
-                api_name="INEP",
-                operation="read",
-                result="miss"
+                api_name="INEP", operation="read", result="miss"
             )
 
             # Calculate and cache result
@@ -79,34 +78,33 @@ def cache_with_ttl(ttl_seconds: int = 3600):
 
             # Record cache write
             FederalAPIMetrics.record_cache_operation(
-                api_name="INEP",
-                operation="write",
-                result="success"
+                api_name="INEP", operation="write", result="success"
             )
 
             # Update cache size gauge
             FederalAPIMetrics.update_cache_size(
-                api_name="INEP",
-                cache_type="memory",
-                size=len(cache)
+                api_name="INEP", cache_type="memory", size=len(cache)
             )
 
             return result
 
         return wrapper
+
     return decorator
 
 
 class INEPSchool(BaseModel):
     """School representation from INEP."""
+
     code: str
     name: str
-    location: Dict[str, Any]
-    education_levels: List[str]
+    location: dict[str, Any]
+    education_levels: list[str]
 
 
 class IDEBIndicator(BaseModel):
     """IDEB (Índice de Desenvolvimento da Educação Básica) indicator."""
+
     year: int
     value: float
     location_type: str  # municipal, state, national
@@ -168,7 +166,9 @@ class INEPClient:
         await self.close()
 
     @retry_with_backoff(max_attempts=3, base_delay=1.0, max_delay=30.0)
-    async def _make_request(self, url: str, method: str = "GET", **kwargs) -> Dict[str, Any]:
+    async def _make_request(
+        self, url: str, method: str = "GET", **kwargs
+    ) -> dict[str, Any]:
         """
         Make HTTP request with automatic retry and error handling.
 
@@ -187,6 +187,7 @@ class INEPClient:
             FederalAPIError: On other API errors
         """
         import time
+
         start_time = time.time()
         status_code = 500
         status = "error"
@@ -208,11 +209,9 @@ class INEPClient:
             status_code = response.status_code
 
             # Record response size
-            response_size = len(response.content) if hasattr(response, 'content') else 0
+            response_size = len(response.content) if hasattr(response, "content") else 0
             FederalAPIMetrics.record_response_size(
-                api_name="INEP",
-                endpoint=endpoint,
-                size_bytes=response_size
+                api_name="INEP", endpoint=endpoint, size_bytes=response_size
             )
 
             # Check for HTTP errors
@@ -220,15 +219,13 @@ class INEPClient:
                 error_msg = f"Server error: {response.status_code}"
                 # Record error before raising
                 FederalAPIMetrics.record_error(
-                    api_name="INEP",
-                    error_type="ServerError",
-                    retryable=True
+                    api_name="INEP", error_type="ServerError", retryable=True
                 )
                 raise ServerError(
                     error_msg,
                     api_name="INEP",
                     status_code=response.status_code,
-                    response_data={"url": url}
+                    response_data={"url": url},
                 )
             elif response.status_code >= 400:
                 error_msg = f"Client error: {response.status_code}"
@@ -237,13 +234,13 @@ class INEPClient:
                 FederalAPIMetrics.record_error(
                     api_name="INEP",
                     error_type=f"ClientError_{response.status_code}",
-                    retryable=retryable
+                    retryable=retryable,
                 )
                 raise exception_from_response(
                     response.status_code,
                     error_msg,
                     api_name="INEP",
-                    response_data={"url": url}
+                    response_data={"url": url},
                 )
 
             # Parse JSON response
@@ -255,9 +252,7 @@ class INEPClient:
                 self.logger.error(f"Failed to parse JSON response: {e}")
                 status = "error"
                 FederalAPIMetrics.record_error(
-                    api_name="INEP",
-                    error_type="JSONParseError",
-                    retryable=False
+                    api_name="INEP", error_type="JSONParseError", retryable=False
                 )
                 raise
 
@@ -268,21 +263,17 @@ class INEPClient:
 
             # Record timeout
             FederalAPIMetrics.record_timeout(
-                api_name="INEP",
-                method=method,
-                timeout_seconds=self.timeout
+                api_name="INEP", method=method, timeout_seconds=self.timeout
             )
             FederalAPIMetrics.record_error(
-                api_name="INEP",
-                error_type="TimeoutError",
-                retryable=True
+                api_name="INEP", error_type="TimeoutError", retryable=True
             )
 
             raise TimeoutError(
-                f"Request timed out",
+                "Request timed out",
                 api_name="INEP",
                 timeout_seconds=self.timeout,
-                original_error=e
+                original_error=e,
             )
         except httpx.NetworkError as e:
             self.logger.error(f"Network error: {url}")
@@ -291,15 +282,11 @@ class INEPClient:
 
             # Record network error
             FederalAPIMetrics.record_error(
-                api_name="INEP",
-                error_type="NetworkError",
-                retryable=True
+                api_name="INEP", error_type="NetworkError", retryable=True
             )
 
             raise NetworkError(
-                f"Network error: {str(e)}",
-                api_name="INEP",
-                original_error=e
+                f"Network error: {str(e)}", api_name="INEP", original_error=e
             )
         except (ServerError, TimeoutError, NetworkError):
             # Re-raise our custom exceptions as-is (they'll be caught by retry decorator)
@@ -309,9 +296,7 @@ class INEPClient:
             self.logger.error(f"Unexpected error in _make_request: {e}", exc_info=True)
             status = "error"
             FederalAPIMetrics.record_error(
-                api_name="INEP",
-                error_type=type(e).__name__,
-                retryable=False
+                api_name="INEP", error_type=type(e).__name__, retryable=False
             )
             raise
         finally:
@@ -323,14 +308,14 @@ class INEPClient:
                 endpoint=endpoint,
                 status_code=status_code,
                 duration_seconds=duration,
-                status=status
+                status=status,
             )
 
             # Decrement active requests
             FederalAPIMetrics.decrement_active_requests("INEP")
 
     @cache_with_ttl(ttl_seconds=86400)  # 24 hours cache
-    async def search_datasets(self, query: str, limit: int = 100) -> Dict[str, Any]:
+    async def search_datasets(self, query: str, limit: int = 100) -> dict[str, Any]:
         """
         Search for INEP datasets.
 
@@ -342,11 +327,7 @@ class INEPClient:
             Dataset search results
         """
         url = f"{self.DADOS_GOV_URL}/package_search"
-        params = {
-            "q": f"inep {query}",
-            "fq": "organization:inep",
-            "rows": limit
-        }
+        params = {"q": f"inep {query}", "fq": "organization:inep", "rows": limit}
 
         self.logger.info(f"Searching INEP datasets: query={query}")
 
@@ -362,8 +343,8 @@ class INEPClient:
         city: Optional[str] = None,
         name: Optional[str] = None,
         limit: int = 20,
-        page: int = 1
-    ) -> Dict[str, Any]:
+        page: int = 1,
+    ) -> dict[str, Any]:
         """
         Search for educational institutions (schools and universities).
 
@@ -387,7 +368,9 @@ class INEPClient:
             >>>     results = await client.search_institutions(state="RJ", limit=10)
             >>>     print(f"Found {results['total']} institutions in RJ")
         """
-        self.logger.info(f"Searching institutions: state={state}, city={city}, name={name}")
+        self.logger.info(
+            f"Searching institutions: state={state}, city={city}, name={name}"
+        )
 
         # Build search query
         query_parts = ["escola OR universidade OR instituição"]
@@ -407,7 +390,7 @@ class INEPClient:
             "q": query,
             "fq": "organization:inep",
             "rows": limit,
-            "start": (page - 1) * limit
+            "start": (page - 1) * limit,
         }
 
         data = await self._make_request(url, params=params)
@@ -417,9 +400,7 @@ class INEPClient:
 
         # Record data fetched
         FederalAPIMetrics.record_data_fetched(
-            api_name="INEP",
-            data_type="institutions",
-            record_count=len(datasets)
+            api_name="INEP", data_type="institutions", record_count=len(datasets)
         )
 
         # Format results
@@ -434,7 +415,7 @@ class INEPClient:
                 "metadata_modified": dataset.get("metadata_modified"),
                 "tags": [tag.get("name") for tag in dataset.get("tags", [])[:5]],
                 "resource_count": len(dataset.get("resources", [])),
-                "url": dataset.get("url", "")
+                "url": dataset.get("url", ""),
             }
             institutions.append(institution)
 
@@ -443,13 +424,9 @@ class INEPClient:
             "page": page,
             "limit": limit,
             "results": institutions,
-            "filters": {
-                "state": state,
-                "city": city,
-                "name": name
-            },
+            "filters": {"state": state, "city": city, "name": name},
             "source": "INEP via dados.gov.br",
-            "note": "Returns INEP datasets matching search criteria. For detailed school data, use get_school_census_data()."
+            "note": "Returns INEP datasets matching search criteria. For detailed school data, use get_school_census_data().",
         }
 
         self.logger.info(f"Found {result['total']} institutions")
@@ -460,8 +437,8 @@ class INEPClient:
         self,
         state_code: Optional[str] = None,
         municipality_code: Optional[str] = None,
-        year: Optional[int] = None
-    ) -> Dict[str, Any]:
+        year: Optional[int] = None,
+    ) -> dict[str, Any]:
         """
         Get school census data.
 
@@ -477,7 +454,9 @@ class INEPClient:
             - Infrastructure indicators
             - Teacher data
         """
-        self.logger.info(f"Fetching school census: state={state_code}, municipality={municipality_code}, year={year}")
+        self.logger.info(
+            f"Fetching school census: state={state_code}, municipality={municipality_code}, year={year}"
+        )
 
         dataset_id = self.DATASETS["school_census"]
         url = f"{self.DADOS_GOV_URL}/package_show"
@@ -491,10 +470,10 @@ class INEPClient:
             "filters": {
                 "state": state_code,
                 "municipality": municipality_code,
-                "year": year or "latest"
+                "year": year or "latest",
             },
             "dataset_info": data.get("result", {}),
-            "note": "School census data available as CSV/microdata files in resources"
+            "note": "School census data available as CSV/microdata files in resources",
         }
 
         self.logger.info("Fetched school census data")
@@ -506,8 +485,8 @@ class INEPClient:
         state_code: Optional[str] = None,
         municipality_code: Optional[str] = None,
         year: Optional[int] = None,
-        education_level: Optional[str] = None
-    ) -> Dict[str, Any]:
+        education_level: Optional[str] = None,
+    ) -> dict[str, Any]:
         """
         Get IDEB (Basic Education Development Index) indicators.
 
@@ -520,7 +499,9 @@ class INEPClient:
         Returns:
             IDEB indicators by location and education level
         """
-        self.logger.info(f"Fetching IDEB data: state={state_code}, municipality={municipality_code}, year={year}")
+        self.logger.info(
+            f"Fetching IDEB data: state={state_code}, municipality={municipality_code}, year={year}"
+        )
 
         dataset_id = self.DATASETS["ideb"]
         url = f"{self.DADOS_GOV_URL}/package_show"
@@ -535,10 +516,10 @@ class INEPClient:
                 "state": state_code,
                 "municipality": municipality_code,
                 "year": year or "latest",
-                "education_level": education_level or "all"
+                "education_level": education_level or "all",
             },
             "dataset_info": data.get("result", {}),
-            "note": "IDEB data available in dataset resources - typically as Excel or CSV"
+            "note": "IDEB data available in dataset resources - typically as Excel or CSV",
         }
 
         self.logger.info("Fetched IDEB indicators")
@@ -546,10 +527,8 @@ class INEPClient:
 
     @cache_with_ttl(ttl_seconds=7200)
     async def get_enem_results(
-        self,
-        state_code: Optional[str] = None,
-        year: Optional[int] = None
-    ) -> Dict[str, Any]:
+        self, state_code: Optional[str] = None, year: Optional[int] = None
+    ) -> dict[str, Any]:
         """
         Get ENEM (National High School Exam) results.
 
@@ -571,12 +550,9 @@ class INEPClient:
         result = {
             "timestamp": datetime.now().isoformat(),
             "source": "INEP/ENEM",
-            "filters": {
-                "state": state_code,
-                "year": year or "latest"
-            },
+            "filters": {"state": state_code, "year": year or "latest"},
             "dataset_info": data.get("result", {}),
-            "note": "ENEM microdata available as large CSV files"
+            "note": "ENEM microdata available as large CSV files",
         }
 
         self.logger.info("Fetched ENEM results")
@@ -584,10 +560,8 @@ class INEPClient:
 
     @cache_with_ttl(ttl_seconds=3600)
     async def get_school_infrastructure(
-        self,
-        state_code: Optional[str] = None,
-        municipality_code: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, state_code: Optional[str] = None, municipality_code: Optional[str] = None
+    ) -> dict[str, Any]:
         """
         Get school infrastructure data.
 
@@ -603,7 +577,9 @@ class INEPClient:
             - Sports facilities
             - Accessibility features
         """
-        self.logger.info(f"Fetching school infrastructure: state={state_code}, municipality={municipality_code}")
+        self.logger.info(
+            f"Fetching school infrastructure: state={state_code}, municipality={municipality_code}"
+        )
 
         dataset_id = self.DATASETS["schools"]
         url = f"{self.DADOS_GOV_URL}/package_show"
@@ -614,12 +590,9 @@ class INEPClient:
         result = {
             "timestamp": datetime.now().isoformat(),
             "source": "INEP/Censo Escolar - Escolas",
-            "filters": {
-                "state": state_code,
-                "municipality": municipality_code
-            },
+            "filters": {"state": state_code, "municipality": municipality_code},
             "dataset_info": data.get("result", {}),
-            "note": "School-level infrastructure data in census microdata"
+            "note": "School-level infrastructure data in census microdata",
         }
 
         self.logger.info("Fetched school infrastructure data")
@@ -627,10 +600,8 @@ class INEPClient:
 
     @cache_with_ttl(ttl_seconds=7200)
     async def get_teacher_statistics(
-        self,
-        state_code: Optional[str] = None,
-        municipality_code: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, state_code: Optional[str] = None, municipality_code: Optional[str] = None
+    ) -> dict[str, Any]:
         """
         Get teacher statistics.
 
@@ -645,7 +616,9 @@ class INEPClient:
             - Subject areas
             - Employment status
         """
-        self.logger.info(f"Fetching teacher statistics: state={state_code}, municipality={municipality_code}")
+        self.logger.info(
+            f"Fetching teacher statistics: state={state_code}, municipality={municipality_code}"
+        )
 
         dataset_id = self.DATASETS["teachers"]
         url = f"{self.DADOS_GOV_URL}/package_show"
@@ -656,12 +629,9 @@ class INEPClient:
         result = {
             "timestamp": datetime.now().isoformat(),
             "source": "INEP/Censo Escolar - Docentes",
-            "filters": {
-                "state": state_code,
-                "municipality": municipality_code
-            },
+            "filters": {"state": state_code, "municipality": municipality_code},
             "dataset_info": data.get("result", {}),
-            "note": "Teacher microdata available in census files"
+            "note": "Teacher microdata available in census files",
         }
 
         self.logger.info("Fetched teacher statistics")
@@ -671,8 +641,8 @@ class INEPClient:
         self,
         state_code: Optional[str] = None,
         municipality_code: Optional[str] = None,
-        year: Optional[int] = None
-    ) -> Dict[str, Any]:
+        year: Optional[int] = None,
+    ) -> dict[str, Any]:
         """
         Get comprehensive education indicators for a location.
 
@@ -690,7 +660,9 @@ class INEPClient:
             - Infrastructure metrics
             - Teacher statistics
         """
-        self.logger.info(f"Fetching education indicators: state={state_code}, municipality={municipality_code}, year={year}")
+        self.logger.info(
+            f"Fetching education indicators: state={state_code}, municipality={municipality_code}, year={year}"
+        )
 
         # Fetch multiple datasets in parallel
         results = await asyncio.gather(
@@ -698,24 +670,25 @@ class INEPClient:
             self.get_ideb_indicators(state_code, municipality_code, year),
             self.get_school_infrastructure(state_code, municipality_code),
             self.get_teacher_statistics(state_code, municipality_code),
-            return_exceptions=True
+            return_exceptions=True,
         )
 
         # Organize results
         education_data = {
             "timestamp": datetime.now().isoformat(),
             "source": "INEP",
-            "location": {
-                "state": state_code,
-                "municipality": municipality_code
-            },
+            "location": {"state": state_code, "municipality": municipality_code},
             "year": year or "latest",
-            "school_census": results[0] if not isinstance(results[0], Exception) else None,
+            "school_census": (
+                results[0] if not isinstance(results[0], Exception) else None
+            ),
             "ideb": results[1] if not isinstance(results[1], Exception) else None,
-            "infrastructure": results[2] if not isinstance(results[2], Exception) else None,
+            "infrastructure": (
+                results[2] if not isinstance(results[2], Exception) else None
+            ),
             "teachers": results[3] if not isinstance(results[3], Exception) else None,
             "errors": [str(r) for r in results if isinstance(r, Exception)],
-            "note": "INEP data typically requires downloading microdata files for detailed analysis"
+            "note": "INEP data typically requires downloading microdata files for detailed analysis",
         }
 
         self.logger.info("Fetched comprehensive education indicators")

@@ -22,7 +22,7 @@ Created: 2025-10-09 14:21:00 -03 (Minas Gerais, Brazil)
 License: Proprietary - All rights reserved
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from ..base import TransparencyAPIClient
 
@@ -41,12 +41,7 @@ class CKANClient(TransparencyAPIClient):
         523
     """
 
-    def __init__(
-        self,
-        base_url: str,
-        state_code: str,
-        api_token: Optional[str] = None
-    ):
+    def __init__(self, base_url: str, state_code: str, api_token: Optional[str] = None):
         """
         Initialize CKAN client for a specific state portal.
 
@@ -59,7 +54,7 @@ class CKANClient(TransparencyAPIClient):
             base_url=base_url,
             name=f"CKAN-{state_code}",
             rate_limit_per_minute=60,
-            timeout=30.0
+            timeout=30.0,
         )
 
         self.state_code = state_code
@@ -83,11 +78,7 @@ class CKANClient(TransparencyAPIClient):
             self.logger.error(f"CKAN {self.state_code} connection failed: {str(e)}")
             return False
 
-    async def list_datasets(
-        self,
-        limit: int = 100,
-        offset: int = 0
-    ) -> List[str]:
+    async def list_datasets(self, limit: int = 100, offset: int = 0) -> list[str]:
         """
         List all dataset IDs in the portal.
 
@@ -99,14 +90,15 @@ class CKANClient(TransparencyAPIClient):
             List of dataset IDs
         """
         try:
-            result = await self._ckan_action("package_list", {
-                "limit": limit,
-                "offset": offset
-            })
+            result = await self._ckan_action(
+                "package_list", {"limit": limit, "offset": offset}
+            )
 
             datasets = result.get("result", [])
 
-            self.logger.info(f"Found {len(datasets)} datasets in CKAN {self.state_code}")
+            self.logger.info(
+                f"Found {len(datasets)} datasets in CKAN {self.state_code}"
+            )
 
             return datasets
 
@@ -114,7 +106,7 @@ class CKANClient(TransparencyAPIClient):
             self.logger.error(f"Failed to list datasets: {str(e)}")
             return []
 
-    async def get_dataset(self, dataset_id: str) -> Optional[Dict[str, Any]]:
+    async def get_dataset(self, dataset_id: str) -> Optional[dict[str, Any]]:
         """
         Get detailed information about a dataset.
 
@@ -134,11 +126,8 @@ class CKANClient(TransparencyAPIClient):
             return None
 
     async def search_datasets(
-        self,
-        query: str,
-        filters: Optional[Dict[str, Any]] = None,
-        limit: int = 20
-    ) -> List[Dict[str, Any]]:
+        self, query: str, filters: Optional[dict[str, Any]] = None, limit: int = 20
+    ) -> list[dict[str, Any]]:
         """
         Search datasets by query.
 
@@ -150,15 +139,12 @@ class CKANClient(TransparencyAPIClient):
         Returns:
             List of matching datasets
         """
-        params = {
-            "q": query,
-            "rows": limit
-        }
+        params = {"q": query, "rows": limit}
 
         if filters:
             # Add filters as facet queries
             for key, value in filters.items():
-                params[f"fq"] = f"{key}:{value}"
+                params["fq"] = f"{key}:{value}"
 
         try:
             result = await self._ckan_action("package_search", params)
@@ -179,8 +165,8 @@ class CKANClient(TransparencyAPIClient):
         self,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-        **kwargs: Any
-    ) -> List[Dict[str, Any]]:
+        **kwargs: Any,
+    ) -> list[dict[str, Any]]:
         """
         Search for contract-related datasets.
 
@@ -196,19 +182,13 @@ class CKANClient(TransparencyAPIClient):
             List of contract-related datasets
         """
         # Search for contract-related datasets
-        contract_keywords = [
-            "contratos",
-            "licitações",
-            "compras",
-            "fornecedores"
-        ]
+        contract_keywords = ["contratos", "licitações", "compras", "fornecedores"]
 
         all_results = []
 
         for keyword in contract_keywords:
             results = await self.search_datasets(
-                query=keyword,
-                limit=kwargs.get("limit", 50)
+                query=keyword, limit=kwargs.get("limit", 50)
             )
             all_results.extend(results)
 
@@ -231,10 +211,10 @@ class CKANClient(TransparencyAPIClient):
     async def query_datastore(
         self,
         resource_id: str,
-        filters: Optional[Dict[str, Any]] = None,
+        filters: Optional[dict[str, Any]] = None,
         limit: int = 100,
-        offset: int = 0
-    ) -> List[Dict[str, Any]]:
+        offset: int = 0,
+    ) -> list[dict[str, Any]]:
         """
         Query CKAN datastore for a specific resource.
 
@@ -247,11 +227,7 @@ class CKANClient(TransparencyAPIClient):
         Returns:
             List of records from datastore
         """
-        params = {
-            "resource_id": resource_id,
-            "limit": limit,
-            "offset": offset
-        }
+        params = {"resource_id": resource_id, "limit": limit, "offset": offset}
 
         if filters:
             params["filters"] = filters
@@ -270,10 +246,8 @@ class CKANClient(TransparencyAPIClient):
             return []
 
     async def _ckan_action(
-        self,
-        action: str,
-        params: Optional[Dict[str, Any]] = None
-    ) -> Dict[str, Any]:
+        self, action: str, params: Optional[dict[str, Any]] = None
+    ) -> dict[str, Any]:
         """
         Call a CKAN API action.
 
@@ -294,5 +268,5 @@ class CKANClient(TransparencyAPIClient):
             method="GET",
             endpoint=endpoint,
             params=params,
-            headers=headers if headers else None
+            headers=headers if headers else None,
         )

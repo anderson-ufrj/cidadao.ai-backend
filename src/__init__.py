@@ -15,7 +15,7 @@ Key Features:
 Modules:
 - agents: Multi-agent system with 17 specialized agents
 - api: FastAPI-based REST API with enterprise security
-- core: Core configuration, logging, and utilities  
+- core: Core configuration, logging, and utilities
 - infrastructure: System orchestration and management
 - memory: Agent memory systems (episodic, semantic, conversational)
 - services: Business logic and data processing services
@@ -26,7 +26,7 @@ Usage:
     # As a library
     from src.agents import ZumbiInvestigatorAgent
     from src.api.app import create_app
-    
+
     # As a CLI tool
     cidadao investigate --help
     cidadao analyze --help
@@ -50,16 +50,11 @@ from src.core.exceptions import CidadaoAIError
 
 # Version info tuple
 VERSION = (1, 0, 0)
-VERSION_INFO = {
-    "major": 1,
-    "minor": 0,
-    "patch": 0,
-    "release": "stable"
-}
+VERSION_INFO = {"major": 1, "minor": 0, "patch": 0, "release": "stable"}
 
 __all__ = [
     "__version__",
-    "__author__", 
+    "__author__",
     "__email__",
     "__license__",
     "__description__",

@@ -12,26 +12,27 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-from functools import wraps
 import hashlib
 import json
+from datetime import datetime
+from functools import wraps
+from typing import Any, Optional
 
 import httpx
-from pydantic import BaseModel, Field as PydanticField
+from pydantic import BaseModel
 
 from src.core import get_logger
-from .exceptions import NetworkError, TimeoutError, ServerError, exception_from_response
-from .retry import retry_with_backoff
-from .metrics import FederalAPIMetrics
 
+from .exceptions import NetworkError, ServerError, TimeoutError, exception_from_response
+from .metrics import FederalAPIMetrics
+from .retry import retry_with_backoff
 
 logger = get_logger(__name__)
 
 
 def cache_with_ttl(ttl_seconds: int = 3600):
     """Decorator for caching DataSUS API calls with TTL."""
+
     def decorator(func):
         cache = {}
         cache_times = {}
@@ -45,9 +46,11 @@ def cache_with_ttl(ttl_seconds: int = 3600):
                 if isinstance(arg, (str, int, float, bool)):
                     key_parts.append(str(arg))
                 elif isinstance(arg, (list, dict)):
-                    key_parts.append(hashlib.md5(
-                        json.dumps(arg, sort_keys=True).encode()
-                    ).hexdigest()[:8])
+                    key_parts.append(
+                        hashlib.md5(
+                            json.dumps(arg, sort_keys=True).encode()
+                        ).hexdigest()[:8]
+                    )
 
             cache_key = "_".join(key_parts)
 
@@ -59,17 +62,13 @@ def cache_with_ttl(ttl_seconds: int = 3600):
                     logger.debug(f"DataSUS cache hit: {cache_key}")
                     # Record cache hit
                     FederalAPIMetrics.record_cache_operation(
-                        api_name="DataSUS",
-                        operation="read",
-                        result="hit"
+                        api_name="DataSUS", operation="read", result="hit"
                     )
                     return cache[cache_key]
 
             # Cache miss - record it
             FederalAPIMetrics.record_cache_operation(
-                api_name="DataSUS",
-                operation="read",
-                result="miss"
+                api_name="DataSUS", operation="read", result="miss"
             )
 
             # Calculate and cache result
@@ -79,26 +78,24 @@ def cache_with_ttl(ttl_seconds: int = 3600):
 
             # Record cache write
             FederalAPIMetrics.record_cache_operation(
-                api_name="DataSUS",
-                operation="write",
-                result="success"
+                api_name="DataSUS", operation="write", result="success"
             )
 
             # Update cache size gauge
             FederalAPIMetrics.update_cache_size(
-                api_name="DataSUS",
-                cache_type="memory",
-                size=len(cache)
+                api_name="DataSUS", cache_type="memory", size=len(cache)
             )
 
             return result
 
         return wrapper
+
     return decorator
 
 
 class DataSUSIndicator(BaseModel):
     """DataSUS health indicator."""
+
     code: str
     name: str
     category: str
@@ -160,7 +157,9 @@ class DataSUSClient:
         await self.close()
 
     @retry_with_backoff(max_attempts=3, base_delay=1.0, max_delay=30.0)
-    async def _make_request(self, url: str, method: str = "GET", **kwargs) -> Dict[str, Any]:
+    async def _make_request(
+        self, url: str, method: str = "GET", **kwargs
+    ) -> dict[str, Any]:
         """
         Make HTTP request with automatic retry and error handling.
 
@@ -179,6 +178,7 @@ class DataSUSClient:
             FederalAPIError: On other API errors
         """
         import time
+
         start_time = time.time()
         status_code = 500
         status = "error"
@@ -200,11 +200,9 @@ class DataSUSClient:
             status_code = response.status_code
 
             # Record response size
-            response_size = len(response.content) if hasattr(response, 'content') else 0
+            response_size = len(response.content) if hasattr(response, "content") else 0
             FederalAPIMetrics.record_response_size(
-                api_name="DataSUS",
-                endpoint=endpoint,
-                size_bytes=response_size
+                api_name="DataSUS", endpoint=endpoint, size_bytes=response_size
             )
 
             # Check for HTTP errors
@@ -212,15 +210,13 @@ class DataSUSClient:
                 error_msg = f"Server error: {response.status_code}"
                 # Record error before raising
                 FederalAPIMetrics.record_error(
-                    api_name="DataSUS",
-                    error_type="ServerError",
-                    retryable=True
+                    api_name="DataSUS", error_type="ServerError", retryable=True
                 )
                 raise ServerError(
                     error_msg,
                     api_name="DataSUS",
                     status_code=response.status_code,
-                    response_data={"url": url}
+                    response_data={"url": url},
                 )
             elif response.status_code >= 400:
                 error_msg = f"Client error: {response.status_code}"
@@ -229,13 +225,13 @@ class DataSUSClient:
                 FederalAPIMetrics.record_error(
                     api_name="DataSUS",
                     error_type=f"ClientError_{response.status_code}",
-                    retryable=retryable
+                    retryable=retryable,
                 )
                 raise exception_from_response(
                     response.status_code,
                     error_msg,
                     api_name="DataSUS",
-                    response_data={"url": url}
+                    response_data={"url": url},
                 )
 
             # Parse JSON response
@@ -247,9 +243,7 @@ class DataSUSClient:
                 self.logger.error(f"Failed to parse JSON response: {e}")
                 status = "error"
                 FederalAPIMetrics.record_error(
-                    api_name="DataSUS",
-                    error_type="JSONParseError",
-                    retryable=False
+                    api_name="DataSUS", error_type="JSONParseError", retryable=False
                 )
                 raise
 
@@ -260,21 +254,17 @@ class DataSUSClient:
 
             # Record timeout
             FederalAPIMetrics.record_timeout(
-                api_name="DataSUS",
-                method=method,
-                timeout_seconds=self.timeout
+                api_name="DataSUS", method=method, timeout_seconds=self.timeout
             )
             FederalAPIMetrics.record_error(
-                api_name="DataSUS",
-                error_type="TimeoutError",
-                retryable=True
+                api_name="DataSUS", error_type="TimeoutError", retryable=True
             )
 
             raise TimeoutError(
-                f"Request timed out",
+                "Request timed out",
                 api_name="DataSUS",
                 timeout_seconds=self.timeout,
-                original_error=e
+                original_error=e,
             )
         except httpx.NetworkError as e:
             self.logger.error(f"Network error: {url}")
@@ -283,15 +273,11 @@ class DataSUSClient:
 
             # Record network error
             FederalAPIMetrics.record_error(
-                api_name="DataSUS",
-                error_type="NetworkError",
-                retryable=True
+                api_name="DataSUS", error_type="NetworkError", retryable=True
             )
 
             raise NetworkError(
-                f"Network error: {str(e)}",
-                api_name="DataSUS",
-                original_error=e
+                f"Network error: {str(e)}", api_name="DataSUS", original_error=e
             )
         except (ServerError, TimeoutError, NetworkError):
             # Re-raise our custom exceptions as-is (they'll be caught by retry decorator)
@@ -301,9 +287,7 @@ class DataSUSClient:
             self.logger.error(f"Unexpected error in _make_request: {e}", exc_info=True)
             status = "error"
             FederalAPIMetrics.record_error(
-                api_name="DataSUS",
-                error_type=type(e).__name__,
-                retryable=False
+                api_name="DataSUS", error_type=type(e).__name__, retryable=False
             )
             raise
         finally:
@@ -315,14 +299,14 @@ class DataSUSClient:
                 endpoint=endpoint,
                 status_code=status_code,
                 duration_seconds=duration,
-                status=status
+                status=status,
             )
 
             # Decrement active requests
             FederalAPIMetrics.decrement_active_requests("DataSUS")
 
     @cache_with_ttl(ttl_seconds=86400)  # 24 hours cache
-    async def search_datasets(self, query: str, limit: int = 100) -> Dict[str, Any]:
+    async def search_datasets(self, query: str, limit: int = 100) -> dict[str, Any]:
         """
         Search for datasets in OpenDataSUS.
 
@@ -334,10 +318,7 @@ class DataSUSClient:
             Dataset search results
         """
         url = f"{self.OPENDATASUS_URL}/package_search"
-        params = {
-            "q": query,
-            "rows": limit
-        }
+        params = {"q": query, "rows": limit}
 
         self.logger.info(f"Searching DataSUS datasets: query={query}")
 
@@ -351,8 +332,8 @@ class DataSUSClient:
         self,
         state_code: Optional[str] = None,
         municipality_code: Optional[str] = None,
-        facility_type: Optional[str] = None
-    ) -> Dict[str, Any]:
+        facility_type: Optional[str] = None,
+    ) -> dict[str, Any]:
         """
         Get health facilities data from CNES.
 
@@ -367,7 +348,9 @@ class DataSUSClient:
         # Note: CNES API is complex and often requires form-based access
         # This is a simplified version - real implementation may need web scraping
 
-        self.logger.info(f"Fetching health facilities: state={state_code}, municipality={municipality_code}")
+        self.logger.info(
+            f"Fetching health facilities: state={state_code}, municipality={municipality_code}"
+        )
 
         # Try to get data from OpenDataSUS CNES dataset
         dataset_id = self.DATASETS["health_facilities"]
@@ -383,10 +366,10 @@ class DataSUSClient:
             "filters": {
                 "state": state_code,
                 "municipality": municipality_code,
-                "facility_type": facility_type
+                "facility_type": facility_type,
             },
             "data": data.get("result", {}),
-            "note": "CNES data requires additional processing for specific locations"
+            "note": "CNES data requires additional processing for specific locations",
         }
 
         self.logger.info("Fetched health facilities data")
@@ -397,8 +380,8 @@ class DataSUSClient:
         self,
         state_code: Optional[str] = None,
         year: Optional[int] = None,
-        cause_category: Optional[str] = None
-    ) -> Dict[str, Any]:
+        cause_category: Optional[str] = None,
+    ) -> dict[str, Any]:
         """
         Get mortality statistics from SIM.
 
@@ -428,10 +411,10 @@ class DataSUSClient:
             "filters": {
                 "state": state_code,
                 "year": year,
-                "cause_category": cause_category
+                "cause_category": cause_category,
             },
             "dataset_info": data.get("result", {}),
-            "note": "Full mortality data requires downloading CSV files from resources"
+            "note": "Full mortality data requires downloading CSV files from resources",
         }
 
         self.logger.info("Fetched mortality statistics")
@@ -442,8 +425,8 @@ class DataSUSClient:
         self,
         state_code: Optional[str] = None,
         year: Optional[int] = None,
-        procedure_category: Optional[str] = None
-    ) -> Dict[str, Any]:
+        procedure_category: Optional[str] = None,
+    ) -> dict[str, Any]:
         """
         Get hospital admission statistics from SIH.
 
@@ -455,7 +438,9 @@ class DataSUSClient:
         Returns:
             Hospital admission data
         """
-        self.logger.info(f"Fetching hospital admissions: state={state_code}, year={year}")
+        self.logger.info(
+            f"Fetching hospital admissions: state={state_code}, year={year}"
+        )
 
         dataset_id = self.DATASETS["hospital_admissions"]
         url = f"{self.OPENDATASUS_URL}/package_show"
@@ -469,10 +454,10 @@ class DataSUSClient:
             "filters": {
                 "state": state_code,
                 "year": year,
-                "procedure_category": procedure_category
+                "procedure_category": procedure_category,
             },
             "dataset_info": data.get("result", {}),
-            "note": "Full admission data requires downloading files from resources"
+            "note": "Full admission data requires downloading files from resources",
         }
 
         self.logger.info("Fetched hospital admissions data")
@@ -480,10 +465,8 @@ class DataSUSClient:
 
     @cache_with_ttl(ttl_seconds=7200)
     async def get_vaccination_data(
-        self,
-        state_code: Optional[str] = None,
-        vaccine_type: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, state_code: Optional[str] = None, vaccine_type: Optional[str] = None
+    ) -> dict[str, Any]:
         """
         Get vaccination coverage data from SI-PNI.
 
@@ -494,7 +477,9 @@ class DataSUSClient:
         Returns:
             Vaccination coverage data
         """
-        self.logger.info(f"Fetching vaccination data: state={state_code}, vaccine={vaccine_type}")
+        self.logger.info(
+            f"Fetching vaccination data: state={state_code}, vaccine={vaccine_type}"
+        )
 
         dataset_id = self.DATASETS["vaccination"]
         url = f"{self.OPENDATASUS_URL}/package_show"
@@ -505,22 +490,17 @@ class DataSUSClient:
         result = {
             "timestamp": datetime.now().isoformat(),
             "source": "DataSUS/SI-PNI",
-            "filters": {
-                "state": state_code,
-                "vaccine_type": vaccine_type
-            },
+            "filters": {"state": state_code, "vaccine_type": vaccine_type},
             "dataset_info": data.get("result", {}),
-            "note": "Vaccination data available in dataset resources"
+            "note": "Vaccination data available in dataset resources",
         }
 
         self.logger.info("Fetched vaccination data")
         return result
 
     async def get_health_indicators(
-        self,
-        state_code: Optional[str] = None,
-        municipality_code: Optional[str] = None
-    ) -> Dict[str, Any]:
+        self, state_code: Optional[str] = None, municipality_code: Optional[str] = None
+    ) -> dict[str, Any]:
         """
         Get comprehensive health indicators for a location.
 
@@ -537,7 +517,9 @@ class DataSUSClient:
             - Hospital admission rates
             - Vaccination coverage
         """
-        self.logger.info(f"Fetching health indicators: state={state_code}, municipality={municipality_code}")
+        self.logger.info(
+            f"Fetching health indicators: state={state_code}, municipality={municipality_code}"
+        )
 
         # Fetch multiple datasets in parallel
         results = await asyncio.gather(
@@ -545,23 +527,26 @@ class DataSUSClient:
             self.get_mortality_statistics(state_code),
             self.get_hospital_admissions(state_code),
             self.get_vaccination_data(state_code),
-            return_exceptions=True
+            return_exceptions=True,
         )
 
         # Organize results
         health_data = {
             "timestamp": datetime.now().isoformat(),
             "source": "DataSUS",
-            "location": {
-                "state": state_code,
-                "municipality": municipality_code
-            },
-            "health_facilities": results[0] if not isinstance(results[0], Exception) else None,
+            "location": {"state": state_code, "municipality": municipality_code},
+            "health_facilities": (
+                results[0] if not isinstance(results[0], Exception) else None
+            ),
             "mortality": results[1] if not isinstance(results[1], Exception) else None,
-            "hospital_admissions": results[2] if not isinstance(results[2], Exception) else None,
-            "vaccination": results[3] if not isinstance(results[3], Exception) else None,
+            "hospital_admissions": (
+                results[2] if not isinstance(results[2], Exception) else None
+            ),
+            "vaccination": (
+                results[3] if not isinstance(results[3], Exception) else None
+            ),
             "errors": [str(r) for r in results if isinstance(r, Exception)],
-            "note": "DataSUS data often requires downloading CSV files for detailed analysis"
+            "note": "DataSUS data often requires downloading CSV files for detailed analysis",
         }
 
         self.logger.info("Fetched comprehensive health indicators")

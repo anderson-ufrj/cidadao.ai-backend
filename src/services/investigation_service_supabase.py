@@ -5,14 +5,14 @@ This version replaces the in-memory storage with Supabase PostgreSQL,
 providing persistent storage shared with the frontend.
 """
 
-from typing import List, Optional, Dict, Any
-from datetime import datetime
 import uuid
+from datetime import datetime
+from typing import Any, Optional
 
+from src.agents import get_agent_pool
+from src.agents.deodoro import AgentContext
 from src.core import get_logger
 from src.services.supabase_service import get_supabase_service
-from src.agents import MasterAgent, get_agent_pool
-from src.agents.deodoro import AgentContext
 
 logger = get_logger(__name__)
 
@@ -40,10 +40,10 @@ class InvestigationServiceSupabase:
         user_id: str,
         query: str,
         data_source: str = "contracts",
-        filters: Optional[Dict[str, Any]] = None,
-        anomaly_types: Optional[List[str]] = None,
+        filters: Optional[dict[str, Any]] = None,
+        anomaly_types: Optional[list[str]] = None,
         session_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create a new investigation in Supabase.
 
@@ -124,7 +124,7 @@ class InvestigationServiceSupabase:
             )
             raise
 
-    async def _execute_investigation(self, investigation: Dict[str, Any]):
+    async def _execute_investigation(self, investigation: dict[str, Any]):
         """
         Execute investigation using the agent system.
 
@@ -153,7 +153,7 @@ class InvestigationServiceSupabase:
                 "data_source": investigation["data_source"],
                 "filters": investigation.get("filters", {}),
                 "anomaly_types": investigation.get("anomaly_types", []),
-            }
+            },
         )
 
         # Update progress: anomaly detection
@@ -168,10 +168,12 @@ class InvestigationServiceSupabase:
         # TODO: Replace with actual agent execution
 
         from src.agents import InvestigatorAgent
+
         investigator = InvestigatorAgent()
 
         # Prepare investigation parameters
         from src.tools import TransparencyAPIFilter
+
         filters = TransparencyAPIFilter(**investigation.get("filters", {}))
 
         # Execute investigation
@@ -197,8 +199,7 @@ class InvestigationServiceSupabase:
 
         # Calculate confidence
         confidence_score = (
-            sum(r.confidence for r in results) / len(results)
-            if results else 0.0
+            sum(r.confidence for r in results) / len(results) if results else 0.0
         )
 
         # Format results for storage
@@ -241,7 +242,7 @@ class InvestigationServiceSupabase:
         current_phase: str,
         records_processed: Optional[int] = None,
         anomalies_found: Optional[int] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Update investigation progress.
 
@@ -267,12 +268,12 @@ class InvestigationServiceSupabase:
     async def complete_investigation(
         self,
         investigation_id: str,
-        results: List[Dict[str, Any]],
+        results: list[dict[str, Any]],
         summary: str,
         confidence_score: float,
         total_records: int = 0,
         anomalies_found: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Mark investigation as completed with results.
 
@@ -297,7 +298,7 @@ class InvestigationServiceSupabase:
             anomalies_found=anomalies_found,
         )
 
-    async def get(self, investigation_id: str) -> Optional[Dict[str, Any]]:
+    async def get(self, investigation_id: str) -> Optional[dict[str, Any]]:
         """
         Get investigation by ID (alias for get_by_id).
 
@@ -309,7 +310,7 @@ class InvestigationServiceSupabase:
         """
         return await self.get_by_id(investigation_id)
 
-    async def get_by_id(self, investigation_id: str) -> Optional[Dict[str, Any]]:
+    async def get_by_id(self, investigation_id: str) -> Optional[dict[str, Any]]:
         """
         Get investigation by ID.
 
@@ -328,8 +329,8 @@ class InvestigationServiceSupabase:
         status: str,
         progress: Optional[float] = None,
         current_phase: Optional[str] = None,
-        **kwargs
-    ) -> Dict[str, Any]:
+        **kwargs,
+    ) -> dict[str, Any]:
         """
         Update investigation status and progress.
 
@@ -363,7 +364,7 @@ class InvestigationServiceSupabase:
         status: Optional[str] = None,
         limit: int = 20,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Search investigations with filters.
 
@@ -387,7 +388,7 @@ class InvestigationServiceSupabase:
             status=status,
         )
 
-    async def cancel(self, investigation_id: str, user_id: str) -> Dict[str, Any]:
+    async def cancel(self, investigation_id: str, user_id: str) -> dict[str, Any]:
         """
         Cancel a running investigation.
 
@@ -430,10 +431,8 @@ class InvestigationServiceSupabase:
         return await supabase.get_investigation(investigation_id)
 
     async def get_user_investigations(
-        self,
-        user_id: str,
-        limit: int = 10
-    ) -> List[Dict[str, Any]]:
+        self, user_id: str, limit: int = 10
+    ) -> list[dict[str, Any]]:
         """
         Get investigations for a user.
 

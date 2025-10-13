@@ -12,26 +12,27 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
-from datetime import datetime
-from typing import Any, Dict, List, Optional
-from functools import wraps
 import hashlib
 import json
+from datetime import datetime
+from functools import wraps
+from typing import Any, Optional
 
 import httpx
-from pydantic import BaseModel, Field as PydanticField, field_validator
+from pydantic import BaseModel, field_validator
 
 from src.core import get_logger
-from .exceptions import NetworkError, TimeoutError, ServerError, exception_from_response
-from .retry import retry_with_backoff
-from .metrics import FederalAPIMetrics
 
+from .exceptions import NetworkError, ServerError, TimeoutError, exception_from_response
+from .metrics import FederalAPIMetrics
+from .retry import retry_with_backoff
 
 logger = get_logger(__name__)
 
 
 def cache_with_ttl(ttl_seconds: int = 3600):
     """Decorator for caching IBGE API calls with TTL."""
+
     def decorator(func):
         cache = {}
         cache_times = {}
@@ -45,9 +46,11 @@ def cache_with_ttl(ttl_seconds: int = 3600):
                 if isinstance(arg, (str, int, float, bool)):
                     key_parts.append(str(arg))
                 elif isinstance(arg, (list, dict)):
-                    key_parts.append(hashlib.md5(
-                        json.dumps(arg, sort_keys=True).encode()
-                    ).hexdigest()[:8])
+                    key_parts.append(
+                        hashlib.md5(
+                            json.dumps(arg, sort_keys=True).encode()
+                        ).hexdigest()[:8]
+                    )
 
             cache_key = "_".join(key_parts)
 
@@ -59,17 +62,13 @@ def cache_with_ttl(ttl_seconds: int = 3600):
                     logger.debug(f"IBGE cache hit: {cache_key}")
                     # Record cache hit
                     FederalAPIMetrics.record_cache_operation(
-                        api_name="IBGE",
-                        operation="read",
-                        result="hit"
+                        api_name="IBGE", operation="read", result="hit"
                     )
                     return cache[cache_key]
 
             # Cache miss - record it
             FederalAPIMetrics.record_cache_operation(
-                api_name="IBGE",
-                operation="read",
-                result="miss"
+                api_name="IBGE", operation="read", result="miss"
             )
 
             # Calculate and cache result
@@ -79,33 +78,31 @@ def cache_with_ttl(ttl_seconds: int = 3600):
 
             # Record cache write
             FederalAPIMetrics.record_cache_operation(
-                api_name="IBGE",
-                operation="write",
-                result="success"
+                api_name="IBGE", operation="write", result="success"
             )
 
             # Update cache size gauge
             FederalAPIMetrics.update_cache_size(
-                api_name="IBGE",
-                cache_type="memory",
-                size=len(cache)
+                api_name="IBGE", cache_type="memory", size=len(cache)
             )
 
             return result
 
         return wrapper
+
     return decorator
 
 
 class IBGELocation(BaseModel):
     """Geographic location representation."""
+
     id: str
     nome: str
-    regiao: Optional[Dict[str, Any]] = None
-    microrregiao: Optional[Dict[str, Any]] = None
-    mesorregiao: Optional[Dict[str, Any]] = None
+    regiao: Optional[dict[str, Any]] = None
+    microrregiao: Optional[dict[str, Any]] = None
+    mesorregiao: Optional[dict[str, Any]] = None
 
-    @field_validator('id', mode='before')
+    @field_validator("id", mode="before")
     @classmethod
     def coerce_id_to_str(cls, v):
         """Convert integer IDs from IBGE API to strings."""
@@ -114,12 +111,13 @@ class IBGELocation(BaseModel):
 
 class IBGEIndicator(BaseModel):
     """IBGE indicator representation."""
+
     id: str
     nome: str
     unidade: Optional[str] = None
     periodicidade: Optional[str] = None
 
-    @field_validator('id', mode='before')
+    @field_validator("id", mode="before")
     @classmethod
     def coerce_id_to_str(cls, v):
         """Convert integer IDs from IBGE API to strings."""
@@ -170,7 +168,9 @@ class IBGEClient:
         await self.close()
 
     @retry_with_backoff(max_attempts=3, base_delay=1.0, max_delay=30.0)
-    async def _make_request(self, url: str, method: str = "GET", **kwargs) -> Dict[str, Any]:
+    async def _make_request(
+        self, url: str, method: str = "GET", **kwargs
+    ) -> dict[str, Any]:
         """
         Make HTTP request with automatic retry and error handling.
 
@@ -189,6 +189,7 @@ class IBGEClient:
             FederalAPIError: On other API errors
         """
         import time
+
         start_time = time.time()
         status_code = 500
         status = "error"
@@ -210,11 +211,9 @@ class IBGEClient:
             status_code = response.status_code
 
             # Record response size
-            response_size = len(response.content) if hasattr(response, 'content') else 0
+            response_size = len(response.content) if hasattr(response, "content") else 0
             FederalAPIMetrics.record_response_size(
-                api_name="IBGE",
-                endpoint=endpoint,
-                size_bytes=response_size
+                api_name="IBGE", endpoint=endpoint, size_bytes=response_size
             )
 
             # Check for HTTP errors
@@ -222,15 +221,13 @@ class IBGEClient:
                 error_msg = f"Server error: {response.status_code}"
                 # Record error before raising
                 FederalAPIMetrics.record_error(
-                    api_name="IBGE",
-                    error_type="ServerError",
-                    retryable=True
+                    api_name="IBGE", error_type="ServerError", retryable=True
                 )
                 raise ServerError(
                     error_msg,
                     api_name="IBGE",
                     status_code=response.status_code,
-                    response_data={"url": url}
+                    response_data={"url": url},
                 )
             elif response.status_code >= 400:
                 error_msg = f"Client error: {response.status_code}"
@@ -239,13 +236,13 @@ class IBGEClient:
                 FederalAPIMetrics.record_error(
                     api_name="IBGE",
                     error_type=f"ClientError_{response.status_code}",
-                    retryable=retryable
+                    retryable=retryable,
                 )
                 raise exception_from_response(
                     response.status_code,
                     error_msg,
                     api_name="IBGE",
-                    response_data={"url": url}
+                    response_data={"url": url},
                 )
 
             # Parse JSON response
@@ -257,9 +254,7 @@ class IBGEClient:
                 self.logger.error(f"Failed to parse JSON response: {e}")
                 status = "error"
                 FederalAPIMetrics.record_error(
-                    api_name="IBGE",
-                    error_type="JSONParseError",
-                    retryable=False
+                    api_name="IBGE", error_type="JSONParseError", retryable=False
                 )
                 raise
 
@@ -270,21 +265,17 @@ class IBGEClient:
 
             # Record timeout
             FederalAPIMetrics.record_timeout(
-                api_name="IBGE",
-                method=method,
-                timeout_seconds=self.timeout
+                api_name="IBGE", method=method, timeout_seconds=self.timeout
             )
             FederalAPIMetrics.record_error(
-                api_name="IBGE",
-                error_type="TimeoutError",
-                retryable=True
+                api_name="IBGE", error_type="TimeoutError", retryable=True
             )
 
             raise TimeoutError(
-                f"Request timed out",
+                "Request timed out",
                 api_name="IBGE",
                 timeout_seconds=self.timeout,
-                original_error=e
+                original_error=e,
             )
         except httpx.NetworkError as e:
             self.logger.error(f"Network error: {url}")
@@ -293,15 +284,11 @@ class IBGEClient:
 
             # Record network error
             FederalAPIMetrics.record_error(
-                api_name="IBGE",
-                error_type="NetworkError",
-                retryable=True
+                api_name="IBGE", error_type="NetworkError", retryable=True
             )
 
             raise NetworkError(
-                f"Network error: {str(e)}",
-                api_name="IBGE",
-                original_error=e
+                f"Network error: {str(e)}", api_name="IBGE", original_error=e
             )
         except (ServerError, TimeoutError, NetworkError):
             # Re-raise our custom exceptions as-is (they'll be caught by retry decorator)
@@ -311,9 +298,7 @@ class IBGEClient:
             self.logger.error(f"Unexpected error in _make_request: {e}", exc_info=True)
             status = "error"
             FederalAPIMetrics.record_error(
-                api_name="IBGE",
-                error_type=type(e).__name__,
-                retryable=False
+                api_name="IBGE", error_type=type(e).__name__, retryable=False
             )
             raise
         finally:
@@ -325,14 +310,16 @@ class IBGEClient:
                 endpoint=endpoint,
                 status_code=status_code,
                 duration_seconds=duration,
-                status=status
+                status=status,
             )
 
             # Decrement active requests
             FederalAPIMetrics.decrement_active_requests("IBGE")
 
     @cache_with_ttl(ttl_seconds=86400)  # 24 hours cache
-    async def get_municipalities(self, state_id: Optional[str] = None) -> List[IBGELocation]:
+    async def get_municipalities(
+        self, state_id: Optional[str] = None
+    ) -> list[IBGELocation]:
         """
         Get list of municipalities.
 
@@ -356,14 +343,14 @@ class IBGEClient:
         FederalAPIMetrics.record_data_fetched(
             api_name="IBGE",
             data_type="municipalities",
-            record_count=len(municipalities)
+            record_count=len(municipalities),
         )
 
         self.logger.info(f"Fetched {len(municipalities)} municipalities")
         return municipalities
 
     @cache_with_ttl(ttl_seconds=86400)  # 24 hours cache
-    async def get_states(self) -> List[IBGELocation]:
+    async def get_states(self) -> list[IBGELocation]:
         """
         Get list of Brazilian states.
 
@@ -379,9 +366,7 @@ class IBGEClient:
 
         # Record data fetched
         FederalAPIMetrics.record_data_fetched(
-            api_name="IBGE",
-            data_type="states",
-            record_count=len(states)
+            api_name="IBGE", data_type="states", record_count=len(states)
         )
 
         self.logger.info(f"Fetched {len(states)} states")
@@ -389,10 +374,8 @@ class IBGEClient:
 
     @cache_with_ttl(ttl_seconds=3600)  # 1 hour cache
     async def get_population(
-        self,
-        location_id: Optional[str] = None,
-        year: Optional[int] = None
-    ) -> Dict[str, Any]:
+        self, location_id: Optional[str] = None, year: Optional[int] = None
+    ) -> dict[str, Any]:
         """
         Get population data.
 
@@ -426,9 +409,9 @@ class IBGEClient:
     @cache_with_ttl(ttl_seconds=3600)
     async def get_demographic_data(
         self,
-        location_ids: Optional[List[str]] = None,
-        indicators: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        location_ids: Optional[list[str]] = None,
+        indicators: Optional[list[str]] = None,
+    ) -> dict[str, Any]:
         """
         Get comprehensive demographic data.
 
@@ -449,7 +432,7 @@ class IBGEClient:
                 indicators = [
                     "6579",  # População estimada
                     "1301",  # População residente por sexo
-                    "93",    # População residente por cor ou raça
+                    "93",  # População residente por cor ou raça
                 ]
 
             results = {}
@@ -480,10 +463,8 @@ class IBGEClient:
 
     @cache_with_ttl(ttl_seconds=7200)  # 2 hours cache
     async def get_gdp_per_capita(
-        self,
-        location_ids: Optional[List[str]] = None,
-        year: Optional[int] = None
-    ) -> Dict[str, Any]:
+        self, location_ids: Optional[list[str]] = None, year: Optional[int] = None
+    ) -> dict[str, Any]:
         """
         Get GDP per capita data.
 
@@ -511,7 +492,9 @@ class IBGEClient:
             else:
                 url += "?localidades=N3[all]"  # All states
 
-            self.logger.info(f"Fetching GDP per capita: locations={location_ids}, year={year}")
+            self.logger.info(
+                f"Fetching GDP per capita: locations={location_ids}, year={year}"
+            )
 
             response = await self.client.get(url)
             response.raise_for_status()
@@ -527,9 +510,8 @@ class IBGEClient:
 
     @cache_with_ttl(ttl_seconds=7200)
     async def get_poverty_data(
-        self,
-        location_ids: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        self, location_ids: Optional[list[str]] = None
+    ) -> dict[str, Any]:
         """
         Get poverty and inequality data.
 
@@ -566,7 +548,9 @@ class IBGEClient:
                     response.raise_for_status()
                     results[indicator_id] = response.json()
                 except Exception as e:
-                    self.logger.warning(f"Failed to fetch indicator {indicator_id}: {e}")
+                    self.logger.warning(
+                        f"Failed to fetch indicator {indicator_id}: {e}"
+                    )
                     results[indicator_id] = None
 
                 await asyncio.sleep(0.5)
@@ -580,9 +564,8 @@ class IBGEClient:
 
     @cache_with_ttl(ttl_seconds=3600)
     async def get_education_data(
-        self,
-        location_ids: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        self, location_ids: Optional[list[str]] = None
+    ) -> dict[str, Any]:
         """
         Get education indicators from IBGE.
 
@@ -619,7 +602,9 @@ class IBGEClient:
                     response.raise_for_status()
                     results[indicator_id] = response.json()
                 except Exception as e:
-                    self.logger.warning(f"Failed to fetch indicator {indicator_id}: {e}")
+                    self.logger.warning(
+                        f"Failed to fetch indicator {indicator_id}: {e}"
+                    )
                     results[indicator_id] = None
 
                 await asyncio.sleep(0.5)
@@ -633,9 +618,8 @@ class IBGEClient:
 
     @cache_with_ttl(ttl_seconds=7200)
     async def get_housing_data(
-        self,
-        location_ids: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        self, location_ids: Optional[list[str]] = None
+    ) -> dict[str, Any]:
         """
         Get housing and infrastructure data.
 
@@ -672,7 +656,9 @@ class IBGEClient:
                     response.raise_for_status()
                     results[indicator_id] = response.json()
                 except Exception as e:
-                    self.logger.warning(f"Failed to fetch indicator {indicator_id}: {e}")
+                    self.logger.warning(
+                        f"Failed to fetch indicator {indicator_id}: {e}"
+                    )
                     results[indicator_id] = None
 
                 await asyncio.sleep(0.5)
@@ -687,8 +673,8 @@ class IBGEClient:
     async def get_comprehensive_social_data(
         self,
         state_id: Optional[str] = None,
-        municipality_ids: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        municipality_ids: Optional[list[str]] = None,
+    ) -> dict[str, Any]:
         """
         Get comprehensive social equity data for analysis.
 
@@ -702,10 +688,16 @@ class IBGEClient:
             Comprehensive social data including all major indicators
         """
         try:
-            self.logger.info(f"Fetching comprehensive social data: state={state_id}, municipalities={municipality_ids}")
+            self.logger.info(
+                f"Fetching comprehensive social data: state={state_id}, municipalities={municipality_ids}"
+            )
 
             # Determine location filter
-            location_ids = municipality_ids if municipality_ids else (state_id if state_id else None)
+            location_ids = (
+                municipality_ids
+                if municipality_ids
+                else (state_id if state_id else None)
+            )
 
             # Fetch all data in parallel
             results = await asyncio.gather(
@@ -714,7 +706,7 @@ class IBGEClient:
                 self.get_poverty_data(location_ids),
                 self.get_education_data(location_ids),
                 self.get_housing_data(location_ids),
-                return_exceptions=True
+                return_exceptions=True,
             )
 
             # Organize results
@@ -723,14 +715,24 @@ class IBGEClient:
                 "source": "IBGE",
                 "locations": {
                     "state_id": state_id,
-                    "municipality_ids": municipality_ids
+                    "municipality_ids": municipality_ids,
                 },
-                "demographic": results[0] if not isinstance(results[0], Exception) else None,
-                "economic": results[1] if not isinstance(results[1], Exception) else None,
-                "poverty": results[2] if not isinstance(results[2], Exception) else None,
-                "education": results[3] if not isinstance(results[3], Exception) else None,
-                "housing": results[4] if not isinstance(results[4], Exception) else None,
-                "errors": [str(r) for r in results if isinstance(r, Exception)]
+                "demographic": (
+                    results[0] if not isinstance(results[0], Exception) else None
+                ),
+                "economic": (
+                    results[1] if not isinstance(results[1], Exception) else None
+                ),
+                "poverty": (
+                    results[2] if not isinstance(results[2], Exception) else None
+                ),
+                "education": (
+                    results[3] if not isinstance(results[3], Exception) else None
+                ),
+                "housing": (
+                    results[4] if not isinstance(results[4], Exception) else None
+                ),
+                "errors": [str(r) for r in results if isinstance(r, Exception)],
             }
 
             self.logger.info("Fetched comprehensive social data successfully")

@@ -9,13 +9,8 @@ Status: Stub implementation - Full implementation planned for database integrati
 """
 
 from .base import BaseMemory
+from .conversational import ConversationalMemory
 from .episodic import EpisodicMemory
 from .semantic import SemanticMemory
-from .conversational import ConversationalMemory
 
-__all__ = [
-    "BaseMemory",
-    "EpisodicMemory", 
-    "SemanticMemory",
-    "ConversationalMemory"
-]
+__all__ = ["BaseMemory", "EpisodicMemory", "SemanticMemory", "ConversationalMemory"]

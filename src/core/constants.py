@@ -6,13 +6,14 @@ Date: 2025-01-24
 License: Proprietary - All rights reserved
 """
 
-from enum import Enum, auto
+from enum import Enum
 from typing import Final
-
 
 # Application metadata
 APP_NAME: Final[str] = "Cidadão.AI"
-APP_DESCRIPTION: Final[str] = "Sistema multi-agente de IA para transparência de dados públicos"
+APP_DESCRIPTION: Final[str] = (
+    "Sistema multi-agente de IA para transparência de dados públicos"
+)
 APP_VERSION: Final[str] = "1.0.0"
 APP_AUTHOR: Final[str] = "Anderson H. Silva"
 APP_LICENSE: Final[str] = "Proprietary - All rights reserved"
@@ -107,7 +108,7 @@ NOTIFICATION_PUSH: Final[str] = "push"
 
 class AgentStatus(str, Enum):
     """Agent status enumeration."""
-    
+
     IDLE = "idle"
     THINKING = "thinking"
     ACTING = "acting"
@@ -118,7 +119,7 @@ class AgentStatus(str, Enum):
 
 class InvestigationPriority(str, Enum):
     """Investigation priority levels."""
-    
+
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -127,7 +128,7 @@ class InvestigationPriority(str, Enum):
 
 class AnomalyType(str, Enum):
     """Types of anomalies detected."""
-    
+
     PRICE_ANOMALY = "price_anomaly"
     SUPPLIER_ANOMALY = "supplier_anomaly"
     FREQUENCY_ANOMALY = "frequency_anomaly"
@@ -140,7 +141,7 @@ class AnomalyType(str, Enum):
 
 class DataSource(str, Enum):
     """Available data sources."""
-    
+
     PORTAL_TRANSPARENCIA = "portal_transparencia"
     TCU = "tcu"
     CGU = "cgu"
@@ -152,7 +153,7 @@ class DataSource(str, Enum):
 
 class UserRole(str, Enum):
     """User roles in the system."""
-    
+
     ANONYMOUS = "anonymous"
     USER = "user"
     ANALYST = "analyst"
@@ -163,7 +164,7 @@ class UserRole(str, Enum):
 
 class LogLevel(str, Enum):
     """Log levels."""
-    
+
     DEBUG = "DEBUG"
     INFO = "INFO"
     WARNING = "WARNING"
@@ -173,7 +174,7 @@ class LogLevel(str, Enum):
 
 class ResponseStatus(str, Enum):
     """API response statuses."""
-    
+
     SUCCESS = "success"
     ERROR = "error"
     WARNING = "warning"
@@ -182,7 +183,7 @@ class ResponseStatus(str, Enum):
 
 class TaskStatus(str, Enum):
     """Async task statuses."""
-    
+
     PENDING = "pending"
     STARTED = "started"
     RETRY = "retry"
@@ -193,7 +194,7 @@ class TaskStatus(str, Enum):
 
 class ReflectionType(str, Enum):
     """Types of agent reflection."""
-    
+
     QUALITY_CHECK = "quality_check"
     COMPLETENESS_CHECK = "completeness_check"
     RELEVANCE_CHECK = "relevance_check"
@@ -203,7 +204,7 @@ class ReflectionType(str, Enum):
 
 class MemoryImportance(int, Enum):
     """Memory importance levels."""
-    
+
     TRIVIAL = 1
     LOW = 3
     MEDIUM = 5

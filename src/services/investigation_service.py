@@ -5,18 +5,16 @@ This module provides a service layer for investigation operations,
 abstracting the database and agent interactions.
 """
 
-from typing import List, Optional, Dict, Any
 from datetime import datetime
-import uuid
+from typing import Any, Optional
 
-from sqlalchemy import select, update
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import select
 
+from src.agents import MasterAgent, get_agent_pool
+from src.agents.deodoro import AgentContext
 from src.core import get_logger
 from src.db.simple_session import get_db_session
 from src.models.investigation import Investigation
-from src.agents import MasterAgent, get_agent_pool
-from src.agents.deodoro import AgentContext
 
 logger = get_logger(__name__)
 
@@ -29,14 +27,14 @@ class InvestigationService:
     def __init__(self):
         """Initialize investigation service."""
         pass
-    
+
     async def create(
         self,
         user_id: str,
         query: str,
         data_source: str = "contracts",
-        filters: Optional[Dict[str, Any]] = None,
-        anomaly_types: Optional[List[str]] = None,
+        filters: Optional[dict[str, Any]] = None,
+        anomaly_types: Optional[list[str]] = None,
         session_id: Optional[str] = None,
     ) -> Investigation:
         """
@@ -71,14 +69,14 @@ class InvestigationService:
 
             logger.info(f"Created investigation {investigation.id} for user {user_id}")
             return investigation
-    
+
     async def update_status(
         self,
         investigation_id: str,
         status: str,
         progress: Optional[float] = None,
         current_phase: Optional[str] = None,
-        **kwargs
+        **kwargs,
     ) -> Investigation:
         """Update investigation status and progress."""
         async with get_db_session() as db:
@@ -111,24 +109,23 @@ class InvestigationService:
         try:
             start_time = datetime.utcnow()
             investigation.status = "processing"
-            
+
             # Get agent pool
             pool = await get_agent_pool()
-            
+
             # Create agent context
             context = AgentContext(
                 investigation_id=investigation.id,
                 user_id=investigation.user_id,
-                data_sources=investigation.metadata.get("data_sources", [])
+                data_sources=investigation.metadata.get("data_sources", []),
             )
-            
+
             # Execute with master agent
             async with pool.acquire(MasterAgent, context) as master:
                 result = await master._investigate(
-                    {"query": investigation.query},
-                    context
+                    {"query": investigation.query}, context
                 )
-            
+
             # Update investigation
             investigation.status = "completed"
             investigation.confidence_score = result.confidence_score
@@ -136,14 +133,14 @@ class InvestigationService:
             investigation.processing_time_ms = (
                 investigation.completed_at - start_time
             ).total_seconds() * 1000
-            
+
             logger.info(f"Investigation {investigation.id} completed")
-            
+
         except Exception as e:
             logger.error(f"Investigation {investigation.id} failed: {e}")
             investigation.status = "failed"
             investigation.completed_at = datetime.utcnow()
-    
+
     async def get_by_id(self, investigation_id: str) -> Optional[Investigation]:
         """Get investigation by ID from database."""
         async with get_db_session() as db:
@@ -151,14 +148,14 @@ class InvestigationService:
                 select(Investigation).where(Investigation.id == investigation_id)
             )
             return result.scalar_one_or_none()
-    
+
     async def search(
         self,
         user_id: Optional[str] = None,
         status: Optional[str] = None,
         limit: int = 20,
         offset: int = 0,
-    ) -> List[Investigation]:
+    ) -> list[Investigation]:
         """Search investigations with filters."""
         async with get_db_session() as db:
             query = select(Investigation)
@@ -173,7 +170,7 @@ class InvestigationService:
 
             result = await db.execute(query)
             return list(result.scalars().all())
-    
+
     async def cancel(self, investigation_id: str, user_id: str) -> Investigation:
         """Cancel an investigation."""
         async with get_db_session() as db:
@@ -189,7 +186,9 @@ class InvestigationService:
                 raise ValueError("Unauthorized")
 
             if investigation.status in ["completed", "failed", "cancelled"]:
-                raise ValueError(f"Cannot cancel investigation in {investigation.status} status")
+                raise ValueError(
+                    f"Cannot cancel investigation in {investigation.status} status"
+                )
 
             investigation.status = "cancelled"
             investigation.completed_at = datetime.utcnow()
@@ -199,12 +198,10 @@ class InvestigationService:
 
             logger.info(f"Investigation {investigation_id} cancelled by user {user_id}")
             return investigation
-    
+
     async def get_user_investigations(
-        self,
-        user_id: str,
-        limit: int = 10
-    ) -> List[Investigation]:
+        self, user_id: str, limit: int = 10
+    ) -> list[Investigation]:
         """Get investigations for a user."""
         return await self.search(user_id=user_id, limit=limit)
 

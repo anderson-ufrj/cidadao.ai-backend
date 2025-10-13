@@ -17,8 +17,7 @@ Created: 2025-10-09 14:19:00 -03 (Minas Gerais, Brazil)
 License: Proprietary - All rights reserved
 """
 
-from typing import Any, Dict, List, Optional
-from datetime import datetime
+from typing import Any, Optional
 
 from ..base import TransparencyAPIClient
 
@@ -41,7 +40,7 @@ class RondoniaAPIClient(TransparencyAPIClient):
             base_url="http://portaldatransparencia.ro.gov.br/DadosAbertos",
             name="Rondônia-State",
             rate_limit_per_minute=60,  # Conservative rate limit
-            timeout=30.0
+            timeout=30.0,
         )
 
     async def test_connection(self) -> bool:
@@ -54,9 +53,7 @@ class RondoniaAPIClient(TransparencyAPIClient):
         try:
             # Try to fetch a small dataset
             await self._make_request(
-                method="GET",
-                endpoint="/Api/ComprasMateriaisApi",
-                params={"limit": 1}
+                method="GET", endpoint="/Api/ComprasMateriaisApi", params={"limit": 1}
             )
             self.logger.info("Rondônia API connection successful")
             return True
@@ -69,8 +66,8 @@ class RondoniaAPIClient(TransparencyAPIClient):
         self,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-        **kwargs: Any
-    ) -> List[Dict[str, Any]]:
+        **kwargs: Any,
+    ) -> list[dict[str, Any]]:
         """
         Get contracts from Rondônia transparency portal.
 
@@ -94,9 +91,7 @@ class RondoniaAPIClient(TransparencyAPIClient):
 
         try:
             raw_data = await self._make_request(
-                method="GET",
-                endpoint="/Api/Contratos",
-                params=params
+                method="GET", endpoint="/Api/Contratos", params=params
             )
 
             # Normalize data to common format
@@ -105,7 +100,7 @@ class RondoniaAPIClient(TransparencyAPIClient):
             self.logger.info(
                 f"Fetched {len(contracts)} contracts from Rondônia",
                 start_date=start_date,
-                end_date=end_date
+                end_date=end_date,
             )
 
             return contracts
@@ -118,8 +113,8 @@ class RondoniaAPIClient(TransparencyAPIClient):
         self,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-        **kwargs: Any
-    ) -> List[Dict[str, Any]]:
+        **kwargs: Any,
+    ) -> list[dict[str, Any]]:
         """
         Get government expenses from Rondônia.
 
@@ -142,9 +137,7 @@ class RondoniaAPIClient(TransparencyAPIClient):
 
         try:
             raw_data = await self._make_request(
-                method="GET",
-                endpoint="/Api/Despesas",
-                params=params
+                method="GET", endpoint="/Api/Despesas", params=params
             )
 
             expenses = self._normalize_expenses(raw_data)
@@ -158,11 +151,8 @@ class RondoniaAPIClient(TransparencyAPIClient):
             return []
 
     async def get_purchases(
-        self,
-        limit: int = 100,
-        offset: int = 0,
-        **kwargs: Any
-    ) -> List[Dict[str, Any]]:
+        self, limit: int = 100, offset: int = 0, **kwargs: Any
+    ) -> list[dict[str, Any]]:
         """
         Get materials and purchases data.
 
@@ -174,17 +164,12 @@ class RondoniaAPIClient(TransparencyAPIClient):
         Returns:
             List of purchase dictionaries
         """
-        params = {
-            "limit": limit,
-            "offset": offset
-        }
+        params = {"limit": limit, "offset": offset}
         params.update(kwargs)
 
         try:
             raw_data = await self._make_request(
-                method="GET",
-                endpoint="/Api/ComprasMateriaisApi",
-                params=params
+                method="GET", endpoint="/Api/ComprasMateriaisApi", params=params
             )
 
             purchases = self._normalize_purchases(raw_data)
@@ -197,7 +182,7 @@ class RondoniaAPIClient(TransparencyAPIClient):
             self.logger.error(f"Failed to fetch purchases: {str(e)}")
             return []
 
-    def _normalize_contracts(self, raw_data: Any) -> List[Dict[str, Any]]:
+    def _normalize_contracts(self, raw_data: Any) -> list[dict[str, Any]]:
         """
         Normalize contract data to common format.
 
@@ -217,22 +202,24 @@ class RondoniaAPIClient(TransparencyAPIClient):
                 continue
 
             # Map Rondônia fields to standard fields
-            normalized.append({
-                "source": "Rondônia-State",
-                "contract_id": item.get("numeroContrato") or item.get("id"),
-                "supplier_name": item.get("fornecedor") or item.get("contratado"),
-                "supplier_id": item.get("cnpjFornecedor") or item.get("cpfCnpj"),
-                "value": float(item.get("valor", 0) or 0),
-                "date": item.get("dataAssinatura") or item.get("data"),
-                "object": item.get("objeto"),
-                "status": item.get("situacao") or "ativo",
-                "government_unit": item.get("orgao") or "Governo de Rondônia",
-                "raw_data": item  # Keep original for reference
-            })
+            normalized.append(
+                {
+                    "source": "Rondônia-State",
+                    "contract_id": item.get("numeroContrato") or item.get("id"),
+                    "supplier_name": item.get("fornecedor") or item.get("contratado"),
+                    "supplier_id": item.get("cnpjFornecedor") or item.get("cpfCnpj"),
+                    "value": float(item.get("valor", 0) or 0),
+                    "date": item.get("dataAssinatura") or item.get("data"),
+                    "object": item.get("objeto"),
+                    "status": item.get("situacao") or "ativo",
+                    "government_unit": item.get("orgao") or "Governo de Rondônia",
+                    "raw_data": item,  # Keep original for reference
+                }
+            )
 
         return normalized
 
-    def _normalize_expenses(self, raw_data: Any) -> List[Dict[str, Any]]:
+    def _normalize_expenses(self, raw_data: Any) -> list[dict[str, Any]]:
         """Normalize expense data to common format."""
         if not isinstance(raw_data, list):
             raw_data = [raw_data] if raw_data else []
@@ -243,21 +230,23 @@ class RondoniaAPIClient(TransparencyAPIClient):
             if not isinstance(item, dict):
                 continue
 
-            normalized.append({
-                "source": "Rondônia-State",
-                "expense_id": item.get("id") or item.get("numeroEmpenho"),
-                "value": float(item.get("valor", 0) or 0),
-                "date": item.get("data") or item.get("dataEmpenho"),
-                "description": item.get("descricao") or item.get("historico"),
-                "category": item.get("categoria") or item.get("funcao"),
-                "supplier_name": item.get("favorecido"),
-                "government_unit": item.get("orgao"),
-                "raw_data": item
-            })
+            normalized.append(
+                {
+                    "source": "Rondônia-State",
+                    "expense_id": item.get("id") or item.get("numeroEmpenho"),
+                    "value": float(item.get("valor", 0) or 0),
+                    "date": item.get("data") or item.get("dataEmpenho"),
+                    "description": item.get("descricao") or item.get("historico"),
+                    "category": item.get("categoria") or item.get("funcao"),
+                    "supplier_name": item.get("favorecido"),
+                    "government_unit": item.get("orgao"),
+                    "raw_data": item,
+                }
+            )
 
         return normalized
 
-    def _normalize_purchases(self, raw_data: Any) -> List[Dict[str, Any]]:
+    def _normalize_purchases(self, raw_data: Any) -> list[dict[str, Any]]:
         """Normalize purchase data to common format."""
         if not isinstance(raw_data, list):
             raw_data = [raw_data] if raw_data else []
@@ -268,16 +257,19 @@ class RondoniaAPIClient(TransparencyAPIClient):
             if not isinstance(item, dict):
                 continue
 
-            normalized.append({
-                "source": "Rondônia-State",
-                "purchase_id": item.get("id") or item.get("numeroCompra"),
-                "item_description": item.get("descricaoItem") or item.get("material"),
-                "quantity": float(item.get("quantidade", 0) or 0),
-                "unit_price": float(item.get("valorUnitario", 0) or 0),
-                "total_value": float(item.get("valorTotal", 0) or 0),
-                "supplier_name": item.get("fornecedor"),
-                "date": item.get("data"),
-                "raw_data": item
-            })
+            normalized.append(
+                {
+                    "source": "Rondônia-State",
+                    "purchase_id": item.get("id") or item.get("numeroCompra"),
+                    "item_description": item.get("descricaoItem")
+                    or item.get("material"),
+                    "quantity": float(item.get("quantidade", 0) or 0),
+                    "unit_price": float(item.get("valorUnitario", 0) or 0),
+                    "total_value": float(item.get("valorTotal", 0) or 0),
+                    "supplier_name": item.get("fornecedor"),
+                    "date": item.get("data"),
+                    "raw_data": item,
+                }
+            )
 
         return normalized

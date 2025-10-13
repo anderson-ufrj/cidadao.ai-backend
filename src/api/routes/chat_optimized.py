@@ -3,12 +3,13 @@ Optimized chat endpoint with Sabiazinho model and Drummond persona
 More economical and culturally enriched responses
 """
 
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel, Field
-from typing import Optional, Dict, Any
 import os
 import uuid
 from datetime import datetime
+from typing import Any, Optional
+
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel, Field
 
 from src.core import get_logger
 from src.services.maritaca_client import MaritacaClient, MaritacaModel
@@ -25,7 +26,7 @@ if MARITACA_API_KEY:
         # Use Sabiazinho for more economical operation
         maritaca_client = MaritacaClient(
             api_key=MARITACA_API_KEY,
-            model=MaritacaModel.SABIAZINHO_3  # More economical model
+            model=MaritacaModel.SABIAZINHO_3,  # More economical model
         )
         logger.info("Maritaca AI client initialized with Sabiazinho model")
     except Exception as e:
@@ -33,14 +34,18 @@ if MARITACA_API_KEY:
 else:
     logger.warning("MARITACA_API_KEY not found - chat will use fallback responses")
 
+
 class OptimizedChatRequest(BaseModel):
     """Optimized chat request"""
+
     message: str = Field(..., min_length=1, max_length=1000)
     session_id: Optional[str] = None
     use_drummond: bool = Field(default=True, description="Use Drummond persona")
 
+
 class OptimizedChatResponse(BaseModel):
     """Optimized chat response"""
+
     message: str
     session_id: str
     agent_name: str
@@ -48,7 +53,8 @@ class OptimizedChatResponse(BaseModel):
     timestamp: str
     model_used: str
     confidence: float
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
+
 
 # Drummond-inspired system prompt
 DRUMMOND_PROMPT = """Você é Carlos Drummond de Andrade, o poeta modernista brasileiro, agora servindo como assistente de transparência pública.
@@ -85,13 +91,14 @@ Sua missão é ajudar cidadãos brasileiros a:
 
 Seja claro, objetivo e educativo em suas respostas."""
 
+
 @router.post("/optimized", response_model=OptimizedChatResponse)
 async def optimized_chat(request: OptimizedChatRequest) -> OptimizedChatResponse:
     """
     Optimized chat endpoint with Sabiazinho and cultural personas
     """
     session_id = request.session_id or str(uuid.uuid4())
-    
+
     # Select persona and agent info
     if request.use_drummond:
         system_prompt = DRUMMOND_PROMPT
@@ -101,18 +108,18 @@ async def optimized_chat(request: OptimizedChatRequest) -> OptimizedChatResponse
         system_prompt = STANDARD_PROMPT
         agent_name = "Assistente Cidadão.AI"
         agent_id = "assistant"
-    
+
     try:
         # Check if Maritaca is available
         if maritaca_client:
             logger.info(f"Processing with Sabiazinho model: {request.message[:50]}...")
-            
+
             # Prepare messages
             messages = [
                 {"role": "system", "content": system_prompt},
-                {"role": "user", "content": request.message}
+                {"role": "user", "content": request.message},
             ]
-            
+
             # Get response from Maritaca with Sabiazinho
             try:
                 response = await maritaca_client.chat_completion(
@@ -121,11 +128,11 @@ async def optimized_chat(request: OptimizedChatRequest) -> OptimizedChatResponse
                     max_tokens=350,  # Optimized for economy
                     top_p=0.95,
                     presence_penalty=0.1,
-                    frequency_penalty=0.1
+                    frequency_penalty=0.1,
                 )
-                
+
                 logger.info(f"Sabiazinho response received (model: {response.model})")
-                
+
                 return OptimizedChatResponse(
                     message=response.content,
                     session_id=session_id,
@@ -136,24 +143,31 @@ async def optimized_chat(request: OptimizedChatRequest) -> OptimizedChatResponse
                     confidence=0.95,
                     metadata={
                         "backend": "maritaca_sabiazinho",
-                        "tokens_used": response.usage.get("total_tokens", 0) if hasattr(response, "usage") else 0,
+                        "tokens_used": (
+                            response.usage.get("total_tokens", 0)
+                            if hasattr(response, "usage")
+                            else 0
+                        ),
                         "response_time_ms": 0,  # Would be calculated in production
-                        "persona": "drummond" if request.use_drummond else "standard"
-                    }
+                        "persona": "drummond" if request.use_drummond else "standard",
+                    },
                 )
-                
+
             except Exception as e:
                 logger.error(f"Maritaca AI error: {e}")
                 # Fall through to intelligent fallback
-        
+
         # Intelligent fallback responses
         logger.info("Using intelligent fallback with persona")
-        
+
         message_lower = request.message.lower()
-        
+
         # Drummond-style responses for different intents
         if request.use_drummond:
-            if any(greeting in message_lower for greeting in ["olá", "oi", "bom dia", "boa tarde", "boa noite"]):
+            if any(
+                greeting in message_lower
+                for greeting in ["olá", "oi", "bom dia", "boa tarde", "boa noite"]
+            ):
                 response = "Olá, caro cidadão. Sou Carlos Drummond, agora navegando pelos labirintos da transparência pública. Como posso iluminar os caminhos obscuros dos gastos governamentais para você?"
             elif "investigar" in message_lower or "verificar" in message_lower:
                 response = "Ah, investigar... Como em meus versos, cada contrato tem suas entrelinhas. Posso ajudá-lo a desvendar:\n\n• Contratos que parecem miragens no deserto dos gastos\n• Licitações com preços que desafiam a lógica\n• Fornecedores que aparecem como personagens recorrentes\n\nQual mistério governamental deseja que eu desvende?"
@@ -163,13 +177,16 @@ async def optimized_chat(request: OptimizedChatRequest) -> OptimizedChatResponse
                 response = "Como dizia em meus versos, 'as coisas findas, muito mais que lindas, essas ficarão'. Mas os gastos públicos mal explicados não devem ficar. Diga-me: que história dos cofres públicos você quer conhecer?"
         else:
             # Standard professional responses
-            if any(greeting in message_lower for greeting in ["olá", "oi", "bom dia", "boa tarde", "boa noite"]):
+            if any(
+                greeting in message_lower
+                for greeting in ["olá", "oi", "bom dia", "boa tarde", "boa noite"]
+            ):
                 response = "Olá! Sou o assistente do Cidadão.AI. Estou aqui para ajudá-lo a investigar gastos públicos e promover a transparência governamental. Como posso ajudar?"
             elif "investigar" in message_lower or "verificar" in message_lower:
                 response = "Posso ajudá-lo a investigar:\n\n• Contratos e licitações públicas\n• Gastos de órgãos governamentais\n• Pagamentos a fornecedores\n• Salários de servidores\n\nQual área você gostaria de investigar?"
             else:
                 response = "Estou aqui para ajudá-lo com transparência pública. Você pode perguntar sobre contratos, gastos, licitações ou qualquer dado do Portal da Transparência."
-        
+
         return OptimizedChatResponse(
             message=response,
             session_id=session_id,
@@ -182,10 +199,10 @@ async def optimized_chat(request: OptimizedChatRequest) -> OptimizedChatResponse
                 "backend": "fallback",
                 "tokens_used": 0,
                 "response_time_ms": 5,
-                "persona": "drummond" if request.use_drummond else "standard"
-            }
+                "persona": "drummond" if request.use_drummond else "standard",
+            },
         )
-        
+
     except Exception as e:
         logger.error(f"Chat error: {e}")
         # Ultimate fallback
@@ -197,11 +214,9 @@ async def optimized_chat(request: OptimizedChatRequest) -> OptimizedChatResponse
             timestamp=datetime.utcnow().isoformat(),
             model_used="error_fallback",
             confidence=0.5,
-            metadata={
-                "error": str(e),
-                "backend": "ultimate_fallback"
-            }
+            metadata={"error": str(e), "backend": "ultimate_fallback"},
         )
+
 
 @router.get("/optimized/status")
 async def optimized_status():
@@ -211,57 +226,64 @@ async def optimized_status():
         "model": "sabiazinho",
         "api_key_configured": MARITACA_API_KEY is not None,
         "personas_available": ["drummond", "standard"],
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.utcnow().isoformat(),
     }
 
+
 @router.post("/optimized/compare-models")
-async def compare_models(request: OptimizedChatRequest) -> Dict[str, Any]:
+async def compare_models(request: OptimizedChatRequest) -> dict[str, Any]:
     """
     Compare responses between Sabiá-3 and Sabiazinho models
     Useful for testing quality vs cost trade-offs
     """
     if not maritaca_client or not MARITACA_API_KEY:
         raise HTTPException(status_code=503, detail="Maritaca AI not available")
-    
+
     results = {}
-    
+
     # Test with both models
     for model_name in ["sabiazinho", "sabia-3"]:
         try:
             # Temporarily change model
             maritaca_client.model = model_name
-            
+
             messages = [
-                {"role": "system", "content": DRUMMOND_PROMPT if request.use_drummond else STANDARD_PROMPT},
-                {"role": "user", "content": request.message}
+                {
+                    "role": "system",
+                    "content": (
+                        DRUMMOND_PROMPT if request.use_drummond else STANDARD_PROMPT
+                    ),
+                },
+                {"role": "user", "content": request.message},
             ]
-            
+
             start_time = datetime.now()
             response = await maritaca_client.chat_completion(
                 messages=messages,
                 temperature=0.7,
-                max_tokens=350 if model_name == "sabiazinho" else 500
+                max_tokens=350 if model_name == "sabiazinho" else 500,
             )
             response_time = (datetime.now() - start_time).total_seconds()
-            
+
             results[model_name] = {
                 "response": response.content,
                 "response_time": response_time,
-                "tokens": response.usage.get("total_tokens", 0) if hasattr(response, "usage") else 0,
-                "model": model_name
+                "tokens": (
+                    response.usage.get("total_tokens", 0)
+                    if hasattr(response, "usage")
+                    else 0
+                ),
+                "model": model_name,
             }
-            
+
         except Exception as e:
-            results[model_name] = {
-                "error": str(e),
-                "model": model_name
-            }
-    
+            results[model_name] = {"error": str(e), "model": model_name}
+
     # Reset to Sabiazinho
     maritaca_client.model = "sabiazinho"
-    
+
     return {
         "comparison": results,
         "recommendation": "Use 'sabiazinho' for cost efficiency, 'sabia-3' for complex queries",
-        "timestamp": datetime.utcnow().isoformat()
+        "timestamp": datetime.utcnow().isoformat(),
     }

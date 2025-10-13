@@ -4,28 +4,25 @@ Provides aggregated and formatted data optimized for frontend consumption.
 """
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Union
 from enum import Enum
+from typing import Any, Optional, Union
 
-from fastapi import APIRouter, Depends, HTTPException, Query, Path, BackgroundTasks
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.agents.oscar_niemeyer import (
-    OscarNiemeyerAgent,
-    AggregationType,
-    VisualizationType,
-    TimeGranularity,
-)
-from src.agents.lampiao import LampiaoAgent, RegionType
-from src.api.middleware.authentication import get_current_user
-from src.db.session import get_session as get_db
-from src.services.cache_service import CacheService
-from src.infrastructure.rate_limiter import RateLimiter
-from src.core import get_logger
-from src.services.agent_lazy_loader import AgentLazyLoader
 from src.agents.deodoro import AgentContext
-
+from src.agents.lampiao import LampiaoAgent, RegionType
+from src.agents.oscar_niemeyer import (
+    AggregationType,
+    OscarNiemeyerAgent,
+    TimeGranularity,
+    VisualizationType,
+)
+from src.api.middleware.authentication import get_current_user
+from src.core import get_logger
+from src.db.session import get_session as get_db
+from src.services.agent_lazy_loader import AgentLazyLoader
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/visualization")
@@ -39,6 +36,7 @@ agent_loader = AgentLazyLoader()
 
 class DatasetType(str, Enum):
     """Types of datasets available for visualization."""
+
     CONTRACTS = "contracts"
     SPENDING = "spending"
     TRANSFERS = "transfers"
@@ -49,31 +47,41 @@ class DatasetType(str, Enum):
 
 class ChartDataRequest(BaseModel):
     """Request model for chart data."""
-    
+
     dataset_type: DatasetType
     chart_type: Optional[VisualizationType] = None
-    time_range: Optional[str] = Field(default="30d", description="Time range: 7d, 30d, 90d, 1y, all")
+    time_range: Optional[str] = Field(
+        default="30d", description="Time range: 7d, 30d, 90d, 1y, all"
+    )
     granularity: Optional[TimeGranularity] = TimeGranularity.DAY
-    dimensions: List[str] = Field(default_factory=list, description="Dimensions for grouping")
-    metrics: List[str] = Field(default_factory=list, description="Metrics to calculate")
-    filters: Dict[str, Any] = Field(default_factory=dict, description="Additional filters")
-    limit: int = Field(default=100, le=1000, description="Maximum number of data points")
+    dimensions: list[str] = Field(
+        default_factory=list, description="Dimensions for grouping"
+    )
+    metrics: list[str] = Field(default_factory=list, description="Metrics to calculate")
+    filters: dict[str, Any] = Field(
+        default_factory=dict, description="Additional filters"
+    )
+    limit: int = Field(
+        default=100, le=1000, description="Maximum number of data points"
+    )
 
 
 class RegionalDataRequest(BaseModel):
     """Request model for regional data visualization."""
-    
+
     metric: str = Field(..., description="Metric to analyze")
     region_type: RegionType = RegionType.STATE
     aggregation: AggregationType = AggregationType.SUM
     normalize: bool = Field(default=False, description="Normalize by population/area")
-    include_metadata: bool = Field(default=True, description="Include regional metadata")
-    filters: Dict[str, Any] = Field(default_factory=dict)
+    include_metadata: bool = Field(
+        default=True, description="Include regional metadata"
+    )
+    filters: dict[str, Any] = Field(default_factory=dict)
 
 
 class TimeSeriesRequest(BaseModel):
     """Request model for time series data."""
-    
+
     metric: str = Field(..., description="Metric to analyze over time")
     entity_id: Optional[str] = Field(None, description="Specific entity to track")
     start_date: Optional[datetime] = None
@@ -81,18 +89,20 @@ class TimeSeriesRequest(BaseModel):
     granularity: TimeGranularity = TimeGranularity.DAY
     aggregation: AggregationType = AggregationType.SUM
     include_forecast: bool = Field(default=False, description="Include forecast data")
-    comparison_period: Optional[str] = Field(None, description="Compare with previous period")
+    comparison_period: Optional[str] = Field(
+        None, description="Compare with previous period"
+    )
 
 
 class VisualizationResponse(BaseModel):
     """Standard response for visualization data."""
-    
+
     visualization_id: str
     title: str
     subtitle: Optional[str]
     chart_type: VisualizationType
-    data: Union[List[Dict[str, Any]], Dict[str, Any]]
-    metadata: Dict[str, Any]
+    data: Union[list[dict[str, Any]], dict[str, Any]]
+    metadata: dict[str, Any]
     cache_timestamp: datetime
     expires_at: datetime
 
@@ -102,12 +112,12 @@ class VisualizationResponse(BaseModel):
 async def get_chart_data(
     request: ChartDataRequest,
     background_tasks: BackgroundTasks,
-    current_user: Dict[str, Any] = Depends(get_current_user),
+    current_user: dict[str, Any] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Get aggregated data optimized for chart visualization.
-    
+
     This endpoint uses the Oscar Niemeyer agent to process and aggregate data
     in formats optimized for various chart types.
     """
@@ -118,13 +128,13 @@ async def get_chart_data(
             dataset_type=request.dataset_type.value,
             chart_type=request.chart_type.value if request.chart_type else "auto",
         )
-        
+
         # Get Oscar Niemeyer agent
         oscar_agent = await agent_loader.get_agent("oscar_niemeyer")
         if not oscar_agent:
             oscar_agent = OscarNiemeyerAgent()
             await oscar_agent.initialize()
-        
+
         # Create agent context
         context = AgentContext(
             investigation_id=f"viz_{datetime.utcnow().timestamp()}",
@@ -132,12 +142,13 @@ async def get_chart_data(
             session_id=current_user.get("session_id", "default"),
             metadata={
                 "request_type": "chart_data",
-                "dataset": request.dataset_type.value
-            }
+                "dataset": request.dataset_type.value,
+            },
         )
-        
+
         # Prepare message for Oscar agent
         from src.agents.deodoro import AgentMessage
+
         message = AgentMessage(
             role="user",
             content=f"Generate chart data for {request.dataset_type.value}",
@@ -149,20 +160,24 @@ async def get_chart_data(
                 "filters": request.filters,
                 "limit": request.limit,
                 "time_range": request.time_range,
-                "granularity": request.granularity.value if request.granularity else None,
-            }
+                "granularity": (
+                    request.granularity.value if request.granularity else None
+                ),
+            },
         )
-        
+
         # Process with Oscar agent
         response = await oscar_agent.process(message, context)
-        
+
         if not response.success:
-            raise HTTPException(status_code=500, detail="Failed to generate visualization data")
-        
+            raise HTTPException(
+                status_code=500, detail="Failed to generate visualization data"
+            )
+
         # Prepare visualization response
         viz_metadata = response.data
         cache_ttl = 3600  # 1 hour cache
-        
+
         return VisualizationResponse(
             visualization_id=viz_metadata.visualization_id,
             title=viz_metadata.title,
@@ -183,7 +198,7 @@ async def get_chart_data(
             cache_timestamp=datetime.utcnow(),
             expires_at=datetime.utcnow() + timedelta(seconds=cache_ttl),
         )
-        
+
     except Exception as e:
         logger.error(
             "Chart data generation failed",
@@ -191,19 +206,21 @@ async def get_chart_data(
             user_id=current_user["id"],
             exc_info=True,
         )
-        raise HTTPException(status_code=500, detail=f"Chart data generation failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Chart data generation failed: {str(e)}"
+        )
 
 
 @router.post("/regional-map", response_model=VisualizationResponse)
 # @rate_limit(viz_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_regional_map_data(
     request: RegionalDataRequest,
-    current_user: Dict[str, Any] = Depends(get_current_user),
+    current_user: dict[str, Any] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Get regional data formatted for map visualization.
-    
+
     Uses the Lampião agent to analyze regional disparities and format data
     for choropleth maps and other geographic visualizations.
     """
@@ -214,32 +231,30 @@ async def get_regional_map_data(
             metric=request.metric,
             region_type=request.region_type.value,
         )
-        
+
         # Get Lampião agent
         lampiao_agent = await agent_loader.get_agent("lampiao")
         if not lampiao_agent:
             lampiao_agent = LampiaoAgent()
             await lampiao_agent.initialize()
-        
+
         # Create agent context
         context = AgentContext(
             investigation_id=f"regional_{datetime.utcnow().timestamp()}",
             user_id=current_user["id"],
             session_id=current_user.get("session_id", "default"),
-            metadata={
-                "request_type": "regional_map",
-                "metric": request.metric
-            }
+            metadata={"request_type": "regional_map", "metric": request.metric},
         )
-        
+
         # Get Oscar agent for aggregation
         oscar_agent = await agent_loader.get_agent("oscar_niemeyer")
         if not oscar_agent:
             oscar_agent = OscarNiemeyerAgent()
             await oscar_agent.initialize()
-        
+
         # First, get regional analysis from Lampião
         from src.agents.deodoro import AgentMessage
+
         lampiao_message = AgentMessage(
             role="user",
             content=f"Analyze regional distribution of {request.metric}",
@@ -247,14 +262,14 @@ async def get_regional_map_data(
                 "metric": request.metric,
                 "region_type": request.region_type.value,
                 "filters": request.filters,
-            }
+            },
         )
-        
+
         lampiao_response = await lampiao_agent.process(lampiao_message, context)
-        
+
         if not lampiao_response.success:
             raise HTTPException(status_code=500, detail="Regional analysis failed")
-        
+
         # Then aggregate for visualization with Oscar
         regional_data = lampiao_response.data
         oscar_message = AgentMessage(
@@ -270,23 +285,23 @@ async def get_regional_map_data(
                         "normalized_value": m.normalized_value,
                         "rank": m.rank,
                         "percentile": m.percentile,
-                        **m.metadata
+                        **m.metadata,
                     }
                     for m in regional_data.metrics
                 ],
                 "region_type": request.region_type.value,
                 "metrics": [request.metric],
-            }
+            },
         )
-        
+
         oscar_response = await oscar_agent.process(oscar_message, context)
-        
+
         if not oscar_response.success:
             raise HTTPException(status_code=500, detail="Data aggregation failed")
-        
+
         # Format response
         aggregated_data = oscar_response.data
-        
+
         return VisualizationResponse(
             visualization_id=f"map_{context.investigation_id}",
             title=f"{request.metric.replace('_', ' ').title()} por {request.region_type.value}",
@@ -305,7 +320,7 @@ async def get_regional_map_data(
             cache_timestamp=datetime.utcnow(),
             expires_at=datetime.utcnow() + timedelta(hours=4),
         )
-        
+
     except Exception as e:
         logger.error(
             "Regional map data generation failed",
@@ -313,19 +328,21 @@ async def get_regional_map_data(
             user_id=current_user["id"],
             exc_info=True,
         )
-        raise HTTPException(status_code=500, detail=f"Regional map data failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Regional map data failed: {str(e)}"
+        )
 
 
 @router.post("/time-series", response_model=VisualizationResponse)
 # @rate_limit(viz_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_time_series_data(
     request: TimeSeriesRequest,
-    current_user: Dict[str, Any] = Depends(get_current_user),
+    current_user: dict[str, Any] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Get time series data optimized for line charts and trend analysis.
-    
+
     Supports multiple granularities and can include forecast data
     when the include_forecast flag is set.
     """
@@ -336,64 +353,71 @@ async def get_time_series_data(
             metric=request.metric,
             granularity=request.granularity.value,
         )
-        
+
         # Get Oscar Niemeyer agent
         oscar_agent = await agent_loader.get_agent("oscar_niemeyer")
         if not oscar_agent:
             oscar_agent = OscarNiemeyerAgent()
             await oscar_agent.initialize()
-        
+
         # Create agent context
         context = AgentContext(
             investigation_id=f"ts_{datetime.utcnow().timestamp()}",
             user_id=current_user["id"],
             session_id=current_user.get("session_id", "default"),
-            metadata={
-                "request_type": "time_series",
-                "metric": request.metric
-            }
+            metadata={"request_type": "time_series", "metric": request.metric},
         )
-        
+
         # Generate time series data
         time_series_data = await oscar_agent.generate_time_series(
             request.metric,
             request.start_date.isoformat() if request.start_date else None,
             request.end_date.isoformat() if request.end_date else None,
             request.granularity,
-            context
+            context,
         )
-        
+
         # Format data for visualization
         chart_data = []
-        for i, (time_point, value) in enumerate(zip(time_series_data.time_points, time_series_data.values)):
-            chart_data.append({
-                "timestamp": time_point.isoformat(),
-                "value": value,
-                "metric": request.metric,
-                "index": i
-            })
-        
+        for i, (time_point, value) in enumerate(
+            zip(time_series_data.time_points, time_series_data.values, strict=False)
+        ):
+            chart_data.append(
+                {
+                    "timestamp": time_point.isoformat(),
+                    "value": value,
+                    "metric": request.metric,
+                    "index": i,
+                }
+            )
+
         # Add forecast data if requested
         forecast_data = []
         if request.include_forecast:
             # TODO: Integrate with Ceuci predictive agent for actual forecasting
             last_value = time_series_data.values[-1] if time_series_data.values else 0
-            last_time = time_series_data.time_points[-1] if time_series_data.time_points else datetime.utcnow()
-            
+            last_time = (
+                time_series_data.time_points[-1]
+                if time_series_data.time_points
+                else datetime.utcnow()
+            )
+
             for i in range(7):  # 7 periods forecast
                 if request.granularity == TimeGranularity.DAY:
-                    next_time = last_time + timedelta(days=i+1)
+                    next_time = last_time + timedelta(days=i + 1)
                 else:
-                    next_time = last_time + timedelta(days=(i+1)*30)
-                
-                forecast_data.append({
-                    "timestamp": next_time.isoformat(),
-                    "value": last_value * (1 + 0.02 * (i+1)),  # Simple 2% growth
-                    "is_forecast": True,
-                    "confidence_lower": last_value * (1 + 0.01 * (i+1)),
-                    "confidence_upper": last_value * (1 + 0.03 * (i+1)),
-                })
-        
+                    next_time = last_time + timedelta(days=(i + 1) * 30)
+
+                forecast_data.append(
+                    {
+                        "timestamp": next_time.isoformat(),
+                        "value": last_value * (1 + 0.02 * (i + 1)),  # Simple 2% growth
+                        "is_forecast": True,
+                        "confidence_lower": last_value * (1 + 0.01 * (i + 1)),
+                        "confidence_upper": last_value * (1 + 0.03 * (i + 1)),
+                    }
+                )
+
         return VisualizationResponse(
             visualization_id=time_series_data.series_id,
             title=f"{request.metric.replace('_', ' ').title()} - Série Temporal",
@@ -408,15 +432,23 @@ async def get_time_series_data(
                 "metric": request.metric,
                 "granularity": request.granularity.value,
                 "aggregation_type": time_series_data.aggregation_type.value,
-                "start_date": time_series_data.time_points[0].isoformat() if time_series_data.time_points else None,
-                "end_date": time_series_data.time_points[-1].isoformat() if time_series_data.time_points else None,
+                "start_date": (
+                    time_series_data.time_points[0].isoformat()
+                    if time_series_data.time_points
+                    else None
+                ),
+                "end_date": (
+                    time_series_data.time_points[-1].isoformat()
+                    if time_series_data.time_points
+                    else None
+                ),
                 "data_points": len(chart_data),
                 "has_forecast": request.include_forecast,
             },
             cache_timestamp=datetime.utcnow(),
             expires_at=datetime.utcnow() + timedelta(hours=1),
         )
-        
+
     except Exception as e:
         logger.error(
             "Time series generation failed",
@@ -424,19 +456,21 @@ async def get_time_series_data(
             user_id=current_user["id"],
             exc_info=True,
         )
-        raise HTTPException(status_code=500, detail=f"Time series generation failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Time series generation failed: {str(e)}"
+        )
 
 
 @router.get("/dashboard-summary")
 # @rate_limit(viz_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_dashboard_summary(
     time_range: str = Query("30d", description="Time range for summary"),
-    current_user: Dict[str, Any] = Depends(get_current_user),
+    current_user: dict[str, Any] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ):
     """
     Get a summary of key metrics formatted for dashboard display.
-    
+
     Returns multiple visualization-ready datasets for a complete dashboard view.
     """
     try:
@@ -445,10 +479,10 @@ async def get_dashboard_summary(
             user_id=current_user["id"],
             time_range=time_range,
         )
-        
+
         # This would aggregate data from multiple sources
         # For now, returning a structured summary
-        
+
         return {
             "summary_id": f"dashboard_{datetime.utcnow().timestamp()}",
             "time_range": time_range,
@@ -518,7 +552,7 @@ async def get_dashboard_summary(
             "cache_timestamp": datetime.utcnow(),
             "expires_at": datetime.utcnow() + timedelta(minutes=15),
         }
-        
+
     except Exception as e:
         logger.error(
             "Dashboard summary generation failed",
@@ -526,14 +560,16 @@ async def get_dashboard_summary(
             user_id=current_user["id"],
             exc_info=True,
         )
-        raise HTTPException(status_code=500, detail=f"Dashboard summary failed: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Dashboard summary failed: {str(e)}"
+        )
 
 
 @router.get("/supported-charts")
 async def get_supported_chart_types():
     """
     Get list of supported chart types and their configurations.
-    
+
     This helps the frontend know what visualizations are available.
     """
     return {

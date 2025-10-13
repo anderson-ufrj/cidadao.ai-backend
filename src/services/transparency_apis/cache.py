@@ -10,11 +10,11 @@ Created: 2025-10-09 15:15:00 -03 (Minas Gerais, Brazil)
 License: Proprietary - All rights reserved
 """
 
-import json
 import hashlib
-from typing import Any, Dict, Optional
+import json
 from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Optional
 
 
 class CacheTTL(Enum):
@@ -69,13 +69,13 @@ class CacheEntry:
         self.hits += 1
         return self.data
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for serialization."""
         return {
             "data": self.data,
             "created_at": self.created_at.isoformat(),
             "expires_at": self.expires_at.isoformat(),
-            "hits": self.hits
+            "hits": self.hits,
         }
 
 
@@ -93,7 +93,7 @@ class MemoryCache:
         Args:
             max_size: Maximum number of entries to store
         """
-        self._cache: Dict[str, CacheEntry] = {}
+        self._cache: dict[str, CacheEntry] = {}
         self.max_size = max_size
         self._access_order = []
 
@@ -159,7 +159,7 @@ class MemoryCache:
         self._cache.clear()
         self._access_order.clear()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         total_hits = sum(e.hits for e in self._cache.values())
 
@@ -168,15 +168,12 @@ class MemoryCache:
             "size": len(self._cache),
             "max_size": self.max_size,
             "total_hits": total_hits,
-            "utilization": len(self._cache) / self.max_size
+            "utilization": len(self._cache) / self.max_size,
         }
 
     def cleanup_expired(self) -> int:
         """Remove expired entries and return count removed."""
-        expired_keys = [
-            key for key, entry in self._cache.items()
-            if entry.is_expired()
-        ]
+        expired_keys = [key for key, entry in self._cache.items() if entry.is_expired()]
 
         for key in expired_keys:
             self.delete(key)
@@ -219,112 +216,62 @@ class TransparencyCache:
         key_hash = hashlib.md5(key_base.encode()).hexdigest()
         return f"transparency:{key_hash}"
 
-    def get_contracts(
-        self,
-        api_name: str,
-        **params: Any
-    ) -> Optional[Any]:
+    def get_contracts(self, api_name: str, **params: Any) -> Optional[Any]:
         """Get cached contracts."""
         key = self._generate_key(api_name, "get_contracts", **params)
         return self.backend.get(key)
 
-    def set_contracts(
-        self,
-        api_name: str,
-        data: Any,
-        **params: Any
-    ) -> None:
+    def set_contracts(self, api_name: str, data: Any, **params: Any) -> None:
         """Cache contracts data."""
         key = self._generate_key(api_name, "get_contracts", **params)
         self.backend.set(key, data, CacheTTL.CONTRACTS.value)
 
-    def get_expenses(
-        self,
-        api_name: str,
-        **params: Any
-    ) -> Optional[Any]:
+    def get_expenses(self, api_name: str, **params: Any) -> Optional[Any]:
         """Get cached expenses."""
         key = self._generate_key(api_name, "get_expenses", **params)
         return self.backend.get(key)
 
-    def set_expenses(
-        self,
-        api_name: str,
-        data: Any,
-        **params: Any
-    ) -> None:
+    def set_expenses(self, api_name: str, data: Any, **params: Any) -> None:
         """Cache expenses data."""
         key = self._generate_key(api_name, "get_expenses", **params)
         self.backend.set(key, data, CacheTTL.EXPENSES.value)
 
-    def get_suppliers(
-        self,
-        api_name: str,
-        **params: Any
-    ) -> Optional[Any]:
+    def get_suppliers(self, api_name: str, **params: Any) -> Optional[Any]:
         """Get cached suppliers."""
         key = self._generate_key(api_name, "get_suppliers", **params)
         return self.backend.get(key)
 
-    def set_suppliers(
-        self,
-        api_name: str,
-        data: Any,
-        **params: Any
-    ) -> None:
+    def set_suppliers(self, api_name: str, data: Any, **params: Any) -> None:
         """Cache suppliers data."""
         key = self._generate_key(api_name, "get_suppliers", **params)
         self.backend.set(key, data, CacheTTL.SUPPLIERS.value)
 
-    def get_bidding_processes(
-        self,
-        api_name: str,
-        **params: Any
-    ) -> Optional[Any]:
+    def get_bidding_processes(self, api_name: str, **params: Any) -> Optional[Any]:
         """Get cached bidding processes."""
         key = self._generate_key(api_name, "get_bidding_processes", **params)
         return self.backend.get(key)
 
-    def set_bidding_processes(
-        self,
-        api_name: str,
-        data: Any,
-        **params: Any
-    ) -> None:
+    def set_bidding_processes(self, api_name: str, data: Any, **params: Any) -> None:
         """Cache bidding processes data."""
         key = self._generate_key(api_name, "get_bidding_processes", **params)
         self.backend.set(key, data, CacheTTL.BIDDING.value)
 
-    def get_municipalities(
-        self,
-        api_name: str
-    ) -> Optional[Any]:
+    def get_municipalities(self, api_name: str) -> Optional[Any]:
         """Get cached municipalities."""
         key = self._generate_key(api_name, "get_municipalities")
         return self.backend.get(key)
 
-    def set_municipalities(
-        self,
-        api_name: str,
-        data: Any
-    ) -> None:
+    def set_municipalities(self, api_name: str, data: Any) -> None:
         """Cache municipalities data."""
         key = self._generate_key(api_name, "get_municipalities")
         self.backend.set(key, data, CacheTTL.MUNICIPALITIES.value)
 
-    def get_health_check(
-        self,
-        api_name: str
-    ) -> Optional[Any]:
+    def get_health_check(self, api_name: str) -> Optional[Any]:
         """Get cached health check result."""
         key = self._generate_key(api_name, "test_connection")
         return self.backend.get(key)
 
-    def set_health_check(
-        self,
-        api_name: str,
-        result: bool
-    ) -> None:
+    def set_health_check(self, api_name: str, result: bool) -> None:
         """Cache health check result."""
         key = self._generate_key(api_name, "test_connection")
         self.backend.set(key, result, CacheTTL.HEALTH_CHECK.value)
@@ -337,11 +284,11 @@ class TransparencyCache:
 
     def cleanup(self) -> int:
         """Clean up expired entries."""
-        if hasattr(self.backend, 'cleanup_expired'):
+        if hasattr(self.backend, "cleanup_expired"):
             return self.backend.cleanup_expired()
         return 0
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         """Get cache statistics."""
         return self.backend.get_stats()
 

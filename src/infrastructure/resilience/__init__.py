@@ -1,29 +1,29 @@
 """Resilience patterns for Cidadão.AI."""
 
-from .circuit_breaker import (
-    CircuitBreaker,
-    CircuitBreakerConfig,
-    CircuitState,
-    CircuitBreakerManager,
-    CircuitBreakerOpenException,
-    CircuitBreakerTimeoutException,
-    circuit_breaker_manager,
-    circuit_breaker
-)
 from .bulkhead import (
     Bulkhead,
     BulkheadConfig,
-    BulkheadType,
     BulkheadManager,
     BulkheadRejectedException,
     BulkheadTimeoutException,
+    BulkheadType,
+    bulkhead,
     bulkhead_manager,
-    bulkhead
+)
+from .circuit_breaker import (
+    CircuitBreaker,
+    CircuitBreakerConfig,
+    CircuitBreakerManager,
+    CircuitBreakerOpenException,
+    CircuitBreakerTimeoutException,
+    CircuitState,
+    circuit_breaker,
+    circuit_breaker_manager,
 )
 
 __all__ = [
     "CircuitBreaker",
-    "CircuitBreakerConfig", 
+    "CircuitBreakerConfig",
     "CircuitState",
     "CircuitBreakerManager",
     "CircuitBreakerOpenException",
@@ -32,10 +32,10 @@ __all__ = [
     "circuit_breaker",
     "Bulkhead",
     "BulkheadConfig",
-    "BulkheadType", 
+    "BulkheadType",
     "BulkheadManager",
     "BulkheadRejectedException",
     "BulkheadTimeoutException",
     "bulkhead_manager",
-    "bulkhead"
+    "bulkhead",
 ]

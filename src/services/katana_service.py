@@ -6,9 +6,10 @@ Date: 2025-10-07
 License: Proprietary - All rights reserved
 """
 
-from typing import List, Dict, Any, Optional
-import httpx
 from datetime import datetime
+from typing import Any, Optional
+
+import httpx
 
 from src.core.config import get_settings
 
@@ -26,10 +27,10 @@ class KatanaService:
         self.base_url = self.BASE_URL
         self.headers = {
             "Authorization": f"Bearer {self.AUTH_TOKEN}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
-    async def get_all_dispensas(self) -> List[Dict[str, Any]]:
+    async def get_all_dispensas(self) -> list[dict[str, Any]]:
         """
         Fetch all dispensas de licitação from Katana API.
 
@@ -41,8 +42,7 @@ class KatanaService:
         """
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.get(
-                f"{self.base_url}/get-all",
-                headers=self.headers
+                f"{self.base_url}/get-all", headers=self.headers
             )
             response.raise_for_status()
 
@@ -56,7 +56,7 @@ class KatanaService:
             else:
                 return []
 
-    async def get_dispensa_by_id(self, dispensa_id: str) -> Optional[Dict[str, Any]]:
+    async def get_dispensa_by_id(self, dispensa_id: str) -> Optional[dict[str, Any]]:
         """
         Fetch a specific dispensa by ID.
 
@@ -69,8 +69,7 @@ class KatanaService:
         try:
             async with httpx.AsyncClient(timeout=30.0) as client:
                 response = await client.get(
-                    f"{self.base_url}/dispensas/{dispensa_id}",
-                    headers=self.headers
+                    f"{self.base_url}/dispensas/{dispensa_id}", headers=self.headers
                 )
                 response.raise_for_status()
                 return response.json()
@@ -89,14 +88,13 @@ class KatanaService:
         try:
             async with httpx.AsyncClient(timeout=10.0) as client:
                 response = await client.get(
-                    f"{self.base_url}/health",
-                    headers=self.headers
+                    f"{self.base_url}/health", headers=self.headers
                 )
                 return response.status_code == 200
         except Exception:
             return False
 
-    def format_dispensa_for_analysis(self, dispensa: Dict[str, Any]) -> Dict[str, Any]:
+    def format_dispensa_for_analysis(self, dispensa: dict[str, Any]) -> dict[str, Any]:
         """
         Format dispensa data for agent analysis.
 
@@ -124,8 +122,8 @@ class KatanaService:
             "metadata": {
                 "source": "katana_scan",
                 "fetched_at": datetime.now().isoformat(),
-                "original_data": dispensa
-            }
+                "original_data": dispensa,
+            },
         }
 
 

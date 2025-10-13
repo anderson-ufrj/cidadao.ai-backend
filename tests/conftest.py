@@ -3,23 +3,21 @@ Test configuration and fixtures for the Cidadão.AI Backend.
 Provides comprehensive test setup with database, Redis, and API client fixtures.
 """
 
-import pytest
 import asyncio
 import os
-from typing import AsyncGenerator, Generator
+from collections.abc import AsyncGenerator, Generator
+from unittest.mock import patch
+
+import pytest
 from httpx import AsyncClient
-from testcontainers.postgres import PostgresContainer
-from testcontainers.redis import RedisContainer
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
-from unittest.mock import AsyncMock, patch, Mock
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
 # Set test environment
 os.environ["ENVIRONMENT"] = "testing"
 os.environ["TESTING"] = "true"
 
 from src.api.app import app as app_instance
-from src.db.session import get_session
-from src.core.config import Settings, get_settings
+from src.core.config import Settings
 
 
 @pytest.fixture(scope="session")
@@ -53,14 +51,14 @@ async def test_redis() -> AsyncGenerator[str, None]:
 async def db_session(test_database: str) -> AsyncGenerator[AsyncSession, None]:
     """Database session for individual tests."""
     engine = create_async_engine(test_database)
-    
+
     async with AsyncSession(engine) as session:
         try:
             yield session
             await session.rollback()  # Always rollback test transactions
         finally:
             await session.close()
-    
+
     await engine.dispose()
 
 
@@ -73,7 +71,7 @@ async def test_settings(test_database: str, test_redis: str) -> Settings:
         testing=True,
         secret_key="test-secret-key-do-not-use-in-production",
         transparency_api_key="test-api-key",
-        environment="testing"
+        environment="testing",
     )
 
 
@@ -85,7 +83,9 @@ async def app(test_settings: Settings):
 
 
 @pytest.fixture
-async def client(app, db_session: AsyncSession, test_settings: Settings) -> AsyncGenerator[AsyncClient, None]:
+async def client(
+    app, db_session: AsyncSession, test_settings: Settings
+) -> AsyncGenerator[AsyncClient, None]:
     """Test client with database session override."""
 
     async def get_test_db():
@@ -103,36 +103,38 @@ async def client(app, db_session: AsyncSession, test_settings: Settings) -> Asyn
 
 
 @pytest.fixture
-async def authenticated_client(client: AsyncClient) -> AsyncGenerator[AsyncClient, None]:
+async def authenticated_client(
+    client: AsyncClient,
+) -> AsyncGenerator[AsyncClient, None]:
     """Authenticated test client with JWT token."""
     # Create test user and get token
-    test_user_data = {
-        "email": "test@example.com",
-        "password": "testpassword123"
-    }
-    
+    test_user_data = {"email": "test@example.com", "password": "testpassword123"}
+
     # Register test user
     await client.post("/auth/register", json=test_user_data)
-    
+
     # Login and get token
-    response = await client.post("/auth/login", data={
-        "username": test_user_data["email"],
-        "password": test_user_data["password"]
-    })
-    
+    response = await client.post(
+        "/auth/login",
+        data={
+            "username": test_user_data["email"],
+            "password": test_user_data["password"],
+        },
+    )
+
     token_data = response.json()
     access_token = token_data["access_token"]
-    
+
     # Set authorization header
     client.headers.update({"Authorization": f"Bearer {access_token}"})
-    
+
     yield client
 
 
 @pytest.fixture
 def mock_transparency_api():
     """Mock for transparency API calls."""
-    with patch('src.services.transparency_service.TransparencyService') as mock:
+    with patch("src.services.transparency_service.TransparencyService") as mock:
         # Configure mock responses
         mock.return_value.get_contracts.return_value = {
             "data": [
@@ -142,12 +144,12 @@ def mock_transparency_api():
                     "valor": 100000.00,
                     "dataInicioVigencia": "2024-01-01",
                     "dataFimVigencia": "2024-12-31",
-                    "fornecedor": {"nome": "Test Supplier"}
+                    "fornecedor": {"nome": "Test Supplier"},
                 }
             ],
-            "total": 1
+            "total": 1,
         }
-        
+
         mock.return_value.get_expenses.return_value = {
             "data": [
                 {
@@ -155,44 +157,44 @@ def mock_transparency_api():
                     "orgaoSuperior": {"nome": "Test Ministry"},
                     "valor": 50000.00,
                     "dataCompetencia": "2024-01-01",
-                    "modalidadeAplicacao": {"nome": "Direct Application"}
+                    "modalidadeAplicacao": {"nome": "Direct Application"},
                 }
             ],
-            "total": 1
+            "total": 1,
         }
-        
+
         yield mock
 
 
 @pytest.fixture
 def mock_ai_service():
     """Mock for AI service calls."""
-    with patch('src.services.ai_service.AIService') as mock:
+    with patch("src.services.ai_service.AIService") as mock:
         # Configure mock responses
         mock.return_value.classify_text.return_value = {
             "label": "corruption",
             "confidence": 0.85,
-            "explanation": "High probability of corruption indicators"
+            "explanation": "High probability of corruption indicators",
         }
-        
+
         mock.return_value.analyze_anomalies.return_value = {
             "anomalies": [
                 {
                     "type": "price_anomaly",
                     "severity": "high",
-                    "description": "Price 300% above market average"
+                    "description": "Price 300% above market average",
                 }
             ],
-            "risk_score": 0.78
+            "risk_score": 0.78,
         }
-        
+
         yield mock
 
 
 @pytest.fixture
 def mock_agent_system():
     """Mock for agent system."""
-    with patch('src.agents.abaporu.MasterAgent') as mock:
+    with patch("src.agents.abaporu.MasterAgent") as mock:
         # Configure mock agent responses
         async def mock_process_task(task):
             return {
@@ -200,13 +202,16 @@ def mock_agent_system():
                 "status": "completed",
                 "result": {
                     "analysis": "Test analysis result",
-                    "recommendations": ["Test recommendation 1", "Test recommendation 2"],
-                    "confidence": 0.9
+                    "recommendations": [
+                        "Test recommendation 1",
+                        "Test recommendation 2",
+                    ],
+                    "confidence": 0.9,
                 },
                 "agents_used": ["investigator", "analyst", "reporter"],
-                "processing_time": 2.5
+                "processing_time": 2.5,
             }
-        
+
         mock.return_value.process_task = mock_process_task
         yield mock
 
@@ -220,8 +225,8 @@ def sample_analysis_data():
         "options": {
             "includeMetrics": True,
             "includeVisualization": False,
-            "language": "pt"
-        }
+            "language": "pt",
+        },
     }
 
 
@@ -238,13 +243,9 @@ def sample_contract_data():
         "fornecedor": {
             "cnpj": "12.345.678/0001-90",
             "nome": "Tech Solutions LTDA",
-            "endereco": "Rua das Tecnologias, 123"
+            "endereco": "Rua das Tecnologias, 123",
         },
-        "orgao": {
-            "codigo": "26000",
-            "nome": "Ministério da Educação",
-            "sigla": "MEC"
-        }
+        "orgao": {"codigo": "26000", "nome": "Ministério da Educação", "sigla": "MEC"},
     }
 
 
@@ -258,20 +259,11 @@ def sample_expense_data():
         "orgaoSuperior": {
             "codigo": "20000",
             "nome": "Presidência da República",
-            "sigla": "PR"
+            "sigla": "PR",
         },
-        "funcao": {
-            "codigo": "04",
-            "nome": "Administração"
-        },
-        "subfuncao": {
-            "codigo": "122",
-            "nome": "Administração Geral"
-        },
-        "modalidadeAplicacao": {
-            "codigo": "90",
-            "nome": "Aplicação Direta"
-        }
+        "funcao": {"codigo": "04", "nome": "Administração"},
+        "subfuncao": {"codigo": "122", "nome": "Administração Geral"},
+        "modalidadeAplicacao": {"codigo": "90", "nome": "Aplicação Direta"},
     }
 
 
@@ -299,10 +291,15 @@ def pytest_collection_modifyitems(config, items):
     """Modify test collection to add markers automatically."""
     for item in items:
         # Add unit marker to tests without explicit markers
-        if not any(marker.name in ["integration", "e2e", "slow", "security", "performance"] 
-                  for marker in item.iter_markers()):
+        if not any(
+            marker.name in ["integration", "e2e", "slow", "security", "performance"]
+            for marker in item.iter_markers()
+        ):
             item.add_marker(pytest.mark.unit)
-        
+
         # Add slow marker to tests that might be slow
-        if any(keyword in item.name.lower() for keyword in ["database", "redis", "ai", "agent"]):
+        if any(
+            keyword in item.name.lower()
+            for keyword in ["database", "redis", "ai", "agent"]
+        ):
             item.add_marker(pytest.mark.slow)

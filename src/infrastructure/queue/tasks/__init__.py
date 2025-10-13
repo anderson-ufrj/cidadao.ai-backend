@@ -9,16 +9,11 @@ This package contains task definitions organized by domain:
 - monitoring_tasks: System monitoring and alerting tasks
 """
 
+from .analysis_tasks import analyze_patterns, correlation_analysis, temporal_analysis
 from .investigation_tasks import (
-    run_investigation,
     analyze_contracts_batch,
     detect_anomalies_batch,
-)
-
-from .analysis_tasks import (
-    analyze_patterns,
-    correlation_analysis,
-    temporal_analysis,
+    run_investigation,
 )
 
 # Temporarily disabled - missing dependencies (report_service, export_service, etc.)
@@ -45,22 +40,18 @@ __all__ = [
     "run_investigation",
     "analyze_contracts_batch",
     "detect_anomalies_batch",
-
     # Analysis tasks
     "analyze_patterns",
     "correlation_analysis",
     "temporal_analysis",
-
     # Report tasks - Temporarily disabled
     # "generate_report",
     # "generate_executive_summary",
     # "batch_report_generation",
-
     # Export tasks - Temporarily disabled
     # "export_to_pdf",
     # "export_to_excel",
     # "export_bulk_data",
-
     # Monitoring tasks - Temporarily disabled
     # "monitor_anomalies",
     # "check_data_updates",

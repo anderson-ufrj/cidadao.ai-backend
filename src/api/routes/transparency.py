@@ -9,16 +9,17 @@ Created: 2025-10-09
 License: Proprietary - All rights reserved
 """
 
-from typing import Optional, List
-from fastapi import APIRouter, HTTPException, Query, Depends
+from typing import Optional
+
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from src.services.transparency_apis import (
-    get_transparency_collector,
-    get_health_monitor,
-    registry
-)
 from src.core import get_logger
+from src.services.transparency_apis import (
+    get_health_monitor,
+    get_transparency_collector,
+    registry,
+)
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -27,33 +28,37 @@ router = APIRouter()
 # Response Models
 class ContractResponse(BaseModel):
     """Response model for contracts endpoint."""
-    contracts: List[dict] = Field(description="List of contracts")
+
+    contracts: list[dict] = Field(description="List of contracts")
     total: int = Field(description="Total number of contracts")
-    sources: List[str] = Field(description="Data sources used")
-    errors: List[dict] = Field(description="Errors from failed sources")
+    sources: list[str] = Field(description="Data sources used")
+    errors: list[dict] = Field(description="Errors from failed sources")
     metadata: dict = Field(description="Collection metadata")
 
 
 class ExpenseResponse(BaseModel):
     """Response model for expenses endpoint."""
-    expenses: List[dict] = Field(description="List of expenses")
+
+    expenses: list[dict] = Field(description="List of expenses")
     total: int = Field(description="Total number of expenses")
-    sources: List[str] = Field(description="Data sources used")
-    errors: List[dict] = Field(description="Errors from failed sources")
+    sources: list[str] = Field(description="Data sources used")
+    errors: list[dict] = Field(description="Errors from failed sources")
     metadata: dict = Field(description="Collection metadata")
 
 
 class SupplierResponse(BaseModel):
     """Response model for suppliers endpoint."""
-    suppliers: List[dict] = Field(description="List of suppliers")
+
+    suppliers: list[dict] = Field(description="List of suppliers")
     total: int = Field(description="Total number of suppliers")
-    sources: List[str] = Field(description="Data sources used")
-    errors: List[dict] = Field(description="Errors from failed sources")
+    sources: list[str] = Field(description="Data sources used")
+    errors: list[dict] = Field(description="Errors from failed sources")
     metadata: dict = Field(description="Collection metadata")
 
 
 class AnomalyAnalysisResponse(BaseModel):
     """Response model for anomaly analysis endpoint."""
+
     summary: dict = Field(description="Analysis summary")
     anomalies: dict = Field(description="Detected anomalies")
     metadata: dict = Field(description="Analysis metadata")
@@ -61,6 +66,7 @@ class AnomalyAnalysisResponse(BaseModel):
 
 class HealthReportResponse(BaseModel):
     """Response model for health check endpoint."""
+
     overall_status: str = Field(description="Overall health status")
     overall_health_percentage: float = Field(description="Overall health percentage")
     summary: str = Field(description="Health summary")
@@ -70,8 +76,9 @@ class HealthReportResponse(BaseModel):
 
 class AvailableAPIsResponse(BaseModel):
     """Response model for available APIs list."""
+
     total: int = Field(description="Total number of APIs")
-    apis: List[str] = Field(description="List of available API keys")
+    apis: list[str] = Field(description="List of available API keys")
     description: str = Field(description="API coverage description")
 
 
@@ -94,15 +101,17 @@ class AvailableAPIsResponse(BaseModel):
     - Multi-source aggregation
     - Intelligent caching
     - Error resilience
-    """
+    """,
 )
 async def get_contracts(
     state: Optional[str] = Query(None, description="State code (e.g., PE, CE, RJ)"),
-    municipality_code: Optional[str] = Query(None, description="IBGE municipality code"),
+    municipality_code: Optional[str] = Query(
+        None, description="IBGE municipality code"
+    ),
     year: Optional[int] = Query(None, description="Filter by year"),
     start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
     end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
-    validate: bool = Query(True, description="Enable data validation")
+    validate: bool = Query(True, description="Enable data validation"),
 ):
     """
     Get contracts from transparency sources.
@@ -119,15 +128,15 @@ async def get_contracts(
             year=year,
             start_date=start_date,
             end_date=end_date,
-            validate=validate
+            validate=validate,
         )
 
         logger.info(
             "contracts_endpoint_accessed",
-            total=result['total'],
-            sources_count=len(result['sources']),
+            total=result["total"],
+            sources_count=len(result["sources"]),
             state=state,
-            municipality_code=municipality_code
+            municipality_code=municipality_code,
         )
 
         return ContractResponse(**result)
@@ -137,11 +146,10 @@ async def get_contracts(
             "contracts_endpoint_failed",
             error=str(e),
             state=state,
-            municipality_code=municipality_code
+            municipality_code=municipality_code,
         )
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to fetch contracts: {str(e)}"
+            status_code=500, detail=f"Failed to fetch contracts: {str(e)}"
         )
 
 
@@ -154,13 +162,15 @@ async def get_contracts(
 
     Aggregates expense data from federal, state, and municipal APIs with
     automatic validation and caching.
-    """
+    """,
 )
 async def get_expenses(
     state: Optional[str] = Query(None, description="State code (e.g., PE, CE, RJ)"),
-    municipality_code: Optional[str] = Query(None, description="IBGE municipality code"),
+    municipality_code: Optional[str] = Query(
+        None, description="IBGE municipality code"
+    ),
     year: Optional[int] = Query(None, description="Filter by year"),
-    validate: bool = Query(True, description="Enable data validation")
+    validate: bool = Query(True, description="Enable data validation"),
 ):
     """
     Get expenses from transparency sources.
@@ -175,15 +185,15 @@ async def get_expenses(
             state=state,
             municipality_code=municipality_code,
             year=year,
-            validate=validate
+            validate=validate,
         )
 
         logger.info(
             "expenses_endpoint_accessed",
-            total=result['total'],
-            sources_count=len(result['sources']),
+            total=result["total"],
+            sources_count=len(result["sources"]),
             state=state,
-            municipality_code=municipality_code
+            municipality_code=municipality_code,
         )
 
         return ExpenseResponse(**result)
@@ -193,11 +203,10 @@ async def get_expenses(
             "expenses_endpoint_failed",
             error=str(e),
             state=state,
-            municipality_code=municipality_code
+            municipality_code=municipality_code,
         )
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to fetch expenses: {str(e)}"
+            status_code=500, detail=f"Failed to fetch expenses: {str(e)}"
         )
 
 
@@ -210,12 +219,14 @@ async def get_expenses(
 
     Returns information about companies and individuals that provide
     goods or services to government entities.
-    """
+    """,
 )
 async def get_suppliers(
     state: Optional[str] = Query(None, description="State code (e.g., PE, CE, RJ)"),
-    municipality_code: Optional[str] = Query(None, description="IBGE municipality code"),
-    validate: bool = Query(True, description="Enable data validation")
+    municipality_code: Optional[str] = Query(
+        None, description="IBGE municipality code"
+    ),
+    validate: bool = Query(True, description="Enable data validation"),
 ):
     """
     Get suppliers from transparency sources.
@@ -227,17 +238,15 @@ async def get_suppliers(
         collector = get_transparency_collector()
 
         result = await collector.collect_suppliers(
-            state=state,
-            municipality_code=municipality_code,
-            validate=validate
+            state=state, municipality_code=municipality_code, validate=validate
         )
 
         logger.info(
             "suppliers_endpoint_accessed",
-            total=result['total'],
-            sources_count=len(result['sources']),
+            total=result["total"],
+            sources_count=len(result["sources"]),
             state=state,
-            municipality_code=municipality_code
+            municipality_code=municipality_code,
         )
 
         return SupplierResponse(**result)
@@ -247,11 +256,10 @@ async def get_suppliers(
             "suppliers_endpoint_failed",
             error=str(e),
             state=state,
-            municipality_code=municipality_code
+            municipality_code=municipality_code,
         )
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to fetch suppliers: {str(e)}"
+            status_code=500, detail=f"Failed to fetch suppliers: {str(e)}"
         )
 
 
@@ -271,11 +279,9 @@ async def get_suppliers(
     - Fraud detection
     - Compliance monitoring
     - Audit support
-    """
+    """,
 )
-async def analyze_anomalies(
-    contracts: List[dict]
-):
+async def analyze_anomalies(contracts: list[dict]):
     """
     Analyze contracts for anomalies.
 
@@ -289,9 +295,9 @@ async def analyze_anomalies(
 
         logger.info(
             "anomaly_analysis_endpoint_accessed",
-            total_contracts=result['summary']['total_contracts'],
-            risk_score=result['summary']['risk_score'],
-            anomaly_count=result['anomalies']['outlier_count']
+            total_contracts=result["summary"]["total_contracts"],
+            risk_score=result["summary"]["risk_score"],
+            anomaly_count=result["anomalies"]["outlier_count"],
         )
 
         return AnomalyAnalysisResponse(**result)
@@ -300,11 +306,10 @@ async def analyze_anomalies(
         logger.error(
             "anomaly_analysis_endpoint_failed",
             error=str(e),
-            contract_count=len(contracts)
+            contract_count=len(contracts),
         )
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to analyze anomalies: {str(e)}"
+            status_code=500, detail=f"Failed to analyze anomalies: {str(e)}"
         )
 
 
@@ -325,7 +330,7 @@ async def analyze_anomalies(
     - System monitoring
     - Incident detection
     - Performance optimization
-    """
+    """,
 )
 async def check_health():
     """
@@ -341,22 +346,16 @@ async def check_health():
 
         logger.info(
             "health_check_endpoint_accessed",
-            overall_status=report['overall_status'],
-            healthy_apis=report['healthy_apis'],
-            total_apis=report['total_apis']
+            overall_status=report["overall_status"],
+            healthy_apis=report["healthy_apis"],
+            total_apis=report["total_apis"],
         )
 
         return HealthReportResponse(**report)
 
     except Exception as e:
-        logger.error(
-            "health_check_endpoint_failed",
-            error=str(e)
-        )
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to check health: {str(e)}"
-        )
+        logger.error("health_check_endpoint_failed", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to check health: {str(e)}")
 
 
 @router.get(
@@ -372,7 +371,7 @@ async def check_health():
     - 5 CKAN portals (open data)
     - 1 State API (Rondônia)
     - 2500+ municipalities covered
-    """
+    """,
 )
 async def list_apis():
     """
@@ -383,23 +382,14 @@ async def list_apis():
     try:
         apis = registry.list_available_apis()
 
-        logger.info(
-            "list_apis_endpoint_accessed",
-            total_apis=len(apis)
-        )
+        logger.info("list_apis_endpoint_accessed", total_apis=len(apis))
 
         return AvailableAPIsResponse(
             total=len(apis),
             apis=apis,
-            description=f"Access to {len(apis)} transparency APIs covering 2500+ Brazilian municipalities"
+            description=f"Access to {len(apis)} transparency APIs covering 2500+ Brazilian municipalities",
         )
 
     except Exception as e:
-        logger.error(
-            "list_apis_endpoint_failed",
-            error=str(e)
-        )
-        raise HTTPException(
-            status_code=500,
-            detail=f"Failed to list APIs: {str(e)}"
-        )
+        logger.error("list_apis_endpoint_failed", error=str(e))
+        raise HTTPException(status_code=500, detail=f"Failed to list APIs: {str(e)}")

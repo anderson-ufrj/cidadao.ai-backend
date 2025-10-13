@@ -10,16 +10,17 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
-from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
 from enum import Enum
+from typing import Any, Optional
 
-from .registry import registry
 from .cache import get_cache
+from .registry import registry
 
 
 class HealthStatus(Enum):
     """Health status levels."""
+
     HEALTHY = "healthy"
     DEGRADED = "degraded"
     UNHEALTHY = "unhealthy"
@@ -36,7 +37,7 @@ class HealthCheckResult:
         api_name: str,
         status: HealthStatus,
         response_time: float,
-        error: Optional[str] = None
+        error: Optional[str] = None,
     ):
         """
         Initialize health check result.
@@ -53,14 +54,14 @@ class HealthCheckResult:
         self.error = error
         self.checked_at = datetime.utcnow()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "api_name": self.api_name,
             "status": self.status.value,
             "response_time_ms": round(self.response_time * 1000, 2),
             "error": self.error,
-            "checked_at": self.checked_at.isoformat()
+            "checked_at": self.checked_at.isoformat(),
         }
 
 
@@ -75,7 +76,7 @@ class HealthMonitor:
     def __init__(self):
         """Initialize health monitor."""
         self.cache = get_cache()
-        self._history: Dict[str, List[HealthCheckResult]] = {}
+        self._history: dict[str, list[HealthCheckResult]] = {}
         self._max_history_per_api = 100
 
     async def check_api(self, api_key: str) -> HealthCheckResult:
@@ -93,8 +94,10 @@ class HealthMonitor:
         if cached_result is not None:
             return HealthCheckResult(
                 api_name=api_key,
-                status=HealthStatus.HEALTHY if cached_result else HealthStatus.UNHEALTHY,
-                response_time=0.0
+                status=(
+                    HealthStatus.HEALTHY if cached_result else HealthStatus.UNHEALTHY
+                ),
+                response_time=0.0,
             )
 
         # Get API client
@@ -104,7 +107,7 @@ class HealthMonitor:
                 api_name=api_key,
                 status=HealthStatus.UNKNOWN,
                 response_time=0.0,
-                error="API client not found"
+                error="API client not found",
             )
 
         # Perform health check
@@ -120,9 +123,7 @@ class HealthMonitor:
             status = HealthStatus.HEALTHY if is_healthy else HealthStatus.UNHEALTHY
 
             result = HealthCheckResult(
-                api_name=api_key,
-                status=status,
-                response_time=response_time
+                api_name=api_key, status=status, response_time=response_time
             )
 
         except Exception as e:
@@ -133,7 +134,7 @@ class HealthMonitor:
                 api_name=api_key,
                 status=HealthStatus.UNHEALTHY,
                 response_time=response_time,
-                error=str(e)
+                error=str(e),
             )
 
         # Store in history
@@ -148,7 +149,7 @@ class HealthMonitor:
 
         return result
 
-    async def check_all_apis(self) -> Dict[str, HealthCheckResult]:
+    async def check_all_apis(self) -> dict[str, HealthCheckResult]:
         """
         Check health of all registered APIs.
 
@@ -163,18 +164,19 @@ class HealthMonitor:
 
         return {
             api_keys[i]: (
-                results[i] if not isinstance(results[i], Exception)
+                results[i]
+                if not isinstance(results[i], Exception)
                 else HealthCheckResult(
                     api_name=api_keys[i],
                     status=HealthStatus.UNHEALTHY,
                     response_time=0.0,
-                    error=str(results[i])
+                    error=str(results[i]),
                 )
             )
             for i in range(len(api_keys))
         }
 
-    def get_api_stats(self, api_key: str) -> Dict[str, Any]:
+    def get_api_stats(self, api_key: str) -> dict[str, Any]:
         """
         Get statistics for a specific API.
 
@@ -187,22 +189,22 @@ class HealthMonitor:
         history = self._history.get(api_key, [])
 
         if not history:
-            return {
-                "api_name": api_key,
-                "checks_performed": 0,
-                "status": "unknown"
-            }
+            return {"api_name": api_key, "checks_performed": 0, "status": "unknown"}
 
         # Calculate stats from history
         total_checks = len(history)
         healthy_checks = sum(1 for r in history if r.status == HealthStatus.HEALTHY)
         response_times = [r.response_time for r in history]
 
-        avg_response_time = sum(response_times) / len(response_times) if response_times else 0
+        avg_response_time = (
+            sum(response_times) / len(response_times) if response_times else 0
+        )
         min_response_time = min(response_times) if response_times else 0
         max_response_time = max(response_times) if response_times else 0
 
-        uptime_percentage = (healthy_checks / total_checks * 100) if total_checks > 0 else 0
+        uptime_percentage = (
+            (healthy_checks / total_checks * 100) if total_checks > 0 else 0
+        )
 
         # Get recent status (last check)
         last_check = history[-1]
@@ -216,10 +218,10 @@ class HealthMonitor:
             "avg_response_time_ms": round(avg_response_time * 1000, 2),
             "min_response_time_ms": round(min_response_time * 1000, 2),
             "max_response_time_ms": round(max_response_time * 1000, 2),
-            "last_error": last_check.error
+            "last_error": last_check.error,
         }
 
-    async def generate_report(self) -> Dict[str, Any]:
+    async def generate_report(self) -> dict[str, Any]:
         """
         Generate comprehensive health report for all APIs.
 
@@ -260,8 +262,7 @@ class HealthMonitor:
 
         # Get detailed stats for each API
         api_details = {
-            api_key: self.get_api_stats(api_key)
-            for api_key in check_results.keys()
+            api_key: self.get_api_stats(api_key) for api_key in check_results.keys()
         }
 
         return {
@@ -273,22 +274,20 @@ class HealthMonitor:
                 "healthy": len(healthy_apis),
                 "degraded": len(degraded_apis),
                 "unhealthy": len(unhealthy_apis),
-                "unknown": len(unknown_apis)
+                "unknown": len(unknown_apis),
             },
             "apis": {
                 "healthy": healthy_apis,
                 "degraded": degraded_apis,
                 "unhealthy": unhealthy_apis,
-                "unknown": unknown_apis
+                "unknown": unknown_apis,
             },
-            "details": api_details
+            "details": api_details,
         }
 
     def get_history(
-        self,
-        api_key: Optional[str] = None,
-        hours: int = 24
-    ) -> Dict[str, List[Dict[str, Any]]]:
+        self, api_key: Optional[str] = None, hours: int = 24
+    ) -> dict[str, list[dict[str, Any]]]:
         """
         Get health check history.
 
@@ -303,19 +302,13 @@ class HealthMonitor:
 
         if api_key:
             history = self._history.get(api_key, [])
-            filtered = [
-                r.to_dict() for r in history
-                if r.checked_at >= cutoff_time
-            ]
+            filtered = [r.to_dict() for r in history if r.checked_at >= cutoff_time]
             return {api_key: filtered}
 
         # Return all histories
         result = {}
         for key, history in self._history.items():
-            filtered = [
-                r.to_dict() for r in history
-                if r.checked_at >= cutoff_time
-            ]
+            filtered = [r.to_dict() for r in history if r.checked_at >= cutoff_time]
             if filtered:
                 result[key] = filtered
 

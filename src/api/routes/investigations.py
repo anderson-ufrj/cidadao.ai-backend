@@ -8,22 +8,26 @@ License: Proprietary - All rights reserved
 
 import asyncio
 from datetime import datetime
-from typing import Dict, List, Optional, Any
+from typing import Any, Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, Field as PydanticField, validator
-from src.core import json_utils
-from src.core import get_logger
-from src.agents import InvestigatorAgent, AgentContext
-from src.api.middleware.authentication import get_current_user
-from src.tools import TransparencyAPIFilter
-from src.infrastructure.observability.metrics import track_time, count_calls, BusinessMetrics
-from src.services.investigation_service_selector import investigation_service
-from src.services.forensic_enrichment_service import forensic_enrichment_service
-from src.config.system_users import SYSTEM_AUTO_MONITOR_USER_ID
+from pydantic import BaseModel, validator
+from pydantic import Field as PydanticField
 
+from src.agents import AgentContext, InvestigatorAgent
+from src.api.middleware.authentication import get_current_user
+from src.config.system_users import SYSTEM_AUTO_MONITOR_USER_ID
+from src.core import get_logger, json_utils
+from src.infrastructure.observability.metrics import (
+    BusinessMetrics,
+    count_calls,
+    track_time,
+)
+from src.services.forensic_enrichment_service import forensic_enrichment_service
+from src.services.investigation_service_selector import investigation_service
+from src.tools import TransparencyAPIFilter
 
 logger = get_logger(__name__)
 
@@ -32,38 +36,61 @@ router = APIRouter()
 
 class InvestigationRequest(BaseModel):
     """Request model for starting an investigation."""
-    
+
     query: str = PydanticField(description="Investigation query or focus area")
-    data_source: str = PydanticField(default="contracts", description="Data source to investigate")
-    filters: Dict[str, Any] = PydanticField(default_factory=dict, description="Additional filters")
-    anomaly_types: List[str] = PydanticField(
-        default=["price", "vendor", "temporal", "payment"],
-        description="Types of anomalies to detect"
+    data_source: str = PydanticField(
+        default="contracts", description="Data source to investigate"
     )
-    include_explanations: bool = PydanticField(default=True, description="Include AI explanations")
-    stream_results: bool = PydanticField(default=False, description="Stream results as they're found")
-    
-    @validator('data_source')
+    filters: dict[str, Any] = PydanticField(
+        default_factory=dict, description="Additional filters"
+    )
+    anomaly_types: list[str] = PydanticField(
+        default=["price", "vendor", "temporal", "payment"],
+        description="Types of anomalies to detect",
+    )
+    include_explanations: bool = PydanticField(
+        default=True, description="Include AI explanations"
+    )
+    stream_results: bool = PydanticField(
+        default=False, description="Stream results as they're found"
+    )
+
+    @validator("data_source")
     def validate_data_source(cls, v):
         """Validate data source."""
-        allowed_sources = ['contracts', 'expenses', 'agreements', 'biddings', 'servants']
+        allowed_sources = [
+            "contracts",
+            "expenses",
+            "agreements",
+            "biddings",
+            "servants",
+        ]
         if v not in allowed_sources:
-            raise ValueError(f'Data source must be one of: {allowed_sources}')
+            raise ValueError(f"Data source must be one of: {allowed_sources}")
         return v
-    
-    @validator('anomaly_types')
+
+    @validator("anomaly_types")
     def validate_anomaly_types(cls, v):
         """Validate anomaly types."""
-        allowed_types = ['price', 'vendor', 'temporal', 'payment', 'duplicate', 'pattern']
+        allowed_types = [
+            "price",
+            "vendor",
+            "temporal",
+            "payment",
+            "duplicate",
+            "pattern",
+        ]
         invalid_types = [t for t in v if t not in allowed_types]
         if invalid_types:
-            raise ValueError(f'Invalid anomaly types: {invalid_types}. Allowed: {allowed_types}')
+            raise ValueError(
+                f"Invalid anomaly types: {invalid_types}. Allowed: {allowed_types}"
+            )
         return v
 
 
 class InvestigationResponse(BaseModel):
     """Response model for investigation results."""
-    
+
     investigation_id: str
     status: str
     query: str
@@ -72,7 +99,7 @@ class InvestigationResponse(BaseModel):
     completed_at: Optional[datetime] = None
     anomalies_found: int
     total_records_analyzed: int
-    results: List[Dict[str, Any]]
+    results: list[dict[str, Any]]
     summary: str
     confidence_score: float
     processing_time: float
@@ -80,21 +107,21 @@ class InvestigationResponse(BaseModel):
 
 class AnomalyResult(BaseModel):
     """Individual anomaly result."""
-    
+
     anomaly_id: str
     type: str
     severity: str
     confidence: float
     description: str
     explanation: str
-    affected_records: List[Dict[str, Any]]
-    suggested_actions: List[str]
-    metadata: Dict[str, Any]
+    affected_records: list[dict[str, Any]]
+    suggested_actions: list[str]
+    metadata: dict[str, Any]
 
 
 class InvestigationStatus(BaseModel):
     """Investigation status response."""
-    
+
     investigation_id: str
     status: str
     progress: float
@@ -105,16 +132,16 @@ class InvestigationStatus(BaseModel):
 
 
 # In-memory storage for investigation tracking (replace with database later)
-_active_investigations: Dict[str, Dict[str, Any]] = {}
+_active_investigations: dict[str, dict[str, Any]] = {}
 
 
-@router.post("/start", response_model=Dict[str, str])
+@router.post("/start", response_model=dict[str, str])
 @count_calls("cidadao_ai_investigation_requests_total", labels={"operation": "start"})
 @track_time("cidadao_ai_investigation_start_duration_seconds")
 async def start_investigation(
     request: InvestigationRequest,
     background_tasks: BackgroundTasks,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
     Start a new investigation for anomaly detection.
@@ -129,10 +156,14 @@ async def start_investigation(
             query=request.query,
             data_source=request.data_source,
             filters=request.filters,
-            anomaly_types=request.anomaly_types
+            anomaly_types=request.anomaly_types,
         )
 
-        investigation_id = db_investigation.id if hasattr(db_investigation, 'id') else db_investigation['id']
+        investigation_id = (
+            db_investigation.id
+            if hasattr(db_investigation, "id")
+            else db_investigation["id"]
+        )
 
         logger.info(
             "investigation_created_in_database",
@@ -146,7 +177,7 @@ async def start_investigation(
         # Fallback to in-memory if database fails
         logger.warning(
             "Failed to save investigation to database, using in-memory fallback",
-            error=str(e)
+            error=str(e),
         )
         investigation_id = str(uuid4())
 
@@ -168,11 +199,7 @@ async def start_investigation(
     }
 
     # Start investigation in background
-    background_tasks.add_task(
-        _run_investigation,
-        investigation_id,
-        request
-    )
+    background_tasks.add_task(_run_investigation, investigation_id, request)
 
     logger.info(
         "investigation_started",
@@ -184,47 +211,45 @@ async def start_investigation(
 
     # Track business metrics
     BusinessMetrics.record_investigation_created(
-        priority="medium",
-        user_type="authenticated"
+        priority="medium", user_type="authenticated"
     )
     BusinessMetrics.update_active_investigations(len(_active_investigations))
 
     return {
         "investigation_id": investigation_id,
         "status": "started",
-        "message": "Investigation queued for processing"
+        "message": "Investigation queued for processing",
     }
 
 
 @router.get("/stream/{investigation_id}")
 async def stream_investigation_results(
-    investigation_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    investigation_id: str, current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """
     Stream investigation results in real-time.
-    
+
     Returns a streaming response with investigation progress and results
     as they are discovered.
     """
     if investigation_id not in _active_investigations:
         raise HTTPException(status_code=404, detail="Investigation not found")
-    
+
     investigation = _active_investigations[investigation_id]
-    
+
     # Check user authorization
     if investigation["user_id"] != current_user.get("user_id"):
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     async def generate_updates():
         """Generate real-time updates for the investigation."""
         last_update = 0
-        
+
         while True:
             current_investigation = _active_investigations.get(investigation_id)
             if not current_investigation:
                 break
-            
+
             # Send progress updates
             if current_investigation["progress"] > last_update:
                 update_data = {
@@ -234,25 +259,29 @@ async def stream_investigation_results(
                     "current_phase": current_investigation["current_phase"],
                     "records_processed": current_investigation["records_processed"],
                     "anomalies_detected": current_investigation["anomalies_detected"],
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.utcnow().isoformat(),
                 }
                 yield f"data: {json_utils.dumps(update_data)}\n\n"
                 last_update = current_investigation["progress"]
-            
+
             # Send anomaly results as they're found
-            new_results = current_investigation["results"][len(current_investigation.get("sent_results", [])):]
+            new_results = current_investigation["results"][
+                len(current_investigation.get("sent_results", [])) :
+            ]
             for result in new_results:
                 result_data = {
                     "type": "anomaly",
                     "investigation_id": investigation_id,
                     "result": result,
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.utcnow().isoformat(),
                 }
                 yield f"data: {json_utils.dumps(result_data)}\n\n"
-            
+
             # Mark results as sent
-            current_investigation["sent_results"] = current_investigation["results"].copy()
-            
+            current_investigation["sent_results"] = current_investigation[
+                "results"
+            ].copy()
+
             # Check if investigation is complete
             if current_investigation["status"] in ["completed", "failed"]:
                 completion_data = {
@@ -260,13 +289,13 @@ async def stream_investigation_results(
                     "investigation_id": investigation_id,
                     "status": current_investigation["status"],
                     "total_anomalies": len(current_investigation["results"]),
-                    "timestamp": datetime.utcnow().isoformat()
+                    "timestamp": datetime.utcnow().isoformat(),
                 }
                 yield f"data: {json_utils.dumps(completion_data)}\n\n"
                 break
-            
+
             await asyncio.sleep(1)  # Poll every second
-    
+
     return StreamingResponse(
         generate_updates(),
         media_type="text/plain",
@@ -274,29 +303,28 @@ async def stream_investigation_results(
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
             "Content-Type": "text/event-stream",
-        }
+        },
     )
 
 
 @router.get("/{investigation_id}/status", response_model=InvestigationStatus)
 async def get_investigation_status(
-    investigation_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    investigation_id: str, current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """
     Get the current status of an investigation.
-    
+
     Returns progress information and current phase of the investigation.
     """
     if investigation_id not in _active_investigations:
         raise HTTPException(status_code=404, detail="Investigation not found")
-    
+
     investigation = _active_investigations[investigation_id]
-    
+
     # Check user authorization
     if investigation["user_id"] != current_user.get("user_id"):
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     return InvestigationStatus(
         investigation_id=investigation_id,
         status=investigation["status"],
@@ -309,30 +337,31 @@ async def get_investigation_status(
 
 @router.get("/{investigation_id}/results", response_model=InvestigationResponse)
 async def get_investigation_results(
-    investigation_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    investigation_id: str, current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """
     Get complete investigation results.
-    
+
     Returns all anomalies found and analysis summary.
     """
     if investigation_id not in _active_investigations:
         raise HTTPException(status_code=404, detail="Investigation not found")
-    
+
     investigation = _active_investigations[investigation_id]
-    
+
     # Check user authorization
     if investigation["user_id"] != current_user.get("user_id"):
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     if investigation["status"] not in ["completed", "failed"]:
         raise HTTPException(status_code=409, detail="Investigation not yet completed")
-    
+
     processing_time = 0.0
     if investigation.get("completed_at") and investigation.get("started_at"):
-        processing_time = (investigation["completed_at"] - investigation["started_at"]).total_seconds()
-    
+        processing_time = (
+            investigation["completed_at"] - investigation["started_at"]
+        ).total_seconds()
+
     return InvestigationResponse(
         investigation_id=investigation_id,
         status=investigation["status"],
@@ -345,39 +374,42 @@ async def get_investigation_results(
         results=investigation["results"],
         summary=investigation.get("summary", "Investigation completed"),
         confidence_score=investigation.get("confidence_score", 0.0),
-        processing_time=processing_time
+        processing_time=processing_time,
     )
 
 
-@router.get("/", response_model=List[InvestigationStatus])
+@router.get("/", response_model=list[InvestigationStatus])
 async def list_investigations(
     status: Optional[str] = Query(None, description="Filter by status"),
-    limit: int = Query(10, ge=1, le=100, description="Number of investigations to return"),
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    limit: int = Query(
+        10, ge=1, le=100, description="Number of investigations to return"
+    ),
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
     List user's investigations.
-    
+
     Returns a list of investigations owned by the current user.
     """
     user_id = current_user.get("user_id")
-    
+
     # Filter investigations by user
     user_investigations = [
-        inv for inv in _active_investigations.values()
-        if inv["user_id"] == user_id
+        inv for inv in _active_investigations.values() if inv["user_id"] == user_id
     ]
-    
+
     # Filter by status if provided
     if status:
-        user_investigations = [inv for inv in user_investigations if inv["status"] == status]
-    
+        user_investigations = [
+            inv for inv in user_investigations if inv["status"] == status
+        ]
+
     # Sort by start time (newest first)
     user_investigations.sort(key=lambda x: x["started_at"], reverse=True)
-    
+
     # Apply limit
     user_investigations = user_investigations[:limit]
-    
+
     return [
         InvestigationStatus(
             investigation_id=inv["id"],
@@ -393,48 +425,47 @@ async def list_investigations(
 
 @router.delete("/{investigation_id}")
 async def cancel_investigation(
-    investigation_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    investigation_id: str, current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """
     Cancel a running investigation.
-    
+
     Stops the investigation and removes it from the queue.
     """
     if investigation_id not in _active_investigations:
         raise HTTPException(status_code=404, detail="Investigation not found")
-    
+
     investigation = _active_investigations[investigation_id]
-    
+
     # Check user authorization
     if investigation["user_id"] != current_user.get("user_id"):
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     if investigation["status"] in ["completed", "failed"]:
         raise HTTPException(status_code=409, detail="Investigation already finished")
-    
+
     # Mark as cancelled
     investigation["status"] = "cancelled"
     investigation["completed_at"] = datetime.utcnow()
-    
+
     logger.info(
         "investigation_cancelled",
         investigation_id=investigation_id,
         user_id=current_user.get("user_id"),
     )
-    
+
     return {"message": "Investigation cancelled successfully"}
 
 
 async def _run_investigation(investigation_id: str, request: InvestigationRequest):
     """
     Execute the investigation in the background.
-    
+
     This function runs the actual anomaly detection using InvestigatorAgent.
     """
     investigation = _active_investigations[investigation_id]
     start_time = datetime.utcnow()
-    
+
     try:
         # Update status
         investigation["status"] = "running"
@@ -447,7 +478,7 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
                 investigation_id=investigation_id,
                 status="running",
                 progress=0.1,
-                current_phase="data_retrieval"
+                current_phase="data_retrieval",
             )
         except Exception as e:
             logger.warning(f"Failed to update investigation status in database: {e}")
@@ -456,7 +487,7 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
         context = AgentContext(
             conversation_id=investigation_id,
             user_id=investigation["user_id"],
-            session_data={"investigation_query": request.query}
+            session_data={"investigation_query": request.query},
         )
 
         # Initialize InvestigatorAgent
@@ -474,20 +505,20 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
                 investigation_id=investigation_id,
                 status="running",
                 progress=0.3,
-                current_phase="anomaly_detection"
+                current_phase="anomaly_detection",
             )
         except Exception as e:
             logger.warning(f"Failed to update investigation progress in database: {e}")
-        
+
         # Execute investigation
         results = await investigator.investigate_anomalies(
             query=request.query,
             data_source=request.data_source,
             filters=filters,
             anomaly_types=request.anomaly_types,
-            context=context
+            context=context,
         )
-        
+
         investigation["current_phase"] = "forensic_enrichment"
         investigation["progress"] = 0.7
 
@@ -496,10 +527,16 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
         for result in results:
             try:
                 # Extract contract data from affected entities
-                contract_data = result.affected_entities[0] if result.affected_entities else {}
+                contract_data = (
+                    result.affected_entities[0] if result.affected_entities else {}
+                )
 
                 # Get comparative data from remaining affected entities or metadata
-                comparative_data = result.affected_entities[1:] if len(result.affected_entities) > 1 else None
+                comparative_data = (
+                    result.affected_entities[1:]
+                    if len(result.affected_entities) > 1
+                    else None
+                )
 
                 # Build basic anomaly structure
                 basic_anomaly = {
@@ -507,7 +544,9 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
                     "severity": result.severity,
                     "confidence": result.confidence,
                     "description": result.description,
-                    "explanation": result.explanation if request.include_explanations else "",
+                    "explanation": (
+                        result.explanation if request.include_explanations else ""
+                    ),
                     "recommendations": result.recommendations,
                     "metadata": result.metadata,
                 }
@@ -516,7 +555,7 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
                 forensic_result = await forensic_enrichment_service.enrich_anomaly(
                     basic_anomaly=basic_anomaly,
                     contract_data=contract_data,
-                    comparative_data=comparative_data
+                    comparative_data=comparative_data,
                 )
 
                 enriched_results.append(forensic_result.to_dict())
@@ -525,34 +564,42 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
                 logger.warning(
                     "Failed to enrich anomaly with forensic details, using basic result",
                     error=str(e),
-                    anomaly_type=result.anomaly_type
+                    anomaly_type=result.anomaly_type,
                 )
                 # Fallback to basic result if enrichment fails
-                enriched_results.append({
-                    "anomaly_id": str(uuid4()),
-                    "type": result.anomaly_type,
-                    "severity": result.severity,
-                    "confidence": result.confidence,
-                    "description": result.description,
-                    "explanation": result.explanation if request.include_explanations else "",
-                    "affected_records": result.affected_entities,
-                    "suggested_actions": result.recommendations,
-                    "metadata": result.metadata,
-                })
+                enriched_results.append(
+                    {
+                        "anomaly_id": str(uuid4()),
+                        "type": result.anomaly_type,
+                        "severity": result.severity,
+                        "confidence": result.confidence,
+                        "description": result.description,
+                        "explanation": (
+                            result.explanation if request.include_explanations else ""
+                        ),
+                        "affected_records": result.affected_entities,
+                        "suggested_actions": result.recommendations,
+                        "metadata": result.metadata,
+                    }
+                )
 
         investigation["results"] = enriched_results
-        
+
         investigation["anomalies_detected"] = len(results)
-        investigation["records_processed"] = sum(len(r.affected_entities) for r in results)
-        
+        investigation["records_processed"] = sum(
+            len(r.affected_entities) for r in results
+        )
+
         # Generate summary
         investigation["current_phase"] = "summary_generation"
         investigation["progress"] = 0.9
-        
+
         summary = await investigator.generate_summary(results, context)
         investigation["summary"] = summary
-        investigation["confidence_score"] = sum(r.confidence for r in results) / len(results) if results else 0.0
-        
+        investigation["confidence_score"] = (
+            sum(r.confidence for r in results) / len(results) if results else 0.0
+        )
+
         # Mark as completed
         investigation["status"] = "completed"
         investigation["completed_at"] = datetime.utcnow()
@@ -570,17 +617,16 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
                 anomalies_found=investigation["anomalies_detected"],
                 summary=summary,
                 confidence_score=investigation["confidence_score"],
-                results=investigation["results"]
+                results=investigation["results"],
             )
             logger.info(
-                "investigation_saved_to_database",
-                investigation_id=investigation_id
+                "investigation_saved_to_database", investigation_id=investigation_id
             )
         except Exception as e:
             logger.error(
                 "Failed to save investigation results to database",
                 investigation_id=investigation_id,
-                error=str(e)
+                error=str(e),
             )
 
         # Calculate duration
@@ -592,24 +638,24 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
             anomalies_found=len(results),
             records_analyzed=investigation["records_processed"],
         )
-        
+
         # Track business metrics
         BusinessMetrics.record_investigation_completed(
             investigation_type=request.data_source,
             duration_seconds=duration,
-            priority="medium"
+            priority="medium",
         )
         BusinessMetrics.update_active_investigations(len(_active_investigations) - 1)
-        
+
         # Track anomalies found
         for result in results:
             BusinessMetrics.record_anomaly_detected(
                 anomaly_type=result.anomaly_type,
                 severity=result.severity,
                 data_source=request.data_source,
-                confidence_score=result.confidence
+                confidence_score=result.confidence,
             )
-        
+
     except Exception as e:
         logger.error(
             "investigation_failed",
@@ -629,13 +675,13 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
                 status="failed",
                 progress=investigation.get("progress", 0.0),
                 current_phase="failed",
-                error=str(e)
+                error=str(e),
             )
         except Exception as db_error:
             logger.error(
                 "Failed to save investigation failure to database",
                 investigation_id=investigation_id,
-                error=str(db_error)
+                error=str(db_error),
             )
 
 
@@ -652,29 +698,39 @@ class PublicInvestigationRequest(BaseModel):
 
     query: str = PydanticField(description="Investigation query")
     data_source: str = PydanticField(default="contracts", description="Data source")
-    filters: Dict[str, Any] = PydanticField(default_factory=dict, description="Filters")
-    anomaly_types: List[str] = PydanticField(
-        default=["price", "vendor", "temporal", "payment"],
-        description="Anomaly types"
+    filters: dict[str, Any] = PydanticField(default_factory=dict, description="Filters")
+    anomaly_types: list[str] = PydanticField(
+        default=["price", "vendor", "temporal", "payment"], description="Anomaly types"
     )
     # System identification (for audit)
-    system_name: str = PydanticField(default="auto_investigation_service", description="System creating investigation")
+    system_name: str = PydanticField(
+        default="auto_investigation_service",
+        description="System creating investigation",
+    )
 
-    @validator('data_source')
+    @validator("data_source")
     def validate_data_source(cls, v):
         """Validate data source."""
-        allowed_sources = ['contracts', 'expenses', 'agreements', 'biddings', 'servants']
+        allowed_sources = [
+            "contracts",
+            "expenses",
+            "agreements",
+            "biddings",
+            "servants",
+        ]
         if v not in allowed_sources:
-            raise ValueError(f'Data source must be one of: {allowed_sources}')
+            raise ValueError(f"Data source must be one of: {allowed_sources}")
         return v
 
 
-@router.post("/public/create", response_model=Dict[str, str])
-@count_calls("cidadao_ai_public_investigation_requests_total", labels={"operation": "public_create"})
+@router.post("/public/create", response_model=dict[str, str])
+@count_calls(
+    "cidadao_ai_public_investigation_requests_total",
+    labels={"operation": "public_create"},
+)
 @track_time("cidadao_ai_public_investigation_create_duration_seconds")
 async def create_public_investigation(
-    request: PublicInvestigationRequest,
-    background_tasks: BackgroundTasks
+    request: PublicInvestigationRequest, background_tasks: BackgroundTasks
 ):
     """
     Create investigation without authentication (for system processes).
@@ -694,12 +750,16 @@ async def create_public_investigation(
             filters={
                 **request.filters,
                 "system_created": True,
-                "system_name": request.system_name
+                "system_name": request.system_name,
             },
-            anomaly_types=request.anomaly_types
+            anomaly_types=request.anomaly_types,
         )
 
-        investigation_id = db_investigation.id if hasattr(db_investigation, 'id') else db_investigation['id']
+        investigation_id = (
+            db_investigation.id
+            if hasattr(db_investigation, "id")
+            else db_investigation["id"]
+        )
 
         logger.info(
             "public_investigation_created",
@@ -707,7 +767,7 @@ async def create_public_investigation(
             query=request.query[:100],
             data_source=request.data_source,
             system_name=request.system_name,
-            user_id=SYSTEM_AUTO_MONITOR_USER_ID
+            user_id=SYSTEM_AUTO_MONITOR_USER_ID,
         )
 
         # Keep in-memory copy for backward compatibility
@@ -737,14 +797,13 @@ async def create_public_investigation(
                 query=request.query,
                 data_source=request.data_source,
                 filters=request.filters,
-                anomaly_types=request.anomaly_types
-            )
+                anomaly_types=request.anomaly_types,
+            ),
         )
 
         # Track business metrics
         BusinessMetrics.record_investigation_created(
-            priority="medium",
-            user_type="system"
+            priority="medium", user_type="system"
         )
         BusinessMetrics.update_active_investigations(len(_active_investigations))
 
@@ -752,7 +811,7 @@ async def create_public_investigation(
             "investigation_id": investigation_id,
             "status": "started",
             "message": "System investigation queued for processing",
-            "system_user_id": SYSTEM_AUTO_MONITOR_USER_ID
+            "system_user_id": SYSTEM_AUTO_MONITOR_USER_ID,
         }
 
     except Exception as e:
@@ -760,15 +819,14 @@ async def create_public_investigation(
             "public_investigation_creation_failed",
             error=str(e),
             system_name=request.system_name,
-            exc_info=True
+            exc_info=True,
         )
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to create investigation: {str(e)}"
+            status_code=500, detail=f"Failed to create investigation: {str(e)}"
         )
 
 
-@router.get("/public/health", response_model=Dict[str, Any])
+@router.get("/public/health", response_model=dict[str, Any])
 async def public_health_check():
     """
     Health check for public investigation endpoints.
@@ -790,12 +848,12 @@ async def public_health_check():
             "timestamp": datetime.utcnow().isoformat(),
             "system_user_configured": bool(SYSTEM_AUTO_MONITOR_USER_ID),
             "investigation_service_available": test_success,
-            "active_investigations": len(_active_investigations)
+            "active_investigations": len(_active_investigations),
         }
     except Exception as e:
         logger.error("Public health check failed", error=str(e))
         return {
             "status": "unhealthy",
             "error": str(e),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }

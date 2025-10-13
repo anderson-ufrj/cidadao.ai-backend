@@ -1,19 +1,21 @@
 """Conversational memory for chat contexts."""
 
-from typing import Any, Dict, List, Optional
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Optional
+
 from .base import BaseMemory
 
 
 @dataclass
 class ConversationContext:
     """Context information for conversations."""
+
     session_id: str
     user_id: Optional[str] = None
-    user_profile: Optional[Dict[str, Any]] = None
-    metadata: Dict[str, Any] = None
-    
+    user_profile: Optional[dict[str, Any]] = None
+    metadata: dict[str, Any] = None
+
     def __post_init__(self):
         if self.metadata is None:
             self.metadata = {}
@@ -21,65 +23,67 @@ class ConversationContext:
 
 class ConversationalMemory(BaseMemory):
     """Memory for conversational contexts and chat history."""
-    
+
     def __init__(self, max_messages: int = 100):
         super().__init__()
-        self._messages: List[Dict] = []
+        self._messages: list[dict] = []
         self._max_messages = max_messages
-        self._context: Dict[str, Any] = {}
-    
-    async def store(self, key: str, value: Any, metadata: Optional[Dict] = None) -> bool:
+        self._context: dict[str, Any] = {}
+
+    async def store(
+        self, key: str, value: Any, metadata: Optional[dict] = None
+    ) -> bool:
         """Store a conversational item."""
         message = {
             "key": key,
             "value": value,
             "metadata": metadata or {},
             "timestamp": datetime.now().isoformat(),
-            "role": metadata.get("role", "user") if metadata else "user"
+            "role": metadata.get("role", "user") if metadata else "user",
         }
-        
+
         self._messages.append(message)
-        
+
         # Keep only recent messages
         if len(self._messages) > self._max_messages:
-            self._messages = self._messages[-self._max_messages:]
-        
+            self._messages = self._messages[-self._max_messages :]
+
         self._storage[key] = message
         return True
-    
+
     async def retrieve(self, key: str) -> Optional[Any]:
         """Retrieve a message by key."""
         message = self._storage.get(key)
         return message["value"] if message else None
-    
-    async def search(self, query: str, limit: int = 10) -> List[Dict]:
+
+    async def search(self, query: str, limit: int = 10) -> list[dict]:
         """Search conversation history by query."""
         matching_messages = []
         query_lower = query.lower()
-        
-        for message in self._messages[-limit*2:]:  # Search in recent messages
+
+        for message in self._messages[-limit * 2 :]:  # Search in recent messages
             message_text = str(message.get("value", "")).lower()
             if query_lower in message_text:
                 matching_messages.append(message)
                 if len(matching_messages) >= limit:
                     break
-        
+
         return matching_messages
-    
+
     async def clear(self) -> bool:
         """Clear conversation history."""
         self._messages.clear()
         self._context.clear()
         self._storage.clear()
         return True
-    
-    def get_conversation_history(self, limit: Optional[int] = None) -> List[Dict]:
+
+    def get_conversation_history(self, limit: Optional[int] = None) -> list[dict]:
         """Get conversation history."""
         if limit:
             return self._messages[-limit:]
         return self._messages
 
-    async def get_recent_messages(self, session_id: str, limit: int = 10) -> List[Dict]:
+    async def get_recent_messages(self, session_id: str, limit: int = 10) -> list[dict]:
         """
         Get recent messages for a session.
 
@@ -96,7 +100,7 @@ class ConversationalMemory(BaseMemory):
             {
                 "role": msg.get("role", "user"),
                 "content": msg.get("value", ""),
-                "timestamp": msg.get("timestamp")
+                "timestamp": msg.get("timestamp"),
             }
             for msg in recent
         ]
@@ -106,19 +110,17 @@ class ConversationalMemory(BaseMemory):
         role: str = None,
         content: str = None,
         session_id: str = None,
-        metadata: Optional[Dict] = None
+        metadata: Optional[dict] = None,
     ) -> None:
         """Add a message to conversation history (async version)."""
         await self.store(
-            f"msg_{len(self._messages)}",
-            content,
-            {**(metadata or {}), "role": role}
+            f"msg_{len(self._messages)}", content, {**(metadata or {}), "role": role}
         )
-    
+
     def set_context(self, key: str, value: Any) -> None:
         """Set conversation context."""
         self._context[key] = value
-    
+
     def get_context(self, key: str) -> Any:
         """Get conversation context."""
         return self._context.get(key)

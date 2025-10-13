@@ -9,11 +9,10 @@ These tasks run continuously to monitor government contracts
 and trigger investigations on suspicious patterns.
 """
 
-from typing import Dict, Any, Optional
-from datetime import datetime
 import asyncio
+from datetime import datetime
+from typing import Any, Optional
 
-from celery import group
 from celery.utils.log import get_task_logger
 
 from src.infrastructure.queue.celery_app import celery_app
@@ -24,9 +23,8 @@ logger = get_task_logger(__name__)
 
 @celery_app.task(name="tasks.auto_monitor_new_contracts", queue="normal")
 def auto_monitor_new_contracts(
-    lookback_hours: int = 24,
-    organization_codes: Optional[list] = None
-) -> Dict[str, Any]:
+    lookback_hours: int = 24, organization_codes: Optional[list] = None
+) -> dict[str, Any]:
     """
     Monitor and investigate new contracts (runs every N hours).
 
@@ -37,10 +35,7 @@ def auto_monitor_new_contracts(
     Returns:
         Monitoring results summary
     """
-    logger.info(
-        "auto_monitor_task_started",
-        lookback_hours=lookback_hours
-    )
+    logger.info("auto_monitor_task_started", lookback_hours=lookback_hours)
 
     try:
         loop = asyncio.new_event_loop()
@@ -49,8 +44,7 @@ def auto_monitor_new_contracts(
         try:
             result = loop.run_until_complete(
                 auto_investigation_service.monitor_new_contracts(
-                    lookback_hours=lookback_hours,
-                    organization_codes=organization_codes
+                    lookback_hours=lookback_hours, organization_codes=organization_codes
                 )
             )
 
@@ -58,7 +52,7 @@ def auto_monitor_new_contracts(
                 "auto_monitor_task_completed",
                 contracts_analyzed=result.get("contracts_analyzed"),
                 investigations_created=result.get("investigations_created"),
-                anomalies_detected=result.get("anomalies_detected")
+                anomalies_detected=result.get("anomalies_detected"),
             )
 
             return result
@@ -67,19 +61,14 @@ def auto_monitor_new_contracts(
             loop.close()
 
     except Exception as e:
-        logger.error(
-            "auto_monitor_task_failed",
-            error=str(e),
-            exc_info=True
-        )
+        logger.error("auto_monitor_task_failed", error=str(e), exc_info=True)
         raise
 
 
 @celery_app.task(name="tasks.auto_reanalyze_historical", queue="low")
 def auto_reanalyze_historical(
-    months_back: int = 6,
-    batch_size: int = 100
-) -> Dict[str, Any]:
+    months_back: int = 6, batch_size: int = 100
+) -> dict[str, Any]:
     """
     Re-analyze historical contracts with updated ML models (runs weekly).
 
@@ -90,10 +79,7 @@ def auto_reanalyze_historical(
     Returns:
         Reanalysis results summary
     """
-    logger.info(
-        "historical_reanalysis_task_started",
-        months_back=months_back
-    )
+    logger.info("historical_reanalysis_task_started", months_back=months_back)
 
     try:
         loop = asyncio.new_event_loop()
@@ -102,15 +88,14 @@ def auto_reanalyze_historical(
         try:
             result = loop.run_until_complete(
                 auto_investigation_service.reanalyze_historical_contracts(
-                    months_back=months_back,
-                    batch_size=batch_size
+                    months_back=months_back, batch_size=batch_size
                 )
             )
 
             logger.info(
                 "historical_reanalysis_task_completed",
                 contracts_analyzed=result.get("contracts_analyzed"),
-                anomalies_detected=result.get("anomalies_detected")
+                anomalies_detected=result.get("anomalies_detected"),
             )
 
             return result
@@ -119,16 +104,12 @@ def auto_reanalyze_historical(
             loop.close()
 
     except Exception as e:
-        logger.error(
-            "historical_reanalysis_task_failed",
-            error=str(e),
-            exc_info=True
-        )
+        logger.error("historical_reanalysis_task_failed", error=str(e), exc_info=True)
         raise
 
 
 @celery_app.task(name="tasks.auto_monitor_priority_orgs", queue="high")
-def auto_monitor_priority_orgs() -> Dict[str, Any]:
+def auto_monitor_priority_orgs() -> dict[str, Any]:
     """
     Monitor high-priority organizations more frequently (runs every 4 hours).
 
@@ -144,10 +125,7 @@ def auto_monitor_priority_orgs() -> Dict[str, Any]:
         # "20101",  # Ministério da Educação
     ]
 
-    logger.info(
-        "priority_orgs_monitor_started",
-        org_count=len(priority_orgs)
-    )
+    logger.info("priority_orgs_monitor_started", org_count=len(priority_orgs))
 
     try:
         loop = asyncio.new_event_loop()
@@ -157,14 +135,14 @@ def auto_monitor_priority_orgs() -> Dict[str, Any]:
             result = loop.run_until_complete(
                 auto_investigation_service.monitor_new_contracts(
                     lookback_hours=4,  # More frequent monitoring
-                    organization_codes=priority_orgs if priority_orgs else None
+                    organization_codes=priority_orgs if priority_orgs else None,
                 )
             )
 
             logger.info(
                 "priority_orgs_monitor_completed",
                 contracts_analyzed=result.get("contracts_analyzed"),
-                anomalies_detected=result.get("anomalies_detected")
+                anomalies_detected=result.get("anomalies_detected"),
             )
 
             return result
@@ -173,16 +151,12 @@ def auto_monitor_priority_orgs() -> Dict[str, Any]:
             loop.close()
 
     except Exception as e:
-        logger.error(
-            "priority_orgs_monitor_failed",
-            error=str(e),
-            exc_info=True
-        )
+        logger.error("priority_orgs_monitor_failed", error=str(e), exc_info=True)
         raise
 
 
 @celery_app.task(name="tasks.auto_investigation_health_check", queue="high")
-def auto_investigation_health_check() -> Dict[str, Any]:
+def auto_investigation_health_check() -> dict[str, Any]:
     """
     Health check for auto-investigation system (runs every hour).
 
@@ -201,8 +175,8 @@ def auto_investigation_health_check() -> Dict[str, Any]:
             "components": {
                 "transparency_api": "checking",
                 "investigation_service": "checking",
-                "agent_pool": "checking"
-            }
+                "agent_pool": "checking",
+            },
         }
 
         # Test transparency API
@@ -212,13 +186,19 @@ def auto_investigation_health_check() -> Dict[str, Any]:
 
             try:
                 # Quick test fetch
-                from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFilter
                 from datetime import timedelta
+
+                from src.tools.transparency_api import (
+                    TransparencyAPIClient,
+                    TransparencyAPIFilter,
+                )
 
                 api = TransparencyAPIClient()
                 filters = TransparencyAPIFilter(
-                    dataInicial=(datetime.utcnow() - timedelta(days=1)).strftime("%d/%m/%Y"),
-                    dataFinal=datetime.utcnow().strftime("%d/%m/%Y")
+                    dataInicial=(datetime.utcnow() - timedelta(days=1)).strftime(
+                        "%d/%m/%Y"
+                    ),
+                    dataFinal=datetime.utcnow().strftime("%d/%m/%Y"),
                 )
 
                 contracts = loop.run_until_complete(
@@ -236,7 +216,7 @@ def auto_investigation_health_check() -> Dict[str, Any]:
 
         # Test investigation service
         try:
-            from src.services.investigation_service_selector import investigation_service
+
             health["components"]["investigation_service"] = "healthy"
         except Exception as e:
             health["components"]["investigation_service"] = f"unhealthy: {str(e)}"
@@ -245,6 +225,7 @@ def auto_investigation_health_check() -> Dict[str, Any]:
         # Test agent pool
         try:
             from src.agents import get_agent_pool
+
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
 
@@ -259,20 +240,17 @@ def auto_investigation_health_check() -> Dict[str, Any]:
             health["status"] = "degraded"
 
         logger.info(
-            "auto_investigation_health_check_completed",
-            status=health["status"]
+            "auto_investigation_health_check_completed", status=health["status"]
         )
 
         return health
 
     except Exception as e:
         logger.error(
-            "auto_investigation_health_check_failed",
-            error=str(e),
-            exc_info=True
+            "auto_investigation_health_check_failed", error=str(e), exc_info=True
         )
         return {
             "status": "unhealthy",
             "error": str(e),
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
