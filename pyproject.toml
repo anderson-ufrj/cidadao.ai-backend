@@ -31,17 +31,17 @@ dependencies = [
     "uvicorn[standard]>=0.26.0",
     "typer>=0.9.0",
     "rich>=13.7.0",
-    
+
     # Data validation and serialization
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
-    
+
     # Database
     "sqlalchemy>=2.0.25",
     "alembic>=1.13.1",
     "asyncpg>=0.29.0",
     "redis>=5.0.1",
-    
+
     # AI/ML Core
     "langchain>=0.1.0",
     "langchain-community>=0.0.12",
@@ -50,7 +50,7 @@ dependencies = [
     "torch>=2.1.0",
     "faiss-cpu>=1.7.4",
     "chromadb>=0.4.22",
-    
+
     # ML/Data Science
     "scikit-learn>=1.3.2",
     "pandas>=2.1.4",
@@ -63,22 +63,22 @@ dependencies = [
     "lime>=0.2.0.1",
     "mlflow>=2.9.0",
     "joblib>=1.3.2",
-    
+
     # Async processing
     "celery[redis]>=5.3.4",
     "flower>=2.0.1",
-    
+
     # HTTP and API clients
     "httpx>=0.26.0",
     "aiohttp>=3.9.1",
-    
+
     # Monitoring and logging
     "opentelemetry-api>=1.22.0",
     "opentelemetry-sdk>=1.22.0",
     "opentelemetry-instrumentation-fastapi>=0.43b0",
     "prometheus-client>=0.19.0",
     "structlog>=24.1.0",
-    
+
     # Utils
     "python-multipart>=0.0.6",
     "python-jose[cryptography]>=3.3.0",
@@ -93,7 +93,7 @@ dependencies = [
 # HuggingFace Spaces minimal dependencies
 hf = [
     "fastapi>=0.109.0",
-    "uvicorn[standard]>=0.26.0", 
+    "uvicorn[standard]>=0.26.0",
     "pydantic>=2.5.0",
     "pydantic-settings>=2.1.0",
     "httpx>=0.27.0",
@@ -116,28 +116,28 @@ dev = [
     "pytest-xdist>=3.5.0",
     "pytest-timeout>=2.2.0",
     "faker>=22.0.0",
-    
+
     # Code quality
     "black>=23.12.1",
     "ruff>=0.1.11",
     "mypy>=1.8.0",
     "isort>=5.13.2",
     "pre-commit>=3.6.0",
-    
+
     # Type stubs
     "types-redis>=4.6.0.20240106",
     "types-requests>=2.31.0.20240106",
     "types-python-jose>=3.3.4.20240106",
-    
+
     # Security
     "safety>=3.0.1",
     "bandit>=1.7.6",
-    
+
     # Documentation
     "mkdocs>=1.5.3",
     "mkdocs-material>=9.5.3",
     "mkdocstrings[python]>=0.24.0",
-    
+
     # Development tools
     "ipython>=8.19.0",
     "ipdb>=0.13.13",
@@ -191,7 +191,7 @@ extend-exclude = '''
 
 [tool.ruff]
 select = ["E", "F", "I", "N", "W", "B", "C90", "UP", "ANN", "S", "A", "C4", "RET", "SIM", "PL"]
-ignore = ["E501", "ANN101", "ANN102", "S101"]
+ignore = ["E501", "ANN101", "ANN102", "S101", "B008"]
 fixable = ["ALL"]
 unfixable = []
 line-length = 88
@@ -200,6 +200,7 @@ target-version = "py311"
 [tool.ruff.per-file-ignores]
 "tests/*" = ["S101", "ANN", "PLR2004"]
 "scripts/*" = ["S101", "ANN"]
+"src/api/routes/*" = ["ANN201", "B008", "B904"]
 
 [tool.mypy]
 python_version = "3.11"
