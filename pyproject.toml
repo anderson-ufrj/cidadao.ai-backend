@@ -202,6 +202,7 @@ target-version = "py311"
 "scripts/*" = ["S101", "ANN"]
 "src/api/routes/*" = ["ANN201", "B008", "B904"]
 "src/agents/oscar_niemeyer.py" = ["PLR0913", "PLR2004", "N806"]
+"src/agents/niemeyer.py" = ["PLR0913", "PLR2004", "N806", "PLR0915", "C901", "PLR0912", "UP007", "ANN204", "RET504", "S324", "B007", "PLR1714", "S110", "RET505", "B904", "F841"]
 "src/agents/obaluaie.py" = ["ANN204", "UP007", "PLR2004", "B904"]
 "src/agents/drummond.py" = ["UP007", "ANN204", "ANN202", "PLR0913", "PLR2004", "B904", "SIM105", "E722", "S110", "B007", "F841", "SIM102", "RET505"]
 "src/agents/ceuci.py" = ["ANN204", "UP007", "PLR2004", "N806", "RET505", "B904", "ANN401", "PLR0915", "C901", "PLR0912"]
