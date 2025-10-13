@@ -1,5 +1,11 @@
 # CORS Configuration Guide
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## Overview
 
 The Cidadão.AI backend uses an enhanced CORS (Cross-Origin Resource Sharing) middleware specifically optimized for integration with Vercel-deployed frontends and other modern deployment platforms.

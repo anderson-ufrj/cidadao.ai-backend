@@ -1,8 +1,14 @@
 # 🚀 Guia Completo de Integração Frontend - Cidadão.AI Backend API
 
-**Versão**: 1.0.0  
-**Última Atualização**: Janeiro 2025  
-**Backend URL**: https://neural-thinker-cidadao-ai-backend.hf.space/  
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
+**Versão**: 1.0.0
+**Última Atualização**: Janeiro 2025
+**Backend URL**: https://neural-thinker-cidadao-ai-backend.hf.space/
 **Documentação Interativa**: https://neural-thinker-cidadao-ai-backend.hf.space/docs
 
 ## 📋 Índice
@@ -105,7 +111,7 @@ class ApiClient {
 
         if (error.response?.status === 401 && !originalRequest._retry) {
           originalRequest._retry = true
-          
+
           try {
             await this.refreshToken()
             const newToken = this.getAccessToken()
@@ -222,12 +228,12 @@ async function login(email: string, password: string): Promise<LoginResponse> {
     email,
     password
   })
-  
+
   // Salvar tokens
   localStorage.setItem('access_token', response.access_token)
   localStorage.setItem('refresh_token', response.refresh_token)
   localStorage.setItem('user', JSON.stringify(response.user))
-  
+
   return response
 }
 ```
@@ -248,15 +254,15 @@ interface RefreshResponse {
 
 async function refreshAccessToken(): Promise<RefreshResponse> {
   const refreshToken = localStorage.getItem('refresh_token')
-  
+
   const response = await apiClient.post<RefreshResponse>('/auth/refresh', {
     refresh_token: refreshToken
   })
-  
+
   // Atualizar tokens
   localStorage.setItem('access_token', response.access_token)
   localStorage.setItem('refresh_token', response.refresh_token)
-  
+
   return response
 }
 ```
@@ -272,7 +278,7 @@ async function logout(): Promise<void> {
     localStorage.removeItem('access_token')
     localStorage.removeItem('refresh_token')
     localStorage.removeItem('user')
-    
+
     // Redirecionar para login
     window.location.href = '/login'
   }
@@ -345,13 +351,13 @@ interface StreamToken {
 function streamChatMessage(message: string, sessionId?: string): EventSource {
   const token = localStorage.getItem('access_token')
   const url = `${API_BASE_URL}/api/v1/chat/stream?token=${token}`
-  
+
   const eventSource = new EventSource(url, {
     headers: {
       'Content-Type': 'application/json',
     }
   })
-  
+
   // Enviar mensagem inicial
   fetch(url, {
     method: 'POST',
@@ -364,7 +370,7 @@ function streamChatMessage(message: string, sessionId?: string): EventSource {
       session_id: sessionId
     })
   })
-  
+
   return eventSource
 }
 
@@ -373,7 +379,7 @@ const eventSource = streamChatMessage('Analise os contratos de 2024', sessionId)
 
 eventSource.onmessage = (event) => {
   const data: StreamToken = JSON.parse(event.data)
-  
+
   switch (data.type) {
     case 'token':
       // Adicionar token à resposta
@@ -739,17 +745,17 @@ export class WebSocketClient {
   connect(endpoint: string, token: string): Promise<void> {
     return new Promise((resolve, reject) => {
       const url = `${this.baseUrl}${endpoint}?token=${token}`
-      
+
       try {
         this.ws = new WebSocket(url)
-        
+
         this.ws.onopen = () => {
           console.log('WebSocket connected')
           this.reconnectAttempts = 0
           this.startHeartbeat()
           resolve()
         }
-        
+
         this.ws.onmessage = (event) => {
           try {
             const data = JSON.parse(event.data)
@@ -758,12 +764,12 @@ export class WebSocketClient {
             console.error('Failed to parse WebSocket message:', error)
           }
         }
-        
+
         this.ws.onerror = (error) => {
           console.error('WebSocket error:', error)
           reject(error)
         }
-        
+
         this.ws.onclose = () => {
           console.log('WebSocket disconnected')
           this.stopHeartbeat()
@@ -777,12 +783,12 @@ export class WebSocketClient {
 
   private handleMessage(data: any) {
     const { type, payload } = data
-    
+
     const handlers = this.eventHandlers.get(type)
     if (handlers) {
       handlers.forEach(handler => handler(payload))
     }
-    
+
     // Handler global
     const globalHandlers = this.eventHandlers.get('*')
     if (globalHandlers) {
@@ -829,9 +835,9 @@ export class WebSocketClient {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++
       const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1)
-      
+
       console.log(`Reconnecting in ${delay}ms... (attempt ${this.reconnectAttempts})`)
-      
+
       setTimeout(() => {
         this.connect(endpoint, token)
       }, delay)
@@ -946,42 +952,42 @@ export function useInvestigationWebSocket(investigationId: string) {
   const [progress, setProgress] = useState(0)
   const [findings, setFindings] = useState<any[]>([])
   const [logs, setLogs] = useState<string[]>([])
-  
+
   useEffect(() => {
     if (!investigationId) return
-    
+
     const token = localStorage.getItem('access_token')
     const wsClient = new WebSocketClient(process.env.NEXT_PUBLIC_WS_URL!)
-    
+
     wsClient.connect(`/api/v1/ws/investigations/${investigationId}`, token!)
       .then(() => {
         console.log('Connected to investigation WebSocket')
       })
-    
+
     wsClient.on('status_update', (payload: { status: string, progress: number }) => {
       setStatus(payload.status)
       setProgress(payload.progress)
     })
-    
+
     wsClient.on('finding', (payload: any) => {
       setFindings(prev => [...prev, payload])
     })
-    
+
     wsClient.on('log', (payload: { message: string, level: string }) => {
       setLogs(prev => [...prev, `[${payload.level}] ${payload.message}`])
     })
-    
+
     wsClient.on('complete', (payload: { results: any }) => {
       setStatus('completed')
       setProgress(100)
       // Processar resultados finais
     })
-    
+
     return () => {
       wsClient.disconnect()
     }
   }, [investigationId])
-  
+
   return { status, progress, findings, logs }
 }
 ```
@@ -1009,26 +1015,26 @@ export function ChatInterface({ sessionId: initialSessionId }: ChatInterfaceProp
   const [isLoading, setIsLoading] = useState(false)
   const [isStreaming, setIsStreaming] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  
-  const { 
+
+  const {
     messages: wsMessages,
     isConnected,
     sendMessage: wsSendMessage,
     sendTypingIndicator
   } = useWebSocketChat(sessionId)
-  
+
   // Carregar histórico ao montar
   useEffect(() => {
     if (sessionId) {
       loadChatHistory()
     }
   }, [sessionId])
-  
+
   // Scroll automático
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages, wsMessages])
-  
+
   const loadChatHistory = async () => {
     try {
       const history = await apiClient.get(
@@ -1039,20 +1045,20 @@ export function ChatInterface({ sessionId: initialSessionId }: ChatInterfaceProp
       console.error('Failed to load chat history:', error)
     }
   }
-  
+
   const sendMessage = async () => {
     if (!input.trim()) return
-    
+
     const userMessage = {
       role: 'user',
       content: input,
       timestamp: new Date().toISOString()
     }
-    
+
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setIsLoading(true)
-    
+
     try {
       // Se WebSocket conectado, usar WebSocket
       if (isConnected) {
@@ -1063,11 +1069,11 @@ export function ChatInterface({ sessionId: initialSessionId }: ChatInterfaceProp
           message: input,
           session_id: sessionId
         })
-        
+
         if (!sessionId) {
           setSessionId(response.session_id)
         }
-        
+
         setMessages(prev => [...prev, {
           role: 'assistant',
           content: response.response,
@@ -1082,35 +1088,35 @@ export function ChatInterface({ sessionId: initialSessionId }: ChatInterfaceProp
       setIsLoading(false)
     }
   }
-  
+
   const streamMessage = () => {
     if (!input.trim()) return
-    
+
     const userMessage = {
       role: 'user',
       content: input,
       timestamp: new Date().toISOString()
     }
-    
+
     setMessages(prev => [...prev, userMessage])
     setInput('')
     setIsStreaming(true)
-    
+
     let assistantMessage = {
       role: 'assistant',
       content: '',
       timestamp: new Date().toISOString(),
       isStreaming: true
     }
-    
+
     setMessages(prev => [...prev, assistantMessage])
-    
+
     // Usar SSE para streaming
     const eventSource = streamChatMessage(input, sessionId)
-    
+
     eventSource.onmessage = (event) => {
       const data = JSON.parse(event.data)
-      
+
       if (data.type === 'token') {
         assistantMessage.content += data.content
         setMessages(prev => {
@@ -1130,13 +1136,13 @@ export function ChatInterface({ sessionId: initialSessionId }: ChatInterfaceProp
         eventSource.close()
       }
     }
-    
+
     eventSource.onerror = () => {
       setIsStreaming(false)
       eventSource.close()
     }
   }
-  
+
   return (
     <div className="chat-container">
       <div className="messages-container">
@@ -1146,7 +1152,7 @@ export function ChatInterface({ sessionId: initialSessionId }: ChatInterfaceProp
         {isLoading && <LoadingIndicator />}
         <div ref={messagesEndRef} />
       </div>
-      
+
       <div className="input-container">
         <input
           type="text"
@@ -1165,22 +1171,22 @@ export function ChatInterface({ sessionId: initialSessionId }: ChatInterfaceProp
           placeholder="Digite sua mensagem..."
           disabled={isLoading || isStreaming}
         />
-        
-        <button 
+
+        <button
           onClick={sendMessage}
           disabled={isLoading || isStreaming || !input.trim()}
         >
           Enviar
         </button>
-        
-        <button 
+
+        <button
           onClick={streamMessage}
           disabled={isLoading || isStreaming || !input.trim()}
         >
           Stream
         </button>
       </div>
-      
+
       {isConnected && (
         <div className="connection-status">
           <span className="status-dot online" />
@@ -1204,12 +1210,12 @@ export function InvestigationsDashboard() {
   const [investigations, setInvestigations] = useState<any[]>([])
   const [selectedInvestigation, setSelectedInvestigation] = useState<string>('')
   const [isCreating, setIsCreating] = useState(false)
-  
+
   // Carregar investigações
   useEffect(() => {
     loadInvestigations()
   }, [])
-  
+
   const loadInvestigations = async () => {
     try {
       const data = await apiClient.get('/api/v1/investigations/history')
@@ -1218,7 +1224,7 @@ export function InvestigationsDashboard() {
       console.error('Failed to load investigations:', error)
     }
   }
-  
+
   const createInvestigation = async (data: any) => {
     setIsCreating(true)
     try {
@@ -1229,7 +1235,7 @@ export function InvestigationsDashboard() {
         parameters: data.parameters,
         priority: 'high'
       })
-      
+
       setInvestigations(prev => [investigation, ...prev])
       setSelectedInvestigation(investigation.id)
     } catch (error) {
@@ -1238,7 +1244,7 @@ export function InvestigationsDashboard() {
       setIsCreating(false)
     }
   }
-  
+
   return (
     <div className="investigations-dashboard">
       <div className="investigations-list">
@@ -1246,7 +1252,7 @@ export function InvestigationsDashboard() {
         <button onClick={() => setIsCreating(true)}>
           Nova Investigação
         </button>
-        
+
         {investigations.map(inv => (
           <InvestigationCard
             key={inv.id}
@@ -1256,13 +1262,13 @@ export function InvestigationsDashboard() {
           />
         ))}
       </div>
-      
+
       <div className="investigation-detail">
         {selectedInvestigation && (
           <InvestigationDetail investigationId={selectedInvestigation} />
         )}
       </div>
-      
+
       {isCreating && (
         <CreateInvestigationModal
           onClose={() => setIsCreating(false)}
@@ -1277,13 +1283,13 @@ export function InvestigationsDashboard() {
 function InvestigationDetail({ investigationId }: { investigationId: string }) {
   const { status, progress, findings, logs } = useInvestigationWebSocket(investigationId)
   const [results, setResults] = useState<any>(null)
-  
+
   useEffect(() => {
     if (status === 'completed') {
       loadResults()
     }
   }, [status])
-  
+
   const loadResults = async () => {
     try {
       const data = await apiClient.get(
@@ -1294,14 +1300,14 @@ function InvestigationDetail({ investigationId }: { investigationId: string }) {
       console.error('Failed to load results:', error)
     }
   }
-  
+
   return (
     <div className="investigation-detail-container">
       <div className="status-header">
         <h3>Status: {status}</h3>
         <ProgressBar value={progress} />
       </div>
-      
+
       {status === 'running' && (
         <>
           <div className="findings-section">
@@ -1310,7 +1316,7 @@ function InvestigationDetail({ investigationId }: { investigationId: string }) {
               <FindingCard key={i} finding={finding} />
             ))}
           </div>
-          
+
           <div className="logs-section">
             <h4>Logs</h4>
             <div className="logs-container">
@@ -1321,7 +1327,7 @@ function InvestigationDetail({ investigationId }: { investigationId: string }) {
           </div>
         </>
       )}
-      
+
       {status === 'completed' && results && (
         <InvestigationResults results={results} />
       )}
@@ -1341,17 +1347,17 @@ export function useDataAnalysis() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [results, setResults] = useState<any>(null)
   const [error, setError] = useState<string | null>(null)
-  
+
   const analyzePatterns = async (data: any[], config?: any) => {
     setIsAnalyzing(true)
     setError(null)
-    
+
     try {
       const response = await apiClient.post('/api/v1/analysis/patterns', {
         data,
         analysis_config: config
       })
-      
+
       setResults(response)
       return response
     } catch (err: any) {
@@ -1361,18 +1367,18 @@ export function useDataAnalysis() {
       setIsAnalyzing(false)
     }
   }
-  
+
   const analyzeTrends = async (metric: string, data: any[], options?: any) => {
     setIsAnalyzing(true)
     setError(null)
-    
+
     try {
       const response = await apiClient.post('/api/v1/analysis/trends', {
         metric,
         data,
         ...options
       })
-      
+
       setResults(response)
       return response
     } catch (err: any) {
@@ -1382,17 +1388,17 @@ export function useDataAnalysis() {
       setIsAnalyzing(false)
     }
   }
-  
+
   const detectAnomalies = async (data: any) => {
     setIsAnalyzing(true)
     setError(null)
-    
+
     try {
       const response = await apiClient.post('/api/v1/agents/zumbi', {
         data,
         analysis_type: 'full'
       })
-      
+
       setResults(response)
       return response
     } catch (err: any) {
@@ -1402,7 +1408,7 @@ export function useDataAnalysis() {
       setIsAnalyzing(false)
     }
   }
-  
+
   return {
     isAnalyzing,
     results,
@@ -1644,10 +1650,10 @@ export interface Visualization {
   interactive: boolean
 }
 
-export type VisualizationType = 
-  | 'line_chart' 
-  | 'bar_chart' 
-  | 'pie_chart' 
+export type VisualizationType =
+  | 'line_chart'
+  | 'bar_chart'
+  | 'pie_chart'
   | 'scatter_plot'
   | 'heatmap'
   | 'network_graph'
@@ -1675,7 +1681,7 @@ export interface Notification {
   action_url?: string
 }
 
-export type NotificationType = 
+export type NotificationType =
   | 'anomaly_detected'
   | 'investigation_complete'
   | 'report_ready'
@@ -1749,32 +1755,32 @@ export class ApiErrorHandler {
     if (error.response) {
       // Erro da API
       const { status, data } = error.response
-      
+
       switch (status) {
         case 400:
           throw new BadRequestError(data.message || 'Requisição inválida', data)
-        
+
         case 401:
           throw new UnauthorizedError(data.message || 'Não autorizado', data)
-        
+
         case 403:
           throw new ForbiddenError(data.message || 'Acesso negado', data)
-        
+
         case 404:
           throw new NotFoundError(data.message || 'Recurso não encontrado', data)
-        
+
         case 422:
           throw new ValidationError(data.message || 'Erro de validação', data.validation_errors)
-        
+
         case 429:
           throw new RateLimitError(
             data.message || 'Limite de requisições excedido',
             data.retry_after
           )
-        
+
         case 500:
           throw new ServerError(data.message || 'Erro interno do servidor', data)
-        
+
         default:
           throw new ApiError(data.message || 'Erro desconhecido', status, data)
       }
@@ -1839,7 +1845,7 @@ import { ApiError, ValidationError, RateLimitError } from '@/utils/error-handler
 export function useApiError() {
   const [error, setError] = useState<ApiError | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  
+
   const execute = useCallback(async <T>(
     apiCall: () => Promise<T>,
     options?: {
@@ -1850,7 +1856,7 @@ export function useApiError() {
   ): Promise<T | null> => {
     setIsLoading(true)
     setError(null)
-    
+
     try {
       const result = await apiCall()
       options?.onSuccess?.(result)
@@ -1860,24 +1866,24 @@ export function useApiError() {
         err.message || 'Erro desconhecido',
         500
       )
-      
+
       setError(apiError)
       options?.onError?.(apiError)
-      
+
       if (options?.showToast) {
         showErrorToast(apiError)
       }
-      
+
       return null
     } finally {
       setIsLoading(false)
     }
   }, [])
-  
+
   const clearError = useCallback(() => {
     setError(null)
   }, [])
-  
+
   return {
     error,
     isLoading,
@@ -1889,7 +1895,7 @@ export function useApiError() {
 // Função auxiliar para mostrar toast
 function showErrorToast(error: ApiError) {
   let message = error.message
-  
+
   if (error instanceof ValidationError) {
     message = error.validationErrors
       .map(err => `${err.field}: ${err.message}`)
@@ -1897,7 +1903,7 @@ function showErrorToast(error: ApiError) {
   } else if (error instanceof RateLimitError) {
     message = `${error.message}. Tente novamente em ${error.retryAfter}s`
   }
-  
+
   // Implementar toast notification
   console.error('Toast:', message)
 }
@@ -1925,20 +1931,20 @@ interface RateLimitHeaders {
 export class RateLimitHandler {
   private static instance: RateLimitHandler
   private limitInfo: Map<string, RateLimitInfo> = new Map()
-  
+
   static getInstance(): RateLimitHandler {
     if (!RateLimitHandler.instance) {
       RateLimitHandler.instance = new RateLimitHandler()
     }
     return RateLimitHandler.instance
   }
-  
+
   updateFromHeaders(endpoint: string, headers: any) {
     const limit = parseInt(headers['x-ratelimit-limit'] || '0')
     const remaining = parseInt(headers['x-ratelimit-remaining'] || '0')
     const reset = parseInt(headers['x-ratelimit-reset'] || '0')
     const tier = headers['x-ratelimit-tier'] || 'free'
-    
+
     this.limitInfo.set(endpoint, {
       limit,
       remaining,
@@ -1946,26 +1952,26 @@ export class RateLimitHandler {
       tier
     })
   }
-  
+
   getRemainingRequests(endpoint: string): number {
     const info = this.limitInfo.get(endpoint)
     return info?.remaining ?? -1
   }
-  
+
   getResetTime(endpoint: string): Date | null {
     const info = this.limitInfo.get(endpoint)
     return info ? new Date(info.reset * 1000) : null
   }
-  
+
   shouldThrottle(endpoint: string, threshold: number = 10): boolean {
     const remaining = this.getRemainingRequests(endpoint)
     return remaining !== -1 && remaining < threshold
   }
-  
+
   getWaitTime(endpoint: string): number {
     const resetTime = this.getResetTime(endpoint)
     if (!resetTime) return 0
-    
+
     const now = new Date()
     const waitMs = resetTime.getTime() - now.getTime()
     return Math.max(0, Math.ceil(waitMs / 1000))
@@ -1976,7 +1982,7 @@ export class RateLimitHandler {
 export function useRateLimit(endpoint: string) {
   const [limitInfo, setLimitInfo] = useState<RateLimitInfo | null>(null)
   const handler = RateLimitHandler.getInstance()
-  
+
   useEffect(() => {
     // Atualizar a cada segundo
     const interval = setInterval(() => {
@@ -1985,10 +1991,10 @@ export function useRateLimit(endpoint: string) {
         setLimitInfo({ ...info })
       }
     }, 1000)
-    
+
     return () => clearInterval(interval)
   }, [endpoint])
-  
+
   return {
     limit: limitInfo?.limit ?? 0,
     remaining: limitInfo?.remaining ?? 0,
@@ -2015,7 +2021,7 @@ interface ChatStore {
   sessions: Map<string, ChatSession>
   activeSessionId: string | null
   messages: Map<string, ChatMessage[]>
-  
+
   // Actions
   setActiveSession: (sessionId: string) => void
   addMessage: (sessionId: string, message: ChatMessage) => void
@@ -2029,20 +2035,20 @@ export const useChatStore = create<ChatStore>()(
       sessions: new Map(),
       activeSessionId: null,
       messages: new Map(),
-      
+
       setActiveSession: (sessionId) => set({ activeSessionId: sessionId }),
-      
+
       addMessage: (sessionId, message) => set((state) => {
         const messages = state.messages.get(sessionId) || []
         state.messages.set(sessionId, [...messages, message])
         return { messages: new Map(state.messages) }
       }),
-      
+
       loadSession: (session) => set((state) => {
         state.sessions.set(session.id, session)
         return { sessions: new Map(state.sessions) }
       }),
-      
+
       clearSession: (sessionId) => set((state) => {
         state.sessions.delete(sessionId)
         state.messages.delete(sessionId)
@@ -2089,7 +2095,7 @@ export function OptimizedMessageList({ messages }: { messages: ChatMessage[] }) 
       <MessageItem message={messages[index]} />
     </div>
   ), [messages])
-  
+
   return (
     <AutoSizer>
       {({ height, width }) => (
@@ -2114,31 +2120,31 @@ export function OptimizedMessageList({ messages }: { messages: ChatMessage[] }) 
 export class CacheManager {
   private static instance: CacheManager
   private cache: Map<string, { data: any, expires: number }> = new Map()
-  
+
   static getInstance(): CacheManager {
     if (!CacheManager.instance) {
       CacheManager.instance = new CacheManager()
     }
     return CacheManager.instance
   }
-  
+
   set(key: string, data: any, ttl: number = 300000) { // 5 minutos padrão
     const expires = Date.now() + ttl
     this.cache.set(key, { data, expires })
   }
-  
+
   get<T>(key: string): T | null {
     const item = this.cache.get(key)
     if (!item) return null
-    
+
     if (Date.now() > item.expires) {
       this.cache.delete(key)
       return null
     }
-    
+
     return item.data as T
   }
-  
+
   invalidate(pattern: string) {
     const keys = Array.from(this.cache.keys())
     keys.forEach(key => {
@@ -2147,7 +2153,7 @@ export class CacheManager {
       }
     })
   }
-  
+
   clear() {
     this.cache.clear()
   }
@@ -2167,7 +2173,7 @@ export function useCachedApi<T>(
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   const cache = CacheManager.getInstance()
-  
+
   const fetchData = useCallback(async () => {
     // Verificar cache primeiro
     const cached = cache.get<T>(key)
@@ -2176,7 +2182,7 @@ export function useCachedApi<T>(
       setIsLoading(false)
       return cached
     }
-    
+
     try {
       setIsLoading(true)
       const result = await fetcher()
@@ -2190,18 +2196,18 @@ export function useCachedApi<T>(
       setIsLoading(false)
     }
   }, [key, fetcher, options?.ttl])
-  
+
   useEffect(() => {
     if (options?.refetchOnMount !== false) {
       fetchData()
     }
-    
+
     if (options?.refetchInterval) {
       const interval = setInterval(fetchData, options.refetchInterval)
       return () => clearInterval(interval)
     }
   }, [])
-  
+
   return { data, isLoading, error, refetch: fetchData }
 }
 ```
@@ -2215,7 +2221,7 @@ export class Analytics {
     // Implementar tracking
     console.log('Track event:', event, properties)
   }
-  
+
   static trackApiCall(endpoint: string, duration: number, status: number) {
     this.trackEvent('api_call', {
       endpoint,
@@ -2224,7 +2230,7 @@ export class Analytics {
       timestamp: new Date().toISOString()
     })
   }
-  
+
   static trackError(error: Error, context?: any) {
     this.trackEvent('error', {
       message: error.message,
@@ -2233,7 +2239,7 @@ export class Analytics {
       timestamp: new Date().toISOString()
     })
   }
-  
+
   static trackPerformance(metric: string, value: number) {
     this.trackEvent('performance', {
       metric,
@@ -2286,7 +2292,7 @@ export class Security {
       .trim()
       .slice(0, 5000) // Limitar tamanho
   }
-  
+
   // Validar URLs
   static isValidUrl(url: string): boolean {
     try {
@@ -2296,7 +2302,7 @@ export class Security {
       return false
     }
   }
-  
+
   // Storage seguro
   static secureStorage = {
     setItem(key: string, value: any) {
@@ -2307,7 +2313,7 @@ export class Security {
         console.error('Failed to save to storage:', error)
       }
     },
-    
+
     getItem<T>(key: string): T | null {
       try {
         const encrypted = localStorage.getItem(key)
@@ -2317,7 +2323,7 @@ export class Security {
         return null
       }
     },
-    
+
     removeItem(key: string) {
       localStorage.removeItem(key)
     }

@@ -1,5 +1,11 @@
 # 📊 Reorganização do Repositório - Resumo Executivo
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 **Data**: 2025-10-07
 **Status**: ✅ Completa
 **Commit**: `4641729`

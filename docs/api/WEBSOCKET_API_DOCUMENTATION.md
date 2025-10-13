@@ -1,7 +1,13 @@
 # 🔌 WebSocket API Documentation
 
-**Status**: ✅ Implementado  
-**Versão**: 1.0.0  
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
+**Status**: ✅ Implementado
+**Versão**: 1.0.0
 **Data**: Setembro 2025
 
 ## 📋 Visão Geral
@@ -156,40 +162,40 @@ interface WebSocketMessage {
 class CidadaoAIWebSocket {
   private ws: WebSocket;
   private sessionId: string;
-  
+
   constructor(sessionId: string, token?: string) {
     this.sessionId = sessionId;
     const url = `ws://localhost:8000/api/v1/ws/chat/${sessionId}`;
     this.ws = new WebSocket(token ? `${url}?token=${token}` : url);
-    
+
     this.ws.onopen = () => {
       console.log('Conectado ao Cidadão.AI');
     };
-    
+
     this.ws.onmessage = (event) => {
       const message = JSON.parse(event.data);
       this.handleMessage(message);
     };
-    
+
     this.ws.onerror = (error) => {
       console.error('WebSocket error:', error);
     };
   }
-  
+
   sendMessage(text: string) {
     this.ws.send(JSON.stringify({
       type: 'chat',
       data: { message: text }
     }));
   }
-  
+
   subscribeToInvestigation(investigationId: string) {
     this.ws.send(JSON.stringify({
       type: 'subscribe',
       data: { investigation_id: investigationId }
     }));
   }
-  
+
   private handleMessage(message: WebSocketMessage) {
     switch (message.type) {
       case 'chat':
@@ -214,31 +220,31 @@ export function useCidadaoAIWebSocket(sessionId: string) {
   const [ws, setWs] = useState<WebSocket | null>(null);
   const [messages, setMessages] = useState<any[]>([]);
   const [isConnected, setIsConnected] = useState(false);
-  
+
   useEffect(() => {
     const websocket = new WebSocket(
       `ws://localhost:8000/api/v1/ws/chat/${sessionId}`
     );
-    
+
     websocket.onopen = () => {
       setIsConnected(true);
       setWs(websocket);
     };
-    
+
     websocket.onmessage = (event) => {
       const message = JSON.parse(event.data);
       setMessages(prev => [...prev, message]);
     };
-    
+
     websocket.onclose = () => {
       setIsConnected(false);
     };
-    
+
     return () => {
       websocket.close();
     };
   }, [sessionId]);
-  
+
   const sendMessage = (text: string) => {
     if (ws && isConnected) {
       ws.send(JSON.stringify({
@@ -247,7 +253,7 @@ export function useCidadaoAIWebSocket(sessionId: string) {
       }));
     }
   };
-  
+
   return { sendMessage, messages, isConnected };
 }
 ```
@@ -259,10 +265,10 @@ class ReconnectingWebSocket {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 1000; // Start with 1 second
-  
+
   connect() {
     this.ws = new WebSocket(this.url);
-    
+
     this.ws.onclose = () => {
       if (this.reconnectAttempts < this.maxReconnectAttempts) {
         setTimeout(() => {
@@ -272,7 +278,7 @@ class ReconnectingWebSocket {
         }, this.reconnectDelay);
       }
     };
-    
+
     this.ws.onopen = () => {
       this.reconnectAttempts = 0;
       this.reconnectDelay = 1000;

@@ -1,3 +1,11 @@
+# Zumbi
+
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ---
 title: "Zumbi dos Palmares - Investigator Agent"
 sidebar_position: 2
@@ -74,7 +82,7 @@ class InvestigatorAgent(ReflectiveAgent):
             description="Investigador especializado em anomalias",
             capabilities=[
                 "anomaly_detection",
-                "pattern_analysis", 
+                "pattern_analysis",
                 "fraud_detection",
                 "spectral_analysis",
                 "temporal_patterns"
@@ -170,7 +178,7 @@ response = await zumbi.process(message)
 ```python
 # Volumes processados
 - Pequeno (100 contratos): ~0.3s
-- Médio (1000 contratos): ~1.2s  
+- Médio (1000 contratos): ~1.2s
 - Grande (10000 contratos): ~8.5s
 - Extra Grande (100000 contratos): ~85s
 ```
@@ -214,7 +222,7 @@ pytest tests/unit/test_agents/test_zumbi.py -v
 
 # Testes específicos
 pytest -k "test_detect_price_anomalies"
-pytest -k "test_spectral_analysis" 
+pytest -k "test_spectral_analysis"
 pytest -k "test_vendor_concentration"
 
 # Com cobertura detalhada
@@ -307,5 +315,5 @@ graph LR
 
 ---
 
-**Anterior:** [← Visão Geral dos Agentes](./overview.md)  
+**Anterior:** [← Visão Geral dos Agentes](./overview.md)
 **Próximo:** [📊 Anita Garibaldi - Analyst Agent →](./anita.md)

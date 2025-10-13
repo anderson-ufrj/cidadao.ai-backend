@@ -1,6 +1,12 @@
 # 🌐 Integração com Portal da Transparência
 
-**Status**: ✅ Totalmente Implementada  
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
+**Status**: ✅ Totalmente Implementada
 **Modo de Operação**: Híbrido (API Real + Demo)
 
 ## 📋 Visão Geral
@@ -93,10 +99,10 @@ async with TransparencyAPIClient() as client:
         mes=1,
         valor_inicial=100000
     )
-    
+
     # Buscar contratos
     response = await client.get_contracts(filters)
-    
+
     # Response inclui metadados
     if response.is_demo:
         print("Usando dados de demonstração")
@@ -227,21 +233,21 @@ graph LR
     A[Request] --> B{API Key?}
     B -->|Sim| C[Portal da Transparência API]
     B -->|Não| D[Gerar Dados Demo]
-    
+
     C --> E{Cache?}
     E -->|Hit| F[Retorna Cache]
     E -->|Miss| G[Busca API]
-    
+
     G --> H{Rate Limit?}
     H -->|OK| I[Processa Dados]
     H -->|Excedido| J[Aguarda]
-    
+
     J --> G
     D --> K[Dados Sintéticos]
     I --> L[Análise de Anomalias]
     K --> L
     F --> L
-    
+
     L --> M[Retorna Resultado]
 ```
 

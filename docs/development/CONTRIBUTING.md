@@ -1,5 +1,11 @@
 # Contributing to Cidadão.AI
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 Thank you for your interest in contributing to Cidadão.AI! This guide will help you understand how to contribute effectively to our multi-agent transparency analysis system.
 
 ## 🤖 Agent Implementation Guide
@@ -31,14 +37,14 @@ from src.agents.deodoro import ReflectiveAgent, AgentMessage, AgentResponse
 class YourAgent(ReflectiveAgent):
     """
     Brief description of the agent's purpose.
-    
+
     This agent specializes in [specific domain].
     """
-    
+
     def __init__(self):
         super().__init__(
             agent_id="your_agent_id",
-            name="Full Agent Name", 
+            name="Full Agent Name",
             description="Detailed description of capabilities",
             capabilities=[
                 "capability_1",
@@ -46,27 +52,27 @@ class YourAgent(ReflectiveAgent):
                 # List all specific capabilities
             ]
         )
-        
+
     async def process(self, message: AgentMessage) -> AgentResponse:
         """
         Main processing logic for the agent.
-        
+
         Args:
             message: The agent message to process
-            
+
         Returns:
             AgentResponse with results
         """
         context = message.context
         content = message.content
-        
+
         # Your implementation logic here
         results = await self._analyze_data(content)
-        
+
         # Use reflection if quality is low
         if results.get("confidence", 0) < 0.8:
             return await self.reflect_and_retry(message, results)
-            
+
         return AgentResponse(
             agent_id=self.agent_id,
             message_id=message.message_id,
@@ -119,7 +125,7 @@ class TestYourAgent:
     @pytest.fixture
     def agent(self):
         return YourAgent()
-        
+
     @pytest.fixture
     def sample_message(self):
         return AgentMessage(
@@ -127,12 +133,12 @@ class TestYourAgent:
             sender="test",
             context=AgentContext(investigation_id="test-123")
         )
-        
+
     async def test_process_valid_data(self, agent, sample_message):
         response = await agent.process(sample_message)
         assert response.status == "success"
         assert "results" in response.content
-        
+
     async def test_handles_invalid_data(self, agent):
         # Test error handling
         pass

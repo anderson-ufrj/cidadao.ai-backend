@@ -1,5 +1,11 @@
 # 🧹 API Cleanup Plan - Remover Duplicações
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## 📊 Análise da Situação Atual
 
 ### 🔴 Problemas Identificados:

@@ -1,5 +1,11 @@
 # 🚀 Guia de Otimização Maritaca AI - Cidadão.AI
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## Resumo das Melhorias
 
 ### 1. Novo Endpoint Otimizado
@@ -43,7 +49,7 @@ export interface ChatEndpoint {
 
 export class ChatService {
   private readonly API_URL = process.env.NEXT_PUBLIC_API_URL
-  
+
   private endpoints: ChatEndpoint[] = [
     {
       url: '/api/v1/chat/optimized',
@@ -64,47 +70,47 @@ export class ChatService {
       model: 'mixed'
     }
   ]
-  
+
   async sendMessage(
-    message: string, 
+    message: string,
     options?: {
       preferredModel?: 'economic' | 'quality';
       useDrummond?: boolean;
     }
   ): Promise<ChatResponse> {
     const sessionId = `session_${Date.now()}`
-    
+
     // Select endpoint based on preference
     let selectedEndpoints = [...this.endpoints]
-    
+
     if (options?.preferredModel === 'economic') {
       // Prioritize Sabiazinho
-      selectedEndpoints.sort((a, b) => 
+      selectedEndpoints.sort((a, b) =>
         a.model === 'sabiazinho-3' ? -1 : 1
       )
     } else if (options?.preferredModel === 'quality') {
       // Prioritize Sabiá-3
-      selectedEndpoints.sort((a, b) => 
+      selectedEndpoints.sort((a, b) =>
         a.model === 'sabia-3' ? -1 : 1
       )
     }
-    
+
     // Try endpoints in order
     for (const endpoint of selectedEndpoints) {
       try {
         const body: any = { message, session_id: sessionId }
-        
+
         // Add Drummond flag for optimized endpoint
         if (endpoint.url.includes('optimized')) {
           body.use_drummond = options?.useDrummond ?? true
         }
-        
+
         const response = await fetch(`${this.API_URL}${endpoint.url}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body)
         })
-        
+
         if (response.ok) {
           const data = await response.json()
           console.log(`✅ Success with ${endpoint.name}`)
@@ -114,7 +120,7 @@ export class ChatService {
         console.warn(`Failed ${endpoint.name}:`, error)
       }
     }
-    
+
     // Ultimate fallback
     return {
       message: 'Desculpe, estou temporariamente indisponível.',
@@ -125,20 +131,20 @@ export class ChatService {
       metadata: { fallback: true }
     }
   }
-  
+
   // Analyze message to decide best model
   analyzeComplexity(message: string): 'simple' | 'complex' {
     const complexKeywords = [
       'analise', 'investigue', 'compare', 'tendência',
       'padrão', 'anomalia', 'detalhe', 'relatório'
     ]
-    
+
     const hasComplexKeyword = complexKeywords.some(
       keyword => message.toLowerCase().includes(keyword)
     )
-    
-    return hasComplexKeyword || message.length > 100 
-      ? 'complex' 
+
+    return hasComplexKeyword || message.length > 100
+      ? 'complex'
       : 'simple'
   }
 }
@@ -152,28 +158,28 @@ export function SmartChat() {
   const [messages, setMessages] = useState<Message[]>([])
   const [modelPreference, setModelPreference] = useState<'auto' | 'economic' | 'quality'>('auto')
   const chatService = new ChatService()
-  
+
   const handleSendMessage = async (text: string) => {
     // Add user message
     const userMessage = createUserMessage(text)
     setMessages(prev => [...prev, userMessage])
-    
+
     // Analyze complexity for auto mode
     let preference: 'economic' | 'quality' | undefined
-    
+
     if (modelPreference === 'auto') {
       const complexity = chatService.analyzeComplexity(text)
       preference = complexity === 'simple' ? 'economic' : 'quality'
     } else if (modelPreference !== 'auto') {
       preference = modelPreference
     }
-    
+
     // Send with appropriate model
     const response = await chatService.sendMessage(text, {
       preferredModel: preference,
       useDrummond: true // Enable cultural persona
     })
-    
+
     // Add response
     const assistantMessage = {
       ...createAssistantMessage(response),
@@ -183,9 +189,9 @@ export function SmartChat() {
         actual_model: response.model_used
       }
     }
-    
+
     setMessages(prev => [...prev, assistantMessage])
-    
+
     // Log for monitoring
     logChatMetrics({
       model_used: response.model_used,
@@ -194,14 +200,14 @@ export function SmartChat() {
       success: true
     })
   }
-  
+
   return (
     <div className="smart-chat">
       {/* Model preference selector */}
       <div className="model-selector">
         <label>Modo:</label>
-        <select 
-          value={modelPreference} 
+        <select
+          value={modelPreference}
           onChange={(e) => setModelPreference(e.target.value as any)}
         >
           <option value="auto">Automático</option>
@@ -209,15 +215,15 @@ export function SmartChat() {
           <option value="quality">Qualidade (Sabiá-3)</option>
         </select>
       </div>
-      
+
       {/* Chat messages */}
       <MessageList messages={messages} />
-      
+
       {/* Input */}
       <ChatInput onSend={handleSendMessage} />
-      
+
       {/* Status indicator */}
-      <ChatStatus 
+      <ChatStatus
         lastModel={messages[messages.length - 1]?.metadata?.actual_model}
         preference={modelPreference}
       />
@@ -232,12 +238,12 @@ export function SmartChat() {
 ```typescript
 class CachedChatService extends ChatService {
   private cache = new Map<string, CachedResponse>()
-  
+
   async sendMessage(message: string, options?: any) {
     // Check cache for common questions
     const cacheKey = this.normalizeMessage(message)
     const cached = this.cache.get(cacheKey)
-    
+
     if (cached && !this.isExpired(cached)) {
       return {
         ...cached.response,
@@ -247,10 +253,10 @@ class CachedChatService extends ChatService {
         }
       }
     }
-    
+
     // Get fresh response
     const response = await super.sendMessage(message, options)
-    
+
     // Cache if successful
     if (response.confidence > 0.8) {
       this.cache.set(cacheKey, {
@@ -258,7 +264,7 @@ class CachedChatService extends ChatService {
         timestamp: Date.now()
       })
     }
-    
+
     return response
   }
 }
@@ -269,28 +275,28 @@ class CachedChatService extends ChatService {
 class BatchedChatService extends ChatService {
   private queue: QueuedMessage[] = []
   private timer: NodeJS.Timeout | null = null
-  
+
   async sendMessage(message: string, options?: any) {
     return new Promise((resolve) => {
       this.queue.push({ message, options, resolve })
-      
+
       if (!this.timer) {
         this.timer = setTimeout(() => this.processBatch(), 100)
       }
     })
   }
-  
+
   private async processBatch() {
     const batch = this.queue.splice(0, 5) // Max 5 per batch
-    
+
     // Send all at once (if API supports)
     const responses = await this.sendBatch(batch)
-    
+
     // Resolve individual promises
     batch.forEach((item, index) => {
       item.resolve(responses[index])
     })
-    
+
     this.timer = null
   }
 }
@@ -309,20 +315,20 @@ export class ChatMetricsCollector {
     errorRate: 0,
     cacheHitRate: 0
   }
-  
+
   recordMetric(data: ChatMetric) {
     this.metrics.totalRequests++
-    
+
     // Track model usage
     const model = data.model_used || 'unknown'
     this.metrics.modelUsage.set(
       model,
       (this.metrics.modelUsage.get(model) || 0) + 1
     )
-    
+
     // Update averages
     this.updateAverages(data)
-    
+
     // Send to analytics (optional)
     if (window.gtag) {
       window.gtag('event', 'chat_interaction', {
@@ -332,17 +338,17 @@ export class ChatMetricsCollector {
       })
     }
   }
-  
+
   getCostEstimate(): number {
     const sabiazinhoCost = 0.001 // per request
     const sabia3Cost = 0.003 // per request
-    
+
     const sabiazinhoCount = this.metrics.modelUsage.get('sabiazinho-3') || 0
     const sabia3Count = this.metrics.modelUsage.get('sabia-3') || 0
-    
+
     return (sabiazinhoCount * sabiazinhoCost) + (sabia3Count * sabia3Cost)
   }
-  
+
   getReport() {
     return {
       ...this.metrics,

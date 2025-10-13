@@ -1,5 +1,11 @@
 # 🚀 Supabase Integration - Quick Start Guide
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## ⚡ Setup Rápido (5 minutos)
 
 ### 1️⃣ Executar Migration no Supabase
