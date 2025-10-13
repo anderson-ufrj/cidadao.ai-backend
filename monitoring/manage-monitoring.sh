@@ -55,7 +55,7 @@ start_monitoring() {
     chmod 777 monitoring/grafana/data
     
     # Start services
-    docker-compose -f docker-compose.monitoring.yml up -d
+    docker-compose -f config/docker/docker-compose.monitoring.yml up -d
     
     print_success "Monitoring stack started successfully!"
     print_status "Services available at:"
@@ -71,7 +71,7 @@ stop_monitoring() {
     print_status "Stopping Cidadão.AI monitoring stack..."
     
     cd "$PROJECT_DIR"
-    docker-compose -f docker-compose.monitoring.yml down
+    docker-compose -f config/docker/docker-compose.monitoring.yml down
     
     print_success "Monitoring stack stopped successfully!"
 }
@@ -89,7 +89,7 @@ status_monitoring() {
     print_status "Checking monitoring stack status..."
     
     cd "$PROJECT_DIR"
-    docker-compose -f docker-compose.monitoring.yml ps
+    docker-compose -f config/docker/docker-compose.monitoring.yml ps
 }
 
 # Function to view logs
@@ -100,10 +100,10 @@ logs_monitoring() {
     
     if [[ -n "$service" ]]; then
         print_status "Showing logs for service: $service"
-        docker-compose -f docker-compose.monitoring.yml logs -f "$service"
+        docker-compose -f config/docker/docker-compose.monitoring.yml logs -f "$service"
     else
         print_status "Showing logs for all monitoring services (use Ctrl+C to exit)"
-        docker-compose -f docker-compose.monitoring.yml logs -f
+        docker-compose -f config/docker/docker-compose.monitoring.yml logs -f
     fi
 }
 
@@ -117,7 +117,7 @@ cleanup_monitoring() {
         print_status "Stopping services and cleaning up data..."
         
         cd "$PROJECT_DIR"
-        docker-compose -f docker-compose.monitoring.yml down -v
+        docker-compose -f config/docker/docker-compose.monitoring.yml down -v
         
         # Remove data directories
         sudo rm -rf monitoring/prometheus/data/*
