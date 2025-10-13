@@ -7,7 +7,12 @@ License: Proprietary - All rights reserved
 """
 
 from .abaporu import InvestigationPlan, InvestigationResult, MasterAgent
+from .agent_pool import agent_pool, get_agent_pool
 from .anita import AnalystAgent
+from .ayrton_senna import SemanticRouter
+from .bonifacio import BonifacioAgent
+from .ceuci import PredictiveAgent
+from .dandara import DandaraAgent
 from .deodoro import (
     AgentContext,
     AgentMessage,
@@ -15,6 +20,10 @@ from .deodoro import (
     BaseAgent,
     ReflectiveAgent,
 )
+from .drummond import CommunicationAgent
+from .lampiao import LampiaoAgent
+from .machado import MachadoAgent
+from .maria_quiteria import MariaQuiteriaAgent
 from .nana import (
     ContextMemoryAgent,
     ConversationMemory,
@@ -22,6 +31,9 @@ from .nana import (
     MemoryEntry,
     SemanticMemory,
 )
+from .obaluaie import CorruptionDetectorAgent
+from .oscar_niemeyer import OscarNiemeyerAgent
+from .oxossi import OxossiAgent
 from .tiradentes import ReporterAgent
 from .zumbi import InvestigatorAgent
 
@@ -29,17 +41,12 @@ from .zumbi import InvestigatorAgent
 ZumbiAgent = InvestigatorAgent
 AnitaAgent = AnalystAgent
 TiradentesAgent = ReporterAgent
-from .agent_pool import agent_pool, get_agent_pool
-from .ayrton_senna import SemanticRouter
-from .bonifacio import BonifacioAgent
-from .dandara import DandaraAgent
-from .drummond import CommunicationAgent
-from .lampiao import LampiaoAgent
-from .machado import MachadoAgent
-from .maria_quiteria import MariaQuiteriaAgent
-from .obaluaie import CorruptionDetectorAgent
-from .oscar_niemeyer import OscarNiemeyerAgent
-from .oxossi import OxossiAgent
+CeuciAgent = PredictiveAgent
+DrummondAgent = CommunicationAgent
+ObaluaieAgent = CorruptionDetectorAgent
+AbaporuAgent = MasterAgent
+AyrtonSennaAgent = SemanticRouter
+NanaAgent = ContextMemoryAgent
 
 __all__ = [
     # Base classes
@@ -70,6 +77,13 @@ __all__ = [
     "AnitaAgent",
     "TiradentesAgent",
     "CommunicationAgent",
+    "DrummondAgent",
+    "CeuciAgent",
+    "PredictiveAgent",
+    "ObaluaieAgent",
+    "AbaporuAgent",
+    "AyrtonSennaAgent",
+    "NanaAgent",
     # Memory Agent
     "ContextMemoryAgent",
     "MemoryEntry",
