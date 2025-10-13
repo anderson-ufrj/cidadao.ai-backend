@@ -15,33 +15,33 @@ Created: 2025-10-12
 License: Proprietary - All rights reserved
 """
 
-from .ibge_client import IBGEClient
 from .datasus_client import DataSUSClient
-from .inep_client import INEPClient
 
 # Exceptions
 from .exceptions import (
+    AuthenticationError,
+    CacheError,
     FederalAPIError,
     NetworkError,
-    TimeoutError,
-    RateLimitError,
-    AuthenticationError,
     NotFoundError,
-    ServerError,
-    ValidationError,
     ParseError,
-    CacheError,
+    RateLimitError,
+    ServerError,
+    TimeoutError,
+    ValidationError,
     exception_from_response,
 )
+from .ibge_client import IBGEClient
+from .inep_client import INEPClient
 
 # Retry utilities
 from .retry import (
-    retry_with_backoff,
+    RetryContext,
+    aggressive_retry,
+    calculate_backoff,
     retry_on_network_error,
     retry_on_server_error,
-    aggressive_retry,
-    RetryContext,
-    calculate_backoff,
+    retry_with_backoff,
     should_retry_exception,
 )
 

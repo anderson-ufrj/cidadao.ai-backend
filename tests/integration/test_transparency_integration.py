@@ -9,24 +9,20 @@ Created: 2025-10-09
 License: Proprietary - All rights reserved
 """
 
-import pytest
 import asyncio
-from unittest.mock import AsyncMock, patch, Mock
-from typing import Dict, Any, List
+from unittest.mock import AsyncMock, patch
 
+import pytest
 from fastapi.testclient import TestClient
-from httpx import AsyncClient
 
+from src.agents.anita import AnalysisRequest, AnalystAgent
+from src.agents.deodoro import AgentContext, AgentStatus
+from src.agents.zumbi import InvestigationRequest, InvestigatorAgent
 from src.api.app import app
 from src.services.transparency_apis import (
+    TransparencyDataCollector,
     get_transparency_collector,
-    get_health_monitor,
-    TransparencyDataCollector
 )
-from src.agents.zumbi import InvestigatorAgent, InvestigationRequest
-from src.agents.anita import AnalystAgent, AnalysisRequest
-from src.agents.deodoro import AgentContext, AgentStatus
-
 
 # Test Client
 client = TestClient(app)
@@ -47,14 +43,11 @@ def mock_transparency_data():
                 "dataInicio": "20/01/2024",
                 "fornecedor": {
                     "nome": "Empresa XYZ Ltda",
-                    "cpfCnpj": "12.345.678/0001-90"
+                    "cpfCnpj": "12.345.678/0001-90",
                 },
-                "orgao": {
-                    "codigoOrgao": "26000",
-                    "nome": "Ministério da Saúde"
-                },
+                "orgao": {"codigoOrgao": "26000", "nome": "Ministério da Saúde"},
                 "modalidade": "Pregão Eletrônico",
-                "source": "federal_api"
+                "source": "federal_api",
             },
             {
                 "id": "67890",
@@ -64,9 +57,9 @@ def mock_transparency_data():
                 "dataAssinatura": "10/02/2024",
                 "fornecedor": {
                     "nome": "Tech Solutions S.A.",
-                    "cpfCnpj": "98.765.432/0001-11"
+                    "cpfCnpj": "98.765.432/0001-11",
                 },
-                "source": "tce_pe"
+                "source": "tce_pe",
             },
             {
                 "id": "11111",
@@ -76,10 +69,10 @@ def mock_transparency_data():
                 "dataAssinatura": "05/03/2024",
                 "fornecedor": {
                     "nome": "Empresa XYZ Ltda",  # Same supplier - concentration
-                    "cpfCnpj": "12.345.678/0001-90"
+                    "cpfCnpj": "12.345.678/0001-90",
                 },
-                "source": "ckan_sp"
-            }
+                "source": "ckan_sp",
+            },
         ],
         "expenses": [
             {
@@ -88,7 +81,7 @@ def mock_transparency_data():
                 "data": "25/01/2024",
                 "favorecido": "Empresa XYZ Ltda",
                 "tipo": "Fornecimento",
-                "source": "federal_api"
+                "source": "federal_api",
             }
         ],
         "suppliers": [
@@ -97,16 +90,16 @@ def mock_transparency_data():
                 "cpfCnpj": "12.345.678/0001-90",
                 "totalContratos": 2,
                 "valorTotal": 8500000.00,
-                "source": "federal_api"
+                "source": "federal_api",
             },
             {
                 "nome": "Tech Solutions S.A.",
                 "cpfCnpj": "98.765.432/0001-11",
                 "totalContratos": 1,
                 "valorTotal": 1200000.00,
-                "source": "tce_pe"
-            }
-        ]
+                "source": "tce_pe",
+            },
+        ],
     }
 
 
@@ -124,8 +117,8 @@ def mock_collector(mock_transparency_data):
         "metadata": {
             "collection_time": "2025-10-09T10:30:00",
             "filters_applied": ["state=None", "year=2024"],
-            "validation_enabled": True
-        }
+            "validation_enabled": True,
+        },
     }
 
     # Mock collect_expenses
@@ -134,7 +127,7 @@ def mock_collector(mock_transparency_data):
         "total": len(mock_transparency_data["expenses"]),
         "sources": ["federal_api"],
         "errors": [],
-        "metadata": {}
+        "metadata": {},
     }
 
     # Mock collect_suppliers
@@ -143,7 +136,7 @@ def mock_collector(mock_transparency_data):
         "total": len(mock_transparency_data["suppliers"]),
         "sources": ["federal_api", "tce_pe"],
         "errors": [],
-        "metadata": {}
+        "metadata": {},
     }
 
     # Mock analyze_contracts_for_anomalies
@@ -152,7 +145,7 @@ def mock_collector(mock_transparency_data):
             "total_contracts": 3,
             "anomaly_count": 2,
             "risk_score": 0.75,
-            "supplier_concentration": 0.67  # 2 out of 3 contracts from same supplier
+            "supplier_concentration": 0.67,  # 2 out of 3 contracts from same supplier
         },
         "anomalies": {
             "outlier_count": 1,
@@ -162,18 +155,16 @@ def mock_collector(mock_transparency_data):
                     "type": "price_outlier",
                     "severity": "high",
                     "value": 8000000.00,
-                    "z_score": 3.2
+                    "z_score": 3.2,
                 }
             ],
             "concentration": {
                 "top_supplier": "Empresa XYZ Ltda",
                 "concentration_percentage": 67,
-                "risk": "high"
-            }
+                "risk": "high",
+            },
         },
-        "metadata": {
-            "analysis_time": "2025-10-09T10:35:00"
-        }
+        "metadata": {"analysis_time": "2025-10-09T10:35:00"},
     }
 
     return collector
@@ -192,22 +183,20 @@ def mock_health_monitor():
             "federal_api": {
                 "status": "healthy",
                 "response_time": 450,
-                "last_check": "2025-10-09T10:30:00"
+                "last_check": "2025-10-09T10:30:00",
             },
             "tce_pe": {
                 "status": "healthy",
                 "response_time": 320,
-                "last_check": "2025-10-09T10:30:00"
+                "last_check": "2025-10-09T10:30:00",
             },
             "tce_ce": {
                 "status": "degraded",
                 "response_time": 1500,
-                "last_check": "2025-10-09T10:30:00"
-            }
+                "last_check": "2025-10-09T10:30:00",
+            },
         },
-        "metadata": {
-            "check_time": "2025-10-09T10:30:00"
-        }
+        "metadata": {"check_time": "2025-10-09T10:30:00"},
     }
 
     return monitor
@@ -219,14 +208,13 @@ class TestTransparencyRESTEndpoints:
     @pytest.mark.integration
     def test_get_contracts_endpoint(self, mock_collector):
         """Test GET /api/v1/transparency/contracts endpoint."""
-        with patch('src.api.routes.transparency.get_transparency_collector', return_value=mock_collector):
+        with patch(
+            "src.api.routes.transparency.get_transparency_collector",
+            return_value=mock_collector,
+        ):
             response = client.get(
                 "/api/v1/transparency/contracts",
-                params={
-                    "state": "PE",
-                    "year": 2024,
-                    "validate": True
-                }
+                params={"state": "PE", "year": 2024, "validate": True},
             )
 
             assert response.status_code == 200
@@ -253,13 +241,12 @@ class TestTransparencyRESTEndpoints:
     @pytest.mark.integration
     def test_get_expenses_endpoint(self, mock_collector):
         """Test GET /api/v1/transparency/expenses endpoint."""
-        with patch('src.api.routes.transparency.get_transparency_collector', return_value=mock_collector):
+        with patch(
+            "src.api.routes.transparency.get_transparency_collector",
+            return_value=mock_collector,
+        ):
             response = client.get(
-                "/api/v1/transparency/expenses",
-                params={
-                    "state": "SP",
-                    "year": 2024
-                }
+                "/api/v1/transparency/expenses", params={"state": "SP", "year": 2024}
             )
 
             assert response.status_code == 200
@@ -272,7 +259,10 @@ class TestTransparencyRESTEndpoints:
     @pytest.mark.integration
     def test_get_suppliers_endpoint(self, mock_collector):
         """Test GET /api/v1/transparency/suppliers endpoint."""
-        with patch('src.api.routes.transparency.get_transparency_collector', return_value=mock_collector):
+        with patch(
+            "src.api.routes.transparency.get_transparency_collector",
+            return_value=mock_collector,
+        ):
             response = client.get("/api/v1/transparency/suppliers")
 
             assert response.status_code == 200
@@ -285,16 +275,18 @@ class TestTransparencyRESTEndpoints:
     @pytest.mark.integration
     def test_analyze_anomalies_endpoint(self, mock_collector):
         """Test POST /api/v1/transparency/analyze-anomalies endpoint."""
-        with patch('src.api.routes.transparency.get_transparency_collector', return_value=mock_collector):
+        with patch(
+            "src.api.routes.transparency.get_transparency_collector",
+            return_value=mock_collector,
+        ):
             contracts = [
                 {"id": "1", "valor": 100000},
                 {"id": "2", "valor": 200000},
-                {"id": "3", "valor": 5000000}  # Outlier
+                {"id": "3", "valor": 5000000},  # Outlier
             ]
 
             response = client.post(
-                "/api/v1/transparency/analyze-anomalies",
-                json=contracts
+                "/api/v1/transparency/analyze-anomalies", json=contracts
             )
 
             assert response.status_code == 200
@@ -311,7 +303,10 @@ class TestTransparencyRESTEndpoints:
     @pytest.mark.integration
     def test_health_check_endpoint(self, mock_health_monitor):
         """Test GET /api/v1/transparency/health endpoint."""
-        with patch('src.api.routes.transparency.get_health_monitor', return_value=mock_health_monitor):
+        with patch(
+            "src.api.routes.transparency.get_health_monitor",
+            return_value=mock_health_monitor,
+        ):
             response = client.get("/api/v1/transparency/health")
 
             assert response.status_code == 200
@@ -329,12 +324,23 @@ class TestTransparencyRESTEndpoints:
     @pytest.mark.integration
     def test_list_apis_endpoint(self):
         """Test GET /api/v1/transparency/apis endpoint."""
-        with patch('src.api.routes.transparency.registry.list_available_apis') as mock_list:
+        with patch(
+            "src.api.routes.transparency.registry.list_available_apis"
+        ) as mock_list:
             mock_list.return_value = [
                 "federal_api",
-                "tce_pe", "tce_ce", "tce_rj", "tce_sp", "tce_mg", "tce_ba",
-                "ckan_sp", "ckan_rj", "ckan_rs", "ckan_sc", "ckan_ba",
-                "state_ro"
+                "tce_pe",
+                "tce_ce",
+                "tce_rj",
+                "tce_sp",
+                "tce_mg",
+                "tce_ba",
+                "ckan_sp",
+                "ckan_rj",
+                "ckan_rs",
+                "ckan_sc",
+                "ckan_ba",
+                "state_ro",
             ]
 
             response = client.get("/api/v1/transparency/apis")
@@ -354,9 +360,14 @@ class TestTransparencyRESTEndpoints:
     @pytest.mark.integration
     def test_contracts_endpoint_error_handling(self, mock_collector):
         """Test error handling in contracts endpoint."""
-        mock_collector.collect_contracts.side_effect = Exception("API connection failed")
+        mock_collector.collect_contracts.side_effect = Exception(
+            "API connection failed"
+        )
 
-        with patch('src.api.routes.transparency.get_transparency_collector', return_value=mock_collector):
+        with patch(
+            "src.api.routes.transparency.get_transparency_collector",
+            return_value=mock_collector,
+        ):
             response = client.get("/api/v1/transparency/contracts")
 
             assert response.status_code == 500
@@ -370,20 +381,20 @@ class TestZumbiTransparencyIntegration:
     @pytest.mark.asyncio
     async def test_zumbi_uses_transparency_collector(self, mock_collector):
         """Test that Zumbi agent uses TransparencyDataCollector for investigations."""
-        with patch('src.agents.zumbi.get_transparency_collector', return_value=mock_collector):
+        with patch(
+            "src.agents.zumbi.get_transparency_collector", return_value=mock_collector
+        ):
             agent = InvestigatorAgent()
 
             request = InvestigationRequest(
                 query="Investigate suspicious contracts",
                 data_sources=["federal_api", "tce_pe"],
                 filters={},
-                max_records=100
+                max_records=100,
             )
 
             context = AgentContext(
-                user_id="test_user",
-                session_id="test_session",
-                conversation_history=[]
+                user_id="test_user", session_id="test_session", conversation_history=[]
             )
 
             # Execute investigation
@@ -398,21 +409,22 @@ class TestZumbiTransparencyIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_zumbi_multi_source_aggregation(self, mock_collector, mock_transparency_data):
+    async def test_zumbi_multi_source_aggregation(
+        self, mock_collector, mock_transparency_data
+    ):
         """Test Zumbi aggregates data from multiple sources."""
-        with patch('src.agents.zumbi.get_transparency_collector', return_value=mock_collector):
+        with patch(
+            "src.agents.zumbi.get_transparency_collector", return_value=mock_collector
+        ):
             agent = InvestigatorAgent()
 
             request = InvestigationRequest(
                 query="Analyze contracts from all sources",
                 data_sources=None,  # All sources
-                max_records=1000
+                max_records=1000,
             )
 
-            context = AgentContext(
-                user_id="test_user",
-                session_id="test_session"
-            )
+            context = AgentContext(user_id="test_user", session_id="test_session")
 
             response = await agent.process(request, context)
 
@@ -432,19 +444,18 @@ class TestAnitaTransparencyIntegration:
     @pytest.mark.asyncio
     async def test_anita_uses_transparency_collector(self, mock_collector):
         """Test that Anita agent uses TransparencyDataCollector for analysis."""
-        with patch('src.agents.anita.get_transparency_collector', return_value=mock_collector):
+        with patch(
+            "src.agents.anita.get_transparency_collector", return_value=mock_collector
+        ):
             agent = AnalystAgent()
 
             request = AnalysisRequest(
                 data_sources=["federal_api", "ckan_sp"],
                 analysis_types=["patterns", "correlations"],
-                filters={}
+                filters={},
             )
 
-            context = AgentContext(
-                user_id="test_user",
-                session_id="test_session"
-            )
+            context = AgentContext(user_id="test_user", session_id="test_session")
 
             response = await agent.process(request, context)
 
@@ -456,14 +467,17 @@ class TestAnitaTransparencyIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    async def test_anita_temporal_enrichment(self, mock_collector, mock_transparency_data):
+    async def test_anita_temporal_enrichment(
+        self, mock_collector, mock_transparency_data
+    ):
         """Test Anita adds temporal metadata for time-series analysis."""
-        with patch('src.agents.anita.get_transparency_collector', return_value=mock_collector):
+        with patch(
+            "src.agents.anita.get_transparency_collector", return_value=mock_collector
+        ):
             agent = AnalystAgent()
 
             request = AnalysisRequest(
-                data_sources=["federal_api"],
-                analysis_types=["temporal_patterns"]
+                data_sources=["federal_api"], analysis_types=["temporal_patterns"]
             )
 
             context = AgentContext(user_id="test_user")
@@ -489,21 +503,22 @@ class TestMultiSourceDataCollection:
 
         # Verify collector is properly initialized
         assert collector is not None
-        assert hasattr(collector, 'collect_contracts')
-        assert hasattr(collector, 'collect_expenses')
-        assert hasattr(collector, 'collect_suppliers')
+        assert hasattr(collector, "collect_contracts")
+        assert hasattr(collector, "collect_expenses")
+        assert hasattr(collector, "collect_suppliers")
 
     @pytest.mark.integration
     @pytest.mark.asyncio
     async def test_data_validation(self, mock_collector):
         """Test data validation during collection."""
-        with patch('src.services.transparency_apis.get_transparency_collector', return_value=mock_collector):
+        with patch(
+            "src.services.transparency_apis.get_transparency_collector",
+            return_value=mock_collector,
+        ):
             collector = get_transparency_collector()
 
             result = await collector.collect_contracts(
-                state="PE",
-                year=2024,
-                validate=True
+                state="PE", year=2024, validate=True
             )
 
             # Verify validation was applied
@@ -521,12 +536,15 @@ class TestMultiSourceDataCollection:
             "sources": ["federal_api"],
             "errors": [
                 {"source": "tce_pe", "error": "Connection timeout"},
-                {"source": "ckan_sp", "error": "403 Forbidden"}
+                {"source": "ckan_sp", "error": "403 Forbidden"},
             ],
-            "metadata": {}
+            "metadata": {},
         }
 
-        with patch('src.services.transparency_apis.get_transparency_collector', return_value=mock_collector):
+        with patch(
+            "src.services.transparency_apis.get_transparency_collector",
+            return_value=mock_collector,
+        ):
             collector = get_transparency_collector()
 
             result = await collector.collect_contracts()
@@ -551,7 +569,9 @@ class TestDatabasePersistence:
 
         async with get_session() as session:
             # Verify session can be created
-            assert session is not None or session is None  # Allowed to be None in test env
+            assert (
+                session is not None or session is None
+            )  # Allowed to be None in test env
 
     @pytest.mark.integration
     @pytest.mark.asyncio
@@ -561,7 +581,13 @@ class TestDatabasePersistence:
         # Structure test for now
 
         from pathlib import Path
-        migration_file = Path(__file__).parent.parent.parent / "migrations" / "supabase" / "001_create_investigations_table.sql"
+
+        migration_file = (
+            Path(__file__).parent.parent.parent
+            / "migrations"
+            / "supabase"
+            / "001_create_investigations_table.sql"
+        )
 
         # Verify migration file exists
         assert migration_file.exists()
@@ -580,12 +606,18 @@ class TestEndToEndTransparencyFlow:
     @pytest.mark.asyncio
     async def test_complete_investigation_flow(self, mock_collector):
         """Test complete flow: REST endpoint → Collector → Agent → Database."""
-        with patch('src.api.routes.transparency.get_transparency_collector', return_value=mock_collector):
-            with patch('src.agents.zumbi.get_transparency_collector', return_value=mock_collector):
+        with patch(
+            "src.api.routes.transparency.get_transparency_collector",
+            return_value=mock_collector,
+        ):
+            with patch(
+                "src.agents.zumbi.get_transparency_collector",
+                return_value=mock_collector,
+            ):
                 # 1. Client requests contracts via REST API
                 response = client.get(
                     "/api/v1/transparency/contracts",
-                    params={"state": "PE", "year": 2024}
+                    params={"state": "PE", "year": 2024},
                 )
 
                 assert response.status_code == 200
@@ -593,8 +625,7 @@ class TestEndToEndTransparencyFlow:
 
                 # 2. Client requests anomaly analysis
                 analysis_response = client.post(
-                    "/api/v1/transparency/analyze-anomalies",
-                    json=contracts
+                    "/api/v1/transparency/analyze-anomalies", json=contracts
                 )
 
                 assert analysis_response.status_code == 200
@@ -608,7 +639,10 @@ class TestEndToEndTransparencyFlow:
     @pytest.mark.integration
     def test_health_monitoring_flow(self, mock_health_monitor):
         """Test health monitoring flow."""
-        with patch('src.api.routes.transparency.get_health_monitor', return_value=mock_health_monitor):
+        with patch(
+            "src.api.routes.transparency.get_health_monitor",
+            return_value=mock_health_monitor,
+        ):
             # Check API health
             response = client.get("/api/v1/transparency/health")
 
@@ -620,7 +654,9 @@ class TestEndToEndTransparencyFlow:
             assert len(health["apis"]) > 0
 
             # List available APIs
-            with patch('src.api.routes.transparency.registry.list_available_apis') as mock_list:
+            with patch(
+                "src.api.routes.transparency.registry.list_available_apis"
+            ) as mock_list:
                 mock_list.return_value = ["federal_api", "tce_pe"]
 
                 apis_response = client.get("/api/v1/transparency/apis")
@@ -639,13 +675,15 @@ class TestTransparencyPerformance:
     @pytest.mark.asyncio
     async def test_concurrent_api_calls(self, mock_collector):
         """Test handling multiple concurrent API calls."""
-        with patch('src.services.transparency_apis.get_transparency_collector', return_value=mock_collector):
+        with patch(
+            "src.services.transparency_apis.get_transparency_collector",
+            return_value=mock_collector,
+        ):
             collector = get_transparency_collector()
 
             # Make 10 concurrent requests
             tasks = [
-                collector.collect_contracts(state="PE", year=2024)
-                for _ in range(10)
+                collector.collect_contracts(state="PE", year=2024) for _ in range(10)
             ]
 
             results = await asyncio.gather(*tasks)
@@ -659,7 +697,10 @@ class TestTransparencyPerformance:
         """Test API response time is acceptable."""
         import time
 
-        with patch('src.api.routes.transparency.get_transparency_collector', return_value=mock_collector):
+        with patch(
+            "src.api.routes.transparency.get_transparency_collector",
+            return_value=mock_collector,
+        ):
             start = time.time()
 
             response = client.get("/api/v1/transparency/contracts")

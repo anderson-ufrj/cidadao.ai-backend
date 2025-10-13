@@ -9,16 +9,21 @@ Created: 2025-10-12 18:31:39 -03
 License: Proprietary - All rights reserved
 """
 
-import pytest
-from unittest.mock import AsyncMock, patch, MagicMock
-import httpx
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from src.services.transparency_apis.federal_apis.inep_client import INEPClient, INEPSchool, IDEBIndicator
+import httpx
+import pytest
+
 from src.services.transparency_apis.federal_apis.exceptions import (
     NetworkError,
-    TimeoutError,
-    ServerError,
     NotFoundError,
+    ServerError,
+    TimeoutError,
+)
+from src.services.transparency_apis.federal_apis.inep_client import (
+    IDEBIndicator,
+    INEPClient,
+    INEPSchool,
 )
 
 
@@ -31,7 +36,7 @@ class TestINEPClientInitialization:
 
         assert client.timeout == 30
         assert client.client is not None
-        assert hasattr(client, '_make_request')
+        assert hasattr(client, "_make_request")
 
     def test_client_initialization_with_default_timeout(self):
         """Test INEP client uses default timeout."""
@@ -63,15 +68,15 @@ class TestINEPSearchDatasets:
                 "count": 2,
                 "results": [
                     {"name": "censo-escolar", "title": "Censo Escolar"},
-                    {"name": "ideb", "title": "IDEB Data"}
-                ]
-            }
+                    {"name": "ideb", "title": "IDEB Data"},
+                ],
+            },
         }
 
         client = INEPClient(timeout=10)
 
         # Mock httpx client
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_http_response = MagicMock()
             mock_http_response.status_code = 200
             mock_http_response.json.return_value = mock_response
@@ -100,14 +105,14 @@ class TestINEPGetSchoolCensusData:
             "result": {
                 "name": "microdados-do-censo-escolar",
                 "title": "Censo Escolar Data",
-                "resources": []
-            }
+                "resources": [],
+            },
         }
 
         client = INEPClient(timeout=10)
 
         # Mock httpx client
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_http_response = MagicMock()
             mock_http_response.status_code = 200
             mock_http_response.json.return_value = mock_response
@@ -137,23 +142,21 @@ class TestINEPGetIDEBIndicators:
             "result": {
                 "name": "indice-de-desenvolvimento-da-educacao-basica-ideb",
                 "title": "IDEB Data",
-                "resources": []
-            }
+                "resources": [],
+            },
         }
 
         client = INEPClient(timeout=10)
 
         # Mock httpx client
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_http_response = MagicMock()
             mock_http_response.status_code = 200
             mock_http_response.json.return_value = mock_response
             mock_get.return_value = mock_http_response
 
             result = await client.get_ideb_indicators(
-                state_code="RJ",
-                year=2021,
-                education_level="anos_iniciais"
+                state_code="RJ", year=2021, education_level="anos_iniciais"
             )
 
             assert result["source"] == "INEP/IDEB"
@@ -175,14 +178,14 @@ class TestINEPGetENEMResults:
             "result": {
                 "name": "microdados-do-enem",
                 "title": "ENEM Data",
-                "resources": []
-            }
+                "resources": [],
+            },
         }
 
         client = INEPClient(timeout=10)
 
         # Mock httpx client
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_http_response = MagicMock()
             mock_http_response.status_code = 200
             mock_http_response.json.return_value = mock_response
@@ -208,14 +211,14 @@ class TestINEPGetSchoolInfrastructure:
             "result": {
                 "name": "censo-escolar-escolas",
                 "title": "Schools Data",
-                "resources": []
-            }
+                "resources": [],
+            },
         }
 
         client = INEPClient(timeout=10)
 
         # Mock httpx client
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_http_response = MagicMock()
             mock_http_response.status_code = 200
             mock_http_response.json.return_value = mock_response
@@ -240,14 +243,14 @@ class TestINEPGetTeacherStatistics:
             "result": {
                 "name": "censo-escolar-docentes",
                 "title": "Teachers Data",
-                "resources": []
-            }
+                "resources": [],
+            },
         }
 
         client = INEPClient(timeout=10)
 
         # Mock httpx client
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_http_response = MagicMock()
             mock_http_response.status_code = 200
             mock_http_response.json.return_value = mock_response
@@ -273,7 +276,7 @@ class TestINEPMakeRequest:
         mock_response.status_code = 200
         mock_response.json.return_value = {"data": "test"}
 
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_response
 
             result = await client._make_request("https://test.com", method="GET")
@@ -292,7 +295,7 @@ class TestINEPMakeRequest:
         mock_response_404 = MagicMock()
         mock_response_404.status_code = 404
 
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_response_404
 
             with pytest.raises(NotFoundError):
@@ -302,7 +305,7 @@ class TestINEPMakeRequest:
         mock_response_500 = MagicMock()
         mock_response_500.status_code = 500
 
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_response_500
 
             with pytest.raises(ServerError):
@@ -312,7 +315,7 @@ class TestINEPMakeRequest:
         mock_response_503 = MagicMock()
         mock_response_503.status_code = 503
 
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_get.return_value = mock_response_503
 
             with pytest.raises(ServerError):
@@ -325,7 +328,7 @@ class TestINEPMakeRequest:
         """Test _make_request handles httpx NetworkError."""
         client = INEPClient(timeout=10)
 
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_get.side_effect = httpx.NetworkError("Connection refused")
 
             with pytest.raises(NetworkError) as exc_info:
@@ -340,7 +343,7 @@ class TestINEPMakeRequest:
         """Test _make_request handles httpx TimeoutException."""
         client = INEPClient(timeout=10)
 
-        with patch.object(client.client, 'get', new_callable=AsyncMock) as mock_get:
+        with patch.object(client.client, "get", new_callable=AsyncMock) as mock_get:
             mock_get.side_effect = httpx.TimeoutException("Request timeout")
 
             with pytest.raises(TimeoutError) as exc_info:
@@ -360,10 +363,12 @@ class TestINEPMakeRequest:
         mock_response.status_code = 200
         mock_response.json.return_value = {"result": "created"}
 
-        with patch.object(client.client, 'post', new_callable=AsyncMock) as mock_post:
+        with patch.object(client.client, "post", new_callable=AsyncMock) as mock_post:
             mock_post.return_value = mock_response
 
-            result = await client._make_request("https://test.com", method="POST", json={"data": "test"})
+            result = await client._make_request(
+                "https://test.com", method="POST", json={"data": "test"}
+            )
 
             assert result == {"result": "created"}
             mock_post.assert_called_once()
@@ -392,7 +397,7 @@ class TestINEPRetryBehavior:
         client = INEPClient(timeout=10)
 
         # Check decorator is applied (has __wrapped__ attribute)
-        assert hasattr(client._make_request, '__wrapped__')
+        assert hasattr(client._make_request, "__wrapped__")
 
         await client.close()
 
@@ -402,12 +407,12 @@ class TestINEPClientConstants:
 
     def test_client_has_correct_url(self):
         """Test client has correct base URL defined."""
-        assert hasattr(INEPClient, 'DADOS_GOV_URL')
+        assert hasattr(INEPClient, "DADOS_GOV_URL")
         assert "dados.gov.br" in INEPClient.DADOS_GOV_URL
 
     def test_client_has_dataset_mapping(self):
         """Test client has dataset ID mapping."""
-        assert hasattr(INEPClient, 'DATASETS')
+        assert hasattr(INEPClient, "DATASETS")
         assert isinstance(INEPClient.DATASETS, dict)
 
         # Check key datasets are present
@@ -427,7 +432,7 @@ class TestINEPSchoolModel:
             code="33051341",
             name="Escola Municipal Test",
             location={"state": "RJ", "city": "Rio de Janeiro"},
-            education_levels=["ensino_fundamental", "ensino_medio"]
+            education_levels=["ensino_fundamental", "ensino_medio"],
         )
 
         assert school.code == "33051341"
@@ -446,7 +451,7 @@ class TestIDEBIndicatorModel:
             value=5.8,
             location_type="municipal",
             location_code="3304557",
-            education_level="anos_iniciais"
+            education_level="anos_iniciais",
         )
 
         assert indicator.year == 2021
@@ -461,7 +466,7 @@ class TestIDEBIndicatorModel:
             year=2021,
             value=5.2,
             location_type="national",
-            education_level="anos_finais"
+            education_level="anos_finais",
         )
 
         assert indicator.year == 2021
