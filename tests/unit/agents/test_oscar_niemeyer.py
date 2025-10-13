@@ -5,6 +5,7 @@ Unit tests for Oscar Niemeyer agent.
 import pytest
 from datetime import datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
+import json
 
 from src.agents.oscar_niemeyer import (
     OscarNiemeyerAgent,
@@ -16,6 +17,7 @@ from src.agents.oscar_niemeyer import (
     VisualizationMetadata
 )
 from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse
+from src.core import AgentStatus
 
 
 @pytest.fixture
@@ -63,24 +65,23 @@ async def test_oscar_agent_initialization(oscar_agent):
 async def test_multidimensional_aggregation(oscar_agent, agent_context):
     """Test multidimensional data aggregation."""
     message = AgentMessage(
-        role="user",
-        content="Aggregate data",
-        type="aggregate_data",
-        data={
+        sender="test-user",
+        recipient="OscarNiemeyerAgent",
+        action="aggregate_data",
+        payload={
             "dimensions": ["category", "region"],
             "metrics": ["total", "average"],
             "filters": {}
         }
     )
-    
+
     response = await oscar_agent.process(message, agent_context)
-    
-    assert response.success
-    assert response.response_type == "data_aggregation"
-    assert "aggregation" in response.data
-    assert "visualization" in response.data
-    
-    agg_data = response.data["aggregation"]
+
+    assert response.status == AgentStatus.COMPLETED
+    assert "aggregation" in response.result
+    assert "visualization" in response.result
+
+    agg_data = response.result["aggregation"]
     assert agg_data["dimensions"] == ["category", "region"]
     assert agg_data["metrics"] == ["total", "average"]
     assert len(agg_data["data_points"]) > 0
@@ -91,50 +92,50 @@ async def test_multidimensional_aggregation(oscar_agent, agent_context):
 async def test_time_series_generation(oscar_agent, agent_context):
     """Test time series data generation."""
     message = AgentMessage(
-        role="user",
-        content="Generate time series",
-        type="time_series",
-        data={
+        sender="test-user",
+        recipient="OscarNiemeyerAgent",
+        action="time_series",
+        payload={
             "metric": "contract_value",
             "start_date": "2024-01-01",
             "end_date": "2024-01-31",
             "granularity": "day"
         }
     )
-    
+
     response = await oscar_agent.process(message, agent_context)
-    
-    assert response.success
-    assert isinstance(response.data, TimeSeriesData)
-    assert response.data.metric_name == "contract_value"
-    assert response.data.granularity == TimeGranularity.DAY
-    assert len(response.data.time_points) == len(response.data.values)
-    assert all(isinstance(tp, datetime) for tp in response.data.time_points)
+
+    assert response.status == AgentStatus.COMPLETED
+    assert isinstance(response.result, TimeSeriesData)
+    assert response.result.metric_name == "contract_value"
+    assert response.result.granularity == TimeGranularity.DAY
+    assert len(response.result.time_points) == len(response.result.values)
+    assert all(isinstance(tp, datetime) for tp in response.result.time_points)
 
 
 @pytest.mark.asyncio
 async def test_spatial_aggregation(oscar_agent, agent_context):
     """Test spatial/geographic aggregation."""
     message = AgentMessage(
-        role="user",
-        content="Aggregate by region",
-        type="spatial_aggregation",
-        data={
+        sender="test-user",
+        recipient="OscarNiemeyerAgent",
+        action="spatial_aggregation",
+        payload={
             "data": [],
             "region_type": "state",
             "metrics": ["total_contracts", "average_value"]
         }
     )
-    
+
     response = await oscar_agent.process(message, agent_context)
-    
-    assert response.success
-    assert "aggregation_type" in response.data
-    assert response.data["aggregation_type"] == "geographic"
-    assert "regions" in response.data
-    assert "visualization" in response.data
-    
-    viz_data = response.data["visualization"]
+
+    assert response.status == AgentStatus.COMPLETED
+    assert "aggregation_type" in response.result
+    assert response.result["aggregation_type"] == "geographic"
+    assert "regions" in response.result
+    assert "visualization" in response.result
+
+    viz_data = response.result["visualization"]
     assert viz_data["type"] == "choropleth_map"
     assert "geo_json_url" in viz_data
 
@@ -143,25 +144,25 @@ async def test_spatial_aggregation(oscar_agent, agent_context):
 async def test_visualization_metadata_generation(oscar_agent, agent_context):
     """Test visualization metadata generation."""
     message = AgentMessage(
-        role="user",
-        content="Generate viz metadata",
-        type="visualization_metadata",
-        data={
+        sender="test-user",
+        recipient="OscarNiemeyerAgent",
+        action="visualization_metadata",
+        payload={
             "data_type": "contracts",
             "dimensions": ["month", "category"],
             "metrics": ["total_value", "count"]
         }
     )
-    
+
     response = await oscar_agent.process(message, agent_context)
-    
-    assert response.success
-    assert isinstance(response.data, VisualizationMetadata)
-    assert response.data.title == "Contracts Analysis"
-    assert response.data.visualization_type in VisualizationType
-    assert len(response.data.series) == 2
-    assert response.data.x_axis["field"] == "month"
-    assert response.data.y_axis["field"] == "total_value"
+
+    assert response.status == AgentStatus.COMPLETED
+    assert isinstance(response.result, VisualizationMetadata)
+    assert response.result.title == "Contracts Analysis"
+    assert response.result.visualization_type in VisualizationType
+    assert len(response.result.series) == 2
+    assert response.result.x_axis["field"] == "month"
+    assert response.result.y_axis["field"] == "total_value"
 
 
 @pytest.mark.asyncio
@@ -229,37 +230,40 @@ async def test_visualization_recommendation(oscar_agent):
 async def test_error_handling(oscar_agent, agent_context):
     """Test error handling in data aggregation."""
     # Create message that will cause an error
-    message = MagicMock()
-    message.type = "invalid_type"
-    message.data = None  # This will cause an error
-    
+    message = AgentMessage(
+        sender="test-user",
+        recipient="OscarNiemeyerAgent",
+        action="invalid_action",
+        payload=None
+    )
+
     with patch.object(oscar_agent, '_perform_multidimensional_aggregation',
                       side_effect=Exception("Aggregation failed")):
         response = await oscar_agent.process(message, agent_context)
-    
-    assert not response.success
-    assert response.response_type == "error"
-    assert "error" in response.data
-    assert "Aggregation failed" in response.data["error"]
+
+    assert response.status == AgentStatus.ERROR
+    assert response.error is not None
+    assert "Aggregation failed" in response.error
 
 
 @pytest.mark.asyncio
 async def test_cache_metadata(oscar_agent, agent_context):
     """Test cache metadata generation."""
     message = AgentMessage(
-        role="user",
-        content="Aggregate with cache",
-        data={"dimensions": ["type"], "metrics": ["sum"]}
+        sender="test-user",
+        recipient="OscarNiemeyerAgent",
+        action="aggregate_data",
+        payload={"dimensions": ["type"], "metrics": ["sum"]}
     )
-    
+
     response = await oscar_agent.process(message, agent_context)
-    
-    assert response.success
-    metadata = response.data["metadata"]
+
+    assert response.status == AgentStatus.COMPLETED
+    metadata = response.result["metadata"]
     assert "cache_key" in metadata
     assert "expires_at" in metadata
     assert "generated_at" in metadata
-    
+
     # Verify cache expiration
     expires_at = datetime.fromisoformat(metadata["expires_at"].replace("Z", "+00:00"))
     generated_at = datetime.fromisoformat(metadata["generated_at"].replace("Z", "+00:00"))
@@ -312,3 +316,224 @@ async def test_regional_aggregation_brazil(oscar_agent):
         assert "value" in sp_data["metrics"][metric]
         assert "formatted" in sp_data["metrics"][metric]
         assert "percentage_of_total" in sp_data["metrics"][metric]
+
+
+@pytest.mark.asyncio
+async def test_fraud_network_creation(oscar_agent, agent_context):
+    """Test fraud network graph creation with NetworkX + Plotly."""
+    # Sample entities and relationships
+    entities = [
+        {"id": "E1", "name": "Supplier A", "type": "empresa", "score": 0.8},
+        {"id": "E2", "name": "Supplier B", "type": "empresa", "score": 0.6},
+        {"id": "E3", "name": "Agency X", "type": "orgao_publico", "score": 0.3},
+        {"id": "E4", "name": "Shell Company", "type": "empresa", "score": 0.9},
+    ]
+
+    relationships = [
+        {"source": "E1", "target": "E3", "type": "contracts_with", "strength": 0.9},
+        {"source": "E2", "target": "E3", "type": "contracts_with", "strength": 0.85},
+        {"source": "E1", "target": "E4", "type": "shared_ownership", "strength": 0.75},
+    ]
+
+    message = AgentMessage(
+        sender="test-user",
+        recipient="OscarNiemeyerAgent",
+        action="network_graph",
+        payload={
+            "entities": entities,
+            "relationships": relationships,
+            "threshold": 0.7
+        }
+    )
+
+    response = await oscar_agent.process(message, agent_context)
+
+    assert response.status == AgentStatus.COMPLETED
+    assert response.result["type"] == "network_graph"
+    assert "visualization" in response.result
+    assert "metadata" in response.result
+
+    # Verify metadata
+    metadata = response.result["metadata"]
+    assert "nodes" in metadata
+    assert "edges" in metadata
+    assert metadata["threshold_applied"] == 0.7
+    assert "avg_suspicion_score" in metadata
+    assert "max_suspicion_score" in metadata
+
+    # Verify visualization is valid Plotly JSON
+    viz_json = response.result["visualization"]
+    assert isinstance(viz_json, str)
+    viz_data = json.loads(viz_json)
+    assert "data" in viz_data
+    assert "layout" in viz_data
+
+
+@pytest.mark.asyncio
+async def test_choropleth_map_creation(oscar_agent, agent_context):
+    """Test choropleth map creation for Brazilian states."""
+    # Sample state data
+    data = [
+        {"state_code": "SP", "value": 85000, "name": "São Paulo"},
+        {"state_code": "RJ", "value": 62000, "name": "Rio de Janeiro"},
+        {"state_code": "MG", "value": 51000, "name": "Minas Gerais"},
+        {"state_code": "BA", "value": 38000, "name": "Bahia"},
+    ]
+
+    message = AgentMessage(
+        sender="test-user",
+        recipient="OscarNiemeyerAgent",
+        action="choropleth_map",
+        payload={
+            "data": data,
+            "color_column": "value",
+            "location_column": "state_code"
+        }
+    )
+
+    # Mock httpx to avoid actual HTTP calls
+    with patch("httpx.AsyncClient") as mock_client:
+        mock_response = AsyncMock()
+        mock_response.json.return_value = {
+            "type": "FeatureCollection",
+            "features": []
+        }
+        mock_response.raise_for_status = MagicMock()
+        mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
+
+        response = await oscar_agent.process(message, agent_context)
+
+    assert response.status == AgentStatus.COMPLETED
+    assert response.result["type"] == "choropleth"
+    assert "visualization" in response.result
+    assert "metadata" in response.result
+
+    # Verify metadata
+    metadata = response.result["metadata"]
+    assert metadata["data_points"] == 4
+    assert metadata["color_column"] == "value"
+    assert metadata["location_column"] == "state_code"
+    assert "statistics" in metadata
+
+    # Verify statistics
+    stats = metadata["statistics"]
+    assert "min" in stats
+    assert "max" in stats
+    assert "mean" in stats
+    assert stats["min"] == 38000
+    assert stats["max"] == 85000
+
+
+@pytest.mark.asyncio
+async def test_network_api_integration(oscar_agent, agent_context):
+    """Test integration with Network Graph API."""
+    entity_id = "test-entity-123"
+
+    message = AgentMessage(
+        sender="test-user",
+        recipient="OscarNiemeyerAgent",
+        action="fetch_network_data",
+        payload={
+            "entity_id": entity_id,
+            "depth": 2
+        }
+    )
+
+    # Mock httpx to simulate Network Graph API response
+    with patch("httpx.AsyncClient") as mock_client:
+        mock_response = AsyncMock()
+        mock_response.json.return_value = {
+            "nodes": [
+                {"id": "E1", "name": "Entity 1", "entity_type": "empresa", "risk_score": 0.7},
+                {"id": "E2", "name": "Entity 2", "entity_type": "orgao_publico", "risk_score": 0.3}
+            ],
+            "edges": [
+                {"source_entity_id": "E1", "target_entity_id": "E2", "relationship_type": "contracts_with", "strength": 0.9}
+            ],
+            "node_count": 2,
+            "edge_count": 1
+        }
+        mock_response.raise_for_status = MagicMock()
+        mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
+
+        response = await oscar_agent.process(message, agent_context)
+
+    assert response.status == AgentStatus.COMPLETED
+    assert "entities" in response.result
+    assert "relationships" in response.result
+    assert "metadata" in response.result
+
+    # Verify entities
+    entities = response.result["entities"]
+    assert len(entities) == 2
+    assert entities[0]["id"] == "E1"
+    assert entities[0]["name"] == "Entity 1"
+    assert entities[0]["type"] == "empresa"
+    assert entities[0]["score"] == 0.7
+
+    # Verify relationships
+    relationships = response.result["relationships"]
+    assert len(relationships) == 1
+    assert relationships[0]["source"] == "E1"
+    assert relationships[0]["target"] == "E2"
+    assert relationships[0]["type"] == "contracts_with"
+    assert relationships[0]["strength"] == 0.9
+
+    # Verify metadata
+    metadata = response.result["metadata"]
+    assert metadata["center_entity_id"] == entity_id
+    assert metadata["depth"] == 2
+    assert metadata["node_count"] == 2
+    assert metadata["edge_count"] == 1
+
+
+@pytest.mark.asyncio
+async def test_network_graph_edge_case_empty_data(oscar_agent, agent_context):
+    """Test network graph with empty data."""
+    message = AgentMessage(
+        sender="test-user",
+        recipient="OscarNiemeyerAgent",
+        action="network_graph",
+        payload={
+            "entities": [],
+            "relationships": [],
+            "threshold": 0.5
+        }
+    )
+
+    response = await oscar_agent.process(message, agent_context)
+
+    assert response.status == AgentStatus.COMPLETED
+    assert response.result["type"] == "network_graph"
+    metadata = response.result["metadata"]
+    assert metadata["nodes"] == 0
+    assert metadata["edges"] == 0
+
+
+@pytest.mark.asyncio
+async def test_choropleth_geojson_fallback(oscar_agent, agent_context):
+    """Test choropleth map with GeoJSON loading failure."""
+    data = [{"state_code": "SP", "value": 1000}]
+
+    message = AgentMessage(
+        sender="test-user",
+        recipient="OscarNiemeyerAgent",
+        action="choropleth_map",
+        payload={
+            "data": data,
+            "geojson_url": "https://invalid-url.com/geojson",
+            "color_column": "value"
+        }
+    )
+
+    # Mock httpx to simulate failure
+    with patch("httpx.AsyncClient") as mock_client:
+        mock_response = AsyncMock()
+        mock_response.raise_for_status.side_effect = Exception("Network error")
+        mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
+
+        response = await oscar_agent.process(message, agent_context)
+
+    assert response.status == AgentStatus.COMPLETED
+    assert response.result["type"] == "choropleth"
+    assert "error" in response.result
