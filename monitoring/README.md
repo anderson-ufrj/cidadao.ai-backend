@@ -61,6 +61,24 @@ docker-compose -f docker-compose.monitoring.yml up -d
   - I/O de rede
   - I/O de disco
 
+### 4. 🌐 Federal APIs Monitoring Dashboard
+- **UID**: `federal-apis`
+- **Descrição**: Monitoramento completo das APIs federais (IBGE, DataSUS, INEP)
+- **Documentação**: [FEDERAL_APIS_DASHBOARD.md](FEDERAL_APIS_DASHBOARD.md)
+- **Seções**:
+  - Federal APIs Overview (request rate, error rate, latency percentiles)
+  - Cache Performance (hit/miss ratio, cache size)
+  - Error Tracking (errors by type, timeout rate)
+  - Retry Behavior (retry attempts, average retries)
+  - Data Volume & Performance (records fetched, response sizes, active requests)
+- **Métricas Principais**:
+  - `federal_api_requests_total` - Requisições por API
+  - `federal_api_request_duration_seconds` - Latência (P50, P95, P99)
+  - `federal_api_cache_operations_total` - Cache hit/miss
+  - `federal_api_errors_total` - Erros por tipo
+  - `federal_api_retries_total` - Tentativas de retry
+  - `federal_api_response_size_bytes` - Tamanho das respostas
+
 ## 📈 Métricas Disponíveis
 
 ### Métricas da API
@@ -79,6 +97,20 @@ docker-compose -f docker-compose.monitoring.yml up -d
 ### Métricas de Dados
 - `cidadao_ai_data_records_processed_total` - Registros processados
 - `cidadao_ai_transparency_data_fetched_total` - Dados da API de Transparência
+
+### Métricas das Federal APIs
+- `federal_api_requests_total` - Total de requisições às APIs federais
+- `federal_api_request_duration_seconds` - Duração das requisições (histograma)
+- `federal_api_cache_operations_total` - Operações de cache (hit/miss/write)
+- `federal_api_cache_size` - Tamanho atual do cache em memória
+- `federal_api_errors_total` - Erros por tipo e retryability
+- `federal_api_retries_total` - Tentativas de retry por motivo
+- `federal_api_retry_attempts` - Número de retries por requisição
+- `federal_api_records_fetched_total` - Registros buscados por tipo de dado
+- `federal_api_response_size_bytes` - Tamanho das respostas (histograma)
+- `federal_api_timeouts_total` - Total de timeouts por API
+- `federal_api_rate_limits_total` - Rate limits encontrados
+- `federal_api_active_requests` - Requisições ativas no momento
 
 ## 🚨 Alertas Configurados
 
@@ -141,23 +173,27 @@ docker-compose -f docker-compose.monitoring.yml up -d
 
 ```
 monitoring/
-├── README.md                           # Este arquivo
-├── manage-monitoring.sh                # Script de gerenciamento
+├── README.md                              # Este arquivo
+├── FEDERAL_APIS_DASHBOARD.md             # Documentação do dashboard de Federal APIs
+├── manage-monitoring.sh                   # Script de gerenciamento
+├── test-dashboard.sh                      # Script de validação de dashboards
 ├── prometheus/
-│   ├── prometheus.yml                 # Configuração do Prometheus
+│   ├── prometheus.yml                    # Configuração do Prometheus
 │   └── rules/
-│       └── cidadao-ai-alerts.yml     # Regras de alerta
+│       └── cidadao-ai-alerts.yml        # Regras de alerta
 ├── grafana/
 │   ├── provisioning/
 │   │   ├── datasources/
-│   │   │   └── prometheus.yml         # Configuração do datasource
+│   │   │   └── prometheus.yml            # Configuração do datasource
 │   │   └── dashboards/
-│   │       └── dashboards.yml         # Configuração dos dashboards
+│   │       └── dashboards.yml            # Configuração dos dashboards
 │   └── dashboards/
-│       ├── cidadao-ai-overview.json   # Dashboard principal
-│       ├── zumbi-agent-dashboard.json # Dashboard do agente Zumbi
-│       └── system-performance.json    # Dashboard de performance
-└── docker-compose.monitoring.yml       # Definição dos serviços
+│       ├── cidadao-ai-overview.json      # Dashboard principal
+│       ├── zumbi-agent-dashboard.json    # Dashboard do agente Zumbi
+│       ├── system-performance.json       # Dashboard de performance
+│       ├── federal-apis-dashboard.json   # Dashboard de Federal APIs (NOVO)
+│       └── slo-sla-dashboard.json        # Dashboard de SLO/SLA
+└── (config/docker/docker-compose.monitoring.yml)  # Definição dos serviços
 ```
 
 ## 🔧 Configuração Avançada
