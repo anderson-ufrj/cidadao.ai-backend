@@ -9,28 +9,29 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
-import pytest
-from unittest.mock import AsyncMock, patch, call
+from unittest.mock import AsyncMock, patch
 
+import pytest
+
+from src.services.transparency_apis.federal_apis.exceptions import (
+    AuthenticationError,
+    NetworkError,
+    NotFoundError,
+    RateLimitError,
+    ServerError,
+    TimeoutError,
+    ValidationError,
+)
 from src.services.transparency_apis.federal_apis.retry import (
+    NON_RETRYABLE_EXCEPTIONS,
+    RETRYABLE_EXCEPTIONS,
+    RetryContext,
+    aggressive_retry,
     calculate_backoff,
-    should_retry_exception,
-    retry_with_backoff,
     retry_on_network_error,
     retry_on_server_error,
-    aggressive_retry,
-    RetryContext,
-    RETRYABLE_EXCEPTIONS,
-    NON_RETRYABLE_EXCEPTIONS,
-)
-from src.services.transparency_apis.federal_apis.exceptions import (
-    NetworkError,
-    TimeoutError,
-    ServerError,
-    AuthenticationError,
-    NotFoundError,
-    ValidationError,
-    RateLimitError,
+    retry_with_backoff,
+    should_retry_exception,
 )
 
 
@@ -55,10 +56,14 @@ class TestBackoffCalculation:
     def test_backoff_with_custom_base(self):
         """Test backoff with custom exponential base."""
         # exponential_base = 1.5 instead of 2.0
-        delay1 = calculate_backoff(1, base_delay=2.0, exponential_base=1.5, jitter=False)
+        delay1 = calculate_backoff(
+            1, base_delay=2.0, exponential_base=1.5, jitter=False
+        )
         assert delay1 == 3.0  # 2.0 * 1.5^1
 
-        delay2 = calculate_backoff(2, base_delay=2.0, exponential_base=1.5, jitter=False)
+        delay2 = calculate_backoff(
+            2, base_delay=2.0, exponential_base=1.5, jitter=False
+        )
         assert delay2 == 4.5  # 2.0 * 1.5^2
 
     def test_backoff_with_jitter(self):
@@ -156,7 +161,7 @@ class TestRetryDecorator:
             side_effect=[
                 NetworkError("Error 1", api_name="Test"),
                 NetworkError("Error 2", api_name="Test"),
-                "success"
+                "success",
             ]
         )
 
@@ -208,11 +213,12 @@ class TestRetryDecorator:
         mock_func = AsyncMock(
             side_effect=[
                 RateLimitError("Rate limit", api_name="Test", retry_after=0.05),
-                "success"
+                "success",
             ]
         )
 
-        with patch('asyncio.sleep', new_callable=AsyncMock) as mock_sleep:
+        with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
+
             @retry_with_backoff(max_attempts=3, base_delay=0.01)
             async def test_func():
                 return await mock_func()
@@ -232,10 +238,7 @@ class TestRetryDecorator:
             callback_calls.append((attempt, str(exception)))
 
         mock_func = AsyncMock(
-            side_effect=[
-                NetworkError("Error", api_name="Test"),
-                "success"
-            ]
+            side_effect=[NetworkError("Error", api_name="Test"), "success"]
         )
 
         @retry_with_backoff(max_attempts=3, base_delay=0.01, on_retry=on_retry_callback)
@@ -251,14 +254,10 @@ class TestRetryDecorator:
     @pytest.mark.asyncio
     async def test_custom_retryable_exceptions(self):
         """Test custom retryable exceptions parameter."""
-        mock_func = AsyncMock(
-            side_effect=[ValueError("Error"), "success"]
-        )
+        mock_func = AsyncMock(side_effect=[ValueError("Error"), "success"])
 
         @retry_with_backoff(
-            max_attempts=3,
-            base_delay=0.01,
-            retryable_exceptions=(ValueError,)
+            max_attempts=3, base_delay=0.01, retryable_exceptions=(ValueError,)
         )
         async def test_func():
             return await mock_func()
@@ -271,6 +270,7 @@ class TestRetryDecorator:
     @pytest.mark.asyncio
     async def test_preserves_function_metadata(self):
         """Test decorator preserves function metadata."""
+
         @retry_with_backoff(max_attempts=3)
         async def test_func():
             """Test function docstring."""
@@ -345,7 +345,7 @@ class TestRetryContext:
     @pytest.mark.asyncio
     async def test_retry_context_wait_before_retry(self):
         """Test RetryContext wait_before_retry calculates delay."""
-        with patch('asyncio.sleep', new_callable=AsyncMock) as mock_sleep:
+        with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
             with RetryContext("test_operation") as ctx:
                 await ctx.wait_before_retry(attempt=1, base_delay=0.01)
 
