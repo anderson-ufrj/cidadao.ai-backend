@@ -2242,6 +2242,294 @@ code SPRINT_PLAN_2025-10-13.md
 
 ---
 
+## 📊 APÊNDICE A: A/B Testing Framework
+
+**Descoberto durante Sprint Planning - 2025-10-13**
+
+### ✅ Framework Já Implementado!
+
+O backend possui um **framework A/B testing COMPLETO** para testar variações de modelos ML em produção.
+
+**Localização**: `src/ml/ab_testing.py` (514 linhas)
+
+---
+
+### 🎯 Funcionalidades Principais
+
+#### 1. **Estratégias de Alocação** (4 tipos)
+```python
+# RANDOM - Alocação aleatória com consistência por usuário
+# WEIGHTED - Distribuição ponderada de tráfego
+# EPSILON_GREEDY - Explore vs Exploit (10% exploração)
+# THOMPSON_SAMPLING - Abordagem Bayesiana com Beta distributions
+```
+
+#### 2. **Análise Estatística Automática**
+- Chi-square test para significância
+- Intervalos de confiança (Wilson score method)
+- Cálculo automático de lift
+- P-value < 0.05 para determinar vencedor
+- Auto-stop quando vencedor encontrado
+
+#### 3. **Estados do Teste**
+```
+DRAFT → RUNNING → PAUSED/STOPPED/COMPLETED
+```
+
+#### 4. **Configuração Avançada**
+- Tamanho mínimo de amostra configurável
+- Duração máxima do teste
+- Tráfego split customizável (50/50, 70/30, etc.)
+- Métricas de sucesso personalizadas
+
+---
+
+### 🔌 API Endpoints Disponíveis
+
+```bash
+# Gestão de Testes
+POST   /api/v1/ml/ab-test/create                    # Criar novo teste
+POST   /api/v1/ml/ab-test/{test_name}/start         # Iniciar teste
+POST   /api/v1/ml/ab-test/{test_name}/stop          # Parar teste
+GET    /api/v1/ml/ab-test/active                    # Listar testes ativos
+
+# Alocação e Tracking
+GET    /api/v1/ml/ab-test/{test_name}/allocate      # Alocar modelo para usuário
+POST   /api/v1/ml/ab-test/{test_name}/record        # Registrar resultado de predição
+
+# Análise e Resultados
+GET    /api/v1/ml/ab-test/{test_name}/status        # Status do teste
+GET    /api/v1/ml/ab-test/{test_name}/analyze       # Análise estatística
+POST   /api/v1/ml/ab-test/{test_name}/promote       # Promover vencedor para produção
+```
+
+---
+
+### 📝 Exemplo de Uso
+
+#### Criar um A/B Test
+```python
+POST /api/v1/ml/ab-test/create
+{
+  "test_name": "corruption_detector_v2_test",
+  "model_a": {"model_id": "corruption_detector", "version": 1},
+  "model_b": {"model_id": "corruption_detector", "version": 2},
+  "allocation_strategy": "thompson_sampling",
+  "traffic_split": [0.5, 0.5],
+  "success_metric": "f1_score",
+  "minimum_sample_size": 1000,
+  "significance_level": 0.05,
+  "auto_stop": true,
+  "duration_hours": 48
+}
+```
+
+#### Iniciar Teste
+```bash
+POST /api/v1/ml/ab-test/corruption_detector_v2_test/start
+```
+
+#### Alocar Modelo para Usuário
+```bash
+GET /api/v1/ml/ab-test/corruption_detector_v2_test/allocate?user_id=user123
+```
+
+Retorna:
+```json
+{
+  "model_id": "corruption_detector",
+  "version": 2,
+  "variant": "model_b"
+}
+```
+
+#### Registrar Resultado
+```python
+POST /api/v1/ml/ab-test/corruption_detector_v2_test/record
+{
+  "model_selection": "model_b",
+  "success": true,
+  "prediction_metadata": {
+    "accuracy": 0.95,
+    "confidence": 0.87
+  }
+}
+```
+
+#### Verificar Status e Análise
+```bash
+GET /api/v1/ml/ab-test/corruption_detector_v2_test/status
+```
+
+Retorna:
+```json
+{
+  "test_id": "ab_test_corruption_detector_v2_test_20251013_071500",
+  "status": "running",
+  "results": {
+    "model_a": {"predictions": 500, "successes": 425},
+    "model_b": {"predictions": 500, "successes": 465}
+  },
+  "latest_analysis": {
+    "model_a": {"conversion_rate": 0.85, "sample_size": 500},
+    "model_b": {"conversion_rate": 0.93, "sample_size": 500},
+    "p_value": 0.001,
+    "significant": true,
+    "winner": "model_b",
+    "lift": 9.4
+  }
+}
+```
+
+#### Promover Vencedor para Produção
+```bash
+POST /api/v1/ml/ab-test/corruption_detector_v2_test/promote
+```
+
+---
+
+### 🔧 Implementação Técnica
+
+#### Persistência
+- **Redis**: Armazena configuração do teste (90 dias de retenção)
+- **Key Pattern**: `ab_test:{test_name}`
+
+#### Algoritmos Implementados
+
+**1. Thompson Sampling (Bayesian)**
+```python
+# Atualiza distribuições Beta conforme resultados
+# Alpha++ para sucesso, Beta++ para falha
+# Amostra de ambas e escolhe maior
+sample_a = beta(alpha_a, beta_a)
+sample_b = beta(alpha_b, beta_b)
+winner = "model_a" if sample_a > sample_b else "model_b"
+```
+
+**2. Epsilon-Greedy**
+```python
+# 10% exploration, 90% exploitation
+if random() < 0.1:
+    return random_choice(["model_a", "model_b"])
+else:
+    return best_performing_model
+```
+
+**3. Chi-Square Test**
+```python
+# Análise estatística com scipy
+chi2, p_value = chi2_contingency(contingency_table)
+significant = p_value < 0.05
+```
+
+---
+
+### 📊 Integração com Monitoramento
+
+O framework A/B testing pode ser integrado com o stack de monitoramento:
+
+#### Métricas Custom para A/B Tests
+```python
+# Adicionar ao monitoring/prometheus/alerts.yml
+- alert: ABTestSampleSizeTooSmall
+  expr: |
+    ab_test_sample_size < 100
+  for: 1h
+  labels:
+    severity: warning
+
+- alert: ABTestWinnerFound
+  expr: |
+    ab_test_winner_confidence > 0.95
+  labels:
+    severity: info
+```
+
+#### Dashboard Grafana para A/B Tests
+- Taxa de conversão por variante
+- P-value ao longo do tempo
+- Distribuição de tráfego
+- Tempo até significância estatística
+- Lift comparativo
+
+---
+
+### 💡 Casos de Uso
+
+#### 1. **Testar Novos Modelos ML**
+```python
+# Testar accuracy de novo modelo de detecção de corrupção
+test = ab_testing.create_test(
+    test_name="zumbi_anomaly_detector_v3",
+    model_a=("zumbi_detector", 2),
+    model_b=("zumbi_detector", 3),
+    success_metric="precision"
+)
+```
+
+#### 2. **Otimizar Agentes**
+```python
+# Comparar estratégias de reasoning de agentes
+test = ab_testing.create_test(
+    test_name="anita_reasoning_strategy",
+    model_a=("anita_agent", "chain_of_thought"),
+    model_b=("anita_agent", "tree_of_thought"),
+    allocation_strategy="epsilon_greedy"
+)
+```
+
+#### 3. **Validar Features de Federal APIs**
+```python
+# Testar nova estratégia de cache
+test = ab_testing.create_test(
+    test_name="federal_api_cache_strategy",
+    model_a=("api_cache", "lru"),
+    model_b=("api_cache", "lfu"),
+    success_metric="cache_hit_rate"
+)
+```
+
+---
+
+### 🚀 Próximos Passos (Opcional)
+
+Se quiser expandir o framework A/B testing nos próximos sprints:
+
+#### Sprint Futuro: Dashboard A/B Testing
+1. Criar painel Grafana específico para A/B tests
+2. Adicionar métricas Prometheus personalizadas
+3. Integrar com alertas de significância estatística
+
+#### Sprint Futuro: Multi-Armed Bandit
+1. Implementar algoritmo contextual bandits
+2. Adicionar suporte para >2 variantes
+3. Otimização online com reward feedback
+
+#### Sprint Futuro: Feature Flags Integration
+1. Conectar A/B tests com feature flags
+2. Rollout gradual baseado em confiança
+3. Automatic rollback em caso de degradação
+
+---
+
+### 📚 Referências
+
+**Arquivos Principais**:
+- `src/ml/ab_testing.py` - Framework core (514 linhas)
+- `src/api/routes/ml_pipeline.py` - REST endpoints (linhas 244-370)
+- `src/ml/training_pipeline.py` - Integração com modelos
+
+**Documentação Técnica**:
+- Wilson Score Interval: https://en.wikipedia.org/wiki/Binomial_proportion_confidence_interval
+- Thompson Sampling: https://en.wikipedia.org/wiki/Thompson_sampling
+- Chi-Square Test: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.chi2_contingency.html
+
+---
+
+**Conclusão**: O framework A/B testing está **production-ready** e completamente funcional. Não requer implementação adicional, apenas documentação e potencialmente integração com dashboards de monitoramento.
+
+---
+
 **FIM DO PLANO DE SPRINT**
 
 Pronto para começar? 🚀
