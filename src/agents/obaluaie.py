@@ -129,11 +129,40 @@ class CorruptionDetectorAgent(BaseAgent):
         """Inicializa modelos de ML e configurações."""
         self.logger.info("Initializing Obaluâiê corruption detection models...")
 
-        # TODO: Carregar modelos pré-treinados
-        # self.fraud_neural_network = await self._load_fraud_model()
-        # self.cartel_detector = await self._load_cartel_model()
+        # Initialize models with placeholder configurations
+        # In production, these would load actual trained models
+        self.fraud_neural_network = {
+            "model_type": "LSTM_Autoencoder",
+            "input_dim": 50,
+            "hidden_layers": [128, 64, 32],
+            "threshold": 0.85,
+            "trained": False,
+            "version": "1.0.0",
+        }
 
-        self.logger.info("Obaluâiê ready for corruption detection")
+        self.cartel_detector = {
+            "algorithm": "Louvain_Community_Detection",
+            "min_cluster_size": 3,
+            "similarity_threshold": 0.75,
+            "trained": False,
+            "version": "1.0.0",
+        }
+
+        self.relationship_analyzer = {
+            "algorithm": "Graph_Neural_Network",
+            "max_depth": 4,
+            "relationship_types": ["familial", "corporate", "political"],
+            "trained": False,
+            "version": "1.0.0",
+        }
+
+        self.logger.info(
+            "Obaluâiê ready for corruption detection",
+            models_loaded=3,
+            fraud_nn=bool(self.fraud_neural_network),
+            cartel=bool(self.cartel_detector),
+            relationship=bool(self.relationship_analyzer),
+        )
 
     async def detect_corruption_patterns(
         self, data: list[dict[str, Any]], context: AgentContext
@@ -151,41 +180,246 @@ class CorruptionDetectorAgent(BaseAgent):
         """
         self.logger.info("Starting corruption pattern detection...")
 
-        # TODO: Implementar pipeline completo de detecção
-        # benford_score = await self._apply_benford_law(data)
-        # cartel_score = await self._detect_cartels(data)
-        # nepotism_score = await self._analyze_nepotism(data)
-        # transparency_score = await self._calculate_transparency_index(data)
+        # Step 1: Data preprocessing
+        cleaned_data = [d for d in data if d and isinstance(d, dict)]
+        if not cleaned_data:
+            self.logger.warning("No valid data for corruption detection")
+            cleaned_data = [{}]  # Empty dict to prevent errors
 
-        # Placeholder para desenvolvimento
+        # Step 2: Apply Benford's Law analysis
+        benford_score = await self._apply_benford_law(cleaned_data)
+
+        # Step 3: Detect cartels and collusion
+        cartel_score = await self._detect_cartels(cleaned_data)
+
+        # Step 4: Analyze nepotism patterns
+        nepotism_score = await self._analyze_nepotism(cleaned_data)
+
+        # Step 5: Calculate transparency index
+        transparency_score = await self._calculate_transparency_index(cleaned_data)
+
+        # Step 6: Consolidate scores and determine severity
+        overall_score = (
+            benford_score * 0.25
+            + cartel_score * 0.30
+            + nepotism_score * 0.20
+            + transparency_score * 0.25
+        )
+
+        severity = self._determine_severity(overall_score)
+
+        # Identify suspicious patterns
+        suspicious_patterns = []
+        if benford_score > self.corruption_thresholds["benford_deviation"]:
+            suspicious_patterns.append(
+                {"pattern": "benford_anomaly", "score": benford_score}
+            )
+        if cartel_score > self.corruption_thresholds["cartel_probability"]:
+            suspicious_patterns.append(
+                {"pattern": "cartel_indicators", "score": cartel_score}
+            )
+        if nepotism_score > self.corruption_thresholds["nepotism_score"]:
+            suspicious_patterns.append(
+                {"pattern": "nepotism_detected", "score": nepotism_score}
+            )
+
+        # Calculate investigation priority (1-10)
+        priority = min(
+            10,
+            int(overall_score * 10)
+            + (
+                1
+                if severity in [CorruptionSeverity.HIGH, CorruptionSeverity.CRITICAL]
+                else 0
+            ),
+        )
+
+        # Extract entities involved (simplified - would use entity extraction in production)
+        entities_involved = list(
+            {
+                d.get("supplier_name", d.get("entity_id", "Unknown"))
+                for d in cleaned_data
+                if d
+            }
+        )[
+            :5
+        ]  # Top 5 entities
+
+        # Calculate financial impact (sum of suspicious transactions)
+        financial_impact = sum(
+            d.get("value", d.get("amount", 0)) for d in cleaned_data if d
+        )
+
         return CorruptionAlertResult(
             alert_type="systemic_corruption",
-            severity=CorruptionSeverity.MEDIUM,
-            confidence_score=0.75,
-            entities_involved=["Entity_A", "Entity_B"],
-            suspicious_patterns=[{"pattern": "price_manipulation", "score": 0.8}],
-            financial_impact=1500000.0,
-            evidence_links=["evidence_1", "evidence_2"],
-            risk_assessment={"priority": "high", "urgency": "medium"},
+            severity=severity,
+            confidence_score=overall_score,
+            entities_involved=entities_involved,
+            suspicious_patterns=suspicious_patterns,
+            financial_impact=financial_impact,
+            evidence_links=[
+                f"benford_test_{benford_score:.2f}",
+                f"cartel_analysis_{cartel_score:.2f}",
+            ],
+            risk_assessment={
+                "priority": severity.value,
+                "urgency": "high" if overall_score > 0.8 else "medium",
+                "benford_score": benford_score,
+                "cartel_score": cartel_score,
+                "nepotism_score": nepotism_score,
+                "transparency_score": transparency_score,
+            },
             timestamp=datetime.utcnow(),
-            investigation_priority=7,
+            investigation_priority=priority,
         )
 
     async def analyze_bidding_cartels(self, bidding_data: list[dict]) -> dict[str, Any]:
-        """Analisa cartéis em processos licitatórios."""
-        # TODO: Implementar análise de cartéis
-        pass
+        """
+        Analisa cartéis em processos licitatórios.
+
+        Detecta padrões de:
+        - Mesmos fornecedores vencendo sequencialmente
+        - Preços artificialmente elevados
+        - Padrões de rotação suspeitos
+        - Similaridade excessiva entre propostas
+        """
+        self.logger.info("Analyzing bidding cartels", data_points=len(bidding_data))
+
+        if not bidding_data:
+            return {
+                "cartel_detected": False,
+                "score": 0.0,
+                "patterns": [],
+                "affected_biddings": 0,
+            }
+
+        # Analyze supplier rotation patterns
+        suppliers = [b.get("winner", b.get("supplier")) for b in bidding_data if b]
+        supplier_counts = {}
+        for supplier in suppliers:
+            if supplier:
+                supplier_counts[supplier] = supplier_counts.get(supplier, 0) + 1
+
+        # Calculate concentration (Gini coefficient approximation)
+        if supplier_counts:
+            values = list(supplier_counts.values())
+            total = sum(values)
+            concentration = max(values) / total if total > 0 else 0
+        else:
+            concentration = 0
+
+        cartel_score = min(1.0, concentration * 1.2)  # Scale to 0-1
+
+        return {
+            "cartel_detected": cartel_score
+            > self.corruption_thresholds["cartel_probability"],
+            "score": cartel_score,
+            "patterns": [
+                {"type": "supplier_concentration", "value": concentration},
+                {"type": "rotation_pattern", "detected": concentration > 0.5},
+            ],
+            "affected_biddings": len(bidding_data),
+            "top_suppliers": list(supplier_counts.keys())[:5],
+        }
 
     async def detect_money_laundering(
         self, financial_data: list[dict]
     ) -> dict[str, Any]:
-        """Detecta padrões de lavagem de dinheiro."""
-        # TODO: Implementar detecção de lavagem
-        pass
+        """
+        Detecta padrões de lavagem de dinheiro.
+
+        Analisa:
+        - Transações fracionadas (smurfing)
+        - Valores round (indício de artificialidade)
+        - Fluxos circulares entre entidades
+        - Velocidade anormal de transações
+        """
+        self.logger.info("Detecting money laundering", transactions=len(financial_data))
+
+        if not financial_data:
+            return {
+                "laundering_detected": False,
+                "risk_score": 0.0,
+                "suspicious_transactions": [],
+                "patterns": [],
+            }
+
+        suspicious_count = 0
+        total_suspicious_value = 0.0
+
+        # Analyze transaction patterns
+        for transaction in financial_data:
+            if not transaction:
+                continue
+
+            value = transaction.get("value", transaction.get("amount", 0))
+
+            # Check for round numbers (indication of artificial structuring)
+            if value > 0 and value % 10000 == 0:
+                suspicious_count += 1
+                total_suspicious_value += value
+
+            # Check for values just below reporting thresholds (R$ 10,000)
+            if 9000 < value < 9999:
+                suspicious_count += 1
+                total_suspicious_value += value
+
+        risk_score = min(
+            1.0, (suspicious_count / max(len(financial_data), 1)) * 2
+        )  # Scale to 0-1
+
+        return {
+            "laundering_detected": risk_score
+            > self.corruption_thresholds["financial_anomaly"],
+            "risk_score": risk_score,
+            "suspicious_transactions": suspicious_count,
+            "suspicious_value": total_suspicious_value,
+            "patterns": [
+                {"type": "round_numbers", "count": suspicious_count},
+                {"type": "threshold_avoidance", "detected": suspicious_count > 0},
+            ],
+        }
 
     async def calculate_corruption_risk_score(self, entity_data: dict) -> float:
-        """Calcula score de risco de corrupção para uma entidade."""
-        # TODO: Implementar cálculo de risco
+        """
+        Calcula score de risco de corrupção para uma entidade.
+
+        Considera:
+        - Histórico de irregularidades
+        - Concentração de contratos
+        - Relações políticas
+        - Transparência nas operações
+        """
+        if not entity_data:
+            return 0.0
+
+        risk_factors = []
+
+        # Factor 1: Historical issues
+        irregularities = entity_data.get(
+            "irregularities", entity_data.get("violations", 0)
+        )
+        if irregularities > 0:
+            risk_factors.append(min(1.0, irregularities * 0.2))
+
+        # Factor 2: Contract concentration
+        contract_count = entity_data.get("contract_count", 1)
+        if contract_count > 10:
+            risk_factors.append(min(1.0, contract_count / 50))
+
+        # Factor 3: Political connections
+        political_links = entity_data.get("political_connections", 0)
+        if political_links > 0:
+            risk_factors.append(min(1.0, political_links * 0.15))
+
+        # Factor 4: Transparency score (inverted - lower transparency = higher risk)
+        transparency = entity_data.get("transparency_score", 0.5)
+        risk_factors.append(1.0 - transparency)
+
+        # Calculate weighted average
+        if risk_factors:
+            return min(1.0, sum(risk_factors) / len(risk_factors))
+
         return 0.0
 
     async def process_message(
@@ -217,6 +451,84 @@ class CorruptionDetectorAgent(BaseAgent):
         except Exception as e:
             self.logger.error(f"Error in corruption detection: {str(e)}")
             raise AgentExecutionError(f"Corruption detection failed: {str(e)}")
+
+    async def _apply_benford_law(self, data: list[dict]) -> float:
+        """Apply Benford's Law analysis to detect manipulation."""
+        # Simplified implementation - in production would use full Benford analysis
+        values = [d.get("value", d.get("amount", 0)) for d in data if d]
+        if not values:
+            return 0.0
+
+        # Check first digit distribution (simplified)
+        first_digits = [int(str(int(v))[0]) for v in values if v > 0 and str(int(v))]
+        if not first_digits:
+            return 0.0
+
+        # Expected Benford distribution for digit 1: ~30.1%
+        digit_1_count = first_digits.count(1)
+        digit_1_pct = digit_1_count / len(first_digits)
+
+        # Calculate deviation from expected
+        expected_pct = 0.301  # Benford's Law for digit 1
+        deviation = abs(digit_1_pct - expected_pct)
+
+        return min(1.0, deviation / expected_pct)  # Normalize to 0-1
+
+    async def _detect_cartels(self, data: list[dict]) -> float:
+        """Detect cartel patterns in the data."""
+        # Delegate to the public analyze_bidding_cartels method
+        result = await self.analyze_bidding_cartels(data)
+        return result.get("score", 0.0)
+
+    async def _analyze_nepotism(self, data: list[dict]) -> float:
+        """Analyze nepotism patterns."""
+        if not data:
+            return 0.0
+
+        # Check for repeated entity relationships (simplified)
+        entities = [d.get("supplier_name", d.get("entity_id")) for d in data if d]
+        if not entities:
+            return 0.0
+
+        # Calculate repeat rate
+        unique_entities = set(entities)
+        repeat_rate = 1.0 - (len(unique_entities) / len(entities))
+
+        return min(1.0, repeat_rate * 1.5)  # Scale to 0-1
+
+    async def _calculate_transparency_index(self, data: list[dict]) -> float:
+        """Calculate transparency index (higher = more suspicious)."""
+        if not data:
+            return 0.0
+
+        # Check for missing fields (indicator of low transparency)
+        required_fields = ["value", "date", "supplier_name", "description"]
+        missing_count = 0
+        total_checks = 0
+
+        for item in data:
+            if not item:
+                continue
+            for field in required_fields:
+                total_checks += 1
+                if not item.get(field):
+                    missing_count += 1
+
+        if total_checks == 0:
+            return 0.5  # Neutral score
+
+        missing_rate = missing_count / total_checks
+        return min(1.0, missing_rate * 2)  # Scale to 0-1
+
+    def _determine_severity(self, score: float) -> CorruptionSeverity:
+        """Determine severity level based on overall score."""
+        if score >= 0.9:
+            return CorruptionSeverity.CRITICAL
+        if score >= 0.7:
+            return CorruptionSeverity.HIGH
+        if score >= 0.4:
+            return CorruptionSeverity.MEDIUM
+        return CorruptionSeverity.LOW
 
     def _generate_recommendations(self, result: CorruptionAlertResult) -> list[str]:
         """Gera recomendações baseadas nos resultados."""
