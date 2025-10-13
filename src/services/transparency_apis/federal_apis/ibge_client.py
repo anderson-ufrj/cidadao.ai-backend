@@ -19,7 +19,7 @@ import hashlib
 import json
 
 import httpx
-from pydantic import BaseModel, Field as PydanticField
+from pydantic import BaseModel, Field as PydanticField, field_validator
 
 from src.core import get_logger
 from .exceptions import NetworkError, TimeoutError, ServerError, exception_from_response
@@ -105,6 +105,12 @@ class IBGELocation(BaseModel):
     microrregiao: Optional[Dict[str, Any]] = None
     mesorregiao: Optional[Dict[str, Any]] = None
 
+    @field_validator('id', mode='before')
+    @classmethod
+    def coerce_id_to_str(cls, v):
+        """Convert integer IDs from IBGE API to strings."""
+        return str(v) if isinstance(v, int) else v
+
 
 class IBGEIndicator(BaseModel):
     """IBGE indicator representation."""
@@ -112,6 +118,12 @@ class IBGEIndicator(BaseModel):
     nome: str
     unidade: Optional[str] = None
     periodicidade: Optional[str] = None
+
+    @field_validator('id', mode='before')
+    @classmethod
+    def coerce_id_to_str(cls, v):
+        """Convert integer IDs from IBGE API to strings."""
+        return str(v) if isinstance(v, int) else v
 
 
 class IBGEClient:
