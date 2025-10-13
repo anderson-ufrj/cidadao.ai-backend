@@ -1,5 +1,11 @@
 # 🤖 Implementações Necessárias no Backend para Chat e Mobile
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## 1. 💬 Endpoint de Chat Conversacional
 
 ### Novo Endpoint: `/api/v1/chat`
@@ -38,13 +44,13 @@ async def chat_message(
     """
     # Detectar intenção
     intent = await detect_intent(request.message)
-    
+
     # Selecionar agente baseado na intenção
     agent = await select_agent_for_intent(intent)
-    
+
     # Manter contexto da sessão
     session = await get_or_create_session(request.session_id)
-    
+
     # Processar com o agente
     response = await agent.process_chat(
         message=request.message,
@@ -54,10 +60,10 @@ async def chat_message(
             "intent": intent
         }
     )
-    
+
     # Salvar no histórico
     await save_chat_history(session.id, request, response)
-    
+
     return ChatResponse(
         agent_id=agent.agent_id,
         agent_name=agent.name,
@@ -78,23 +84,23 @@ async def chat_stream(request: ChatMessage):
     async def generate():
         # Header do SSE
         yield f"data: {json.dumps({'type': 'start', 'agent': 'detecting'})}\n\n"
-        
+
         # Detectar intenção
         intent = await detect_intent(request.message)
         yield f"data: {json.dumps({'type': 'intent', 'intent': intent.type})}\n\n"
-        
+
         # Selecionar agente
         agent = await select_agent_for_intent(intent)
         yield f"data: {json.dumps({'type': 'agent', 'agent_id': agent.agent_id, 'agent_name': agent.name})}\n\n"
-        
+
         # Processar em chunks
         async for chunk in agent.process_chat_stream(request.message):
             yield f"data: {json.dumps({'type': 'message', 'content': chunk})}\n\n"
             await asyncio.sleep(0.1)  # Simula digitação
-        
+
         # Finalizar
         yield f"data: {json.dumps({'type': 'complete'})}\n\n"
-    
+
     return StreamingResponse(
         generate(),
         media_type="text/event-stream",
@@ -132,7 +138,7 @@ class Intent:
 
 class IntentDetector:
     """Detecta intenção do usuário para roteamento correto"""
-    
+
     def __init__(self):
         self.patterns = {
             IntentType.INVESTIGATE: [
@@ -154,16 +160,16 @@ class IntentDetector:
                 r"exportar?\s+dados"
             ]
         }
-    
+
     async def detect(self, message: str) -> Intent:
         message_lower = message.lower()
-        
+
         # Detectar órgãos mencionados
         organs = self._extract_organs(message_lower)
-        
+
         # Detectar período
         period = self._extract_period(message_lower)
-        
+
         # Detectar tipo de intenção
         for intent_type, patterns in self.patterns.items():
             for pattern in patterns:
@@ -178,7 +184,7 @@ class IntentDetector:
                         confidence=0.85,
                         suggested_agent=self._get_agent_for_intent(intent_type)
                     )
-        
+
         # Fallback
         return Intent(
             type=IntentType.HELP,
@@ -186,7 +192,7 @@ class IntentDetector:
             confidence=0.5,
             suggested_agent="abaporu"
         )
-    
+
     def _extract_organs(self, text: str) -> List[str]:
         """Extrai menções a órgãos governamentais"""
         organ_map = {
@@ -196,14 +202,14 @@ class IntentDetector:
             "justiça": "30000",
             "agricultura": "22000"
         }
-        
+
         found = []
         for name, code in organ_map.items():
             if name in text:
                 found.append({"name": name, "code": code})
-        
+
         return found
-    
+
     def _get_agent_for_intent(self, intent_type: IntentType) -> str:
         """Retorna o agente mais apropriado para a intenção"""
         mapping = {
@@ -230,26 +236,26 @@ import json
 
 class MobileOptimizationMiddleware(BaseHTTPMiddleware):
     """Otimizações específicas para mobile"""
-    
+
     async def dispatch(self, request: Request, call_next):
         # Detectar cliente mobile
         user_agent = request.headers.get("user-agent", "").lower()
         is_mobile = any(x in user_agent for x in ["mobile", "android", "iphone"])
-        
+
         # Adicionar header para indicar mobile
         request.state.is_mobile = is_mobile
-        
+
         response = await call_next(request)
-        
+
         # Compressão para mobile
         if is_mobile and response.headers.get("content-type", "").startswith("application/json"):
             body = b""
             async for chunk in response.body_iterator:
                 body += chunk
-            
+
             # Comprimir resposta
             compressed = gzip.compress(body)
-            
+
             # Se vale a pena comprimir
             if len(compressed) < len(body) * 0.9:
                 response.headers["content-encoding"] = "gzip"
@@ -260,7 +266,7 @@ class MobileOptimizationMiddleware(BaseHTTPMiddleware):
                     headers=dict(response.headers),
                     media_type=response.media_type
                 )
-        
+
         return response
 ```
 
@@ -290,16 +296,16 @@ async def paginate_for_mobile(
     offset = 0
     if cursor:
         offset = int(cursor)
-    
+
     # Buscar items + 1 para saber se há mais
     items = await query.offset(offset).limit(limit + 1).all()
-    
+
     has_more = len(items) > limit
     if has_more:
         items = items[:-1]
-    
+
     next_cursor = str(offset + limit) if has_more else None
-    
+
     return MobilePagination(
         items=items,
         next_cursor=next_cursor,
@@ -317,7 +323,7 @@ import json
 
 class OfflineCache:
     """Cache agressivo para suporte offline"""
-    
+
     def __init__(self):
         self.cache_durations = {
             "investigations": timedelta(hours=24),
@@ -325,11 +331,11 @@ class OfflineCache:
             "static_data": timedelta(days=30),
             "chat_history": timedelta(days=1)
         }
-    
+
     async def cache_for_offline(self, key: str, data: Any, category: str):
         """Salva dados para acesso offline"""
         cache_key = self._generate_cache_key(key, category)
-        
+
         cache_data = {
             "data": data,
             "timestamp": datetime.now().isoformat(),
@@ -338,14 +344,14 @@ class OfflineCache:
                 datetime.now() + self.cache_durations.get(category, timedelta(hours=1))
             ).isoformat()
         }
-        
+
         # Salvar no Redis com TTL apropriado
         await redis_client.setex(
             cache_key,
             self.cache_durations.get(category, timedelta(hours=1)),
             json.dumps(cache_data)
         )
-        
+
         # Headers para cache do navegador
         return {
             "Cache-Control": f"max-age={self.cache_durations.get(category).total_seconds()}",
@@ -365,14 +371,14 @@ import json
 class ConnectionManager:
     def __init__(self):
         self.active_connections: Dict[str, WebSocket] = {}
-    
+
     async def connect(self, websocket: WebSocket, session_id: str):
         await websocket.accept()
         self.active_connections[session_id] = websocket
-    
+
     def disconnect(self, session_id: str):
         self.active_connections.pop(session_id, None)
-    
+
     async def send_message(self, session_id: str, message: dict):
         websocket = self.active_connections.get(session_id)
         if websocket:
@@ -383,15 +389,15 @@ manager = ConnectionManager()
 @router.websocket("/ws/chat/{session_id}")
 async def websocket_chat(websocket: WebSocket, session_id: str):
     await manager.connect(websocket, session_id)
-    
+
     try:
         while True:
             # Receber mensagem
             data = await websocket.receive_json()
-            
+
             # Processar com agente
             response = await process_chat_message(data)
-            
+
             # Enviar resposta em chunks para simular digitação
             for chunk in response.split_into_chunks():
                 await manager.send_message(session_id, {
@@ -400,13 +406,13 @@ async def websocket_chat(websocket: WebSocket, session_id: str):
                     "agent": response.agent_id
                 })
                 await asyncio.sleep(0.05)
-            
+
             # Mensagem completa
             await manager.send_message(session_id, {
                 "type": "complete",
                 "suggested_actions": response.suggested_actions
             })
-            
+
     except WebSocketDisconnect:
         manager.disconnect(session_id)
 ```
@@ -420,12 +426,12 @@ async def get_quick_stats(
     current_user: User = Depends(get_optional_user)
 ) -> Dict[str, Any]:
     """Estatísticas rápidas para home do app"""
-    
+
     # Cache agressivo para mobile
     cached = await cache.get("mobile_quick_stats")
     if cached:
         return cached
-    
+
     stats = {
         "total_investigations": await get_total_investigations(),
         "anomalies_found": await get_total_anomalies(),
@@ -434,7 +440,7 @@ async def get_quick_stats(
         "recent_alerts": await get_recent_alerts(limit=3),
         "is_demo_mode": current_user is None
     }
-    
+
     await cache.set("mobile_quick_stats", stats, ttl=300)  # 5 min
     return stats
 
@@ -444,9 +450,9 @@ async def get_investigation_summary_mobile(
     current_user: User = Depends(get_current_user)
 ) -> Dict[str, Any]:
     """Resumo otimizado para mobile com dados essenciais"""
-    
+
     investigation = await get_investigation(id)
-    
+
     # Retornar apenas dados essenciais para mobile
     return {
         "id": investigation.id,
@@ -469,7 +475,7 @@ async def get_investigation_summary_mobile(
 # src/services/notifications.py
 class NotificationService:
     """Preparado para push notifications mobile"""
-    
+
     async def notify_investigation_complete(
         self,
         user_id: str,
@@ -477,7 +483,7 @@ class NotificationService:
         summary: Dict[str, Any]
     ):
         """Notifica quando investigação completa"""
-        
+
         notification = {
             "title": "Investigação Concluída! 🔍",
             "body": f"Encontramos {summary['anomalies']} anomalias",
@@ -489,7 +495,7 @@ class NotificationService:
             "icon": "/icons/icon-192x192.png",
             "badge": "/icons/badge-72x72.png"
         }
-        
+
         # Enviar via FCM/WebPush quando configurado
         await self.send_push_notification(user_id, notification)
 ```
@@ -498,7 +504,7 @@ class NotificationService:
 
 - [ ] Endpoint `/api/v1/chat/message` para chat
 - [ ] Endpoint `/api/v1/chat/stream` para SSE
-- [ ] WebSocket `/ws/chat/{session_id}` 
+- [ ] WebSocket `/ws/chat/{session_id}`
 - [ ] Sistema de detecção de intenção
 - [ ] Contexto de sessão para chat
 - [ ] Compressão automática para mobile

@@ -1,5 +1,11 @@
 # Maritaca AI Integration Guide
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## Overview
 
 This guide covers the integration of Maritaca AI's Sabiá-3 language model with the Cidadão.AI backend, specifically for use with the Drummond agent for conversational AI and natural language generation in Brazilian Portuguese.

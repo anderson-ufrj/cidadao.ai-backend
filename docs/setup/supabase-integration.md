@@ -1,5 +1,11 @@
 # 🗄️ Integração Backend ↔ Supabase ↔ Frontend
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## 📋 Resumo da Solução
 
 Implementei uma **integração completa com Supabase** para que o backend e frontend compartilhem o mesmo banco de dados PostgreSQL, permitindo:

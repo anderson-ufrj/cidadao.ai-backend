@@ -1,5 +1,11 @@
 # 🗂️ Plano de Reorganização do Repositório - Cidadão.AI Backend
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## 📋 Situação Atual
 
 **Problemas Identificados:**

@@ -1,5 +1,11 @@
 # Connection Pool Management Guide
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 ## Overview
 
 The Cidadão.AI backend uses advanced connection pooling for both PostgreSQL and Redis to ensure optimal performance and resource utilization.
@@ -215,16 +221,16 @@ from src.services.connection_pool_service import connection_pool_service
 async def monitor_pools():
     while True:
         stats = await connection_pool_service.get_pool_stats()
-        
+
         # Alert on issues
         for rec in stats["recommendations"]:
             if rec["severity"] == "high":
                 print(f"ALERT: {rec['pool']} - {rec['issue']}")
-        
+
         # Log metrics
         for name, pool in stats["database_pools"].items():
             print(f"{name}: {pool['active_connections']}/{pool['pool_size']}")
-        
+
         await asyncio.sleep(60)  # Check every minute
 
 asyncio.run(monitor_pools())

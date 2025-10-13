@@ -1,5 +1,11 @@
 # 📊 Technical Reports - Cidadão.AI Backend
 
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
 **Author**: Anderson Henrique da Silva
 **Last Updated**: 2025-10-03 (São Paulo, Brazil)
 

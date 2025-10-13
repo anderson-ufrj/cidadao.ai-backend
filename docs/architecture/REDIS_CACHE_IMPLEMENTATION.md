@@ -1,7 +1,13 @@
 # 🚀 Redis Cache Implementation
 
-**Status**: ✅ Implementado  
-**Versão**: 1.0.0  
+**Autor**: Anderson Henrique da Silva
+**Localização**: Minas Gerais, Brasil
+**Última Atualização**: 2025-10-13 15:15:18 -0300
+
+---
+
+**Status**: ✅ Implementado
+**Versão**: 1.0.0
 **Data**: Setembro 2025
 
 ## 📋 Visão Geral
@@ -37,15 +43,15 @@ class CacheService:
     async def get(key: str) -> Optional[Any]
     async def set(key: str, value: Any, ttl: int) -> bool
     async def delete(key: str) -> bool
-    
+
     # Chat específico
     async def cache_chat_response(message, response, intent)
     async def get_cached_chat_response(message, intent)
-    
+
     # Sessões
     async def save_session_state(session_id, state)
     async def get_session_state(session_id)
-    
+
     # Investigações
     async def cache_investigation_result(investigation_id, result)
     async def get_cached_investigation(investigation_id)
@@ -59,10 +65,10 @@ class CachedChatService(ChatService):
         cached = await cache_service.get_cached_chat_response()
         if cached:
             return cached
-        
+
         # 2. Processa com agente
         response = await agent.execute()
-        
+
         # 3. Salva no cache se confiança alta
         if confidence > 0.8:
             await cache_service.cache_chat_response()
