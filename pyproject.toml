@@ -204,6 +204,7 @@ target-version = "py311"
 "src/agents/oscar_niemeyer.py" = ["PLR0913", "PLR2004", "N806"]
 "src/agents/obaluaie.py" = ["ANN204", "UP007", "PLR2004", "B904"]
 "src/agents/drummond.py" = ["UP007", "ANN204", "ANN202", "PLR0913", "PLR2004", "B904", "SIM105", "E722", "S110", "B007", "F841", "SIM102", "RET505"]
+"src/agents/ceuci.py" = ["ANN204", "UP007", "PLR2004", "N806", "RET505", "B904", "ANN401", "PLR0915", "C901", "PLR0912"]
 
 [tool.mypy]
 python_version = "3.11"
