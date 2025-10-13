@@ -6,14 +6,34 @@ Date: 2025-09-25
 License: Proprietary - All rights reserved
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from src.agents import (
+    AbaporuAgent,
+    AgentContext,
+    AnitaAgent,
+    AyrtonSennaAgent,
+    BonifacioAgent,
+    CeuciAgent,
+    DandaraAgent,
+    DrummondAgent,
+    LampiaoAgent,
+    MachadoAgent,
+    MariaQuiteriaAgent,
+    NanaAgent,
+    ObaluaieAgent,
+    OscarNiemeyerAgent,
+    OxossiAgent,
+    TiradentesAgent,
+    ZumbiAgent,
+)
 from src.api.auth import User
 from src.api.middleware.authentication import get_current_user
 from src.core import get_logger
+from src.infrastructure.observability.metrics import count_calls, track_time
 from src.infrastructure.rate_limiter import RateLimitTier
 
 
@@ -22,19 +42,6 @@ async def get_rate_limit_tier() -> RateLimitTier:
     """Get rate limit tier for current user."""
     return RateLimitTier.BASIC
 
-
-from src.agents import (
-    AgentContext,
-    AnitaAgent,
-    BonifacioAgent,
-    DandaraAgent,
-    LampiaoAgent,
-    MachadoAgent,
-    OscarNiemeyerAgent,
-    TiradentesAgent,
-    ZumbiAgent,
-)
-from src.infrastructure.observability.metrics import count_calls, track_time
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -61,7 +68,7 @@ class AgentResponse(BaseModel):
         default_factory=dict, description="Processing metadata"
     )
     success: bool = Field(default=True, description="Operation success status")
-    message: Optional[str] = Field(None, description="Optional status message")
+    message: str | None = Field(None, description="Optional status message")
 
 
 @router.post("/zumbi", response_model=AgentResponse)
@@ -345,13 +352,12 @@ async def process_maria_quiteria_request(
         # Create agent context
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
-            session_id=str(uuid4()),
-            investigation_id=request.metadata.get("investigation_id", str(uuid4())),
+            session_id=str(request.context.get("session_id", "default")),
+            request_id=str(request.context.get("request_id", "unknown")),
+            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
         )
 
-        # Get or create agent
-        from src.agents import MariaQuiteriaAgent
-
+        # Initialize Maria Quiteria agent
         maria_quiteria = MariaQuiteriaAgent()
 
         # Process request
@@ -739,6 +745,512 @@ async def process_oscar_request(
         )
 
 
+@router.post("/drummond", response_model=AgentResponse)
+@track_time("agent_drummond_process")
+@count_calls("agent_drummond_requests")
+async def process_drummond_request(
+    request: AgentRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
+):
+    """
+    Process request with Drummond agent.
+
+    Drummond specializes in communication and content creation:
+    - Blog posts and articles generation
+    - Social media content creation
+    - Technical documentation
+    - Press releases
+    - Multi-format content (Markdown, HTML, PDF)
+    - SEO optimization
+    - Tone and style adaptation
+    - Content strategy
+    """
+    try:
+        # Create agent context
+        context = AgentContext(
+            user_id=current_user.id if current_user else "anonymous",
+            session_id=str(request.context.get("session_id", "default")),
+            request_id=str(request.context.get("request_id", "unknown")),
+            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+        )
+
+        # Initialize Drummond agent
+        drummond = DrummondAgent()
+
+        # Process request
+        result = await drummond.process(
+            message=request.query, context=context, **request.options
+        )
+
+        return AgentResponse(
+            agent="drummond",
+            result=(
+                result.data if hasattr(result, "data") else {"content": str(result)}
+            ),
+            metadata={
+                "processing_time": (
+                    result.metadata.get("processing_time", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "content_type": (
+                    result.metadata.get("content_type", "")
+                    if hasattr(result, "metadata")
+                    else ""
+                ),
+            },
+            success=True,
+            message="Communication processing completed successfully",
+        )
+
+    except Exception as e:
+        logger.error(f"Drummond agent error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Drummond agent processing failed: {str(e)}"
+        )
+
+
+@router.post("/obaluaie", response_model=AgentResponse)
+@track_time("agent_obaluaie_process")
+@count_calls("agent_obaluaie_requests")
+async def process_obaluaie_request(
+    request: AgentRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
+):
+    """
+    Process request with Obaluaiê agent.
+
+    Obaluaiê specializes in corruption detection and risk assessment:
+    - Corruption pattern detection
+    - Risk score calculation
+    - Fraud scheme identification
+    - Network analysis for corruption rings
+    - Political connection mapping
+    - Financial anomaly detection
+    - Behavioral pattern analysis
+    """
+    try:
+        # Create agent context
+        context = AgentContext(
+            user_id=current_user.id if current_user else "anonymous",
+            session_id=str(request.context.get("session_id", "default")),
+            request_id=str(request.context.get("request_id", "unknown")),
+            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+        )
+
+        # Initialize Obaluaie agent
+        obaluaie = ObaluaieAgent()
+
+        # Process request
+        result = await obaluaie.process(
+            message=request.query, context=context, **request.options
+        )
+
+        return AgentResponse(
+            agent="obaluaie",
+            result=(
+                result.data if hasattr(result, "data") else {"analysis": str(result)}
+            ),
+            metadata={
+                "processing_time": (
+                    result.metadata.get("processing_time", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "risk_score": (
+                    result.metadata.get("risk_score", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "corruption_indicators": (
+                    result.metadata.get("corruption_indicators", [])
+                    if hasattr(result, "metadata")
+                    else []
+                ),
+            },
+            success=True,
+            message="Corruption detection completed successfully",
+        )
+
+    except Exception as e:
+        logger.error(f"Obaluaie agent error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Obaluaie agent processing failed: {str(e)}"
+        )
+
+
+@router.post("/oxossi", response_model=AgentResponse)
+@track_time("agent_oxossi_process")
+@count_calls("agent_oxossi_requests")
+async def process_oxossi_request(
+    request: AgentRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
+):
+    """
+    Process request with Oxossi agent.
+
+    Oxossi specializes in data hunting and discovery:
+    - Multi-source data discovery
+    - API integration and data fetching
+    - Database querying and extraction
+    - Web scraping (Portal da Transparência)
+    - Data validation and enrichment
+    - Entity resolution
+    - Cross-reference analysis
+    - Data quality assessment
+    """
+    try:
+        # Create agent context
+        context = AgentContext(
+            user_id=current_user.id if current_user else "anonymous",
+            session_id=str(request.context.get("session_id", "default")),
+            request_id=str(request.context.get("request_id", "unknown")),
+            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+        )
+
+        # Initialize Oxossi agent
+        oxossi = OxossiAgent()
+
+        # Process request
+        result = await oxossi.process(
+            message=request.query, context=context, **request.options
+        )
+
+        return AgentResponse(
+            agent="oxossi",
+            result=(
+                result.data if hasattr(result, "data") else {"discovery": str(result)}
+            ),
+            metadata={
+                "processing_time": (
+                    result.metadata.get("processing_time", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "sources_queried": (
+                    result.metadata.get("sources_queried", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "records_found": (
+                    result.metadata.get("records_found", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+            },
+            success=True,
+            message="Data hunting completed successfully",
+        )
+
+    except Exception as e:
+        logger.error(f"Oxossi agent error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Oxossi agent processing failed: {str(e)}"
+        )
+
+
+@router.post("/ceuci", response_model=AgentResponse)
+@track_time("agent_ceuci_process")
+@count_calls("agent_ceuci_requests")
+async def process_ceuci_request(
+    request: AgentRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
+):
+    """
+    Process request with Ceuci agent.
+
+    Ceuci specializes in ETL and predictive analytics:
+    - Data extraction, transformation, loading
+    - Time series forecasting
+    - Trend prediction
+    - Seasonality detection
+    - Budget forecasting
+    - Resource allocation optimization
+    - Anomaly prediction
+    - Machine learning pipeline management
+    """
+    try:
+        # Create agent context
+        context = AgentContext(
+            user_id=current_user.id if current_user else "anonymous",
+            session_id=str(request.context.get("session_id", "default")),
+            request_id=str(request.context.get("request_id", "unknown")),
+            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+        )
+
+        # Initialize Ceuci agent
+        ceuci = CeuciAgent()
+
+        # Process request
+        result = await ceuci.process(
+            message=request.query, context=context, **request.options
+        )
+
+        return AgentResponse(
+            agent="ceuci",
+            result=(
+                result.data if hasattr(result, "data") else {"prediction": str(result)}
+            ),
+            metadata={
+                "processing_time": (
+                    result.metadata.get("processing_time", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "forecast_horizon": (
+                    result.metadata.get("forecast_horizon", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "confidence": (
+                    result.metadata.get("confidence", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+            },
+            success=True,
+            message="ETL and prediction completed successfully",
+        )
+
+    except Exception as e:
+        logger.error(f"Ceuci agent error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Ceuci agent processing failed: {str(e)}"
+        )
+
+
+@router.post("/abaporu", response_model=AgentResponse)
+@track_time("agent_abaporu_process")
+@count_calls("agent_abaporu_requests")
+async def process_abaporu_request(
+    request: AgentRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
+):
+    """
+    Process request with Abaporu (Master) agent.
+
+    Abaporu orchestrates multi-agent investigations:
+    - Multi-agent workflow coordination
+    - Investigation planning and execution
+    - Task delegation and monitoring
+    - Result synthesis across agents
+    - Strategic decision making
+    - Resource allocation
+    - Quality control
+    - Complex analysis orchestration
+    """
+    try:
+        # Create agent context
+        context = AgentContext(
+            user_id=current_user.id if current_user else "anonymous",
+            session_id=str(request.context.get("session_id", "default")),
+            request_id=str(request.context.get("request_id", "unknown")),
+            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+        )
+
+        # Initialize Abaporu agent
+        abaporu = AbaporuAgent()
+
+        # Process request
+        result = await abaporu.process(
+            message=request.query, context=context, **request.options
+        )
+
+        return AgentResponse(
+            agent="abaporu",
+            result=(
+                result.data
+                if hasattr(result, "data")
+                else {"orchestration": str(result)}
+            ),
+            metadata={
+                "processing_time": (
+                    result.metadata.get("processing_time", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "agents_used": (
+                    result.metadata.get("agents_used", [])
+                    if hasattr(result, "metadata")
+                    else []
+                ),
+                "tasks_completed": (
+                    result.metadata.get("tasks_completed", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+            },
+            success=True,
+            message="Multi-agent orchestration completed successfully",
+        )
+
+    except Exception as e:
+        logger.error(f"Abaporu agent error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Abaporu agent processing failed: {str(e)}"
+        )
+
+
+@router.post("/ayrton-senna", response_model=AgentResponse)
+@track_time("agent_ayrton_senna_process")
+@count_calls("agent_ayrton_senna_requests")
+async def process_ayrton_senna_request(
+    request: AgentRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
+):
+    """
+    Process request with Ayrton Senna (Semantic Router) agent.
+
+    Ayrton Senna specializes in intent detection and routing:
+    - Natural language understanding
+    - Intent classification
+    - Entity extraction
+    - Query understanding
+    - Agent selection and routing
+    - Context analysis
+    - Semantic similarity
+    - Multi-language support (PT-BR focus)
+    """
+    try:
+        # Create agent context
+        context = AgentContext(
+            user_id=current_user.id if current_user else "anonymous",
+            session_id=str(request.context.get("session_id", "default")),
+            request_id=str(request.context.get("request_id", "unknown")),
+            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+        )
+
+        # Initialize Ayrton Senna agent
+        ayrton_senna = AyrtonSennaAgent()
+
+        # Process request
+        result = await ayrton_senna.process(
+            message=request.query, context=context, **request.options
+        )
+
+        return AgentResponse(
+            agent="ayrton_senna",
+            result=(
+                result.data if hasattr(result, "data") else {"routing": str(result)}
+            ),
+            metadata={
+                "processing_time": (
+                    result.metadata.get("processing_time", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "detected_intent": (
+                    result.metadata.get("detected_intent", "")
+                    if hasattr(result, "metadata")
+                    else ""
+                ),
+                "confidence": (
+                    result.metadata.get("confidence", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "recommended_agent": (
+                    result.metadata.get("recommended_agent", "")
+                    if hasattr(result, "metadata")
+                    else ""
+                ),
+            },
+            success=True,
+            message="Semantic routing completed successfully",
+        )
+
+    except Exception as e:
+        logger.error(f"Ayrton Senna agent error: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Ayrton Senna agent processing failed: {str(e)}",
+        )
+
+
+@router.post("/nana", response_model=AgentResponse)
+@track_time("agent_nana_process")
+@count_calls("agent_nana_requests")
+async def process_nana_request(
+    request: AgentRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
+):
+    """
+    Process request with Nanã (Memory) agent.
+
+    Nanã specializes in memory management and context:
+    - Episodic memory (event sequences)
+    - Semantic memory (knowledge graphs)
+    - Conversation memory (dialogue history)
+    - Context retrieval and storage
+    - Long-term memory management
+    - Working memory optimization
+    - Memory consolidation
+    - Context-aware recommendations
+    """
+    try:
+        # Create agent context
+        context = AgentContext(
+            user_id=current_user.id if current_user else "anonymous",
+            session_id=str(request.context.get("session_id", "default")),
+            request_id=str(request.context.get("request_id", "unknown")),
+            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+        )
+
+        # Initialize Nana agent
+        nana = NanaAgent()
+
+        # Process request
+        result = await nana.process(
+            message=request.query, context=context, **request.options
+        )
+
+        return AgentResponse(
+            agent="nana",
+            result=(
+                result.data if hasattr(result, "data") else {"memory": str(result)}
+            ),
+            metadata={
+                "processing_time": (
+                    result.metadata.get("processing_time", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "memories_retrieved": (
+                    result.metadata.get("memories_retrieved", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "context_relevance": (
+                    result.metadata.get("context_relevance", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+            },
+            success=True,
+            message="Memory processing completed successfully",
+        )
+
+    except Exception as e:
+        logger.error(f"Nana agent error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Nana agent processing failed: {str(e)}"
+        )
+
+
 @router.get("/status")
 async def get_agents_status(current_user: User = Depends(get_current_user)):
     """Get status of all available agents."""
@@ -869,6 +1381,110 @@ async def get_agents_status(current_user: User = Depends(get_current_user)):
                 "IBGE GeoJSON integration",
             ],
         },
+        "drummond": {
+            "name": "Carlos Drummond de Andrade",
+            "role": "Communication & Content Creation Specialist",
+            "status": "active",
+            "capabilities": [
+                "Blog posts and articles generation",
+                "Social media content creation",
+                "Technical documentation",
+                "Press releases",
+                "Multi-format content (Markdown, HTML, PDF)",
+                "SEO optimization",
+                "Tone and style adaptation",
+                "Content strategy",
+            ],
+        },
+        "obaluaie": {
+            "name": "Obaluaiê",
+            "role": "Corruption Detection & Risk Assessment Specialist",
+            "status": "active",
+            "capabilities": [
+                "Corruption pattern detection",
+                "Risk score calculation",
+                "Fraud scheme identification",
+                "Network analysis for corruption rings",
+                "Political connection mapping",
+                "Financial anomaly detection",
+                "Behavioral pattern analysis",
+            ],
+        },
+        "oxossi": {
+            "name": "Oxossi",
+            "role": "Data Hunting & Discovery Specialist",
+            "status": "active",
+            "capabilities": [
+                "Multi-source data discovery",
+                "API integration and data fetching",
+                "Database querying and extraction",
+                "Web scraping (Portal da Transparência)",
+                "Data validation and enrichment",
+                "Entity resolution",
+                "Cross-reference analysis",
+                "Data quality assessment",
+            ],
+        },
+        "ceuci": {
+            "name": "Ceuci",
+            "role": "ETL & Predictive Analytics Specialist",
+            "status": "active",
+            "capabilities": [
+                "Data extraction, transformation, loading",
+                "Time series forecasting",
+                "Trend prediction",
+                "Seasonality detection",
+                "Budget forecasting",
+                "Resource allocation optimization",
+                "Anomaly prediction",
+                "Machine learning pipeline management",
+            ],
+        },
+        "abaporu": {
+            "name": "Abaporu (Master Agent)",
+            "role": "Multi-Agent Orchestration Specialist",
+            "status": "active",
+            "capabilities": [
+                "Multi-agent workflow coordination",
+                "Investigation planning and execution",
+                "Task delegation and monitoring",
+                "Result synthesis across agents",
+                "Strategic decision making",
+                "Resource allocation",
+                "Quality control",
+                "Complex analysis orchestration",
+            ],
+        },
+        "ayrton_senna": {
+            "name": "Ayrton Senna",
+            "role": "Semantic Routing & Intent Detection Specialist",
+            "status": "active",
+            "capabilities": [
+                "Natural language understanding",
+                "Intent classification",
+                "Entity extraction",
+                "Query understanding",
+                "Agent selection and routing",
+                "Context analysis",
+                "Semantic similarity",
+                "Multi-language support (PT-BR focus)",
+            ],
+        },
+        "nana": {
+            "name": "Nanã",
+            "role": "Memory Management & Context Specialist",
+            "status": "active",
+            "capabilities": [
+                "Episodic memory (event sequences)",
+                "Semantic memory (knowledge graphs)",
+                "Conversation memory (dialogue history)",
+                "Context retrieval and storage",
+                "Long-term memory management",
+                "Working memory optimization",
+                "Memory consolidation",
+                "Context-aware recommendations",
+            ],
+        },
     }
 
     return {
@@ -929,6 +1545,41 @@ async def list_agents():
                 "name": "Oscar Niemeyer",
                 "endpoint": "/api/v1/agents/oscar",
                 "description": "Data aggregation and visualization architect with NetworkX and Plotly",
+            },
+            {
+                "name": "Carlos Drummond de Andrade",
+                "endpoint": "/api/v1/agents/drummond",
+                "description": "Communication and content creation specialist",
+            },
+            {
+                "name": "Obaluaiê",
+                "endpoint": "/api/v1/agents/obaluaie",
+                "description": "Corruption detection and risk assessment specialist",
+            },
+            {
+                "name": "Oxossi",
+                "endpoint": "/api/v1/agents/oxossi",
+                "description": "Data hunting and discovery specialist",
+            },
+            {
+                "name": "Ceuci",
+                "endpoint": "/api/v1/agents/ceuci",
+                "description": "ETL and predictive analytics specialist",
+            },
+            {
+                "name": "Abaporu (Master Agent)",
+                "endpoint": "/api/v1/agents/abaporu",
+                "description": "Multi-agent orchestration and investigation coordination",
+            },
+            {
+                "name": "Ayrton Senna",
+                "endpoint": "/api/v1/agents/ayrton-senna",
+                "description": "Semantic routing and intent detection specialist",
+            },
+            {
+                "name": "Nanã",
+                "endpoint": "/api/v1/agents/nana",
+                "description": "Memory management and context specialist",
             },
         ],
     }
