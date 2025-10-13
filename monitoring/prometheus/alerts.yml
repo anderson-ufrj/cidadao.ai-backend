@@ -34,7 +34,7 @@ groups:
       # Latency Alerts
       - alert: APIHighLatency
         expr: |
-          histogram_quantile(0.95, 
+          histogram_quantile(0.95,
             sum(rate(cidadao_ai_request_duration_seconds_bucket[5m])) by (le)
           ) > 2.0
         for: 5m
@@ -48,7 +48,7 @@ groups:
 
       - alert: APICriticalLatency
         expr: |
-          histogram_quantile(0.95, 
+          histogram_quantile(0.95,
             sum(rate(cidadao_ai_request_duration_seconds_bucket[5m])) by (le)
           ) > 5.0
         for: 3m
@@ -260,3 +260,183 @@ groups:
           summary: "Latency SLO violation"
           description: "Only {{ $value | humanizePercentage }} of requests completed under 200ms, below the 95% SLO"
           runbook_url: "https://wiki.cidadao.ai/runbooks/slo-latency"
+
+  # ==============================================================================
+  # Federal APIs Alerts - Sprint 4: Monitoring for IBGE, DataSUS, INEP APIs
+  # ==============================================================================
+  - name: federal_apis_alerts
+    interval: 30s
+    rules:
+      # Alert: High Error Rate
+      - alert: FederalAPIHighErrorRate
+        expr: |
+          (
+            sum(rate(federal_api_errors_total[5m])) by (api_name)
+            /
+            sum(rate(federal_api_requests_total[5m])) by (api_name)
+          ) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+          component: federal_apis
+        annotations:
+          summary: "High error rate on {{ $labels.api_name }}"
+          description: |
+            {{ $labels.api_name }} API has error rate of {{ $value | humanizePercentage }}
+            over the last 5 minutes (threshold: 5%).
+          runbook_url: https://docs.cidadao.ai/runbooks/high-error-rate
+
+      # Alert: Critical Error Rate
+      - alert: FederalAPICriticalErrorRate
+        expr: |
+          (
+            sum(rate(federal_api_errors_total[5m])) by (api_name)
+            /
+            sum(rate(federal_api_requests_total[5m])) by (api_name)
+          ) > 0.25
+        for: 1m
+        labels:
+          severity: critical
+          component: federal_apis
+        annotations:
+          summary: "CRITICAL: {{ $labels.api_name }} failing"
+          description: |
+            {{ $labels.api_name }} API has error rate of {{ $value | humanizePercentage }}
+            over the last 5 minutes (threshold: 25%).
+            IMMEDIATE ACTION REQUIRED!
+          runbook_url: https://docs.cidadao.ai/runbooks/critical-error-rate
+
+      # Alert: High Latency (P95)
+      - alert: FederalAPIHighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(federal_api_request_duration_seconds_bucket[5m])) by (api_name, le)
+          ) > 5
+        for: 3m
+        labels:
+          severity: warning
+          component: federal_apis
+        annotations:
+          summary: "High latency on {{ $labels.api_name }}"
+          description: |
+            {{ $labels.api_name }} API P95 latency is {{ $value | humanizeDuration }}
+            (threshold: 5s). Users may experience slow responses.
+          runbook_url: https://docs.cidadao.ai/runbooks/high-latency
+
+      # Alert: Very High Latency
+      - alert: FederalAPIVeryHighLatency
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(federal_api_request_duration_seconds_bucket[5m])) by (api_name, le)
+          ) > 10
+        for: 1m
+        labels:
+          severity: critical
+          component: federal_apis
+        annotations:
+          summary: "CRITICAL: Extreme latency on {{ $labels.api_name }}"
+          description: |
+            {{ $labels.api_name }} API P95 latency is {{ $value | humanizeDuration }}
+            (threshold: 10s). Service severely degraded!
+          runbook_url: https://docs.cidadao.ai/runbooks/extreme-latency
+
+      # Alert: Low Cache Hit Rate
+      - alert: FederalAPILowCacheHitRate
+        expr: |
+          (
+            sum(rate(federal_api_cache_operations_total{operation="hit"}[10m])) by (api_name)
+            /
+            sum(rate(federal_api_cache_operations_total[10m])) by (api_name)
+          ) < 0.50
+        for: 5m
+        labels:
+          severity: info
+          component: federal_apis
+        annotations:
+          summary: "Low cache hit rate on {{ $labels.api_name }}"
+          description: |
+            {{ $labels.api_name }} cache hit rate is {{ $value | humanizePercentage }}
+            (threshold: 50%). Consider adjusting TTL or cache strategy.
+          runbook_url: https://docs.cidadao.ai/runbooks/low-cache-hit
+
+      # Alert: API Down
+      - alert: FederalAPIDown
+        expr: |
+          up{job="cidadao-ai-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          component: backend
+        annotations:
+          summary: "Backend API is DOWN"
+          description: |
+            Backend API ({{ $labels.instance }}) is not responding.
+            All Federal APIs are unavailable!
+          runbook_url: https://docs.cidadao.ai/runbooks/api-down
+
+      # Alert: High Retry Rate
+      - alert: FederalAPIHighRetryRate
+        expr: |
+          sum(rate(federal_api_retries_total[5m])) by (api_name) > 1
+        for: 3m
+        labels:
+          severity: warning
+          component: federal_apis
+        annotations:
+          summary: "High retry rate on {{ $labels.api_name }}"
+          description: |
+            {{ $labels.api_name }} is experiencing {{ $value }} retries/sec
+            over the last 5 minutes. Upstream API may be unstable.
+          runbook_url: https://docs.cidadao.ai/runbooks/high-retry-rate
+
+      # Alert: Excessive Active Requests
+      - alert: FederalAPIExcessiveActiveRequests
+        expr: |
+          federal_api_active_requests > 20
+        for: 2m
+        labels:
+          severity: warning
+          component: federal_apis
+        annotations:
+          summary: "Many concurrent requests to {{ $labels.api_name }}"
+          description: |
+            {{ $labels.api_name }} has {{ $value }} active requests.
+            May indicate slow responses or traffic spike.
+          runbook_url: https://docs.cidadao.ai/runbooks/excessive-requests
+
+  # ==============================================================================
+  # System Alerts - Sprint 4: Monitoring infrastructure health
+  # ==============================================================================
+  - name: system_alerts
+    interval: 30s
+    rules:
+      # Alert: Prometheus Scrape Failures
+      - alert: PrometheusScrapeFailing
+        expr: |
+          up{job="cidadao-ai-backend"} == 0
+          or
+          up{job="prometheus"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          component: monitoring
+        annotations:
+          summary: "Prometheus cannot scrape {{ $labels.job }}"
+          description: |
+            Prometheus failed to scrape {{ $labels.job }} at {{ $labels.instance }}
+            for more than 2 minutes. Metrics may be stale!
+          runbook_url: https://docs.cidadao.ai/runbooks/scrape-failure
+
+      # Alert: Grafana Down
+      - alert: GrafanaDown
+        expr: |
+          up{job="grafana"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          component: monitoring
+        annotations:
+          summary: "Grafana dashboard is DOWN"
+          description: |
+            Grafana is not responding. Dashboards unavailable.
+          runbook_url: https://docs.cidadao.ai/runbooks/grafana-down
