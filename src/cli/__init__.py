@@ -1,4 +1,4 @@
-"""Command-line interface for Cidad„o.AI.
+"""Command-line interface for Cidad√£o.AI.
 
 This module provides a comprehensive CLI for interacting with the multi-agent
 transparency platform. Built with Typer and Rich for beautiful, professional
