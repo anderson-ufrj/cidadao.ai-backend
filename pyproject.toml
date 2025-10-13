@@ -202,6 +202,7 @@ target-version = "py311"
 "scripts/*" = ["S101", "ANN"]
 "src/api/routes/*" = ["ANN201", "B008", "B904"]
 "src/agents/oscar_niemeyer.py" = ["PLR0913", "PLR2004", "N806"]
+"src/agents/obaluaie.py" = ["ANN204", "UP007", "PLR2004", "B904"]
 
 [tool.mypy]
 python_version = "3.11"
