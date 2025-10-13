@@ -356,6 +356,106 @@ class INEPClient:
         return data
 
     @cache_with_ttl(ttl_seconds=7200)  # 2 hours cache
+    async def search_institutions(
+        self,
+        state: Optional[str] = None,
+        city: Optional[str] = None,
+        name: Optional[str] = None,
+        limit: int = 20,
+        page: int = 1
+    ) -> Dict[str, Any]:
+        """
+        Search for educational institutions (schools and universities).
+
+        Args:
+            state: State code (UF) - e.g., 'RJ', 'SP'
+            city: City name
+            name: Institution name (partial match)
+            limit: Max results per page (default: 20)
+            page: Page number (default: 1)
+
+        Returns:
+            Dict with:
+                - total: Total institutions found
+                - page: Current page
+                - limit: Results per page
+                - results: List of institutions
+                - source: Data source information
+
+        Example:
+            >>> async with INEPClient() as client:
+            >>>     results = await client.search_institutions(state="RJ", limit=10)
+            >>>     print(f"Found {results['total']} institutions in RJ")
+        """
+        self.logger.info(f"Searching institutions: state={state}, city={city}, name={name}")
+
+        # Build search query
+        query_parts = ["escola OR universidade OR instituição"]
+
+        if state:
+            query_parts.append(state.upper())
+        if city:
+            query_parts.append(city)
+        if name:
+            query_parts.append(name)
+
+        query = " ".join(query_parts)
+
+        # Search in INEP school census dataset
+        url = f"{self.DADOS_GOV_URL}/package_search"
+        params = {
+            "q": query,
+            "fq": "organization:inep",
+            "rows": limit,
+            "start": (page - 1) * limit
+        }
+
+        data = await self._make_request(url, params=params)
+
+        result_data = data.get("result", {})
+        datasets = result_data.get("results", [])
+
+        # Record data fetched
+        FederalAPIMetrics.record_data_fetched(
+            api_name="INEP",
+            data_type="institutions",
+            record_count=len(datasets)
+        )
+
+        # Format results
+        institutions = []
+        for dataset in datasets:
+            institution = {
+                "id": dataset.get("id"),
+                "name": dataset.get("title", ""),
+                "description": dataset.get("notes", "")[:200],  # Limit description
+                "organization": dataset.get("organization", {}).get("title", "INEP"),
+                "metadata_created": dataset.get("metadata_created"),
+                "metadata_modified": dataset.get("metadata_modified"),
+                "tags": [tag.get("name") for tag in dataset.get("tags", [])[:5]],
+                "resource_count": len(dataset.get("resources", [])),
+                "url": dataset.get("url", "")
+            }
+            institutions.append(institution)
+
+        result = {
+            "total": result_data.get("count", 0),
+            "page": page,
+            "limit": limit,
+            "results": institutions,
+            "filters": {
+                "state": state,
+                "city": city,
+                "name": name
+            },
+            "source": "INEP via dados.gov.br",
+            "note": "Returns INEP datasets matching search criteria. For detailed school data, use get_school_census_data()."
+        }
+
+        self.logger.info(f"Found {result['total']} institutions")
+        return result
+
+    @cache_with_ttl(ttl_seconds=7200)  # 2 hours cache
     async def get_school_census_data(
         self,
         state_code: Optional[str] = None,
