@@ -10,14 +10,14 @@ License: Proprietary - All rights reserved
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any
 
 import httpx
 import numpy as np
 import pandas as pd
 
 from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
-from src.core import AgentStatus, get_logger
+from src.core import AgentStatus, get_logger, settings
 
 
 class AggregationType(Enum):
@@ -68,7 +68,7 @@ class DataAggregationResult:
     aggregation_id: str
     data_type: str
     aggregation_type: AggregationType
-    time_granularity: Optional[TimeGranularity]
+    time_granularity: TimeGranularity | None
     dimensions: list[str]
     metrics: dict[str, float]
     data_points: list[dict[str, Any]]
@@ -82,7 +82,7 @@ class VisualizationMetadata:
 
     visualization_id: str
     title: str
-    subtitle: Optional[str]
+    subtitle: str | None
     visualization_type: VisualizationType
     x_axis: dict[str, Any]
     y_axis: dict[str, Any]
@@ -203,7 +203,7 @@ class OscarNiemeyerAgent(BaseAgent):
     - Concurrent aggregations: 100+ per second
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__(
             name="OscarNiemeyerAgent",
             description="Oscar Niemeyer - Arquiteto de dados e metadados para visualização",
@@ -400,8 +400,8 @@ class OscarNiemeyerAgent(BaseAgent):
         }
 
         data_points = []
-        for i, category in enumerate(categories):
-            for j, region in enumerate(regions[:3]):  # Top 3 regions for sample
+        for _i, category in enumerate(categories):
+            for _j, region in enumerate(regions[:3]):  # Top 3 regions for sample
                 point = {}
                 # Set dimension values
                 if "category" in dimensions:
@@ -475,10 +475,10 @@ class OscarNiemeyerAgent(BaseAgent):
     async def generate_time_series(
         self,
         metric: str,
-        start_date: Optional[str],
-        end_date: Optional[str],
+        start_date: str | None,
+        end_date: str | None,
         granularity: TimeGranularity,
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> TimeSeriesData:
         """
         Gera dados de série temporal otimizados.
@@ -540,7 +540,7 @@ class OscarNiemeyerAgent(BaseAgent):
         data: list[dict[str, Any]],
         region_type: str,
         metrics: list[str],
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> dict[str, Any]:
         """
         Agrega dados por região geográfica.
@@ -645,7 +645,7 @@ class OscarNiemeyerAgent(BaseAgent):
         data_type: str,
         dimensions: list[str],
         metrics: list[str],
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> VisualizationMetadata:
         """Gera metadados otimizados para visualização no frontend."""
 
@@ -708,8 +708,8 @@ class OscarNiemeyerAgent(BaseAgent):
         self,
         data: list[dict[str, Any]],
         format_type: str,
-        options: Optional[dict[str, Any]] = None,
-    ) -> Union[str, bytes]:
+        options: dict[str, Any] | None = None,
+    ) -> str | bytes:
         """
         Cria formatos de exportação otimizados.
 
@@ -726,7 +726,7 @@ class OscarNiemeyerAgent(BaseAgent):
                 return json.dumps(data, indent=2, ensure_ascii=False)
             return json.dumps(data, separators=(",", ":"), ensure_ascii=False)
 
-        elif format_type == "csv":
+        if format_type == "csv":
             df = pd.DataFrame(data)
             delimiter = options.get("delimiter", ",") if options else ","
             return df.to_csv(index=False, sep=delimiter)
@@ -738,7 +738,7 @@ class OscarNiemeyerAgent(BaseAgent):
         entities: list[dict],
         relationships: list[dict],
         threshold: float = 0.7,
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> dict[str, Any]:
         """
         Create interactive fraud relationship network using NetworkX + Plotly.
@@ -801,7 +801,7 @@ class OscarNiemeyerAgent(BaseAgent):
         edge_trace = go.Scatter(
             x=[],
             y=[],
-            line=dict(width=0.5, color="#888"),
+            line={"width": 0.5, "color": "#888"},
             hoverinfo="none",
             mode="lines",
             showlegend=False,
@@ -820,13 +820,17 @@ class OscarNiemeyerAgent(BaseAgent):
             y=[],
             mode="markers+text",
             hoverinfo="text",
-            marker=dict(
-                showscale=True,
-                colorscale="YlOrRd",
-                size=10,
-                colorbar=dict(thickness=15, title="Suspicion Score", xanchor="left"),
-                line=dict(width=2, color="white"),
-            ),
+            marker={
+                "showscale": True,
+                "colorscale": "YlOrRd",
+                "size": 10,
+                "colorbar": {
+                    "thickness": 15,
+                    "title": "Suspicion Score",
+                    "xanchor": "left",
+                },
+                "line": {"width": 2, "color": "white"},
+            },
             text=[],
             textposition="top center",
             showlegend=False,
@@ -842,7 +846,7 @@ class OscarNiemeyerAgent(BaseAgent):
 
             suspicion = G.nodes[node].get("suspicion_score", 0.5)
             label = G.nodes[node].get("label", node)
-            entity_type = G.nodes[node].get("entity_type", "unknown")
+            G.nodes[node].get("entity_type", "unknown")
 
             node_suspicions.append(suspicion)
             node_texts.append(label)
@@ -858,12 +862,12 @@ class OscarNiemeyerAgent(BaseAgent):
         fig = go.Figure(
             data=[edge_trace, node_trace],
             layout=go.Layout(
-                title=dict(text="Fraud Relationship Network", font=dict(size=20)),
+                title={"text": "Fraud Relationship Network", "font": {"size": 20}},
                 showlegend=False,
                 hovermode="closest",
-                margin=dict(b=20, l=5, r=5, t=40),
-                xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
-                yaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
+                margin={"b": 20, "l": 5, "r": 5, "t": 40},
+                xaxis={"showgrid": False, "zeroline": False, "showticklabels": False},
+                yaxis={"showgrid": False, "zeroline": False, "showticklabels": False},
                 plot_bgcolor="rgba(0,0,0,0)",
                 paper_bgcolor="rgba(0,0,0,0)",
             ),
@@ -890,10 +894,10 @@ class OscarNiemeyerAgent(BaseAgent):
     async def create_choropleth_map(
         self,
         data: list[dict],
-        geojson_url: Optional[str] = None,
+        geojson_url: str | None = None,
         color_column: str = "value",
         location_column: str = "state_code",
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> dict[str, Any]:
         """
         Create choropleth map for Brazilian states/municipalities.
@@ -957,7 +961,7 @@ class OscarNiemeyerAgent(BaseAgent):
             title_text="Geographic Distribution - Brazil",
             geo_scope="south america",
             height=600,
-            margin=dict(l=0, r=0, t=30, b=0),
+            margin={"l": 0, "r": 0, "t": 30, "b": 0},
         )
 
         # Convert to JSON-serializable format
@@ -988,7 +992,7 @@ class OscarNiemeyerAgent(BaseAgent):
         }
 
     async def fetch_network_graph_data(
-        self, entity_id: str, depth: int = 2, context: Optional[AgentContext] = None
+        self, entity_id: str, depth: int = 2, context: AgentContext | None = None
     ) -> dict[str, Any]:
         """
         Fetch network graph data from Network Graph API.
@@ -1006,7 +1010,7 @@ class OscarNiemeyerAgent(BaseAgent):
         )
 
         # Call Network Graph API
-        api_base_url = "http://localhost:8000"  # TODO: Get from config
+        api_base_url = settings.api_base_url or "http://localhost:8000"
         endpoint = f"{api_base_url}/api/v1/network/entities/{entity_id}/network"
 
         try:
@@ -1056,7 +1060,7 @@ class OscarNiemeyerAgent(BaseAgent):
             return {"entities": [], "relationships": [], "error": str(e)}
 
     def _recommend_visualization(
-        self, dimensions: list[str], metrics: list[str], data_type: Optional[str] = None
+        self, dimensions: list[str], metrics: list[str], data_type: str | None = None
     ) -> VisualizationType:
         """Recommends best visualization type based on data characteristics."""
 
@@ -1085,15 +1089,136 @@ class OscarNiemeyerAgent(BaseAgent):
 
     async def _load_aggregation_patterns(self) -> None:
         """Load common aggregation patterns."""
-        # TODO: Load from configuration
-        pass
+        # Common aggregation patterns for Brazilian government data
+        self.aggregation_patterns = {
+            "temporal": {
+                "daily": {"granularity": TimeGranularity.DAY, "retention_days": 90},
+                "weekly": {"granularity": TimeGranularity.WEEK, "retention_days": 365},
+                "monthly": {
+                    "granularity": TimeGranularity.MONTH,
+                    "retention_days": 730,
+                },
+                "yearly": {"granularity": TimeGranularity.YEAR, "retention_days": 3650},
+            },
+            "geographic": {
+                "state": {"level": "UF", "aggregation": ["sum", "count", "avg"]},
+                "region": {
+                    "level": "region",
+                    "aggregation": ["sum", "count", "avg"],
+                    "regions": ["Norte", "Nordeste", "Sul", "Sudeste", "Centro-Oeste"],
+                },
+                "municipality": {
+                    "level": "municipality",
+                    "aggregation": ["sum", "count"],
+                },
+            },
+            "categorical": {
+                "contract_type": ["supplies", "services", "construction"],
+                "modality": ["bidding", "waiver", "inexigibility"],
+                "status": ["active", "completed", "cancelled"],
+            },
+        }
+
+        self.logger.info(
+            "Aggregation patterns loaded",
+            temporal_patterns=len(self.aggregation_patterns["temporal"]),
+            geographic_patterns=len(self.aggregation_patterns["geographic"]),
+        )
 
     async def _setup_visualization_templates(self) -> None:
         """Setup visualization templates."""
-        # TODO: Load visualization templates
-        pass
+        # Visualization templates optimized for Brazilian government transparency data
+        self.viz_templates = {
+            "spending_overview": {
+                "type": VisualizationType.BAR_CHART,
+                "title": "Panorama de Gastos Públicos",
+                "dimensions": ["category"],
+                "metrics": ["total_value", "contract_count"],
+                "color_scheme": ["#2563eb", "#7c3aed"],
+            },
+            "temporal_trends": {
+                "type": VisualizationType.LINE_CHART,
+                "title": "Evolução Temporal dos Contratos",
+                "dimensions": ["date"],
+                "metrics": ["total_value"],
+                "color_scheme": ["#059669"],
+            },
+            "geographic_distribution": {
+                "type": VisualizationType.MAP,
+                "title": "Distribuição Geográfica",
+                "dimensions": ["state"],
+                "metrics": ["total_value"],
+                "color_scheme": "Blues",
+            },
+            "supplier_concentration": {
+                "type": VisualizationType.PIE_CHART,
+                "title": "Concentração de Fornecedores",
+                "dimensions": ["supplier"],
+                "metrics": ["contract_count"],
+                "color_scheme": ["#dc2626", "#ea580c", "#f59e0b", "#84cc16"],
+            },
+            "fraud_network": {
+                "type": VisualizationType.SCATTER_PLOT,
+                "title": "Rede de Relações Suspeitas",
+                "dimensions": ["entity"],
+                "metrics": ["risk_score", "connection_count"],
+                "color_scheme": "RdYlGn_r",
+            },
+        }
+
+        self.logger.info(
+            "Visualization templates loaded", template_count=len(self.viz_templates)
+        )
 
     async def _initialize_spatial_indices(self) -> None:
         """Initialize spatial indices for geographic queries."""
-        # TODO: Setup spatial indices
-        pass
+        # Brazilian geographic indices for fast spatial queries
+        self.spatial_indices = {
+            "states": {
+                # Brazilian states with their geographic centers
+                "SP": {"lat": -23.5505, "lng": -46.6333, "region": "Sudeste"},
+                "RJ": {"lat": -22.9068, "lng": -43.1729, "region": "Sudeste"},
+                "MG": {"lat": -19.9167, "lng": -43.9345, "region": "Sudeste"},
+                "ES": {"lat": -20.3155, "lng": -40.3128, "region": "Sudeste"},
+                "BA": {"lat": -12.9714, "lng": -38.5014, "region": "Nordeste"},
+                "CE": {"lat": -3.7327, "lng": -38.5267, "region": "Nordeste"},
+                "PE": {"lat": -8.0476, "lng": -34.8770, "region": "Nordeste"},
+                "RS": {"lat": -30.0346, "lng": -51.2177, "region": "Sul"},
+                "PR": {"lat": -25.4284, "lng": -49.2733, "region": "Sul"},
+                "SC": {"lat": -27.5954, "lng": -48.5480, "region": "Sul"},
+                "DF": {"lat": -15.8267, "lng": -47.9218, "region": "Centro-Oeste"},
+                "GO": {"lat": -16.6869, "lng": -49.2648, "region": "Centro-Oeste"},
+                "MT": {"lat": -15.6014, "lng": -56.0979, "region": "Centro-Oeste"},
+                "MS": {"lat": -20.4697, "lng": -54.6201, "region": "Centro-Oeste"},
+                "AM": {"lat": -3.1190, "lng": -60.0217, "region": "Norte"},
+                "PA": {"lat": -1.4558, "lng": -48.4902, "region": "Norte"},
+                "RO": {"lat": -8.7612, "lng": -63.8999, "region": "Norte"},
+            },
+            "regions": {
+                "Norte": {"states": ["AM", "PA", "RO", "AC", "AP", "RR", "TO"]},
+                "Nordeste": [
+                    "BA",
+                    "CE",
+                    "PE",
+                    "MA",
+                    "PB",
+                    "RN",
+                    "AL",
+                    "SE",
+                    "PI",
+                ],
+                "Sudeste": {"states": ["SP", "RJ", "MG", "ES"]},
+                "Sul": {"states": ["RS", "PR", "SC"]},
+                "Centro-Oeste": {"states": ["DF", "GO", "MT", "MS"]},
+            },
+            "geojson_sources": {
+                "brazil_states": "https://raw.githubusercontent.com/codeforamerica/click_that_hood/master/public/data/brazil-states.geojson",
+                "brazil_municipalities": "https://servicodados.ibge.gov.br/api/v3/malhas/paises/BR?formato=application/vnd.geo+json",
+            },
+        }
+
+        self.logger.info(
+            "Spatial indices initialized",
+            states_count=len(self.spatial_indices["states"]),
+            regions_count=len(self.spatial_indices["regions"]),
+        )

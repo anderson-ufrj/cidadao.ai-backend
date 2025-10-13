@@ -201,6 +201,7 @@ target-version = "py311"
 "tests/*" = ["S101", "ANN", "PLR2004"]
 "scripts/*" = ["S101", "ANN"]
 "src/api/routes/*" = ["ANN201", "B008", "B904"]
+"src/agents/oscar_niemeyer.py" = ["PLR0913", "PLR2004", "N806"]
 
 [tool.mypy]
 python_version = "3.11"
