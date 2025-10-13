@@ -6,21 +6,15 @@ data from the Brazilian Open Data Portal.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 
 from src.api.auth import get_current_user
-from src.core.exceptions import ValidationError
 from src.services.dados_gov_service import DadosGovService
 from src.tools.dados_gov_api import DadosGovAPIError
-from src.tools.dados_gov_models import (
-    Dataset,
-    DatasetSearchResult,
-    Organization,
-    Resource,
-)
+from src.tools.dados_gov_models import Dataset, DatasetSearchResult, Organization
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/dados-gov")
@@ -28,8 +22,8 @@ router = APIRouter(prefix="/dados-gov")
 
 class DatasetSearchRequest(BaseModel):
     """Request model for dataset search"""
-    
-    keywords: Optional[List[str]] = Field(
+
+    keywords: Optional[list[str]] = Field(
         None,
         description="Keywords to search for",
         example=["transparência", "gastos", "contratos"],
@@ -54,15 +48,15 @@ class DatasetSearchRequest(BaseModel):
 
 class DataAvailabilityResponse(BaseModel):
     """Response model for data availability analysis"""
-    
+
     topic: str
     total_datasets: int
     analyzed_datasets: int
-    organizations: Dict[str, int]
-    formats: Dict[str, int]
-    years_covered: List[str]
-    geographic_coverage: Dict[str, int]
-    update_frequency: Dict[str, int]
+    organizations: dict[str, int]
+    formats: dict[str, int]
+    years_covered: list[str]
+    geographic_coverage: dict[str, int]
+    update_frequency: dict[str, int]
 
 
 @router.get(
@@ -82,7 +76,7 @@ async def search_datasets(
         description="Filter by organization",
         example="inep",
     ),
-    tags: Optional[List[str]] = Query(
+    tags: Optional[list[str]] = Query(
         None,
         description="Filter by tags",
         example=["educação", "censo"],
@@ -103,16 +97,16 @@ async def search_datasets(
         ge=0,
         description="Pagination offset",
     ),
-    current_user: Dict[str, Any] = Depends(get_current_user),
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
     Search for datasets in dados.gov.br.
-    
+
     This endpoint allows searching the Brazilian Open Data Portal
     for datasets matching specific criteria.
     """
     service = DadosGovService()
-    
+
     try:
         # Use the service to search
         if query or tags:
@@ -121,7 +115,7 @@ async def search_datasets(
                 keywords.append(query)
             if tags:
                 keywords.extend(tags)
-                
+
             result = await service.search_transparency_datasets(
                 keywords=keywords,
                 organization=organization,
@@ -137,14 +131,14 @@ async def search_datasets(
                 limit=limit,
                 offset=offset,
             )
-            
+
             result = DatasetSearchResult(
                 count=api_result.get("count", 0),
                 results=[Dataset(**ds) for ds in api_result.get("results", [])],
             )
-            
+
         return result
-        
+
     except DadosGovAPIError as e:
         logger.error(f"API error: {e}")
         raise HTTPException(
@@ -169,20 +163,20 @@ async def search_datasets(
 )
 async def get_dataset(
     dataset_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user),
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
     Get detailed information about a dataset.
-    
+
     Returns complete dataset information including all resources
     and metadata.
     """
     service = DadosGovService()
-    
+
     try:
         dataset = await service.get_dataset_with_resources(dataset_id)
         return dataset
-        
+
     except DadosGovAPIError as e:
         logger.error(f"API error: {e}")
         if e.status_code == 404:
@@ -206,25 +200,25 @@ async def get_dataset(
 
 @router.get(
     "/resource/{resource_id}/url",
-    response_model=Dict[str, str],
+    response_model=dict[str, str],
     summary="Get resource download URL",
     description="Get the direct download URL for a dataset resource",
 )
 async def get_resource_url(
     resource_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user),
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
     Get the download URL for a resource.
-    
+
     Returns the direct URL to download the resource file.
     """
     service = DadosGovService()
-    
+
     try:
         url = await service.get_resource_download_url(resource_id)
         return {"resource_id": resource_id, "download_url": url}
-        
+
     except DadosGovAPIError as e:
         logger.error(f"API error: {e}")
         if e.status_code == 404:
@@ -248,7 +242,7 @@ async def get_resource_url(
 
 @router.get(
     "/organizations",
-    response_model=List[Organization],
+    response_model=list[Organization],
     summary="List organizations",
     description="List all organizations that publish open data",
 )
@@ -259,20 +253,20 @@ async def list_organizations(
         le=200,
         description="Maximum number of organizations",
     ),
-    current_user: Dict[str, Any] = Depends(get_current_user),
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
     List government organizations.
-    
+
     Returns a list of all organizations that publish datasets
     on the open data portal, sorted by number of datasets.
     """
     service = DadosGovService()
-    
+
     try:
         organizations = await service.list_government_organizations()
         return organizations[:limit]
-        
+
     except DadosGovAPIError as e:
         logger.error(f"API error: {e}")
         raise HTTPException(
@@ -297,16 +291,16 @@ async def list_organizations(
 )
 async def search_transparency_datasets(
     request: DatasetSearchRequest,
-    current_user: Dict[str, Any] = Depends(get_current_user),
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
     Search for transparency-related datasets.
-    
+
     This endpoint provides a specialized search for datasets
     related to government transparency, spending, and accountability.
     """
     service = DadosGovService()
-    
+
     try:
         result = await service.search_transparency_datasets(
             keywords=request.keywords,
@@ -315,7 +309,7 @@ async def search_transparency_datasets(
             limit=request.limit,
         )
         return result
-        
+
     except DadosGovAPIError as e:
         logger.error(f"API error: {e}")
         raise HTTPException(
@@ -344,20 +338,20 @@ async def analyze_data_availability(
         description="Topic to analyze",
         example="educação",
     ),
-    current_user: Dict[str, Any] = Depends(get_current_user),
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
     Analyze data availability for a topic.
-    
+
     This endpoint analyzes what datasets are available for a specific
     topic, including formats, organizations, and temporal coverage.
     """
     service = DadosGovService()
-    
+
     try:
         analysis = await service.analyze_data_availability(topic)
         return DataAvailabilityResponse(**analysis)
-        
+
     except DadosGovAPIError as e:
         logger.error(f"API error: {e}")
         raise HTTPException(
@@ -376,7 +370,7 @@ async def analyze_data_availability(
 
 @router.get(
     "/spending-data",
-    response_model=List[Dataset],
+    response_model=list[Dataset],
     summary="Find government spending data",
     description="Find datasets related to government spending and expenses",
 )
@@ -397,16 +391,16 @@ async def find_spending_data(
         description="Filter by city name",
         example="São Paulo",
     ),
-    current_user: Dict[str, Any] = Depends(get_current_user),
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
     Find government spending datasets.
-    
+
     Search for datasets containing information about government
     expenses, payments, and budget execution.
     """
     service = DadosGovService()
-    
+
     try:
         datasets = await service.find_government_spending_data(
             year=year,
@@ -414,7 +408,7 @@ async def find_spending_data(
             city=city,
         )
         return datasets
-        
+
     except DadosGovAPIError as e:
         logger.error(f"API error: {e}")
         raise HTTPException(
@@ -433,7 +427,7 @@ async def find_spending_data(
 
 @router.get(
     "/procurement-data",
-    response_model=List[Dataset],
+    response_model=list[Dataset],
     summary="Find procurement data",
     description="Find datasets related to public procurement and contracts",
 )
@@ -447,23 +441,23 @@ async def find_procurement_data(
         description="Procurement modality",
         example="pregão",
     ),
-    current_user: Dict[str, Any] = Depends(get_current_user),
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
     Find procurement-related datasets.
-    
+
     Search for datasets containing information about public
     tenders, contracts, and procurement processes.
     """
     service = DadosGovService()
-    
+
     try:
         datasets = await service.find_procurement_data(
             organization=organization,
             modality=modality,
         )
         return datasets
-        
+
     except DadosGovAPIError as e:
         logger.error(f"API error: {e}")
         raise HTTPException(

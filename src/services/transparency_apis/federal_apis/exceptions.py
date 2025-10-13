@@ -8,7 +8,7 @@ Created: 2025-10-12
 License: Proprietary - All rights reserved
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 
 class FederalAPIError(Exception):
@@ -19,8 +19,8 @@ class FederalAPIError(Exception):
         message: str,
         api_name: str = "Unknown",
         status_code: Optional[int] = None,
-        response_data: Optional[Dict[str, Any]] = None,
-        original_error: Optional[Exception] = None
+        response_data: Optional[dict[str, Any]] = None,
+        original_error: Optional[Exception] = None,
     ):
         self.message = message
         self.api_name = api_name
@@ -48,7 +48,12 @@ class NetworkError(FederalAPIError):
 class TimeoutError(NetworkError):
     """Request timeout errors."""
 
-    def __init__(self, message: str = "Request timed out", timeout_seconds: Optional[float] = None, **kwargs):
+    def __init__(
+        self,
+        message: str = "Request timed out",
+        timeout_seconds: Optional[float] = None,
+        **kwargs,
+    ):
         self.timeout_seconds = timeout_seconds
         if timeout_seconds:
             message = f"{message} (timeout: {timeout_seconds}s)"
@@ -62,7 +67,7 @@ class RateLimitError(FederalAPIError):
         self,
         message: str = "Rate limit exceeded",
         retry_after: Optional[int] = None,
-        **kwargs
+        **kwargs,
     ):
         self.retry_after = retry_after
         if retry_after:
@@ -80,7 +85,12 @@ class AuthenticationError(FederalAPIError):
 class NotFoundError(FederalAPIError):
     """Resource not found errors (HTTP 404)."""
 
-    def __init__(self, message: str = "Resource not found", resource_id: Optional[str] = None, **kwargs):
+    def __init__(
+        self,
+        message: str = "Resource not found",
+        resource_id: Optional[str] = None,
+        **kwargs,
+    ):
         self.resource_id = resource_id
         if resource_id:
             message = f"{message}: {resource_id}"
@@ -136,7 +146,7 @@ def exception_from_response(
     status_code: int,
     message: str,
     api_name: str = "Unknown",
-    response_data: Optional[Dict[str, Any]] = None
+    response_data: Optional[dict[str, Any]] = None,
 ) -> FederalAPIError:
     """
     Create appropriate exception from HTTP response.
@@ -159,21 +169,14 @@ def exception_from_response(
             message,
             api_name=api_name,
             response_data=response_data,
-            retry_after=retry_after
+            retry_after=retry_after,
         )
 
     # Special handling for NotFoundError (404) - it defines status_code internally
     if status_code == 404:
-        return exception_class(
-            message,
-            api_name=api_name,
-            response_data=response_data
-        )
+        return exception_class(message, api_name=api_name, response_data=response_data)
 
     # For all other exceptions, pass status_code
     return exception_class(
-        message,
-        api_name=api_name,
-        status_code=status_code,
-        response_data=response_data
+        message, api_name=api_name, status_code=status_code, response_data=response_data
     )

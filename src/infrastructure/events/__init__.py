@@ -1,13 +1,13 @@
 """Event-driven architecture for Cidadão.AI."""
 
 from .event_bus import (
-    EventType,
     Event,
-    EventHandler,
     EventBus,
-    LoggingEventHandler,
+    EventHandler,
+    EventType,
     InvestigationEventHandler,
-    get_event_bus
+    LoggingEventHandler,
+    get_event_bus,
 )
 
 __all__ = [
@@ -17,5 +17,5 @@ __all__ = [
     "EventBus",
     "LoggingEventHandler",
     "InvestigationEventHandler",
-    "get_event_bus"
+    "get_event_bus",
 ]

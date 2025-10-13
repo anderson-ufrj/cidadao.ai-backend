@@ -6,13 +6,14 @@ Date: 2025-10-07
 License: Proprietary - All rights reserved
 """
 
-from typing import List, Dict, Any, Optional
 from datetime import datetime
+from typing import Any, Optional
 from uuid import UUID
+
 import httpx
 
-from src.core.config import get_settings
 from src.core import get_logger
+from src.core.config import get_settings
 from src.services.supabase_anomaly_service import supabase_anomaly_service
 
 settings = get_settings()
@@ -27,14 +28,14 @@ class AlertService:
         self.webhook_urls = self._parse_webhook_urls()
         self.alert_emails = self._parse_alert_emails()
 
-    def _parse_webhook_urls(self) -> List[str]:
+    def _parse_webhook_urls(self) -> list[str]:
         """Parse webhook URLs from environment."""
         webhooks_str = getattr(settings, "ALERT_WEBHOOKS", "")
         if not webhooks_str:
             return []
         return [url.strip() for url in webhooks_str.split(",") if url.strip()]
 
-    def _parse_alert_emails(self) -> List[str]:
+    def _parse_alert_emails(self) -> list[str]:
         """Parse alert email addresses from environment."""
         emails_str = getattr(settings, "ALERT_EMAILS", "")
         if not emails_str:
@@ -44,9 +45,9 @@ class AlertService:
     async def send_anomaly_alert(
         self,
         anomaly_id: UUID,
-        anomaly_data: Dict[str, Any],
-        alert_types: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        anomaly_data: dict[str, Any],
+        alert_types: Optional[list[str]] = None,
+    ) -> dict[str, Any]:
         """
         Send alerts for a detected anomaly.
 
@@ -64,7 +65,7 @@ class AlertService:
         results = {
             "anomaly_id": str(anomaly_id),
             "alerts_sent": [],
-            "alerts_failed": []
+            "alerts_failed": [],
         }
 
         severity = anomaly_data.get("severity", "medium")
@@ -78,8 +79,7 @@ class AlertService:
             for webhook_url in self.webhook_urls:
                 try:
                     await self._send_webhook_alert(
-                        webhook_url=webhook_url,
-                        anomaly_data=anomaly_data
+                        webhook_url=webhook_url, anomaly_data=anomaly_data
                     )
 
                     # Record in Supabase
@@ -90,19 +90,21 @@ class AlertService:
                         title=title,
                         message=message,
                         recipients=[webhook_url],
-                        metadata={"sent_at": datetime.now().isoformat()}
+                        metadata={"sent_at": datetime.now().isoformat()},
                     )
 
-                    results["alerts_sent"].append({
-                        "type": "webhook",
-                        "destination": webhook_url,
-                        "alert_id": alert_record["id"]
-                    })
+                    results["alerts_sent"].append(
+                        {
+                            "type": "webhook",
+                            "destination": webhook_url,
+                            "alert_id": alert_record["id"],
+                        }
+                    )
 
                     logger.info(
                         "webhook_alert_sent",
                         anomaly_id=str(anomaly_id),
-                        webhook_url=webhook_url
+                        webhook_url=webhook_url,
                     )
 
                 except Exception as e:
@@ -110,22 +112,17 @@ class AlertService:
                         "webhook_alert_failed",
                         anomaly_id=str(anomaly_id),
                         webhook_url=webhook_url,
-                        error=str(e)
+                        error=str(e),
                     )
-                    results["alerts_failed"].append({
-                        "type": "webhook",
-                        "destination": webhook_url,
-                        "error": str(e)
-                    })
+                    results["alerts_failed"].append(
+                        {"type": "webhook", "destination": webhook_url, "error": str(e)}
+                    )
 
         # Send email alerts (if configured)
         if "email" in alert_types and self.alert_emails:
             for email in self.alert_emails:
                 try:
-                    await self._send_email_alert(
-                        email=email,
-                        anomaly_data=anomaly_data
-                    )
+                    await self._send_email_alert(email=email, anomaly_data=anomaly_data)
 
                     # Record in Supabase
                     alert_record = await supabase_anomaly_service.create_alert(
@@ -135,19 +132,19 @@ class AlertService:
                         title=title,
                         message=message,
                         recipients=[email],
-                        metadata={"sent_at": datetime.now().isoformat()}
+                        metadata={"sent_at": datetime.now().isoformat()},
                     )
 
-                    results["alerts_sent"].append({
-                        "type": "email",
-                        "destination": email,
-                        "alert_id": alert_record["id"]
-                    })
+                    results["alerts_sent"].append(
+                        {
+                            "type": "email",
+                            "destination": email,
+                            "alert_id": alert_record["id"],
+                        }
+                    )
 
                     logger.info(
-                        "email_alert_sent",
-                        anomaly_id=str(anomaly_id),
-                        email=email
+                        "email_alert_sent", anomaly_id=str(anomaly_id), email=email
                     )
 
                 except Exception as e:
@@ -155,13 +152,11 @@ class AlertService:
                         "email_alert_failed",
                         anomaly_id=str(anomaly_id),
                         email=email,
-                        error=str(e)
+                        error=str(e),
                     )
-                    results["alerts_failed"].append({
-                        "type": "email",
-                        "destination": email,
-                        "error": str(e)
-                    })
+                    results["alerts_failed"].append(
+                        {"type": "email", "destination": email, "error": str(e)}
+                    )
 
         # Dashboard alert (always create)
         if "dashboard" in alert_types:
@@ -175,33 +170,23 @@ class AlertService:
                     recipients=[],
                     metadata={
                         "created_at": datetime.now().isoformat(),
-                        "auto_generated": True
-                    }
+                        "auto_generated": True,
+                    },
                 )
 
-                results["alerts_sent"].append({
-                    "type": "dashboard",
-                    "alert_id": alert_record["id"]
-                })
+                results["alerts_sent"].append(
+                    {"type": "dashboard", "alert_id": alert_record["id"]}
+                )
 
             except Exception as e:
                 logger.error(
-                    "dashboard_alert_failed",
-                    anomaly_id=str(anomaly_id),
-                    error=str(e)
+                    "dashboard_alert_failed", anomaly_id=str(anomaly_id), error=str(e)
                 )
-                results["alerts_failed"].append({
-                    "type": "dashboard",
-                    "error": str(e)
-                })
+                results["alerts_failed"].append({"type": "dashboard", "error": str(e)})
 
         return results
 
-    async def _send_webhook_alert(
-        self,
-        webhook_url: str,
-        anomaly_data: Dict[str, Any]
-    ):
+    async def _send_webhook_alert(self, webhook_url: str, anomaly_data: dict[str, Any]):
         """Send webhook alert."""
         payload = {
             "event": "anomaly_detected",
@@ -217,22 +202,14 @@ class AlertService:
                 "indicators": anomaly_data.get("indicators", []),
                 "recommendations": anomaly_data.get("recommendations", []),
             },
-            "contract": anomaly_data.get("contract_data", {})
+            "contract": anomaly_data.get("contract_data", {}),
         }
 
         async with httpx.AsyncClient() as client:
-            response = await client.post(
-                webhook_url,
-                json=payload,
-                timeout=10.0
-            )
+            response = await client.post(webhook_url, json=payload, timeout=10.0)
             response.raise_for_status()
 
-    async def _send_email_alert(
-        self,
-        email: str,
-        anomaly_data: Dict[str, Any]
-    ):
+    async def _send_email_alert(self, email: str, anomaly_data: dict[str, Any]):
         """
         Send email alert.
 
@@ -248,14 +225,14 @@ class AlertService:
             "email_alert_queued",
             recipient=email,
             anomaly_id=str(anomaly_data.get("id")),
-            severity=anomaly_data.get("severity")
+            severity=anomaly_data.get("severity"),
         )
 
         # Placeholder for future email integration
         # from src.services.email_service import email_service
         # await email_service.send_anomaly_alert(email, anomaly_data)
 
-    def _generate_alert_message(self, anomaly_data: Dict[str, Any]) -> str:
+    def _generate_alert_message(self, anomaly_data: dict[str, Any]) -> str:
         """Generate formatted alert message."""
         severity = anomaly_data.get("severity", "medium").upper()
         score = anomaly_data.get("anomaly_score", 0)
@@ -285,16 +262,15 @@ class AlertService:
 
         return message
 
-    def _format_list(self, items: List[str]) -> str:
+    def _format_list(self, items: list[str]) -> str:
         """Format list items for message."""
         if not items:
             return "- Nenhum"
         return "\n".join(f"- {item}" for item in items)
 
     async def send_critical_alert_summary(
-        self,
-        period_hours: int = 24
-    ) -> Dict[str, Any]:
+        self, period_hours: int = 24
+    ) -> dict[str, Any]:
         """
         Send summary of critical anomalies detected in the last N hours.
 
@@ -306,16 +282,12 @@ class AlertService:
         """
         # Get critical anomalies from Supabase
         anomalies = await supabase_anomaly_service.get_anomalies(
-            severity="critical",
-            limit=100
+            severity="critical", limit=100
         )
 
         if not anomalies:
             logger.info("no_critical_anomalies_to_report")
-            return {
-                "summary_sent": False,
-                "reason": "No critical anomalies detected"
-            }
+            return {"summary_sent": False, "reason": "No critical anomalies detected"}
 
         # Generate summary
         summary_message = f"""
@@ -350,19 +322,17 @@ Detalhes:
                                     "id": str(a["id"]),
                                     "title": a["title"],
                                     "score": float(a["anomaly_score"]),
-                                    "source": a["source"]
+                                    "source": a["source"],
                                 }
                                 for a in anomalies[:10]
-                            ]
+                            ],
                         },
-                        timeout=10.0
+                        timeout=10.0,
                     )
                 results["webhooks_sent"] += 1
             except Exception as e:
                 logger.error(
-                    "summary_webhook_failed",
-                    webhook_url=webhook_url,
-                    error=str(e)
+                    "summary_webhook_failed", webhook_url=webhook_url, error=str(e)
                 )
                 results["webhooks_failed"] += 1
 

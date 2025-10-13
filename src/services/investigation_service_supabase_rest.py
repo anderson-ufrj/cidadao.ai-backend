@@ -5,12 +5,12 @@ This version uses HTTP/HTTPS REST API instead of direct PostgreSQL connections,
 making it work on HuggingFace Spaces and other restricted environments.
 """
 
-from typing import List, Optional, Dict, Any
+from typing import Any, Optional
 
-from src.core import get_logger
-from src.services.supabase_service_rest import get_supabase_service_rest
 from src.agents import get_agent_pool
 from src.agents.deodoro import AgentContext
+from src.core import get_logger
+from src.services.supabase_service_rest import get_supabase_service_rest
 
 logger = get_logger(__name__)
 
@@ -38,10 +38,10 @@ class InvestigationServiceSupabaseRest:
         user_id: str,
         query: str,
         data_source: str = "contracts",
-        filters: Optional[Dict[str, Any]] = None,
-        anomaly_types: Optional[List[str]] = None,
+        filters: Optional[dict[str, Any]] = None,
+        anomaly_types: Optional[list[str]] = None,
         session_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create a new investigation in Supabase.
 
@@ -96,6 +96,7 @@ class InvestigationServiceSupabaseRest:
 
         # Update to processing status
         from datetime import datetime
+
         await supabase.update_investigation(
             investigation_id,
             status="processing",
@@ -123,7 +124,7 @@ class InvestigationServiceSupabaseRest:
             )
             raise
 
-    async def _execute_investigation(self, investigation: Dict[str, Any]):
+    async def _execute_investigation(self, investigation: dict[str, Any]):
         """
         Execute investigation using the agent system.
 
@@ -152,7 +153,7 @@ class InvestigationServiceSupabaseRest:
                 "data_source": investigation["data_source"],
                 "filters": investigation.get("filters", {}),
                 "anomaly_types": investigation.get("anomaly_types", []),
-            }
+            },
         )
 
         # Update progress: anomaly detection
@@ -164,10 +165,12 @@ class InvestigationServiceSupabaseRest:
 
         # Execute with investigator agent
         from src.agents import InvestigatorAgent
+
         investigator = InvestigatorAgent()
 
         # Prepare investigation parameters
         from src.tools import TransparencyAPIFilter
+
         filters = TransparencyAPIFilter(**investigation.get("filters", {}))
 
         # Execute investigation
@@ -193,12 +196,12 @@ class InvestigationServiceSupabaseRest:
 
         # Calculate confidence
         confidence_score = (
-            sum(r.confidence for r in results) / len(results)
-            if results else 0.0
+            sum(r.confidence for r in results) / len(results) if results else 0.0
         )
 
         # Format results for storage
         import uuid
+
         formatted_results = [
             {
                 "anomaly_id": str(uuid.uuid4()),
@@ -238,7 +241,7 @@ class InvestigationServiceSupabaseRest:
         current_phase: str,
         records_processed: Optional[int] = None,
         anomalies_found: Optional[int] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Update investigation progress.
 
@@ -264,12 +267,12 @@ class InvestigationServiceSupabaseRest:
     async def complete_investigation(
         self,
         investigation_id: str,
-        results: List[Dict[str, Any]],
+        results: list[dict[str, Any]],
         summary: str,
         confidence_score: float,
         total_records: int = 0,
         anomalies_found: int = 0,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Mark investigation as completed with results.
 
@@ -294,7 +297,7 @@ class InvestigationServiceSupabaseRest:
             anomalies_found=anomalies_found,
         )
 
-    async def get(self, investigation_id: str) -> Optional[Dict[str, Any]]:
+    async def get(self, investigation_id: str) -> Optional[dict[str, Any]]:
         """
         Get investigation by ID (alias for get_by_id).
 
@@ -306,7 +309,7 @@ class InvestigationServiceSupabaseRest:
         """
         return await self.get_by_id(investigation_id)
 
-    async def get_by_id(self, investigation_id: str) -> Optional[Dict[str, Any]]:
+    async def get_by_id(self, investigation_id: str) -> Optional[dict[str, Any]]:
         """
         Get investigation by ID.
 
@@ -325,8 +328,8 @@ class InvestigationServiceSupabaseRest:
         status: str,
         progress: Optional[float] = None,
         current_phase: Optional[str] = None,
-        **kwargs
-    ) -> Dict[str, Any]:
+        **kwargs,
+    ) -> dict[str, Any]:
         """
         Update investigation status and progress.
 
@@ -360,7 +363,7 @@ class InvestigationServiceSupabaseRest:
         status: Optional[str] = None,
         limit: int = 20,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Search investigations with filters.
 
@@ -384,7 +387,7 @@ class InvestigationServiceSupabaseRest:
             status=status,
         )
 
-    async def cancel(self, investigation_id: str, user_id: str) -> Dict[str, Any]:
+    async def cancel(self, investigation_id: str, user_id: str) -> dict[str, Any]:
         """
         Cancel a running investigation.
 
@@ -427,10 +430,8 @@ class InvestigationServiceSupabaseRest:
         return await supabase.get_investigation(investigation_id)
 
     async def get_user_investigations(
-        self,
-        user_id: str,
-        limit: int = 10
-    ) -> List[Dict[str, Any]]:
+        self, user_id: str, limit: int = 10
+    ) -> list[dict[str, Any]]:
         """
         Get investigations for a user.
 

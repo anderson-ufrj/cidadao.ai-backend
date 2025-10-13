@@ -7,13 +7,13 @@ like HuggingFace Spaces that block direct database connections.
 """
 
 import os
-from typing import Optional, List, Dict, Any
 from datetime import datetime
+from typing import Any, Optional
 
-from supabase import create_client, Client
 from pydantic import BaseModel, Field
+from supabase import Client, create_client
 
-from src.core import get_logger, settings
+from src.core import get_logger
 from src.core.exceptions import CidadaoAIError
 
 logger = get_logger(__name__)
@@ -24,7 +24,9 @@ class SupabaseConfig(BaseModel):
 
     url: str = Field(..., description="Supabase project URL")
     key: str = Field(..., description="Supabase service role key (for backend)")
-    anon_key: Optional[str] = Field(None, description="Supabase anon key (for frontend)")
+    anon_key: Optional[str] = Field(
+        None, description="Supabase anon key (for frontend)"
+    )
 
     @classmethod
     def from_env(cls) -> "SupabaseConfig":
@@ -86,13 +88,17 @@ class SupabaseServiceRest:
             )
 
             # Test connection with a simple query
-            result = self._client.table("investigations").select("id").limit(1).execute()
+            result = (
+                self._client.table("investigations").select("id").limit(1).execute()
+            )
 
             self._initialized = True
             logger.info("Supabase REST service initialized successfully")
 
         except Exception as e:
-            logger.error(f"Failed to initialize Supabase REST service: {e}", exc_info=True)
+            logger.error(
+                f"Failed to initialize Supabase REST service: {e}", exc_info=True
+            )
             raise CidadaoAIError(f"Supabase REST initialization failed: {e}")
 
     def _ensure_client(self) -> Client:
@@ -100,6 +106,7 @@ class SupabaseServiceRest:
         if not self._initialized or not self._client:
             # Synchronous initialization for backwards compatibility
             import asyncio
+
             try:
                 loop = asyncio.get_event_loop()
             except RuntimeError:
@@ -116,10 +123,10 @@ class SupabaseServiceRest:
         user_id: str,
         query: str,
         data_source: str,
-        filters: Optional[Dict[str, Any]] = None,
-        anomaly_types: Optional[List[str]] = None,
+        filters: Optional[dict[str, Any]] = None,
+        anomaly_types: Optional[list[str]] = None,
         session_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create a new investigation in Supabase.
 
@@ -158,7 +165,9 @@ class SupabaseServiceRest:
         logger.info(f"Created investigation {investigation['id']} via REST API")
         return investigation
 
-    async def get_investigation(self, investigation_id: str) -> Optional[Dict[str, Any]]:
+    async def get_investigation(
+        self, investigation_id: str
+    ) -> Optional[dict[str, Any]]:
         """
         Get investigation by ID.
 
@@ -170,7 +179,12 @@ class SupabaseServiceRest:
         """
         client = self._ensure_client()
 
-        result = client.table("investigations").select("*").eq("id", investigation_id).execute()
+        result = (
+            client.table("investigations")
+            .select("*")
+            .eq("id", investigation_id)
+            .execute()
+        )
 
         if not result.data or len(result.data) == 0:
             return None
@@ -178,10 +192,8 @@ class SupabaseServiceRest:
         return result.data[0]
 
     async def update_investigation(
-        self,
-        investigation_id: str,
-        **updates
-    ) -> Dict[str, Any]:
+        self, investigation_id: str, **updates
+    ) -> dict[str, Any]:
         """
         Update investigation fields.
 
@@ -217,7 +229,7 @@ class SupabaseServiceRest:
         current_phase: str,
         records_processed: Optional[int] = None,
         anomalies_found: Optional[int] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Update investigation progress.
 
@@ -247,12 +259,12 @@ class SupabaseServiceRest:
     async def complete_investigation(
         self,
         investigation_id: str,
-        results: List[Dict[str, Any]],
+        results: list[dict[str, Any]],
         summary: str,
         confidence_score: float,
         total_records: int,
         anomalies_found: int,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Mark investigation as completed with results.
 
@@ -284,7 +296,7 @@ class SupabaseServiceRest:
         self,
         investigation_id: str,
         error_message: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Mark investigation as failed.
 
@@ -309,7 +321,7 @@ class SupabaseServiceRest:
         limit: int = 20,
         offset: int = 0,
         status: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         List investigations for a user.
 
@@ -354,10 +366,12 @@ class SupabaseServiceRest:
 
         result = (
             client.table("investigations")
-            .update({
-                "status": "cancelled",
-                "completed_at": datetime.utcnow().isoformat(),
-            })
+            .update(
+                {
+                    "status": "cancelled",
+                    "completed_at": datetime.utcnow().isoformat(),
+                }
+            )
             .eq("id", investigation_id)
             .eq("user_id", user_id)
             .execute()
@@ -369,7 +383,7 @@ class SupabaseServiceRest:
 
         return False
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """
         Check Supabase connection health.
 

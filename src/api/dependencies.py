@@ -2,15 +2,18 @@
 API dependencies for dependency injection.
 Provides common dependencies used across API routes.
 """
-from typing import Optional, Dict, Any, AsyncGenerator
-from fastapi import Request, Depends, HTTPException, status
+
+from collections.abc import AsyncGenerator
+from typing import Any, Optional
+
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.middleware.authentication import get_current_user as _get_current_user
 from src.db.session import get_session as get_db_session
 
 
-def get_current_user(request: Request) -> Dict[str, Any]:
+def get_current_user(request: Request) -> dict[str, Any]:
     """
     Get current authenticated user from request.
     Returns user information stored in request state.
@@ -18,7 +21,7 @@ def get_current_user(request: Request) -> Dict[str, Any]:
     return _get_current_user(request)
 
 
-def get_current_optional_user(request: Request) -> Optional[Dict[str, Any]]:
+def get_current_optional_user(request: Request) -> Optional[dict[str, Any]]:
     """
     Get current user if authenticated, None otherwise.
     Used for endpoints that support both authenticated and anonymous access.
@@ -42,28 +45,26 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-def require_admin(user: Dict[str, Any] = Depends(get_current_user)) -> Dict[str, Any]:
+def require_admin(user: dict[str, Any] = Depends(get_current_user)) -> dict[str, Any]:
     """
     Require admin role for access.
     Raises 403 if user is not admin.
     """
     if not user:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated"
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authenticated"
         )
-    
+
     # Check for admin role
     user_role = user.get("role", "").lower()
     is_admin = user.get("is_admin", False)
     is_superuser = user.get("is_superuser", False)
-    
+
     if user_role != "admin" and not is_admin and not is_superuser:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Admin privileges required"
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin privileges required"
         )
-    
+
     return user
 
 

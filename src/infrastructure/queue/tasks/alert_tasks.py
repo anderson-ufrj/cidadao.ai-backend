@@ -6,9 +6,9 @@ Date: 2025-10-07
 License: Proprietary - All rights reserved
 """
 
-from typing import Dict, Any
-from datetime import datetime
 import asyncio
+from datetime import datetime
+from typing import Any
 
 from celery.utils.log import get_task_logger
 
@@ -19,7 +19,7 @@ logger = get_task_logger(__name__)
 
 
 @celery_app.task(name="tasks.send_critical_anomalies_summary", queue="normal")
-def send_critical_anomalies_summary(period_hours: int = 24) -> Dict[str, Any]:
+def send_critical_anomalies_summary(period_hours: int = 24) -> dict[str, Any]:
     """
     Send summary of critical anomalies detected in the last N hours.
 
@@ -31,10 +31,7 @@ def send_critical_anomalies_summary(period_hours: int = 24) -> Dict[str, Any]:
     Returns:
         Summary of sent alerts
     """
-    logger.info(
-        "critical_anomalies_summary_task_started",
-        period_hours=period_hours
-    )
+    logger.info("critical_anomalies_summary_task_started", period_hours=period_hours)
 
     try:
         loop = asyncio.new_event_loop()
@@ -48,7 +45,7 @@ def send_critical_anomalies_summary(period_hours: int = 24) -> Dict[str, Any]:
             logger.info(
                 "critical_anomalies_summary_sent",
                 webhooks_sent=result.get("webhooks_sent", 0),
-                webhooks_failed=result.get("webhooks_failed", 0)
+                webhooks_failed=result.get("webhooks_failed", 0),
             )
 
             return result
@@ -57,16 +54,12 @@ def send_critical_anomalies_summary(period_hours: int = 24) -> Dict[str, Any]:
             loop.close()
 
     except Exception as e:
-        logger.error(
-            "critical_anomalies_summary_failed",
-            error=str(e),
-            exc_info=True
-        )
+        logger.error("critical_anomalies_summary_failed", error=str(e), exc_info=True)
         raise
 
 
 @celery_app.task(name="tasks.process_pending_alerts", queue="high")
-def process_pending_alerts() -> Dict[str, Any]:
+def process_pending_alerts() -> dict[str, Any]:
     """
     Process pending alerts that failed to send.
 
@@ -88,13 +81,9 @@ def process_pending_alerts() -> Dict[str, Any]:
         return {
             "status": "completed",
             "alerts_processed": 0,
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
     except Exception as e:
-        logger.error(
-            "process_pending_alerts_failed",
-            error=str(e),
-            exc_info=True
-        )
+        logger.error("process_pending_alerts_failed", error=str(e), exc_info=True)
         raise

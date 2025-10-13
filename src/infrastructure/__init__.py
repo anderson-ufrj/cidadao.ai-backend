@@ -1,19 +1,19 @@
 """Infrastructure components for Cidadão.AI."""
 
 from .cqrs import CommandBus, QueryBus
-from .events import EventBus, EventType, Event
-from .websocket import websocket_manager
+from .events import Event, EventBus, EventType
 from .messaging import QueueService
-from .resilience import circuit_breaker_manager, bulkhead_manager
+from .resilience import bulkhead_manager, circuit_breaker_manager
+from .websocket import websocket_manager
 
 __all__ = [
     "CommandBus",
-    "QueryBus", 
+    "QueryBus",
     "EventBus",
     "EventType",
     "Event",
     "websocket_manager",
     "QueueService",
     "circuit_breaker_manager",
-    "bulkhead_manager"
+    "bulkhead_manager",
 ]

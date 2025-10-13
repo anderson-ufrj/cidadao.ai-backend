@@ -16,12 +16,12 @@ Created: 2025-10-09 14:15:27 -03 (Minas Gerais, Brazil)
 License: Proprietary - All rights reserved
 """
 
-from .registry import registry, TransparencyAPIRegistry
+from .agent_integration import TransparencyDataCollector, get_transparency_collector
 from .base import TransparencyAPIClient
-from .cache import get_cache, TransparencyCache, CacheTTL
-from .validators import DataValidator, AnomalyDetector
-from .health_check import get_health_monitor, HealthMonitor, HealthStatus
-from .agent_integration import get_transparency_collector, TransparencyDataCollector
+from .cache import CacheTTL, TransparencyCache, get_cache
+from .health_check import HealthMonitor, HealthStatus, get_health_monitor
+from .registry import TransparencyAPIRegistry, registry
+from .validators import AnomalyDetector, DataValidator
 
 __version__ = "1.0.0"
 __author__ = "Anderson Henrique da Silva"
@@ -32,21 +32,17 @@ __all__ = [
     "registry",
     "TransparencyAPIRegistry",
     "TransparencyAPIClient",
-
     # Caching
     "get_cache",
     "TransparencyCache",
     "CacheTTL",
-
     # Validation and anomaly detection
     "DataValidator",
     "AnomalyDetector",
-
     # Health monitoring
     "get_health_monitor",
     "HealthMonitor",
     "HealthStatus",
-
     # Agent integration
     "get_transparency_collector",
     "TransparencyDataCollector",
