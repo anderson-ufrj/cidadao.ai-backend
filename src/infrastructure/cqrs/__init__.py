@@ -1,32 +1,32 @@
 """CQRS implementation for Cidadão.AI."""
 
 from .commands import (
-    Command,
-    CommandResult,
-    CommandHandler,
-    CommandBus,
-    CreateInvestigationCommand,
-    UpdateInvestigationCommand,
     CancelInvestigationCommand,
+    Command,
+    CommandBus,
+    CommandHandler,
+    CommandResult,
+    CreateInvestigationCommand,
     ExecuteAgentTaskCommand,
-    SendChatMessageCommand
+    SendChatMessageCommand,
+    UpdateInvestigationCommand,
 )
 from .queries import (
-    Query,
-    QueryResult, 
-    QueryHandler,
-    QueryBus,
+    GetAgentPerformanceQuery,
     GetInvestigationByIdQuery,
-    SearchInvestigationsQuery,
     GetInvestigationStatsQuery,
+    Query,
+    QueryBus,
+    QueryHandler,
+    QueryResult,
     SearchContractsQuery,
-    GetAgentPerformanceQuery
+    SearchInvestigationsQuery,
 )
 
 __all__ = [
     "Command",
     "CommandResult",
-    "CommandHandler", 
+    "CommandHandler",
     "CommandBus",
     "CreateInvestigationCommand",
     "UpdateInvestigationCommand",
@@ -38,8 +38,8 @@ __all__ = [
     "QueryHandler",
     "QueryBus",
     "GetInvestigationByIdQuery",
-    "SearchInvestigationsQuery", 
+    "SearchInvestigationsQuery",
     "GetInvestigationStatsQuery",
     "SearchContractsQuery",
-    "GetAgentPerformanceQuery"
+    "GetAgentPerformanceQuery",
 ]

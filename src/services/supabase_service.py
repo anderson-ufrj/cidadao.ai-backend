@@ -6,14 +6,14 @@ allowing investigations to be stored centrally for frontend consumption.
 """
 
 import os
-from typing import Optional, List, Dict, Any
-from datetime import datetime
 from contextlib import asynccontextmanager
+from datetime import datetime
+from typing import Any, Optional
 
-from asyncpg import Pool, create_pool, Connection
+from asyncpg import Pool, create_pool
 from pydantic import BaseModel, Field
 
-from src.core import get_logger, settings
+from src.core import get_logger
 from src.core.exceptions import CidadaoAIError
 
 logger = get_logger(__name__)
@@ -23,8 +23,12 @@ class SupabaseConfig(BaseModel):
     """Supabase connection configuration."""
 
     url: str = Field(..., description="Supabase PostgreSQL connection URL")
-    anon_key: Optional[str] = Field(None, description="Supabase anon key (for Row Level Security)")
-    service_role_key: Optional[str] = Field(None, description="Supabase service role key (bypasses RLS)")
+    anon_key: Optional[str] = Field(
+        None, description="Supabase anon key (for Row Level Security)"
+    )
+    service_role_key: Optional[str] = Field(
+        None, description="Supabase service role key (bypasses RLS)"
+    )
     min_connections: int = Field(default=5, description="Minimum pool connections")
     max_connections: int = Field(default=20, description="Maximum pool connections")
 
@@ -81,9 +85,9 @@ class SupabaseService:
                 max_size=self.config.max_connections,
                 command_timeout=30,
                 server_settings={
-                    'application_name': 'cidadao-ai-backend',
-                    'timezone': 'UTC',
-                }
+                    "application_name": "cidadao-ai-backend",
+                    "timezone": "UTC",
+                },
             )
 
             # Test connection
@@ -124,10 +128,10 @@ class SupabaseService:
         user_id: str,
         query: str,
         data_source: str,
-        filters: Optional[Dict[str, Any]] = None,
-        anomaly_types: Optional[List[str]] = None,
+        filters: Optional[dict[str, Any]] = None,
+        anomaly_types: Optional[list[str]] = None,
         session_id: Optional[str] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create a new investigation in Supabase.
 
@@ -170,7 +174,9 @@ class SupabaseService:
             logger.info(f"Created investigation {row['id']} in Supabase")
             return dict(row)
 
-    async def get_investigation(self, investigation_id: str) -> Optional[Dict[str, Any]]:
+    async def get_investigation(
+        self, investigation_id: str
+    ) -> Optional[dict[str, Any]]:
         """
         Get investigation by ID.
 
@@ -182,17 +188,14 @@ class SupabaseService:
         """
         async with self.get_connection() as conn:
             row = await conn.fetchrow(
-                "SELECT * FROM investigations WHERE id = $1",
-                investigation_id
+                "SELECT * FROM investigations WHERE id = $1", investigation_id
             )
 
             return dict(row) if row else None
 
     async def update_investigation(
-        self,
-        investigation_id: str,
-        **updates
-    ) -> Dict[str, Any]:
+        self, investigation_id: str, **updates
+    ) -> dict[str, Any]:
         """
         Update investigation fields.
 
@@ -206,7 +209,7 @@ class SupabaseService:
         import json
 
         # JSONB fields that need special handling
-        jsonb_fields = {'results', 'filters', 'anomaly_types'}
+        jsonb_fields = {"results", "filters", "anomaly_types"}
 
         # Build dynamic UPDATE query
         set_clauses = []
@@ -253,7 +256,7 @@ class SupabaseService:
         current_phase: str,
         records_processed: Optional[int] = None,
         anomalies_found: Optional[int] = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Update investigation progress.
 
@@ -283,12 +286,12 @@ class SupabaseService:
     async def complete_investigation(
         self,
         investigation_id: str,
-        results: List[Dict[str, Any]],
+        results: list[dict[str, Any]],
         summary: str,
         confidence_score: float,
         total_records: int,
         anomalies_found: int,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Mark investigation as completed with results.
 
@@ -320,7 +323,7 @@ class SupabaseService:
         self,
         investigation_id: str,
         error_message: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Mark investigation as failed.
 
@@ -345,7 +348,7 @@ class SupabaseService:
         limit: int = 20,
         offset: int = 0,
         status: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         List investigations for a user.
 
@@ -415,7 +418,7 @@ class SupabaseService:
 
             return False
 
-    async def health_check(self) -> Dict[str, Any]:
+    async def health_check(self) -> dict[str, Any]:
         """
         Check Supabase connection health.
 

@@ -29,8 +29,8 @@ from .exceptions import (
     LLMError,
     ValidationError,
 )
+from .llm_pool import get_llm_pool, llm_pool
 from .logging import get_logger, setup_logging
-from .llm_pool import llm_pool, get_llm_pool
 
 __all__ = [
     # Config

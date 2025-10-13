@@ -5,11 +5,12 @@ Provides REST API for frontend visualization of entity networks,
 suspicious patterns, and cross-investigation analysis.
 """
 
-from typing import List, Optional
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
+from sqlalchemy import and_, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, and_, or_, func
 
 from src.core import get_logger
 from src.db.session import get_db
@@ -23,8 +24,10 @@ router = APIRouter(prefix="/api/v1/network", tags=["Network Analysis"])
 
 # ==================== REQUEST/RESPONSE MODELS ====================
 
+
 class EntitySearchResponse(BaseModel):
     """Entity search result."""
+
     id: str
     entity_type: str
     name: str
@@ -39,8 +42,9 @@ class EntitySearchResponse(BaseModel):
 
 class NetworkVisualizationResponse(BaseModel):
     """Network visualization data for frontend."""
-    nodes: List[dict]
-    edges: List[dict]
+
+    nodes: list[dict]
+    edges: list[dict]
     node_count: int
     edge_count: int
     center_entity_id: str
@@ -49,6 +53,7 @@ class NetworkVisualizationResponse(BaseModel):
 
 class SuspiciousNetworkResponse(BaseModel):
     """Suspicious network information."""
+
     id: str
     network_name: str
     network_type: str
@@ -58,24 +63,26 @@ class SuspiciousNetworkResponse(BaseModel):
     severity: str
     total_contract_value: float
     suspicious_value: float
-    investigation_ids: List[str]
+    investigation_ids: list[str]
     is_active: bool
     reviewed: bool
 
 
 class NetworkStatisticsResponse(BaseModel):
     """Overall network statistics."""
+
     total_entities: int
     total_relationships: int
     total_suspicious_networks: int
     entity_types: dict
-    top_entities_by_centrality: List[dict]
-    recent_suspicious_networks: List[dict]
+    top_entities_by_centrality: list[dict]
+    recent_suspicious_networks: list[dict]
 
 
 # ==================== ENDPOINTS ====================
 
-@router.get("/entities/search", response_model=List[EntitySearchResponse])
+
+@router.get("/entities/search", response_model=list[EntitySearchResponse])
 async def search_entities(
     query: str = Query(..., min_length=3, description="Search query (name, CNPJ, CPF)"),
     entity_type: Optional[str] = Query(None, description="Filter by entity type"),
@@ -143,7 +150,9 @@ async def get_entity_details(
     return entity.to_dict()
 
 
-@router.get("/entities/{entity_id}/network", response_model=NetworkVisualizationResponse)
+@router.get(
+    "/entities/{entity_id}/network", response_model=NetworkVisualizationResponse
+)
 async def get_entity_network(
     entity_id: str,
     depth: int = Query(2, ge=1, le=3, description="Network traversal depth (1-3)"),
@@ -189,7 +198,7 @@ async def get_entity_network(
     )
 
 
-@router.get("/entities/{entity_id}/investigations", response_model=List[dict])
+@router.get("/entities/{entity_id}/investigations", response_model=list[dict])
 async def get_entity_investigations(
     entity_id: str,
     db: AsyncSession = Depends(get_db),
@@ -209,7 +218,7 @@ async def get_entity_investigations(
     return [ref.to_dict() for ref in references]
 
 
-@router.get("/suspicious-networks", response_model=List[SuspiciousNetworkResponse])
+@router.get("/suspicious-networks", response_model=list[SuspiciousNetworkResponse])
 async def get_suspicious_networks(
     network_type: Optional[str] = Query(None, description="Filter by network type"),
     severity: Optional[str] = Query(None, description="Filter by severity"),
@@ -299,23 +308,22 @@ async def get_network_statistics(
 
     # Count suspicious networks
     suspicious_count = await db.scalar(
-        select(func.count(SuspiciousNetwork.id)).where(SuspiciousNetwork.is_active == True)
+        select(func.count(SuspiciousNetwork.id)).where(
+            SuspiciousNetwork.is_active == True
+        )
     )
 
     # Entity type distribution
     entity_types_result = await db.execute(
         select(
-            EntityNode.entity_type,
-            func.count(EntityNode.id).label("count")
+            EntityNode.entity_type, func.count(EntityNode.id).label("count")
         ).group_by(EntityNode.entity_type)
     )
     entity_types = {row[0]: row[1] for row in entity_types_result}
 
     # Top entities by centrality
     top_entities_result = await db.execute(
-        select(EntityNode)
-        .order_by(EntityNode.degree_centrality.desc())
-        .limit(10)
+        select(EntityNode).order_by(EntityNode.degree_centrality.desc()).limit(10)
     )
     top_entities = [
         {
@@ -518,7 +526,8 @@ async def export_network_d3(
                 "name": node["name"],
                 "type": node["entity_type"],
                 "risk_score": node.get("risk_score", 0),
-                "radius": 5 + (node.get("total_investigations", 0) * 2),  # Size by activity
+                "radius": 5
+                + (node.get("total_investigations", 0) * 2),  # Size by activity
             }
             for node in network_data["nodes"]
         ],

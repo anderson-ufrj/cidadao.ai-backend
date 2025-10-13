@@ -9,22 +9,23 @@ Created: 2025-10-09 14:25:00 -03 (Minas Gerais, Brazil)
 License: Proprietary - All rights reserved
 """
 
-from typing import Dict, List, Optional, Type
 from enum import Enum
+from typing import Optional
 
 from .base import TransparencyAPIClient
-from .state_apis.rondonia import RondoniaAPIClient
 from .state_apis.ckan_client import CKANClient
-from .tce_apis.tce_pe import TCEPernambucoClient
+from .state_apis.rondonia import RondoniaAPIClient
+from .tce_apis.tce_ba import TCEBahiaClient
 from .tce_apis.tce_ce import TCECearaClient
+from .tce_apis.tce_mg import TCEMinasGeraisClient
+from .tce_apis.tce_pe import TCEPernambucoClient
 from .tce_apis.tce_rj import TCERioDeJaneiroClient
 from .tce_apis.tce_sp import TCESaoPauloClient
-from .tce_apis.tce_mg import TCEMinasGeraisClient
-from .tce_apis.tce_ba import TCEBahiaClient
 
 
 class APIType(Enum):
     """Types of transparency APIs."""
+
     FEDERAL = "federal"
     STATE = "state"
     TCE = "tce"
@@ -43,8 +44,8 @@ class TransparencyAPIRegistry:
 
     def __init__(self):
         """Initialize API registry."""
-        self._clients: Dict[str, Type[TransparencyAPIClient]] = {}
-        self._instances: Dict[str, TransparencyAPIClient] = {}
+        self._clients: dict[str, type[TransparencyAPIClient]] = {}
+        self._instances: dict[str, TransparencyAPIClient] = {}
 
         # Register all available APIs
         self._register_default_apis()
@@ -69,7 +70,7 @@ class TransparencyAPIRegistry:
             "RJ": "https://dadosabertos.rj.gov.br",
             "RS": "https://dados.rs.gov.br",
             "SC": "https://dados.sc.gov.br",
-            "BA": "https://dados.ba.gov.br"
+            "BA": "https://dados.ba.gov.br",
         }
 
         for state_code, base_url in ckan_states.items():
@@ -77,10 +78,7 @@ class TransparencyAPIRegistry:
             self._clients[f"{state_code}-ckan"] = (CKANClient, base_url, state_code)
 
     def register(
-        self,
-        key: str,
-        client_class: Type[TransparencyAPIClient],
-        api_type: APIType
+        self, key: str, client_class: type[TransparencyAPIClient], api_type: APIType
     ) -> None:
         """
         Register an API client.
@@ -126,7 +124,7 @@ class TransparencyAPIRegistry:
 
         return instance
 
-    def get_state_apis(self, state_code: str) -> List[TransparencyAPIClient]:
+    def get_state_apis(self, state_code: str) -> list[TransparencyAPIClient]:
         """
         Get all available APIs for a state.
 
@@ -161,7 +159,7 @@ class TransparencyAPIRegistry:
 
         return clients
 
-    def list_available_apis(self) -> List[str]:
+    def list_available_apis(self) -> list[str]:
         """
         List all registered API keys.
 
@@ -170,19 +168,14 @@ class TransparencyAPIRegistry:
         """
         return list(self._clients.keys())
 
-    def get_coverage_stats(self) -> Dict[str, int]:
+    def get_coverage_stats(self) -> dict[str, int]:
         """
         Get API coverage statistics.
 
         Returns:
             Dict with counts by API type
         """
-        stats = {
-            "total": len(self._clients),
-            "states": 0,
-            "tces": 0,
-            "ckan": 0
-        }
+        stats = {"total": len(self._clients), "states": 0, "tces": 0, "ckan": 0}
 
         for key in self._clients.keys():
             if "-state" in key:

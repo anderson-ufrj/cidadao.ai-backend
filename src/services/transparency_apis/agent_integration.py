@@ -9,13 +9,13 @@ Created: 2025-10-09 15:40:00 -03 (Minas Gerais, Brazil)
 License: Proprietary - All rights reserved
 """
 
-from typing import Any, Dict, List, Optional
-from datetime import datetime, timedelta
+from datetime import datetime
+from typing import Any, Optional
 
-from .registry import registry
 from .cache import get_cache
-from .validators import DataValidator, AnomalyDetector
 from .health_check import get_health_monitor
+from .registry import registry
+from .validators import AnomalyDetector, DataValidator
 
 
 class TransparencyDataCollector:
@@ -39,8 +39,8 @@ class TransparencyDataCollector:
         year: Optional[int] = None,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-        validate: bool = True
-    ) -> Dict[str, Any]:
+        validate: bool = True,
+    ) -> dict[str, Any]:
         """
         Collect contracts from available APIs.
 
@@ -71,9 +71,7 @@ class TransparencyDataCollector:
                 # Check cache first
                 cache_key = f"{api_key}:{year}:{municipality_code}"
                 cached_data = self.cache.get_contracts(
-                    api_key,
-                    year=year,
-                    municipality_code=municipality_code
+                    api_key, year=year, municipality_code=municipality_code
                 )
 
                 if cached_data:
@@ -86,36 +84,35 @@ class TransparencyDataCollector:
                     start_date=start_date,
                     end_date=end_date,
                     year=year,
-                    municipality_code=municipality_code
+                    municipality_code=municipality_code,
                 )
 
                 if contracts:
                     # Validate if requested
                     if validate:
                         validation = DataValidator.validate_batch(contracts, "contract")
-                        if validation['validation_rate'] < 0.8:
-                            errors.append({
-                                "api": api_key,
-                                "error": f"Low validation rate: {validation['validation_rate']:.1%}",
-                                "issues": validation['common_issues']
-                            })
+                        if validation["validation_rate"] < 0.8:
+                            errors.append(
+                                {
+                                    "api": api_key,
+                                    "error": f"Low validation rate: {validation['validation_rate']:.1%}",
+                                    "issues": validation["common_issues"],
+                                }
+                            )
 
                     # Cache the results
                     self.cache.set_contracts(
                         api_key,
                         contracts,
                         year=year,
-                        municipality_code=municipality_code
+                        municipality_code=municipality_code,
                     )
 
                     all_contracts.extend(contracts)
                     sources_used.append(api_key)
 
             except Exception as e:
-                errors.append({
-                    "api": api_key,
-                    "error": str(e)
-                })
+                errors.append({"api": api_key, "error": str(e)})
 
         return {
             "contracts": all_contracts,
@@ -129,9 +126,9 @@ class TransparencyDataCollector:
                     "municipality_code": municipality_code,
                     "year": year,
                     "start_date": start_date,
-                    "end_date": end_date
-                }
-            }
+                    "end_date": end_date,
+                },
+            },
         }
 
     async def collect_expenses(
@@ -139,8 +136,8 @@ class TransparencyDataCollector:
         state: Optional[str] = None,
         municipality_code: Optional[str] = None,
         year: Optional[int] = None,
-        validate: bool = True
-    ) -> Dict[str, Any]:
+        validate: bool = True,
+    ) -> dict[str, Any]:
         """
         Collect expenses from available APIs.
 
@@ -162,14 +159,12 @@ class TransparencyDataCollector:
         for api_key in api_keys:
             try:
                 client = registry.get_client(api_key)
-                if not client or not hasattr(client, 'get_expenses'):
+                if not client or not hasattr(client, "get_expenses"):
                     continue
 
                 # Check cache
                 cached_data = self.cache.get_expenses(
-                    api_key,
-                    year=year,
-                    municipality_code=municipality_code
+                    api_key, year=year, municipality_code=municipality_code
                 )
 
                 if cached_data:
@@ -179,34 +174,32 @@ class TransparencyDataCollector:
 
                 # Fetch from API
                 expenses = await client.get_expenses(
-                    year=year,
-                    municipality_code=municipality_code
+                    year=year, municipality_code=municipality_code
                 )
 
                 if expenses:
                     if validate:
                         validation = DataValidator.validate_batch(expenses, "expense")
-                        if validation['validation_rate'] < 0.8:
-                            errors.append({
-                                "api": api_key,
-                                "error": f"Low validation rate: {validation['validation_rate']:.1%}"
-                            })
+                        if validation["validation_rate"] < 0.8:
+                            errors.append(
+                                {
+                                    "api": api_key,
+                                    "error": f"Low validation rate: {validation['validation_rate']:.1%}",
+                                }
+                            )
 
                     self.cache.set_expenses(
                         api_key,
                         expenses,
                         year=year,
-                        municipality_code=municipality_code
+                        municipality_code=municipality_code,
                     )
 
                     all_expenses.extend(expenses)
                     sources_used.append(api_key)
 
             except Exception as e:
-                errors.append({
-                    "api": api_key,
-                    "error": str(e)
-                })
+                errors.append({"api": api_key, "error": str(e)})
 
         return {
             "expenses": all_expenses,
@@ -218,17 +211,17 @@ class TransparencyDataCollector:
                 "filters": {
                     "state": state,
                     "municipality_code": municipality_code,
-                    "year": year
-                }
-            }
+                    "year": year,
+                },
+            },
         }
 
     async def collect_suppliers(
         self,
         state: Optional[str] = None,
         municipality_code: Optional[str] = None,
-        validate: bool = True
-    ) -> Dict[str, Any]:
+        validate: bool = True,
+    ) -> dict[str, Any]:
         """
         Collect suppliers from available APIs.
 
@@ -249,13 +242,12 @@ class TransparencyDataCollector:
         for api_key in api_keys:
             try:
                 client = registry.get_client(api_key)
-                if not client or not hasattr(client, 'get_suppliers'):
+                if not client or not hasattr(client, "get_suppliers"):
                     continue
 
                 # Check cache
                 cached_data = self.cache.get_suppliers(
-                    api_key,
-                    municipality_code=municipality_code
+                    api_key, municipality_code=municipality_code
                 )
 
                 if cached_data:
@@ -271,26 +263,23 @@ class TransparencyDataCollector:
                 if suppliers:
                     if validate:
                         validation = DataValidator.validate_batch(suppliers, "supplier")
-                        if validation['validation_rate'] < 0.8:
-                            errors.append({
-                                "api": api_key,
-                                "error": f"Low validation rate: {validation['validation_rate']:.1%}"
-                            })
+                        if validation["validation_rate"] < 0.8:
+                            errors.append(
+                                {
+                                    "api": api_key,
+                                    "error": f"Low validation rate: {validation['validation_rate']:.1%}",
+                                }
+                            )
 
                     self.cache.set_suppliers(
-                        api_key,
-                        suppliers,
-                        municipality_code=municipality_code
+                        api_key, suppliers, municipality_code=municipality_code
                     )
 
                     all_suppliers.extend(suppliers)
                     sources_used.append(api_key)
 
             except Exception as e:
-                errors.append({
-                    "api": api_key,
-                    "error": str(e)
-                })
+                errors.append({"api": api_key, "error": str(e)})
 
         return {
             "suppliers": all_suppliers,
@@ -299,17 +288,13 @@ class TransparencyDataCollector:
             "errors": errors,
             "metadata": {
                 "collected_at": datetime.utcnow().isoformat(),
-                "filters": {
-                    "state": state,
-                    "municipality_code": municipality_code
-                }
-            }
+                "filters": {"state": state, "municipality_code": municipality_code},
+            },
         }
 
     async def analyze_contracts_for_anomalies(
-        self,
-        contracts: List[Dict[str, Any]]
-    ) -> Dict[str, Any]:
+        self, contracts: list[dict[str, Any]]
+    ) -> dict[str, Any]:
         """
         Analyze contracts for anomalies.
 
@@ -327,7 +312,7 @@ class TransparencyDataCollector:
         duplicates = AnomalyDetector.detect_duplicate_contracts(contracts)
 
         # Calculate summary statistics
-        total_value = sum(float(c.get('value', 0)) for c in contracts)
+        total_value = sum(float(c.get("value", 0)) for c in contracts)
         avg_value = total_value / len(contracts) if contracts else 0
 
         # Determine risk score
@@ -338,7 +323,7 @@ class TransparencyDataCollector:
             risk_factors.append("High outlier rate")
             risk_score += 3
 
-        if concentration.get('concentrated'):
+        if concentration.get("concentrated"):
             risk_factors.append("High supplier concentration")
             risk_score += 2
 
@@ -355,22 +340,22 @@ class TransparencyDataCollector:
                 "total_value": total_value,
                 "avg_value": avg_value,
                 "risk_score": risk_score,
-                "risk_factors": risk_factors
+                "risk_factors": risk_factors,
             },
             "anomalies": {
                 "outliers": outliers[:10],  # Top 10
                 "outlier_count": len(outliers),
                 "concentration": concentration,
                 "duplicates": duplicates[:5],  # Top 5
-                "duplicate_count": len(duplicates)
+                "duplicate_count": len(duplicates),
             },
             "metadata": {
                 "analyzed_at": datetime.utcnow().isoformat(),
-                "analysis_version": "1.0.0"
-            }
+                "analysis_version": "1.0.0",
+            },
         }
 
-    async def check_apis_health(self) -> Dict[str, Any]:
+    async def check_apis_health(self) -> dict[str, Any]:
         """
         Check health of all transparency APIs.
 
@@ -379,7 +364,7 @@ class TransparencyDataCollector:
         """
         return await self.health_monitor.generate_report()
 
-    def _select_apis(self, state: Optional[str] = None) -> List[str]:
+    def _select_apis(self, state: Optional[str] = None) -> list[str]:
         """
         Select appropriate APIs based on state.
 
@@ -391,11 +376,7 @@ class TransparencyDataCollector:
         """
         if state:
             # Get APIs for specific state
-            return [
-                f"{state}-tce",
-                f"{state}-state",
-                f"{state}-ckan"
-            ]
+            return [f"{state}-tce", f"{state}-state", f"{state}-ckan"]
 
         # Return all available APIs
         return registry.list_available_apis()

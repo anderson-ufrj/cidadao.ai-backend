@@ -8,19 +8,20 @@ License: Proprietary - All rights reserved
 This service builds and analyzes entity relationship graphs from investigation data.
 """
 
-from typing import List, Dict, Any, Optional, Tuple
-from datetime import datetime
-from sqlalchemy import select, func, and_, or_
-from sqlalchemy.ext.asyncio import AsyncSession
-import unicodedata
 import re
+import unicodedata
+from datetime import datetime
+from typing import Any, Optional
+
+from sqlalchemy import and_, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core import get_logger
 from src.models.entity_graph import (
+    EntityInvestigationReference,
     EntityNode,
     EntityRelationship,
-    EntityInvestigationReference,
-    SuspiciousNetwork
+    SuspiciousNetwork,
 )
 from src.models.forensic_investigation import LegalEntity
 
@@ -64,7 +65,9 @@ class NetworkAnalysisService:
         """
         # Determine entity type and identifier
         entity_type = legal_entity.entity_type
-        identifier = legal_entity.cnpj or legal_entity.cpf or legal_entity.company_registration
+        identifier = (
+            legal_entity.cnpj or legal_entity.cpf or legal_entity.company_registration
+        )
 
         # Normalize name for matching
         normalized_name = self._normalize_text(legal_entity.name)
@@ -74,10 +77,14 @@ class NetworkAnalysisService:
             and_(
                 EntityNode.entity_type == entity_type,
                 or_(
-                    EntityNode.cnpj == legal_entity.cnpj if legal_entity.cnpj else False,
+                    (
+                        EntityNode.cnpj == legal_entity.cnpj
+                        if legal_entity.cnpj
+                        else False
+                    ),
                     EntityNode.cpf == legal_entity.cpf if legal_entity.cpf else False,
-                    EntityNode.normalized_name == normalized_name
-                )
+                    EntityNode.normalized_name == normalized_name,
+                ),
             )
         )
 
@@ -95,9 +102,17 @@ class NetworkAnalysisService:
                 existing_entity.total_contract_value += contract_value
 
             # Update metadata if new info available
-            if legal_entity.transparency_portal_url and not existing_entity.transparency_portal_url:
-                existing_entity.transparency_portal_url = legal_entity.transparency_portal_url
-            if legal_entity.receita_federal_url and not existing_entity.receita_federal_url:
+            if (
+                legal_entity.transparency_portal_url
+                and not existing_entity.transparency_portal_url
+            ):
+                existing_entity.transparency_portal_url = (
+                    legal_entity.transparency_portal_url
+                )
+            if (
+                legal_entity.receita_federal_url
+                and not existing_entity.receita_federal_url
+            ):
                 existing_entity.receita_federal_url = legal_entity.receita_federal_url
 
             entity = existing_entity
@@ -109,7 +124,11 @@ class NetworkAnalysisService:
                 normalized_name=normalized_name,
                 cnpj=legal_entity.cnpj,
                 cpf=legal_entity.cpf,
-                agency_code=legal_entity.company_registration if entity_type == "orgao_publico" else None,
+                agency_code=(
+                    legal_entity.company_registration
+                    if entity_type == "orgao_publico"
+                    else None
+                ),
                 email=legal_entity.email,
                 phone=legal_entity.phone,
                 address=legal_entity.address,
@@ -157,7 +176,7 @@ class NetworkAnalysisService:
         target_entity_id: str,
         relationship_type: str,
         investigation_id: str,
-        evidence: Optional[Dict[str, Any]] = None,
+        evidence: Optional[dict[str, Any]] = None,
         strength: float = 1.0,
     ) -> EntityRelationship:
         """
@@ -190,7 +209,9 @@ class NetworkAnalysisService:
             # Update existing relationship
             existing_rel.last_detected = datetime.utcnow()
             existing_rel.detection_count += 1
-            existing_rel.strength = min(1.0, existing_rel.strength + 0.1)  # Increase strength
+            existing_rel.strength = min(
+                1.0, existing_rel.strength + 0.1
+            )  # Increase strength
 
             # Add investigation ID if not already present
             if investigation_id not in existing_rel.investigation_ids:
@@ -234,9 +255,9 @@ class NetworkAnalysisService:
     async def build_graph_from_investigation(
         self,
         investigation_id: str,
-        entities: List[LegalEntity],
-        contract_data: Optional[Dict[str, Any]] = None,
-    ) -> Dict[str, Any]:
+        entities: list[LegalEntity],
+        contract_data: Optional[dict[str, Any]] = None,
+    ) -> dict[str, Any]:
         """
         Build entity graph from investigation results.
 
@@ -248,7 +269,11 @@ class NetworkAnalysisService:
         Returns:
             Graph statistics
         """
-        logger.info("building_graph", investigation_id=investigation_id, entities_count=len(entities))
+        logger.info(
+            "building_graph",
+            investigation_id=investigation_id,
+            entities_count=len(entities),
+        )
 
         created_nodes = []
         created_relationships = []
@@ -257,7 +282,9 @@ class NetworkAnalysisService:
         for entity_data in entities:
             role = self._determine_entity_role(entity_data)
             contract_id = contract_data.get("id") if contract_data else None
-            contract_value = contract_data.get("valorInicial") if contract_data else None
+            contract_value = (
+                contract_data.get("valorInicial") if contract_data else None
+            )
 
             entity_node = await self.find_or_create_entity(
                 legal_entity=entity_data,
@@ -281,8 +308,12 @@ class NetworkAnalysisService:
                     relationship_type="contracts_with",
                     investigation_id=investigation_id,
                     evidence={
-                        "contract_id": contract_data.get("id") if contract_data else None,
-                        "contract_value": contract_data.get("valorInicial") if contract_data else None,
+                        "contract_id": (
+                            contract_data.get("id") if contract_data else None
+                        ),
+                        "contract_value": (
+                            contract_data.get("valorInicial") if contract_data else None
+                        ),
                     },
                 )
                 created_relationships.append(rel)
@@ -358,7 +389,9 @@ class NetworkAnalysisService:
 
         logger.info("network_metrics_calculated", entities_count=len(entities))
 
-    async def detect_suspicious_networks(self, investigation_id: str) -> List[SuspiciousNetwork]:
+    async def detect_suspicious_networks(
+        self, investigation_id: str
+    ) -> list[SuspiciousNetwork]:
         """
         Detect suspicious entity networks.
 
@@ -390,7 +423,7 @@ class NetworkAnalysisService:
 
         return suspicious_networks
 
-    async def _detect_cartels(self, investigation_id: str) -> List[SuspiciousNetwork]:
+    async def _detect_cartels(self, investigation_id: str) -> list[SuspiciousNetwork]:
         """Detect potential cartels (companies with common ownership/management)."""
         cartels = []
 
@@ -438,17 +471,23 @@ class NetworkAnalysisService:
         await self.db.commit()
         return cartels
 
-    async def _detect_concentration(self, investigation_id: str) -> List[SuspiciousNetwork]:
+    async def _detect_concentration(
+        self, investigation_id: str
+    ) -> list[SuspiciousNetwork]:
         """Detect supplier concentration patterns."""
         concentration_networks = []
 
         # Find entities with high contract volume
-        query = select(EntityNode).where(
-            and_(
-                EntityNode.total_investigations >= 3,
-                EntityNode.total_contract_value > 1000000,  # R$ 1M+
+        query = (
+            select(EntityNode)
+            .where(
+                and_(
+                    EntityNode.total_investigations >= 3,
+                    EntityNode.total_contract_value > 1000000,  # R$ 1M+
+                )
             )
-        ).order_by(EntityNode.total_contract_value.desc())
+            .order_by(EntityNode.total_contract_value.desc())
+        )
 
         result = await self.db.execute(query)
         high_volume_entities = list(result.scalars().all())
@@ -471,7 +510,9 @@ class NetworkAnalysisService:
         await self.db.commit()
         return concentration_networks
 
-    async def _detect_shell_networks(self, investigation_id: str) -> List[SuspiciousNetwork]:
+    async def _detect_shell_networks(
+        self, investigation_id: str
+    ) -> list[SuspiciousNetwork]:
         """Detect shell company networks (complex ownership chains)."""
         # Simplified: Detect entities with many relationships but low contract value
         query = select(EntityNode).where(
@@ -508,7 +549,7 @@ class NetworkAnalysisService:
         self,
         entity_id: str,
         depth: int = 2,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get network of entities connected to a specific entity.
 
@@ -568,7 +609,11 @@ class NetworkAnalysisService:
             edges.append(rel.to_dict())
 
             # Traverse connected entities
-            next_id = rel.target_entity_id if rel.source_entity_id == entity_id else rel.source_entity_id
+            next_id = (
+                rel.target_entity_id
+                if rel.source_entity_id == entity_id
+                else rel.source_entity_id
+            )
             await self._traverse_network(next_id, depth - 1, visited, nodes, edges)
 
     # ==================== HELPER METHODS ====================
@@ -578,12 +623,12 @@ class NetworkAnalysisService:
         if not text:
             return ""
         # Remove accents
-        text = unicodedata.normalize('NFKD', text)
-        text = ''.join([c for c in text if not unicodedata.combining(c)])
+        text = unicodedata.normalize("NFKD", text)
+        text = "".join([c for c in text if not unicodedata.combining(c)])
         # Lowercase and clean
         text = text.lower().strip()
         # Remove extra spaces
-        text = re.sub(r'\s+', ' ', text)
+        text = re.sub(r"\s+", " ", text)
         return text
 
     def _determine_entity_role(self, entity: LegalEntity) -> str:

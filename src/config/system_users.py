@@ -14,17 +14,14 @@ import os
 # Default: Use from environment variable, fallback to system user UUID
 SYSTEM_AUTO_MONITOR_USER_ID = os.getenv(
     "SYSTEM_AUTO_MONITOR_USER_ID",
-    "58050609-2fe2-49a6-a342-7cf66d83d216"  # system@cidadao.ai
+    "58050609-2fe2-49a6-a342-7cf66d83d216",  # system@cidadao.ai
 )
 
 # System user for scheduled tasks
 SYSTEM_SCHEDULER_USER_ID = os.getenv(
     "SYSTEM_SCHEDULER_USER_ID",
-    SYSTEM_AUTO_MONITOR_USER_ID  # Use same as auto-monitor by default
+    SYSTEM_AUTO_MONITOR_USER_ID,  # Use same as auto-monitor by default
 )
 
 # System user for data sync operations
-SYSTEM_SYNC_USER_ID = os.getenv(
-    "SYSTEM_SYNC_USER_ID",
-    SYSTEM_AUTO_MONITOR_USER_ID
-)
+SYSTEM_SYNC_USER_ID = os.getenv("SYSTEM_SYNC_USER_ID", SYSTEM_AUTO_MONITOR_USER_ID)

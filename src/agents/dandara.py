@@ -8,57 +8,66 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
-from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass
+from datetime import datetime
+from typing import Any, Optional
 
 import numpy as np
-import pandas as pd
-from pydantic import BaseModel, Field as PydanticField
+from pydantic import BaseModel
+from pydantic import Field as PydanticField
 
-from src.agents.deodoro import BaseAgent, AgentContext, AgentMessage, AgentResponse
+from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
 from src.core import get_logger
-from src.core.exceptions import AgentExecutionError, DataAnalysisError
-from src.services.transparency_apis.federal_apis.ibge_client import IBGEClient
 from src.services.transparency_apis.federal_apis.datasus_client import DataSUSClient
+from src.services.transparency_apis.federal_apis.ibge_client import IBGEClient
 from src.services.transparency_apis.federal_apis.inep_client import INEPClient
 
 
 @dataclass
 class EquityAnalysisResult:
     """Result of social equity analysis."""
-    
+
     analysis_type: str
     gini_coefficient: float  # 0.0 to 1.0
     equity_score: int  # 0-100
     population_affected: int
-    violations_detected: List[Dict[str, Any]]
-    gaps_identified: List[Dict[str, Any]]
-    recommendations: List[str]
-    evidence_sources: List[str]
+    violations_detected: list[dict[str, Any]]
+    gaps_identified: list[dict[str, Any]]
+    recommendations: list[str]
+    evidence_sources: list[str]
     analysis_timestamp: datetime
     confidence_level: float
 
 
 class SocialJusticeRequest(BaseModel):
     """Request for social justice analysis."""
-    
+
     query: str = PydanticField(description="Social equity analysis query")
-    target_groups: Optional[List[str]] = PydanticField(default=None, description="Specific demographic groups to analyze")
-    policy_areas: Optional[List[str]] = PydanticField(default=None, description="Policy areas (education, health, housing, etc)")
-    geographical_scope: Optional[str] = PydanticField(default=None, description="Geographic scope (municipality, state, federal)")
-    time_period: Optional[Tuple[str, str]] = PydanticField(default=None, description="Analysis period (start, end)")
-    metrics_focus: Optional[List[str]] = PydanticField(default=None, description="Specific metrics to focus on")
+    target_groups: Optional[list[str]] = PydanticField(
+        default=None, description="Specific demographic groups to analyze"
+    )
+    policy_areas: Optional[list[str]] = PydanticField(
+        default=None, description="Policy areas (education, health, housing, etc)"
+    )
+    geographical_scope: Optional[str] = PydanticField(
+        default=None, description="Geographic scope (municipality, state, federal)"
+    )
+    time_period: Optional[tuple[str, str]] = PydanticField(
+        default=None, description="Analysis period (start, end)"
+    )
+    metrics_focus: Optional[list[str]] = PydanticField(
+        default=None, description="Specific metrics to focus on"
+    )
 
 
 class DandaraAgent(BaseAgent):
     """
     Dandara - Social Justice Agent
-    
+
     Specialized in monitoring inclusion policies, social equity, and distributive justice indicators.
     Inspired by Dandara dos Palmares, warrior for social justice and equality.
     """
-    
+
     def __init__(self):
         super().__init__(
             name="dandara",
@@ -73,8 +82,8 @@ class DandaraAgent(BaseAgent):
                 "policy_effectiveness_evaluation",
                 "intersectional_analysis",
                 "vulnerability_mapping",
-                "equity_gap_identification"
-            ]
+                "equity_gap_identification",
+            ],
         )
         self.logger = get_logger("agent.dandara")
 
@@ -89,13 +98,19 @@ class DandaraAgent(BaseAgent):
             "atkinson_index": self._calculate_atkinson,
             "theil_index": self._calculate_theil,
             "palma_ratio": self._calculate_palma,
-            "quintile_ratio": self._calculate_quintile_ratio
+            "quintile_ratio": self._calculate_quintile_ratio,
         }
 
         # Data sources for social analysis (now using real APIs)
         self._data_sources = [
-            "IBGE (real data)", "DataSUS (real data)", "INEP (real data)",
-            "MDS", "SNIS", "Portal da Transparência", "RAIS", "PNAD"
+            "IBGE (real data)",
+            "DataSUS (real data)",
+            "INEP (real data)",
+            "MDS",
+            "SNIS",
+            "Portal da Transparência",
+            "RAIS",
+            "PNAD",
         ]
 
     async def initialize(self):
@@ -110,7 +125,7 @@ class DandaraAgent(BaseAgent):
         await self.datasus_client.close()
         await self.inep_client.close()
         self.logger.info("Dandara agent shut down and API clients closed")
-    
+
     async def process(
         self,
         message: AgentMessage,
@@ -118,11 +133,11 @@ class DandaraAgent(BaseAgent):
     ) -> AgentResponse:
         """
         Process social justice analysis request.
-        
+
         Args:
             message: Analysis request message
             context: Agent execution context
-            
+
         Returns:
             Social equity analysis results
         """
@@ -132,24 +147,24 @@ class DandaraAgent(BaseAgent):
                 investigation_id=context.investigation_id,
                 message_type=message.type,
             )
-            
+
             # Parse request
             if isinstance(message.data, dict):
                 request = SocialJusticeRequest(**message.data)
             else:
                 request = SocialJusticeRequest(query=str(message.data))
-            
+
             # Perform comprehensive social justice analysis
             analysis_result = await self._analyze_social_equity(request, context)
-            
+
             # Generate actionable recommendations
             recommendations = await self._generate_justice_recommendations(
                 analysis_result, request, context
             )
-            
+
             # Create audit trail
             audit_hash = self._generate_audit_hash(analysis_result, request)
-            
+
             response_data = {
                 "analysis_id": context.investigation_id,
                 "timestamp": datetime.utcnow().isoformat(),
@@ -160,16 +175,16 @@ class DandaraAgent(BaseAgent):
                 "audit_hash": audit_hash,
                 "data_sources": self._data_sources,
                 "methodology": "gini_theil_palma_analysis",
-                "confidence": analysis_result.confidence_level
+                "confidence": analysis_result.confidence_level,
             }
-            
+
             self.logger.info(
                 "Social justice analysis completed",
                 investigation_id=context.investigation_id,
                 equity_score=analysis_result.equity_score,
                 violations_count=len(analysis_result.violations_detected),
             )
-            
+
             return AgentResponse(
                 agent_name=self.name,
                 response_type="social_justice_analysis",
@@ -177,7 +192,7 @@ class DandaraAgent(BaseAgent):
                 success=True,
                 context=context,
             )
-            
+
         except Exception as e:
             self.logger.error(
                 "Social justice analysis failed",
@@ -185,7 +200,7 @@ class DandaraAgent(BaseAgent):
                 error=str(e),
                 exc_info=True,
             )
-            
+
             return AgentResponse(
                 agent_name=self.name,
                 response_type="error",
@@ -193,11 +208,9 @@ class DandaraAgent(BaseAgent):
                 success=False,
                 context=context,
             )
-    
+
     async def _analyze_social_equity(
-        self,
-        request: SocialJusticeRequest,
-        context: AgentContext
+        self, request: SocialJusticeRequest, context: AgentContext
     ) -> EquityAnalysisResult:
         """Perform comprehensive social equity analysis using real data from IBGE, DataSUS, and INEP."""
 
@@ -214,13 +227,21 @@ class DandaraAgent(BaseAgent):
 
         try:
             # Fetch real data from all sources in parallel
-            self.logger.info(f"Fetching real data: state={state_code}, municipalities={municipality_ids}")
+            self.logger.info(
+                f"Fetching real data: state={state_code}, municipalities={municipality_ids}"
+            )
 
             ibge_data, datasus_data, inep_data = await asyncio.gather(
-                self.ibge_client.get_comprehensive_social_data(state_code, municipality_ids),
-                self.datasus_client.get_health_indicators(state_code, municipality_ids[0] if municipality_ids else None),
-                self.inep_client.get_education_indicators(state_code, municipality_ids[0] if municipality_ids else None),
-                return_exceptions=True
+                self.ibge_client.get_comprehensive_social_data(
+                    state_code, municipality_ids
+                ),
+                self.datasus_client.get_health_indicators(
+                    state_code, municipality_ids[0] if municipality_ids else None
+                ),
+                self.inep_client.get_education_indicators(
+                    state_code, municipality_ids[0] if municipality_ids else None
+                ),
+                return_exceptions=True,
             )
 
             # Log data fetching results
@@ -247,11 +268,17 @@ class DandaraAgent(BaseAgent):
             equity_score = max(0, min(100, int((1 - gini_coeff) * 100)))
 
             # Identify violations and gaps using real data
-            violations = await self._detect_equity_violations_real(ibge_data, datasus_data, inep_data, request, context)
-            gaps = await self._identify_inclusion_gaps_real(ibge_data, datasus_data, inep_data, request, context)
+            violations = await self._detect_equity_violations_real(
+                ibge_data, datasus_data, inep_data, request, context
+            )
+            gaps = await self._identify_inclusion_gaps_real(
+                ibge_data, datasus_data, inep_data, request, context
+            )
 
             # Estimate affected population from IBGE data
-            population_affected = self._estimate_affected_population_real(ibge_data, request)
+            population_affected = self._estimate_affected_population_real(
+                ibge_data, request
+            )
 
             return EquityAnalysisResult(
                 analysis_type="comprehensive_social_equity_real_data",
@@ -260,10 +287,12 @@ class DandaraAgent(BaseAgent):
                 population_affected=population_affected,
                 violations_detected=violations,
                 gaps_identified=gaps,
-                recommendations=await self._generate_evidence_based_recommendations(violations, gaps),
+                recommendations=await self._generate_evidence_based_recommendations(
+                    violations, gaps
+                ),
                 evidence_sources=self._data_sources,
                 analysis_timestamp=datetime.utcnow(),
-                confidence_level=0.92  # Higher confidence with real data
+                confidence_level=0.92,  # Higher confidence with real data
             )
 
         except Exception as e:
@@ -279,18 +308,24 @@ class DandaraAgent(BaseAgent):
                 recommendations=["Unable to fetch real data - API error"],
                 evidence_sources=["Fallback data"],
                 analysis_timestamp=datetime.utcnow(),
-                confidence_level=0.30
+                confidence_level=0.30,
             )
 
     def _extract_state_code(self, geographical_scope: str) -> Optional[str]:
         """Extract state code from geographical scope."""
         # Map common state names/codes
         state_map = {
-            "rj": "33", "rio de janeiro": "33",
-            "sp": "35", "são paulo": "35", "sao paulo": "35",
-            "mg": "31", "minas gerais": "31",
-            "ba": "29", "bahia": "29",
-            "pe": "26", "pernambuco": "26",
+            "rj": "33",
+            "rio de janeiro": "33",
+            "sp": "35",
+            "são paulo": "35",
+            "sao paulo": "35",
+            "mg": "31",
+            "minas gerais": "31",
+            "ba": "29",
+            "bahia": "29",
+            "pe": "26",
+            "pernambuco": "26",
             # Add more states as needed
         }
 
@@ -301,16 +336,20 @@ class DandaraAgent(BaseAgent):
 
         return None
 
-    def _extract_municipality_ids(self, geographical_scope: str) -> Optional[List[str]]:
+    def _extract_municipality_ids(self, geographical_scope: str) -> Optional[list[str]]:
         """Extract municipality IDs from geographical scope."""
         # For now, return None - could be enhanced to parse specific municipalities
         return None
 
-    async def _calculate_real_gini(self, ibge_data: Optional[Dict], request: SocialJusticeRequest) -> float:
+    async def _calculate_real_gini(
+        self, ibge_data: Optional[dict], request: SocialJusticeRequest
+    ) -> float:
         """Calculate Gini coefficient from real IBGE data."""
         try:
             if not ibge_data or isinstance(ibge_data, Exception):
-                self.logger.warning("No IBGE data available for Gini calculation, using default")
+                self.logger.warning(
+                    "No IBGE data available for Gini calculation, using default"
+                )
                 return 0.53  # Brazil's approximate Gini coefficient
 
             # Try to extract poverty/income data from IBGE response
@@ -331,15 +370,15 @@ class DandaraAgent(BaseAgent):
         except Exception as e:
             self.logger.error(f"Error calculating Gini from real data: {e}")
             return 0.53
-    
+
     async def _detect_equity_violations_real(
         self,
-        ibge_data: Optional[Dict],
-        datasus_data: Optional[Dict],
-        inep_data: Optional[Dict],
+        ibge_data: Optional[dict],
+        datasus_data: Optional[dict],
+        inep_data: Optional[dict],
         request: SocialJusticeRequest,
-        context: AgentContext
-    ) -> List[Dict[str, Any]]:
+        context: AgentContext,
+    ) -> list[dict[str, Any]]:
         """Detect potential equity violations using real data."""
         violations = []
 
@@ -348,69 +387,80 @@ class DandaraAgent(BaseAgent):
             if inep_data and not isinstance(inep_data, Exception):
                 ideb_data = inep_data.get("ideb")
                 if ideb_data:
-                    violations.append({
-                        "type": "education_inequality",
-                        "severity": 0.7,
-                        "legal_reference": "CF/88 Art. 205",
-                        "evidence": "IDEB disparities detected across regions",
-                        "affected_groups": request.target_groups or ["students", "vulnerable_populations"],
-                        "remediation_urgency": "high",
-                        "data_source": "INEP/IDEB"
-                    })
+                    violations.append(
+                        {
+                            "type": "education_inequality",
+                            "severity": 0.7,
+                            "legal_reference": "CF/88 Art. 205",
+                            "evidence": "IDEB disparities detected across regions",
+                            "affected_groups": request.target_groups
+                            or ["students", "vulnerable_populations"],
+                            "remediation_urgency": "high",
+                            "data_source": "INEP/IDEB",
+                        }
+                    )
 
             # Analyze health access disparities from DataSUS
             if datasus_data and not isinstance(datasus_data, Exception):
                 health_facilities = datasus_data.get("health_facilities")
                 if health_facilities:
-                    violations.append({
-                        "type": "health_access_inequality",
-                        "severity": 0.6,
-                        "legal_reference": "CF/88 Art. 196",
-                        "evidence": "Unequal distribution of health facilities detected",
-                        "affected_groups": request.target_groups or ["rural_populations", "vulnerable_populations"],
-                        "remediation_urgency": "high",
-                        "data_source": "DataSUS/CNES"
-                    })
+                    violations.append(
+                        {
+                            "type": "health_access_inequality",
+                            "severity": 0.6,
+                            "legal_reference": "CF/88 Art. 196",
+                            "evidence": "Unequal distribution of health facilities detected",
+                            "affected_groups": request.target_groups
+                            or ["rural_populations", "vulnerable_populations"],
+                            "remediation_urgency": "high",
+                            "data_source": "DataSUS/CNES",
+                        }
+                    )
 
             # Analyze demographic disparities from IBGE
             if ibge_data and not isinstance(ibge_data, Exception):
                 poverty_data = ibge_data.get("poverty")
                 if poverty_data:
-                    violations.append({
-                        "type": "economic_inequality",
-                        "severity": 0.8,
-                        "legal_reference": "CF/88 Art. 3º, III",
-                        "evidence": "High poverty rates and income inequality detected",
-                        "affected_groups": request.target_groups or ["low_income_populations"],
-                        "remediation_urgency": "critical",
-                        "data_source": "IBGE/Poverty Indicators"
-                    })
+                    violations.append(
+                        {
+                            "type": "economic_inequality",
+                            "severity": 0.8,
+                            "legal_reference": "CF/88 Art. 3º, III",
+                            "evidence": "High poverty rates and income inequality detected",
+                            "affected_groups": request.target_groups
+                            or ["low_income_populations"],
+                            "remediation_urgency": "critical",
+                            "data_source": "IBGE/Poverty Indicators",
+                        }
+                    )
 
             # If no real data, add a note
             if not violations:
-                violations.append({
-                    "type": "data_unavailable",
-                    "severity": 0.0,
-                    "legal_reference": "N/A",
-                    "evidence": "Insufficient real data to detect violations - APIs may be unavailable",
-                    "affected_groups": [],
-                    "remediation_urgency": "none",
-                    "data_source": "N/A"
-                })
+                violations.append(
+                    {
+                        "type": "data_unavailable",
+                        "severity": 0.0,
+                        "legal_reference": "N/A",
+                        "evidence": "Insufficient real data to detect violations - APIs may be unavailable",
+                        "affected_groups": [],
+                        "remediation_urgency": "none",
+                        "data_source": "N/A",
+                    }
+                )
 
         except Exception as e:
             self.logger.error(f"Error detecting violations from real data: {e}")
 
         return violations
-    
+
     async def _identify_inclusion_gaps_real(
         self,
-        ibge_data: Optional[Dict],
-        datasus_data: Optional[Dict],
-        inep_data: Optional[Dict],
+        ibge_data: Optional[dict],
+        datasus_data: Optional[dict],
+        inep_data: Optional[dict],
         request: SocialJusticeRequest,
-        context: AgentContext
-    ) -> List[Dict[str, Any]]:
+        context: AgentContext,
+    ) -> list[dict[str, Any]]:
         """Identify inclusion gaps in policies using real data."""
         gaps = []
 
@@ -421,16 +471,18 @@ class DandaraAgent(BaseAgent):
                 infrastructure = inep_data.get("infrastructure")
 
                 if infrastructure:
-                    gaps.append({
-                        "area": "education_infrastructure",
-                        "gap_size": 0.6,
-                        "target_population": request.target_groups or ["students"],
-                        "current_coverage": 0.4,
-                        "recommended_coverage": 0.95,
-                        "implementation_complexity": "medium",
-                        "data_source": "INEP/School Census",
-                        "evidence": "Infrastructure gaps in schools (internet, labs, libraries)"
-                    })
+                    gaps.append(
+                        {
+                            "area": "education_infrastructure",
+                            "gap_size": 0.6,
+                            "target_population": request.target_groups or ["students"],
+                            "current_coverage": 0.4,
+                            "recommended_coverage": 0.95,
+                            "implementation_complexity": "medium",
+                            "data_source": "INEP/School Census",
+                            "evidence": "Infrastructure gaps in schools (internet, labs, libraries)",
+                        }
+                    )
 
             # Analyze health gaps from DataSUS data
             if datasus_data and not isinstance(datasus_data, Exception):
@@ -438,56 +490,68 @@ class DandaraAgent(BaseAgent):
                 vaccination = datasus_data.get("vaccination")
 
                 if health_facilities or vaccination:
-                    gaps.append({
-                        "area": "healthcare_access",
-                        "gap_size": 0.5,
-                        "target_population": request.target_groups or ["general_population"],
-                        "current_coverage": 0.5,
-                        "recommended_coverage": 0.95,
-                        "implementation_complexity": "high",
-                        "data_source": "DataSUS",
-                        "evidence": "Unequal distribution of health services and vaccination coverage"
-                    })
+                    gaps.append(
+                        {
+                            "area": "healthcare_access",
+                            "gap_size": 0.5,
+                            "target_population": request.target_groups
+                            or ["general_population"],
+                            "current_coverage": 0.5,
+                            "recommended_coverage": 0.95,
+                            "implementation_complexity": "high",
+                            "data_source": "DataSUS",
+                            "evidence": "Unequal distribution of health services and vaccination coverage",
+                        }
+                    )
 
             # Analyze housing gaps from IBGE data
             if ibge_data and not isinstance(ibge_data, Exception):
                 housing_data = ibge_data.get("housing")
 
                 if housing_data:
-                    gaps.append({
-                        "area": "housing_basic_services",
-                        "gap_size": 0.4,
-                        "target_population": request.target_groups or ["low_income_families"],
-                        "current_coverage": 0.6,
-                        "recommended_coverage": 0.95,
-                        "implementation_complexity": "high",
-                        "data_source": "IBGE/Housing Census",
-                        "evidence": "Gaps in water supply, sewage, and electricity access"
-                    })
+                    gaps.append(
+                        {
+                            "area": "housing_basic_services",
+                            "gap_size": 0.4,
+                            "target_population": request.target_groups
+                            or ["low_income_families"],
+                            "current_coverage": 0.6,
+                            "recommended_coverage": 0.95,
+                            "implementation_complexity": "high",
+                            "data_source": "IBGE/Housing Census",
+                            "evidence": "Gaps in water supply, sewage, and electricity access",
+                        }
+                    )
 
             # If no real data, add a note
             if not gaps:
-                gaps.append({
-                    "area": "data_unavailable",
-                    "gap_size": 0.0,
-                    "target_population": [],
-                    "current_coverage": 0.0,
-                    "recommended_coverage": 0.0,
-                    "implementation_complexity": "unknown",
-                    "data_source": "N/A",
-                    "evidence": "Insufficient real data to identify gaps - APIs may be unavailable"
-                })
+                gaps.append(
+                    {
+                        "area": "data_unavailable",
+                        "gap_size": 0.0,
+                        "target_population": [],
+                        "current_coverage": 0.0,
+                        "recommended_coverage": 0.0,
+                        "implementation_complexity": "unknown",
+                        "data_source": "N/A",
+                        "evidence": "Insufficient real data to identify gaps - APIs may be unavailable",
+                    }
+                )
 
         except Exception as e:
             self.logger.error(f"Error identifying inclusion gaps from real data: {e}")
 
         return gaps
 
-    def _estimate_affected_population_real(self, ibge_data: Optional[Dict], request: SocialJusticeRequest) -> int:
+    def _estimate_affected_population_real(
+        self, ibge_data: Optional[dict], request: SocialJusticeRequest
+    ) -> int:
         """Estimate affected population size from real IBGE data."""
         try:
             if not ibge_data or isinstance(ibge_data, Exception):
-                self.logger.warning("No IBGE data for population estimation, using default")
+                self.logger.warning(
+                    "No IBGE data for population estimation, using default"
+                )
                 return 1000000  # Default estimate
 
             # Try to extract population from demographic data
@@ -508,119 +572,131 @@ class DandaraAgent(BaseAgent):
         except Exception as e:
             self.logger.error(f"Error estimating population from real data: {e}")
             return 1000000
-    
+
     async def _generate_evidence_based_recommendations(
-        self, 
-        violations: List[Dict[str, Any]], 
-        gaps: List[Dict[str, Any]]
-    ) -> List[str]:
+        self, violations: list[dict[str, Any]], gaps: list[dict[str, Any]]
+    ) -> list[str]:
         """Generate evidence-based recommendations."""
         recommendations = [
             "Implement targeted resource redistribution policies",
             "Establish monitoring systems for equity metrics",
             "Create inclusive policy design frameworks",
             "Develop intersectional analysis capabilities",
-            "Enhance data collection on vulnerable groups"
+            "Enhance data collection on vulnerable groups",
         ]
-        
+
         # Customize based on findings
         if violations:
-            recommendations.insert(0, "Address identified legal compliance violations immediately")
-        
+            recommendations.insert(
+                0, "Address identified legal compliance violations immediately"
+            )
+
         if gaps:
-            recommendations.append("Close identified inclusion gaps through targeted interventions")
-        
+            recommendations.append(
+                "Close identified inclusion gaps through targeted interventions"
+            )
+
         return recommendations
-    
+
     async def _generate_justice_recommendations(
         self,
         analysis: EquityAnalysisResult,
         request: SocialJusticeRequest,
-        context: AgentContext
-    ) -> List[Dict[str, Any]]:
+        context: AgentContext,
+    ) -> list[dict[str, Any]]:
         """Generate detailed justice recommendations."""
-        
+
         recommendations = []
-        
+
         for rec_text in analysis.recommendations:
-            recommendations.append({
-                "recommendation": rec_text,
-                "priority": "high" if analysis.equity_score < 60 else "medium",
-                "implementation_timeframe": "immediate" if analysis.equity_score < 40 else "short_term",
-                "expected_impact": np.random.uniform(0.6, 0.9),
-                "required_resources": np.random.choice(["low", "medium", "high"]),
-                "stakeholders": ["government", "civil_society", "affected_communities"],
-                "success_metrics": [f"Improve equity score by {np.random.randint(10, 25)} points"]
-            })
-        
+            recommendations.append(
+                {
+                    "recommendation": rec_text,
+                    "priority": "high" if analysis.equity_score < 60 else "medium",
+                    "implementation_timeframe": (
+                        "immediate" if analysis.equity_score < 40 else "short_term"
+                    ),
+                    "expected_impact": np.random.uniform(0.6, 0.9),
+                    "required_resources": np.random.choice(["low", "medium", "high"]),
+                    "stakeholders": [
+                        "government",
+                        "civil_society",
+                        "affected_communities",
+                    ],
+                    "success_metrics": [
+                        f"Improve equity score by {np.random.randint(10, 25)} points"
+                    ],
+                }
+            )
+
         return recommendations
-    
+
     def _generate_audit_hash(
-        self, 
-        analysis: EquityAnalysisResult, 
-        request: SocialJusticeRequest
+        self, analysis: EquityAnalysisResult, request: SocialJusticeRequest
     ) -> str:
         """Generate SHA-256 hash for audit trail."""
         import hashlib
-        
+
         audit_data = f"{analysis.analysis_timestamp}{analysis.gini_coefficient}{len(analysis.violations_detected)}{request.query}"
         return hashlib.sha256(audit_data.encode()).hexdigest()
-    
+
     # Equity calculation methods
-    async def _calculate_gini(self, data: List[float]) -> float:
+    async def _calculate_gini(self, data: list[float]) -> float:
         """Calculate Gini coefficient."""
         if not data:
             return 0.0
-        
+
         sorted_data = np.sort(data)
         n = len(sorted_data)
         cumsum = np.cumsum(sorted_data)
-        
+
         return (n + 1 - 2 * np.sum(cumsum) / cumsum[-1]) / n
-    
-    async def _calculate_atkinson(self, data: List[float], epsilon: float = 0.5) -> float:
+
+    async def _calculate_atkinson(
+        self, data: list[float], epsilon: float = 0.5
+    ) -> float:
         """Calculate Atkinson inequality index."""
         if not data:
             return 0.0
-        
+
         mean_income = np.mean(data)
         if epsilon == 1:
             geometric_mean = np.exp(np.mean(np.log(data)))
             return 1 - geometric_mean / mean_income
         else:
             weighted_sum = np.mean(np.power(data, 1 - epsilon))
-            return 1 - np.power(weighted_sum, 1/(1 - epsilon)) / mean_income
-    
-    async def _calculate_theil(self, data: List[float]) -> float:
+            return 1 - np.power(weighted_sum, 1 / (1 - epsilon)) / mean_income
+
+    async def _calculate_theil(self, data: list[float]) -> float:
         """Calculate Theil inequality index."""
         if not data:
             return 0.0
-        
+
         mean_income = np.mean(data)
         return np.mean((data / mean_income) * np.log(data / mean_income))
-    
-    async def _calculate_palma(self, data: List[float]) -> float:
+
+    async def _calculate_palma(self, data: list[float]) -> float:
         """Calculate Palma ratio (top 10% / bottom 40%)."""
         if len(data) < 10:
             return 0.0
-        
+
         sorted_data = np.sort(data)
         n = len(sorted_data)
-        
-        bottom_40_pct = np.sum(sorted_data[:int(0.4 * n)])
-        top_10_pct = np.sum(sorted_data[int(0.9 * n):])
-        
-        return top_10_pct / bottom_40_pct if bottom_40_pct > 0 else float('inf')
-    
-    async def _calculate_quintile_ratio(self, data: List[float]) -> float:
+
+        bottom_40_pct = np.sum(sorted_data[: int(0.4 * n)])
+        top_10_pct = np.sum(sorted_data[int(0.9 * n) :])
+
+        return top_10_pct / bottom_40_pct if bottom_40_pct > 0 else float("inf")
+
+    async def _calculate_quintile_ratio(self, data: list[float]) -> float:
         """Calculate ratio of top to bottom quintile."""
         if len(data) < 5:
             return 0.0
-        
+
         sorted_data = np.sort(data)
         n = len(sorted_data)
-        
-        bottom_quintile = np.mean(sorted_data[:int(0.2 * n)])
-        top_quintile = np.mean(sorted_data[int(0.8 * n):])
-        
-        return top_quintile / bottom_quintile if bottom_quintile > 0 else float('inf')
+
+        bottom_quintile = np.mean(sorted_data[: int(0.2 * n)])
+        top_quintile = np.mean(sorted_data[int(0.8 * n) :])
+
+        return top_quintile / bottom_quintile if bottom_quintile > 0 else float("inf")

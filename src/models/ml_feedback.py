@@ -9,32 +9,33 @@ These models store feedback data that can be used to train
 and improve machine learning models for anomaly detection.
 """
 
-from typing import Optional, Dict, Any
+import uuid
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import Column, String, Float, Integer, DateTime, JSON, Enum as SQLEnum, ForeignKey
+from sqlalchemy import JSON, Column, DateTime, Float, ForeignKey, Integer, String
+from sqlalchemy import Enum as SQLEnum
 from sqlalchemy.dialects.postgresql import UUID
-from sqlalchemy.orm import relationship
-import uuid
 
 from src.db.base import Base
 
 
 class FeedbackType(str, Enum):
     """Type of feedback."""
+
     USER_CONFIRMED = "user_confirmed"  # User confirmed the anomaly
-    USER_REJECTED = "user_rejected"    # User rejected as false positive
+    USER_REJECTED = "user_rejected"  # User rejected as false positive
     AUTO_VALIDATED = "auto_validated"  # System validated through external data
-    EXPERT_REVIEW = "expert_review"    # Expert reviewed and confirmed
+    EXPERT_REVIEW = "expert_review"  # Expert reviewed and confirmed
 
 
 class AnomalyLabel(str, Enum):
     """Ground truth labels for ML training."""
-    TRUE_POSITIVE = "true_positive"    # Correctly identified anomaly
+
+    TRUE_POSITIVE = "true_positive"  # Correctly identified anomaly
     FALSE_POSITIVE = "false_positive"  # Incorrectly flagged as anomaly
     FALSE_NEGATIVE = "false_negative"  # Missed anomaly
-    UNCERTAIN = "uncertain"            # Unclear/needs more review
+    UNCERTAIN = "uncertain"  # Unclear/needs more review
 
 
 class InvestigationFeedback(Base):
@@ -152,7 +153,9 @@ class MLModelVersion(Base):
     hyperparameters = Column(JSON, nullable=True)
 
     # Training info
-    training_dataset_id = Column(UUID(as_uuid=True), ForeignKey("ml_training_datasets.id"))
+    training_dataset_id = Column(
+        UUID(as_uuid=True), ForeignKey("ml_training_datasets.id")
+    )
     trained_at = Column(DateTime, nullable=False, default=datetime.utcnow)
     training_duration_seconds = Column(Float, nullable=True)
 

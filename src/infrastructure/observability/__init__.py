@@ -1,55 +1,54 @@
 """Observability infrastructure for Cidadão.AI."""
 
-from .tracing import (
-    TracingManager,
-    TracingConfig,
-    TraceContext,
-    get_tracer,
-    trace_function,
-    trace_operation,
-    SpanMetrics,
-    tracing_manager
-)
-from .metrics import (
-    MetricsManager,
-    MetricConfig,
-    MetricType,
-    BusinessMetrics,
-    metrics_manager,
-    track_time,
-    count_calls,
-    initialize_app_info
-)
 from .correlation import (
     CorrelationContext,
-    CorrelationMiddleware,
     CorrelationLogger,
+    CorrelationMiddleware,
     RequestTracker,
-    propagate_correlation,
-    with_correlation,
     get_correlation_logger,
-    request_tracker
+    propagate_correlation,
+    request_tracker,
+    with_correlation,
+)
+from .metrics import (
+    BusinessMetrics,
+    MetricConfig,
+    MetricsManager,
+    MetricType,
+    count_calls,
+    initialize_app_info,
+    metrics_manager,
+    track_time,
 )
 from .structured_logging import (
+    LogEventType,
+    LogLevel,
     StructuredLogger,
     StructuredLogRecord,
     TraceContextFormatter,
-    LogLevel,
-    LogEventType,
-    get_structured_logger
+    get_structured_logger,
+)
+from .tracing import (
+    SpanMetrics,
+    TraceContext,
+    TracingConfig,
+    TracingManager,
+    get_tracer,
+    trace_function,
+    trace_operation,
+    tracing_manager,
 )
 
 __all__ = [
     # Tracing
     "TracingManager",
-    "TracingConfig", 
+    "TracingConfig",
     "TraceContext",
     "get_tracer",
     "trace_function",
     "trace_operation",
     "SpanMetrics",
     "tracing_manager",
-    
     # Metrics
     "MetricsManager",
     "MetricConfig",
@@ -59,7 +58,6 @@ __all__ = [
     "track_time",
     "count_calls",
     "initialize_app_info",
-    
     # Correlation
     "CorrelationContext",
     "CorrelationMiddleware",
@@ -69,12 +67,11 @@ __all__ = [
     "with_correlation",
     "get_correlation_logger",
     "request_tracker",
-    
     # Structured Logging
     "StructuredLogger",
     "StructuredLogRecord",
     "TraceContextFormatter",
     "LogLevel",
     "LogEventType",
-    "get_structured_logger"
+    "get_structured_logger",
 ]

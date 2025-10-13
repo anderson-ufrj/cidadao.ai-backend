@@ -6,6 +6,8 @@ Date: 2025-01-24
 License: Proprietary - All rights reserved
 """
 
+from .abaporu import InvestigationPlan, InvestigationResult, MasterAgent
+from .anita import AnalystAgent
 from .deodoro import (
     AgentContext,
     AgentMessage,
@@ -20,37 +22,31 @@ from .nana import (
     MemoryEntry,
     SemanticMemory,
 )
-from .abaporu import (
-    InvestigationPlan,
-    InvestigationResult,
-    MasterAgent,
-)
-from .zumbi import InvestigatorAgent
-from .anita import AnalystAgent
 from .tiradentes import ReporterAgent
+from .zumbi import InvestigatorAgent
 
 # Agent aliases for new naming convention
 ZumbiAgent = InvestigatorAgent
 AnitaAgent = AnalystAgent
 TiradentesAgent = ReporterAgent
+from .agent_pool import agent_pool, get_agent_pool
 from .ayrton_senna import SemanticRouter
 from .bonifacio import BonifacioAgent
-from .maria_quiteria import MariaQuiteriaAgent
-from .oscar_niemeyer import OscarNiemeyerAgent
-from .lampiao import LampiaoAgent
 from .dandara import DandaraAgent
-from .machado import MachadoAgent
-from .obaluaie import CorruptionDetectorAgent
-from .oxossi import OxossiAgent
 from .drummond import CommunicationAgent
-from .agent_pool import agent_pool, get_agent_pool
+from .lampiao import LampiaoAgent
+from .machado import MachadoAgent
+from .maria_quiteria import MariaQuiteriaAgent
+from .obaluaie import CorruptionDetectorAgent
+from .oscar_niemeyer import OscarNiemeyerAgent
+from .oxossi import OxossiAgent
 
 __all__ = [
     # Base classes
     "BaseAgent",
     "ReflectiveAgent",
     "AgentContext",
-    "AgentMessage", 
+    "AgentMessage",
     "AgentResponse",
     # Master Agent
     "MasterAgent",

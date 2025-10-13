@@ -21,8 +21,8 @@ from .transparency_models import (
     SanctionedCompany,
     Servant,
     Supplier,
-    parse_api_data,
     parse_agreement,
+    parse_api_data,
     parse_bidding,
     parse_contract,
     parse_expense,
@@ -33,7 +33,7 @@ from .transparency_models import (
 __all__ = [
     # API Client
     "TransparencyAPIClient",
-    "TransparencyAPIFilter", 
+    "TransparencyAPIFilter",
     "TransparencyAPIResponse",
     "create_transparency_client",
     # Data Models
