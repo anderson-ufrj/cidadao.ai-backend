@@ -8,34 +8,58 @@ License: Proprietary - All rights reserved
 
 import asyncio
 from contextlib import asynccontextmanager
-from typing import Dict, Any
 
-from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks, Request
-from fastapi.middleware.cors import CORSMiddleware
-# from fastapi.middleware.trustedhost import TrustedHostMiddleware  # Disabled for HuggingFace
-from fastapi.responses import JSONResponse, HTMLResponse
-from fastapi.staticfiles import StaticFiles
+from fastapi import FastAPI, HTTPException
 from fastapi.openapi.docs import get_swagger_ui_html
-# Swagger UI imports removed - using FastAPI defaults now
 
-from src.core import get_logger, settings
-from src.core.exceptions import CidadaoAIError, create_error_response
-from src.core.audit import audit_logger, AuditEventType, AuditSeverity, AuditContext
-from src.api.routes import investigations, analysis, reports, health, auth, oauth, audit, chat, websocket_chat, batch, graphql, cqrs, resilience, observability, notifications, agents, orchestration, agent_metrics, visualization, geographic, tasks, transparency, network
-from src.api.v1 import dados_gov
-from src.api.middleware.rate_limiting import RateLimitMiddleware
-from src.api.middleware.authentication import AuthenticationMiddleware
-from src.api.middleware.logging_middleware import LoggingMiddleware
-from src.api.middleware.security import SecurityMiddleware
+# from fastapi.middleware.trustedhost import TrustedHostMiddleware  # Disabled for HuggingFace
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
+
 from src.api.middleware.compression import CompressionMiddleware
-from src.api.middleware.metrics_middleware import MetricsMiddleware, setup_http_metrics
 from src.api.middleware.ip_whitelist import IPWhitelistMiddleware
+from src.api.middleware.logging_middleware import LoggingMiddleware
+from src.api.middleware.metrics_middleware import MetricsMiddleware, setup_http_metrics
 from src.api.middleware.rate_limit import RateLimitMiddleware as RateLimitMiddlewareV2
+from src.api.middleware.rate_limiting import RateLimitMiddleware
+from src.api.middleware.security import SecurityMiddleware
+from src.api.routes import (
+    agent_metrics,
+    agents,
+    analysis,
+    audit,
+    auth,
+    batch,
+    chat,
+    cqrs,
+    federal_apis,
+    geographic,
+    graphql,
+    health,
+    investigations,
+    network,
+    notifications,
+    oauth,
+    observability,
+    orchestration,
+    reports,
+    resilience,
+    tasks,
+    transparency,
+    visualization,
+    websocket_chat,
+)
+from src.api.v1 import dados_gov
+from src.core import get_logger, settings
+from src.core.audit import AuditContext, AuditEventType, AuditSeverity, audit_logger
+from src.core.exceptions import CidadaoAIError, create_error_response
 from src.infrastructure.observability import (
     CorrelationMiddleware,
+    initialize_app_info,
     tracing_manager,
-    initialize_app_info
 )
+
+# Swagger UI imports removed - using FastAPI defaults now
 
 
 logger = get_logger(__name__)
@@ -46,7 +70,7 @@ async def lifespan(app: FastAPI):
     """Application lifespan manager with enhanced audit logging."""
     # Startup
     logger.info("cidadao_ai_api_starting")
-    
+
     # Log startup event
     await audit_logger.log_event(
         event_type=AuditEventType.SYSTEM_STARTUP,
@@ -56,50 +80,56 @@ async def lifespan(app: FastAPI):
             "version": "1.0.0",
             "environment": settings.app_env,
             "debug": settings.debug,
-            "security_enabled": True
-        }
+            "security_enabled": True,
+        },
     )
-    
+
     # Initialize observability
     tracing_manager.initialize()
     initialize_app_info(
         version="1.0.0",
         environment=settings.app_env,
-        build_info={"deployment": "huggingface"}
+        build_info={"deployment": "huggingface"},
     )
-    
+
     # Setup HTTP metrics
     setup_http_metrics()
-    
+
     # Initialize connection pools
     from src.db.session import init_database
+
     await init_database()
-    
+
     # Initialize cache warming scheduler
     from src.services.cache_warming_service import cache_warming_service
+
     warming_task = asyncio.create_task(cache_warming_service.start_warming_scheduler())
-    
+
     # Initialize memory system
-    from src.services.memory_startup import setup_memory_on_startup, periodic_memory_optimization
+    from src.services.memory_startup import (
+        periodic_memory_optimization,
+        setup_memory_on_startup,
+    )
+
     memory_agent = await setup_memory_on_startup()
-    
+
     # Start periodic memory optimization if enabled
     memory_task = None
     if getattr(settings, "ENABLE_MEMORY_OPTIMIZATION", True):
         memory_task = asyncio.create_task(periodic_memory_optimization())
-    
+
     yield
-    
+
     # Shutdown
     logger.info("cidadao_ai_api_shutting_down")
-    
+
     # Stop cache warming
     warming_task.cancel()
     try:
         await warming_task
     except asyncio.CancelledError:
         pass
-    
+
     # Stop memory optimization
     if memory_task:
         memory_task.cancel()
@@ -107,23 +137,25 @@ async def lifespan(app: FastAPI):
             await memory_task
         except asyncio.CancelledError:
             pass
-    
+
     # Cleanup memory system
     from src.services.memory_startup import cleanup_memory_on_shutdown
+
     await cleanup_memory_on_shutdown()
-    
+
     # Log shutdown event
     await audit_logger.log_event(
         event_type=AuditEventType.SYSTEM_SHUTDOWN,
         message="Cidadão.AI API shutting down",
-        severity=AuditSeverity.LOW
+        severity=AuditSeverity.LOW,
     )
-    
+
     # Shutdown observability
     tracing_manager.shutdown()
-    
+
     # Close database connections
     from src.db.session import close_database
+
     await close_database()
 
 
@@ -160,7 +192,7 @@ app = FastAPI(
         "defaultModelExpandDepth": 2,
         "docExpansion": "list",  # "list", "full", "none"
     },
-    swagger_ui_init_oauth=None
+    swagger_ui_init_oauth=None,
 )
 
 
@@ -183,7 +215,7 @@ async def custom_swagger_ui_html():
     html_content = html_response.body.decode()
     html_content = html_content.replace(
         "</head>",
-        '<link rel="stylesheet" type="text/css" href="/static/custom.css"></head>'
+        '<link rel="stylesheet" type="text/css" href="/static/custom.css"></head>',
     )
 
     return HTMLResponse(content=html_content)
@@ -195,10 +227,7 @@ app.add_middleware(LoggingMiddleware)
 app.add_middleware(RateLimitMiddleware)
 
 # Add compression middleware for mobile optimization
-app.add_middleware(
-    CompressionMiddleware,
-    minimum_size=1024  # Compress responses > 1KB
-)
+app.add_middleware(CompressionMiddleware, minimum_size=1024)  # Compress responses > 1KB
 
 # Add trusted host middleware for production
 # DISABLED for HuggingFace Spaces - causes issues with proxy headers
@@ -215,6 +244,7 @@ app.add_middleware(
 
 # Enhanced CORS middleware for Vercel integration
 from src.api.middleware.cors_enhanced import setup_cors
+
 setup_cors(app)
 
 # Add observability middleware
@@ -225,25 +255,32 @@ app.add_middleware(MetricsMiddleware)
 
 # Add compression middleware (exclude docs to prevent Swagger UI breakage)
 from src.api.middleware.compression import add_compression_middleware
+
 add_compression_middleware(
     app,
     minimum_size=settings.compression_min_size,
     gzip_level=settings.compression_gzip_level,
     brotli_quality=settings.compression_brotli_quality,
     exclude_paths={
-        "/health", "/metrics", "/health/metrics",
-        "/api/v1/ws", "/api/v1/observability",
-        "/docs", "/redoc", "/openapi.json"  # Exclude docs to fix Swagger UI
-    }
+        "/health",
+        "/metrics",
+        "/health/metrics",
+        "/api/v1/ws",
+        "/api/v1/observability",
+        "/docs",
+        "/redoc",
+        "/openapi.json",  # Exclude docs to fix Swagger UI
+    },
 )
 
 # Add streaming compression middleware (exclude docs)
 from src.api.middleware.streaming_compression import StreamingCompressionMiddleware
+
 app.add_middleware(
     StreamingCompressionMiddleware,
     minimum_size=256,
     compression_level=settings.compression_gzip_level,
-    chunk_size=8192
+    chunk_size=8192,
 )
 
 # Add IP whitelist middleware (only in production)
@@ -264,37 +301,37 @@ if settings.is_production or settings.app_env == "staging":
             "/favicon.ico",
             "/_next",
             "/api/v1/auth/login",
-            "/api/v1/auth/register", 
+            "/api/v1/auth/register",
             "/api/v1/auth/refresh",
             "/api/v1/public",
-            "/api/v1/webhooks/incoming"
+            "/api/v1/webhooks/incoming",
         ],
-        strict_mode=False  # Allow requests if IP can't be determined
+        strict_mode=False,  # Allow requests if IP can't be determined
     )
 
 # Add rate limiting middleware v2
 app.add_middleware(
-    RateLimitMiddlewareV2,
-    default_tier="free",
-    strategy="sliding_window"
+    RateLimitMiddlewareV2, default_tier="free", strategy="sliding_window"
 )
 
 # Add query tracking middleware for cache optimization
 from src.api.middleware.query_tracking import QueryTrackingMiddleware
+
 app.add_middleware(
     QueryTrackingMiddleware,
     tracked_paths=[
         "/api/v1/investigations",
-        "/api/v1/contracts", 
+        "/api/v1/contracts",
         "/api/v1/analysis",
-        "/api/v1/reports"
+        "/api/v1/reports",
     ],
-    sample_rate=0.1 if settings.is_production else 1.0  # 10% sampling in production
+    sample_rate=0.1 if settings.is_production else 1.0,  # 10% sampling in production
 )
 
 
 # Mount static files for images and CSS
 import os
+
 static_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static")
 if os.path.exists(static_path):
     app.mount("/static", StaticFiles(directory=static_path), name="static")
@@ -304,206 +341,102 @@ if os.path.exists(static_path):
 
 
 # Include routers with security
-app.include_router(
-    health.router,
-    prefix="/health",
-    tags=["Health Check"]
-)
+app.include_router(health.router, prefix="/health", tags=["Health Check"])
+
+app.include_router(auth.router, tags=["Authentication"])
+
+app.include_router(oauth.router, tags=["OAuth2"])
+
+app.include_router(audit.router, tags=["Audit & Security"])
 
 app.include_router(
-    auth.router,
-    tags=["Authentication"]
+    investigations.router, prefix="/api/v1/investigations", tags=["Investigations"]
 )
 
-app.include_router(
-    oauth.router,
-    tags=["OAuth2"]
-)
+app.include_router(analysis.router, prefix="/api/v1/analysis", tags=["Analysis"])
 
-app.include_router(
-    audit.router,
-    tags=["Audit & Security"]
-)
-
-app.include_router(
-    investigations.router,
-    prefix="/api/v1/investigations",
-    tags=["Investigations"]
-)
-
-app.include_router(
-    analysis.router,
-    prefix="/api/v1/analysis",
-    tags=["Analysis"]
-)
-
-app.include_router(
-    reports.router,
-    prefix="/api/v1/reports",
-    tags=["Reports"]
-)
+app.include_router(reports.router, prefix="/api/v1/reports", tags=["Reports"])
 
 from src.api.routes import export
-app.include_router(
-    export.router,
-    prefix="/api/v1/export",
-    tags=["Export"]
-)
 
-app.include_router(
-    chat.router,
-    prefix="/api/v1/chat",
-    tags=["Chat"]
-)
+app.include_router(export.router, prefix="/api/v1/export", tags=["Export"])
 
-app.include_router(
-    websocket_chat.router,
-    prefix="/api/v1",
-    tags=["WebSocket"]
-)
+app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
 
-app.include_router(
-    batch.router,
-    tags=["Batch Operations"]
-)
+app.include_router(websocket_chat.router, prefix="/api/v1", tags=["WebSocket"])
+
+app.include_router(batch.router, tags=["Batch Operations"])
 
 # GraphQL endpoint
-app.include_router(
-    graphql.router,
-    tags=["GraphQL"]
-)
+app.include_router(graphql.router, tags=["GraphQL"])
 
 # CQRS endpoints
-app.include_router(
-    cqrs.router,
-    tags=["CQRS"]
-)
+app.include_router(cqrs.router, tags=["CQRS"])
 
 # Resilience monitoring endpoints
-app.include_router(
-    resilience.router,
-    tags=["Resilience"]
-)
+app.include_router(resilience.router, tags=["Resilience"])
 
 # Observability monitoring endpoints
-app.include_router(
-    observability.router,
-    tags=["Observability"]
-)
+app.include_router(observability.router, tags=["Observability"])
 
-app.include_router(
-    notifications.router,
-    tags=["Notifications"]
-)
+app.include_router(notifications.router, tags=["Notifications"])
 
-# Import and include admin routes
-from src.api.routes.admin import ip_whitelist as admin_ip_whitelist
-from src.api.routes.admin import cache_warming as admin_cache_warming
-from src.api.routes.admin import database_optimization as admin_db_optimization
-from src.api.routes.admin import compression as admin_compression
-from src.api.routes.admin import connection_pools as admin_conn_pools
-from src.api.routes.admin import agent_lazy_loading as admin_lazy_loading
 from src.api.routes import api_keys
 
+# Import and include admin routes
+from src.api.routes.admin import agent_lazy_loading as admin_lazy_loading
+from src.api.routes.admin import cache_warming as admin_cache_warming
+from src.api.routes.admin import compression as admin_compression
+from src.api.routes.admin import connection_pools as admin_conn_pools
+from src.api.routes.admin import database_optimization as admin_db_optimization
+from src.api.routes.admin import ip_whitelist as admin_ip_whitelist
+
+app.include_router(admin_ip_whitelist.router, prefix="/api/v1/admin", tags=["Admin"])
+
+app.include_router(admin_cache_warming.router, prefix="/api/v1/admin", tags=["Admin"])
+
+app.include_router(admin_db_optimization.router, prefix="/api/v1/admin", tags=["Admin"])
+
+app.include_router(admin_compression.router, prefix="/api/v1/admin", tags=["Admin"])
+
+app.include_router(admin_conn_pools.router, prefix="/api/v1/admin", tags=["Admin"])
+
+app.include_router(admin_lazy_loading.router, prefix="/api/v1/admin", tags=["Admin"])
+
+app.include_router(api_keys.router, prefix="/api/v1", tags=["API Keys"])
+
+app.include_router(dados_gov.router, prefix="/api/v1", tags=["Dados.gov.br"])
+
+app.include_router(agents.router, prefix="/api/v1/agents", tags=["AI Agents"])
+
 app.include_router(
-    admin_ip_whitelist.router,
-    prefix="/api/v1/admin",
-    tags=["Admin"]
+    orchestration.router, prefix="/api/v1/orchestration", tags=["Agent Orchestration"]
 )
 
 app.include_router(
-    admin_cache_warming.router,
-    prefix="/api/v1/admin",
-    tags=["Admin"]
+    agent_metrics.router, prefix="/api/v1/metrics", tags=["Agent Metrics"]
 )
 
-app.include_router(
-    admin_db_optimization.router,
-    prefix="/api/v1/admin",
-    tags=["Admin"]
-)
+app.include_router(visualization.router, tags=["Data Visualization"])
 
-app.include_router(
-    admin_compression.router,
-    prefix="/api/v1/admin",
-    tags=["Admin"]
-)
-
-app.include_router(
-    admin_conn_pools.router,
-    prefix="/api/v1/admin",
-    tags=["Admin"]
-)
-
-app.include_router(
-    admin_lazy_loading.router,
-    prefix="/api/v1/admin",
-    tags=["Admin"]
-)
-
-app.include_router(
-    api_keys.router,
-    prefix="/api/v1",
-    tags=["API Keys"]
-)
-
-app.include_router(
-    dados_gov.router,
-    prefix="/api/v1",
-    tags=["Dados.gov.br"]
-)
-
-app.include_router(
-    agents.router,
-    prefix="/api/v1/agents",
-    tags=["AI Agents"]
-)
-
-app.include_router(
-    orchestration.router,
-    prefix="/api/v1/orchestration",
-    tags=["Agent Orchestration"]
-)
-
-app.include_router(
-    agent_metrics.router,
-    prefix="/api/v1/metrics",
-    tags=["Agent Metrics"]
-)
-
-app.include_router(
-    visualization.router,
-    tags=["Data Visualization"]
-)
-
-app.include_router(
-    geographic.router,
-    tags=["Geographic Data"]
-)
+app.include_router(geographic.router, tags=["Geographic Data"])
 
 from src.api.routes import ml_pipeline
-app.include_router(
-    ml_pipeline.router,
-    tags=["ML Pipeline"]
-)
 
-app.include_router(
-    tasks.router,
-    tags=["Tasks & Background Jobs"]
-)
+app.include_router(ml_pipeline.router, tags=["ML Pipeline"])
+
+app.include_router(tasks.router, tags=["Tasks & Background Jobs"])
 
 # Transparency APIs endpoints
 app.include_router(
-    transparency.router,
-    prefix="/api/v1/transparency",
-    tags=["Transparency APIs"]
+    transparency.router, prefix="/api/v1/transparency", tags=["Transparency APIs"]
 )
 
+# Federal APIs REST endpoints
+app.include_router(federal_apis.router, tags=["Federal APIs"])
+
 # Network Graph Analysis endpoints
-app.include_router(
-    network.router,
-    tags=["Network Analysis"]
-)
+app.include_router(network.router, tags=["Network Analysis"])
 
 
 # Global exception handler
@@ -518,7 +451,7 @@ async def cidadao_ai_exception_handler(request, exc: CidadaoAIError):
         path=request.url.path,
         method=request.method,
     )
-    
+
     # Map exception types to HTTP status codes
     status_code_map = {
         "ValidationError": 400,
@@ -530,39 +463,38 @@ async def cidadao_ai_exception_handler(request, exc: CidadaoAIError):
         "TransparencyAPIError": 502,
         "AgentExecutionError": 500,
     }
-    
+
     status_code = status_code_map.get(exc.error_code, 500)
     error_response = create_error_response(exc, status_code)
-    
-    return JSONResponse(
-        status_code=status_code,
-        content=error_response
-    )
+
+    return JSONResponse(status_code=status_code, content=error_response)
 
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request, exc: HTTPException):
     """Enhanced HTTP exception handler with audit logging."""
-    
+
     # Create audit context
     context = AuditContext(
         ip_address=request.client.host if request.client else "unknown",
         user_agent=request.headers.get("user-agent"),
-        host=request.headers.get("host")
+        host=request.headers.get("host"),
     )
-    
+
     # Log security-related errors
     if exc.status_code in [401, 403, 429]:
         await audit_logger.log_event(
             event_type=AuditEventType.UNAUTHORIZED_ACCESS,
             message=f"HTTP {exc.status_code}: {exc.detail}",
-            severity=AuditSeverity.MEDIUM if exc.status_code != 429 else AuditSeverity.HIGH,
+            severity=(
+                AuditSeverity.MEDIUM if exc.status_code != 429 else AuditSeverity.HIGH
+            ),
             success=False,
             error_code=str(exc.status_code),
             error_message=exc.detail,
-            context=context
+            context=context,
         )
-    
+
     logger.warning(
         "http_exception_occurred",
         status_code=exc.status_code,
@@ -570,32 +502,28 @@ async def http_exception_handler(request, exc: HTTPException):
         path=request.url.path,
         method=request.method,
     )
-    
+
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "status": "error",
             "status_code": exc.status_code,
-            "error": {
-                "error": "HTTPException",
-                "message": exc.detail,
-                "details": {}
-            }
-        }
+            "error": {"error": "HTTPException", "message": exc.detail, "details": {}},
+        },
     )
 
 
 @app.exception_handler(Exception)
 async def general_exception_handler(request, exc: Exception):
     """Enhanced general exception handler with audit logging."""
-    
+
     # Log unexpected errors with audit
     context = AuditContext(
         ip_address=request.client.host if request.client else "unknown",
         user_agent=request.headers.get("user-agent"),
-        host=request.headers.get("host")
+        host=request.headers.get("host"),
     )
-    
+
     await audit_logger.log_event(
         event_type=AuditEventType.API_ERROR,
         message=f"Unhandled exception: {str(exc)}",
@@ -603,9 +531,9 @@ async def general_exception_handler(request, exc: Exception):
         success=False,
         error_message=str(exc),
         details={"error_type": type(exc).__name__},
-        context=context
+        context=context,
     )
-    
+
     logger.error(
         "unexpected_exception_occurred",
         error_type=type(exc).__name__,
@@ -613,7 +541,7 @@ async def general_exception_handler(request, exc: Exception):
         path=request.url.path,
         method=request.method,
     )
-    
+
     # Don't expose internal errors in production
     if settings.app_env == "production":
         return JSONResponse(
@@ -624,9 +552,9 @@ async def general_exception_handler(request, exc: Exception):
                 "error": {
                     "error": "InternalServerError",
                     "message": "An unexpected error occurred",
-                    "details": {}
-                }
-            }
+                    "details": {},
+                },
+            },
         )
     else:
         return JSONResponse(
@@ -637,9 +565,9 @@ async def general_exception_handler(request, exc: Exception):
                 "error": {
                     "error": "InternalServerError",
                     "message": f"An unexpected error occurred: {str(exc)}",
-                    "details": {"error_type": type(exc).__name__}
-                }
-            }
+                    "details": {"error_type": type(exc).__name__},
+                },
+            },
         )
 
 
@@ -655,7 +583,7 @@ async def root():
         "health": "/health",
         "status": "operational",
         "portal_integration": "active",
-        "last_update": "2025-01-25 15:00:00 UTC"
+        "last_update": "2025-01-25 15:00:00 UTC",
     }
 
 
@@ -664,8 +592,9 @@ async def root():
 async def test_portal():
     """Test Portal da Transparência integration status."""
     import os
+
     from src.services.chat_data_integration import chat_data_integration
-    
+
     # Test the service is available
     integration_available = False
     try:
@@ -673,7 +602,7 @@ async def test_portal():
             integration_available = True
     except:
         pass
-    
+
     return {
         "portal_integration": "enabled",
         "api_key_configured": bool(os.getenv("TRANSPARENCY_API_KEY")),
@@ -682,15 +611,16 @@ async def test_portal():
             "chat_message": "/api/v1/chat/message",
             "chat_stream": "/api/v1/chat/stream",
             "test_portal": "/api/v1/chat/test-portal/{query}",
-            "debug_status": "/api/v1/chat/debug/portal-status"
+            "debug_status": "/api/v1/chat/debug/portal-status",
         },
         "demo_mode": not bool(os.getenv("TRANSPARENCY_API_KEY")),
         "example_queries": [
             "Liste os últimos 3 contratos do ministério da saúde",
             "Mostre contratos com valor acima de 1 milhão",
-            "Quais empresas têm mais contratos com o governo?"
-        ]
+            "Quais empresas têm mais contratos com o governo?",
+        ],
     }
+
 
 # API info endpoint
 @app.get("/api/v1/info", tags=["General"])
@@ -707,11 +637,11 @@ async def api_info():
                 "description": "Detecção de anomalias e irregularidades",
                 "capabilities": [
                     "Anomalias de preço",
-                    "Concentração de fornecedores", 
+                    "Concentração de fornecedores",
                     "Padrões temporais suspeitos",
                     "Contratos duplicados",
-                    "Irregularidades de pagamento"
-                ]
+                    "Irregularidades de pagamento",
+                ],
             },
             "analyst": {
                 "description": "Análise de padrões e correlações",
@@ -720,8 +650,8 @@ async def api_info():
                     "Padrões organizacionais",
                     "Comportamento de fornecedores",
                     "Análise sazonal",
-                    "Métricas de eficiência"
-                ]
+                    "Métricas de eficiência",
+                ],
             },
             "reporter": {
                 "description": "Geração de relatórios inteligentes",
@@ -729,9 +659,9 @@ async def api_info():
                     "Relatórios executivos",
                     "Análise detalhada",
                     "Múltiplos formatos",
-                    "Linguagem natural"
-                ]
-            }
+                    "Linguagem natural",
+                ],
+            },
         },
         "data_sources": [
             "Portal da Transparência",
@@ -739,20 +669,15 @@ async def api_info():
             "Despesas governamentais",
             "Licitações",
             "Convênios",
-            "Servidores públicos"
+            "Servidores públicos",
         ],
-        "formats": [
-            "JSON",
-            "Markdown", 
-            "HTML",
-            "PDF (planned)"
-        ]
+        "formats": ["JSON", "Markdown", "HTML", "PDF (planned)"],
     }
 
 
 if __name__ == "__main__":
     import uvicorn
-    
+
     uvicorn.run(
         "src.api.app:app",
         host=settings.host,
