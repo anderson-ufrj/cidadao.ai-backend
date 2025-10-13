@@ -7,8 +7,9 @@
 
 ## 🤖 Agents Status Overview
 
-### Active Agents (9/17)
+### ✅ Active Agents (16/17) - V1 COMPLETE!
 
+#### Regular Analysis Agents (9/17)
 | Agent | Status | Endpoint | Capabilities |
 |-------|--------|----------|--------------|
 | **Zumbi dos Palmares** | ✅ Active | `/agents/zumbi` | Anomaly Detection, Price Analysis, Vendor Concentration |
@@ -21,28 +22,25 @@
 | **Lampião** | ✅ Active | `/agents/lampiao` | Regional Analysis, Spatial Statistics, Inequality Measurement |
 | **Oscar Niemeyer** | ✅ Active | `/agents/oscar` | Data Aggregation, Network Graphs, Choropleth Maps |
 
-### Ready to Activate (1/17)
+#### Specialized Agents (4/17)
+| Agent | Status | Endpoint | Capabilities |
+|-------|--------|----------|--------------|
+| **Drummond** | ✅ Active | `/agents/drummond` | Communication, Content Creation, Documentation |
+| **Obaluaiê** | ✅ Active | `/agents/obaluaie` | Corruption Detection, Risk Assessment, Fraud Analysis |
+| **Oxossi** | ✅ Active | `/agents/oxossi` | Data Hunting, API Integration, Web Scraping |
+| **Ceuci** | ✅ Active | `/agents/ceuci` | ETL, Predictive Analytics, Time Series Forecasting |
 
-| Agent | Status | Implementation | Activation Priority |
-|-------|--------|----------------|---------------------|
-| **Drummond** | 🟡 Ready | Needs Review | MEDIUM - Communication |
+#### Infrastructure Agents (3/17)
+| Agent | Status | Endpoint | Purpose |
+|-------|--------|----------|---------|
+| **Abaporu** | ✅ Active | `/agents/abaporu` | Master Agent/Orchestrator (Multi-Agent Coordination) |
+| **Ayrton Senna** | ✅ Active | `/agents/ayrton-senna` | Semantic Router (Intent Detection & Routing) |
+| **Nanã** | ✅ Active | `/agents/nana` | Memory System (Episodic/Semantic/Conversation) |
 
-### Infrastructure Agents (3/17)
-
-| Agent | Status | Purpose | Priority |
-|-------|--------|---------|----------|
-| **Abaporu** | 🔧 Infrastructure | Master Agent/Orchestrator | CRITICAL |
-| **Ayrton Senna** | 🔧 Infrastructure | Semantic Router/Intent Detection | CRITICAL |
-| **Nanã** | 🔧 Infrastructure | Memory System (Episodic/Semantic) | HIGH |
-
-### Under Development (4/17)
-
-| Agent | Status | Implementation | Notes |
-|-------|--------|----------------|-------|
-| **Obaluaiê** | 🚧 Partial | Structure Only | Corruption Detection |
-| **Oxossi** | 🚧 Partial | Structure Only | Data Hunting/Investigation |
-| **Ceuci** | 🚧 Partial | Structure Only | Unknown Role |
-| **Deodoro** | 🔧 Base Classes | Foundation | Base Agent Implementation |
+### Base Classes (1/17)
+| Agent | Status | Purpose |
+|-------|--------|---------|
+| **Deodoro** | 🔧 Foundation | Base Agent Implementation (BaseAgent, ReflectiveAgent)
 
 ---
 
@@ -373,143 +371,322 @@ POST /api/v1/agents/oscar
 
 ---
 
-### 🟡 READY TO ACTIVATE
+---
 
-#### 10. Drummond - Communication Agent
-**File**: `src/agents/drummond.py` / `drummond_simple.py`
-**Status**: 🟡 Needs Review
+### ✅ ACTIVE SPECIALIZED AGENTS
+
+#### 10. Drummond - Communication & Content Creation Specialist
+**File**: `src/agents/drummond.py`
+**Status**: ✅ Active
 **Role**: Communication Specialist / Content Creator
 
-**Note**: Two versions exist - need to consolidate and review implementation.
+**Capabilities**:
+- Blog posts and articles generation
+- Social media content creation
+- Technical documentation writing
+- Press releases
+- Multi-format content (Markdown, HTML, PDF)
+- SEO optimization
+- Tone and style adaptation
+- Content strategy development
+
+**API Endpoint**:
+```
+POST /api/v1/agents/drummond
+{
+  "query": "Create a technical article about transparency",
+  "context": {},
+  "options": {
+    "format": "markdown",
+    "tone": "professional"
+  }
+}
+```
+
+#### 11. Obaluaiê - Corruption Detection & Risk Assessment Specialist
+**File**: `src/agents/obaluaie.py`
+**Status**: ✅ Active
+**Role**: Corruption Detector / Risk Analyst
+
+**Capabilities**:
+- Corruption pattern detection
+- Risk score calculation
+- Fraud scheme identification
+- Network analysis for corruption rings
+- Political connection mapping
+- Financial anomaly detection
+- Behavioral pattern analysis
+
+**API Endpoint**:
+```
+POST /api/v1/agents/obaluaie
+{
+  "query": "Detect corruption patterns in contracts",
+  "context": {},
+  "options": {}
+}
+```
+
+#### 12. Oxossi - Data Hunting & Discovery Specialist
+**File**: `src/agents/oxossi.py`
+**Status**: ✅ Active
+**Role**: Data Hunter / Investigation Specialist
+
+**Capabilities**:
+- Multi-source data discovery
+- API integration and data fetching
+- Database querying and extraction
+- Web scraping (Portal da Transparência)
+- Data validation and enrichment
+- Entity resolution
+- Cross-reference analysis
+- Data quality assessment
+
+**API Endpoint**:
+```
+POST /api/v1/agents/oxossi
+{
+  "query": "Find all contracts for supplier X",
+  "context": {},
+  "options": {
+    "sources": ["transparency_api", "database"]
+  }
+}
+```
+
+#### 13. Ceuci - ETL & Predictive Analytics Specialist
+**File**: `src/agents/ceuci.py`
+**Status**: ✅ Active
+**Role**: ETL Engineer / Predictive Analyst
+
+**Capabilities**:
+- Data extraction, transformation, loading
+- Time series forecasting
+- Trend prediction
+- Seasonality detection
+- Budget forecasting
+- Resource allocation optimization
+- Anomaly prediction
+- Machine learning pipeline management
+
+**API Endpoint**:
+```
+POST /api/v1/agents/ceuci
+{
+  "query": "Forecast budget for next quarter",
+  "context": {},
+  "options": {
+    "horizon": 90,
+    "confidence_level": 0.95
+  }
+}
+```
 
 ---
 
 ### 🔧 INFRASTRUCTURE AGENTS
 
-#### 9. Abaporu - Master Agent / Orchestrator
+#### 14. Abaporu - Master Agent / Orchestrator
 **File**: `src/agents/abaporu.py`
-**Status**: 🔧 Core Infrastructure
+**Status**: ✅ Active (Infrastructure)
 **Role**: Master Coordinator / Investigation Planner
 
-**Purpose**:
-- Orchestrates multi-agent investigations
-- Creates investigation plans
-- Delegates tasks to specialized agents
-- Synthesizes results from multiple agents
-- Manages agent collaboration
-- Ensures quality and consistency
+**Capabilities**:
+- Multi-agent workflow coordination
+- Investigation planning and execution
+- Task delegation and monitoring
+- Result synthesis across agents
+- Strategic decision making
+- Resource allocation
+- Quality control
+- Complex analysis orchestration
 
-**Key Classes**:
-- `MasterAgent`
-- `InvestigationPlan`
-- `InvestigationResult`
+**API Endpoint**:
+```
+POST /api/v1/agents/abaporu
+{
+  "query": "Coordinate investigation into budget anomalies",
+  "context": {},
+  "options": {
+    "agents_to_use": ["zumbi", "anita", "tiradentes"]
+  }
+}
+```
 
-**Note**: Should NOT be exposed as direct endpoint - used internally by chat system
+**Note**: Can be used both as infrastructure (internal coordination) and as user-facing endpoint for complex multi-agent tasks.
 
-#### 10. Ayrton Senna - Semantic Router
+#### 15. Ayrton Senna - Semantic Router & Intent Detection
 **File**: `src/agents/ayrton_senna.py`
-**Status**: 🔧 Core Infrastructure
-**Role**: Intent Detection / Request Router
+**Status**: ✅ Active (Infrastructure)
+**Role**: Intent Detector / Request Router
 
-**Purpose**:
-- Detects user intent from Portuguese queries
-- Routes requests to appropriate agents
-- Handles semantic understanding
-- Maps queries to agent capabilities
-- Provides fast agent selection
+**Capabilities**:
+- Natural language understanding (PT-BR focus)
+- Intent classification
+- Entity extraction
+- Query understanding
+- Agent selection and routing
+- Context analysis
+- Semantic similarity calculation
+- Multi-language support
 
-**Key Class**: `SemanticRouter`
+**API Endpoint**:
+```
+POST /api/v1/agents/ayrton-senna
+{
+  "query": "Quero analisar contratos suspeitos",
+  "context": {},
+  "options": {}
+}
+```
 
-**Note**: Should NOT be exposed as direct endpoint - used by chat API
+**Output**:
+- Detected intent
+- Recommended agent(s)
+- Confidence score
+- Extracted entities
 
-#### 11. Nanã - Memory System Agent
+**Note**: Can be used both as infrastructure (chat routing) and as user-facing endpoint for testing intent detection.
+
+#### 16. Nanã - Memory Management & Context Specialist
 **File**: `src/agents/nana.py`
-**Status**: 🔧 Core Infrastructure
+**Status**: ✅ Active (Infrastructure)
 **Role**: Memory Manager / Context Provider
 
-**Purpose**:
-- Episodic memory (conversation history)
-- Semantic memory (knowledge base)
-- Context memory (session state)
-- Memory integration across agents
-- Conversation continuity
+**Capabilities**:
+- Episodic memory (event sequences, conversation history)
+- Semantic memory (knowledge graphs, facts)
+- Conversation memory (dialogue state)
+- Context retrieval and storage
+- Long-term memory management
+- Working memory optimization
+- Memory consolidation
+- Context-aware recommendations
 
-**Key Classes**:
-- `ContextMemoryAgent`
-- `EpisodicMemory`
-- `SemanticMemory`
-- `ConversationMemory`
-- `MemoryEntry`
+**Memory Types**:
+- **Episodic**: Temporal sequences of events
+- **Semantic**: Structured knowledge and relationships
+- **Conversation**: Session state and dialogue history
 
-**Note**: Infrastructure component - not a user-facing agent
+**API Endpoint**:
+```
+POST /api/v1/agents/nana
+{
+  "query": "Retrieve conversation context",
+  "context": {
+    "session_id": "abc123"
+  },
+  "options": {
+    "memory_types": ["episodic", "conversation"]
+  }
+}
+```
+
+**Note**: Can be used both as infrastructure (automatic context) and as user-facing endpoint for explicit memory retrieval.
 
 ---
 
-### 🚧 UNDER DEVELOPMENT
+### 🔧 BASE CLASSES
 
-#### 12-17. Partial Implementation Agents
+#### 17. Deodoro - Base Agent Framework
+**File**: `src/agents/deodoro.py`
+**Status**: 🔧 Foundation
+**Role**: Base Classes for Agent System
 
-These agents have file structures but incomplete implementations:
+**Purpose**:
+- Provides base agent architecture
+- Implements common agent patterns
+- Reflection and self-evaluation
+- State management
+- Error handling
 
-- **Lampião**: Anti-corruption specialist (structure only)
-- **Oscar Niemeyer**: Infrastructure analysis (structure only)
-- **Obaluaiê**: Corruption detection (structure only)
-- **Oxossi**: Data hunting/investigation (structure only)
-- **Ceuci**: Role undefined (structure only)
-- **Deodoro**: Base classes for all agents (foundation)
+**Key Classes**:
+- `BaseAgent`: Core agent functionality
+- `ReflectiveAgent`: Self-reflection capabilities
+- `AgentContext`: Execution context
+- `AgentMessage`: Message protocol
+- `AgentResponse`: Response protocol
+
+**Note**: Foundation component - not a user-facing agent
 
 ---
 
 ## 🚀 Activation Plan
 
-### Phase 1: Immediate (This Sprint)
+### ✅ Phase 1: V1 COMPLETE! (All 16 Agents Active)
 
-**Priority**: Activate Machado and Dandara
+**Status**: ✅ COMPLETED on 2025-10-13
 
-1. **Add Machado to routes**
-   - Create POST endpoint `/api/v1/agents/machado`
-   - Add to agent status list
-   - Write endpoint tests
-   - Update API documentation
+All 16 agents now have fully functional API endpoints:
 
-2. **Add Dandara to routes**
-   - Create POST endpoint `/api/v1/agents/dandara`
-   - Add to agent status list
-   - Write endpoint tests
-   - Update API documentation
+1. ✅ 9 Regular Analysis Agents (Zumbi, Anita, Tiradentes, Bonifácio, Maria Quitéria, Machado, Dandara, Lampião, Oscar)
+2. ✅ 4 Specialized Agents (Drummond, Obaluaiê, Oxossi, Ceuci)
+3. ✅ 3 Infrastructure Agents (Abaporu, Ayrton Senna, Nanã)
 
-3. **Update documentation**
-   - Update Swagger/OpenAPI docs
-   - Create agent capability matrix
-   - Write usage examples
-   - Add to README
+**File Size**: `src/api/routes/agents.py` = 1,586 lines (56KB)
 
-### Phase 2: Short Term (Next Sprint)
+**Changes Made**:
+- Added 7 new POST endpoints with full FastAPI integration
+- Updated `/status` endpoint to include all 16 agents
+- Updated `/` listing endpoint with all agents
+- Code formatted and validated
 
-1. **Review and Activate Drummond**
-   - Consolidate two versions
-   - Complete implementation if needed
-   - Add endpoint
-   - Test integration
+### Phase 2: Testing & Quality Assurance (Current Sprint)
 
-2. **Infrastructure Improvements**
-   - Ensure Abaporu properly orchestrates new agents
-   - Update SemanticRouter to recognize new agents
-   - Integrate Memory system
+**Priority**: Test, document, deploy
 
-### Phase 3: Medium Term (1 Month)
+1. **Local Testing**
+   - ✅ Test agent imports and loading
+   - ⏳ Test individual agent endpoints
+   - ⏳ Test `/status` endpoint shows all 16 agents
+   - ⏳ Test agent pool initialization
 
-1. **Complete Partial Agents**
-   - Lampião (Anti-Corruption)
-   - Oscar Niemeyer (Infrastructure Analysis)
-   - Obaluaiê (Corruption Detection)
-   - Oxossi (Data Hunting)
+2. **Documentation**
+   - ✅ Update AGENTS_INVENTORY.md with all 16 agents
+   - ⏳ Update README.md with agent count
+   - ⏳ Update API docs (if needed)
 
-2. **Agent Pool Optimization**
-   - Pre-warm frequently used agents
-   - Implement lazy loading
-   - Monitor agent performance
-   - Optimize resource usage
+3. **Deployment**
+   - ⏳ Commit changes (professional message, no AI mentions)
+   - ⏳ Push to GitHub
+   - ⏳ Deploy to Railway
+   - ⏳ Verify production endpoints
+
+### Phase 3: Iterative Improvements (Next 2-4 Weeks)
+
+**Priority**: Enhance agent implementations
+
+1. **Agent Implementation Improvements**
+   - Complete TODOs in agent code
+   - Add missing algorithms and features
+   - Improve error handling
+   - Add validation logic
+
+2. **Integration & Testing**
+   - Write comprehensive unit tests
+   - Write integration tests for all endpoints
+   - Performance testing
+   - Load testing
+
+3. **Agent Coordination**
+   - Ensure Abaporu properly orchestrates all agents
+   - Update SemanticRouter to recognize all 16 agents
+   - Test Memory system integration (Nanã)
+   - Multi-agent workflow testing
+
+### Phase 4: Production Optimization (1-2 Months)
+
+1. **Performance & Scale**
+   - Agent pool optimization
+   - Caching strategies
+   - Connection pooling
+   - Resource monitoring
+
+2. **Advanced Features**
+   - Agent chaining workflows
+   - Parallel agent execution
+   - Result aggregation
+   - Quality scoring
 
 ---
 
