@@ -12,8 +12,8 @@ scrape_configs:
   # Cidadão.AI Backend Application Metrics
   - job_name: 'cidadao-ai-backend'
     static_configs:
-      - targets: ['cidadao-ai:8000', 'localhost:8000']
-    metrics_path: /api/v1/observability/metrics
+      - targets: ['host.docker.internal:8000']
+    metrics_path: /health/metrics
     scrape_interval: 10s
     scrape_timeout: 5s
 
