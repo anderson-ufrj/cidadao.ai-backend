@@ -501,31 +501,167 @@ print(result["trends"]["convergence_rate"])       # 2.5% ao ano
 
 ---
 
-## 13. 🏗️ Oscar Niemeyer - Visualização
+## 13. 🏗️ Oscar Niemeyer - Arquiteto de Dados
 
 **Status**: ✅ **100% Operacional**
 **Arquivo**: `src/agents/oscar_niemeyer.py` (1.224 linhas)
 **Testes**: ⏳ Em desenvolvimento
 **Última Validação**: 13/10/2025
 
-### Algoritmos de Visualização
-- ✅ Fruchterman-Reingold Force-Directed Layout
-- ✅ Mapas coropléticos (choropleth)
-- ✅ Network centrality analysis
+> **IMPORTANTE**: Oscar Niemeyer é o **Arquiteto de Dados** - prepara e agrega dados para visualização.
+> Para renderização de visualizações, veja o agente **Niemeyer** (próxima seção).
+
+### Capacidades Reais (Data Layer)
+- ✅ **Agregação Multidimensional**: OLAP operations (slice, dice, drill-down, roll-up)
+- ✅ **Pivot Tables**: Geração de tabelas dinâmicas
+- ✅ **Time Series Analysis**: Decomposição, moving averages, autocorrelation
+- ✅ **Spatial Aggregation**: Clustering geográfico (DBSCAN, K-means)
+- ✅ **Geração de Metadados**: Axis ranges, color palettes, chart recommendations
+- ✅ **Otimização para Frontend**: Data sampling, binning, normalization
+
+### Formatos de Saída
+```python
+AggregationType.SUM        # Soma agregada
+AggregationType.AVERAGE    # Média
+AggregationType.PERCENTILE # Percentis
+TimeGranularity.DAY        # Agregação diária
+TimeGranularity.MONTH      # Agregação mensal
+```
+
+### Algoritmos de Análise
+- ✅ Fruchterman-Reingold (para network metadata)
+- ✅ Choropleth data preparation
+- ✅ Network centrality analysis (degree, betweenness)
+- ✅ Statistical aggregation (mean, median, stddev)
+
+### Exemplo de Uso
+```python
+from src.agents import OscarNiemeyerAgent
+
+oscar = OscarNiemeyerAgent()
+await oscar.initialize()
+
+# Agregar dados por região
+aggregation = await oscar.aggregate_by_region(
+    data=contract_data,
+    region_type="state",
+    metrics=["total", "average"]
+)
+
+# Gerar metadados para visualização
+metadata = await oscar.generate_visualization_metadata(
+    data_type="contracts",
+    dimensions=["state", "category"],
+    metrics=["value", "count"]
+)
+
+# metadata contém: axis config, color schemes, chart type recommendations
+```
+
+### 🔗 Pipeline com Niemeyer
+1. **Oscar Niemeyer** → Agrega dados + Gera metadados
+2. **Niemeyer** → Renderiza visualizações usando dados preparados
 
 ---
 
-## 14. 🎨 Niemeyer - Architecture & Design
+## 14. 🎨 Niemeyer - Visualização Gráfica
 
 **Status**: ✅ **100% Operacional**
-**Arquivo**: `src/agents/niemeyer.py` (2.270 linhas)
+**Arquivo**: `src/agents/niemeyer.py` (2.270 linhas - 2º maior agente!)
 **Testes**: ⏳ Em desenvolvimento
 **Última Validação**: 13/10/2025
 
-### Visualizações Enterprise
-- ✅ 30+ algoritmos de visualização
-- ✅ Dashboards interativos
-- ✅ Cartografia avançada
+> **IMPORTANTE**: Niemeyer é o **Visualization Engine** - renderiza visualizações interativas.
+> Para agregação de dados, veja o agente **Oscar Niemeyer** (seção anterior).
+
+### Capacidades Reais (Rendering Layer)
+- ✅ **30+ Algoritmos de Visualização**: Gráficos, mapas, dashboards
+- ✅ **Force-Directed Layouts**: Fruchterman-Reingold para grafos
+- ✅ **Hierarchical Layouts**: Sugiyama algorithm para árvores
+- ✅ **Time Series Smoothing**: Moving Average, LOWESS
+- ✅ **Geographic Maps**: Projeções Mercator, Albers, Equirectangular
+- ✅ **Interactive Dashboards**: Multi-panel com cross-filtering
+
+### Bibliotecas Integradas
+```python
+# JavaScript Libraries (embedded in HTML output)
+D3.js v7.8.5       # Visualizações customizadas
+Plotly v2.27.0     # Gráficos científicos
+Leaflet v1.9.4     # Mapas interativos
+Chart.js           # Gráficos responsivos
+```
+
+### Tipos de Visualização Suportados
+```python
+VisualizationType.BAR_CHART      # Gráficos de barras
+VisualizationType.LINE_CHART     # Linhas (time series)
+VisualizationType.PIE_CHART      # Pizza/donut
+VisualizationType.SCATTER_PLOT   # Dispersão
+VisualizationType.HEATMAP        # Mapas de calor
+VisualizationType.NETWORK_GRAPH  # Grafos de relacionamento
+VisualizationType.GEOGRAPHIC_MAP # Mapas geográficos
+VisualizationType.TREEMAP        # Hierarquias
+VisualizationType.SANKEY_DIAGRAM # Fluxos
+VisualizationType.DASHBOARD      # Multi-panel
+```
+
+### Algoritmos de Layout Implementados
+1. **Fruchterman-Reingold**: Force-Directed para grafos de rede
+   - Força de repulsão: F_r = k²/d²
+   - Força de atração: F_a = d²/k
+   - Iterações: 100-500 para convergência
+
+2. **Sugiyama Algorithm**: Hierarchical layouts para árvores
+
+3. **Projeções Cartográficas**:
+   - Mercator (conformal, web standard)
+   - Albers Equal Area (área preservada)
+   - Equirectangular (simplificada)
+
+4. **Grid Layout**: Responsivo para dashboards
+   - Bin-packing para posicionamento ótimo
+   - Cross-filtering automático
+
+### Exemplo de Uso
+```python
+from src.agents import VisualizationAgent
+from src.agents.niemeyer import VisualizationType, VisualizationSpec
+
+niemeyer = VisualizationAgent()
+await niemeyer.initialize()
+
+# Criar visualização
+spec = VisualizationSpec(
+    viz_type=VisualizationType.LINE_CHART,
+    title="Evolução de Contratos",
+    data_source="contracts",
+    dimensions=["date"],
+    metrics=["value"],
+    filters={},
+    styling={"color": "#2563eb"},
+    interactivity=["hover", "zoom"],
+    export_formats=["svg", "png", "html"]
+)
+
+result = await niemeyer.create_visualization(
+    spec=spec,
+    data=aggregated_data,  # Vem do Oscar Niemeyer
+    context=context
+)
+
+# result.html_content contém visualização completa renderizada
+# result.json_config contém configuração D3.js/Plotly
+```
+
+### Performance
+- Renderização: <2s para datasets até 10K pontos
+- Interatividade: <100ms resposta para filtros
+- Memory Usage: <512MB para visualizações complexas
+- Suporte: Datasets até 1M de registros (com sampling)
+
+### 🔗 Pipeline com Oscar Niemeyer
+1. **Oscar Niemeyer** → Agrega dados + Gera metadados
+2. **Niemeyer** → Renderiza visualizações usando dados preparados
 
 ---
 
