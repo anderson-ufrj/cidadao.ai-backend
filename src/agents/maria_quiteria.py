@@ -613,13 +613,17 @@ class MariaQuiteriaAgent(BaseAgent):
 
             # Collect baseline data points
             user_baselines[user_id]["access_times"].append(
-                datetime.fromisoformat(activity.get("timestamp", datetime.utcnow().isoformat())).hour
+                datetime.fromisoformat(
+                    activity.get("timestamp", datetime.utcnow().isoformat())
+                ).hour
             )
             user_baselines[user_id]["resources_accessed"].append(
                 activity.get("resource", "")
             )
             user_baselines[user_id]["locations"].append(
-                activity.get("source_ip", "").split(".")[0]  # First octet for geo approximation
+                activity.get("source_ip", "").split(".")[
+                    0
+                ]  # First octet for geo approximation
             )
             user_baselines[user_id]["action_types"].append(
                 activity.get("action_type", "read")
@@ -691,11 +695,17 @@ class MariaQuiteriaAgent(BaseAgent):
             sha1_checksum = hashlib.sha1(source.encode()).hexdigest()
 
             # Timestamp verification
-            last_modified = self.security_baselines.get(f"{source}_modified", datetime.utcnow())
+            last_modified = self.security_baselines.get(
+                f"{source}_modified", datetime.utcnow()
+            )
             timestamp_valid = isinstance(last_modified, datetime)
 
             # Overall integrity status
-            integrity_status = "verified" if (hash_match and signature_valid and timestamp_valid) else "compromised"
+            integrity_status = (
+                "verified"
+                if (hash_match and signature_valid and timestamp_valid)
+                else "compromised"
+            )
 
             self.logger.info(
                 f"Integrity check for {source}: {integrity_status}",
@@ -714,7 +724,11 @@ class MariaQuiteriaAgent(BaseAgent):
                     "sha1": sha1_checksum,
                 },
                 "timestamp_valid": timestamp_valid,
-                "last_modified": last_modified.isoformat() if isinstance(last_modified, datetime) else str(last_modified),
+                "last_modified": (
+                    last_modified.isoformat()
+                    if isinstance(last_modified, datetime)
+                    else str(last_modified)
+                ),
             }
 
         return integrity_report
@@ -774,20 +788,24 @@ class MariaQuiteriaAgent(BaseAgent):
 
             # Identify gaps (controls below 85%)
             if base_score < 0.85:
-                gaps.append({
-                    "domain": domain,
-                    "current_score": base_score,
-                    "target_score": 0.90,
-                    "gap_percentage": round((0.90 - base_score) * 100, 1),
-                })
+                gaps.append(
+                    {
+                        "domain": domain,
+                        "current_score": base_score,
+                        "target_score": 0.90,
+                        "gap_percentage": round((0.90 - base_score) * 100, 1),
+                    }
+                )
 
             # Critical issues (controls below 75%)
             if base_score < 0.75:
-                critical_issues.append({
-                    "domain": domain,
-                    "severity": "critical",
-                    "finding": f"Insufficient controls in {domain}",
-                })
+                critical_issues.append(
+                    {
+                        "domain": domain,
+                        "severity": "critical",
+                        "finding": f"Insufficient controls in {domain}",
+                    }
+                )
 
         compliance_percentage = round((total_score / controls_assessed) * 100, 1)
 
@@ -796,36 +814,49 @@ class MariaQuiteriaAgent(BaseAgent):
             "total_gaps": len(gaps),
             "critical_gaps": len(critical_issues),
             "improvement_needed": sum(g["gap_percentage"] for g in gaps),
-            "priority_areas": [g["domain"] for g in sorted(gaps, key=lambda x: x["gap_percentage"], reverse=True)[:3]],
+            "priority_areas": [
+                g["domain"]
+                for g in sorted(gaps, key=lambda x: x["gap_percentage"], reverse=True)[
+                    :3
+                ]
+            ],
         }
 
         # Remediation Recommendations based on framework
         recommendations = []
         if framework == ComplianceFramework.LGPD:
-            recommendations.extend([
-                "Implement comprehensive consent management system",
-                "Establish Data Protection Officer (DPO) role",
-                "Create data processing inventory (ROPA)",
-                "Implement data subject rights request workflow",
-            ])
+            recommendations.extend(
+                [
+                    "Implement comprehensive consent management system",
+                    "Establish Data Protection Officer (DPO) role",
+                    "Create data processing inventory (ROPA)",
+                    "Implement data subject rights request workflow",
+                ]
+            )
         elif framework == ComplianceFramework.ISO27001:
-            recommendations.extend([
-                "Conduct risk assessment for all assets",
-                "Implement access control policy (RBAC)",
-                "Establish information security management system (ISMS)",
-                "Perform annual security awareness training",
-            ])
+            recommendations.extend(
+                [
+                    "Conduct risk assessment for all assets",
+                    "Implement access control policy (RBAC)",
+                    "Establish information security management system (ISMS)",
+                    "Perform annual security awareness training",
+                ]
+            )
         elif framework == ComplianceFramework.OWASP:
-            recommendations.extend([
-                "Implement parameterized queries for SQL injection prevention",
-                "Enable multi-factor authentication for all users",
-                "Configure security headers (CSP, HSTS, X-Frame-Options)",
-                "Conduct regular penetration testing",
-            ])
+            recommendations.extend(
+                [
+                    "Implement parameterized queries for SQL injection prevention",
+                    "Enable multi-factor authentication for all users",
+                    "Configure security headers (CSP, HSTS, X-Frame-Options)",
+                    "Conduct regular penetration testing",
+                ]
+            )
 
         # Add gap-specific recommendations
         for gap in gaps[:3]:  # Top 3 gaps
-            recommendations.append(f"Address compliance gap in {gap['domain']}: improve by {gap['gap_percentage']}%")
+            recommendations.append(
+                f"Address compliance gap in {gap['domain']}: improve by {gap['gap_percentage']}%"
+            )
 
         # Timeline for Compliance
         timeline = {
@@ -1017,50 +1048,60 @@ class MariaQuiteriaAgent(BaseAgent):
 
             # IP Reputation Check
             if source_ip in threat_signatures["malicious_ips"]:
-                matched_threats.append({
-                    "type": "malicious_ip",
-                    "indicator": source_ip,
-                    "severity": "high",
-                })
+                matched_threats.append(
+                    {
+                        "type": "malicious_ip",
+                        "indicator": source_ip,
+                        "severity": "high",
+                    }
+                )
 
             # Port Analysis
             if dest_port in threat_signatures["suspicious_ports"]:
-                matched_threats.append({
-                    "type": "suspicious_port",
-                    "indicator": dest_port,
-                    "severity": "medium",
-                })
+                matched_threats.append(
+                    {
+                        "type": "suspicious_port",
+                        "indicator": dest_port,
+                        "severity": "medium",
+                    }
+                )
 
             # Payload Pattern Matching
             for pattern in threat_signatures["attack_patterns"]:
                 if pattern.lower() in payload.lower():
-                    matched_threats.append({
-                        "type": "attack_pattern",
-                        "indicator": pattern,
-                        "severity": "high",
-                    })
+                    matched_threats.append(
+                        {
+                            "type": "attack_pattern",
+                            "indicator": pattern,
+                            "severity": "high",
+                        }
+                    )
 
             # Hash Matching for Malware
             if file_hash in threat_signatures["malware_hashes"]:
-                matched_threats.append({
-                    "type": "malware_hash",
-                    "indicator": file_hash,
-                    "severity": "critical",
-                })
+                matched_threats.append(
+                    {
+                        "type": "malware_hash",
+                        "indicator": file_hash,
+                        "severity": "critical",
+                    }
+                )
 
             if matched_threats:
                 self.logger.warning(
-                    f"Threat signature match detected",
+                    "Threat signature match detected",
                     source_ip=source_ip,
                     matches=len(matched_threats),
                 )
 
-                matches.append({
-                    "event": event,
-                    "threats": matched_threats,
-                    "confidence": 0.95,  # High confidence for signature matches
-                    "detection_method": "signature_based",
-                })
+                matches.append(
+                    {
+                        "event": event,
+                        "threats": matched_threats,
+                        "confidence": 0.95,  # High confidence for signature matches
+                        "detection_method": "signature_based",
+                    }
+                )
 
         return matches
 
@@ -1146,21 +1187,25 @@ class MariaQuiteriaAgent(BaseAgent):
             # Threshold for reporting anomaly
             if anomaly_score > 0.6:
                 self.logger.info(
-                    f"Behavioral anomaly detected",
+                    "Behavioral anomaly detected",
                     anomaly_score=round(anomaly_score, 2),
                     patterns=unusual_patterns,
                 )
 
-                anomalies.append({
-                    "event": event,
-                    "anomaly_score": round(min(anomaly_score, 1.0), 2),
-                    "patterns": unusual_patterns,
-                    "detection_method": "behavioral_analysis",
-                    "confidence": round(min(anomaly_score, 0.95), 2),
-                    "z_score_max": round(float(max_z_score), 2),
-                })
+                anomalies.append(
+                    {
+                        "event": event,
+                        "anomaly_score": round(min(anomaly_score, 1.0), 2),
+                        "patterns": unusual_patterns,
+                        "detection_method": "behavioral_analysis",
+                        "confidence": round(min(anomaly_score, 0.95), 2),
+                        "z_score_max": round(float(max_z_score), 2),
+                    }
+                )
 
-        self.logger.info(f"Behavioral analysis complete: {len(anomalies)} anomalies detected")
+        self.logger.info(
+            f"Behavioral analysis complete: {len(anomalies)} anomalies detected"
+        )
         return anomalies
 
     async def _correlate_security_events(
@@ -1179,7 +1224,9 @@ class MariaQuiteriaAgent(BaseAgent):
         # Sort events by timestamp for temporal analysis
         sorted_events = sorted(
             all_events,
-            key=lambda x: x.get("event", {}).get("timestamp", datetime.utcnow().isoformat())
+            key=lambda x: x.get("event", {}).get(
+                "timestamp", datetime.utcnow().isoformat()
+            ),
         )
 
         # CEP Rule 1: Temporal Correlation (events within 5 minutes)
@@ -1197,7 +1244,9 @@ class MariaQuiteriaAgent(BaseAgent):
                 event.get("event", {}).get("timestamp", datetime.utcnow().isoformat())
             )
             chain_start_time = datetime.fromisoformat(
-                current_chain[0].get("event", {}).get("timestamp", datetime.utcnow().isoformat())
+                current_chain[0]
+                .get("event", {})
+                .get("timestamp", datetime.utcnow().isoformat())
             )
 
             time_diff = (current_time - chain_start_time).total_seconds()
@@ -1227,37 +1276,48 @@ class MariaQuiteriaAgent(BaseAgent):
                 detection_methods = set(e.get("detection_method") for e in events)
                 if len(detection_methods) > 1:
                     # Multi-vector attack detected
-                    correlated_events.append({
-                        "correlation_type": "multi_vector_attack",
-                        "source_ip": source_ip,
-                        "events": events,
-                        "severity": "high",
-                        "confidence": 0.90,
-                        "description": f"Multiple attack vectors from {source_ip}",
-                    })
+                    correlated_events.append(
+                        {
+                            "correlation_type": "multi_vector_attack",
+                            "source_ip": source_ip,
+                            "events": events,
+                            "severity": "high",
+                            "confidence": 0.90,
+                            "description": f"Multiple attack vectors from {source_ip}",
+                        }
+                    )
 
         # CEP Rule 3: Attack Pattern Sequence Detection
         # Common attack sequences: reconnaissance → exploitation → privilege escalation
         attack_sequences = {
             "recon_exploit": ["reconnaissance", "exploitation"],
             "exploit_escalation": ["exploitation", "privilege_escalation"],
-            "full_kill_chain": ["reconnaissance", "exploitation", "privilege_escalation", "data_exfiltration"],
+            "full_kill_chain": [
+                "reconnaissance",
+                "exploitation",
+                "privilege_escalation",
+                "data_exfiltration",
+            ],
         }
 
         for chain in event_chains:
-            event_types = [e.get("event", {}).get("event_type", "unknown") for e in chain]
+            event_types = [
+                e.get("event", {}).get("event_type", "unknown") for e in chain
+            ]
 
             for sequence_name, expected_sequence in attack_sequences.items():
                 # Check if the chain matches any known attack sequence
                 if len(event_types) >= 2:
-                    correlated_events.append({
-                        "correlation_type": "temporal_chain",
-                        "sequence_name": sequence_name,
-                        "events": chain,
-                        "severity": "critical" if len(chain) >= 3 else "high",
-                        "confidence": 0.85,
-                        "description": f"Correlated attack chain with {len(chain)} events",
-                    })
+                    correlated_events.append(
+                        {
+                            "correlation_type": "temporal_chain",
+                            "sequence_name": sequence_name,
+                            "events": chain,
+                            "severity": "critical" if len(chain) >= 3 else "high",
+                            "confidence": 0.85,
+                            "description": f"Correlated attack chain with {len(chain)} events",
+                        }
+                    )
 
         # CEP Rule 4: Frequency-based Correlation (brute force detection)
         # Count events by source and type
@@ -1275,19 +1335,23 @@ class MariaQuiteriaAgent(BaseAgent):
         for key, events in frequency_analysis.items():
             if len(events) >= 5:
                 source_ip = events[0].get("event", {}).get("source_ip", "unknown")
-                correlated_events.append({
-                    "correlation_type": "high_frequency_attack",
-                    "source_ip": source_ip,
-                    "event_count": len(events),
-                    "events": events[:10],  # Limit to first 10
-                    "severity": "critical",
-                    "confidence": 0.95,
-                    "description": f"High-frequency attack detected: {len(events)} events",
-                })
+                correlated_events.append(
+                    {
+                        "correlation_type": "high_frequency_attack",
+                        "source_ip": source_ip,
+                        "event_count": len(events),
+                        "events": events[:10],  # Limit to first 10
+                        "severity": "critical",
+                        "confidence": 0.95,
+                        "description": f"High-frequency attack detected: {len(events)} events",
+                    }
+                )
 
         # Return original events if no correlations found, otherwise return correlated events
         if correlated_events:
-            self.logger.warning(f"CEP detected {len(correlated_events)} correlated attack patterns")
+            self.logger.warning(
+                f"CEP detected {len(correlated_events)} correlated attack patterns"
+            )
             return correlated_events
         else:
             return all_events
@@ -1387,7 +1451,12 @@ class MariaQuiteriaAgent(BaseAgent):
             },
             "defense_evasion": {
                 "techniques": ["T1070", "T1027", "T1562", "T1036"],
-                "keywords": ["obfuscation", "disable_security", "masquerading", "clear_logs"],
+                "keywords": [
+                    "obfuscation",
+                    "disable_security",
+                    "masquerading",
+                    "clear_logs",
+                ],
             },
             "credential_access": {
                 "techniques": ["T1110", "T1555", "T1003", "T1056"],
@@ -1395,11 +1464,21 @@ class MariaQuiteriaAgent(BaseAgent):
             },
             "discovery": {
                 "techniques": ["T1046", "T1087", "T1083", "T1069"],
-                "keywords": ["network_scan", "account_discovery", "file_discovery", "group"],
+                "keywords": [
+                    "network_scan",
+                    "account_discovery",
+                    "file_discovery",
+                    "group",
+                ],
             },
             "lateral_movement": {
                 "techniques": ["T1021", "T1091", "T1210", "T1534"],
-                "keywords": ["remote_services", "replication", "exploitation", "internal"],
+                "keywords": [
+                    "remote_services",
+                    "replication",
+                    "exploitation",
+                    "internal",
+                ],
             },
             "collection": {
                 "techniques": ["T1005", "T1039", "T1056", "T1113"],
@@ -1407,7 +1486,12 @@ class MariaQuiteriaAgent(BaseAgent):
             },
             "exfiltration": {
                 "techniques": ["T1041", "T1048", "T1567", "T1029"],
-                "keywords": ["c2_channel", "alternative_protocol", "web_service", "scheduled"],
+                "keywords": [
+                    "c2_channel",
+                    "alternative_protocol",
+                    "web_service",
+                    "scheduled",
+                ],
             },
             "impact": {
                 "techniques": ["T1485", "T1486", "T1498", "T1499"],
@@ -1437,7 +1521,9 @@ class MariaQuiteriaAgent(BaseAgent):
                         # Add tactic with primary technique ID
                         primary_technique = tactic_info["techniques"][0]
                         attack_patterns.add(f"{tactic} ({primary_technique})")
-                        self.logger.debug(f"MITRE ATT&CK pattern detected: {tactic} - {primary_technique}")
+                        self.logger.debug(
+                            f"MITRE ATT&CK pattern detected: {tactic} - {primary_technique}"
+                        )
                         break
 
             # Check for specific threat types
@@ -1587,6 +1673,7 @@ class MariaQuiteriaAgent(BaseAgent):
 
             # Simulate detection probability (not all vulnerabilities are present)
             import random
+
             random.seed(hash(system) % 10000)  # Deterministic based on system name
 
             for vuln in system_vulns:
@@ -1604,7 +1691,9 @@ class MariaQuiteriaAgent(BaseAgent):
 
                     vulnerabilities.append(vuln_copy)
 
-        self.logger.info(f"Vulnerability scan complete: {len(vulnerabilities)} vulnerabilities found")
+        self.logger.info(
+            f"Vulnerability scan complete: {len(vulnerabilities)} vulnerabilities found"
+        )
         return vulnerabilities
 
     def _calculate_exploitability(self, cvss_score: float) -> str:
@@ -1637,7 +1726,9 @@ class MariaQuiteriaAgent(BaseAgent):
     ) -> float:
         """Verifica compliance com framework."""
         # Framework-specific Compliance Verification
-        self.logger.info(f"Checking compliance for {framework.value} across {len(systems)} systems")
+        self.logger.info(
+            f"Checking compliance for {framework.value} across {len(systems)} systems"
+        )
 
         compliance_checks = {
             ComplianceFramework.LGPD: {
@@ -1771,7 +1862,11 @@ class MariaQuiteriaAgent(BaseAgent):
         location_risk = 0.0
 
         # Check for private IP ranges (lower risk)
-        if source_ip.startswith("10.") or source_ip.startswith("192.168.") or source_ip.startswith("172."):
+        if (
+            source_ip.startswith("10.")
+            or source_ip.startswith("192.168.")
+            or source_ip.startswith("172.")
+        ):
             location_risk = 0.02
         # Check for known suspicious IP patterns
         elif source_ip.startswith("0.") or not source_ip:
@@ -1790,8 +1885,21 @@ class MariaQuiteriaAgent(BaseAgent):
         resource = activity.get("resource", "").lower()
         resource_risk = 0.0
 
-        high_sensitivity_keywords = ["admin", "password", "credential", "secret", "config", "database"]
-        medium_sensitivity_keywords = ["user", "profile", "account", "payment", "financial"]
+        high_sensitivity_keywords = [
+            "admin",
+            "password",
+            "credential",
+            "secret",
+            "config",
+            "database",
+        ]
+        medium_sensitivity_keywords = [
+            "user",
+            "profile",
+            "account",
+            "payment",
+            "financial",
+        ]
 
         if any(keyword in resource for keyword in high_sensitivity_keywords):
             resource_risk = 0.25
@@ -1955,7 +2063,6 @@ class MariaQuiteriaAgent(BaseAgent):
             "web_server_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
             "database_hash": "d41d8cd98f00b204e9800998ecf8427e",
             "application_hash": "098f6bcd4621d373cade4e832627b4f6",
-
             # Digital signatures
             "web_server_signature": {
                 "timestamp": (datetime.utcnow() - timedelta(days=30)).isoformat(),
@@ -1967,12 +2074,10 @@ class MariaQuiteriaAgent(BaseAgent):
                 "algorithm": "RSA-2048",
                 "valid": True,
             },
-
             # Modification timestamps
             "web_server_modified": datetime.utcnow() - timedelta(days=30),
             "database_modified": datetime.utcnow() - timedelta(days=45),
             "application_modified": datetime.utcnow() - timedelta(days=15),
-
             # Network baselines
             "baseline_traffic_patterns": {
                 "avg_requests_per_minute": 150,
@@ -1980,7 +2085,6 @@ class MariaQuiteriaAgent(BaseAgent):
                 "avg_bandwidth_mbps": 50,
                 "typical_ports": [80, 443, 8080, 8443],
             },
-
             # User behavior baselines
             "user_admin_history": {
                 "avg_daily_access": 25,
@@ -1994,7 +2098,6 @@ class MariaQuiteriaAgent(BaseAgent):
                 "typical_access_hours": [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
                 "typical_resources": ["code_repo", "deployment", "logs"],
             },
-
             # System performance baselines
             "cpu_usage_baseline": {
                 "avg_percent": 35.0,
@@ -2011,7 +2114,6 @@ class MariaQuiteriaAgent(BaseAgent):
                 "peak_iops": 2000,
                 "alert_threshold": 5000,
             },
-
             # Security event baselines
             "failed_login_baseline": {
                 "avg_per_hour": 5,
@@ -2021,14 +2123,12 @@ class MariaQuiteriaAgent(BaseAgent):
                 "avg_per_hour": 10,
                 "alert_threshold": 50,
             },
-
             # Compliance baselines
             "encryption_standards": {
                 "tls_version_min": "1.2",
                 "cipher_suites": ["TLS_AES_256_GCM_SHA384", "TLS_AES_128_GCM_SHA256"],
                 "key_length_min": 2048,
             },
-
             # Baseline last updated
             "baselines_established": datetime.utcnow().isoformat(),
             "baseline_version": "1.0",
@@ -2064,7 +2164,6 @@ class MariaQuiteriaAgent(BaseAgent):
                 "action": "alert_soc",
                 "mitre_technique": "T1068",
             },
-
             # Network Traffic Rules
             {
                 "rule_id": "NET-001",
@@ -2093,7 +2192,6 @@ class MariaQuiteriaAgent(BaseAgent):
                 "action": "alert",
                 "mitre_technique": "T1046",
             },
-
             # Application Security Rules
             {
                 "rule_id": "APP-001",
@@ -2122,7 +2220,6 @@ class MariaQuiteriaAgent(BaseAgent):
                 "action": "block_request",
                 "mitre_technique": "T1083",
             },
-
             # Data Access Rules
             {
                 "rule_id": "DATA-001",
@@ -2142,7 +2239,6 @@ class MariaQuiteriaAgent(BaseAgent):
                 "action": "require_approval",
                 "mitre_technique": "T1048",
             },
-
             # System Integrity Rules
             {
                 "rule_id": "SYS-001",
@@ -2162,7 +2258,6 @@ class MariaQuiteriaAgent(BaseAgent):
                 "action": "terminate_process",
                 "mitre_technique": "T1204",
             },
-
             # User Behavior Rules
             {
                 "rule_id": "USER-001",
@@ -2182,7 +2277,6 @@ class MariaQuiteriaAgent(BaseAgent):
                 "action": "force_mfa",
                 "mitre_technique": "T1078",
             },
-
             # Malware Detection Rules
             {
                 "rule_id": "MAL-001",
@@ -2204,7 +2298,9 @@ class MariaQuiteriaAgent(BaseAgent):
             },
         ]
 
-        self.logger.info(f"Detection rules loaded: {len(self.monitoring_rules)} active rules")
+        self.logger.info(
+            f"Detection rules loaded: {len(self.monitoring_rules)} active rules"
+        )
 
     async def _setup_compliance_frameworks(self) -> None:
         """Configura frameworks de compliance."""
