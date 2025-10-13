@@ -18,8 +18,9 @@ from tenacity import (
     wait_exponential,
 )
 
-from src.core import get_logger, settings
+from src.core.config import settings
 from src.core.json_utils import dumps, loads
+from src.core.logging import get_logger
 
 logger = get_logger(__name__)
 
