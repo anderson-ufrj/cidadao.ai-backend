@@ -12,7 +12,16 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 
+import numpy as np
 import pandas as pd
+from scipy import stats
+from scipy.signal import find_peaks
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.impute import SimpleImputer
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.model_selection import TimeSeriesSplit
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
 from src.core import get_logger
@@ -312,23 +321,128 @@ class PredictiveAgent(BaseAgent):
         self, data: list[dict[str, Any]], target_variable: str, context: AgentContext
     ) -> dict[str, Any]:
         """Analisa tendências sem fazer previsões específicas."""
-        # TODO: Implementar análise de tendências
-        # - Detecção de change points
-        # - Cálculo de taxa de crescimento
-        # - Identificação de ciclos
-        # - Análise de volatilidade
-        pass
+        self.logger.info(f"Analyzing trends for target variable: {target_variable}")
+
+        df = pd.DataFrame(data)
+        if target_variable not in df.columns:
+            return {"error": f"Target variable {target_variable} not found"}
+
+        values = df[target_variable].dropna().values
+        if len(values) < 2:
+            return {"error": "Insufficient data for trend analysis"}
+
+        # Linear trend analysis
+        x = np.arange(len(values))
+        slope, intercept, r_value, p_value, std_err = stats.linregress(x, values)
+
+        # Growth rate calculation
+        growth_rates = np.diff(values) / values[:-1] * 100
+        avg_growth_rate = np.mean(growth_rates)
+
+        # Change point detection using derivative peaks
+        derivatives = np.diff(values)
+        peaks, _ = find_peaks(np.abs(derivatives), distance=len(values) // 10)
+        change_points = [int(p) for p in peaks]
+
+        # Volatility analysis (standard deviation of returns)
+        volatility = np.std(growth_rates) if len(growth_rates) > 0 else 0.0
+
+        # Trend direction
+        if abs(slope) < 0.01:
+            direction = "stable"
+        elif slope > 0:
+            direction = "upward"
+        else:
+            direction = "downward"
+
+        # Trend strength (R-squared)
+        strength = r_value**2
+
+        self.logger.info(
+            f"Trend analysis complete: direction={direction}, strength={strength:.2f}"
+        )
+
+        return {
+            "direction": direction,
+            "strength": float(strength),
+            "slope": float(slope),
+            "growth_rate_avg": float(avg_growth_rate),
+            "growth_rate_std": (
+                float(np.std(growth_rates)) if len(growth_rates) > 0 else 0.0
+            ),
+            "change_points": change_points,
+            "volatility": float(volatility),
+            "p_value": float(p_value),
+            "acceleration": (
+                float(np.mean(np.diff(derivatives))) if len(derivatives) > 1 else 0.0
+            ),
+        }
 
     async def detect_seasonal_patterns(
         self, data: list[dict[str, Any]], target_variable: str, context: AgentContext
     ) -> dict[str, Any]:
         """Detecta padrões sazonais nos dados."""
-        # TODO: Implementar detecção de sazonalidade
-        # - STL decomposition
-        # - Análise de autocorrelação
-        # - Testes de sazonalidade
-        # - Identificação de ciclos
-        pass
+        self.logger.info(f"Detecting seasonal patterns for: {target_variable}")
+
+        df = pd.DataFrame(data)
+        if target_variable not in df.columns:
+            return {"error": f"Target variable {target_variable} not found"}
+
+        values = df[target_variable].dropna().values
+        if len(values) < 24:  # Need at least 2 years of monthly data
+            return {"has_seasonality": False, "reason": "Insufficient data"}
+
+        # Autocorrelation analysis for common periods
+        periods_to_test = [12, 6, 4, 3]  # Monthly, semi-annual, quarterly, tri-monthly
+        autocorrelations = {}
+        max_autocorr = 0.0
+        best_period = None
+
+        for period in periods_to_test:
+            if len(values) > period:
+                # Calculate autocorrelation at lag=period
+                mean = np.mean(values)
+                c0 = np.sum((values - mean) ** 2) / len(values)
+                if c0 > 0:
+                    c_period = np.sum(
+                        (values[:-period] - mean) * (values[period:] - mean)
+                    ) / len(values[:-period])
+                    autocorr = c_period / c0
+                    autocorrelations[period] = float(autocorr)
+                    if abs(autocorr) > abs(max_autocorr):
+                        max_autocorr = autocorr
+                        best_period = period
+
+        # Seasonality strength (based on max autocorrelation)
+        has_seasonality = abs(max_autocorr) > 0.3
+        strength = abs(max_autocorr)
+
+        # Simple seasonal decomposition (moving average method)
+        patterns = []
+        if has_seasonality and best_period:
+            for i in range(best_period):
+                seasonal_values = values[i::best_period]
+                if len(seasonal_values) > 0:
+                    patterns.append(
+                        {
+                            "period_index": i,
+                            "mean": float(np.mean(seasonal_values)),
+                            "std": float(np.std(seasonal_values)),
+                        }
+                    )
+
+        self.logger.info(
+            f"Seasonality detection: has_seasonality={has_seasonality}, period={best_period}"
+        )
+
+        return {
+            "has_seasonality": has_seasonality,
+            "seasonal_period": int(best_period) if best_period else None,
+            "strength": float(strength),
+            "autocorrelations": autocorrelations,
+            "patterns": patterns,
+            "confidence": float(strength) if has_seasonality else 0.0,
+        }
 
     async def forecast_anomalies(
         self,
@@ -337,11 +451,68 @@ class PredictiveAgent(BaseAgent):
         context: AgentContext,
     ) -> list[dict[str, Any]]:
         """Prevê possíveis anomalias futuras."""
-        # TODO: Implementar previsão de anomalias
-        # - Modelar distribuição de anomalias históricas
-        # - Aplicar modelos de probabilidade
-        # - Gerar alertas preventivos
-        pass
+        self.logger.info(f"Forecasting anomalies for horizon: {prediction_horizon}")
+
+        df = pd.DataFrame(historical_data)
+        if df.empty or len(df) < 10:
+            return []
+
+        # Extract numeric columns for anomaly analysis
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        if len(numeric_cols) == 0:
+            return []
+
+        # Use first numeric column as primary feature
+        target_col = numeric_cols[0]
+        values = df[target_col].dropna().values
+
+        if len(values) < 10:
+            return []
+
+        # Statistical anomaly detection on historical data
+        mean = np.mean(values)
+        std = np.std(values)
+        z_scores = np.abs((values - mean) / std) if std > 0 else np.zeros_like(values)
+
+        # Identify historical anomalies (z-score > 2.5)
+        anomaly_mask = z_scores > 2.5
+        anomaly_rate = np.sum(anomaly_mask) / len(values)
+
+        # Forecast future anomalies using probabilistic model
+        anomaly_alerts = []
+
+        # Simple linear extrapolation for trend
+        x = np.arange(len(values))
+        slope, intercept = np.polyfit(x, values, 1)
+
+        for i in range(1, prediction_horizon + 1):
+            predicted_value = slope * (len(values) + i) + intercept
+
+            # Calculate anomaly probability based on distance from expected range
+            distance_from_mean = abs(predicted_value - mean) / std if std > 0 else 0
+            anomaly_probability = min(1.0, max(0.0, (distance_from_mean - 2.0) / 3.0))
+
+            # Historical anomaly rate adjustment
+            adjusted_probability = (anomaly_probability + anomaly_rate) / 2
+
+            # Generate alert if probability is significant
+            if adjusted_probability > 0.3:
+                anomaly_alerts.append(
+                    {
+                        "period": len(values) + i,
+                        "predicted_value": float(predicted_value),
+                        "anomaly_probability": float(adjusted_probability),
+                        "severity": "high" if adjusted_probability > 0.7 else "medium",
+                        "expected_range": {
+                            "lower": float(mean - 2.5 * std),
+                            "upper": float(mean + 2.5 * std),
+                        },
+                        "reason": "Statistical deviation from historical pattern",
+                    }
+                )
+
+        self.logger.info(f"Detected {len(anomaly_alerts)} potential future anomalies")
+        return anomaly_alerts
 
     async def compare_models(
         self,
@@ -351,24 +522,97 @@ class PredictiveAgent(BaseAgent):
         context: AgentContext,
     ) -> dict[str, Any]:
         """Compara performance de múltiplos modelos."""
+        self.logger.info(f"Comparing {len(models)} models for {target_variable}")
+
+        df = pd.DataFrame(data)
+        if target_variable not in df.columns or len(df) < 20:
+            return {"error": "Insufficient data for model comparison"}
+
+        # Prepare data
+        values = df[target_variable].dropna().values
+        X = np.arange(len(values)).reshape(-1, 1)
+        y = values
+
+        # Time series cross-validation
+        tscv = TimeSeriesSplit(n_splits=min(5, len(values) // 10))
+
         model_comparison = {}
 
         for model_type in models:
-            # TODO: Implementar comparação de modelos
-            # - Cross-validation temporal
-            # - Métricas de avaliação padronizadas
-            # - Testes estatísticos de significância
-            # - Análise de bias-variance tradeoff
+            start_time = datetime.utcnow()
+
+            mae_scores = []
+            rmse_scores = []
+            r2_scores = []
+
+            # Cross-validation for each model type
+            for train_idx, test_idx in tscv.split(X):
+                X_train, X_test = X[train_idx], X[test_idx]
+                y_train, y_test = y[train_idx], y[test_idx]
+
+                # Model-specific training
+                if model_type in [
+                    ModelType.LINEAR_REGRESSION,
+                    ModelType.POLYNOMIAL_REGRESSION,
+                ]:
+                    if model_type == ModelType.POLYNOMIAL_REGRESSION:
+                        X_train_poly = np.column_stack([X_train, X_train**2])
+                        X_test_poly = np.column_stack([X_test, X_test**2])
+                        model = LinearRegression().fit(X_train_poly, y_train)
+                        y_pred = model.predict(X_test_poly)
+                    else:
+                        model = LinearRegression().fit(X_train, y_train)
+                        y_pred = model.predict(X_test)
+                elif model_type == ModelType.RANDOM_FOREST:
+                    model = RandomForestRegressor(
+                        n_estimators=50, max_depth=5, random_state=42
+                    )
+                    model.fit(X_train, y_train)
+                    y_pred = model.predict(X_test)
+                else:
+                    # Simple linear model as fallback
+                    model = LinearRegression().fit(X_train, y_train)
+                    y_pred = model.predict(X_test)
+
+                # Calculate metrics
+                mae_scores.append(mean_absolute_error(y_test, y_pred))
+                rmse_scores.append(np.sqrt(mean_squared_error(y_test, y_pred)))
+                r2_scores.append(r2_score(y_test, y_pred))
+
+            training_time = (datetime.utcnow() - start_time).total_seconds()
+
+            # Calculate MAPE
+            y_mean = np.mean(y)
+            mape = np.mean(mae_scores) / y_mean * 100 if y_mean != 0 else 0.0
 
             model_comparison[model_type.value] = {
-                "mae": 0.0,  # Placeholder
-                "rmse": 0.0,
-                "mape": 0.0,
-                "training_time": 0.0,
-                "prediction_time": 0.0,
+                "mae": float(np.mean(mae_scores)),
+                "mae_std": float(np.std(mae_scores)),
+                "rmse": float(np.mean(rmse_scores)),
+                "rmse_std": float(np.std(rmse_scores)),
+                "r2_score": float(np.mean(r2_scores)),
+                "r2_std": float(np.std(r2_scores)),
+                "mape": float(mape),
+                "training_time": float(training_time),
+                "cv_folds": tscv.n_splits,
+                "bias_variance_ratio": (
+                    float(np.std(rmse_scores) / np.mean(rmse_scores))
+                    if np.mean(rmse_scores) > 0
+                    else 0.0
+                ),
             }
 
-        return model_comparison
+        # Rank models by RMSE
+        ranked_models = sorted(model_comparison.items(), key=lambda x: x[1]["rmse"])
+        best_model = ranked_models[0][0] if ranked_models else None
+
+        self.logger.info(f"Model comparison complete. Best model: {best_model}")
+
+        return {
+            "models": model_comparison,
+            "best_model": best_model,
+            "ranking": [m[0] for m in ranked_models],
+        }
 
     async def process_message(
         self, message: AgentMessage, context: AgentContext
@@ -468,83 +712,388 @@ class PredictiveAgent(BaseAgent):
         self, data: list[dict[str, Any]], target_variable: str
     ) -> pd.DataFrame:
         """Pré-processa dados de séries temporais."""
+        self.logger.info(f"Preprocessing time series data for {target_variable}")
+
         df = pd.DataFrame(data)
 
-        # TODO: Implementar preprocessing completo
-        # - Detecção e tratamento de outliers
-        # - Interpolação de valores faltantes
-        # - Transformações de estacionariedade
-        # - Normalização/padronização
+        if target_variable not in df.columns:
+            self.logger.warning(f"Target variable {target_variable} not found in data")
+            return df
 
+        # Handle missing values with forward fill and interpolation
+        if df[target_variable].isnull().any():
+            self.logger.info(f"Imputing missing values in {target_variable}")
+            df[target_variable] = df[target_variable].ffill().bfill()
+            df[target_variable] = df[target_variable].interpolate(method="linear")
+
+        # Outlier detection and treatment using IQR method
+        Q1 = df[target_variable].quantile(0.25)
+        Q3 = df[target_variable].quantile(0.75)
+        IQR = Q3 - Q1
+        lower_bound = Q1 - 3 * IQR
+        upper_bound = Q3 + 3 * IQR
+
+        outlier_mask = (df[target_variable] < lower_bound) | (
+            df[target_variable] > upper_bound
+        )
+        outlier_count = outlier_mask.sum()
+
+        if outlier_count > 0:
+            self.logger.info(f"Detected {outlier_count} outliers, capping values")
+            df.loc[df[target_variable] < lower_bound, target_variable] = lower_bound
+            df.loc[df[target_variable] > upper_bound, target_variable] = upper_bound
+
+        # Add preprocessing metadata
+        df.attrs["preprocessing"] = {
+            "outliers_capped": int(outlier_count),
+            "missing_values_imputed": int(df[target_variable].isnull().sum()),
+            "lower_bound": float(lower_bound),
+            "upper_bound": float(upper_bound),
+        }
+
+        # Scale numeric features for ML models
+        numeric_cols = df.select_dtypes(include=[np.number]).columns
+        if len(numeric_cols) > 1:  # More than just target variable
+            scaler = StandardScaler()
+            for col in numeric_cols:
+                if col != target_variable:
+                    df[f"{col}_scaled"] = scaler.fit_transform(df[[col]])
+
+        self.logger.info(f"Preprocessing complete: {len(df)} samples processed")
         return df
 
     async def _train_model(
         self, data: pd.DataFrame, model_type: ModelType, params: dict[str, Any]
     ) -> Any:
         """Treina o modelo especificado."""
-        # TODO: Implementar treinamento para cada tipo de modelo
-        # - ARIMA: auto_arima para seleção de parâmetros
-        # - LSTM: TensorFlow/PyTorch implementation
-        # - Prophet: Facebook Prophet library
-        # - Random Forest: Scikit-learn
-        # - XGBoost: XGBoost library
+        self.logger.info(f"Training {model_type.value} model with {len(data)} samples")
 
-        return {"model_type": model_type.value, "trained": True}  # Placeholder
+        numeric_cols = data.select_dtypes(include=[np.number]).columns
+        if len(numeric_cols) == 0:
+            raise ValueError("No numeric columns found for training")
+
+        # Use first numeric column as target
+        target_col = numeric_cols[0]
+        X = np.arange(len(data)).reshape(-1, 1)
+        y = data[target_col].values
+
+        # Split data for validation
+        split_idx = int(len(data) * 0.8)
+        X_train, X_val = X[:split_idx], X[split_idx:]
+        y_train, y_val = y[:split_idx], y[split_idx:]
+
+        # Model-specific training
+        if model_type == ModelType.LINEAR_REGRESSION:
+            model = LinearRegression()
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_val)
+            score = r2_score(y_val, y_pred)
+
+        elif model_type == ModelType.POLYNOMIAL_REGRESSION:
+            degree = params.get("degree", 2)
+            X_train_poly = np.column_stack([X_train**i for i in range(1, degree + 1)])
+            X_val_poly = np.column_stack([X_val**i for i in range(1, degree + 1)])
+            model = LinearRegression()
+            model.fit(X_train_poly, y_train)
+            y_pred = model.predict(X_val_poly)
+            score = r2_score(y_val, y_pred)
+
+        elif model_type == ModelType.RANDOM_FOREST:
+            n_estimators = params.get(
+                "n_estimators", self.model_config["random_forest"]["n_estimators"]
+            )
+            max_depth = params.get(
+                "max_depth", self.model_config["random_forest"]["max_depth"]
+            )
+            model = RandomForestRegressor(
+                n_estimators=n_estimators,
+                max_depth=max_depth,
+                random_state=42,
+                n_jobs=-1,
+            )
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_val)
+            score = r2_score(y_val, y_pred)
+
+        elif model_type in [ModelType.ARIMA, ModelType.SARIMA, ModelType.PROPHET]:
+            # Simplified time series model using linear regression
+            self.logger.warning(
+                f"{model_type.value} using simplified linear approximation"
+            )
+            model = LinearRegression()
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_val)
+            score = r2_score(y_val, y_pred)
+
+        else:
+            # Default to linear regression
+            self.logger.warning(
+                f"Unknown model type {model_type.value}, using linear regression"
+            )
+            model = LinearRegression()
+            model.fit(X_train, y_train)
+            y_pred = model.predict(X_val)
+            score = r2_score(y_val, y_pred)
+
+        # Store model in cache
+        model_key = f"{model_type.value}_{hash(str(data.shape))}"
+        self.trained_models[model_key] = {
+            "model": model,
+            "model_type": model_type,
+            "training_score": float(score),
+            "training_samples": len(X_train),
+            "validation_samples": len(X_val),
+            "target_column": target_col,
+        }
+
+        self.logger.info(f"Model training complete. R² score: {score:.4f}")
+        return self.trained_models[model_key]
 
     async def _generate_predictions(
         self, model: Any, horizon: int, confidence_level: float
     ) -> list[dict[str, Any]]:
         """Gera previsões usando o modelo treinado."""
+        self.logger.info(
+            f"Generating {horizon} period predictions with {confidence_level} confidence"
+        )
+
         predictions = []
+        model_obj = model.get("model")
+        model_type = model.get("model_type")
+        training_samples = model.get("training_samples", 100)
 
-        # TODO: Implementar geração de previsões específica por modelo
-        # - Point forecasts
-        # - Prediction intervals
-        # - Probabilistic forecasts
+        if model_obj is None:
+            self.logger.error("Model object not found")
+            return predictions
 
-        for i in range(horizon):
+        # Calculate z-score for confidence interval
+        z_score = stats.norm.ppf((1 + confidence_level) / 2)
+
+        # Generate predictions for future periods
+        for i in range(1, horizon + 1):
+            period_idx = training_samples + i
+            X_future = np.array([[period_idx]])
+
+            # Model-specific prediction
+            if model_type == ModelType.POLYNOMIAL_REGRESSION:
+                degree = 2
+                X_future_poly = np.column_stack(
+                    [X_future**j for j in range(1, degree + 1)]
+                )
+                point_forecast = float(model_obj.predict(X_future_poly)[0])
+            elif model_type == ModelType.RANDOM_FOREST:
+                point_forecast = float(model_obj.predict(X_future)[0])
+                # Random forest provides prediction variance from trees
+                if hasattr(model_obj, "estimators_"):
+                    tree_predictions = [
+                        tree.predict(X_future)[0] for tree in model_obj.estimators_
+                    ]
+                    prediction_std = np.std(tree_predictions)
+                else:
+                    prediction_std = point_forecast * 0.1
+            else:
+                # Linear models
+                point_forecast = float(model_obj.predict(X_future)[0])
+                prediction_std = (
+                    point_forecast * 0.1
+                )  # 10% standard deviation as default
+
+            # Calculate prediction intervals
+            # Adjust width based on forecast horizon (uncertainty increases)
+            horizon_factor = np.sqrt(1 + i / horizon)
+            if model_type != ModelType.RANDOM_FOREST:
+                prediction_std = abs(point_forecast) * 0.1 * horizon_factor
+
+            margin = z_score * prediction_std
+            lower_bound = point_forecast - margin
+            upper_bound = point_forecast + margin
+
             predictions.append(
                 {
-                    "period": i + 1,
-                    "predicted_value": 100.0 + i * 5,  # Placeholder
-                    "lower_bound": 90.0 + i * 5,
-                    "upper_bound": 110.0 + i * 5,
+                    "period": i,
+                    "predicted_value": float(point_forecast),
+                    "lower_bound": float(lower_bound),
+                    "upper_bound": float(upper_bound),
                     "confidence": confidence_level,
+                    "prediction_std": float(prediction_std),
+                    "horizon_factor": float(horizon_factor),
                 }
             )
 
+        self.logger.info(f"Generated {len(predictions)} predictions successfully")
         return predictions
 
     async def _evaluate_model_performance(
         self, model: Any, data: pd.DataFrame
     ) -> dict[str, float]:
         """Avalia performance do modelo."""
-        # TODO: Implementar métricas de avaliação
-        # - Cross-validation temporal
-        # - Cálculo de MAE, RMSE, MAPE
-        # - Testes estatísticos
+        self.logger.info("Evaluating model performance with cross-validation")
+
+        model_obj = model.get("model")
+        model_type = model.get("model_type")
+        target_col = model.get("target_column")
+
+        if model_obj is None or target_col not in data.columns:
+            return {"error": 1.0, "mae": 0.0, "rmse": 0.0, "mape": 0.0, "r2_score": 0.0}
+
+        # Prepare data
+        X = np.arange(len(data)).reshape(-1, 1)
+        y = data[target_col].values
+
+        # Time series cross-validation
+        tscv = TimeSeriesSplit(n_splits=min(5, len(data) // 20))
+        mae_scores = []
+        rmse_scores = []
+        mape_scores = []
+        r2_scores = []
+
+        for train_idx, test_idx in tscv.split(X):
+            X_train, X_test = X[train_idx], X[test_idx]
+            y_train, y_test = y[train_idx], y[test_idx]
+
+            # Train on this fold
+            if model_type == ModelType.POLYNOMIAL_REGRESSION:
+                degree = 2
+                X_train_poly = np.column_stack(
+                    [X_train**i for i in range(1, degree + 1)]
+                )
+                X_test_poly = np.column_stack([X_test**i for i in range(1, degree + 1)])
+                fold_model = LinearRegression().fit(X_train_poly, y_train)
+                y_pred = fold_model.predict(X_test_poly)
+            elif model_type == ModelType.RANDOM_FOREST:
+                fold_model = RandomForestRegressor(
+                    n_estimators=50, max_depth=5, random_state=42
+                )
+                fold_model.fit(X_train, y_train)
+                y_pred = fold_model.predict(X_test)
+            else:
+                fold_model = LinearRegression().fit(X_train, y_train)
+                y_pred = fold_model.predict(X_test)
+
+            # Calculate metrics
+            mae = mean_absolute_error(y_test, y_pred)
+            rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+            r2 = r2_score(y_test, y_pred)
+
+            # MAPE calculation with zero handling
+            mape_values = []
+            for actual, predicted in zip(y_test, y_pred, strict=False):
+                if actual != 0:
+                    mape_values.append(abs((actual - predicted) / actual))
+            mape = np.mean(mape_values) * 100 if mape_values else 0.0
+
+            mae_scores.append(mae)
+            rmse_scores.append(rmse)
+            mape_scores.append(mape)
+            r2_scores.append(r2)
+
+        # Calculate average metrics
+        avg_mae = float(np.mean(mae_scores))
+        avg_rmse = float(np.mean(rmse_scores))
+        avg_mape = float(np.mean(mape_scores))
+        avg_r2 = float(np.mean(r2_scores))
+
+        # Calculate AIC and BIC approximations
+        n = len(y)
+        k = 2 if model_type == ModelType.LINEAR_REGRESSION else 3
+        residual_sum_squares = avg_rmse**2 * n
+        aic = n * np.log(residual_sum_squares / n) + 2 * k
+        bic = n * np.log(residual_sum_squares / n) + k * np.log(n)
+
+        # Confidence score based on R² and consistency
+        r2_std = np.std(r2_scores)
+        confidence = max(0.0, min(1.0, avg_r2 * (1 - r2_std)))
+
+        self.logger.info(
+            f"Model performance: MAE={avg_mae:.2f}, RMSE={avg_rmse:.2f}, R²={avg_r2:.4f}"
+        )
 
         return {
-            "mae": 5.2,  # Placeholder
-            "rmse": 7.8,
-            "mape": 4.5,
-            "r2_score": 0.85,
-            "aic": 150.2,
-            "bic": 160.5,
-            "confidence": 0.82,
+            "mae": avg_mae,
+            "mae_std": float(np.std(mae_scores)),
+            "rmse": avg_rmse,
+            "rmse_std": float(np.std(rmse_scores)),
+            "mape": avg_mape,
+            "mape_std": float(np.std(mape_scores)),
+            "r2_score": avg_r2,
+            "r2_std": r2_std,
+            "aic": float(aic),
+            "bic": float(bic),
+            "confidence": float(confidence),
+            "cv_folds": tscv.n_splits,
         }
 
     async def _analyze_trends(
         self, historical_data: pd.DataFrame, predictions: list[dict[str, Any]]
     ) -> dict[str, Any]:
         """Analisa tendências nos dados históricos e previsões."""
-        # TODO: Implementar análise de tendências
+        self.logger.info("Analyzing trends in historical and predicted data")
+
+        # Extract historical values
+        numeric_cols = historical_data.select_dtypes(include=[np.number]).columns
+        if len(numeric_cols) == 0:
+            return {"direction": "unknown", "strength": 0.0, "error": "No numeric data"}
+
+        historical_values = historical_data[numeric_cols[0]].dropna().values
+
+        # Combine with predictions
+        predicted_values = np.array([p["predicted_value"] for p in predictions])
+        all_values = np.concatenate([historical_values, predicted_values])
+
+        # Linear trend analysis
+        x = np.arange(len(all_values))
+        slope, intercept, r_value, _, _ = stats.linregress(x, all_values)
+
+        # Direction determination
+        if abs(slope) < np.std(all_values) * 0.01:
+            direction = "stable"
+        elif slope > 0:
+            direction = "upward"
+        else:
+            direction = "downward"
+
+        # Trend strength (R-squared)
+        strength = r_value**2
+
+        # Acceleration (second derivative)
+        if len(all_values) > 2:
+            first_derivative = np.diff(all_values)
+            second_derivative = np.diff(first_derivative)
+            acceleration = float(np.mean(second_derivative))
+        else:
+            acceleration = 0.0
+
+        # Change point detection
+        if len(historical_values) > 10:
+            derivatives = np.abs(np.diff(historical_values))
+            threshold = np.mean(derivatives) + 2 * np.std(derivatives)
+            change_points = [int(i) for i, d in enumerate(derivatives) if d > threshold]
+        else:
+            change_points = []
+
+        # Volatility (coefficient of variation)
+        returns = np.diff(all_values) / all_values[:-1]
+        volatility = float(np.std(returns)) if len(returns) > 0 else 0.0
+
+        # Forecast divergence (how much predictions differ from historical trend)
+        hist_mean = np.mean(historical_values)
+        pred_mean = np.mean(predicted_values)
+        divergence = abs(pred_mean - hist_mean) / hist_mean if hist_mean != 0 else 0.0
+
+        self.logger.info(
+            f"Trend analysis: {direction} trend with {strength:.2f} strength"
+        )
+
         return {
-            "direction": "upward",  # Placeholder
-            "strength": 0.75,
-            "acceleration": 0.05,
-            "change_points": [],
-            "volatility": 0.12,
+            "direction": direction,
+            "strength": float(strength),
+            "slope": float(slope),
+            "acceleration": acceleration,
+            "change_points": change_points,
+            "volatility": volatility,
+            "forecast_divergence": float(divergence),
+            "historical_mean": float(hist_mean),
+            "predicted_mean": float(pred_mean),
         }
 
     def _calculate_confidence_intervals(
@@ -573,37 +1122,373 @@ class PredictiveAgent(BaseAgent):
         self, model: Any, features: list[str]
     ) -> dict[str, float]:
         """Calcula importância das features."""
-        # TODO: Implementar cálculo de importância específico por modelo
-        return {feature: 1.0 / len(features) for feature in features}  # Placeholder
+        self.logger.info(f"Calculating feature importance for {len(features)} features")
+
+        if not features:
+            return {}
+
+        model_obj = model.get("model")
+        model_type = model.get("model_type")
+
+        if model_obj is None:
+            return {feature: 1.0 / len(features) for feature in features}
+
+        importance_dict = {}
+
+        # Model-specific feature importance
+        if model_type == ModelType.RANDOM_FOREST:
+            # Random Forest provides feature_importances_
+            if hasattr(model_obj, "feature_importances_"):
+                importances = model_obj.feature_importances_
+                for i, feature in enumerate(features[: len(importances)]):
+                    importance_dict[feature] = float(importances[i])
+            else:
+                # Equal weights as fallback
+                for feature in features:
+                    importance_dict[feature] = 1.0 / len(features)
+
+        elif model_type in [
+            ModelType.LINEAR_REGRESSION,
+            ModelType.POLYNOMIAL_REGRESSION,
+        ]:
+            # Linear models: use absolute coefficient values
+            if hasattr(model_obj, "coef_"):
+                coef = np.abs(model_obj.coef_)
+                if len(coef.shape) == 1 and len(coef) > 0:
+                    # Normalize to sum to 1
+                    coef_sum = np.sum(coef)
+                    if coef_sum > 0:
+                        normalized_coef = coef / coef_sum
+                        for i, feature in enumerate(features[: len(normalized_coef)]):
+                            importance_dict[feature] = float(normalized_coef[i])
+                    else:
+                        for feature in features:
+                            importance_dict[feature] = 1.0 / len(features)
+                else:
+                    for feature in features:
+                        importance_dict[feature] = 1.0 / len(features)
+            else:
+                for feature in features:
+                    importance_dict[feature] = 1.0 / len(features)
+
+        else:
+            # Default: equal importance
+            for feature in features:
+                importance_dict[feature] = 1.0 / len(features)
+
+        # Sort by importance
+        sorted_importance = dict(
+            sorted(importance_dict.items(), key=lambda x: x[1], reverse=True)
+        )
+
+        self.logger.info(
+            f"Feature importance calculated for {len(sorted_importance)} features"
+        )
+        return sorted_importance
 
     async def _detect_seasonal_patterns(self, data: pd.DataFrame) -> dict[str, Any]:
         """Detecta padrões sazonais."""
-        # TODO: Implementar detecção de sazonalidade
+        self.logger.info("Detecting seasonal patterns in time series data")
+
+        numeric_cols = data.select_dtypes(include=[np.number]).columns
+        if len(numeric_cols) == 0:
+            return {"has_seasonality": False, "reason": "No numeric data"}
+
+        values = data[numeric_cols[0]].dropna().values
+        if len(values) < 24:  # Need at least 2 years of monthly data
+            return {"has_seasonality": False, "reason": "Insufficient data points"}
+
+        # Test common seasonal periods
+        periods_to_test = [12, 6, 4, 3]  # Monthly, semi-annual, quarterly, tri-monthly
+        autocorrelations = {}
+        max_autocorr = 0.0
+        best_period = None
+
+        for period in periods_to_test:
+            if len(values) > period * 2:
+                # Autocorrelation at lag=period
+                mean_val = np.mean(values)
+                c0 = np.sum((values - mean_val) ** 2)
+                if c0 > 0:
+                    c_lag = np.sum(
+                        (values[:-period] - mean_val) * (values[period:] - mean_val)
+                    )
+                    autocorr = c_lag / c0
+                    autocorrelations[period] = float(autocorr)
+
+                    if abs(autocorr) > abs(max_autocorr):
+                        max_autocorr = autocorr
+                        best_period = period
+
+        # Seasonality threshold
+        has_seasonality = abs(max_autocorr) > 0.3
+        strength = abs(max_autocorr)
+
+        # Extract seasonal patterns
+        patterns = []
+        if has_seasonality and best_period:
+            for phase in range(best_period):
+                seasonal_subset = values[phase::best_period]
+                if len(seasonal_subset) > 0:
+                    patterns.append(
+                        {
+                            "phase": phase,
+                            "mean": float(np.mean(seasonal_subset)),
+                            "std": float(np.std(seasonal_subset)),
+                            "min": float(np.min(seasonal_subset)),
+                            "max": float(np.max(seasonal_subset)),
+                        }
+                    )
+
+        self.logger.info(
+            f"Seasonality: {has_seasonality}, period: {best_period}, strength: {strength:.2f}"
+        )
+
         return {
-            "has_seasonality": True,  # Placeholder
-            "seasonal_period": 12,
-            "strength": 0.65,
-            "patterns": [],
+            "has_seasonality": has_seasonality,
+            "seasonal_period": int(best_period) if best_period else None,
+            "strength": float(strength),
+            "autocorrelations": autocorrelations,
+            "patterns": patterns,
+            "dominant_frequency": best_period,
         }
 
     async def _detect_future_anomalies(
         self, predictions: list[dict[str, Any]]
     ) -> list[dict[str, Any]]:
         """Detecta possíveis anomalias nas previsões."""
-        # TODO: Implementar detecção de anomalias futuras
-        return []  # Placeholder
+        self.logger.info(
+            f"Detecting potential anomalies in {len(predictions)} predictions"
+        )
+
+        if not predictions or len(predictions) < 3:
+            return []
+
+        anomaly_alerts = []
+
+        # Extract predicted values and confidence intervals
+        predicted_values = np.array([p["predicted_value"] for p in predictions])
+        lower_bounds = np.array(
+            [p.get("lower_bound", p["predicted_value"] * 0.9) for p in predictions]
+        )
+        upper_bounds = np.array(
+            [p.get("upper_bound", p["predicted_value"] * 1.1) for p in predictions]
+        )
+
+        # Calculate statistics
+        mean_pred = np.mean(predicted_values)
+        std_pred = np.std(predicted_values)
+
+        # Detect anomalies based on multiple criteria
+        for i, pred in enumerate(predictions):
+            anomaly_score = 0.0
+            reasons = []
+
+            predicted_value = pred["predicted_value"]
+            confidence_width = upper_bounds[i] - lower_bounds[i]
+
+            # Criterion 1: Statistical deviation (z-score > 2.5)
+            if std_pred > 0:
+                z_score = abs((predicted_value - mean_pred) / std_pred)
+                if z_score > 2.5:
+                    anomaly_score += 0.4
+                    reasons.append(f"Statistical outlier (z-score: {z_score:.2f})")
+
+            # Criterion 2: Wide confidence interval (uncertainty)
+            avg_width = np.mean(upper_bounds - lower_bounds)
+            if confidence_width > avg_width * 1.5:
+                anomaly_score += 0.3
+                reasons.append("High prediction uncertainty")
+
+            # Criterion 3: Sharp change from previous period
+            if i > 0:
+                prev_value = predictions[i - 1]["predicted_value"]
+                change_rate = (
+                    abs((predicted_value - prev_value) / prev_value)
+                    if prev_value != 0
+                    else 0
+                )
+                if change_rate > 0.2:  # 20% change
+                    anomaly_score += 0.3
+                    reasons.append(f"Sharp change ({change_rate*100:.1f}%)")
+
+            # Generate alert if anomaly score is significant
+            if anomaly_score >= 0.4:
+                severity = (
+                    "high"
+                    if anomaly_score > 0.7
+                    else "medium" if anomaly_score > 0.5 else "low"
+                )
+
+                anomaly_alerts.append(
+                    {
+                        "period": pred["period"],
+                        "predicted_value": predicted_value,
+                        "anomaly_score": float(anomaly_score),
+                        "severity": severity,
+                        "reasons": reasons,
+                        "expected_range": {
+                            "mean": float(mean_pred),
+                            "std": float(std_pred),
+                            "lower": float(mean_pred - 2 * std_pred),
+                            "upper": float(mean_pred + 2 * std_pred),
+                        },
+                        "confidence_interval_width": float(confidence_width),
+                    }
+                )
+
+        self.logger.info(f"Detected {len(anomaly_alerts)} potential future anomalies")
+        return anomaly_alerts
 
     async def _load_pretrained_models(self) -> None:
         """Carrega modelos pré-treinados."""
-        # TODO: Carregar modelos salvos
-        pass
+        self.logger.info("Loading pretrained models from cache...")
+
+        # In a production environment, this would load models from disk or database
+        # For now, initialize empty cache that will be populated on-demand
+        self.trained_models = {}
+
+        # Define model metadata for available pretrained models
+        self.available_pretrained = {
+            "linear_baseline": {
+                "type": ModelType.LINEAR_REGRESSION,
+                "description": "Basic linear regression baseline",
+                "performance": {"mae": 0.0, "rmse": 0.0},
+                "loaded": False,
+            },
+            "rf_general": {
+                "type": ModelType.RANDOM_FOREST,
+                "description": "General purpose random forest",
+                "performance": {"mae": 0.0, "rmse": 0.0},
+                "loaded": False,
+            },
+        }
+
+        self.logger.info(
+            f"Model cache initialized with {len(self.available_pretrained)} pretrained models available"
+        )
+        self.logger.debug(
+            "Note: Models will be trained on-demand for specific datasets"
+        )
 
     async def _setup_preprocessing_pipelines(self) -> None:
         """Configura pipelines de preprocessing."""
-        # TODO: Configurar pipelines de transformação
-        pass
+        self.logger.info("Setting up preprocessing pipelines...")
+
+        # Define preprocessing pipelines for different data types
+        self.preprocessing_pipelines = {
+            "numeric": {
+                "scaler": StandardScaler(),
+                "imputer": SimpleImputer(strategy="mean"),
+                "description": "Standardization and mean imputation for numeric features",
+            },
+            "categorical": {
+                "encoder": OneHotEncoder(sparse_output=False, handle_unknown="ignore"),
+                "imputer": SimpleImputer(strategy="most_frequent"),
+                "description": "One-hot encoding and mode imputation for categorical features",
+            },
+            "time_series": {
+                "methods": ["forward_fill", "interpolation", "seasonal_decomposition"],
+                "outlier_treatment": "iqr_capping",
+                "description": "Specialized preprocessing for time series data",
+            },
+        }
+
+        # Define transformation strategies
+        self.transformation_strategies = {
+            "log_transform": {
+                "applicable_to": "positive_skewed",
+                "description": "Log transformation for right-skewed distributions",
+            },
+            "box_cox": {
+                "applicable_to": "positive_values",
+                "description": "Box-Cox power transformation for normalization",
+            },
+            "difference": {
+                "applicable_to": "non_stationary",
+                "description": "First-order differencing for stationarity",
+            },
+        }
+
+        self.logger.info(
+            f"Configured {len(self.preprocessing_pipelines)} preprocessing pipelines"
+        )
+        self.logger.debug(
+            f"Available transformations: {list(self.transformation_strategies.keys())}"
+        )
 
     async def _setup_evaluation_metrics(self) -> None:
         """Configura métricas de avaliação."""
-        # TODO: Configurar métricas customizadas
-        pass
+        self.logger.info("Setting up evaluation metrics...")
+
+        # Define standard evaluation metrics
+        self.evaluation_metrics = {
+            "mae": {
+                "name": "Mean Absolute Error",
+                "function": mean_absolute_error,
+                "lower_is_better": True,
+                "description": "Average absolute difference between predicted and actual values",
+            },
+            "rmse": {
+                "name": "Root Mean Squared Error",
+                "function": lambda y_true, y_pred: np.sqrt(
+                    mean_squared_error(y_true, y_pred)
+                ),
+                "lower_is_better": True,
+                "description": "Square root of average squared errors, penalizes large errors",
+            },
+            "mape": {
+                "name": "Mean Absolute Percentage Error",
+                "function": lambda y_true, y_pred: np.mean(
+                    np.abs((y_true - y_pred) / np.where(y_true != 0, y_true, 1))
+                )
+                * 100,
+                "lower_is_better": True,
+                "description": "Percentage error, scale-independent metric",
+            },
+            "r2": {
+                "name": "R² Score (Coefficient of Determination)",
+                "function": r2_score,
+                "lower_is_better": False,
+                "description": "Proportion of variance explained by the model",
+            },
+            "adjusted_r2": {
+                "name": "Adjusted R² Score",
+                "function": lambda y_true, y_pred, n_features: 1
+                - (1 - r2_score(y_true, y_pred))
+                * (len(y_true) - 1)
+                / (len(y_true) - n_features - 1),
+                "lower_is_better": False,
+                "description": "R² adjusted for number of predictors",
+            },
+        }
+
+        # Define custom metrics for time series
+        self.time_series_metrics = {
+            "directional_accuracy": {
+                "description": "Percentage of correct directional predictions",
+                "threshold": 0.7,
+            },
+            "forecast_bias": {
+                "description": "Average difference between forecast and actual (positive = overforecast)",
+                "threshold": 0.05,
+            },
+            "prediction_interval_coverage": {
+                "description": "Percentage of actual values within prediction intervals",
+                "target": 0.95,
+            },
+        }
+
+        # Metric thresholds for model acceptance
+        self.metric_thresholds = {
+            "mae": {"excellent": 0.05, "good": 0.10, "acceptable": 0.20},
+            "rmse": {"excellent": 0.10, "good": 0.20, "acceptable": 0.30},
+            "mape": {"excellent": 5.0, "good": 10.0, "acceptable": 20.0},
+            "r2": {"excellent": 0.90, "good": 0.75, "acceptable": 0.60},
+        }
+
+        self.logger.info(f"Configured {len(self.evaluation_metrics)} standard metrics")
+        self.logger.info(
+            f"Configured {len(self.time_series_metrics)} time series specific metrics"
+        )
+        self.logger.debug("Metric thresholds set for model acceptance criteria")
