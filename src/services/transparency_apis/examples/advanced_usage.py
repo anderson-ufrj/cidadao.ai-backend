@@ -10,10 +10,11 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
+
 from src.services.transparency_apis import registry
 from src.services.transparency_apis.cache import get_cache
-from src.services.transparency_apis.validators import DataValidator, AnomalyDetector
 from src.services.transparency_apis.health_check import get_health_monitor
+from src.services.transparency_apis.validators import AnomalyDetector, DataValidator
 
 
 async def example_1_health_monitoring():
@@ -24,7 +25,7 @@ async def example_1_health_monitoring():
 
     # Check specific API
     print("Checking TCE-PE health...")
-    result = await monitor.check_api('PE-tce')
+    result = await monitor.check_api("PE-tce")
 
     print(f"Status: {result.status.value}")
     print(f"Response time: {result.response_time * 1000:.2f}ms")
@@ -55,23 +56,24 @@ async def example_2_caching():
     print("=== Example 2: Caching Layer ===\n")
 
     cache = get_cache()
-    pe_tce = registry.get_client('PE-tce')
+    pe_tce = registry.get_client("PE-tce")
 
     if pe_tce:
         # First call (cache miss)
         print("First call (fetching from API)...")
         import time
+
         start = time.time()
         contracts = await pe_tce.get_contracts(year=2024)
         duration1 = time.time() - start
 
         # Cache the result
-        cache.set_contracts('PE-tce', contracts, year=2024)
+        cache.set_contracts("PE-tce", contracts, year=2024)
 
         # Second call (cache hit)
         print("Second call (from cache)...")
         start = time.time()
-        cached_contracts = cache.get_contracts('PE-tce', year=2024)
+        cached_contracts = cache.get_contracts("PE-tce", year=2024)
         duration2 = time.time() - start
 
         print(f"API call: {duration1 * 1000:.2f}ms")
@@ -89,23 +91,25 @@ async def example_3_data_validation():
     """Example 3: Validate contract data."""
     print("=== Example 3: Data Validation ===\n")
 
-    pe_tce = registry.get_client('PE-tce')
+    pe_tce = registry.get_client("PE-tce")
 
     if pe_tce:
         contracts = await pe_tce.get_contracts(year=2024)
 
         # Validate batch
         print(f"Validating {len(contracts)} contracts...")
-        validation_result = DataValidator.validate_batch(contracts, data_type="contract")
+        validation_result = DataValidator.validate_batch(
+            contracts, data_type="contract"
+        )
 
         print(f"Valid: {validation_result['valid']}")
         print(f"Invalid: {validation_result['invalid']}")
         print(f"Validation rate: {validation_result['validation_rate'] * 100:.1f}%")
 
         # Show common issues
-        if validation_result['common_issues']:
+        if validation_result["common_issues"]:
             print("\nMost common issues:")
-            for issue, count in list(validation_result['common_issues'].items())[:3]:
+            for issue, count in list(validation_result["common_issues"].items())[:3]:
                 print(f"  - {issue}: {count} occurrences")
 
         print()
@@ -115,7 +119,7 @@ async def example_4_anomaly_detection():
     """Example 4: Detect anomalies in contract data."""
     print("=== Example 4: Anomaly Detection ===\n")
 
-    pe_tce = registry.get_client('PE-tce')
+    pe_tce = registry.get_client("PE-tce")
 
     if pe_tce:
         contracts = await pe_tce.get_contracts(year=2024)
@@ -139,13 +143,17 @@ async def example_4_anomaly_detection():
         print("Analyzing supplier concentration...")
         concentration = AnomalyDetector.detect_supplier_concentration(contracts)
 
-        if concentration.get('concentrated'):
-            print(f"⚠️  High concentration detected!")
-            print(f"Top 3 suppliers: {concentration['concentration_ratio'] * 100:.1f}% of total value")
+        if concentration.get("concentrated"):
+            print("⚠️  High concentration detected!")
+            print(
+                f"Top 3 suppliers: {concentration['concentration_ratio'] * 100:.1f}% of total value"
+            )
 
             print("\nTop suppliers:")
-            for supplier in concentration['top_suppliers']:
-                print(f"  - {supplier['supplier_name']}: R$ {supplier['total_value']:,.2f} ({supplier['percentage'] * 100:.1f}%)")
+            for supplier in concentration["top_suppliers"]:
+                print(
+                    f"  - {supplier['supplier_name']}: R$ {supplier['total_value']:,.2f} ({supplier['percentage'] * 100:.1f}%)"
+                )
         else:
             print("✅ Healthy supplier distribution")
 
@@ -160,8 +168,12 @@ async def example_4_anomaly_detection():
         if duplicates:
             for i, dup in enumerate(duplicates[:2], 1):
                 print(f"Duplicate pair {i}:")
-                print(f"  Contract 1: {dup['contract1'].get('contract_id')} - R$ {dup['contract1'].get('value', 0):,.2f}")
-                print(f"  Contract 2: {dup['contract2'].get('contract_id')} - R$ {dup['contract2'].get('value', 0):,.2f}")
+                print(
+                    f"  Contract 1: {dup['contract1'].get('contract_id')} - R$ {dup['contract1'].get('value', 0):,.2f}"
+                )
+                print(
+                    f"  Contract 2: {dup['contract2'].get('contract_id')} - R$ {dup['contract2'].get('value', 0):,.2f}"
+                )
                 print(f"  Similarity: {dup['similarity'] * 100:.1f}%")
                 print()
 
@@ -173,7 +185,7 @@ async def example_5_comprehensive_analysis():
     # 1. Check API health
     print("Step 1: Health check...")
     monitor = get_health_monitor()
-    result = await monitor.check_api('PE-tce')
+    result = await monitor.check_api("PE-tce")
 
     if result.status.value != "healthy":
         print(f"❌ API unhealthy: {result.error}")
@@ -184,15 +196,15 @@ async def example_5_comprehensive_analysis():
     # 2. Fetch data (with caching)
     print("\nStep 2: Fetching data...")
     cache = get_cache()
-    cached_data = cache.get_contracts('PE-tce', year=2024)
+    cached_data = cache.get_contracts("PE-tce", year=2024)
 
     if cached_data:
         print("✅ Using cached data")
         contracts = cached_data
     else:
-        pe_tce = registry.get_client('PE-tce')
+        pe_tce = registry.get_client("PE-tce")
         contracts = await pe_tce.get_contracts(year=2024)
-        cache.set_contracts('PE-tce', contracts, year=2024)
+        cache.set_contracts("PE-tce", contracts, year=2024)
         print("✅ Data fetched and cached")
 
     # 3. Validate data
@@ -207,7 +219,9 @@ async def example_5_comprehensive_analysis():
     duplicates = AnomalyDetector.detect_duplicate_contracts(contracts)
 
     print(f"✅ Found {len(outliers)} outliers")
-    print(f"✅ Supplier concentration: {concentration['concentration_ratio'] * 100:.1f}%")
+    print(
+        f"✅ Supplier concentration: {concentration['concentration_ratio'] * 100:.1f}%"
+    )
     print(f"✅ Found {len(duplicates)} potential duplicates")
 
     # 5. Generate summary
@@ -217,7 +231,9 @@ async def example_5_comprehensive_analysis():
     print(f"Total contracts analyzed: {len(contracts)}")
     print(f"Valid contracts: {validation['valid']}")
     print(f"Anomalies detected: {len(outliers)}")
-    print(f"High-risk concentration: {'Yes' if concentration.get('concentrated') else 'No'}")
+    print(
+        f"High-risk concentration: {'Yes' if concentration.get('concentrated') else 'No'}"
+    )
     print(f"Potential duplicates: {len(duplicates)}")
     print()
 

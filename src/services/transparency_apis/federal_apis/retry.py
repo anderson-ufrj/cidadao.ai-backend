@@ -10,28 +10,28 @@ License: Proprietary - All rights reserved
 
 import asyncio
 import random
-from functools import wraps
-from typing import Any, Callable, Optional, Tuple, Type
+from collections.abc import Callable
 from datetime import datetime
+from functools import wraps
+from typing import Any, Optional
 
 from src.core import get_logger
+
 from .exceptions import (
-    FederalAPIError,
+    AuthenticationError,
     NetworkError,
-    TimeoutError,
+    NotFoundError,
     RateLimitError,
     ServerError,
-    AuthenticationError,
-    NotFoundError,
-    ValidationError
+    TimeoutError,
+    ValidationError,
 )
-
 
 logger = get_logger(__name__)
 
 
 # Exceptions that should trigger a retry
-RETRYABLE_EXCEPTIONS: Tuple[Type[Exception], ...] = (
+RETRYABLE_EXCEPTIONS: tuple[type[Exception], ...] = (
     NetworkError,
     TimeoutError,
     ServerError,
@@ -40,7 +40,7 @@ RETRYABLE_EXCEPTIONS: Tuple[Type[Exception], ...] = (
 )
 
 # Exceptions that should NOT be retried (client errors)
-NON_RETRYABLE_EXCEPTIONS: Tuple[Type[Exception], ...] = (
+NON_RETRYABLE_EXCEPTIONS: tuple[type[Exception], ...] = (
     AuthenticationError,
     NotFoundError,
     ValidationError,
@@ -52,7 +52,7 @@ def calculate_backoff(
     base_delay: float = 1.0,
     max_delay: float = 60.0,
     exponential_base: float = 2.0,
-    jitter: bool = True
+    jitter: bool = True,
 ) -> float:
     """
     Calculate exponential backoff delay with optional jitter.
@@ -73,7 +73,7 @@ def calculate_backoff(
         >>> calculate_backoff(2, jitter=False)  # 4.0s
         >>> calculate_backoff(3, jitter=False)  # 8.0s
     """
-    delay = min(base_delay * (exponential_base ** attempt), max_delay)
+    delay = min(base_delay * (exponential_base**attempt), max_delay)
 
     if jitter:
         # Add random jitter between 0% and 25% of delay
@@ -116,7 +116,7 @@ def retry_with_backoff(
     exponential_base: float = 2.0,
     jitter: bool = True,
     on_retry: Optional[Callable[[int, Exception], None]] = None,
-    retryable_exceptions: Optional[Tuple[Type[Exception], ...]] = None
+    retryable_exceptions: Optional[tuple[type[Exception], ...]] = None,
 ):
     """
     Decorator for automatic retry with exponential backoff.
@@ -159,6 +159,7 @@ def retry_with_backoff(
         async def my_function():
             pass
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> Any:
@@ -173,34 +174,36 @@ def retry_with_backoff(
                     # Success! Log if this was a retry
                     if attempt > 0:
                         logger.info(
-                            f"Retry successful",
+                            "Retry successful",
                             function=func_name,
                             attempt=attempt + 1,
-                            max_attempts=max_attempts
+                            max_attempts=max_attempts,
                         )
 
                     return result
 
                 except Exception as exc:
                     last_exception = exc
-                    is_last_attempt = (attempt == max_attempts - 1)
+                    is_last_attempt = attempt == max_attempts - 1
 
                     # Determine if we should retry
                     should_retry = (
-                        retryable_exceptions and isinstance(exc, retryable_exceptions)
-                    ) if retryable_exceptions else should_retry_exception(exc)
+                        (retryable_exceptions and isinstance(exc, retryable_exceptions))
+                        if retryable_exceptions
+                        else should_retry_exception(exc)
+                    )
 
                     if not should_retry or is_last_attempt:
                         # Don't retry, raise the exception
                         logger.error(
-                            f"Request failed, not retrying",
+                            "Request failed, not retrying",
                             function=func_name,
                             attempt=attempt + 1,
                             max_attempts=max_attempts,
                             exception=str(exc),
                             exception_type=type(exc).__name__,
                             should_retry=should_retry,
-                            is_last_attempt=is_last_attempt
+                            is_last_attempt=is_last_attempt,
                         )
                         raise
 
@@ -208,10 +211,10 @@ def retry_with_backoff(
                     if isinstance(exc, RateLimitError) and exc.retry_after:
                         delay = exc.retry_after
                         logger.warning(
-                            f"Rate limit hit, using retry_after from response",
+                            "Rate limit hit, using retry_after from response",
                             function=func_name,
                             retry_after=delay,
-                            attempt=attempt + 1
+                            attempt=attempt + 1,
                         )
                     else:
                         delay = calculate_backoff(
@@ -219,7 +222,7 @@ def retry_with_backoff(
                             base_delay=base_delay,
                             max_delay=max_delay,
                             exponential_base=exponential_base,
-                            jitter=jitter
+                            jitter=jitter,
                         )
 
                     # Log retry attempt
@@ -230,7 +233,7 @@ def retry_with_backoff(
                         max_attempts=max_attempts,
                         delay_seconds=delay,
                         exception=str(exc),
-                        exception_type=type(exc).__name__
+                        exception_type=type(exc).__name__,
                     )
 
                     # Call on_retry callback if provided
@@ -239,8 +242,8 @@ def retry_with_backoff(
                             on_retry(attempt + 1, exc)
                         except Exception as callback_exc:
                             logger.error(
-                                f"Error in on_retry callback",
-                                callback_exception=str(callback_exc)
+                                "Error in on_retry callback",
+                                callback_exception=str(callback_exc),
                             )
 
                     # Wait before retrying
@@ -248,14 +251,15 @@ def retry_with_backoff(
 
             # If we get here, all attempts failed
             logger.error(
-                f"All retry attempts exhausted",
+                "All retry attempts exhausted",
                 function=func_name,
                 max_attempts=max_attempts,
-                last_exception=str(last_exception)
+                last_exception=str(last_exception),
             )
             raise last_exception
 
         return wrapper
+
     return decorator
 
 
@@ -278,20 +282,20 @@ class RetryContext:
             duration = (datetime.now() - self.start_time).total_seconds()
             if exc_type is None:
                 logger.info(
-                    f"Operation completed successfully",
-                    operation=self.operation_name,
-                    attempts=self.current_attempt + 1,
-                    duration_seconds=duration,
-                    total_delay_seconds=self.total_delay
-                )
-            else:
-                logger.error(
-                    f"Operation failed after all attempts",
+                    "Operation completed successfully",
                     operation=self.operation_name,
                     attempts=self.current_attempt + 1,
                     duration_seconds=duration,
                     total_delay_seconds=self.total_delay,
-                    exception_type=exc_type.__name__ if exc_type else None
+                )
+            else:
+                logger.error(
+                    "Operation failed after all attempts",
+                    operation=self.operation_name,
+                    attempts=self.current_attempt + 1,
+                    duration_seconds=duration,
+                    total_delay_seconds=self.total_delay,
+                    exception_type=exc_type.__name__ if exc_type else None,
                 )
 
     async def wait_before_retry(self, attempt: int, base_delay: float = 1.0):
@@ -299,10 +303,10 @@ class RetryContext:
         delay = calculate_backoff(attempt, base_delay=base_delay)
         self.total_delay += delay
         logger.info(
-            f"Waiting before retry",
+            "Waiting before retry",
             operation=self.operation_name,
             attempt=attempt + 1,
-            delay_seconds=delay
+            delay_seconds=delay,
         )
         await asyncio.sleep(delay)
         self.current_attempt = attempt
@@ -310,12 +314,18 @@ class RetryContext:
 
 # Convenience decorators for common scenarios
 
+
 def retry_on_network_error(max_attempts: int = 3, base_delay: float = 1.0):
     """Retry only on network errors."""
     return retry_with_backoff(
         max_attempts=max_attempts,
         base_delay=base_delay,
-        retryable_exceptions=(NetworkError, TimeoutError, ConnectionError, asyncio.TimeoutError)
+        retryable_exceptions=(
+            NetworkError,
+            TimeoutError,
+            ConnectionError,
+            asyncio.TimeoutError,
+        ),
     )
 
 
@@ -324,15 +334,17 @@ def retry_on_server_error(max_attempts: int = 3, base_delay: float = 2.0):
     return retry_with_backoff(
         max_attempts=max_attempts,
         base_delay=base_delay,
-        retryable_exceptions=(ServerError,)
+        retryable_exceptions=(ServerError,),
     )
 
 
-def aggressive_retry(max_attempts: int = 5, base_delay: float = 0.5, max_delay: float = 30.0):
+def aggressive_retry(
+    max_attempts: int = 5, base_delay: float = 0.5, max_delay: float = 30.0
+):
     """Aggressive retry strategy for critical operations."""
     return retry_with_backoff(
         max_attempts=max_attempts,
         base_delay=base_delay,
         max_delay=max_delay,
-        exponential_base=1.5  # Less aggressive exponential growth
+        exponential_base=1.5,  # Less aggressive exponential growth
     )

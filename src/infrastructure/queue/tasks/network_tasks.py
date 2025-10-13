@@ -6,28 +6,26 @@ Date: 2025-10-09
 License: Proprietary - All rights reserved
 """
 
-from typing import Dict, Any, List
 from datetime import datetime, timedelta
+from typing import Any
+
 from celery import Task
 from celery.utils.log import get_task_logger
+from sqlalchemy import func, select
 
-from src.infrastructure.queue.celery_app import celery_app
-from src.services.network_analysis_service import get_network_analysis_service
-from src.services.graph_integration_service import get_graph_integration_service
 from src.db.session import get_db
-from sqlalchemy import select, func
+from src.infrastructure.queue.celery_app import celery_app
 from src.models.entity_graph import EntityNode, SuspiciousNetwork
+from src.services.graph_integration_service import get_graph_integration_service
+from src.services.network_analysis_service import get_network_analysis_service
 
 logger = get_task_logger(__name__)
 
 
 @celery_app.task(
-    name="tasks.calculate_network_metrics",
-    queue="background",
-    bind=True,
-    max_retries=3
+    name="tasks.calculate_network_metrics", queue="background", bind=True, max_retries=3
 )
-def calculate_network_metrics(self: Task) -> Dict[str, Any]:
+def calculate_network_metrics(self: Task) -> dict[str, Any]:
     """
     Calculate network centrality metrics for all entities.
 
@@ -40,6 +38,7 @@ def calculate_network_metrics(self: Task) -> Dict[str, Any]:
     logger.info("starting_network_metrics_calculation")
 
     try:
+
         async def _calculate():
             async with get_db() as db:
                 network_service = get_network_analysis_service(db)
@@ -47,37 +46,31 @@ def calculate_network_metrics(self: Task) -> Dict[str, Any]:
                 return metrics
 
         import asyncio
+
         metrics = asyncio.run(_calculate())
 
         logger.info(
             "network_metrics_completed",
             entities_updated=metrics.get("entities_updated", 0),
-            execution_time=metrics.get("execution_time_seconds", 0)
+            execution_time=metrics.get("execution_time_seconds", 0),
         )
 
         return {
             "status": "success",
             "timestamp": datetime.now().isoformat(),
-            "metrics": metrics
+            "metrics": metrics,
         }
 
     except Exception as e:
-        logger.error(
-            "network_metrics_failed",
-            error=str(e),
-            exc_info=True
-        )
+        logger.error("network_metrics_failed", error=str(e), exc_info=True)
         # Retry with exponential backoff
-        raise self.retry(exc=e, countdown=60 * (2 ** self.request.retries))
+        raise self.retry(exc=e, countdown=60 * (2**self.request.retries))
 
 
 @celery_app.task(
-    name="tasks.detect_suspicious_networks",
-    queue="high",
-    bind=True,
-    max_retries=3
+    name="tasks.detect_suspicious_networks", queue="high", bind=True, max_retries=3
 )
-def detect_suspicious_networks(self: Task, lookback_days: int = 7) -> Dict[str, Any]:
+def detect_suspicious_networks(self: Task, lookback_days: int = 7) -> dict[str, Any]:
     """
     Detect suspicious networks (cartels, concentration, shell networks).
 
@@ -89,12 +82,10 @@ def detect_suspicious_networks(self: Task, lookback_days: int = 7) -> Dict[str, 
     - Concentration: Few suppliers dominating contracts
     - Shell networks: Complex ownership chains with low contract values
     """
-    logger.info(
-        "starting_suspicious_network_detection",
-        lookback_days=lookback_days
-    )
+    logger.info("starting_suspicious_network_detection", lookback_days=lookback_days)
 
     try:
+
         async def _detect():
             async with get_db() as db:
                 # Get recent investigation IDs
@@ -108,7 +99,10 @@ def detect_suspicious_networks(self: Task, lookback_days: int = 7) -> Dict[str, 
                 investigation_ids = [row[0] for row in result]
 
                 if not investigation_ids:
-                    return {"networks_detected": 0, "message": "No recent investigations"}
+                    return {
+                        "networks_detected": 0,
+                        "message": "No recent investigations",
+                    }
 
                 # Detect suspicious networks
                 network_service = get_network_analysis_service(db)
@@ -133,43 +127,40 @@ def detect_suspicious_networks(self: Task, lookback_days: int = 7) -> Dict[str, 
                             "type": net.network_type,
                             "severity": net.severity,
                             "entity_count": net.entity_count,
-                            "confidence": net.confidence_score
+                            "confidence": net.confidence_score,
                         }
                         for net in unique_networks.values()
-                    ]
+                    ],
                 }
 
         import asyncio
+
         result = asyncio.run(_detect())
 
         logger.info(
             "suspicious_networks_detected",
             networks_count=result.get("networks_detected", 0),
-            lookback_days=lookback_days
+            lookback_days=lookback_days,
         )
 
-        return {
-            "status": "success",
-            "timestamp": datetime.now().isoformat(),
-            **result
-        }
+        return {"status": "success", "timestamp": datetime.now().isoformat(), **result}
 
     except Exception as e:
         logger.error(
             "suspicious_network_detection_failed",
             error=str(e),
             lookback_days=lookback_days,
-            exc_info=True
+            exc_info=True,
         )
-        raise self.retry(exc=e, countdown=60 * (2 ** self.request.retries))
+        raise self.retry(exc=e, countdown=60 * (2**self.request.retries))
 
 
 @celery_app.task(
-    name="tasks.enrich_recent_investigations_with_graph",
-    queue="normal",
-    bind=True
+    name="tasks.enrich_recent_investigations_with_graph", queue="normal", bind=True
 )
-def enrich_recent_investigations_with_graph(self: Task, lookback_hours: int = 6) -> Dict[str, Any]:
+def enrich_recent_investigations_with_graph(
+    self: Task, lookback_hours: int = 6
+) -> dict[str, Any]:
     """
     Enrich recent investigations with network graph data.
 
@@ -179,11 +170,11 @@ def enrich_recent_investigations_with_graph(self: Task, lookback_hours: int = 6)
     - Network connections and influence
     """
     logger.info(
-        "starting_investigation_graph_enrichment",
-        lookback_hours=lookback_hours
+        "starting_investigation_graph_enrichment", lookback_hours=lookback_hours
     )
 
     try:
+
         async def _enrich():
             async with get_db() as db:
                 # Get recent investigations
@@ -192,7 +183,7 @@ def enrich_recent_investigations_with_graph(self: Task, lookback_hours: int = 6)
                 cutoff_time = datetime.now() - timedelta(hours=lookback_hours)
                 query = select(Investigation).where(
                     Investigation.created_at >= cutoff_time,
-                    Investigation.status.in_(["completed", "running"])
+                    Investigation.status.in_(["completed", "running"]),
                 )
                 result = await db.execute(query)
                 investigations = list(result.scalars().all())
@@ -207,7 +198,6 @@ def enrich_recent_investigations_with_graph(self: Task, lookback_hours: int = 6)
                 for inv in investigations:
                     # Get forensic results from investigation
                     if inv.results and isinstance(inv.results, list):
-                        from src.models.forensic_investigation import ForensicAnomalyResult
 
                         # Convert dict results to ForensicAnomalyResult objects
                         forensic_results = []
@@ -221,49 +211,38 @@ def enrich_recent_investigations_with_graph(self: Task, lookback_hours: int = 6)
                             await graph_service.integrate_investigation_with_graph(
                                 investigation_id=inv.id,
                                 forensic_results=forensic_results,
-                                contract_data=inv.filters
+                                contract_data=inv.filters,
                             )
                             enriched_count += 1
 
                 return {
                     "enriched": enriched_count,
-                    "total_processed": len(investigations)
+                    "total_processed": len(investigations),
                 }
 
         import asyncio
+
         result = asyncio.run(_enrich())
 
         logger.info(
             "investigation_enrichment_completed",
             enriched=result.get("enriched", 0),
-            lookback_hours=lookback_hours
+            lookback_hours=lookback_hours,
         )
 
-        return {
-            "status": "success",
-            "timestamp": datetime.now().isoformat(),
-            **result
-        }
+        return {"status": "success", "timestamp": datetime.now().isoformat(), **result}
 
     except Exception as e:
-        logger.error(
-            "investigation_enrichment_failed",
-            error=str(e),
-            exc_info=True
-        )
+        logger.error("investigation_enrichment_failed", error=str(e), exc_info=True)
         return {
             "status": "error",
             "error": str(e),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
 
-@celery_app.task(
-    name="tasks.update_entity_risk_scores",
-    queue="background",
-    bind=True
-)
-def update_entity_risk_scores(self: Task) -> Dict[str, Any]:
+@celery_app.task(name="tasks.update_entity_risk_scores", queue="background", bind=True)
+def update_entity_risk_scores(self: Task) -> dict[str, Any]:
     """
     Update risk scores for all entities based on:
     - Number of investigations involved
@@ -274,6 +253,7 @@ def update_entity_risk_scores(self: Task) -> Dict[str, Any]:
     logger.info("starting_entity_risk_score_update")
 
     try:
+
         async def _update_scores():
             async with get_db() as db:
                 # Get all entities
@@ -293,7 +273,9 @@ def update_entity_risk_scores(self: Task) -> Dict[str, Any]:
 
                     # Factor 2: Anomalies ratio (max 3 points)
                     if entity.total_investigations > 0:
-                        anomaly_ratio = entity.total_anomalies / entity.total_investigations
+                        anomaly_ratio = (
+                            entity.total_anomalies / entity.total_investigations
+                        )
                         risk_score += min(anomaly_ratio * 3.0, 3.0)
 
                     # Factor 3: Network centrality (max 2 points)
@@ -312,41 +294,30 @@ def update_entity_risk_scores(self: Task) -> Dict[str, Any]:
 
                 return {
                     "entities_updated": updated_count,
-                    "total_entities": len(entities)
+                    "total_entities": len(entities),
                 }
 
         import asyncio
+
         result = asyncio.run(_update_scores())
 
         logger.info(
-            "risk_scores_updated",
-            entities_updated=result.get("entities_updated", 0)
+            "risk_scores_updated", entities_updated=result.get("entities_updated", 0)
         )
 
-        return {
-            "status": "success",
-            "timestamp": datetime.now().isoformat(),
-            **result
-        }
+        return {"status": "success", "timestamp": datetime.now().isoformat(), **result}
 
     except Exception as e:
-        logger.error(
-            "risk_score_update_failed",
-            error=str(e),
-            exc_info=True
-        )
+        logger.error("risk_score_update_failed", error=str(e), exc_info=True)
         return {
             "status": "error",
             "error": str(e),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
 
 
-@celery_app.task(
-    name="tasks.network_health_check",
-    queue="high"
-)
-def network_health_check() -> Dict[str, Any]:
+@celery_app.task(name="tasks.network_health_check", queue="high")
+def network_health_check() -> dict[str, Any]:
     """
     Health check for network graph system.
 
@@ -358,6 +329,7 @@ def network_health_check() -> Dict[str, Any]:
     logger.info("starting_network_health_check")
 
     try:
+
         async def _health_check():
             async with get_db() as db:
                 # Count entities
@@ -380,7 +352,8 @@ def network_health_check() -> Dict[str, Any]:
 
                 metrics_percentage = (
                     (entities_with_metrics / entity_count * 100)
-                    if entity_count > 0 else 0
+                    if entity_count > 0
+                    else 0
                 )
 
                 return {
@@ -388,34 +361,27 @@ def network_health_check() -> Dict[str, Any]:
                     "suspicious_networks_24h": recent_networks or 0,
                     "entities_with_metrics": entities_with_metrics or 0,
                     "metrics_coverage_percent": round(metrics_percentage, 2),
-                    "healthy": entity_count > 0 and metrics_percentage > 50
+                    "healthy": entity_count > 0 and metrics_percentage > 50,
                 }
 
         import asyncio
+
         result = asyncio.run(_health_check())
 
         health_status = "healthy" if result.get("healthy") else "degraded"
 
-        logger.info(
-            "network_health_check_completed",
-            status=health_status,
-            **result
-        )
+        logger.info("network_health_check_completed", status=health_status, **result)
 
         return {
             "status": health_status,
             "timestamp": datetime.now().isoformat(),
-            **result
+            **result,
         }
 
     except Exception as e:
-        logger.error(
-            "network_health_check_failed",
-            error=str(e),
-            exc_info=True
-        )
+        logger.error("network_health_check_failed", error=str(e), exc_info=True)
         return {
             "status": "unhealthy",
             "error": str(e),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }

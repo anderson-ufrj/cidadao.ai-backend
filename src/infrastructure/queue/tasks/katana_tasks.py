@@ -9,25 +9,23 @@ These tasks monitor Katana Scan API for new dispensas de licitação
 and trigger automatic investigations on suspicious patterns.
 """
 
-from typing import Dict, Any, List
-from datetime import datetime
 import asyncio
+from datetime import datetime
+from typing import Any
 
 from celery.utils.log import get_task_logger
 
-from src.infrastructure.queue.celery_app import celery_app
-from src.services.katana_service import KatanaService
-from src.services.investigation_service_selector import investigation_service
-from src.services.supabase_anomaly_service import supabase_anomaly_service
-from src.services.alert_service import alert_service
-from src.db.simple_session import get_db_session
 from src.agents import get_agent_pool
+from src.infrastructure.queue.celery_app import celery_app
+from src.services.alert_service import alert_service
+from src.services.katana_service import KatanaService
+from src.services.supabase_anomaly_service import supabase_anomaly_service
 
 logger = get_task_logger(__name__)
 
 
 @celery_app.task(name="tasks.monitor_katana_dispensas", queue="high")
-def monitor_katana_dispensas() -> Dict[str, Any]:
+def monitor_katana_dispensas() -> dict[str, Any]:
     """
     Monitor Katana Scan API for new dispensas de licitação.
 
@@ -44,15 +42,13 @@ def monitor_katana_dispensas() -> Dict[str, Any]:
         asyncio.set_event_loop(loop)
 
         try:
-            result = loop.run_until_complete(
-                _monitor_katana_async()
-            )
+            result = loop.run_until_complete(_monitor_katana_async())
 
             logger.info(
                 "katana_monitor_completed",
                 dispensas_fetched=result.get("dispensas_fetched"),
                 anomalies_detected=result.get("anomalies_detected"),
-                investigations_created=result.get("investigations_created")
+                investigations_created=result.get("investigations_created"),
             )
 
             return result
@@ -61,15 +57,11 @@ def monitor_katana_dispensas() -> Dict[str, Any]:
             loop.close()
 
     except Exception as e:
-        logger.error(
-            "katana_monitor_failed",
-            error=str(e),
-            exc_info=True
-        )
+        logger.error("katana_monitor_failed", error=str(e), exc_info=True)
         raise
 
 
-async def _monitor_katana_async() -> Dict[str, Any]:
+async def _monitor_katana_async() -> dict[str, Any]:
     """Async implementation of Katana monitoring."""
     katana = KatanaService()
 
@@ -88,7 +80,7 @@ async def _monitor_katana_async() -> Dict[str, Any]:
             "error": "Agent not available",
             "dispensas_fetched": len(dispensas),
             "anomalies_detected": 0,
-            "investigations_created": 0
+            "investigations_created": 0,
         }
 
     anomalies = []
@@ -102,15 +94,13 @@ async def _monitor_katana_async() -> Dict[str, Any]:
 
             # Analyze with Zumbi agent
             analysis = await zumbi.analyze_contract(
-                formatted_dispensa,
-                threshold=0.7,
-                analysis_type="anomaly"
+                formatted_dispensa, threshold=0.7, analysis_type="anomaly"
             )
 
             # Save dispensa to Supabase first
             await supabase_anomaly_service.save_katana_dispensa(
                 dispensa_id=formatted_dispensa.get("id"),
-                dispensa_data=formatted_dispensa
+                dispensa_data=formatted_dispensa,
             )
 
             # If anomaly detected, create auto investigation and anomaly records
@@ -124,39 +114,49 @@ async def _monitor_katana_async() -> Dict[str, Any]:
                         "anomaly_analysis": {
                             "score": analysis.anomaly_score,
                             "indicators": analysis.indicators,
-                            "recommendations": analysis.recommendations
-                        }
+                            "recommendations": analysis.recommendations,
+                        },
                     },
-                    initiated_by="auto_investigation_katana"
+                    initiated_by="auto_investigation_katana",
                 )
 
                 # Create anomaly record in Supabase (linked to auto_investigation)
                 anomaly = await supabase_anomaly_service.create_anomaly(
                     investigation_id=None,  # Not a user investigation
-                    auto_investigation_id=auto_investigation["id"],  # Link to auto investigation
+                    auto_investigation_id=auto_investigation[
+                        "id"
+                    ],  # Link to auto investigation
                     source="katana_scan",
                     source_id=formatted_dispensa.get("id"),
-                    anomaly_type=analysis.anomaly_type if hasattr(analysis, 'anomaly_type') else "general",
+                    anomaly_type=(
+                        analysis.anomaly_type
+                        if hasattr(analysis, "anomaly_type")
+                        else "general"
+                    ),
                     anomaly_score=analysis.anomaly_score,
                     title=f"Anomalia detectada: Dispensa {formatted_dispensa.get('numero')}",
                     description=f"Análise automática detectou anomalia com score {analysis.anomaly_score:.4f}",
                     indicators=analysis.indicators if analysis.indicators else [],
-                    recommendations=analysis.recommendations if analysis.recommendations else [],
+                    recommendations=(
+                        analysis.recommendations if analysis.recommendations else []
+                    ),
                     contract_data=formatted_dispensa,
                     metadata={
                         "agent": "zumbi",
                         "analysis_timestamp": datetime.now().isoformat(),
-                        "threshold_used": 0.7
-                    }
+                        "threshold_used": 0.7,
+                    },
                 )
 
-                anomalies.append({
-                    "anomaly_id": anomaly["id"],
-                    "dispensa_id": formatted_dispensa.get("id"),
-                    "anomaly_score": analysis.anomaly_score,
-                    "severity": anomaly["severity"],
-                    "indicators": analysis.indicators
-                })
+                anomalies.append(
+                    {
+                        "anomaly_id": anomaly["id"],
+                        "dispensa_id": formatted_dispensa.get("id"),
+                        "anomaly_score": analysis.anomaly_score,
+                        "severity": anomaly["severity"],
+                        "indicators": analysis.indicators,
+                    }
+                )
 
                 investigations_created += 1
 
@@ -166,7 +166,7 @@ async def _monitor_katana_async() -> Dict[str, Any]:
                     auto_investigation_id=auto_investigation["id"],
                     anomaly_id=anomaly["id"],
                     anomaly_score=analysis.anomaly_score,
-                    severity=anomaly["severity"]
+                    severity=anomaly["severity"],
                 )
 
                 # Send alert for high/critical severity anomalies
@@ -175,27 +175,25 @@ async def _monitor_katana_async() -> Dict[str, Any]:
                         alert_result = await alert_service.send_anomaly_alert(
                             anomaly_id=anomaly["id"],
                             anomaly_data=anomaly,
-                            alert_types=["webhook", "dashboard"]
+                            alert_types=["webhook", "dashboard"],
                         )
 
                         logger.info(
                             "alerts_sent_for_anomaly",
                             anomaly_id=anomaly["id"],
                             alerts_sent=len(alert_result.get("alerts_sent", [])),
-                            alerts_failed=len(alert_result.get("alerts_failed", []))
+                            alerts_failed=len(alert_result.get("alerts_failed", [])),
                         )
                     except Exception as alert_error:
                         logger.error(
                             "failed_to_send_alerts",
                             anomaly_id=anomaly["id"],
-                            error=str(alert_error)
+                            error=str(alert_error),
                         )
 
         except Exception as e:
             logger.error(
-                "dispensa_analysis_failed",
-                dispensa_id=dispensa.get("id"),
-                error=str(e)
+                "dispensa_analysis_failed", dispensa_id=dispensa.get("id"), error=str(e)
             )
             continue
 
@@ -204,12 +202,12 @@ async def _monitor_katana_async() -> Dict[str, Any]:
         "anomalies_detected": len(anomalies),
         "investigations_created": investigations_created,
         "anomalies": anomalies,
-        "timestamp": datetime.now().isoformat()
+        "timestamp": datetime.now().isoformat(),
     }
 
 
 @celery_app.task(name="tasks.katana_health_check", queue="normal")
-def katana_health_check() -> Dict[str, Any]:
+def katana_health_check() -> dict[str, Any]:
     """
     Check Katana API health and connectivity.
 
@@ -229,13 +227,10 @@ def katana_health_check() -> Dict[str, Any]:
             result = {
                 "status": "healthy" if is_healthy else "unhealthy",
                 "timestamp": datetime.now().isoformat(),
-                "api_url": katana.base_url
+                "api_url": katana.base_url,
             }
 
-            logger.info(
-                "katana_health_check_completed",
-                status=result["status"]
-            )
+            logger.info("katana_health_check_completed", status=result["status"])
 
             return result
 
@@ -243,13 +238,9 @@ def katana_health_check() -> Dict[str, Any]:
             loop.close()
 
     except Exception as e:
-        logger.error(
-            "katana_health_check_failed",
-            error=str(e),
-            exc_info=True
-        )
+        logger.error("katana_health_check_failed", error=str(e), exc_info=True)
         return {
             "status": "unhealthy",
             "error": str(e),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }

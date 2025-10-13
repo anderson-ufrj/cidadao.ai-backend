@@ -9,15 +9,17 @@ Created: 2025-10-12 18:35:24 -03
 License: Proprietary - All rights reserved
 """
 
-import time
-from typing import Optional, Dict, Any
-from functools import wraps
 import asyncio
+import time
+from functools import wraps
+from typing import Optional
 
-from prometheus_client import Counter, Histogram, Gauge
-from src.infrastructure.observability.metrics import metrics_manager, MetricConfig, MetricType
 from src.core import get_logger
-
+from src.infrastructure.observability.metrics import (
+    MetricConfig,
+    MetricType,
+    metrics_manager,
+)
 
 logger = get_logger(__name__)
 
@@ -27,89 +29,125 @@ def register_federal_api_metrics():
     """Register all Federal API client metrics."""
 
     # Request duration metrics with detailed buckets for API calls
-    metrics_manager.register_metric(MetricConfig(
-        name="federal_api_request_duration_seconds",
-        description="Duration of Federal API requests",
-        labels=["api_name", "method", "endpoint", "status"],
-        buckets=[0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0]
-    ), MetricType.HISTOGRAM)
+    metrics_manager.register_metric(
+        MetricConfig(
+            name="federal_api_request_duration_seconds",
+            description="Duration of Federal API requests",
+            labels=["api_name", "method", "endpoint", "status"],
+            buckets=[0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0, 30.0, 60.0],
+        ),
+        MetricType.HISTOGRAM,
+    )
 
     # Request counter
-    metrics_manager.register_metric(MetricConfig(
-        name="federal_api_requests_total",
-        description="Total Federal API requests",
-        labels=["api_name", "method", "endpoint", "status_code"]
-    ), MetricType.COUNTER)
+    metrics_manager.register_metric(
+        MetricConfig(
+            name="federal_api_requests_total",
+            description="Total Federal API requests",
+            labels=["api_name", "method", "endpoint", "status_code"],
+        ),
+        MetricType.COUNTER,
+    )
 
     # Retry metrics
-    metrics_manager.register_metric(MetricConfig(
-        name="federal_api_retries_total",
-        description="Total retry attempts for Federal API requests",
-        labels=["api_name", "method", "reason"]
-    ), MetricType.COUNTER)
+    metrics_manager.register_metric(
+        MetricConfig(
+            name="federal_api_retries_total",
+            description="Total retry attempts for Federal API requests",
+            labels=["api_name", "method", "reason"],
+        ),
+        MetricType.COUNTER,
+    )
 
-    metrics_manager.register_metric(MetricConfig(
-        name="federal_api_retry_attempts",
-        description="Number of retry attempts per request",
-        labels=["api_name", "method"],
-        buckets=[0, 1, 2, 3, 4, 5]
-    ), MetricType.HISTOGRAM)
+    metrics_manager.register_metric(
+        MetricConfig(
+            name="federal_api_retry_attempts",
+            description="Number of retry attempts per request",
+            labels=["api_name", "method"],
+            buckets=[0, 1, 2, 3, 4, 5],
+        ),
+        MetricType.HISTOGRAM,
+    )
 
     # Cache metrics
-    metrics_manager.register_metric(MetricConfig(
-        name="federal_api_cache_operations_total",
-        description="Total cache operations for Federal APIs",
-        labels=["api_name", "operation", "result"]
-    ), MetricType.COUNTER)
+    metrics_manager.register_metric(
+        MetricConfig(
+            name="federal_api_cache_operations_total",
+            description="Total cache operations for Federal APIs",
+            labels=["api_name", "operation", "result"],
+        ),
+        MetricType.COUNTER,
+    )
 
-    metrics_manager.register_metric(MetricConfig(
-        name="federal_api_cache_size",
-        description="Current size of Federal API cache",
-        labels=["api_name", "cache_type"]
-    ), MetricType.GAUGE)
+    metrics_manager.register_metric(
+        MetricConfig(
+            name="federal_api_cache_size",
+            description="Current size of Federal API cache",
+            labels=["api_name", "cache_type"],
+        ),
+        MetricType.GAUGE,
+    )
 
     # Error metrics
-    metrics_manager.register_metric(MetricConfig(
-        name="federal_api_errors_total",
-        description="Total errors from Federal APIs",
-        labels=["api_name", "error_type", "retryable"]
-    ), MetricType.COUNTER)
+    metrics_manager.register_metric(
+        MetricConfig(
+            name="federal_api_errors_total",
+            description="Total errors from Federal APIs",
+            labels=["api_name", "error_type", "retryable"],
+        ),
+        MetricType.COUNTER,
+    )
 
     # Data volume metrics
-    metrics_manager.register_metric(MetricConfig(
-        name="federal_api_records_fetched_total",
-        description="Total records fetched from Federal APIs",
-        labels=["api_name", "data_type"]
-    ), MetricType.COUNTER)
+    metrics_manager.register_metric(
+        MetricConfig(
+            name="federal_api_records_fetched_total",
+            description="Total records fetched from Federal APIs",
+            labels=["api_name", "data_type"],
+        ),
+        MetricType.COUNTER,
+    )
 
     # Response size metrics
-    metrics_manager.register_metric(MetricConfig(
-        name="federal_api_response_size_bytes",
-        description="Size of Federal API responses",
-        labels=["api_name", "endpoint"],
-        buckets=[100, 1000, 10000, 100000, 1000000, 10000000]
-    ), MetricType.HISTOGRAM)
+    metrics_manager.register_metric(
+        MetricConfig(
+            name="federal_api_response_size_bytes",
+            description="Size of Federal API responses",
+            labels=["api_name", "endpoint"],
+            buckets=[100, 1000, 10000, 100000, 1000000, 10000000],
+        ),
+        MetricType.HISTOGRAM,
+    )
 
     # Timeout metrics
-    metrics_manager.register_metric(MetricConfig(
-        name="federal_api_timeouts_total",
-        description="Total timeout errors from Federal APIs",
-        labels=["api_name", "method", "timeout_seconds"]
-    ), MetricType.COUNTER)
+    metrics_manager.register_metric(
+        MetricConfig(
+            name="federal_api_timeouts_total",
+            description="Total timeout errors from Federal APIs",
+            labels=["api_name", "method", "timeout_seconds"],
+        ),
+        MetricType.COUNTER,
+    )
 
     # Rate limit metrics
-    metrics_manager.register_metric(MetricConfig(
-        name="federal_api_rate_limits_total",
-        description="Total rate limit errors from Federal APIs",
-        labels=["api_name", "retry_after"]
-    ), MetricType.COUNTER)
+    metrics_manager.register_metric(
+        MetricConfig(
+            name="federal_api_rate_limits_total",
+            description="Total rate limit errors from Federal APIs",
+            labels=["api_name", "retry_after"],
+        ),
+        MetricType.COUNTER,
+    )
 
     # Active requests gauge
-    metrics_manager.register_metric(MetricConfig(
-        name="federal_api_active_requests",
-        description="Currently active requests to Federal APIs",
-        labels=["api_name"]
-    ), MetricType.GAUGE)
+    metrics_manager.register_metric(
+        MetricConfig(
+            name="federal_api_active_requests",
+            description="Currently active requests to Federal APIs",
+            labels=["api_name"],
+        ),
+        MetricType.GAUGE,
+    )
 
     logger.info("Federal API metrics registered successfully")
 
@@ -124,7 +162,7 @@ class FederalAPIMetrics:
         endpoint: str,
         status_code: int,
         duration_seconds: float,
-        status: str = "success"
+        status: str = "success",
     ):
         """
         Record a Federal API request.
@@ -145,8 +183,8 @@ class FederalAPIMetrics:
                 "api_name": api_name,
                 "method": method,
                 "endpoint": endpoint,
-                "status": status
-            }
+                "status": status,
+            },
         )
 
         # Record request count
@@ -156,17 +194,12 @@ class FederalAPIMetrics:
                 "api_name": api_name,
                 "method": method,
                 "endpoint": endpoint,
-                "status_code": str(status_code)
-            }
+                "status_code": str(status_code),
+            },
         )
 
     @staticmethod
-    def record_retry(
-        api_name: str,
-        method: str,
-        reason: str,
-        attempt_number: int
-    ):
+    def record_retry(api_name: str, method: str, reason: str, attempt_number: int):
         """
         Record a retry attempt.
 
@@ -178,28 +211,17 @@ class FederalAPIMetrics:
         """
         metrics_manager.increment_counter(
             "federal_api_retries_total",
-            {
-                "api_name": api_name,
-                "method": method,
-                "reason": reason
-            }
+            {"api_name": api_name, "method": method, "reason": reason},
         )
 
         metrics_manager.observe_histogram(
             "federal_api_retry_attempts",
             attempt_number,
-            {
-                "api_name": api_name,
-                "method": method
-            }
+            {"api_name": api_name, "method": method},
         )
 
     @staticmethod
-    def record_cache_operation(
-        api_name: str,
-        operation: str,
-        result: str
-    ):
+    def record_cache_operation(api_name: str, operation: str, result: str):
         """
         Record a cache operation.
 
@@ -210,19 +232,11 @@ class FederalAPIMetrics:
         """
         metrics_manager.increment_counter(
             "federal_api_cache_operations_total",
-            {
-                "api_name": api_name,
-                "operation": operation,
-                "result": result
-            }
+            {"api_name": api_name, "operation": operation, "result": result},
         )
 
     @staticmethod
-    def update_cache_size(
-        api_name: str,
-        cache_type: str,
-        size: int
-    ):
+    def update_cache_size(api_name: str, cache_type: str, size: int):
         """
         Update cache size gauge.
 
@@ -234,18 +248,11 @@ class FederalAPIMetrics:
         metrics_manager.set_gauge(
             "federal_api_cache_size",
             size,
-            {
-                "api_name": api_name,
-                "cache_type": cache_type
-            }
+            {"api_name": api_name, "cache_type": cache_type},
         )
 
     @staticmethod
-    def record_error(
-        api_name: str,
-        error_type: str,
-        retryable: bool
-    ):
+    def record_error(api_name: str, error_type: str, retryable: bool):
         """
         Record an API error.
 
@@ -259,16 +266,12 @@ class FederalAPIMetrics:
             {
                 "api_name": api_name,
                 "error_type": error_type,
-                "retryable": str(retryable).lower()
-            }
+                "retryable": str(retryable).lower(),
+            },
         )
 
     @staticmethod
-    def record_data_fetched(
-        api_name: str,
-        data_type: str,
-        record_count: int
-    ):
+    def record_data_fetched(api_name: str, data_type: str, record_count: int):
         """
         Record data fetched from API.
 
@@ -279,19 +282,12 @@ class FederalAPIMetrics:
         """
         metrics_manager.increment_counter(
             "federal_api_records_fetched_total",
-            {
-                "api_name": api_name,
-                "data_type": data_type
-            },
-            amount=record_count
+            {"api_name": api_name, "data_type": data_type},
+            amount=record_count,
         )
 
     @staticmethod
-    def record_response_size(
-        api_name: str,
-        endpoint: str,
-        size_bytes: int
-    ):
+    def record_response_size(api_name: str, endpoint: str, size_bytes: int):
         """
         Record response size.
 
@@ -303,18 +299,11 @@ class FederalAPIMetrics:
         metrics_manager.observe_histogram(
             "federal_api_response_size_bytes",
             size_bytes,
-            {
-                "api_name": api_name,
-                "endpoint": endpoint
-            }
+            {"api_name": api_name, "endpoint": endpoint},
         )
 
     @staticmethod
-    def record_timeout(
-        api_name: str,
-        method: str,
-        timeout_seconds: float
-    ):
+    def record_timeout(api_name: str, method: str, timeout_seconds: float):
         """
         Record a timeout error.
 
@@ -328,15 +317,12 @@ class FederalAPIMetrics:
             {
                 "api_name": api_name,
                 "method": method,
-                "timeout_seconds": str(int(timeout_seconds))
-            }
+                "timeout_seconds": str(int(timeout_seconds)),
+            },
         )
 
     @staticmethod
-    def record_rate_limit(
-        api_name: str,
-        retry_after: Optional[int] = None
-    ):
+    def record_rate_limit(api_name: str, retry_after: Optional[int] = None):
         """
         Record a rate limit error.
 
@@ -348,8 +334,8 @@ class FederalAPIMetrics:
             "federal_api_rate_limits_total",
             {
                 "api_name": api_name,
-                "retry_after": str(retry_after) if retry_after else "unknown"
-            }
+                "retry_after": str(retry_after) if retry_after else "unknown",
+            },
         )
 
     @staticmethod
@@ -379,6 +365,7 @@ def track_federal_api_call(api_name: str):
         async def get_states(self):
             ...
     """
+
     def decorator(func):
         @wraps(func)
         async def async_wrapper(*args, **kwargs):
@@ -402,13 +389,14 @@ def track_federal_api_call(api_name: str):
 
             except Exception as e:
                 status = "error"
-                status_code = getattr(e, 'status_code', 500)
+                status_code = getattr(e, "status_code", 500)
 
                 # Record error
                 FederalAPIMetrics.record_error(
                     api_name,
                     type(e).__name__,
-                    retryable=hasattr(e, '__class__') and 'Retryable' in str(e.__class__.__mro__)
+                    retryable=hasattr(e, "__class__")
+                    and "Retryable" in str(e.__class__.__mro__),
                 )
 
                 raise
@@ -418,12 +406,7 @@ def track_federal_api_call(api_name: str):
                 duration = time.time() - start_time
 
                 FederalAPIMetrics.record_request(
-                    api_name,
-                    method,
-                    endpoint,
-                    status_code,
-                    duration,
-                    status
+                    api_name, method, endpoint, status_code, duration, status
                 )
 
                 # Decrement active requests
@@ -445,12 +428,10 @@ def track_federal_api_call(api_name: str):
 
             except Exception as e:
                 status = "error"
-                status_code = getattr(e, 'status_code', 500)
+                status_code = getattr(e, "status_code", 500)
 
                 FederalAPIMetrics.record_error(
-                    api_name,
-                    type(e).__name__,
-                    retryable=False
+                    api_name, type(e).__name__, retryable=False
                 )
 
                 raise
@@ -459,12 +440,7 @@ def track_federal_api_call(api_name: str):
                 duration = time.time() - start_time
 
                 FederalAPIMetrics.record_request(
-                    api_name,
-                    method,
-                    endpoint,
-                    status_code,
-                    duration,
-                    status
+                    api_name, method, endpoint, status_code, duration, status
                 )
 
                 FederalAPIMetrics.decrement_active_requests(api_name)

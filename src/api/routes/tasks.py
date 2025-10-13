@@ -6,19 +6,20 @@ Date: 2025-10-07
 License: Proprietary - All rights reserved
 """
 
-from typing import Dict, Any
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks
+from typing import Any
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
 from src.api.routes.auth import get_current_user
-from src.infrastructure.queue.tasks.katana_tasks import (
-    monitor_katana_dispensas,
-    katana_health_check
-)
 from src.infrastructure.queue.tasks.auto_investigation_tasks import (
+    auto_investigation_health_check,
     auto_monitor_new_contracts,
     auto_monitor_priority_orgs,
-    auto_investigation_health_check
+)
+from src.infrastructure.queue.tasks.katana_tasks import (
+    katana_health_check,
+    monitor_katana_dispensas,
 )
 
 router = APIRouter(prefix="/tasks")
@@ -26,16 +27,15 @@ router = APIRouter(prefix="/tasks")
 
 class TaskResponse(BaseModel):
     """Response model for task execution."""
+
     task_id: str
     task_name: str
     status: str
     message: str
 
 
-@router.post("/trigger/katana-monitor", response_model=Dict[str, Any])
-async def trigger_katana_monitor(
-    current_user: Dict = Depends(get_current_user)
-):
+@router.post("/trigger/katana-monitor", response_model=dict[str, Any])
+async def trigger_katana_monitor(current_user: dict = Depends(get_current_user)):
     """
     Manually trigger Katana dispensas monitoring task.
 
@@ -54,19 +54,17 @@ async def trigger_katana_monitor(
             "task_id": task.id,
             "task_name": "monitor_katana_dispensas",
             "status": "queued",
-            "message": "Katana monitoring task has been queued. Check /tasks/status/{task_id} for progress."
+            "message": "Katana monitoring task has been queued. Check /tasks/status/{task_id} for progress.",
         }
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to trigger Katana monitoring: {str(e)}"
+            status_code=500, detail=f"Failed to trigger Katana monitoring: {str(e)}"
         )
 
 
-@router.post("/trigger/auto-monitor-contracts", response_model=Dict[str, Any])
+@router.post("/trigger/auto-monitor-contracts", response_model=dict[str, Any])
 async def trigger_auto_monitor_contracts(
-    lookback_hours: int = 24,
-    current_user: Dict = Depends(get_current_user)
+    lookback_hours: int = 24, current_user: dict = Depends(get_current_user)
 ):
     """
     Manually trigger automatic contract monitoring.
@@ -84,19 +82,16 @@ async def trigger_auto_monitor_contracts(
             "task_name": "auto_monitor_new_contracts",
             "status": "queued",
             "parameters": {"lookback_hours": lookback_hours},
-            "message": f"Auto-monitoring task queued to check last {lookback_hours} hours of contracts."
+            "message": f"Auto-monitoring task queued to check last {lookback_hours} hours of contracts.",
         }
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to trigger contract monitoring: {str(e)}"
+            status_code=500, detail=f"Failed to trigger contract monitoring: {str(e)}"
         )
 
 
-@router.post("/trigger/priority-orgs", response_model=Dict[str, Any])
-async def trigger_priority_orgs_monitor(
-    current_user: Dict = Depends(get_current_user)
-):
+@router.post("/trigger/priority-orgs", response_model=dict[str, Any])
+async def trigger_priority_orgs_monitor(current_user: dict = Depends(get_current_user)):
     """
     Manually trigger priority organizations monitoring.
 
@@ -109,16 +104,16 @@ async def trigger_priority_orgs_monitor(
             "task_id": task.id,
             "task_name": "auto_monitor_priority_orgs",
             "status": "queued",
-            "message": "Priority organizations monitoring task has been queued."
+            "message": "Priority organizations monitoring task has been queued.",
         }
     except Exception as e:
         raise HTTPException(
             status_code=500,
-            detail=f"Failed to trigger priority orgs monitoring: {str(e)}"
+            detail=f"Failed to trigger priority orgs monitoring: {str(e)}",
         )
 
 
-@router.get("/health/katana", response_model=Dict[str, Any])
+@router.get("/health/katana", response_model=dict[str, Any])
 async def check_katana_health():
     """
     Check Katana API health status.
@@ -132,12 +127,11 @@ async def check_katana_health():
         return result
     except Exception as e:
         raise HTTPException(
-            status_code=503,
-            detail=f"Katana health check failed: {str(e)}"
+            status_code=503, detail=f"Katana health check failed: {str(e)}"
         )
 
 
-@router.get("/health/auto-investigation", response_model=Dict[str, Any])
+@router.get("/health/auto-investigation", response_model=dict[str, Any])
 async def check_auto_investigation_health():
     """
     Check auto-investigation system health.
@@ -151,12 +145,11 @@ async def check_auto_investigation_health():
         return result
     except Exception as e:
         raise HTTPException(
-            status_code=503,
-            detail=f"Auto-investigation health check failed: {str(e)}"
+            status_code=503, detail=f"Auto-investigation health check failed: {str(e)}"
         )
 
 
-@router.get("/status/{task_id}", response_model=Dict[str, Any])
+@router.get("/status/{task_id}", response_model=dict[str, Any])
 async def get_task_status(task_id: str):
     """
     Get status of a running or completed task.
@@ -167,6 +160,7 @@ async def get_task_status(task_id: str):
         task_id: The task ID returned when triggering a task
     """
     from celery.result import AsyncResult
+
     from src.infrastructure.queue.celery_app import celery_app
 
     try:
@@ -187,12 +181,11 @@ async def get_task_status(task_id: str):
         return response
     except Exception as e:
         raise HTTPException(
-            status_code=500,
-            detail=f"Failed to get task status: {str(e)}"
+            status_code=500, detail=f"Failed to get task status: {str(e)}"
         )
 
 
-@router.get("/list/scheduled", response_model=Dict[str, Any])
+@router.get("/list/scheduled", response_model=dict[str, Any])
 async def list_scheduled_tasks():
     """
     List all scheduled periodic tasks.
@@ -205,16 +198,15 @@ async def list_scheduled_tasks():
 
     tasks = []
     for name, config in schedule.items():
-        tasks.append({
-            "name": name,
-            "task": config["task"],
-            "schedule": str(config["schedule"]),
-            "args": config.get("args", []),
-            "kwargs": config.get("kwargs", {}),
-            "options": config.get("options", {})
-        })
+        tasks.append(
+            {
+                "name": name,
+                "task": config["task"],
+                "schedule": str(config["schedule"]),
+                "args": config.get("args", []),
+                "kwargs": config.get("kwargs", {}),
+                "options": config.get("options", {}),
+            }
+        )
 
-    return {
-        "total_scheduled": len(tasks),
-        "tasks": tasks
-    }
+    return {"total_scheduled": len(tasks), "tasks": tasks}

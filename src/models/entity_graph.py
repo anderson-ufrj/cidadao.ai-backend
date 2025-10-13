@@ -10,10 +10,21 @@ between companies, people, and government agencies across multiple investigation
 """
 
 from datetime import datetime
-from typing import Optional, List
-from sqlalchemy import Column, String, DateTime, Float, Integer, Text, ForeignKey, Index, JSON, Boolean
+
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    Float,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+)
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import func
+
 from src.models.base import BaseModel
 
 
@@ -28,9 +39,13 @@ class EntityNode(BaseModel):
     __tablename__ = "entity_nodes"
 
     # Entity identification
-    entity_type = Column(String(50), nullable=False, index=True)  # company, person, agency
+    entity_type = Column(
+        String(50), nullable=False, index=True
+    )  # company, person, agency
     name = Column(String(500), nullable=False, index=True)
-    normalized_name = Column(String(500), nullable=False, index=True)  # Lowercase, no accents
+    normalized_name = Column(
+        String(500), nullable=False, index=True
+    )  # Lowercase, no accents
 
     # Official identifiers
     cnpj = Column(String(18), nullable=True, index=True)
@@ -76,26 +91,26 @@ class EntityNode(BaseModel):
         "EntityRelationship",
         foreign_keys="EntityRelationship.source_entity_id",
         back_populates="source_entity",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
     )
     target_relationships = relationship(
         "EntityRelationship",
         foreign_keys="EntityRelationship.target_entity_id",
         back_populates="target_entity",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
     )
     investigation_references = relationship(
         "EntityInvestigationReference",
         back_populates="entity",
-        cascade="all, delete-orphan"
+        cascade="all, delete-orphan",
     )
 
     # Indexes for performance
     __table_args__ = (
-        Index('idx_entity_cnpj', 'cnpj'),
-        Index('idx_entity_cpf', 'cpf'),
-        Index('idx_entity_type_name', 'entity_type', 'normalized_name'),
-        Index('idx_entity_risk', 'risk_score'),
+        Index("idx_entity_cnpj", "cnpj"),
+        Index("idx_entity_cpf", "cpf"),
+        Index("idx_entity_type_name", "entity_type", "normalized_name"),
+        Index("idx_entity_risk", "risk_score"),
     )
 
     def to_dict(self) -> dict:
@@ -130,8 +145,12 @@ class EntityNode(BaseModel):
                 "closeness_centrality": self.closeness_centrality,
                 "eigenvector_centrality": self.eigenvector_centrality,
             },
-            "first_detected": self.first_detected.isoformat() if self.first_detected else None,
-            "last_detected": self.last_detected.isoformat() if self.last_detected else None,
+            "first_detected": (
+                self.first_detected.isoformat() if self.first_detected else None
+            ),
+            "last_detected": (
+                self.last_detected.isoformat() if self.last_detected else None
+            ),
             "extra_data": self.extra_data,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
@@ -149,8 +168,18 @@ class EntityRelationship(BaseModel):
     __tablename__ = "entity_relationships"
 
     # Relationship endpoints
-    source_entity_id = Column(String(36), ForeignKey('entity_nodes.id', ondelete='CASCADE'), nullable=False, index=True)
-    target_entity_id = Column(String(36), ForeignKey('entity_nodes.id', ondelete='CASCADE'), nullable=False, index=True)
+    source_entity_id = Column(
+        String(36),
+        ForeignKey("entity_nodes.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    target_entity_id = Column(
+        String(36),
+        ForeignKey("entity_nodes.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
 
     # Relationship type
     relationship_type = Column(String(100), nullable=False, index=True)
@@ -179,14 +208,22 @@ class EntityRelationship(BaseModel):
     extra_data = Column(JSON, default={})
 
     # SQLAlchemy relationships
-    source_entity = relationship("EntityNode", foreign_keys=[source_entity_id], back_populates="source_relationships")
-    target_entity = relationship("EntityNode", foreign_keys=[target_entity_id], back_populates="target_relationships")
+    source_entity = relationship(
+        "EntityNode",
+        foreign_keys=[source_entity_id],
+        back_populates="source_relationships",
+    )
+    target_entity = relationship(
+        "EntityNode",
+        foreign_keys=[target_entity_id],
+        back_populates="target_relationships",
+    )
 
     # Indexes
     __table_args__ = (
-        Index('idx_relationship_source_target', 'source_entity_id', 'target_entity_id'),
-        Index('idx_relationship_type', 'relationship_type'),
-        Index('idx_relationship_suspicious', 'is_suspicious'),
+        Index("idx_relationship_source_target", "source_entity_id", "target_entity_id"),
+        Index("idx_relationship_type", "relationship_type"),
+        Index("idx_relationship_suspicious", "is_suspicious"),
     )
 
     def to_dict(self) -> dict:
@@ -198,8 +235,12 @@ class EntityRelationship(BaseModel):
             "relationship_type": self.relationship_type,
             "strength": self.strength,
             "confidence": self.confidence,
-            "first_detected": self.first_detected.isoformat() if self.first_detected else None,
-            "last_detected": self.last_detected.isoformat() if self.last_detected else None,
+            "first_detected": (
+                self.first_detected.isoformat() if self.first_detected else None
+            ),
+            "last_detected": (
+                self.last_detected.isoformat() if self.last_detected else None
+            ),
             "detection_count": self.detection_count,
             "investigation_ids": self.investigation_ids,
             "evidence": self.evidence,
@@ -221,12 +262,23 @@ class EntityInvestigationReference(BaseModel):
     __tablename__ = "entity_investigation_references"
 
     # References
-    entity_id = Column(String(36), ForeignKey('entity_nodes.id', ondelete='CASCADE'), nullable=False, index=True)
-    investigation_id = Column(String(36), nullable=False, index=True)  # UUID from investigations table
+    entity_id = Column(
+        String(36),
+        ForeignKey("entity_nodes.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    investigation_id = Column(
+        String(36), nullable=False, index=True
+    )  # UUID from investigations table
 
     # Context of appearance
-    role = Column(String(100), nullable=False)  # supplier, contractor, owner, beneficiary
-    contract_id = Column(String(100), nullable=True)  # If related to a specific contract
+    role = Column(
+        String(100), nullable=False
+    )  # supplier, contractor, owner, beneficiary
+    contract_id = Column(
+        String(100), nullable=True
+    )  # If related to a specific contract
     contract_value = Column(Float, nullable=True)
 
     # Anomaly involvement
@@ -245,9 +297,9 @@ class EntityInvestigationReference(BaseModel):
 
     # Indexes
     __table_args__ = (
-        Index('idx_reference_entity_investigation', 'entity_id', 'investigation_id'),
-        Index('idx_reference_investigation', 'investigation_id'),
-        Index('idx_reference_anomalies', 'involved_in_anomalies'),
+        Index("idx_reference_entity_investigation", "entity_id", "investigation_id"),
+        Index("idx_reference_investigation", "investigation_id"),
+        Index("idx_reference_anomalies", "involved_in_anomalies"),
     )
 
     def to_dict(self) -> dict:
@@ -317,9 +369,9 @@ class SuspiciousNetwork(BaseModel):
 
     # Indexes
     __table_args__ = (
-        Index('idx_network_type', 'network_type'),
-        Index('idx_network_severity', 'severity'),
-        Index('idx_network_active', 'is_active'),
+        Index("idx_network_type", "network_type"),
+        Index("idx_network_severity", "severity"),
+        Index("idx_network_active", "is_active"),
     )
 
     def to_dict(self) -> dict:
@@ -334,8 +386,12 @@ class SuspiciousNetwork(BaseModel):
             "confidence_score": self.confidence_score,
             "severity": self.severity,
             "investigation_ids": self.investigation_ids,
-            "first_detected": self.first_detected.isoformat() if self.first_detected else None,
-            "last_detected": self.last_detected.isoformat() if self.last_detected else None,
+            "first_detected": (
+                self.first_detected.isoformat() if self.first_detected else None
+            ),
+            "last_detected": (
+                self.last_detected.isoformat() if self.last_detected else None
+            ),
             "financial_impact": {
                 "total_contract_value": self.total_contract_value,
                 "suspicious_value": self.suspicious_value,

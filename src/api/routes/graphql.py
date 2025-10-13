@@ -5,18 +5,22 @@ This module integrates Strawberry GraphQL with FastAPI,
 providing a modern GraphQL endpoint with subscriptions support.
 """
 
-from typing import Any, Dict
-from contextlib import asynccontextmanager
+from typing import Any
 
-from fastapi import APIRouter, Depends, Request, WebSocket, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket
 
 from src.core import get_logger
 
 # Try to import strawberry - optional dependency
 try:
     from strawberry.fastapi import GraphQLRouter
-    from strawberry.subscriptions import GRAPHQL_TRANSPORT_WS_PROTOCOL, GRAPHQL_WS_PROTOCOL
+    from strawberry.subscriptions import (
+        GRAPHQL_TRANSPORT_WS_PROTOCOL,
+        GRAPHQL_WS_PROTOCOL,
+    )
+
     from src.api.graphql.schema import schema
+
     STRAWBERRY_AVAILABLE = True
 except ImportError:
     STRAWBERRY_AVAILABLE = False
@@ -32,9 +36,8 @@ logger = get_logger(__name__)
 
 # Context getter for GraphQL
 async def get_context(
-    request: Request,
-    user=Depends(get_current_optional_user)
-) -> Dict[str, Any]:
+    request: Request, user=Depends(get_current_optional_user)
+) -> dict[str, Any]:
     """
     Get GraphQL context with request info and user.
     """
@@ -48,7 +51,7 @@ async def get_context(
 # WebSocket context for subscriptions
 async def get_ws_context(
     websocket: WebSocket,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """
     Get WebSocket context for subscriptions.
     """
@@ -71,7 +74,7 @@ if STRAWBERRY_AVAILABLE:
             GRAPHQL_WS_PROTOCOL,
         ],
     )
-    
+
     # Add GraphQL routes
     router.include_router(graphql_app, prefix="")
 else:
@@ -80,15 +83,16 @@ else:
     async def graphql_not_available():
         raise HTTPException(
             status_code=503,
-            detail="GraphQL is not available in this deployment. Install 'strawberry-graphql' to enable it."
+            detail="GraphQL is not available in this deployment. Install 'strawberry-graphql' to enable it.",
         )
+
 
 # Add GraphQL playground route (only in development)
 @router.get("/playground")
 async def graphql_playground():
     """
     GraphQL Playground UI.
-    
+
     Only available in development mode.
     """
     return """
@@ -177,7 +181,7 @@ query GetAgentStats {
 # Create investigation
 mutation CreateInvestigation($query: String!) {
   createInvestigation(
-    input: { 
+    input: {
       query: $query
       priority: "high"
     }
@@ -224,11 +228,11 @@ async def graphql_health():
         "playground": "/graphql/playground",
         "features": [
             "queries",
-            "mutations", 
+            "mutations",
             "subscriptions",
             "file_uploads",
-            "introspection"
-        ]
+            "introspection",
+        ],
     }
 
 
@@ -295,7 +299,7 @@ async def graphql_examples():
                         }
                     }
                 }
-            """
+            """,
         },
         "mutations": {
             "create_investigation": """
@@ -311,9 +315,9 @@ async def graphql_examples():
             "send_message": """
                 mutation SendMessage($message: String!, $sessionId: String) {
                     sendChatMessage(
-                        input: { 
+                        input: {
                             message: $message
-                            sessionId: $sessionId 
+                            sessionId: $sessionId
                         }
                     ) {
                         id
@@ -322,7 +326,7 @@ async def graphql_examples():
                         createdAt
                     }
                 }
-            """
+            """,
         },
         "subscriptions": {
             "investigation_progress": """
@@ -345,13 +349,13 @@ async def graphql_examples():
                         lastActive
                     }
                 }
-            """
+            """,
         },
         "tips": [
             "Use variables for dynamic values",
             "Request only needed fields to reduce payload",
             "Use fragments for reusable selections",
             "Batch multiple queries in a single request",
-            "Use subscriptions for real-time updates"
-        ]
+            "Use subscriptions for real-time updates",
+        ],
     }

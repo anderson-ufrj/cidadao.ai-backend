@@ -9,16 +9,15 @@ This service continuously monitors government contracts (new and historical)
 and automatically triggers investigations when suspicious patterns are detected.
 """
 
-from typing import List, Dict, Any, Optional
-from datetime import datetime, timedelta
 import asyncio
+from datetime import datetime, timedelta
+from typing import Any, Optional
 
-from src.core import get_logger
-from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFilter
-from src.agents import InvestigatorAgent, AgentContext
-from src.services.investigation_service_selector import investigation_service
-from src.models.forensic_investigation import AnomalySeverity
+from src.agents import AgentContext, InvestigatorAgent
 from src.config.system_users import SYSTEM_AUTO_MONITOR_USER_ID
+from src.core import get_logger
+from src.services.investigation_service_selector import investigation_service
+from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFilter
 
 logger = get_logger(__name__)
 
@@ -50,10 +49,8 @@ class AutoInvestigationService:
         return self.investigator
 
     async def monitor_new_contracts(
-        self,
-        lookback_hours: int = 24,
-        organization_codes: Optional[List[str]] = None
-    ) -> Dict[str, Any]:
+        self, lookback_hours: int = 24, organization_codes: Optional[list[str]] = None
+    ) -> dict[str, Any]:
         """
         Monitor and investigate new contracts from the last N hours.
 
@@ -67,7 +64,7 @@ class AutoInvestigationService:
         logger.info(
             "auto_monitoring_started",
             lookback_hours=lookback_hours,
-            org_count=len(organization_codes) if organization_codes else "all"
+            org_count=len(organization_codes) if organization_codes else "all",
         )
 
         start_time = datetime.utcnow()
@@ -81,13 +78,13 @@ class AutoInvestigationService:
             contracts = await self._fetch_recent_contracts(
                 start_date=start_date,
                 end_date=end_date,
-                organization_codes=organization_codes
+                organization_codes=organization_codes,
             )
 
             logger.info(
                 "contracts_fetched",
                 count=len(contracts),
-                date_range=f"{start_date.date()} to {end_date.date()}"
+                date_range=f"{start_date.date()} to {end_date.date()}",
             )
 
             # Quick pre-screening
@@ -96,7 +93,7 @@ class AutoInvestigationService:
             logger.info(
                 "contracts_pre_screened",
                 total=len(contracts),
-                suspicious=len(suspicious_contracts)
+                suspicious=len(suspicious_contracts),
             )
 
             # Investigate suspicious contracts
@@ -110,27 +107,23 @@ class AutoInvestigationService:
                 "contracts_analyzed": len(contracts),
                 "suspicious_found": len(suspicious_contracts),
                 "investigations_created": len(investigations),
-                "anomalies_detected": sum(len(inv.get("anomalies", [])) for inv in investigations),
+                "anomalies_detected": sum(
+                    len(inv.get("anomalies", [])) for inv in investigations
+                ),
                 "duration_seconds": duration,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
 
             logger.info("auto_monitoring_completed", **result)
             return result
 
         except Exception as e:
-            logger.error(
-                "auto_monitoring_failed",
-                error=str(e),
-                exc_info=True
-            )
+            logger.error("auto_monitoring_failed", error=str(e), exc_info=True)
             raise
 
     async def reanalyze_historical_contracts(
-        self,
-        months_back: int = 6,
-        batch_size: int = 100
-    ) -> Dict[str, Any]:
+        self, months_back: int = 6, batch_size: int = 100
+    ) -> dict[str, Any]:
         """
         Re-analyze historical contracts with updated detection models.
 
@@ -147,7 +140,7 @@ class AutoInvestigationService:
         logger.info(
             "historical_reanalysis_started",
             months_back=months_back,
-            batch_size=batch_size
+            batch_size=batch_size,
         )
 
         start_time = datetime.utcnow()
@@ -170,7 +163,7 @@ class AutoInvestigationService:
                 contracts = await self._fetch_recent_contracts(
                     start_date=current_date,
                     end_date=min(batch_end_date, end_date),
-                    limit=batch_size
+                    limit=batch_size,
                 )
 
                 if not contracts:
@@ -195,7 +188,7 @@ class AutoInvestigationService:
                     "historical_batch_processed",
                     date_range=f"{current_date.date()} to {batch_end_date.date()}",
                     contracts=len(contracts),
-                    suspicious=len(suspicious_contracts)
+                    suspicious=len(suspicious_contracts),
                 )
 
                 # Move to next batch
@@ -214,27 +207,23 @@ class AutoInvestigationService:
                 "investigations_created": total_investigations,
                 "anomalies_detected": total_anomalies,
                 "duration_seconds": duration,
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.utcnow().isoformat(),
             }
 
             logger.info("historical_reanalysis_completed", **result)
             return result
 
         except Exception as e:
-            logger.error(
-                "historical_reanalysis_failed",
-                error=str(e),
-                exc_info=True
-            )
+            logger.error("historical_reanalysis_failed", error=str(e), exc_info=True)
             raise
 
     async def _fetch_recent_contracts(
         self,
         start_date: datetime,
         end_date: datetime,
-        organization_codes: Optional[List[str]] = None,
-        limit: int = 500
-    ) -> List[Dict[str, Any]]:
+        organization_codes: Optional[list[str]] = None,
+        limit: int = 500,
+    ) -> list[dict[str, Any]]:
         """Fetch contracts from Portal da Transparência."""
         try:
             filters = TransparencyAPIFilter(
@@ -248,30 +237,27 @@ class AutoInvestigationService:
                 for org_code in organization_codes:
                     filters.codigoOrgao = org_code
                     contracts = await self.transparency_api.get_contracts(
-                        filters=filters,
-                        limit=limit // len(organization_codes)
+                        filters=filters, limit=limit // len(organization_codes)
                     )
                     all_contracts.extend(contracts)
                 return all_contracts
             else:
                 # Fetch general contracts (may be limited by API)
                 return await self.transparency_api.get_contracts(
-                    filters=filters,
-                    limit=limit
+                    filters=filters, limit=limit
                 )
 
         except Exception as e:
             logger.warning(
                 "contract_fetch_failed",
                 error=str(e),
-                date_range=f"{start_date.date()} to {end_date.date()}"
+                date_range=f"{start_date.date()} to {end_date.date()}",
             )
             return []
 
     async def _pre_screen_contracts(
-        self,
-        contracts: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        self, contracts: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """
         Quick pre-screening to identify potentially suspicious contracts.
 
@@ -315,9 +301,8 @@ class AutoInvestigationService:
         return suspicious
 
     async def _investigate_batch(
-        self,
-        contracts: List[Dict[str, Any]]
-    ) -> List[Dict[str, Any]]:
+        self, contracts: list[dict[str, Any]]
+    ) -> list[dict[str, Any]]:
         """
         Investigate a batch of suspicious contracts.
 
@@ -337,14 +322,21 @@ class AutoInvestigationService:
                         "contract_id": contract.get("id"),
                         "auto_triggered": True,
                         "suspicion_score": contract.get("_suspicion_score"),
-                        "suspicion_reasons": contract.get("_suspicion_reasons", [])
+                        "suspicion_reasons": contract.get("_suspicion_reasons", []),
                     },
-                    anomaly_types=["price", "vendor", "temporal", "payment", "duplicate"]
+                    anomaly_types=[
+                        "price",
+                        "vendor",
+                        "temporal",
+                        "payment",
+                        "duplicate",
+                    ],
                 )
 
                 investigation_id = (
-                    investigation.id if hasattr(investigation, 'id')
-                    else investigation['id']
+                    investigation.id
+                    if hasattr(investigation, "id")
+                    else investigation["id"]
                 )
 
                 # Create agent context
@@ -353,8 +345,8 @@ class AutoInvestigationService:
                     user_id=SYSTEM_AUTO_MONITOR_USER_ID,
                     session_data={
                         "auto_investigation": True,
-                        "contract_data": contract
-                    }
+                        "contract_data": contract,
+                    },
                 )
 
                 # Run investigation
@@ -363,7 +355,7 @@ class AutoInvestigationService:
                     data_source="contracts",
                     filters=TransparencyAPIFilter(),
                     anomaly_types=["price", "vendor", "temporal", "payment"],
-                    context=context
+                    context=context,
                 )
 
                 # Update investigation with results
@@ -377,31 +369,33 @@ class AutoInvestigationService:
                                 "anomaly_type": a.anomaly_type,
                                 "severity": a.severity,
                                 "confidence": a.confidence,
-                                "description": a.description
+                                "description": a.description,
                             }
                             for a in anomalies
                         ],
-                        anomalies_found=len(anomalies)
+                        anomalies_found=len(anomalies),
                     )
 
-                    investigations.append({
-                        "investigation_id": investigation_id,
-                        "contract_id": contract.get("id"),
-                        "anomalies": [
-                            {
-                                "type": a.anomaly_type,
-                                "severity": a.severity,
-                                "confidence": a.confidence
-                            }
-                            for a in anomalies
-                        ]
-                    })
+                    investigations.append(
+                        {
+                            "investigation_id": investigation_id,
+                            "contract_id": contract.get("id"),
+                            "anomalies": [
+                                {
+                                    "type": a.anomaly_type,
+                                    "severity": a.severity,
+                                    "confidence": a.confidence,
+                                }
+                                for a in anomalies
+                            ],
+                        }
+                    )
 
                     logger.info(
                         "auto_investigation_completed",
                         investigation_id=investigation_id,
                         contract_id=contract.get("id"),
-                        anomalies_found=len(anomalies)
+                        anomalies_found=len(anomalies),
                     )
                 else:
                     # No anomalies found
@@ -410,7 +404,7 @@ class AutoInvestigationService:
                         status="completed",
                         progress=1.0,
                         results=[],
-                        anomalies_found=0
+                        anomalies_found=0,
                     )
 
                 # Rate limiting between investigations
@@ -421,7 +415,7 @@ class AutoInvestigationService:
                     "auto_investigation_failed",
                     contract_id=contract.get("id"),
                     error=str(e),
-                    exc_info=True
+                    exc_info=True,
                 )
                 continue
 

@@ -6,20 +6,19 @@ Date: 2025-01-24
 License: Proprietary - All rights reserved
 """
 
-import asyncio
 from datetime import datetime
-from typing import Dict, List, Optional, Any
+from typing import Any, Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException, Depends, BackgroundTasks, Query, Response
-from fastapi.responses import HTMLResponse, FileResponse
-from pydantic import BaseModel, Field as PydanticField, validator
-from src.core import json_utils
-from src.core import get_logger
-from src.agents.tiradentes import ReporterAgent
-from src.agents import AgentContext
-from src.api.middleware.authentication import get_current_user
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Response
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, validator
+from pydantic import Field as PydanticField
 
+from src.agents import AgentContext
+from src.agents.tiradentes import ReporterAgent
+from src.api.middleware.authentication import get_current_user
+from src.core import get_logger, json_utils
 
 logger = get_logger(__name__)
 
@@ -28,49 +27,69 @@ router = APIRouter()
 
 class ReportRequest(BaseModel):
     """Request model for report generation."""
-    
+
     report_type: str = PydanticField(description="Type of report to generate")
     title: str = PydanticField(description="Report title")
-    data_sources: List[str] = PydanticField(description="Data sources to include")
-    investigation_ids: List[str] = PydanticField(default=[], description="Investigation IDs to include")
-    analysis_ids: List[str] = PydanticField(default=[], description="Analysis IDs to include")
-    time_range: Dict[str, str] = PydanticField(description="Time range for the report")
+    data_sources: list[str] = PydanticField(description="Data sources to include")
+    investigation_ids: list[str] = PydanticField(
+        default=[], description="Investigation IDs to include"
+    )
+    analysis_ids: list[str] = PydanticField(
+        default=[], description="Analysis IDs to include"
+    )
+    time_range: dict[str, str] = PydanticField(description="Time range for the report")
     output_format: str = PydanticField(default="markdown", description="Output format")
-    include_visualizations: bool = PydanticField(default=True, description="Include charts and graphs")
-    include_raw_data: bool = PydanticField(default=False, description="Include raw data appendix")
-    target_audience: str = PydanticField(default="general", description="Target audience")
-    
-    @validator('report_type')
+    include_visualizations: bool = PydanticField(
+        default=True, description="Include charts and graphs"
+    )
+    include_raw_data: bool = PydanticField(
+        default=False, description="Include raw data appendix"
+    )
+    target_audience: str = PydanticField(
+        default="general", description="Target audience"
+    )
+
+    @validator("report_type")
     def validate_report_type(cls, v):
         """Validate report type."""
         allowed_types = [
-            'executive_summary', 'detailed_analysis', 'investigation_report',
-            'transparency_dashboard', 'comparative_analysis', 'audit_report'
+            "executive_summary",
+            "detailed_analysis",
+            "investigation_report",
+            "transparency_dashboard",
+            "comparative_analysis",
+            "audit_report",
         ]
         if v not in allowed_types:
-            raise ValueError(f'Report type must be one of: {allowed_types}')
+            raise ValueError(f"Report type must be one of: {allowed_types}")
         return v
-    
-    @validator('output_format')
+
+    @validator("output_format")
     def validate_output_format(cls, v):
         """Validate output format."""
-        allowed_formats = ['markdown', 'html', 'json', 'pdf']
+        allowed_formats = ["markdown", "html", "json", "pdf"]
         if v not in allowed_formats:
-            raise ValueError(f'Output format must be one of: {allowed_formats}')
+            raise ValueError(f"Output format must be one of: {allowed_formats}")
         return v
-    
-    @validator('target_audience')
+
+    @validator("target_audience")
     def validate_target_audience(cls, v):
         """Validate target audience."""
-        allowed_audiences = ['general', 'technical', 'executive', 'journalist', 'researcher']
+        allowed_audiences = [
+            "general",
+            "technical",
+            "executive",
+            "journalist",
+            "researcher",
+        ]
         if v not in allowed_audiences:
-            raise ValueError(f'Target audience must be one of: {allowed_audiences}')
+            raise ValueError(f"Target audience must be one of: {allowed_audiences}")
         return v
 
 
 class ReportResponse(BaseModel):
     """Response model for generated reports."""
-    
+
     report_id: str
     title: str
     report_type: str
@@ -79,13 +98,13 @@ class ReportResponse(BaseModel):
     word_count: int
     status: str
     content: str
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
     download_url: Optional[str] = None
 
 
 class ReportStatus(BaseModel):
     """Report generation status."""
-    
+
     report_id: str
     status: str
     progress: float
@@ -95,23 +114,23 @@ class ReportStatus(BaseModel):
 
 
 # In-memory storage for report tracking
-_active_reports: Dict[str, Dict[str, Any]] = {}
+_active_reports: dict[str, dict[str, Any]] = {}
 
 
-@router.post("/generate", response_model=Dict[str, str])
+@router.post("/generate", response_model=dict[str, str])
 async def generate_report(
     request: ReportRequest,
     background_tasks: BackgroundTasks,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
     Generate a new report.
-    
+
     Creates and queues a report generation task that will create
     natural language reports from investigations and analyses.
     """
     report_id = str(uuid4())
-    
+
     # Store report metadata
     _active_reports[report_id] = {
         "id": report_id,
@@ -132,14 +151,10 @@ async def generate_report(
         "metadata": {},
         "word_count": 0,
     }
-    
+
     # Start report generation in background
-    background_tasks.add_task(
-        _generate_report,
-        report_id,
-        request
-    )
-    
+    background_tasks.add_task(_generate_report, report_id, request)
+
     logger.info(
         "report_generation_started",
         report_id=report_id,
@@ -147,19 +162,19 @@ async def generate_report(
         title=request.title,
         user_id=current_user.get("user_id"),
     )
-    
+
     return {
         "report_id": report_id,
         "status": "started",
-        "message": "Report generation queued for processing"
+        "message": "Report generation queued for processing",
     }
 
 
-@router.get("/templates", response_model=List[Dict[str, Any]])
+@router.get("/templates", response_model=list[dict[str, Any]])
 async def get_report_templates():
     """
     Get available report templates.
-    
+
     Returns a list of predefined report templates with descriptions
     and required parameters.
     """
@@ -169,7 +184,12 @@ async def get_report_templates():
             "name": "Relatório Executivo",
             "description": "Resumo executivo com principais achados e recomendações",
             "target_audience": "executive",
-            "sections": ["resumo", "principais_achados", "recomendacoes", "proximos_passos"],
+            "sections": [
+                "resumo",
+                "principais_achados",
+                "recomendacoes",
+                "proximos_passos",
+            ],
             "estimated_pages": "2-4",
         },
         {
@@ -177,7 +197,13 @@ async def get_report_templates():
             "name": "Análise Detalhada",
             "description": "Relatório técnico com análise aprofundada de dados",
             "target_audience": "technical",
-            "sections": ["metodologia", "analise_dados", "descobertas", "conclusoes", "anexos"],
+            "sections": [
+                "metodologia",
+                "analise_dados",
+                "descobertas",
+                "conclusoes",
+                "anexos",
+            ],
             "estimated_pages": "10-20",
         },
         {
@@ -185,7 +211,13 @@ async def get_report_templates():
             "name": "Relatório de Investigação",
             "description": "Relatório focado em anomalias e irregularidades encontradas",
             "target_audience": "journalist",
-            "sections": ["contexto", "metodologia", "anomalias", "evidencias", "recomendacoes"],
+            "sections": [
+                "contexto",
+                "metodologia",
+                "anomalias",
+                "evidencias",
+                "recomendacoes",
+            ],
             "estimated_pages": "5-15",
         },
         {
@@ -209,33 +241,39 @@ async def get_report_templates():
             "name": "Relatório de Auditoria",
             "description": "Relatório formal para auditores e órgãos de controle",
             "target_audience": "technical",
-            "sections": ["escopo", "metodologia", "achados", "riscos", "recomendacoes", "resposta_gestao"],
+            "sections": [
+                "escopo",
+                "metodologia",
+                "achados",
+                "riscos",
+                "recomendacoes",
+                "resposta_gestao",
+            ],
             "estimated_pages": "15-30",
-        }
+        },
     ]
-    
+
     return templates
 
 
 @router.get("/{report_id}/status", response_model=ReportStatus)
 async def get_report_status(
-    report_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    report_id: str, current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """
     Get the current status of a report generation.
-    
+
     Returns progress information and current phase.
     """
     if report_id not in _active_reports:
         raise HTTPException(status_code=404, detail="Report not found")
-    
+
     report = _active_reports[report_id]
-    
+
     # Check user authorization
     if report["user_id"] != current_user.get("user_id"):
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     return ReportStatus(
         report_id=report_id,
         status=report["status"],
@@ -248,26 +286,25 @@ async def get_report_status(
 
 @router.get("/{report_id}", response_model=ReportResponse)
 async def get_report(
-    report_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    report_id: str, current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """
     Get a generated report.
-    
+
     Returns the complete report content and metadata.
     """
     if report_id not in _active_reports:
         raise HTTPException(status_code=404, detail="Report not found")
-    
+
     report = _active_reports[report_id]
-    
+
     # Check user authorization
     if report["user_id"] != current_user.get("user_id"):
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     if report["status"] not in ["completed", "failed"]:
         raise HTTPException(status_code=409, detail="Report not yet completed")
-    
+
     return ReportResponse(
         report_id=report_id,
         title=report["title"],
@@ -278,7 +315,11 @@ async def get_report(
         status=report["status"],
         content=report["content"],
         metadata=report["metadata"],
-        download_url=f"/api/v1/reports/{report_id}/download" if report["status"] == "completed" else None
+        download_url=(
+            f"/api/v1/reports/{report_id}/download"
+            if report["status"] == "completed"
+            else None
+        ),
     )
 
 
@@ -286,28 +327,28 @@ async def get_report(
 async def download_report(
     report_id: str,
     format: str = Query("html", description="Download format"),
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
     Download a report in the specified format.
-    
+
     Returns the report as a downloadable file.
     """
     if report_id not in _active_reports:
         raise HTTPException(status_code=404, detail="Report not found")
-    
+
     report = _active_reports[report_id]
-    
+
     # Check user authorization
     if report["user_id"] != current_user.get("user_id"):
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     if report["status"] != "completed":
         raise HTTPException(status_code=409, detail="Report not yet completed")
-    
+
     content = report["content"]
     title = report["title"].replace(" ", "_")
-    
+
     if format == "html":
         # Convert markdown to HTML if needed
         if report["output_format"] == "markdown":
@@ -315,41 +356,36 @@ async def download_report(
             html_content = f"<html><body><h1>{report['title']}</h1><pre>{content}</pre></body></html>"
         else:
             html_content = content
-        
+
         return HTMLResponse(
             content=html_content,
-            headers={
-                "Content-Disposition": f"attachment; filename={title}.html"
-            }
+            headers={"Content-Disposition": f"attachment; filename={title}.html"},
         )
-    
+
     elif format == "markdown":
         return Response(
             content=content,
             media_type="text/markdown",
-            headers={
-                "Content-Disposition": f"attachment; filename={title}.md"
-            }
+            headers={"Content-Disposition": f"attachment; filename={title}.md"},
         )
-    
+
     elif format == "json":
         json_content = {
             "report": report,
             "content": content,
-            "metadata": report["metadata"]
+            "metadata": report["metadata"],
         }
-        
+
         return Response(
             content=json_utils.dumps(json_content, indent=2, ensure_ascii=False),
             media_type="application/json",
-            headers={
-                "Content-Disposition": f"attachment; filename={title}.json"
-            }
+            headers={"Content-Disposition": f"attachment; filename={title}.json"},
         )
-    
+
     elif format == "pdf":
         # Check if content is base64 encoded PDF
         import base64
+
         try:
             # If content is already a base64 PDF, decode it
             if report["output_format"] == "pdf":
@@ -357,62 +393,62 @@ async def download_report(
             else:
                 # Convert markdown/html content to PDF
                 from src.services.export_service import export_service
+
                 pdf_bytes = await export_service.generate_pdf(
                     content=content,
                     title=report["title"],
                     metadata=report["metadata"],
-                    format_type="report"
+                    format_type="report",
                 )
-            
+
             return Response(
                 content=pdf_bytes,
                 media_type="application/pdf",
-                headers={
-                    "Content-Disposition": f"attachment; filename={title}.pdf"
-                }
+                headers={"Content-Disposition": f"attachment; filename={title}.pdf"},
             )
         except Exception as e:
             logger.error("pdf_download_error", error=str(e), report_id=report_id)
             raise HTTPException(status_code=500, detail="Failed to generate PDF")
-    
+
     else:
         raise HTTPException(status_code=400, detail="Unsupported format")
 
 
-@router.get("/", response_model=List[Dict[str, Any]])
+@router.get("/", response_model=list[dict[str, Any]])
 async def list_reports(
     report_type: Optional[str] = Query(None, description="Filter by report type"),
     status: Optional[str] = Query(None, description="Filter by status"),
     limit: int = Query(10, ge=1, le=100, description="Number of reports to return"),
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
     List user's reports.
-    
+
     Returns a list of reports owned by the current user.
     """
     user_id = current_user.get("user_id")
-    
+
     # Filter reports by user
     user_reports = [
-        report for report in _active_reports.values()
-        if report["user_id"] == user_id
+        report for report in _active_reports.values() if report["user_id"] == user_id
     ]
-    
+
     # Filter by report type if provided
     if report_type:
-        user_reports = [report for report in user_reports if report["report_type"] == report_type]
-    
+        user_reports = [
+            report for report in user_reports if report["report_type"] == report_type
+        ]
+
     # Filter by status if provided
     if status:
         user_reports = [report for report in user_reports if report["status"] == status]
-    
+
     # Sort by start time (newest first)
     user_reports.sort(key=lambda x: x["started_at"], reverse=True)
-    
+
     # Apply limit
     user_reports = user_reports[:limit]
-    
+
     return [
         {
             "report_id": report["id"],
@@ -431,65 +467,65 @@ async def list_reports(
 
 @router.delete("/{report_id}")
 async def delete_report(
-    report_id: str,
-    current_user: Dict[str, Any] = Depends(get_current_user)
+    report_id: str, current_user: dict[str, Any] = Depends(get_current_user)
 ):
     """
     Delete a report.
-    
+
     Removes the report from storage.
     """
     if report_id not in _active_reports:
         raise HTTPException(status_code=404, detail="Report not found")
-    
+
     report = _active_reports[report_id]
-    
+
     # Check user authorization
     if report["user_id"] != current_user.get("user_id"):
         raise HTTPException(status_code=403, detail="Access denied")
-    
+
     # Remove report
     del _active_reports[report_id]
-    
+
     logger.info(
         "report_deleted",
         report_id=report_id,
         user_id=current_user.get("user_id"),
     )
-    
+
     return {"message": "Report deleted successfully"}
 
 
 async def _generate_report(report_id: str, request: ReportRequest):
     """
     Generate the report in the background.
-    
+
     This function runs the actual report generation using ReporterAgent.
     """
     report = _active_reports[report_id]
-    
+
     try:
         # Update status
         report["status"] = "running"
         report["current_phase"] = "data_collection"
         report["progress"] = 0.1
-        
+
         # Create agent context
         context = AgentContext(
             conversation_id=report_id,
             user_id=report["user_id"],
-            session_data={"report_type": request.report_type}
+            session_data={"report_type": request.report_type},
         )
-        
+
         # Initialize ReporterAgent
         reporter = ReporterAgent()
-        
+
         report["current_phase"] = "content_generation"
         report["progress"] = 0.3
-        
+
         # Create report request for Tiradentes
-        from src.agents.tiradentes import ReportRequest as TiradentesReportRequest, ReportType, ReportFormat
-        
+        from src.agents.tiradentes import ReportFormat, ReportType
+        from src.agents.tiradentes import ReportRequest as TiradentesReportRequest
+
         # Map report type
         report_type_map = {
             "executive_summary": ReportType.EXECUTIVE_SUMMARY,
@@ -499,7 +535,7 @@ async def _generate_report(report_id: str, request: ReportRequest):
             "comparative_analysis": ReportType.TREND_ANALYSIS,
             "audit_report": ReportType.INVESTIGATION_REPORT,
         }
-        
+
         # Map format
         format_map = {
             "markdown": ReportFormat.MARKDOWN,
@@ -507,16 +543,19 @@ async def _generate_report(report_id: str, request: ReportRequest):
             "json": ReportFormat.JSON,
             "pdf": ReportFormat.PDF,
         }
-        
+
         tiradentes_request = TiradentesReportRequest(
-            report_type=report_type_map.get(request.report_type, ReportType.INVESTIGATION_REPORT),
+            report_type=report_type_map.get(
+                request.report_type, ReportType.INVESTIGATION_REPORT
+            ),
             format=format_map.get(request.output_format, ReportFormat.MARKDOWN),
             target_audience=request.target_audience,
             language="pt-BR",
         )
-        
+
         # Process with Tiradentes
         from src.agents import AgentMessage
+
         message = AgentMessage(
             agent_id=reporter.agent_id,
             content={
@@ -526,24 +565,24 @@ async def _generate_report(report_id: str, request: ReportRequest):
                 "data_sources": request.data_sources,
                 "time_range": request.time_range,
             },
-            requires_response=True
+            requires_response=True,
         )
-        
+
         result = await reporter.process(message, context)
         content = result.data.get("report_content", "")
-        
+
         report["current_phase"] = "formatting"
         report["progress"] = 0.7
-        
+
         # Content is already formatted by Tiradentes based on the format requested
         formatted_content = content
-        
+
         report["current_phase"] = "finalization"
         report["progress"] = 0.9
-        
+
         # Calculate word count
         word_count = len(formatted_content.split())
-        
+
         # Generate metadata
         metadata = {
             "sections_generated": content.count("#"),
@@ -553,32 +592,32 @@ async def _generate_report(report_id: str, request: ReportRequest):
             "target_audience": request.target_audience,
             "generation_method": "ai_assisted",
         }
-        
+
         # Store final results
         report["content"] = formatted_content
         report["word_count"] = word_count
         report["metadata"] = metadata
-        
+
         # Mark as completed
         report["status"] = "completed"
         report["completed_at"] = datetime.utcnow()
         report["progress"] = 1.0
         report["current_phase"] = "completed"
-        
+
         logger.info(
             "report_generated",
             report_id=report_id,
             report_type=request.report_type,
             word_count=word_count,
         )
-        
+
     except Exception as e:
         logger.error(
             "report_generation_failed",
             report_id=report_id,
             error=str(e),
         )
-        
+
         report["status"] = "failed"
         report["completed_at"] = datetime.utcnow()
         report["current_phase"] = "failed"

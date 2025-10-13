@@ -24,12 +24,7 @@ from rich.panel import Panel
 # Add src to Python path for proper imports
 sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
-from src.cli.commands import (
-    analyze,
-    investigate,
-    report,
-    watch,
-)
+from src.cli.commands import analyze, investigate, report, watch
 from src.core.config import get_settings
 
 # Initialize Typer app with rich formatting
@@ -45,8 +40,12 @@ app = typer.Typer(
 console = Console()
 
 # Add commands to main app
-app.command("investigate", help="🔍 Executar investigações de anomalias em dados públicos")(investigate)
-app.command("analyze", help="📊 Analisar padrões e correlações em dados governamentais")(analyze)
+app.command(
+    "investigate", help="🔍 Executar investigações de anomalias em dados públicos"
+)(investigate)
+app.command(
+    "analyze", help="📊 Analisar padrões e correlações em dados governamentais"
+)(analyze)
 app.command("report", help="📋 Gerar relatórios detalhados de investigações")(report)
 app.command("watch", help="👀 Monitorar dados em tempo real para anomalias")(watch)
 
@@ -82,28 +81,32 @@ def status() -> None:
 
 @app.callback()
 def main(
-    verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose output"),
-    config_file: Optional[Path] = typer.Option(None, "--config", "-c", help="Custom configuration file path"),
+    verbose: bool = typer.Option(
+        False, "--verbose", "-v", help="Enable verbose output"
+    ),
+    config_file: Optional[Path] = typer.Option(
+        None, "--config", "-c", help="Custom configuration file path"
+    ),
 ) -> None:
     """
     🏛️ Cidadão.AI - Sistema multi-agente de IA para transparência pública brasileira.
-    
-    Sistema enterprise-grade para detecção de anomalias e análise de transparência 
+
+    Sistema enterprise-grade para detecção de anomalias e análise de transparência
     em dados governamentais brasileiros usando múltiplos agentes de IA especializados.
-    
+
     Agentes Disponíveis:
     - 🏹 Zumbi dos Palmares: Investigação e detecção de anomalias
     - 🎭 Anita Garibaldi: Análise de padrões revolucionária
     - 📝 Tiradentes: Geração de relatórios pela liberdade de informação
     - 🏎️ Ayrton Senna: Roteamento semântico de alta performance
     - E mais 13 agentes especializados com identidade cultural brasileira
-    
+
     Para começar:
         cidadao status      # Verificar status do sistema
         cidadao --help      # Ver todos os comandos disponíveis
     """
     if verbose:
-        console.print(f"[dim]Verbose mode enabled[/dim]")
+        console.print("[dim]Verbose mode enabled[/dim]")
         console.print(f"[dim]Config file: {config_file or 'default'}[/dim]")
 
 

@@ -10,12 +10,13 @@ Created: 2025-10-09 14:16:00 -03 (Minas Gerais, Brazil)
 License: Proprietary - All rights reserved
 """
 
-from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional
-from datetime import datetime, timedelta
 import asyncio
+from abc import ABC, abstractmethod
+from datetime import datetime, timedelta
+from typing import Any, Optional
 
 import httpx
+
 from src.core import get_logger
 
 
@@ -45,7 +46,7 @@ class TransparencyAPIClient(ABC):
             timeout: Request timeout in seconds
             max_retries: Maximum number of retries on failure
         """
-        self.base_url = base_url.rstrip('/')
+        self.base_url = base_url.rstrip("/")
         self.name = name
         self.rate_limit = rate_limit_per_minute
         self.timeout = timeout
@@ -54,7 +55,7 @@ class TransparencyAPIClient(ABC):
         self.logger = get_logger(f"transparency_api.{name}")
 
         # Rate limiting state
-        self._request_timestamps: List[datetime] = []
+        self._request_timestamps: list[datetime] = []
         self._rate_limit_lock = asyncio.Lock()
 
         # Circuit breaker state
@@ -65,7 +66,7 @@ class TransparencyAPIClient(ABC):
         self.logger.info(
             f"Initialized {name} API client",
             base_url=base_url,
-            rate_limit=rate_limit_per_minute
+            rate_limit=rate_limit_per_minute,
         )
 
     @abstractmethod
@@ -83,8 +84,8 @@ class TransparencyAPIClient(ABC):
         self,
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
-        **kwargs: Any
-    ) -> List[Dict[str, Any]]:
+        **kwargs: Any,
+    ) -> list[dict[str, Any]]:
         """
         Get contracts from the API.
 
@@ -102,9 +103,9 @@ class TransparencyAPIClient(ABC):
         self,
         method: str,
         endpoint: str,
-        params: Optional[Dict[str, Any]] = None,
-        headers: Optional[Dict[str, str]] = None,
-    ) -> Dict[str, Any]:
+        params: Optional[dict[str, Any]] = None,
+        headers: Optional[dict[str, str]] = None,
+    ) -> dict[str, Any]:
         """
         Make HTTP request with rate limiting and circuit breaker.
 
@@ -141,10 +142,7 @@ class TransparencyAPIClient(ABC):
             try:
                 async with httpx.AsyncClient(timeout=self.timeout) as client:
                     response = await client.request(
-                        method=method,
-                        url=url,
-                        params=params,
-                        headers=headers
+                        method=method, url=url, params=params, headers=headers
                     )
 
                     response.raise_for_status()
@@ -159,11 +157,11 @@ class TransparencyAPIClient(ABC):
 
                 if attempt < self.max_retries - 1:
                     # Exponential backoff
-                    wait_time = 2 ** attempt
+                    wait_time = 2**attempt
                     self.logger.warning(
                         f"Request failed, retrying in {wait_time}s",
                         attempt=attempt + 1,
-                        error=str(e)
+                        error=str(e),
                     )
                     await asyncio.sleep(wait_time)
                 else:
@@ -171,13 +169,15 @@ class TransparencyAPIClient(ABC):
                     self.logger.error(
                         f"Request failed after {self.max_retries} attempts",
                         url=url,
-                        error=str(e)
+                        error=str(e),
                     )
 
                     # Open circuit breaker if too many failures
                     if self._failure_count >= 5:
                         self._circuit_open = True
-                        self._circuit_open_until = datetime.utcnow() + timedelta(minutes=5)
+                        self._circuit_open_until = datetime.utcnow() + timedelta(
+                            minutes=5
+                        )
                         self.logger.error(f"Circuit breaker opened for {self.name}")
 
                     raise
@@ -189,8 +189,7 @@ class TransparencyAPIClient(ABC):
 
             # Remove timestamps older than 1 minute
             self._request_timestamps = [
-                ts for ts in self._request_timestamps
-                if (now - ts).total_seconds() < 60
+                ts for ts in self._request_timestamps if (now - ts).total_seconds() < 60
             ]
 
             # Check if we need to wait
@@ -200,7 +199,9 @@ class TransparencyAPIClient(ABC):
                 wait_seconds = 60 - (now - oldest).total_seconds()
 
                 if wait_seconds > 0:
-                    self.logger.debug(f"Rate limit reached, waiting {wait_seconds:.1f}s")
+                    self.logger.debug(
+                        f"Rate limit reached, waiting {wait_seconds:.1f}s"
+                    )
                     await asyncio.sleep(wait_seconds)
 
                     # Remove oldest timestamp

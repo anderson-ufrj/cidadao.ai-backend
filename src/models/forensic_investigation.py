@@ -9,31 +9,33 @@ This module defines comprehensive data models for storing detailed forensic
 evidence, legal references, and documentary proof for government transparency.
 """
 
-from typing import List, Optional, Dict, Any
-from datetime import datetime
 from dataclasses import dataclass, field
+from datetime import datetime
 from enum import Enum
+from typing import Any, Optional
 
 
 class AnomalySeverity(str, Enum):
     """Severity levels for anomalies."""
+
     CRITICAL = "critical"  # Suspeita forte de irregularidade grave
-    HIGH = "high"         # Irregularidade significativa
-    MEDIUM = "medium"     # Padrão suspeito que merece atenção
-    LOW = "low"          # Desvio menor, monitoramento recomendado
-    INFO = "info"        # Informativo, sem suspeita
+    HIGH = "high"  # Irregularidade significativa
+    MEDIUM = "medium"  # Padrão suspeito que merece atenção
+    LOW = "low"  # Desvio menor, monitoramento recomendado
+    INFO = "info"  # Informativo, sem suspeita
 
 
 class EvidenceType(str, Enum):
     """Types of evidence collected."""
-    DOCUMENT = "document"           # Documento oficial
-    STATISTICAL = "statistical"     # Análise estatística
-    COMPARATIVE = "comparative"     # Comparação com outros casos
-    TEMPORAL = "temporal"          # Análise temporal/padrões
-    FINANCIAL = "financial"        # Análise financeira
-    LEGAL = "legal"               # Base legal/jurídica
-    WITNESS = "witness"           # Declarações/testemunhos públicos
-    OPEN_DATA = "open_data"       # Dados abertos gov.br
+
+    DOCUMENT = "document"  # Documento oficial
+    STATISTICAL = "statistical"  # Análise estatística
+    COMPARATIVE = "comparative"  # Comparação com outros casos
+    TEMPORAL = "temporal"  # Análise temporal/padrões
+    FINANCIAL = "financial"  # Análise financeira
+    LEGAL = "legal"  # Base legal/jurídica
+    WITNESS = "witness"  # Declarações/testemunhos públicos
+    OPEN_DATA = "open_data"  # Dados abertos gov.br
 
 
 @dataclass
@@ -80,16 +82,16 @@ class LegalEntity:
     # Histórico
     foundation_date: Optional[datetime] = None
     previous_contracts_count: int = 0
-    previous_irregularities: List[str] = field(default_factory=list)
+    previous_irregularities: list[str] = field(default_factory=list)
     total_contracted_value: Optional[float] = None
 
     # Status Legal
     legal_status: Optional[str] = None  # ativa, suspensa, inidônea
-    sanctions: List[Dict[str, Any]] = field(default_factory=list)
+    sanctions: list[dict[str, Any]] = field(default_factory=list)
 
     # Metadata
     last_updated: datetime = field(default_factory=datetime.utcnow)
-    data_sources: List[str] = field(default_factory=list)
+    data_sources: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -102,7 +104,7 @@ class Evidence:
     description: str
 
     # Conteúdo da evidência
-    data: Dict[str, Any]  # Dados estruturados da evidência
+    data: dict[str, Any]  # Dados estruturados da evidência
 
     # Análise
     analysis_method: str  # Como foi obtida/analisada
@@ -112,8 +114,8 @@ class Evidence:
     confidence_score: float = 1.0  # 0-1, confiança na evidência
 
     # Referências
-    source_documents: List[OfficialDocument] = field(default_factory=list)
-    source_urls: List[str] = field(default_factory=list)
+    source_documents: list[OfficialDocument] = field(default_factory=list)
+    source_urls: list[str] = field(default_factory=list)
 
     # Comparações
     comparison_baseline: Optional[str] = None  # O que foi usado como referência
@@ -139,7 +141,7 @@ class FinancialImpact:
     # Análise Comparativa
     market_average: Optional[float] = None
     previous_contracts_average: Optional[float] = None
-    similar_contracts: List[Dict[str, Any]] = field(default_factory=list)
+    similar_contracts: list[dict[str, Any]] = field(default_factory=list)
 
     # Classificação Orçamentária
     budget_source: Optional[str] = None  # Fonte de recurso
@@ -165,11 +167,11 @@ class Timeline:
     relevance: str  # Por que esse evento é relevante
 
     # Documentação
-    related_documents: List[OfficialDocument] = field(default_factory=list)
+    related_documents: list[OfficialDocument] = field(default_factory=list)
     responsible_party: Optional[str] = None
 
     # Análise
-    suspicious_aspects: List[str] = field(default_factory=list)
+    suspicious_aspects: list[str] = field(default_factory=list)
     legal_implications: Optional[str] = None
 
 
@@ -178,22 +180,22 @@ class LegalFramework:
     """Legal framework and regulatory context."""
 
     # Legislação Aplicável
-    applicable_laws: List[str] = field(default_factory=list)  # Lei 8666/93, etc
-    regulations: List[str] = field(default_factory=list)
-    jurisprudence: List[str] = field(default_factory=list)  # Precedentes
+    applicable_laws: list[str] = field(default_factory=list)  # Lei 8666/93, etc
+    regulations: list[str] = field(default_factory=list)
+    jurisprudence: list[str] = field(default_factory=list)  # Precedentes
 
     # Órgãos Competentes
-    oversight_bodies: List[str] = field(default_factory=list)  # TCU, CGU, MPF
+    oversight_bodies: list[str] = field(default_factory=list)  # TCU, CGU, MPF
     jurisdiction: Optional[str] = None  # Federal, estadual, municipal
 
     # Procedimentos
-    required_procedures: List[str] = field(default_factory=list)
-    procedures_followed: List[str] = field(default_factory=list)
-    procedures_violated: List[str] = field(default_factory=list)
+    required_procedures: list[str] = field(default_factory=list)
+    procedures_followed: list[str] = field(default_factory=list)
+    procedures_violated: list[str] = field(default_factory=list)
 
     # Penalidades Possíveis
-    possible_sanctions: List[str] = field(default_factory=list)
-    responsible_parties: List[str] = field(default_factory=list)
+    possible_sanctions: list[str] = field(default_factory=list)
+    responsible_parties: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -213,15 +215,15 @@ class RecommendedAction:
     responsible_body: Optional[str] = None  # Quem deve executar
     contact_info: Optional[str] = None
     submission_url: Optional[str] = None
-    required_documents: List[str] = field(default_factory=list)
+    required_documents: list[str] = field(default_factory=list)
 
     # Prazos
     recommended_deadline: Optional[datetime] = None
     legal_deadline: Optional[datetime] = None
 
     # Referências
-    legal_basis: List[str] = field(default_factory=list)
-    similar_cases: List[str] = field(default_factory=list)
+    legal_basis: list[str] = field(default_factory=list)
+    similar_cases: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -247,7 +249,7 @@ class ForensicAnomalyResult:
 
     # POR QUE é suspeito/irregular
     why_suspicious: str  # Explicação clara das irregularidades
-    legal_violations: List[str] = field(default_factory=list)
+    legal_violations: list[str] = field(default_factory=list)
 
     # Confiança e Qualidade
     confidence_score: float = 0.0  # 0-1
@@ -255,36 +257,36 @@ class ForensicAnomalyResult:
     completeness_score: float = 0.0  # 0-1
 
     # ENTIDADES ENVOLVIDAS
-    involved_entities: List[LegalEntity] = field(default_factory=list)
+    involved_entities: list[LegalEntity] = field(default_factory=list)
 
     # DOCUMENTAÇÃO E EVIDÊNCIAS
-    official_documents: List[OfficialDocument] = field(default_factory=list)
-    evidence: List[Evidence] = field(default_factory=list)
+    official_documents: list[OfficialDocument] = field(default_factory=list)
+    evidence: list[Evidence] = field(default_factory=list)
 
     # ANÁLISE FINANCEIRA
     financial_impact: Optional[FinancialImpact] = None
 
     # CRONOLOGIA
-    timeline: List[Timeline] = field(default_factory=list)
+    timeline: list[Timeline] = field(default_factory=list)
 
     # CONTEXTO LEGAL
     legal_framework: Optional[LegalFramework] = None
 
     # COMPARAÇÕES E BENCHMARK
-    similar_cases: List[Dict[str, Any]] = field(default_factory=list)
-    statistical_comparison: Optional[Dict[str, Any]] = None
+    similar_cases: list[dict[str, Any]] = field(default_factory=list)
+    statistical_comparison: Optional[dict[str, Any]] = None
 
     # AÇÕES RECOMENDADAS
-    recommended_actions: List[RecommendedAction] = field(default_factory=list)
+    recommended_actions: list[RecommendedAction] = field(default_factory=list)
 
     # FONTES E RASTREABILIDADE
-    data_sources: List[str] = field(default_factory=list)
-    api_endpoints_used: List[str] = field(default_factory=list)
-    external_references: List[str] = field(default_factory=list)
+    data_sources: list[str] = field(default_factory=list)
+    api_endpoints_used: list[str] = field(default_factory=list)
+    external_references: list[str] = field(default_factory=list)
 
     # VISUALIZAÇÕES
-    charts: List[Dict[str, Any]] = field(default_factory=list)
-    visualizations_urls: List[str] = field(default_factory=list)
+    charts: list[dict[str, Any]] = field(default_factory=list)
+    visualizations_urls: list[str] = field(default_factory=list)
 
     # METADATA
     created_at: datetime = field(default_factory=datetime.utcnow)
@@ -298,7 +300,7 @@ class ForensicAnomalyResult:
     peer_reviewed: bool = False
     review_notes: Optional[str] = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
         return {
             "anomaly_id": self.anomaly_id,
@@ -359,15 +361,19 @@ class ForensicAnomalyResult:
                 }
                 for e in self.evidence
             ],
-            "financial_impact": {
-                "contract_value": self.financial_impact.contract_value,
-                "expected_value": self.financial_impact.expected_value,
-                "overcharge_amount": self.financial_impact.overcharge_amount,
-                "potential_savings": self.financial_impact.potential_savings,
-                "market_average": self.financial_impact.market_average,
-                "similar_contracts": self.financial_impact.similar_contracts,
-                "opportunity_cost": self.financial_impact.opportunity_cost,
-            } if self.financial_impact else None,
+            "financial_impact": (
+                {
+                    "contract_value": self.financial_impact.contract_value,
+                    "expected_value": self.financial_impact.expected_value,
+                    "overcharge_amount": self.financial_impact.overcharge_amount,
+                    "potential_savings": self.financial_impact.potential_savings,
+                    "market_average": self.financial_impact.market_average,
+                    "similar_contracts": self.financial_impact.similar_contracts,
+                    "opportunity_cost": self.financial_impact.opportunity_cost,
+                }
+                if self.financial_impact
+                else None
+            ),
             "timeline": [
                 {
                     "date": t.event_date.isoformat(),
@@ -378,12 +384,16 @@ class ForensicAnomalyResult:
                 }
                 for t in self.timeline
             ],
-            "legal_framework": {
-                "applicable_laws": self.legal_framework.applicable_laws,
-                "oversight_bodies": self.legal_framework.oversight_bodies,
-                "procedures_violated": self.legal_framework.procedures_violated,
-                "possible_sanctions": self.legal_framework.possible_sanctions,
-            } if self.legal_framework else None,
+            "legal_framework": (
+                {
+                    "applicable_laws": self.legal_framework.applicable_laws,
+                    "oversight_bodies": self.legal_framework.oversight_bodies,
+                    "procedures_violated": self.legal_framework.procedures_violated,
+                    "possible_sanctions": self.legal_framework.possible_sanctions,
+                }
+                if self.legal_framework
+                else None
+            ),
             "recommended_actions": [
                 {
                     "type": a.action_type,

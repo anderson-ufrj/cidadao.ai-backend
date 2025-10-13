@@ -23,7 +23,7 @@ Created: 2025-10-09 14:27:00 -03 (Minas Gerais, Brazil)
 License: Proprietary - All rights reserved
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Optional
 
 from ..base import TransparencyAPIClient
 
@@ -43,7 +43,7 @@ class TCECearaClient(TransparencyAPIClient):
             base_url="https://api.tce.ce.gov.br/sim/1_0",
             name="TCE-CE",
             rate_limit_per_minute=60,
-            timeout=30.0
+            timeout=30.0,
         )
 
     async def test_connection(self) -> bool:
@@ -70,7 +70,7 @@ class TCECearaClient(TransparencyAPIClient):
             self.logger.error(f"TCE-CE connection failed: {str(e)}")
             return False
 
-    async def get_municipalities(self) -> List[Dict[str, Any]]:
+    async def get_municipalities(self) -> list[dict[str, Any]]:
         """
         Get list of Ceará municipalities.
 
@@ -82,7 +82,9 @@ class TCECearaClient(TransparencyAPIClient):
 
             municipalities = self._normalize_municipalities(raw_data)
 
-            self.logger.info(f"Fetched {len(municipalities)} municipalities from TCE-CE")
+            self.logger.info(
+                f"Fetched {len(municipalities)} municipalities from TCE-CE"
+            )
 
             return municipalities
 
@@ -95,8 +97,8 @@ class TCECearaClient(TransparencyAPIClient):
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         municipality_code: Optional[str] = None,
-        **kwargs: Any
-    ) -> List[Dict[str, Any]]:
+        **kwargs: Any,
+    ) -> list[dict[str, Any]]:
         """
         Get contracts from TCE-CE.
 
@@ -131,10 +133,8 @@ class TCECearaClient(TransparencyAPIClient):
             return []
 
     async def get_suppliers(
-        self,
-        municipality_code: Optional[str] = None,
-        **kwargs: Any
-    ) -> List[Dict[str, Any]]:
+        self, municipality_code: Optional[str] = None, **kwargs: Any
+    ) -> list[dict[str, Any]]:
         """
         Get suppliers/contractors (negociantes) from TCE-CE.
 
@@ -166,10 +166,8 @@ class TCECearaClient(TransparencyAPIClient):
             return []
 
     async def get_bidding_processes(
-        self,
-        municipality_code: Optional[str] = None,
-        **kwargs: Any
-    ) -> List[Dict[str, Any]]:
+        self, municipality_code: Optional[str] = None, **kwargs: Any
+    ) -> list[dict[str, Any]]:
         """
         Get bidding processes (licitações) from TCE-CE.
 
@@ -201,10 +199,7 @@ class TCECearaClient(TransparencyAPIClient):
             return []
 
     async def _tce_request(
-        self,
-        method: str,
-        format: str = "json",
-        **params: Any
+        self, method: str, format: str = "json", **params: Any
     ) -> Any:
         """
         Make request to TCE-CE API.
@@ -223,12 +218,10 @@ class TCECearaClient(TransparencyAPIClient):
         endpoint = f"/{method}.{format}"
 
         return await self._make_request(
-            method="GET",
-            endpoint=endpoint,
-            params=params if params else None
+            method="GET", endpoint=endpoint, params=params if params else None
         )
 
-    def _normalize_municipalities(self, raw_data: Any) -> List[Dict[str, Any]]:
+    def _normalize_municipalities(self, raw_data: Any) -> list[dict[str, Any]]:
         """Normalize municipality data."""
         if not isinstance(raw_data, list):
             raw_data = [raw_data] if raw_data else []
@@ -239,17 +232,19 @@ class TCECearaClient(TransparencyAPIClient):
             if not isinstance(item, dict):
                 continue
 
-            normalized.append({
-                "source": "TCE-CE",
-                "municipality_code": item.get("codigoIBGE") or item.get("codigo"),
-                "municipality_name": item.get("nome"),
-                "state": "CE",
-                "raw_data": item
-            })
+            normalized.append(
+                {
+                    "source": "TCE-CE",
+                    "municipality_code": item.get("codigoIBGE") or item.get("codigo"),
+                    "municipality_name": item.get("nome"),
+                    "state": "CE",
+                    "raw_data": item,
+                }
+            )
 
         return normalized
 
-    def _normalize_contracts(self, raw_data: Any) -> List[Dict[str, Any]]:
+    def _normalize_contracts(self, raw_data: Any) -> list[dict[str, Any]]:
         """Normalize contract data to common format."""
         if not isinstance(raw_data, list):
             raw_data = [raw_data] if raw_data else []
@@ -260,24 +255,28 @@ class TCECearaClient(TransparencyAPIClient):
             if not isinstance(item, dict):
                 continue
 
-            normalized.append({
-                "source": "TCE-CE",
-                "contract_id": item.get("numeroContrato"),
-                "supplier_name": item.get("nomeContratado") or item.get("contratado"),
-                "supplier_id": item.get("cpfCnpjContratado") or item.get("cpfCnpj"),
-                "value": float(item.get("valorContrato", 0) or 0),
-                "date": item.get("dataAssinatura") or item.get("data"),
-                "object": item.get("objetoContrato") or item.get("objeto"),
-                "status": item.get("situacao"),
-                "municipality": item.get("nomeMunicipio"),
-                "municipality_code": item.get("codigoMunicipio") or item.get("municipio"),
-                "government_unit": item.get("orgao"),
-                "raw_data": item
-            })
+            normalized.append(
+                {
+                    "source": "TCE-CE",
+                    "contract_id": item.get("numeroContrato"),
+                    "supplier_name": item.get("nomeContratado")
+                    or item.get("contratado"),
+                    "supplier_id": item.get("cpfCnpjContratado") or item.get("cpfCnpj"),
+                    "value": float(item.get("valorContrato", 0) or 0),
+                    "date": item.get("dataAssinatura") or item.get("data"),
+                    "object": item.get("objetoContrato") or item.get("objeto"),
+                    "status": item.get("situacao"),
+                    "municipality": item.get("nomeMunicipio"),
+                    "municipality_code": item.get("codigoMunicipio")
+                    or item.get("municipio"),
+                    "government_unit": item.get("orgao"),
+                    "raw_data": item,
+                }
+            )
 
         return normalized
 
-    def _normalize_suppliers(self, raw_data: Any) -> List[Dict[str, Any]]:
+    def _normalize_suppliers(self, raw_data: Any) -> list[dict[str, Any]]:
         """Normalize supplier data to common format."""
         if not isinstance(raw_data, list):
             raw_data = [raw_data] if raw_data else []
@@ -288,18 +287,20 @@ class TCECearaClient(TransparencyAPIClient):
             if not isinstance(item, dict):
                 continue
 
-            normalized.append({
-                "source": "TCE-CE",
-                "supplier_id": item.get("cpfCnpj"),
-                "supplier_name": item.get("nome"),
-                "municipality": item.get("nomeMunicipio") or item.get("municipio"),
-                "municipality_code": item.get("codigoMunicipio"),
-                "raw_data": item
-            })
+            normalized.append(
+                {
+                    "source": "TCE-CE",
+                    "supplier_id": item.get("cpfCnpj"),
+                    "supplier_name": item.get("nome"),
+                    "municipality": item.get("nomeMunicipio") or item.get("municipio"),
+                    "municipality_code": item.get("codigoMunicipio"),
+                    "raw_data": item,
+                }
+            )
 
         return normalized
 
-    def _normalize_bidding_processes(self, raw_data: Any) -> List[Dict[str, Any]]:
+    def _normalize_bidding_processes(self, raw_data: Any) -> list[dict[str, Any]]:
         """Normalize bidding process data to common format."""
         if not isinstance(raw_data, list):
             raw_data = [raw_data] if raw_data else []
@@ -310,18 +311,20 @@ class TCECearaClient(TransparencyAPIClient):
             if not isinstance(item, dict):
                 continue
 
-            normalized.append({
-                "source": "TCE-CE",
-                "bidding_id": item.get("numeroLicitacao") or item.get("numero"),
-                "modality": item.get("modalidade"),
-                "object": item.get("objeto"),
-                "value": float(item.get("valorEstimado", 0) or 0),
-                "date": item.get("dataAbertura") or item.get("data"),
-                "status": item.get("situacao"),
-                "municipality": item.get("nomeMunicipio") or item.get("municipio"),
-                "municipality_code": item.get("codigoMunicipio"),
-                "government_unit": item.get("orgao"),
-                "raw_data": item
-            })
+            normalized.append(
+                {
+                    "source": "TCE-CE",
+                    "bidding_id": item.get("numeroLicitacao") or item.get("numero"),
+                    "modality": item.get("modalidade"),
+                    "object": item.get("objeto"),
+                    "value": float(item.get("valorEstimado", 0) or 0),
+                    "date": item.get("dataAbertura") or item.get("data"),
+                    "status": item.get("situacao"),
+                    "municipality": item.get("nomeMunicipio") or item.get("municipio"),
+                    "municipality_code": item.get("codigoMunicipio"),
+                    "government_unit": item.get("orgao"),
+                    "raw_data": item,
+                }
+            )
 
         return normalized
