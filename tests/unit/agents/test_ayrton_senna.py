@@ -3,22 +3,14 @@ Unit tests for Ayrton Senna Agent - Performance optimization specialist.
 Tests system performance, optimization strategies, and efficiency analysis.
 """
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
-from datetime import datetime
-from unittest.mock import Mock, AsyncMock, patch
-from uuid import uuid4
 
 from src.agents.ayrton_senna import (
     AyrtonSennaAgent,
-    PerformanceMetric,
-    OptimizationStrategy,
 )
-from src.agents.deodoro import (
-    AgentContext,
-    AgentMessage,
-    AgentResponse,
-    AgentStatus,
-)
+from src.agents.deodoro import AgentContext, AgentMessage, AgentStatus
 
 
 @pytest.fixture
@@ -29,7 +21,7 @@ def mock_performance_monitor():
         "cpu_usage": 0.65,
         "memory_usage": 0.72,
         "response_time": 150.5,
-        "throughput": 1200
+        "throughput": 1200,
     }
     return monitor
 
@@ -37,24 +29,24 @@ def mock_performance_monitor():
 @pytest.fixture
 def ayrton_agent(mock_performance_monitor):
     """Create Ayrton Senna agent with mocked dependencies."""
-    with patch("src.agents.ayrton_senna.PerformanceMonitor", return_value=mock_performance_monitor):
-        agent = AyrtonSennaAgent(
-            performance_threshold=0.8,
-            optimization_target=0.9
-        )
+    with patch(
+        "src.agents.ayrton_senna.PerformanceMonitor",
+        return_value=mock_performance_monitor,
+    ):
+        agent = AyrtonSennaAgent(performance_threshold=0.8, optimization_target=0.9)
         return agent
 
 
 class TestAyrtonSennaAgent:
     """Test suite for Ayrton Senna (Performance Agent)."""
-    
+
     @pytest.mark.unit
     def test_agent_initialization(self, ayrton_agent):
         """Test Ayrton Senna agent initialization."""
         assert ayrton_agent.name == "AyrtonSenna"
         assert "performance_optimization" in ayrton_agent.capabilities
         assert "system_analysis" in ayrton_agent.capabilities
-    
+
     @pytest.mark.unit
     async def test_performance_analysis(self, ayrton_agent):
         """Test system performance analysis."""
@@ -63,14 +55,14 @@ class TestAyrtonSennaAgent:
             sender="test",
             recipient="AyrtonSenna",
             action="analyze_performance",
-            payload={"system_id": "api_system"}
+            payload={"system_id": "api_system"},
         )
-        
+
         response = await ayrton_agent.process(message, context)
-        
+
         assert response.status == AgentStatus.COMPLETED
         assert "performance_analysis" in response.result
-    
+
     @pytest.mark.unit
     async def test_optimization_recommendations(self, ayrton_agent):
         """Test optimization recommendations."""
@@ -79,10 +71,10 @@ class TestAyrtonSennaAgent:
             sender="test",
             recipient="AyrtonSenna",
             action="recommend_optimizations",
-            payload={"target_improvement": 0.25}
+            payload={"target_improvement": 0.25},
         )
-        
+
         response = await ayrton_agent.process(message, context)
-        
+
         assert response.status == AgentStatus.COMPLETED
         assert "optimization_recommendations" in response.result

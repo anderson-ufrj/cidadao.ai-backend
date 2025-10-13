@@ -2,21 +2,21 @@
 Unit tests for Oscar Niemeyer agent.
 """
 
-import pytest
-from datetime import datetime, timedelta
-from unittest.mock import AsyncMock, MagicMock, patch
 import json
+from datetime import datetime
+from unittest.mock import AsyncMock, MagicMock, patch
 
+import pytest
+
+from src.agents.deodoro import AgentContext, AgentMessage
 from src.agents.oscar_niemeyer import (
-    OscarNiemeyerAgent,
     AggregationType,
-    VisualizationType,
+    OscarNiemeyerAgent,
     TimeGranularity,
-    DataAggregationResult,
     TimeSeriesData,
-    VisualizationMetadata
+    VisualizationMetadata,
+    VisualizationType,
 )
-from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse
 from src.core import AgentStatus
 
 
@@ -33,7 +33,7 @@ def agent_context():
         investigation_id="test-investigation-123",
         user_id="test-user",
         session_id="test-session",
-        metadata={}
+        metadata={},
     )
 
 
@@ -56,7 +56,7 @@ async def test_oscar_agent_initialization(oscar_agent):
     assert "data_aggregation" in oscar_agent.capabilities
     assert "time_series_analysis" in oscar_agent.capabilities
     assert "visualization_metadata" in oscar_agent.capabilities
-    
+
     await oscar_agent.initialize()
     assert oscar_agent.config["max_data_points"] == 10000
 
@@ -71,8 +71,8 @@ async def test_multidimensional_aggregation(oscar_agent, agent_context):
         payload={
             "dimensions": ["category", "region"],
             "metrics": ["total", "average"],
-            "filters": {}
-        }
+            "filters": {},
+        },
     )
 
     response = await oscar_agent.process(message, agent_context)
@@ -99,8 +99,8 @@ async def test_time_series_generation(oscar_agent, agent_context):
             "metric": "contract_value",
             "start_date": "2024-01-01",
             "end_date": "2024-01-31",
-            "granularity": "day"
-        }
+            "granularity": "day",
+        },
     )
 
     response = await oscar_agent.process(message, agent_context)
@@ -123,8 +123,8 @@ async def test_spatial_aggregation(oscar_agent, agent_context):
         payload={
             "data": [],
             "region_type": "state",
-            "metrics": ["total_contracts", "average_value"]
-        }
+            "metrics": ["total_contracts", "average_value"],
+        },
     )
 
     response = await oscar_agent.process(message, agent_context)
@@ -150,8 +150,8 @@ async def test_visualization_metadata_generation(oscar_agent, agent_context):
         payload={
             "data_type": "contracts",
             "dimensions": ["month", "category"],
-            "metrics": ["total_value", "count"]
-        }
+            "metrics": ["total_value", "count"],
+        },
     )
 
     response = await oscar_agent.process(message, agent_context)
@@ -169,11 +169,11 @@ async def test_visualization_metadata_generation(oscar_agent, agent_context):
 async def test_export_format_json(oscar_agent):
     """Test JSON export format."""
     data = [{"id": 1, "value": 100}, {"id": 2, "value": 200}]
-    
+
     # Minified JSON
     result = await oscar_agent.create_export_format(data, "json")
     assert '{"id":1,"value":100}' in result
-    
+
     # Pretty JSON
     result_pretty = await oscar_agent.create_export_format(
         data, "json", {"pretty": True}
@@ -185,16 +185,13 @@ async def test_export_format_json(oscar_agent):
 @pytest.mark.asyncio
 async def test_export_format_csv(oscar_agent):
     """Test CSV export format."""
-    data = [
-        {"name": "Item A", "value": 100},
-        {"name": "Item B", "value": 200}
-    ]
-    
+    data = [{"name": "Item A", "value": 100}, {"name": "Item B", "value": 200}]
+
     result = await oscar_agent.create_export_format(data, "csv")
     assert "name,value" in result
     assert "Item A,100" in result
     assert "Item B,200" in result
-    
+
     # Custom delimiter
     result_custom = await oscar_agent.create_export_format(
         data, "csv", {"delimiter": ";"}
@@ -208,19 +205,19 @@ async def test_visualization_recommendation(oscar_agent):
     # Time series
     viz = oscar_agent._recommend_visualization(["date"], ["value"])
     assert viz == VisualizationType.LINE_CHART
-    
+
     # Single dimension comparison
     viz = oscar_agent._recommend_visualization(["category"], ["total"])
     assert viz == VisualizationType.BAR_CHART
-    
+
     # Geographic data
     viz = oscar_agent._recommend_visualization(["state"], ["value"], "geo_distribution")
     assert viz == VisualizationType.MAP
-    
+
     # Multiple dimensions
     viz = oscar_agent._recommend_visualization(["region", "category"], ["value"])
     assert viz == VisualizationType.HEATMAP
-    
+
     # Single metric
     viz = oscar_agent._recommend_visualization([], ["score"])
     assert viz == VisualizationType.GAUGE
@@ -234,11 +231,14 @@ async def test_error_handling(oscar_agent, agent_context):
         sender="test-user",
         recipient="OscarNiemeyerAgent",
         action="invalid_action",
-        payload=None
+        payload=None,
     )
 
-    with patch.object(oscar_agent, '_perform_multidimensional_aggregation',
-                      side_effect=Exception("Aggregation failed")):
+    with patch.object(
+        oscar_agent,
+        "_perform_multidimensional_aggregation",
+        side_effect=Exception("Aggregation failed"),
+    ):
         response = await oscar_agent.process(message, agent_context)
 
     assert response.status == AgentStatus.ERROR
@@ -253,7 +253,7 @@ async def test_cache_metadata(oscar_agent, agent_context):
         sender="test-user",
         recipient="OscarNiemeyerAgent",
         action="aggregate_data",
-        payload={"dimensions": ["type"], "metrics": ["sum"]}
+        payload={"dimensions": ["type"], "metrics": ["sum"]},
     )
 
     response = await oscar_agent.process(message, agent_context)
@@ -266,7 +266,9 @@ async def test_cache_metadata(oscar_agent, agent_context):
 
     # Verify cache expiration
     expires_at = datetime.fromisoformat(metadata["expires_at"].replace("Z", "+00:00"))
-    generated_at = datetime.fromisoformat(metadata["generated_at"].replace("Z", "+00:00"))
+    generated_at = datetime.fromisoformat(
+        metadata["generated_at"].replace("Z", "+00:00")
+    )
     diff = (expires_at - generated_at).total_seconds()
     assert diff == oscar_agent.config["cache_ttl_seconds"]
 
@@ -275,16 +277,13 @@ async def test_cache_metadata(oscar_agent, agent_context):
 async def test_time_series_metadata(oscar_agent):
     """Test time series metadata generation."""
     ts_data = await oscar_agent.generate_time_series(
-        "revenue",
-        "2024-01-01",
-        "2024-01-31",
-        TimeGranularity.DAY
+        "revenue", "2024-01-01", "2024-01-31", TimeGranularity.DAY
     )
-    
+
     assert ts_data.series_id.startswith("ts_revenue_day")
     assert ts_data.metric_name == "revenue"
     assert ts_data.aggregation_type == AggregationType.SUM
-    
+
     metadata = ts_data.metadata
     assert "trend_direction" in metadata
     assert "seasonality_detected" in metadata
@@ -296,21 +295,19 @@ async def test_time_series_metadata(oscar_agent):
 async def test_regional_aggregation_brazil(oscar_agent):
     """Test Brazilian regional data aggregation."""
     result = await oscar_agent.aggregate_by_region(
-        [],  # Empty data for demo
-        "state",
-        ["total_contracts", "average_value"]
+        [], "state", ["total_contracts", "average_value"]  # Empty data for demo
     )
-    
+
     assert result["region_type"] == "state"
     assert "SP" in result["regions"]
     assert "RJ" in result["regions"]
-    
+
     sp_data = result["regions"]["SP"]
     assert sp_data["name"] == "São Paulo"
     assert sp_data["region"] == "Sudeste"
     assert "coordinates" in sp_data
     assert "metrics" in sp_data
-    
+
     for metric in ["total_contracts", "average_value"]:
         assert metric in sp_data["metrics"]
         assert "value" in sp_data["metrics"][metric]
@@ -342,8 +339,8 @@ async def test_fraud_network_creation(oscar_agent, agent_context):
         payload={
             "entities": entities,
             "relationships": relationships,
-            "threshold": 0.7
-        }
+            "threshold": 0.7,
+        },
     )
 
     response = await oscar_agent.process(message, agent_context)
@@ -387,19 +384,18 @@ async def test_choropleth_map_creation(oscar_agent, agent_context):
         payload={
             "data": data,
             "color_column": "value",
-            "location_column": "state_code"
-        }
+            "location_column": "state_code",
+        },
     )
 
     # Mock httpx to avoid actual HTTP calls
     with patch("httpx.AsyncClient") as mock_client:
         mock_response = AsyncMock()
-        mock_response.json.return_value = {
-            "type": "FeatureCollection",
-            "features": []
-        }
+        mock_response.json.return_value = {"type": "FeatureCollection", "features": []}
         mock_response.raise_for_status = MagicMock()
-        mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value.get.return_value = (
+            mock_response
+        )
 
         response = await oscar_agent.process(message, agent_context)
 
@@ -433,10 +429,7 @@ async def test_network_api_integration(oscar_agent, agent_context):
         sender="test-user",
         recipient="OscarNiemeyerAgent",
         action="fetch_network_data",
-        payload={
-            "entity_id": entity_id,
-            "depth": 2
-        }
+        payload={"entity_id": entity_id, "depth": 2},
     )
 
     # Mock httpx to simulate Network Graph API response
@@ -444,17 +437,34 @@ async def test_network_api_integration(oscar_agent, agent_context):
         mock_response = AsyncMock()
         mock_response.json.return_value = {
             "nodes": [
-                {"id": "E1", "name": "Entity 1", "entity_type": "empresa", "risk_score": 0.7},
-                {"id": "E2", "name": "Entity 2", "entity_type": "orgao_publico", "risk_score": 0.3}
+                {
+                    "id": "E1",
+                    "name": "Entity 1",
+                    "entity_type": "empresa",
+                    "risk_score": 0.7,
+                },
+                {
+                    "id": "E2",
+                    "name": "Entity 2",
+                    "entity_type": "orgao_publico",
+                    "risk_score": 0.3,
+                },
             ],
             "edges": [
-                {"source_entity_id": "E1", "target_entity_id": "E2", "relationship_type": "contracts_with", "strength": 0.9}
+                {
+                    "source_entity_id": "E1",
+                    "target_entity_id": "E2",
+                    "relationship_type": "contracts_with",
+                    "strength": 0.9,
+                }
             ],
             "node_count": 2,
-            "edge_count": 1
+            "edge_count": 1,
         }
         mock_response.raise_for_status = MagicMock()
-        mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value.get.return_value = (
+            mock_response
+        )
 
         response = await oscar_agent.process(message, agent_context)
 
@@ -494,11 +504,7 @@ async def test_network_graph_edge_case_empty_data(oscar_agent, agent_context):
         sender="test-user",
         recipient="OscarNiemeyerAgent",
         action="network_graph",
-        payload={
-            "entities": [],
-            "relationships": [],
-            "threshold": 0.5
-        }
+        payload={"entities": [], "relationships": [], "threshold": 0.5},
     )
 
     response = await oscar_agent.process(message, agent_context)
@@ -522,15 +528,17 @@ async def test_choropleth_geojson_fallback(oscar_agent, agent_context):
         payload={
             "data": data,
             "geojson_url": "https://invalid-url.com/geojson",
-            "color_column": "value"
-        }
+            "color_column": "value",
+        },
     )
 
     # Mock httpx to simulate failure
     with patch("httpx.AsyncClient") as mock_client:
         mock_response = AsyncMock()
         mock_response.raise_for_status.side_effect = Exception("Network error")
-        mock_client.return_value.__aenter__.return_value.get.return_value = mock_response
+        mock_client.return_value.__aenter__.return_value.get.return_value = (
+            mock_response
+        )
 
         response = await oscar_agent.process(message, agent_context)
 

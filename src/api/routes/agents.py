@@ -28,7 +28,9 @@ from src.agents import (
     AnitaAgent,
     BonifacioAgent,
     DandaraAgent,
+    LampiaoAgent,
     MachadoAgent,
+    OscarNiemeyerAgent,
     TiradentesAgent,
     ZumbiAgent,
 )
@@ -568,6 +570,175 @@ async def process_dandara_request(
         )
 
 
+@router.post("/lampiao", response_model=AgentResponse)
+@track_time("agent_lampiao_process")
+@count_calls("agent_lampiao_requests")
+async def process_lampiao_request(
+    request: AgentRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
+):
+    """
+    Process request with Lampião agent.
+
+    Lampião specializes in regional analysis and spatial statistics:
+    - Regional inequality measurement (Gini, Theil, Williamson, Atkinson indices)
+    - Spatial autocorrelation analysis (Moran's I, LISA)
+    - Hotspot detection (Getis-Ord G*)
+    - Geographic boundary analysis with IBGE data
+    - Regional disparity mapping
+    - Spatial pattern detection
+    - Lorenz curve analysis
+    - Coefficient of variation calculations
+    - Integration with real IBGE demographic and economic data
+    - All 27 Brazilian states coverage
+    """
+    try:
+        # Create agent context
+        context = AgentContext(
+            user_id=current_user.id if current_user else "anonymous",
+            session_id=str(request.context.get("session_id", "default")),
+            request_id=str(request.context.get("request_id", "unknown")),
+            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+        )
+
+        # Initialize Lampiao agent
+        lampiao = LampiaoAgent()
+
+        # Process request
+        result = await lampiao.process(
+            message=request.query, context=context, **request.options
+        )
+
+        return AgentResponse(
+            agent="lampiao",
+            result=(
+                result.data if hasattr(result, "data") else {"analysis": str(result)}
+            ),
+            metadata={
+                "processing_time": (
+                    result.metadata.get("processing_time", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "gini_index": (
+                    result.metadata.get("gini_index", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "theil_index": (
+                    result.metadata.get("theil_index", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "moran_i": (
+                    result.metadata.get("moran_i", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "hotspots_detected": (
+                    result.metadata.get("hotspots_detected", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+            },
+            success=True,
+            message="Regional analysis completed successfully",
+        )
+
+    except Exception as e:
+        logger.error(f"Lampiao agent error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Lampiao agent processing failed: {str(e)}"
+        )
+
+
+@router.post("/oscar", response_model=AgentResponse)
+@track_time("agent_oscar_process")
+@count_calls("agent_oscar_requests")
+async def process_oscar_request(
+    request: AgentRequest,
+    background_tasks: BackgroundTasks,
+    current_user: User = Depends(get_current_user),
+    rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
+):
+    """
+    Process request with Oscar Niemeyer agent.
+
+    Oscar specializes in data aggregation and visualization architecture:
+    - Network graph visualization (NetworkX + Plotly)
+    - Fraud relationship network detection
+    - Choropleth maps for Brazilian states/municipalities
+    - Time series generation with trend and seasonality
+    - Geographic aggregation by region (North, Northeast, etc.)
+    - Multi-dimensional data aggregation
+    - Data export formats (JSON, CSV)
+    - Intelligent metadata generation
+    - Interactive graph layouts (force-directed, circular, hierarchical)
+    - IBGE GeoJSON integration for accurate boundaries
+    - Plotly Express for high-quality visualizations
+    """
+    try:
+        # Create agent context
+        context = AgentContext(
+            user_id=current_user.id if current_user else "anonymous",
+            session_id=str(request.context.get("session_id", "default")),
+            request_id=str(request.context.get("request_id", "unknown")),
+            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+        )
+
+        # Initialize Oscar agent
+        oscar = OscarNiemeyerAgent()
+
+        # Process request
+        result = await oscar.process(
+            message=request.query, context=context, **request.options
+        )
+
+        return AgentResponse(
+            agent="oscar_niemeyer",
+            result=(
+                result.data if hasattr(result, "data") else {"analysis": str(result)}
+            ),
+            metadata={
+                "processing_time": (
+                    result.metadata.get("processing_time", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "nodes_count": (
+                    result.metadata.get("nodes_count", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "edges_count": (
+                    result.metadata.get("edges_count", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+                "visualization_type": (
+                    result.metadata.get("visualization_type", "")
+                    if hasattr(result, "metadata")
+                    else ""
+                ),
+                "data_points": (
+                    result.metadata.get("data_points", 0)
+                    if hasattr(result, "metadata")
+                    else 0
+                ),
+            },
+            success=True,
+            message="Data aggregation and visualization completed successfully",
+        )
+
+    except Exception as e:
+        logger.error(f"Oscar agent error: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Oscar agent processing failed: {str(e)}"
+        )
+
+
 @router.get("/status")
 async def get_agents_status(current_user: User = Depends(get_current_user)):
     """Get status of all available agents."""
@@ -667,6 +838,37 @@ async def get_agents_status(current_user: User = Depends(get_current_user)):
                 "Real API integrations (IBGE, DataSUS, INEP)",
             ],
         },
+        "lampiao": {
+            "name": "Lampião",
+            "role": "Regional Analysis & Spatial Statistics Specialist",
+            "status": "active",
+            "capabilities": [
+                "Regional inequality measurement (Gini, Theil, Williamson, Atkinson)",
+                "Spatial autocorrelation analysis (Moran's I, LISA)",
+                "Hotspot detection (Getis-Ord G*)",
+                "Geographic boundary analysis with IBGE data",
+                "Regional disparity mapping",
+                "Spatial pattern detection",
+                "Lorenz curve analysis",
+                "All 27 Brazilian states coverage",
+            ],
+        },
+        "oscar_niemeyer": {
+            "name": "Oscar Niemeyer",
+            "role": "Data Aggregation & Visualization Architect",
+            "status": "active",
+            "capabilities": [
+                "Network graph visualization (NetworkX + Plotly)",
+                "Fraud relationship network detection",
+                "Choropleth maps for Brazilian states/municipalities",
+                "Time series generation with trends",
+                "Geographic aggregation by region",
+                "Multi-dimensional data aggregation",
+                "Data export formats (JSON, CSV)",
+                "Interactive graph layouts",
+                "IBGE GeoJSON integration",
+            ],
+        },
     }
 
     return {
@@ -717,6 +919,16 @@ async def list_agents():
                 "name": "Dandara dos Palmares",
                 "endpoint": "/api/v1/agents/dandara",
                 "description": "Social equity and justice analysis specialist with real API integrations",
+            },
+            {
+                "name": "Lampião",
+                "endpoint": "/api/v1/agents/lampiao",
+                "description": "Regional analysis and spatial statistics specialist with IBGE integration",
+            },
+            {
+                "name": "Oscar Niemeyer",
+                "endpoint": "/api/v1/agents/oscar",
+                "description": "Data aggregation and visualization architect with NetworkX and Plotly",
             },
         ],
     }
