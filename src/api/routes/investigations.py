@@ -13,8 +13,9 @@ from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 from pydantic import Field as PydanticField
+from pydantic import validator
 
 from src.agents import AgentContext, InvestigatorAgent
 from src.api.middleware.authentication import get_current_user
