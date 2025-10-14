@@ -13,6 +13,7 @@ from typing import Any
 from src.core import get_logger
 from src.services.orchestration.api_registry import APIRegistry
 from src.services.orchestration.data_federation import DataFederationExecutor
+from src.services.orchestration.entity_graph import EntityGraph
 from src.services.orchestration.models.investigation import (
     InvestigationContext,
     InvestigationResult,
@@ -45,12 +46,14 @@ class InvestigationOrchestrator:
         entity_extractor: EntityExtractor | None = None,
         execution_planner: ExecutionPlanner | None = None,
         data_executor: DataFederationExecutor | None = None,
+        entity_graph: EntityGraph | None = None,
     ) -> None:
         self.registry = api_registry or APIRegistry()
         self.intent_classifier = intent_classifier or IntentClassifier()
         self.entity_extractor = entity_extractor or EntityExtractor()
         self.execution_planner = execution_planner or ExecutionPlanner(self.registry)
         self.data_executor = data_executor or DataFederationExecutor(self.registry)
+        self.entity_graph = entity_graph or EntityGraph()
         self.logger = get_logger(__name__)
 
     async def investigate(
@@ -138,19 +141,25 @@ class InvestigationOrchestrator:
         self, results: dict[str, Any]
     ) -> list[dict[str, Any]]:
         """
-        Extract entities from investigation results.
+        Extract entities from investigation results using Entity Graph.
 
-        In a production system, this would use the Entity Graph component
-        to properly extract and link entities.
-
-        For now, just return a simple structure.
+        Builds a graph of entities and their relationships,
+        then returns a summary for the investigation result.
         """
-        entities = []
+        # Extract entities and relationships into graph
+        self.entity_graph.extract_from_investigation_result(results)
 
+        # Get statistics
+        stats = self.entity_graph.get_statistics()
+        self.logger.info(
+            f"Entity graph: {stats['total_entities']} entities, "
+            f"{stats['total_relationships']} relationships"
+        )
+
+        # Return entity summaries
+        entities = []
         for stage_name, stage_data in results.items():
             if isinstance(stage_data, dict):
-                # Basic entity extraction
-                # In production, use proper entity recognition
                 entity = {
                     "source_stage": stage_name,
                     "data_summary": self._summarize_data(stage_data),
@@ -172,3 +181,21 @@ class InvestigationOrchestrator:
                 summary[f"{key}_keys"] = list(value.keys())[:5]  # First 5 keys
 
         return summary
+
+    def get_entity_graph(self) -> EntityGraph:
+        """
+        Get the entity graph.
+
+        Returns:
+            EntityGraph instance
+        """
+        return self.entity_graph
+
+    def get_entity_graph_statistics(self) -> dict[str, Any]:
+        """
+        Get statistics about the entity graph.
+
+        Returns:
+            Dict with graph statistics
+        """
+        return self.entity_graph.get_statistics()
