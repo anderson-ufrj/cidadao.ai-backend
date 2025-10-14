@@ -10,8 +10,9 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, Optional, Union
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 from pydantic import Field as PydanticField
+from pydantic import validator
 
 
 class Organization(BaseModel):

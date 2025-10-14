@@ -12,8 +12,9 @@ from typing import Any, Optional
 from urllib.parse import urljoin
 
 import httpx
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 from pydantic import Field as PydanticField
+from pydantic import validator
 
 from src.core import get_logger, settings
 from src.core.exceptions import DataNotFoundError, TransparencyAPIError
