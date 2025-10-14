@@ -17,13 +17,15 @@ from prometheus_client import (
     CONTENT_TYPE_LATEST,
     CollectorRegistry,
     Counter,
+)
+from prometheus_client import Enum as PrometheusEnum
+from prometheus_client import (
     Gauge,
     Histogram,
     Info,
     Summary,
     generate_latest,
 )
-from prometheus_client import Enum as PrometheusEnum
 
 # Try to import OpenMetricsHandler - not available in all versions
 try:
