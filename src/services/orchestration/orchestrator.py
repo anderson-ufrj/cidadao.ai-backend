@@ -11,11 +11,13 @@ import uuid
 from typing import Any
 
 from src.core import get_logger
+from src.services.orchestration.agents import InvestigationAgentAdapter
 from src.services.orchestration.api_registry import APIRegistry
 from src.services.orchestration.data_federation import DataFederationExecutor
 from src.services.orchestration.entity_graph import EntityGraph
 from src.services.orchestration.models.investigation import (
     InvestigationContext,
+    InvestigationIntent,
     InvestigationResult,
 )
 from src.services.orchestration.query_planner import (
@@ -47,6 +49,7 @@ class InvestigationOrchestrator:
         execution_planner: ExecutionPlanner | None = None,
         data_executor: DataFederationExecutor | None = None,
         entity_graph: EntityGraph | None = None,
+        investigation_agent: InvestigationAgentAdapter | None = None,
     ) -> None:
         self.registry = api_registry or APIRegistry()
         self.intent_classifier = intent_classifier or IntentClassifier()
@@ -54,6 +57,7 @@ class InvestigationOrchestrator:
         self.execution_planner = execution_planner or ExecutionPlanner(self.registry)
         self.data_executor = data_executor or DataFederationExecutor(self.registry)
         self.entity_graph = entity_graph or EntityGraph()
+        self.investigation_agent = investigation_agent or InvestigationAgentAdapter()
         self.logger = get_logger(__name__)
 
     async def investigate(
@@ -120,10 +124,40 @@ class InvestigationOrchestrator:
             result.total_duration_seconds = execution_result["duration_seconds"]
 
             # Extract entities and relationships from results
-            # (This would be more sophisticated in production)
             result.entities_found = self._extract_entities_from_results(
                 execution_result["results"]
             )
+
+            # Step 7: Run anomaly detection if applicable
+            if self._should_run_anomaly_detection(intent):
+                try:
+                    self.logger.info(
+                        f"Running anomaly detection for investigation {investigation_id}"
+                    )
+                    anomaly_results = (
+                        await self.investigation_agent.analyze_investigation_results(
+                            execution_result["results"], investigation_id
+                        )
+                    )
+
+                    # Add anomaly results to investigation
+                    if anomaly_results and "result" in anomaly_results:
+                        anomaly_data = anomaly_results["result"]
+                        result.metadata["anomaly_detection"] = {
+                            "status": anomaly_results.get("status"),
+                            "anomalies_found": anomaly_data.get("anomalies", []),
+                            "summary": anomaly_data.get("summary", {}),
+                        }
+                        self.logger.info(
+                            f"Anomaly detection completed: "
+                            f"{len(anomaly_data.get('anomalies', []))} anomalies found"
+                        )
+
+                except Exception as e:
+                    self.logger.warning(
+                        f"Anomaly detection failed for {investigation_id}: {e}"
+                    )
+                    # Don't fail the entire investigation if anomaly detection fails
 
             result.mark_completed()
             self.logger.info(
@@ -136,6 +170,26 @@ class InvestigationOrchestrator:
             result.mark_failed(str(e))
 
         return result
+
+    def _should_run_anomaly_detection(self, intent: InvestigationIntent) -> bool:
+        """
+        Determine if anomaly detection should run for this intent.
+
+        Args:
+            intent: Investigation intent
+
+        Returns:
+            True if anomaly detection should run
+        """
+        # Run anomaly detection for these intents
+        anomaly_detection_intents = {
+            InvestigationIntent.CONTRACT_ANOMALY_DETECTION,
+            InvestigationIntent.SUPPLIER_INVESTIGATION,
+            InvestigationIntent.CORRUPTION_INDICATORS,
+            InvestigationIntent.BUDGET_ANALYSIS,
+        }
+
+        return intent in anomaly_detection_intents
 
     def _extract_entities_from_results(
         self, results: dict[str, Any]
