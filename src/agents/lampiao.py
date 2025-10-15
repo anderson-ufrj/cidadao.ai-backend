@@ -525,7 +525,9 @@ class LampiaoAgent(BaseAgent):
                 "cluster_id": "high_value_southeast",
                 "regions": ["SP", "RJ", "MG"],
                 "characteristics": {
-                    "avg_value": np.mean([contract_values_by_state.get(r, 0) for r in ["SP", "RJ", "MG"]]),
+                    "avg_value": np.mean(
+                        [contract_values_by_state.get(r, 0) for r in ["SP", "RJ", "MG"]]
+                    ),
                     "concentration": 0.65,  # Represents ~65% of national economic activity
                 },
                 "evidence": "Southeast industrial-financial hub (established pattern since 1960s)",
@@ -534,7 +536,9 @@ class LampiaoAgent(BaseAgent):
                 "cluster_id": "medium_value_south_northeast",
                 "regions": ["RS", "PR", "BA"],
                 "characteristics": {
-                    "avg_value": np.mean([contract_values_by_state.get(r, 0) for r in ["RS", "PR", "BA"]]),
+                    "avg_value": np.mean(
+                        [contract_values_by_state.get(r, 0) for r in ["RS", "PR", "BA"]]
+                    ),
                     "concentration": 0.25,  # Secondary economic centers
                 },
                 "evidence": "Diversified regional economies (agriculture, industry, services)",
@@ -838,11 +842,15 @@ class LampiaoAgent(BaseAgent):
                     total_weights += weight
 
         # Calculate denominator (sum of squared deviations)
-        denominator = sum(dev ** 2 for dev in deviations.values())
+        denominator = sum(dev**2 for dev in deviations.values())
 
         # Calculate Moran's I
         n = len(state_values)
-        morans_i = (n / total_weights) * (numerator / denominator) if denominator != 0 and total_weights != 0 else 0.0
+        morans_i = (
+            (n / total_weights) * (numerator / denominator)
+            if denominator != 0 and total_weights != 0
+            else 0.0
+        )
 
         # Calculate expected I under null hypothesis of no spatial correlation
         expected_i = -1 / (n - 1)
@@ -856,7 +864,7 @@ class LampiaoAgent(BaseAgent):
         # Using error function approximation for normal CDF
         def norm_cdf(x):
             """Approximate standard normal CDF using error function."""
-            return 0.5 * (1.0 + np.tanh(0.7978845608 * (x + 0.044715 * x ** 3)))
+            return 0.5 * (1.0 + np.tanh(0.7978845608 * (x + 0.044715 * x**3)))
 
         p_value = 2 * (1 - norm_cdf(abs(z_score)))
 
@@ -864,9 +872,13 @@ class LampiaoAgent(BaseAgent):
         if morans_i > expected_i + 0.1:
             interpretation = "Strong positive spatial autocorrelation - similar values cluster together"
         elif morans_i < expected_i - 0.1:
-            interpretation = "Negative spatial autocorrelation - dissimilar values are neighbors"
+            interpretation = (
+                "Negative spatial autocorrelation - dissimilar values are neighbors"
+            )
         else:
-            interpretation = "No significant spatial autocorrelation - random distribution"
+            interpretation = (
+                "No significant spatial autocorrelation - random distribution"
+            )
 
         # Identify local clusters (simplified LISA)
         high_high_clusters = []
@@ -907,7 +919,7 @@ class LampiaoAgent(BaseAgent):
                 "method": "Regional grouping spatial weights",
                 "states_analyzed": n,
                 "spatial_weights_type": "queen_contiguity_regional",
-            }
+            },
         }
 
     @cache_with_ttl(ttl_seconds=900)  # 15 minute cache for optimization
@@ -1412,7 +1424,9 @@ class LampiaoAgent(BaseAgent):
         releases are published (typically annual updates).
         """
         try:
-            self.logger.info("Loading regional indicators (IBGE official estimates 2023-2024)...")
+            self.logger.info(
+                "Loading regional indicators (IBGE official estimates 2023-2024)..."
+            )
 
             # Initialize indicators storage
             self.regional_indicators = {}
@@ -1527,7 +1541,6 @@ class LampiaoAgent(BaseAgent):
                     "hdi": hdi_data.get(state_code, 0.0),
                     "area_km2": area,
                     "density": round(pop / area, 2) if area > 0 else 0.0,
-
                     # Metadata for data quality and freshness
                     "data_quality": {
                         "source": "IBGE Official Estimates",
@@ -1537,14 +1550,21 @@ class LampiaoAgent(BaseAgent):
                         "last_loaded": datetime.now().isoformat(),
                         "confidence": "high",  # Official government data
                     },
-
                     # Additional calculated metrics
                     "metrics": {
-                        "gdp_total": round(pop * gdp_per_capita.get(state_code, 0.0) / 1000, 2),  # Million R$
+                        "gdp_total": round(
+                            pop * gdp_per_capita.get(state_code, 0.0) / 1000, 2
+                        ),  # Million R$
                         "population_density_category": (
-                            "high" if pop / area > 100 else "medium" if pop / area > 20 else "low"
-                        ) if area > 0 else "unknown",
-                    }
+                            (
+                                "high"
+                                if pop / area > 100
+                                else "medium" if pop / area > 20 else "low"
+                            )
+                            if area > 0
+                            else "unknown"
+                        ),
+                    },
                 }
 
             self.logger.info(
