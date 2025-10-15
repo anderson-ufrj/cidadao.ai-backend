@@ -90,8 +90,7 @@ class OxossiAgent(BaseAgent):
     def __init__(self):
         """Initialize Oxóssi agent."""
         super().__init__(
-            agent_id="oxossi",
-            name="Oxóssi",
+            name="oxossi",
             description="Fraud detection specialist with precision tracking capabilities",
             capabilities=[
                 "fraud_detection",
@@ -114,6 +113,21 @@ class OxossiAgent(BaseAgent):
 
         # Known fraud patterns database
         self.fraud_patterns = self._initialize_fraud_patterns()
+
+    @property
+    def agent_id(self) -> str:
+        """Return agent ID (name) for compatibility."""
+        return self.name
+
+    async def initialize(self):
+        """Initialize agent and fraud detection systems."""
+        await super().initialize()
+        logger.info("Oxóssi agent initialized and ready to hunt fraud")
+
+    async def shutdown(self):
+        """Shutdown agent and cleanup resources."""
+        await super().shutdown()
+        logger.info("Oxóssi agent shutdown complete")
 
     def _initialize_fraud_patterns(self) -> dict[str, Any]:
         """Initialize known fraud pattern templates."""
@@ -727,13 +741,21 @@ class OxossiAgent(BaseAgent):
             all_patterns.extend(patterns)
 
             # Apply Benford's Law to contract values
-            contract_values = [c.get("contract_value", 0) for c in data["contracts"] if c.get("contract_value")]
+            contract_values = [
+                c.get("contract_value", 0)
+                for c in data["contracts"]
+                if c.get("contract_value")
+            ]
             if len(contract_values) >= 30:
-                benford_patterns = self._analyze_benfords_law(contract_values, "Contracts")
+                benford_patterns = self._analyze_benfords_law(
+                    contract_values, "Contracts"
+                )
                 all_patterns.extend(benford_patterns)
 
             # Apply temporal analysis to contracts
-            temporal_patterns = self._detect_temporal_anomalies(data["contracts"], "Contracts")
+            temporal_patterns = self._detect_temporal_anomalies(
+                data["contracts"], "Contracts"
+            )
             all_patterns.extend(temporal_patterns)
 
         if "transactions" in data:
@@ -743,13 +765,19 @@ class OxossiAgent(BaseAgent):
             all_patterns.extend(patterns)
 
             # Apply Benford's Law to transaction amounts
-            transaction_amounts = [t.get("amount", 0) for t in data["transactions"] if t.get("amount")]
+            transaction_amounts = [
+                t.get("amount", 0) for t in data["transactions"] if t.get("amount")
+            ]
             if len(transaction_amounts) >= 30:
-                benford_patterns = self._analyze_benfords_law(transaction_amounts, "Transactions")
+                benford_patterns = self._analyze_benfords_law(
+                    transaction_amounts, "Transactions"
+                )
                 all_patterns.extend(benford_patterns)
 
             # Apply temporal analysis to transactions
-            temporal_patterns = self._detect_temporal_anomalies(data["transactions"], "Transactions")
+            temporal_patterns = self._detect_temporal_anomalies(
+                data["transactions"], "Transactions"
+            )
             all_patterns.extend(temporal_patterns)
 
         if "vendors" in data:
@@ -761,13 +789,19 @@ class OxossiAgent(BaseAgent):
             all_patterns.extend(patterns)
 
             # Apply Benford's Law to invoice amounts
-            invoice_amounts = [inv.get("amount", 0) for inv in data["invoices"] if inv.get("amount")]
+            invoice_amounts = [
+                inv.get("amount", 0) for inv in data["invoices"] if inv.get("amount")
+            ]
             if len(invoice_amounts) >= 30:
-                benford_patterns = self._analyze_benfords_law(invoice_amounts, "Invoices")
+                benford_patterns = self._analyze_benfords_law(
+                    invoice_amounts, "Invoices"
+                )
                 all_patterns.extend(benford_patterns)
 
             # Apply temporal analysis to invoices
-            temporal_patterns = self._detect_temporal_anomalies(data["invoices"], "Invoices")
+            temporal_patterns = self._detect_temporal_anomalies(
+                data["invoices"], "Invoices"
+            )
             all_patterns.extend(temporal_patterns)
 
         # Cross-reference patterns for complex fraud schemes
@@ -853,15 +887,27 @@ class OxossiAgent(BaseAgent):
         df = pd.DataFrame(transactions)
 
         # Look for suspicious payment timing (within 30 days after contract award)
-        contract_transactions = df[df.get("transaction_type") == "contract_award"].copy() if "transaction_type" in df.columns else pd.DataFrame()
-        payment_transactions = df[df.get("transaction_type") == "payment"].copy() if "transaction_type" in df.columns else df.copy()
+        contract_transactions = (
+            df[df.get("transaction_type") == "contract_award"].copy()
+            if "transaction_type" in df.columns
+            else pd.DataFrame()
+        )
+        payment_transactions = (
+            df[df.get("transaction_type") == "payment"].copy()
+            if "transaction_type" in df.columns
+            else df.copy()
+        )
 
         if not contract_transactions.empty and not payment_transactions.empty:
             # Ensure date columns are datetime
             if "date" in contract_transactions.columns:
-                contract_transactions["date"] = pd.to_datetime(contract_transactions["date"], errors="coerce")
+                contract_transactions["date"] = pd.to_datetime(
+                    contract_transactions["date"], errors="coerce"
+                )
             if "date" in payment_transactions.columns:
-                payment_transactions["date"] = pd.to_datetime(payment_transactions["date"], errors="coerce")
+                payment_transactions["date"] = pd.to_datetime(
+                    payment_transactions["date"], errors="coerce"
+                )
 
             for _, contract in contract_transactions.iterrows():
                 contract_date = contract.get("date")
@@ -873,8 +919,11 @@ class OxossiAgent(BaseAgent):
 
                 # Find payments within 30 days after contract award
                 suspicious_payments = payment_transactions[
-                    (payment_transactions["date"] > contract_date) &
-                    (payment_transactions["date"] <= contract_date + pd.Timedelta(days=30))
+                    (payment_transactions["date"] > contract_date)
+                    & (
+                        payment_transactions["date"]
+                        <= contract_date + pd.Timedelta(days=30)
+                    )
                 ].copy()
 
                 if suspicious_payments.empty:
@@ -896,12 +945,16 @@ class OxossiAgent(BaseAgent):
                                     indicator_type="suspicious_round_payment",
                                     description=f"Round-number payment of {amount} to individual within 30 days of contract award",
                                     confidence=0.75,
-                                    evidence=[{
-                                        "payment_amount": amount,
-                                        "days_after_contract": (payment["date"] - contract_date).days,
-                                        "recipient_id": payment.get("recipient_id"),
-                                        "contract_id": contract.get("contract_id")
-                                    }],
+                                    evidence=[
+                                        {
+                                            "payment_amount": amount,
+                                            "days_after_contract": (
+                                                payment["date"] - contract_date
+                                            ).days,
+                                            "recipient_id": payment.get("recipient_id"),
+                                            "contract_id": contract.get("contract_id"),
+                                        }
+                                    ],
                                     risk_score=7.5,
                                 )
                             )
@@ -918,12 +971,16 @@ class OxossiAgent(BaseAgent):
                                         indicator_type="percentage_payment",
                                         description=f"Payment is exactly {pct}% of contract value",
                                         confidence=0.8,
-                                        evidence=[{
-                                            "payment_amount": amount,
-                                            "contract_value": contract_value,
-                                            "percentage": round(percentage, 2),
-                                            "days_after_contract": (payment["date"] - contract_date).days
-                                        }],
+                                        evidence=[
+                                            {
+                                                "payment_amount": amount,
+                                                "contract_value": contract_value,
+                                                "percentage": round(percentage, 2),
+                                                "days_after_contract": (
+                                                    payment["date"] - contract_date
+                                                ).days,
+                                            }
+                                        ],
                                         risk_score=8.5,
                                     )
                                 )
@@ -942,12 +999,16 @@ class OxossiAgent(BaseAgent):
                                 indicator_type="vendor_payment_after_award",
                                 description="Payment from vendor shortly after winning contract",
                                 confidence=0.7,
-                                evidence=[{
-                                    "vendor_id": vendor_id,
-                                    "recipient_id": recipient_id,
-                                    "payment_amount": payment.get("amount"),
-                                    "days_after_contract": (payment["date"] - contract_date).days
-                                }],
+                                evidence=[
+                                    {
+                                        "vendor_id": vendor_id,
+                                        "recipient_id": recipient_id,
+                                        "payment_amount": payment.get("amount"),
+                                        "days_after_contract": (
+                                            payment["date"] - contract_date
+                                        ).days,
+                                    }
+                                ],
                                 risk_score=7.0,
                             )
                         )
@@ -956,14 +1017,23 @@ class OxossiAgent(BaseAgent):
                     patterns.append(
                         FraudPattern(
                             fraud_type=FraudType.KICKBACK_SCHEME,
-                            severity=FraudSeverity.CRITICAL if len(indicators) > 2 else FraudSeverity.HIGH,
+                            severity=(
+                                FraudSeverity.CRITICAL
+                                if len(indicators) > 2
+                                else FraudSeverity.HIGH
+                            ),
                             confidence=max(ind.confidence for ind in indicators),
                             indicators=indicators,
                             entities_involved=[
                                 vendor_id,
-                                *[p.get("recipient_id") for _, p in suspicious_payments.iterrows() if p.get("recipient_id")]
+                                *[
+                                    p.get("recipient_id")
+                                    for _, p in suspicious_payments.iterrows()
+                                    if p.get("recipient_id")
+                                ],
                             ],
-                            estimated_impact=contract_value * 0.1,  # Estimated 10% kickback
+                            estimated_impact=contract_value
+                            * 0.1,  # Estimated 10% kickback
                             recommendations=[
                                 "Investigate relationship between vendor and payment recipients",
                                 "Review contract award decision-making process",
@@ -974,7 +1044,7 @@ class OxossiAgent(BaseAgent):
                             evidence_trail={
                                 "contract_id": contract.get("contract_id"),
                                 "contract_date": str(contract_date),
-                                "suspicious_payment_count": len(suspicious_payments)
+                                "suspicious_payment_count": len(suspicious_payments),
                             },
                         )
                     )
@@ -1100,7 +1170,9 @@ class OxossiAgent(BaseAgent):
                         continue
 
                     # Check if C pays back to A (completing the circle)
-                    for entity_back, amount_ca, date_ca in payment_graph.get(entity_c, []):
+                    for entity_back, amount_ca, date_ca in payment_graph.get(
+                        entity_c, []
+                    ):
                         if entity_back == entity_a:
                             # Found circular payment: A → B → C → A
                             patterns.append(
@@ -1113,16 +1185,31 @@ class OxossiAgent(BaseAgent):
                                             indicator_type="circular_payments",
                                             description=f"Circular payment pattern detected: {entity_a} → {entity_b} → {entity_c} → {entity_a}",
                                             confidence=0.85,
-                                            evidence=[{
-                                                "path": [entity_a, entity_b, entity_c, entity_a],
-                                                "amounts": [amount_ab, amount_bc, amount_ca],
-                                                "total_flow": amount_ab + amount_bc + amount_ca
-                                            }],
+                                            evidence=[
+                                                {
+                                                    "path": [
+                                                        entity_a,
+                                                        entity_b,
+                                                        entity_c,
+                                                        entity_a,
+                                                    ],
+                                                    "amounts": [
+                                                        amount_ab,
+                                                        amount_bc,
+                                                        amount_ca,
+                                                    ],
+                                                    "total_flow": amount_ab
+                                                    + amount_bc
+                                                    + amount_ca,
+                                                }
+                                            ],
                                             risk_score=9.0,
                                         )
                                     ],
                                     entities_involved=[entity_a, entity_b, entity_c],
-                                    estimated_impact=min(amount_ab, amount_bc, amount_ca),
+                                    estimated_impact=min(
+                                        amount_ab, amount_bc, amount_ca
+                                    ),
                                     recommendations=[
                                         "Investigate circular payment scheme",
                                         "Freeze accounts involved",
@@ -1131,7 +1218,7 @@ class OxossiAgent(BaseAgent):
                                     ],
                                     evidence_trail={
                                         "payment_path": f"{entity_a}->{entity_b}->{entity_c}->{entity_a}",
-                                        "amounts": [amount_ab, amount_bc, amount_ca]
+                                        "amounts": [amount_ab, amount_bc, amount_ca],
                                     },
                                 )
                             )
@@ -1361,12 +1448,14 @@ class OxossiAgent(BaseAgent):
             for digit in range(1, 10):
                 diff = abs(observed_dist[digit] - benford_dist[digit])
                 if diff > 0.05:  # 5% deviation
-                    major_deviations.append({
-                        "digit": digit,
-                        "expected": round(benford_dist[digit] * 100, 1),
-                        "observed": round(observed_dist[digit] * 100, 1),
-                        "deviation": round(diff * 100, 1)
-                    })
+                    major_deviations.append(
+                        {
+                            "digit": digit,
+                            "expected": round(benford_dist[digit] * 100, 1),
+                            "observed": round(observed_dist[digit] * 100, 1),
+                            "deviation": round(diff * 100, 1),
+                        }
+                    )
 
             # Determine confidence based on chi-square value
             if chi_square > 30:
@@ -1389,17 +1478,20 @@ class OxossiAgent(BaseAgent):
                             indicator_type="benfords_law_violation",
                             description=f"Values deviate from Benford's Law (χ² = {chi_square:.2f})",
                             confidence=confidence,
-                            evidence=[{
-                                "chi_square": round(chi_square, 2),
-                                "threshold": deviation_threshold,
-                                "sample_size": len(first_digits),
-                                "major_deviations": major_deviations
-                            }],
+                            evidence=[
+                                {
+                                    "chi_square": round(chi_square, 2),
+                                    "threshold": deviation_threshold,
+                                    "sample_size": len(first_digits),
+                                    "major_deviations": major_deviations,
+                                }
+                            ],
                             risk_score=min(9.0, 5.0 + (chi_square / 10)),
                         )
                     ],
                     entities_involved=[entity_name],
-                    estimated_impact=sum(valid_values) * 0.05,  # Estimated 5% manipulation
+                    estimated_impact=sum(valid_values)
+                    * 0.05,  # Estimated 5% manipulation
                     recommendations=[
                         "Conduct detailed audit of value generation process",
                         "Verify authenticity of financial documents",
@@ -1412,7 +1504,7 @@ class OxossiAgent(BaseAgent):
                         "sample_size": len(first_digits),
                         "first_digit_distribution": {
                             str(k): round(v * 100, 1) for k, v in observed_dist.items()
-                        }
+                        },
                     },
                 )
             )
@@ -1464,11 +1556,13 @@ class OxossiAgent(BaseAgent):
                     indicator_type="after_hours_activity",
                     description=f"{len(after_hours)} transactions ({len(after_hours)/len(df)*100:.1f}%) occurred after hours",
                     confidence=0.7,
-                    evidence=[{
-                        "after_hours_count": len(after_hours),
-                        "total_count": len(df),
-                        "percentage": round(len(after_hours) / len(df) * 100, 1)
-                    }],
+                    evidence=[
+                        {
+                            "after_hours_count": len(after_hours),
+                            "total_count": len(df),
+                            "percentage": round(len(after_hours) / len(df) * 100, 1),
+                        }
+                    ],
                     risk_score=6.5,
                 )
             )
@@ -1481,11 +1575,13 @@ class OxossiAgent(BaseAgent):
                     indicator_type="weekend_activity",
                     description=f"{len(weekend)} transactions ({len(weekend)/len(df)*100:.1f}%) occurred on weekends",
                     confidence=0.65,
-                    evidence=[{
-                        "weekend_count": len(weekend),
-                        "total_count": len(df),
-                        "percentage": round(len(weekend) / len(df) * 100, 1)
-                    }],
+                    evidence=[
+                        {
+                            "weekend_count": len(weekend),
+                            "total_count": len(df),
+                            "percentage": round(len(weekend) / len(df) * 100, 1),
+                        }
+                    ],
                     risk_score=6.0,
                 )
             )
@@ -1502,10 +1598,16 @@ class OxossiAgent(BaseAgent):
                     indicator_type="velocity_anomaly",
                     description=f"{len(very_fast)} transactions processed within 1 minute intervals",
                     confidence=0.75,
-                    evidence=[{
-                        "fast_transaction_count": len(very_fast),
-                        "min_interval_seconds": time_diffs.min().total_seconds() if not time_diffs.empty else 0
-                    }],
+                    evidence=[
+                        {
+                            "fast_transaction_count": len(very_fast),
+                            "min_interval_seconds": (
+                                time_diffs.min().total_seconds()
+                                if not time_diffs.empty
+                                else 0
+                            ),
+                        }
+                    ],
                     risk_score=7.0,
                 )
             )
@@ -1527,11 +1629,13 @@ class OxossiAgent(BaseAgent):
                             indicator_type="temporal_clustering",
                             description=f"{len(outlier_days)} days with unusually high activity",
                             confidence=0.7,
-                            evidence=[{
-                                "outlier_days": len(outlier_days),
-                                "max_daily_count": int(daily_counts.max()),
-                                "average_daily_count": round(mean_daily, 1)
-                            }],
+                            evidence=[
+                                {
+                                    "outlier_days": len(outlier_days),
+                                    "max_daily_count": int(daily_counts.max()),
+                                    "average_daily_count": round(mean_daily, 1),
+                                }
+                            ],
                             risk_score=6.5,
                         )
                     )
@@ -1540,7 +1644,11 @@ class OxossiAgent(BaseAgent):
             patterns.append(
                 FraudPattern(
                     fraud_type=FraudType.PROCUREMENT_FRAUD,
-                    severity=FraudSeverity.MEDIUM if len(indicators) < 3 else FraudSeverity.HIGH,
+                    severity=(
+                        FraudSeverity.MEDIUM
+                        if len(indicators) < 3
+                        else FraudSeverity.HIGH
+                    ),
                     confidence=max(ind.confidence for ind in indicators),
                     indicators=indicators,
                     entities_involved=[entity_name],
@@ -1553,7 +1661,7 @@ class OxossiAgent(BaseAgent):
                     ],
                     evidence_trail={
                         "analysis_period": f"{df[time_col].min()} to {df[time_col].max()}",
-                        "total_records_analyzed": len(df)
+                        "total_records_analyzed": len(df),
                     },
                 )
             )
