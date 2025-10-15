@@ -180,7 +180,9 @@ class TestOxossiAgent:
         phantom_corp_detected = any(
             "Phantom Corp" in p["entities_involved"] for p in phantom_patterns
         )
-        assert phantom_corp_detected, "Phantom Corp should be detected as a phantom vendor"
+        assert (
+            phantom_corp_detected
+        ), "Phantom Corp should be detected as a phantom vendor"
 
     @pytest.mark.asyncio
     async def test_detect_shared_vendor_info(
