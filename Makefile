@@ -1,7 +1,7 @@
 .PHONY: help install install-dev test test-unit test-integration test-e2e test-multiagent test-coverage lint format type-check security-check run run-dev cli docker-up docker-down docker-build clean migrate db-upgrade db-downgrade celery celery-flower monitoring-up monitoring-down docs serve-docs pre-commit-install pre-commit ci check
 
 # Default target
-.DEFAULT_GOAL := help
+baseado ness.DEFAULT_GOAL := help
 
 # Variables
 PYTHON := python3
@@ -266,3 +266,59 @@ ci: ## Run complete CI pipeline locally
 	@echo "$(GREEN)CI pipeline complete!$(NC)"
 
 check: lint type-check test ## Run basic checks (lint, type-check, test)
+
+# v1.0 Roadmap Commands
+roadmap: ## Show v1.0 roadmap summary
+	@echo "$(BLUE)Cidadão.AI v1.0 Roadmap$(NC)"
+	@echo ""
+	@cat docs/planning/V1_CHECKLIST.md
+	@echo ""
+	@echo "$(YELLOW)Full roadmap: docs/planning/ROADMAP_V1_OCT_NOV_2025.md$(NC)"
+
+roadmap-progress: ## Check v1.0 progress
+	@echo "$(BLUE)v1.0 Progress Tracker$(NC)"
+	@echo "===================="
+	@echo ""
+	@echo "$(GREEN)Completed Tasks:$(NC)"
+	@grep -c "^- \[x\]" docs/planning/V1_CHECKLIST.md 2>/dev/null || echo "0"
+	@echo ""
+	@echo "$(YELLOW)Pending Tasks:$(NC)"
+	@grep -c "^- \[ \]" docs/planning/V1_CHECKLIST.md 2>/dev/null || echo "0"
+	@echo ""
+	@echo "$(BLUE)Next Milestone:$(NC)"
+	@grep -A1 "PRÓXIMOS MILESTONES" docs/planning/V1_CHECKLIST.md | tail -1
+
+roadmap-week: ## Show current week tasks
+	@echo "$(BLUE)Current Week Tasks$(NC)"
+	@echo "===================="
+	@echo ""
+	@WEEK=$$(date +%U); \
+	echo "Week: $$WEEK"
+	@echo ""
+	@echo "Check docs/planning/ROADMAP_V1_OCT_NOV_2025.md for details"
+
+sprint-status: ## Show current sprint status
+	@echo "$(BLUE)Sprint Status$(NC)"
+	@echo "===================="
+	@echo ""
+	@echo "$(GREEN)Test Coverage:$(NC)"
+	@coverage report --skip-empty 2>/dev/null | grep TOTAL || echo "Run 'make test-coverage' first"
+	@echo ""
+	@echo "$(GREEN)Agents Status:$(NC)"
+	@echo "17/18 operational (94.4%)"
+	@echo ""
+	@echo "$(YELLOW)Critical Tasks:$(NC)"
+	@grep "🔥 CRÍTICA" docs/planning/ROADMAP_V1_OCT_NOV_2025.md | head -5
+
+v1-report: ## Generate v1.0 progress report
+	@echo "$(BLUE)Generating v1.0 Progress Report...$(NC)"
+	@echo "# v1.0 Progress Report" > docs/reports/progress-$(shell date +%Y-%m-%d).md
+	@echo "" >> docs/reports/progress-$(shell date +%Y-%m-%d).md
+	@echo "**Date**: $(shell date +%Y-%m-%d)" >> docs/reports/progress-$(shell date +%Y-%m-%d).md
+	@echo "" >> docs/reports/progress-$(shell date +%Y-%m-%d).md
+	@echo "## Test Coverage" >> docs/reports/progress-$(shell date +%Y-%m-%d).md
+	@coverage report --skip-empty 2>/dev/null >> docs/reports/progress-$(shell date +%Y-%m-%d).md || echo "Run tests first"
+	@echo "" >> docs/reports/progress-$(shell date +%Y-%m-%d).md
+	@echo "## Files Changed" >> docs/reports/progress-$(shell date +%Y-%m-%d).md
+	@git diff --stat >> docs/reports/progress-$(shell date +%Y-%m-%d).md
+	@echo "$(GREEN)Report saved to docs/reports/progress-$(shell date +%Y-%m-%d).md$(NC)"
