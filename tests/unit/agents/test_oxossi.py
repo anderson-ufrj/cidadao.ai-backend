@@ -118,18 +118,19 @@ class TestOxossiAgent:
         """Test bid rigging detection."""
         # Create message
         message = AgentMessage(
-            role="user",
-            content="Analyze contracts for fraud",
-            data={"contracts": sample_contracts},
+            sender="test",
+            recipient="oxossi",
+            action="analyze_fraud",
+            payload={"contracts": sample_contracts},
         )
 
         # Process message
         response = await agent.process(message, agent_context)
 
         # Verify response
-        assert response.success
-        assert "fraud_analysis" in response.data
-        analysis = response.data["fraud_analysis"]
+        assert response.status == AgentStatus.COMPLETED
+        assert "fraud_analysis" in response.result
+        analysis = response.result["fraud_analysis"]
         assert "patterns" in analysis
 
         # Should detect bid rigging due to similar amounts
@@ -156,13 +157,16 @@ class TestOxossiAgent:
         contracts = sample_contracts + [phantom_vendor_contract]
 
         message = AgentMessage(
-            role="user", content="Detect phantom vendors", data={"contracts": contracts}
+            sender="test",
+            recipient="oxossi",
+            action="detect_phantom_vendors",
+            payload={"contracts": contracts},
         )
 
         response = await agent.process(message, agent_context)
 
-        assert response.success
-        analysis = response.data["fraud_analysis"]
+        assert response.status == AgentStatus.COMPLETED
+        analysis = response.result["fraud_analysis"]
 
         # Should detect phantom vendor
         phantom_patterns = [
@@ -179,15 +183,16 @@ class TestOxossiAgent:
     ):
         """Test detection of vendors with shared contact information."""
         message = AgentMessage(
-            role="user",
-            content="Analyze vendor fraud",
-            data={"vendors": sample_vendors},
+            sender="test",
+            recipient="oxossi",
+            action="analyze_vendor_fraud",
+            payload={"vendors": sample_vendors},
         )
 
         response = await agent.process(message, agent_context)
 
-        assert response.success
-        analysis = response.data["fraud_analysis"]
+        assert response.status == AgentStatus.COMPLETED
+        analysis = response.result["fraud_analysis"]
 
         # Should detect shared address and phone
         shared_info_patterns = [
@@ -218,15 +223,16 @@ class TestOxossiAgent:
         ]
 
         message = AgentMessage(
-            role="user",
-            content="Analyze invoices for fraud",
-            data={"invoices": invoices},
+            sender="test",
+            recipient="oxossi",
+            action="analyze_invoices_for_fraud",
+            payload={"invoices": invoices},
         )
 
         response = await agent.process(message, agent_context)
 
-        assert response.success
-        analysis = response.data["fraud_analysis"]
+        assert response.status == AgentStatus.COMPLETED
+        analysis = response.result["fraud_analysis"]
 
         # Should detect duplicate invoice
         duplicate_patterns = [
@@ -242,15 +248,16 @@ class TestOxossiAgent:
     ):
         """Test that fraud patterns are properly classified by severity."""
         message = AgentMessage(
-            role="user",
-            content="Comprehensive fraud analysis",
-            data={"vendors": sample_vendors},
+            sender="test",
+            recipient="oxossi",
+            action="comprehensive_fraud_analysis",
+            payload={"vendors": sample_vendors},
         )
 
         response = await agent.process(message, agent_context)
 
-        assert response.success
-        analysis = response.data["fraud_analysis"]
+        assert response.status == AgentStatus.COMPLETED
+        analysis = response.result["fraud_analysis"]
 
         # Check severity classification
         assert "risk_level" in analysis
@@ -273,16 +280,17 @@ class TestOxossiAgent:
         ]
 
         message = AgentMessage(
-            role="user",
-            content="Identify high risk entities",
-            data={"contracts": contracts},
+            sender="test",
+            recipient="oxossi",
+            action="identify_high_risk_entities",
+            payload={"contracts": contracts},
         )
 
         response = await agent.process(message, agent_context)
 
-        assert response.success
-        assert "high_risk_entities" in response.data
-        high_risk = response.data["high_risk_entities"]
+        assert response.status == AgentStatus.COMPLETED
+        assert "high_risk_entities" in response.result
+        high_risk = response.result["high_risk_entities"]
         assert len(high_risk) > 0
         assert high_risk[0]["entity"] == "Risky Vendor"
 
@@ -321,13 +329,16 @@ class TestOxossiAgent:
         }
 
         message = AgentMessage(
-            role="user", content="Comprehensive fraud analysis", data=data
+            sender="test",
+            recipient="oxossi",
+            action="comprehensive_fraud_analysis",
+            payload=data,
         )
 
         response = await agent.process(message, agent_context)
 
-        assert response.success
-        analysis = response.data["fraud_analysis"]
+        assert response.status == AgentStatus.COMPLETED
+        analysis = response.result["fraud_analysis"]
         assert len(analysis["patterns"]) > 0
         assert "recommendations" in analysis
         assert len(analysis["recommendations"]) > 0
@@ -336,12 +347,17 @@ class TestOxossiAgent:
     async def test_error_handling(self, agent, agent_context):
         """Test error handling for invalid data."""
         # No data provided
-        message = AgentMessage(role="user", content="Detect fraud", data=None)
+        message = AgentMessage(
+            sender="test",
+            recipient="oxossi",
+            action="detect_fraud",
+            payload={},  # Empty payload instead of None
+        )
 
         response = await agent.process(message, agent_context)
 
-        assert not response.success
-        assert "error" in response.data
+        assert response.status == AgentStatus.ERROR
+        assert response.error is not None
 
     @pytest.mark.asyncio
     async def test_hunt_specific_fraud_type(
@@ -354,8 +370,8 @@ class TestOxossiAgent:
             context=agent_context,
         )
 
-        assert response.success
-        assert "fraud_analysis" in response.data
+        assert response.status == AgentStatus.COMPLETED
+        assert "fraud_analysis" in response.result
 
     @pytest.mark.asyncio
     async def test_fraud_confidence_calculation(self, agent, agent_context):
@@ -377,12 +393,15 @@ class TestOxossiAgent:
         }
 
         message = AgentMessage(
-            role="user", content="Analyze fraud confidence", data=data
+            sender="test",
+            recipient="oxossi",
+            action="analyze_fraud_confidence",
+            payload=data,
         )
 
         response = await agent.process(message, agent_context)
 
-        assert response.success
+        assert response.status == AgentStatus.COMPLETED
         assert "confidence_score" in response.metadata
         assert 0 <= response.metadata["confidence_score"] <= 1
 
@@ -412,15 +431,16 @@ class TestOxossiKickbackDetection:
         ]
 
         message = AgentMessage(
-            role="user",
-            content="Detect kickback schemes",
-            data={"transactions": transactions},
+            sender="test",
+            recipient="oxossi",
+            action="detect_kickback_schemes",
+            payload={"transactions": transactions},
         )
 
         response = await agent.process(message, agent_context)
 
-        assert response.success
-        analysis = response.data["fraud_analysis"]
+        assert response.status == AgentStatus.COMPLETED
+        analysis = response.result["fraud_analysis"]
 
         kickback_patterns = [
             p
@@ -460,15 +480,16 @@ class TestOxossiKickbackDetection:
         ]
 
         message = AgentMessage(
-            role="user",
-            content="Detect percentage-based kickbacks",
-            data={"transactions": transactions},
+            sender="test",
+            recipient="oxossi",
+            action="detect_percentage-based_kickbacks",
+            payload={"transactions": transactions},
         )
 
         response = await agent.process(message, agent_context)
 
-        assert response.success
-        analysis = response.data["fraud_analysis"]
+        assert response.status == AgentStatus.COMPLETED
+        analysis = response.result["fraud_analysis"]
 
         kickback_patterns = [
             p
@@ -508,15 +529,16 @@ class TestOxossiKickbackDetection:
         ]
 
         message = AgentMessage(
-            role="user",
-            content="Detect post-award payments",
-            data={"transactions": transactions},
+            sender="test",
+            recipient="oxossi",
+            action="detect_post-award_payments",
+            payload={"transactions": transactions},
         )
 
         response = await agent.process(message, agent_context)
 
-        assert response.success
-        analysis = response.data["fraud_analysis"]
+        assert response.status == AgentStatus.COMPLETED
+        analysis = response.result["fraud_analysis"]
 
         kickback_patterns = [
             p
@@ -558,15 +580,16 @@ class TestOxossiCircularPayments:
         ]
 
         message = AgentMessage(
-            role="user",
-            content="Detect circular payments",
-            data={"transactions": transactions},
+            sender="test",
+            recipient="oxossi",
+            action="detect_circular_payments",
+            payload={"transactions": transactions},
         )
 
         response = await agent.process(message, agent_context)
 
-        assert response.success
-        analysis = response.data["fraud_analysis"]
+        assert response.status == AgentStatus.COMPLETED
+        analysis = response.result["fraud_analysis"]
 
         circular_patterns = [
             p
@@ -702,15 +725,16 @@ class TestOxossiBenfordsLaw:
         ]
 
         message = AgentMessage(
-            role="user",
-            content="Comprehensive analysis",
-            data={"contracts": contracts},
+            sender="test",
+            recipient="oxossi",
+            action="comprehensive_analysis",
+            payload={"contracts": contracts},
         )
 
         response = await agent.process(message, agent_context)
 
-        assert response.success
-        analysis = response.data["fraud_analysis"]
+        assert response.status == AgentStatus.COMPLETED
+        analysis = response.result["fraud_analysis"]
 
         # Should include Benford's Law violation
         benford_patterns = [
@@ -855,30 +879,17 @@ class TestOxossiTemporalAnomalies:
         ]
 
         message = AgentMessage(
-            role="user",
-            content="Comprehensive analysis",
-            data={"transactions": transactions},
+            sender="test",
+            recipient="oxossi",
+            action="comprehensive_analysis",
+            payload={"transactions": transactions},
         )
 
         response = await agent.process(message, agent_context)
 
-        assert response.success
-        analysis = response.data["fraud_analysis"]
+        assert response.status == AgentStatus.COMPLETED
+        analysis = response.result["fraud_analysis"]
 
-        # Should include temporal anomaly patterns
-        temporal_patterns = [
-            p
-            for p in analysis["patterns"]
-            if any(
-                ind["type"]
-                in [
-                    "after_hours_activity",
-                    "weekend_activity",
-                    "velocity_anomaly",
-                    "temporal_clustering",
-                ]
-                for ind in p["indicators"]
-            )
-        ]
-        # May or may not detect depending on thresholds, but integration is tested
+        # May or may not detect temporal anomalies depending on thresholds,
+        # but integration is tested by verifying the analysis includes patterns
         assert "patterns" in analysis
