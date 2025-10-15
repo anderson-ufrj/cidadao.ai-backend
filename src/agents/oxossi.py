@@ -180,10 +180,10 @@ class OxossiAgent(BaseAgent):
 
         try:
             self.status = AgentStatus.THINKING
-            logger.info(f"Oxóssi starting fraud hunt: {message.content}")
+            logger.info(f"Oxóssi starting fraud hunt: {message.action}")
 
             # Extract data for analysis
-            data = message.data
+            data = message.payload
             if not data:
                 raise AgentExecutionError("No data provided for fraud detection")
 
@@ -217,8 +217,9 @@ class OxossiAgent(BaseAgent):
             self.status = AgentStatus.IDLE
 
             return AgentResponse(
-                success=True,
-                data={
+                agent_name=self.name,
+                status=AgentStatus.COMPLETED,
+                result={
                     "fraud_analysis": report,
                     "patterns_detected": len(fraud_patterns),
                     "high_risk_entities": self._identify_high_risk_entities(
@@ -236,14 +237,16 @@ class OxossiAgent(BaseAgent):
                         fraud_patterns
                     ),
                 },
+                processing_time_ms=processing_time * 1000,
             )
 
         except Exception as e:
             self.status = AgentStatus.ERROR
             logger.error(f"Oxóssi fraud detection failed: {str(e)}")
             return AgentResponse(
-                success=False,
-                data={"error": str(e)},
+                agent_name=self.name,
+                status=AgentStatus.ERROR,
+                error=str(e),
                 metadata={"agent": self.name, "error_type": type(e).__name__},
             )
 
@@ -1674,10 +1677,10 @@ class OxossiAgent(BaseAgent):
         """Hunt for a specific type of fraud with focused analysis."""
         # This method allows targeting specific fraud types for deeper analysis
         message = AgentMessage(
-            role="user",
-            content=f"Hunt for {fraud_type.value} fraud",
-            data=data,
-            metadata={"target_fraud_type": fraud_type.value},
+            sender="system",
+            recipient="oxossi",
+            action=f"hunt_{fraud_type.value}",
+            payload=data,
         )
 
         return await self.process(message, context)
