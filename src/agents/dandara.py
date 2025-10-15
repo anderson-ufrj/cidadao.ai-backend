@@ -145,14 +145,14 @@ class DandaraAgent(BaseAgent):
             self.logger.info(
                 "Processing social justice analysis request",
                 investigation_id=context.investigation_id,
-                message_type=message.type,
+                action=message.action,
             )
 
             # Parse request
-            if isinstance(message.data, dict):
-                request = SocialJusticeRequest(**message.data)
+            if isinstance(message.payload, dict):
+                request = SocialJusticeRequest(**message.payload)
             else:
-                request = SocialJusticeRequest(query=str(message.data))
+                request = SocialJusticeRequest(query=str(message.payload))
 
             # Perform comprehensive social justice analysis
             analysis_result = await self._analyze_social_equity(request, context)
@@ -185,12 +185,16 @@ class DandaraAgent(BaseAgent):
                 violations_count=len(analysis_result.violations_detected),
             )
 
+            from src.core import AgentStatus
+
             return AgentResponse(
                 agent_name=self.name,
-                response_type="social_justice_analysis",
-                data=response_data,
-                success=True,
-                context=context,
+                status=AgentStatus.COMPLETED,
+                result=response_data,
+                metadata={
+                    "success": True,
+                    "investigation_id": context.investigation_id,
+                },
             )
 
         except Exception as e:
@@ -201,12 +205,17 @@ class DandaraAgent(BaseAgent):
                 exc_info=True,
             )
 
+            from src.core import AgentStatus
+
             return AgentResponse(
                 agent_name=self.name,
-                response_type="error",
-                data={"error": str(e), "analysis_type": "social_justice"},
-                success=False,
-                context=context,
+                status=AgentStatus.ERROR,
+                error=str(e),
+                result=None,
+                metadata={
+                    "analysis_type": "social_justice",
+                    "investigation_id": context.investigation_id,
+                },
             )
 
     async def _analyze_social_equity(
@@ -604,32 +613,109 @@ class DandaraAgent(BaseAgent):
         request: SocialJusticeRequest,
         context: AgentContext,
     ) -> list[dict[str, Any]]:
-        """Generate detailed justice recommendations."""
+        """Generate detailed justice recommendations based on analysis results."""
 
         recommendations = []
 
-        for rec_text in analysis.recommendations:
+        for idx, rec_text in enumerate(analysis.recommendations):
+            # Calculate priority based on equity score and violations
+            priority = self._calculate_recommendation_priority(
+                analysis.equity_score,
+                len(analysis.violations_detected),
+                len(analysis.gaps_identified),
+            )
+
+            # Calculate expected impact based on gap sizes
+            expected_impact = self._estimate_recommendation_impact(
+                analysis.gaps_identified, idx
+            )
+
+            # Determine resource requirements based on gaps
+            required_resources = self._assess_resource_requirements(
+                analysis.gaps_identified, idx
+            )
+
+            # Calculate realistic improvement target
+            improvement_target = self._calculate_improvement_target(
+                analysis.equity_score, len(analysis.violations_detected)
+            )
+
             recommendations.append(
                 {
                     "recommendation": rec_text,
-                    "priority": "high" if analysis.equity_score < 60 else "medium",
+                    "priority": priority,
                     "implementation_timeframe": (
                         "immediate" if analysis.equity_score < 40 else "short_term"
                     ),
-                    "expected_impact": np.random.uniform(0.6, 0.9),
-                    "required_resources": np.random.choice(["low", "medium", "high"]),
+                    "expected_impact": expected_impact,
+                    "required_resources": required_resources,
                     "stakeholders": [
                         "government",
                         "civil_society",
                         "affected_communities",
                     ],
                     "success_metrics": [
-                        f"Improve equity score by {np.random.randint(10, 25)} points"
+                        f"Improve equity score by {improvement_target} points",
+                        f"Reduce violations by {min(len(analysis.violations_detected), 3)}",
+                        f"Close identified gaps in {len(analysis.gaps_identified)} areas",
                     ],
                 }
             )
 
         return recommendations
+
+    def _calculate_recommendation_priority(
+        self, equity_score: int, violations_count: int, gaps_count: int
+    ) -> str:
+        """Calculate recommendation priority based on equity metrics."""
+        if equity_score < 40 or violations_count > 5:
+            return "critical"
+        elif equity_score < 60 or violations_count > 2:
+            return "high"
+        elif equity_score < 75 or gaps_count > 3:
+            return "medium"
+        else:
+            return "low"
+
+    def _estimate_recommendation_impact(
+        self, gaps: list[dict[str, Any]], recommendation_idx: int
+    ) -> float:
+        """Estimate expected impact of recommendation based on gaps."""
+        if not gaps:
+            return 0.7  # Default moderate impact
+
+        # Use gap sizes to estimate impact
+        relevant_gap_idx = min(recommendation_idx, len(gaps) - 1)
+        gap_size = gaps[relevant_gap_idx].get("gap_size", 0.5)
+
+        # Higher gap size = higher potential impact
+        return min(0.95, 0.5 + gap_size * 0.5)
+
+    def _assess_resource_requirements(
+        self, gaps: list[dict[str, Any]], recommendation_idx: int
+    ) -> str:
+        """Assess resource requirements based on gap complexity."""
+        if not gaps:
+            return "medium"
+
+        relevant_gap_idx = min(recommendation_idx, len(gaps) - 1)
+        complexity = gaps[relevant_gap_idx].get("implementation_complexity", "medium")
+
+        return complexity if complexity in ["low", "medium", "high"] else "medium"
+
+    def _calculate_improvement_target(
+        self, current_score: int, violations_count: int
+    ) -> int:
+        """Calculate realistic improvement target."""
+        # Higher violations = more aggressive target
+        if violations_count > 5:
+            return min(25, 100 - current_score)
+        elif violations_count > 2:
+            return min(20, 100 - current_score)
+        elif current_score < 50:
+            return min(15, 100 - current_score)
+        else:
+            return min(10, 100 - current_score)
 
     def _generate_audit_hash(
         self, analysis: EquityAnalysisResult, request: SocialJusticeRequest
