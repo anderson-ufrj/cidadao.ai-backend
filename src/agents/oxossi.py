@@ -271,6 +271,24 @@ class OxossiAgent(BaseAgent):
         if phantom_vendors:
             fraud_patterns.extend(phantom_vendors)
 
+        # Apply Benford's Law to contract values if enough data
+        contract_values = [
+            c.get("contract_value", 0)
+            for c in contracts
+            if c.get("contract_value")
+        ]
+        if len(contract_values) >= 30:
+            benford_patterns = self._analyze_benfords_law(
+                contract_values, "Contracts"
+            )
+            fraud_patterns.extend(benford_patterns)
+
+        # Apply temporal analysis to contracts
+        temporal_patterns = self._detect_temporal_anomalies(
+            contracts, "Contracts"
+        )
+        fraud_patterns.extend(temporal_patterns)
+
         return fraud_patterns
 
     async def _detect_bid_rigging(

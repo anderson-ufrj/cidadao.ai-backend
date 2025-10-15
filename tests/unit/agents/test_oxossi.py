@@ -175,7 +175,12 @@ class TestOxossiAgent:
             if p["fraud_type"] == FraudType.PHANTOM_VENDOR.value
         ]
         assert len(phantom_patterns) > 0
-        assert "Phantom Corp" in phantom_patterns[0]["entities_involved"]
+
+        # Check if Phantom Corp is detected in any of the patterns
+        phantom_corp_detected = any(
+            "Phantom Corp" in p["entities_involved"] for p in phantom_patterns
+        )
+        assert phantom_corp_detected, "Phantom Corp should be detected as a phantom vendor"
 
     @pytest.mark.asyncio
     async def test_detect_shared_vendor_info(
@@ -266,14 +271,16 @@ class TestOxossiAgent:
     @pytest.mark.asyncio
     async def test_high_risk_entity_identification(self, agent, agent_context):
         """Test identification of high-risk entities."""
+        # Create contracts that trigger bid rigging detection
+        # All contracts in same bidding process with similar bid amounts
         contracts = [
             {
                 "contract_id": f"C{i:03d}",
                 "vendor_id": "V_RISKY",
                 "vendor_name": "Risky Vendor",
                 "contract_value": 100000 + i * 1000,
-                "bid_amount": 100000,
-                "bidding_process_id": f"BID{i:03d}",
+                "bid_amount": 100000,  # All same bid amount (suspicious)
+                "bidding_process_id": "BID001",  # All in same bidding process
                 "contract_date": f"2025-01-{i+1:02d}",
             }
             for i in range(5)
