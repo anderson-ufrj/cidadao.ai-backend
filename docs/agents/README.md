@@ -558,114 +558,9 @@ metadata = await oscar.generate_visualization_metadata(
 # metadata contém: axis config, color schemes, chart type recommendations
 ```
 
-### 🔗 Pipeline com Niemeyer
-1. **Oscar Niemeyer** → Agrega dados + Gera metadados
-2. **Niemeyer** → Renderiza visualizações usando dados preparados
-
 ---
 
-## 14. 🎨 Niemeyer - Visualização Gráfica
-
-**Status**: ✅ **100% Operacional**
-**Arquivo**: `src/agents/niemeyer.py` (2.270 linhas - 2º maior agente!)
-**Testes**: ⏳ Em desenvolvimento
-**Última Validação**: 13/10/2025
-
-> **IMPORTANTE**: Niemeyer é o **Visualization Engine** - renderiza visualizações interativas.
-> Para agregação de dados, veja o agente **Oscar Niemeyer** (seção anterior).
-
-### Capacidades Reais (Rendering Layer)
-- ✅ **30+ Algoritmos de Visualização**: Gráficos, mapas, dashboards
-- ✅ **Force-Directed Layouts**: Fruchterman-Reingold para grafos
-- ✅ **Hierarchical Layouts**: Sugiyama algorithm para árvores
-- ✅ **Time Series Smoothing**: Moving Average, LOWESS
-- ✅ **Geographic Maps**: Projeções Mercator, Albers, Equirectangular
-- ✅ **Interactive Dashboards**: Multi-panel com cross-filtering
-
-### Bibliotecas Integradas
-```python
-# JavaScript Libraries (embedded in HTML output)
-D3.js v7.8.5       # Visualizações customizadas
-Plotly v2.27.0     # Gráficos científicos
-Leaflet v1.9.4     # Mapas interativos
-Chart.js           # Gráficos responsivos
-```
-
-### Tipos de Visualização Suportados
-```python
-VisualizationType.BAR_CHART      # Gráficos de barras
-VisualizationType.LINE_CHART     # Linhas (time series)
-VisualizationType.PIE_CHART      # Pizza/donut
-VisualizationType.SCATTER_PLOT   # Dispersão
-VisualizationType.HEATMAP        # Mapas de calor
-VisualizationType.NETWORK_GRAPH  # Grafos de relacionamento
-VisualizationType.GEOGRAPHIC_MAP # Mapas geográficos
-VisualizationType.TREEMAP        # Hierarquias
-VisualizationType.SANKEY_DIAGRAM # Fluxos
-VisualizationType.DASHBOARD      # Multi-panel
-```
-
-### Algoritmos de Layout Implementados
-1. **Fruchterman-Reingold**: Force-Directed para grafos de rede
-   - Força de repulsão: F_r = k²/d²
-   - Força de atração: F_a = d²/k
-   - Iterações: 100-500 para convergência
-
-2. **Sugiyama Algorithm**: Hierarchical layouts para árvores
-
-3. **Projeções Cartográficas**:
-   - Mercator (conformal, web standard)
-   - Albers Equal Area (área preservada)
-   - Equirectangular (simplificada)
-
-4. **Grid Layout**: Responsivo para dashboards
-   - Bin-packing para posicionamento ótimo
-   - Cross-filtering automático
-
-### Exemplo de Uso
-```python
-from src.agents import VisualizationAgent
-from src.agents.niemeyer import VisualizationType, VisualizationSpec
-
-niemeyer = VisualizationAgent()
-await niemeyer.initialize()
-
-# Criar visualização
-spec = VisualizationSpec(
-    viz_type=VisualizationType.LINE_CHART,
-    title="Evolução de Contratos",
-    data_source="contracts",
-    dimensions=["date"],
-    metrics=["value"],
-    filters={},
-    styling={"color": "#2563eb"},
-    interactivity=["hover", "zoom"],
-    export_formats=["svg", "png", "html"]
-)
-
-result = await niemeyer.create_visualization(
-    spec=spec,
-    data=aggregated_data,  # Vem do Oscar Niemeyer
-    context=context
-)
-
-# result.html_content contém visualização completa renderizada
-# result.json_config contém configuração D3.js/Plotly
-```
-
-### Performance
-- Renderização: <2s para datasets até 10K pontos
-- Interatividade: <100ms resposta para filtros
-- Memory Usage: <512MB para visualizações complexas
-- Suporte: Datasets até 1M de registros (com sampling)
-
-### 🔗 Pipeline com Oscar Niemeyer
-1. **Oscar Niemeyer** → Agrega dados + Gera metadados
-2. **Niemeyer** → Renderiza visualizações usando dados preparados
-
----
-
-## 15. 💬 Carlos Drummond - Comunicação
+## 14. 💬 Carlos Drummond - Comunicação
 
 **Status**: ✅ **100% Operacional**
 **Arquivo**: `src/agents/drummond.py` (968 linhas)
@@ -678,7 +573,7 @@ result = await niemeyer.create_visualization(
 
 ---
 
-## 16. 🔮 Ceuci - Data Engineering & ETL
+## 15. 🔮 Ceuci - Data Engineering & ETL
 
 **Status**: ✅ **100% Operacional**
 **Arquivo**: `src/agents/ceuci.py` (1.494 linhas)
@@ -692,7 +587,7 @@ result = await niemeyer.create_visualization(
 
 ---
 
-## 17. 🏥 Obaluaiê - Health Analytics
+## 16. 🏥 Obaluaiê - Health Analytics
 
 **Status**: ✅ **100% Operacional**
 **Arquivo**: `src/agents/obaluaie.py` (907 linhas)
@@ -736,9 +631,9 @@ result = await niemeyer.create_visualization(
 | **Total Linhas de Código** | ~26.000 |
 | **Média por Agente Operacional** | ~1.530 linhas |
 | **Maior Agente** | Maria Quitéria (2.449 linhas) |
-| **2º Maior** | Niemeyer (2.270 linhas) |
-| **3º Maior** | Zumbi (2.181 linhas) |
-| **4º Maior** | Lampião (1.433 linhas) |
+| **2º Maior** | Zumbi (2.181 linhas) |
+| **3º Maior** | Lampião (1.433 linhas) |
+| **4º Maior** | Oscar Niemeyer (1.224 linhas) |
 | **5º Maior** | Oxóssi (1.057 linhas) |
 | **TODOs Restantes** | 0 ✅ |
 | **Algoritmos Implementados** | 75+ |
