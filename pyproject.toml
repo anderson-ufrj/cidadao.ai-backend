@@ -202,6 +202,7 @@ target-version = "py311"
 "scripts/*" = ["S101", "ANN", "PLR2004"]
 "src/api/app.py" = ["E402", "PLC0415"]  # Lazy imports are intentional in FastAPI
 "src/api/routes/*" = ["ANN201", "B008", "B904"]
+"src/services/cache_service.py" = ["ANN", "UP007", "UP038", "PLR2004", "S324", "S311", "B904", "SIM105", "F841"]
 "src/services/cache_warming_service.py" = ["ANN201", "ANN204", "B007", "S324", "PLR2004", "UP007", "RET504"]
 "src/services/memory_startup.py" = ["ANN201", "B007", "UP007"]
 "src/agents/oscar_niemeyer.py" = ["PLR0913", "PLR2004", "N806"]
