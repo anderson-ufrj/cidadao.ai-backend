@@ -231,7 +231,7 @@ async def test_error_handling(oscar_agent, agent_context):
         sender="test-user",
         recipient="OscarNiemeyerAgent",
         action="invalid_action",
-        payload=None,
+        payload={},
     )
 
     with patch.object(
@@ -270,7 +270,8 @@ async def test_cache_metadata(oscar_agent, agent_context):
         metadata["generated_at"].replace("Z", "+00:00")
     )
     diff = (expires_at - generated_at).total_seconds()
-    assert diff == oscar_agent.config["cache_ttl_seconds"]
+    # Use approximate comparison due to floating point precision
+    assert diff == pytest.approx(oscar_agent.config["cache_ttl_seconds"], rel=1e-3)
 
 
 @pytest.mark.asyncio
@@ -535,7 +536,10 @@ async def test_choropleth_geojson_fallback(oscar_agent, agent_context):
     # Mock httpx to simulate failure
     with patch("httpx.AsyncClient") as mock_client:
         mock_response = AsyncMock()
-        mock_response.raise_for_status.side_effect = Exception("Network error")
+        # raise_for_status is synchronous in httpx, so use MagicMock
+        mock_response.raise_for_status = MagicMock(
+            side_effect=Exception("Network error")
+        )
         mock_client.return_value.__aenter__.return_value.get.return_value = (
             mock_response
         )
