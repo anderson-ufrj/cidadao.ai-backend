@@ -12,7 +12,7 @@ from typing import Any
 
 import pytest
 
-from src.agents.base_agent import (
+from src.agents.deodoro import (
     AgentContext,
     AgentMessage,
     AgentResponse,
