@@ -7,7 +7,7 @@ License: Proprietary - All rights reserved
 """
 
 from .abaporu import InvestigationPlan, InvestigationResult, MasterAgent
-from .agent_pool import agent_pool, get_agent_pool
+from .simple_agent_pool import agent_pool, get_agent_pool
 from .anita import AnalystAgent
 from .ayrton_senna import SemanticRouter
 from .bonifacio import BonifacioAgent
