@@ -9,7 +9,7 @@ License: Proprietary - All rights reserved
 import os
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import Field, SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -42,28 +42,33 @@ class Settings(BaseSettings):
     workers: int = Field(default=1, description="Number of workers")
 
     # Database
-    database_url: str = Field(description="Database connection URL (REQUIRED)")
+    database_url: str = Field(
+        default="sqlite+aiosqlite:///./cidadao_ai.db",
+        description="Database connection URL (PostgreSQL for production, SQLite for dev/testing)",
+    )
     database_pool_size: int = Field(default=10, description="DB pool size")
     database_pool_overflow: int = Field(default=20, description="DB pool overflow")
     database_pool_timeout: int = Field(default=30, description="DB pool timeout")
 
-    # Supabase
-    supabase_url: str = Field(description="Supabase project URL (REQUIRED)")
-    supabase_service_role_key: SecretStr = Field(
-        description="Supabase service role key (REQUIRED)"
+    # Supabase (Optional - only needed for HuggingFace Spaces fallback)
+    supabase_url: str | None = Field(
+        default=None,
+        description="Supabase project URL (optional, only for HuggingFace Spaces)",
+    )
+    supabase_service_role_key: SecretStr | None = Field(
+        default=None,
+        description="Supabase service role key (optional, only for HuggingFace Spaces)",
     )
 
     # Redis
     redis_url: str = Field(
         default="redis://localhost:6379/0", description="Redis connection URL"
     )
-    redis_password: Optional[SecretStr] = Field(
-        default=None, description="Redis password"
-    )
+    redis_password: SecretStr | None = Field(default=None, description="Redis password")
     redis_pool_size: int = Field(default=10, description="Redis pool size")
 
     # Portal Transparência API
-    transparency_api_key: Optional[SecretStr] = Field(
+    transparency_api_key: SecretStr | None = Field(
         default=None, description="Portal da Transparência API key"
     )
     transparency_api_base_url: str = Field(
@@ -78,7 +83,7 @@ class Settings(BaseSettings):
     )
 
     # Dados.gov.br API Configuration
-    dados_gov_api_key: Optional[SecretStr] = Field(
+    dados_gov_api_key: SecretStr | None = Field(
         default=None, description="Dados.gov.br API key (if required)"
     )
 
@@ -95,19 +100,19 @@ class Settings(BaseSettings):
     llm_stream: bool = Field(default=True, description="Enable streaming")
 
     # Provider API Keys
-    groq_api_key: Optional[SecretStr] = Field(default=None, description="Groq API key")
+    groq_api_key: SecretStr | None = Field(default=None, description="Groq API key")
     groq_api_base_url: str = Field(
         default="https://api.groq.com/openai/v1", description="Groq base URL"
     )
 
-    together_api_key: Optional[SecretStr] = Field(
+    together_api_key: SecretStr | None = Field(
         default=None, description="Together API key"
     )
     together_api_base_url: str = Field(
         default="https://api.together.xyz/v1", description="Together base URL"
     )
 
-    huggingface_api_key: Optional[SecretStr] = Field(
+    huggingface_api_key: SecretStr | None = Field(
         default=None, description="HuggingFace API key"
     )
     huggingface_model_id: str = Field(
@@ -115,7 +120,7 @@ class Settings(BaseSettings):
     )
 
     # Maritaca AI Configuration
-    maritaca_api_key: Optional[SecretStr] = Field(
+    maritaca_api_key: SecretStr | None = Field(
         default=None, description="Maritaca AI API key"
     )
     maritaca_api_base_url: str = Field(
@@ -127,7 +132,7 @@ class Settings(BaseSettings):
     )
 
     # Anthropic Claude Configuration
-    anthropic_api_key: Optional[SecretStr] = Field(  # noqa: UP007
+    anthropic_api_key: SecretStr | None = Field(  # noqa: UP007
         default=None, description="Anthropic Claude API key"
     )
     anthropic_api_base_url: str = Field(
@@ -386,7 +391,7 @@ class Settings(BaseSettings):
         return data
 
     @classmethod
-    async def from_vault(cls, vault_config: Optional[VaultConfig] = None) -> "Settings":
+    async def from_vault(cls, vault_config: VaultConfig | None = None) -> "Settings":
         """
         Create Settings instance with secrets loaded from Vault
 
@@ -484,7 +489,7 @@ def get_settings() -> Settings:
 
 
 async def get_settings_with_vault(
-    vault_config: Optional[VaultConfig] = None,
+    vault_config: VaultConfig | None = None,
 ) -> Settings:
     """Get settings instance with Vault integration"""
     return await Settings.from_vault(vault_config)
