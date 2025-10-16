@@ -163,6 +163,14 @@ class MachadoAgent(BaseAgent):
             "article": r"Art\.?\s*\d+[º°]?",
         }
 
+    async def initialize(self) -> None:
+        """Initialize agent resources."""
+        self.logger.info("Machado agent initialized and ready for textual analysis")
+
+    async def shutdown(self) -> None:
+        """Cleanup agent resources."""
+        self.logger.info("Machado agent shutdown completed")
+
     async def process(
         self,
         message: AgentMessage,
