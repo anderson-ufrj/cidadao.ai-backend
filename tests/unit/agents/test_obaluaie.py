@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from src.agents.deodoro import AgentContext, AgentMessage, AgentStatus
-from src.agents.obaluaie import ObaluaieAgent
+from src.agents.obaluaie import CorruptionDetectorAgent
 
 
 @pytest.fixture
@@ -34,10 +34,10 @@ def obaluaie_agent(mock_healing_service):
     with patch(
         "src.agents.obaluaie.HealingAnalysisService", return_value=mock_healing_service
     ):
-        return ObaluaieAgent(healing_threshold=0.7)
+        return CorruptionDetectorAgent()
 
 
-class TestObaluaieAgent:
+class TestCorruptionDetectorAgent:
     @pytest.mark.unit
     def test_agent_initialization(self, obaluaie_agent):
         assert obaluaie_agent.name == "Obaluaiê"
