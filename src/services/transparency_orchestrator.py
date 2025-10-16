@@ -15,7 +15,9 @@ from enum import Enum
 from typing import Any, Optional
 
 from src.core import get_logger
-from src.services.transparency_apis.federal_apis.bcb_client import BCBClient
+from src.services.transparency_apis.federal_apis.bcb_client import (
+    BancoCentralClient as BCBClient,
+)
 from src.services.transparency_apis.federal_apis.compras_gov_client import (
     ComprasGovClient,
 )
