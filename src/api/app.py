@@ -20,8 +20,7 @@ from src.api.middleware.compression import CompressionMiddleware
 from src.api.middleware.ip_whitelist import IPWhitelistMiddleware
 from src.api.middleware.logging_middleware import LoggingMiddleware
 from src.api.middleware.metrics_middleware import MetricsMiddleware, setup_http_metrics
-from src.api.middleware.rate_limit import RateLimitMiddleware as RateLimitMiddlewareV2
-from src.api.middleware.rate_limiting import RateLimitMiddleware
+from src.api.middleware.rate_limit import RateLimitMiddleware
 from src.api.middleware.security import SecurityMiddleware
 from src.api.routes import (
     agent_metrics,
@@ -224,7 +223,6 @@ async def custom_swagger_ui_html():
 # Add security middleware (order matters!)
 app.add_middleware(SecurityMiddleware)
 app.add_middleware(LoggingMiddleware)
-app.add_middleware(RateLimitMiddleware)
 
 # Add compression middleware for mobile optimization
 app.add_middleware(CompressionMiddleware, minimum_size=1024)  # Compress responses > 1KB
@@ -309,10 +307,8 @@ if settings.is_production or settings.app_env == "staging":
         strict_mode=False,  # Allow requests if IP can't be determined
     )
 
-# Add rate limiting middleware v2
-app.add_middleware(
-    RateLimitMiddlewareV2, default_tier="free", strategy="sliding_window"
-)
+# Add rate limiting middleware
+app.add_middleware(RateLimitMiddleware, default_tier="free", strategy="sliding_window")
 
 # Add query tracking middleware for cache optimization
 from src.api.middleware.query_tracking import QueryTrackingMiddleware
