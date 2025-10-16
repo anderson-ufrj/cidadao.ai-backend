@@ -7,7 +7,7 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 import httpx
@@ -26,12 +26,34 @@ class SupabaseAnomalyService:
         """Initialize Supabase service."""
         self.supabase_url = settings.supabase_url
         self.supabase_key = settings.supabase_service_role_key
-        self.headers = {
-            "apikey": self.supabase_key,
-            "Authorization": f"Bearer {self.supabase_key}",
-            "Content-Type": "application/json",
-            "Prefer": "return=representation",
-        }
+
+        # Only initialize headers if Supabase is configured
+        if self.supabase_url and self.supabase_key:
+            key_value = (
+                self.supabase_key.get_secret_value()
+                if hasattr(self.supabase_key, "get_secret_value")
+                else str(self.supabase_key)
+            )
+            self.headers = {
+                "apikey": key_value,
+                "Authorization": f"Bearer {key_value}",
+                "Content-Type": "application/json",
+                "Prefer": "return=representation",
+            }
+        else:
+            self.headers = None
+            logger.warning(
+                "Supabase not configured - SupabaseAnomalyService will not function. "
+                "Add SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for HuggingFace Spaces."
+            )
+
+    def _ensure_configured(self):
+        """Ensure Supabase is configured before using the service."""
+        if not self.supabase_url or not self.supabase_key or not self.headers:
+            raise RuntimeError(
+                "Supabase is not configured. "
+                "Set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables."
+            )
 
     async def create_auto_investigation(
         self, query: str, context: dict[str, Any], initiated_by: str
@@ -48,6 +70,7 @@ class SupabaseAnomalyService:
         Returns:
             Created auto_investigation record
         """
+        self._ensure_configured()
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"{self.supabase_url}/rest/v1/auto_investigations",
@@ -65,18 +88,18 @@ class SupabaseAnomalyService:
 
     async def create_anomaly(
         self,
-        investigation_id: Optional[UUID],
+        investigation_id: UUID | None,
         source: str,
-        source_id: Optional[str],
+        source_id: str | None,
         anomaly_type: str,
         anomaly_score: float,
         title: str,
-        description: Optional[str],
+        description: str | None,
         indicators: list[str],
         recommendations: list[str],
         contract_data: dict[str, Any],
-        metadata: Optional[dict[str, Any]] = None,
-        auto_investigation_id: Optional[UUID] = None,
+        metadata: dict[str, Any] | None = None,
+        auto_investigation_id: UUID | None = None,
     ) -> dict[str, Any]:
         """
         Create an anomaly record in Supabase.
@@ -98,6 +121,7 @@ class SupabaseAnomalyService:
         Returns:
             Created anomaly record
         """
+        self._ensure_configured()
         # Calculate severity based on score
         if anomaly_score >= 0.85:
             severity = "critical"
@@ -165,6 +189,7 @@ class SupabaseAnomalyService:
         Returns:
             Saved dispensa record
         """
+        self._ensure_configured()
         dispensa_record = {
             "id": dispensa_id,
             "numero": dispensa_data.get("numero"),
@@ -192,9 +217,9 @@ class SupabaseAnomalyService:
 
     async def get_anomalies(
         self,
-        source: Optional[str] = None,
-        severity: Optional[str] = None,
-        status: Optional[str] = None,
+        source: str | None = None,
+        severity: str | None = None,
+        status: str | None = None,
         limit: int = 100,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
@@ -211,6 +236,7 @@ class SupabaseAnomalyService:
         Returns:
             List of anomaly records
         """
+        self._ensure_configured()
         params = {"limit": limit, "offset": offset, "order": "created_at.desc"}
 
         if source:
@@ -230,7 +256,7 @@ class SupabaseAnomalyService:
             return response.json()
 
     async def update_anomaly_status(
-        self, anomaly_id: UUID, status: str, assigned_to: Optional[str] = None
+        self, anomaly_id: UUID, status: str, assigned_to: str | None = None
     ) -> dict[str, Any]:
         """
         Update anomaly status.
@@ -243,6 +269,7 @@ class SupabaseAnomalyService:
         Returns:
             Updated anomaly record
         """
+        self._ensure_configured()
         update_data = {"status": status}
 
         if assigned_to:
@@ -269,7 +296,7 @@ class SupabaseAnomalyService:
         title: str,
         message: str,
         recipients: list[str],
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Create an alert for an anomaly.
@@ -286,6 +313,7 @@ class SupabaseAnomalyService:
         Returns:
             Created alert record
         """
+        self._ensure_configured()
         alert_data = {
             "anomaly_id": str(anomaly_id),
             "alert_type": alert_type,
@@ -325,6 +353,7 @@ class SupabaseAnomalyService:
         Returns:
             Investigation summary
         """
+        self._ensure_configured()
         async with httpx.AsyncClient() as client:
             response = await client.get(
                 f"{self.supabase_url}/rest/v1/investigation_summary?id=eq.{investigation_id}",
