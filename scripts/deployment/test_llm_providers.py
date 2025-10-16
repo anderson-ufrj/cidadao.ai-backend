@@ -58,16 +58,18 @@ async def test_maritaca():
         print(f"\n{YELLOW}Sending test prompt...{RESET}")
         print(f"  Prompt: {test_prompt}")
 
-        # Generate response
-        response = await client.generate(
-            prompt=test_prompt, max_tokens=100, temperature=0.7
+        # Generate response using chat method
+        response = await client.chat(
+            messages=[{"role": "user", "content": test_prompt}],
+            max_tokens=100,
+            temperature=0.7,
         )
 
         print(f"\n{GREEN}✅ Response received:{RESET}")
-        print(f"  {response[:200]}...")
+        print(f"  {response.content[:200]}...")
 
         # Check response quality
-        if len(response) < MIN_RESPONSE_LENGTH:
+        if len(response.content) < MIN_RESPONSE_LENGTH:
             print(f"{YELLOW}⚠️  Response too short{RESET}")
             return False
 
