@@ -302,16 +302,24 @@ class CacheWarmingService:
             raise
 
     async def _get_popular_contracts(self) -> list[str]:
-        """Get list of popular contract IDs."""
-        # In a real implementation, this would query analytics
-        # or access logs to find most accessed contracts
-        return [
-            "CONT-2024-001",
-            "CONT-2024-002",
-            "CONT-2024-003",
-            "CONT-2024-004",
-            "CONT-2024-005",
-        ]
+        """
+        Get list of popular/recent contract IDs for cache warming.
+
+        Uses DataService to fetch real contract IDs from Portal da Transparência.
+        Falls back to empty list if API is unavailable.
+        """
+        try:
+            # Get recent contract IDs from DataService
+            contract_ids = await data_service.get_recent_contract_ids(
+                limit=self._config.MAX_ITEMS_PER_TYPE.get("contracts", 100)
+            )
+            logger.info("popular_contracts_fetched", count=len(contract_ids))
+            return contract_ids
+
+        except Exception as e:
+            logger.error("failed_to_fetch_popular_contracts", error=str(e))
+            # Return empty list - cache warming will gracefully handle this
+            return []
 
     def track_query(self, query_params: dict[str, Any]):
         """Track query frequency for cache warming."""
