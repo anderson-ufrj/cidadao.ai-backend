@@ -1,9 +1,24 @@
-"""Data service for managing government transparency data."""
+"""
+Data Service for Government Transparency Data
+
+Central service for accessing Brazilian government transparency data
+from multiple sources with intelligent routing and caching.
+
+Author: Anderson Henrique da Silva
+Location: Minas Gerais, Brasil
+Updated: 2025-10-16 16:30:00 -03:00
+License: Proprietary - All rights reserved
+"""
 
 from datetime import datetime
-from typing import Optional
+from typing import Any, Optional
 
 from src.core import get_logger
+from src.services.transparency_orchestrator import (
+    DataSource,
+    QueryStrategy,
+    orchestrator,
+)
 from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFilter
 
 logger = get_logger(__name__)
@@ -213,6 +228,120 @@ class DataService:
         self._expense_cache.clear()
         self._last_updated = datetime.now()
         logger.info("data_service_cache_cleared")
+
+    # Multi-Source Query Methods (using Orchestrator)
+
+    async def get_contracts_multi_source(
+        self,
+        filters: Optional[dict] = None,
+        strategy: QueryStrategy = QueryStrategy.FALLBACK,
+        sources: Optional[list[DataSource]] = None,
+    ) -> dict[str, Any]:
+        """
+        Get contracts from multiple sources using orchestrator.
+
+        This method provides access to all available government data sources
+        with intelligent routing and fallback strategies.
+
+        Args:
+            filters: Query filters (ano, estado, valor, etc.)
+            strategy: Execution strategy (FALLBACK, AGGREGATE, FASTEST, PARALLEL)
+            sources: Specific sources to query (auto-selected if None)
+
+        Returns:
+            Dict with data, sources used, and metadata
+
+        Examples:
+            # Get contracts with automatic fallback
+            result = await data_service.get_contracts_multi_source(
+                filters={"ano": 2024, "estado": "MG"}
+            )
+
+            # Aggregate from all sources
+            result = await data_service.get_contracts_multi_source(
+                filters={"ano": 2024"},
+                strategy=QueryStrategy.AGGREGATE
+            )
+
+            # Query specific sources only
+            result = await data_service.get_contracts_multi_source(
+                filters={"ano": 2024"},
+                sources=[DataSource.PORTAL_FEDERAL, DataSource.PNCP]
+            )
+        """
+        return await orchestrator.get_contracts(
+            filters=filters,
+            strategy=strategy,
+            sources=sources,
+        )
+
+    async def get_state_contracts(
+        self,
+        state_code: str,
+        filters: Optional[dict] = None,
+        include_federal: bool = True,
+    ) -> dict[str, Any]:
+        """
+        Get contracts for a specific state from all available sources.
+
+        Automatically queries:
+        1. State TCE (if available)
+        2. State Portal (if available)
+        3. Federal Portal with state filter (if include_federal=True)
+
+        Args:
+            state_code: Two-letter state code (MG, SP, RJ, etc.)
+            filters: Additional filters
+            include_federal: Include federal portal with state filter
+
+        Returns:
+            Aggregated results from all state sources
+        """
+        # Add state to filters
+        if filters is None:
+            filters = {}
+        filters["estado"] = state_code.upper()
+
+        # Auto-select state sources
+        sources = [DataSource.TCE, DataSource.STATE_PORTAL]
+        if include_federal:
+            sources.append(DataSource.PORTAL_FEDERAL)
+
+        return await orchestrator.get_contracts(
+            filters=filters,
+            strategy=QueryStrategy.AGGREGATE,
+            sources=sources,
+        )
+
+    async def search_contracts_fastest(
+        self,
+        filters: Optional[dict] = None,
+    ) -> dict[str, Any]:
+        """
+        Get contracts using fastest-first strategy.
+
+        Returns as soon as first source responds successfully.
+        Useful for quick lookups when any source is acceptable.
+
+        Args:
+            filters: Query filters
+
+        Returns:
+            First successful result
+        """
+        return await orchestrator.get_contracts(
+            filters=filters,
+            strategy=QueryStrategy.FASTEST,
+        )
+
+    def get_orchestrator_stats(self) -> dict[str, Any]:
+        """
+        Get orchestrator statistics.
+
+        Returns:
+            Performance metrics and source usage statistics
+        """
+        return orchestrator.get_statistics()
 
     async def close(self) -> None:
         """Close API client connections."""
