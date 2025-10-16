@@ -7,11 +7,10 @@ Date: 2025-01-24
 License: Proprietary - All rights reserved
 """
 
-import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -27,13 +26,13 @@ class AgentContext:
     """Context shared between agents."""
 
     investigation_id: str = field(default_factory=lambda: str(uuid4()))
-    user_id: Optional[str] = None
-    session_id: Optional[str] = None
+    user_id: str | None = None
+    session_id: str | None = None
     timestamp: datetime = field(default_factory=datetime.utcnow)
     metadata: dict[str, Any] = field(default_factory=dict)
     memory_context: dict[str, Any] = field(default_factory=dict)
-    parent_agent: Optional[str] = None
-    trace_id: Optional[str] = None
+    parent_agent: str | None = None
+    trace_id: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert context to dictionary."""
@@ -75,17 +74,15 @@ class AgentResponse(BaseModel):
 
     agent_name: str = PydanticField(..., description="Name of the responding agent")
     status: AgentStatus = PydanticField(..., description="Agent status")
-    result: Optional[Any] = PydanticField(
-        default=None, description="Result of the action"
-    )
-    error: Optional[str] = PydanticField(
+    result: Any | None = PydanticField(default=None, description="Result of the action")
+    error: str | None = PydanticField(
         default=None, description="Error message if failed"
     )
     metadata: dict[str, Any] = PydanticField(
         default_factory=dict, description="Response metadata"
     )
     timestamp: datetime = PydanticField(default_factory=datetime.utcnow)
-    processing_time_ms: Optional[float] = PydanticField(
+    processing_time_ms: float | None = PydanticField(
         default=None, description="Processing time"
     )
 
@@ -184,14 +181,18 @@ class BaseAgent(ABC):
         )
 
         start_time = datetime.utcnow()
-        perf_start_time = time.time()
         retries = 0
         last_error = None
 
-        # Increment task counter
-        AGENT_TASK_COUNT.labels(
-            agent_type=self.name, task_type=action, status="started"
-        ).inc()
+        # Increment task counter using metrics manager
+        metrics_manager.increment_counter(
+            "cidadao_ai_agent_tasks_total",
+            labels={
+                "agent_name": self.name,
+                "task_type": action,
+                "status": "started",
+            },
+        )
 
         while retries <= self.max_retries:
             try:
@@ -328,9 +329,7 @@ class BaseAgent(ABC):
             "response_count": len(self._response_history),
         }
 
-    def get_history(
-        self, limit: Optional[int] = None
-    ) -> dict[str, list[dict[str, Any]]]:
+    def get_history(self, limit: int | None = None) -> dict[str, list[dict[str, Any]]]:
         """
         Get agent message and response history.
 
