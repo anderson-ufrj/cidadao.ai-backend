@@ -7,7 +7,7 @@ import asyncio
 
 import pytest
 
-from src.agents.agent_pool import AgentPool, AgentPoolEntry
+from src.agents.simple_agent_pool import AgentPool, AgentPoolEntry
 from src.agents.deodoro import (
     AgentContext,
     AgentMessage,
@@ -402,8 +402,8 @@ class TestGlobalAgentPool:
     @pytest.mark.unit
     async def test_get_agent_pool(self):
         """Test getting the global agent pool instance."""
-        from src.agents.agent_pool import agent_pool as global_pool
-        from src.agents.agent_pool import get_agent_pool
+        from src.agents.simple_agent_pool import agent_pool as global_pool
+        from src.agents.simple_agent_pool import get_agent_pool
 
         # Get pool instance
         pool = await get_agent_pool()
