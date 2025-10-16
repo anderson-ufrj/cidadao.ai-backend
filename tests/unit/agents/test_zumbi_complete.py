@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from src.agents.deodoro import AgentContext, AgentMessage, AgentStatus
-from src.agents.zumbi import ZumbiAgent
+from src.agents.zumbi import InvestigatorAgent
 
 
 @pytest.fixture
@@ -38,10 +38,10 @@ def zumbi_agent(mock_resistance_service):
     with patch(
         "src.agents.zumbi.ResistanceService", return_value=mock_resistance_service
     ):
-        return ZumbiAgent(resistance_threshold=0.6)
+        return InvestigatorAgent()
 
 
-class TestZumbiAgent:
+class TestInvestigatorAgent:
     @pytest.mark.unit
     def test_agent_initialization(self, zumbi_agent):
         assert zumbi_agent.name == "Zumbi"

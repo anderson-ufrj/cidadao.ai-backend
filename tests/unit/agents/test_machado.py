@@ -58,14 +58,14 @@ class TestMachadoAgent:
         # Create test document
         document = {
             "type": "contract",
-            "title": "Contrato de Prestação de Serviços",
+            "title": "Contrato de PrestaÃ§Ã£o de ServiÃ§os",
             "content": """
-            CONTRATO Nº 001/2025
+            CONTRATO NÂº 001/2025
             CONTRATANTE: Prefeitura Municipal
             CONTRATADO: Empresa XYZ LTDA
             VALOR: R$ 500.000,00
             PRAZO: 12 meses
-            OBJETO: Prestação de serviços de consultoria
+            OBJETO: PrestaÃ§Ã£o de serviÃ§os de consultoria
             """
         }
         
@@ -94,8 +94,8 @@ class TestMachadoAgent:
         document = {
             "type": "public_tender",
             "content": """
-            EDITAL DE LICITAÇÃO Nº 002/2025
-            1. DO OBJETO: Aquisição de equipamentos de informática
+            EDITAL DE LICITAÃ‡ÃƒO NÂº 002/2025
+            1. DO OBJETO: AquisiÃ§Ã£o de equipamentos de informÃ¡tica
             2. DO VALOR: R$ 1.200.000,00
             3. DOS PRAZOS: Entrega em 60 dias
             4. DAS PENALIDADES: Multa de 10% por atraso
@@ -125,11 +125,11 @@ class TestMachadoAgent:
             "documents": [
                 {
                     "id": "doc1",
-                    "content": "Contrato de prestação de serviços de consultoria técnica"
+                    "content": "Contrato de prestaÃ§Ã£o de serviÃ§os de consultoria tÃ©cnica"
                 },
                 {
-                    "id": "doc2", 
-                    "content": "Acordo para fornecimento de assessoria técnica especializada"
+                    "id": "doc2",
+                    "content": "Acordo para fornecimento de assessoria tÃ©cnica especializada"
                 }
             ]
         }
@@ -153,7 +153,7 @@ class TestMachadoAgent:
             "type": "contract",
             "content": """
             CONTRATO EMERGENCIAL
-            Dispensa de licitação conforme Art. 24, IV da Lei 8.666/93
+            Dispensa de licitaÃ§Ã£o conforme Art. 24, IV da Lei 8.666/93
             Valor: R$ 50.000,00
             Prazo: 180 dias
             """
