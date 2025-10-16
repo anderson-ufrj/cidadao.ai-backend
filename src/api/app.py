@@ -7,9 +7,11 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
-from contextlib import asynccontextmanager
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager, suppress
+from typing import Any
 
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.openapi.docs import get_swagger_ui_html
 
 # from fastapi.middleware.trustedhost import TrustedHostMiddleware  # Disabled for HuggingFace
@@ -63,9 +65,12 @@ from src.infrastructure.observability import (
 
 logger = get_logger(__name__)
 
+# HTTP status code constants
+HTTP_RATE_LIMIT = 429
+
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Application lifespan manager with enhanced audit logging."""
     # Startup
     logger.info("cidadao_ai_api_starting")
@@ -99,6 +104,23 @@ async def lifespan(app: FastAPI):
 
     await init_database()
 
+    # Run database migrations at startup (Railway runtime has access to internal network)
+    try:
+        logger.info("running_alembic_migrations")
+        from alembic import command
+        from alembic.config import Config
+
+        alembic_cfg = Config("alembic.ini")
+        command.upgrade(alembic_cfg, "head")
+        logger.info("alembic_migrations_completed")
+    except Exception as e:
+        logger.error(
+            "alembic_migrations_failed", error=str(e), error_type=type(e).__name__
+        )
+        # Don't fail startup if migrations fail - allow app to start with existing schema
+        # This prevents blocking the app if migrations are already applied
+        logger.warning("continuing_startup_despite_migration_failure")
+
     # Initialize cache warming scheduler
     from src.services.cache_warming_service import cache_warming_service
 
@@ -110,7 +132,8 @@ async def lifespan(app: FastAPI):
         setup_memory_on_startup,
     )
 
-    memory_agent = await setup_memory_on_startup()
+    # Setup memory agent (return value not used but initialization is needed)
+    await setup_memory_on_startup()
 
     # Start periodic memory optimization if enabled
     memory_task = None
@@ -124,18 +147,14 @@ async def lifespan(app: FastAPI):
 
     # Stop cache warming
     warming_task.cancel()
-    try:
+    with suppress(asyncio.CancelledError):
         await warming_task
-    except asyncio.CancelledError:
-        pass
 
     # Stop memory optimization
     if memory_task:
         memory_task.cancel()
-        try:
+        with suppress(asyncio.CancelledError):
             await memory_task
-        except asyncio.CancelledError:
-            pass
 
     # Cleanup memory system
     from src.services.memory_startup import cleanup_memory_on_shutdown
@@ -197,7 +216,7 @@ app = FastAPI(
 
 # Custom Swagger UI endpoint with Brazilian theme
 @app.get("/docs", include_in_schema=False)
-async def custom_swagger_ui_html():
+async def custom_swagger_ui_html() -> HTMLResponse:
     """Custom Swagger UI with Brazilian theme CSS."""
     html_response = get_swagger_ui_html(
         openapi_url=app.openapi_url,
@@ -437,7 +456,9 @@ app.include_router(network.router, tags=["Network Analysis"])
 
 # Global exception handler
 @app.exception_handler(CidadaoAIError)
-async def cidadao_ai_exception_handler(request, exc: CidadaoAIError):
+async def cidadao_ai_exception_handler(
+    request: Request, exc: CidadaoAIError
+) -> JSONResponse:
     """Handle CidadãoAI custom exceptions."""
     logger.error(
         "api_exception_occurred",
@@ -467,7 +488,7 @@ async def cidadao_ai_exception_handler(request, exc: CidadaoAIError):
 
 
 @app.exception_handler(HTTPException)
-async def http_exception_handler(request, exc: HTTPException):
+async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     """Enhanced HTTP exception handler with audit logging."""
 
     # Create audit context
@@ -478,12 +499,14 @@ async def http_exception_handler(request, exc: HTTPException):
     )
 
     # Log security-related errors
-    if exc.status_code in [401, 403, 429]:
+    if exc.status_code in [401, 403, HTTP_RATE_LIMIT]:
         await audit_logger.log_event(
             event_type=AuditEventType.UNAUTHORIZED_ACCESS,
             message=f"HTTP {exc.status_code}: {exc.detail}",
             severity=(
-                AuditSeverity.MEDIUM if exc.status_code != 429 else AuditSeverity.HIGH
+                AuditSeverity.MEDIUM
+                if exc.status_code != HTTP_RATE_LIMIT
+                else AuditSeverity.HIGH
             ),
             success=False,
             error_code=str(exc.status_code),
@@ -510,7 +533,7 @@ async def http_exception_handler(request, exc: HTTPException):
 
 
 @app.exception_handler(Exception)
-async def general_exception_handler(request, exc: Exception):
+async def general_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     """Enhanced general exception handler with audit logging."""
 
     # Log unexpected errors with audit
@@ -552,24 +575,23 @@ async def general_exception_handler(request, exc: Exception):
                 },
             },
         )
-    else:
-        return JSONResponse(
-            status_code=500,
-            content={
-                "status": "error",
-                "status_code": 500,
-                "error": {
-                    "error": "InternalServerError",
-                    "message": f"An unexpected error occurred: {str(exc)}",
-                    "details": {"error_type": type(exc).__name__},
-                },
+    return JSONResponse(
+        status_code=500,
+        content={
+            "status": "error",
+            "status_code": 500,
+            "error": {
+                "error": "InternalServerError",
+                "message": f"An unexpected error occurred: {str(exc)}",
+                "details": {"error_type": type(exc).__name__},
             },
-        )
+        },
+    )
 
 
 # Root endpoint
 @app.get("/", include_in_schema=False)
-async def root():
+async def root() -> dict[str, Any]:
     """Root endpoint with API information."""
     return {
         "message": "Cidadão.AI - Plataforma de Transparência Pública",
@@ -585,7 +607,7 @@ async def root():
 
 # Test Portal endpoint
 @app.get("/test-portal", include_in_schema=False)
-async def test_portal():
+async def test_portal() -> dict[str, Any]:
     """Test Portal da Transparência integration status."""
     import os
 
@@ -596,8 +618,9 @@ async def test_portal():
     try:
         if chat_data_integration:
             integration_available = True
-    except:
-        pass
+    except Exception:
+        # Service not available
+        integration_available = False
 
     return {
         "portal_integration": "enabled",
@@ -620,7 +643,7 @@ async def test_portal():
 
 # API info endpoint
 @app.get("/api/v1/info", tags=["General"])
-async def api_info():
+async def api_info() -> dict[str, Any]:
     """Get API information and capabilities."""
     return {
         "api": {
