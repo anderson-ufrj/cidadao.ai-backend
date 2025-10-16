@@ -81,7 +81,7 @@ async def integrate_existing_agents():
     to retrofit them with memory capabilities.
     """
     try:
-        from src.agents.agent_pool import get_agent_pool
+        from src.agents.simple_agent_pool import get_agent_pool
         from src.services.agent_memory_integration import get_memory_integration
 
         memory_integration = get_memory_integration()
