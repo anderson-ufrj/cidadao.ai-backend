@@ -7,7 +7,7 @@ import pytest
 from jose import jwt
 
 from src.api.auth import (
-    AuthService,
+    AuthManager,
     authenticate_user,
     create_access_token,
     create_refresh_token,
@@ -377,8 +377,8 @@ class TestGetCurrentUser:
             assert "User is inactive" in str(exc_info.value)
 
 
-class TestAuthService:
-    """Test AuthService class methods."""
+class TestAuthManager:
+    """Test AuthManager class methods."""
 
     @pytest.mark.asyncio
     async def test_auth_service_login(self, async_session):
@@ -401,7 +401,7 @@ class TestAuthService:
         async_session.execute.return_value = mock_result
 
         # Test login
-        auth_service = AuthService(async_session)
+        auth_service = AuthManager(async_session)
         tokens = await auth_service.login("service@example.com", password)
 
         assert "access_token" in tokens
@@ -418,7 +418,7 @@ class TestAuthService:
         async_session.execute.return_value = mock_result
 
         # Test login
-        auth_service = AuthService(async_session)
+        auth_service = AuthManager(async_session)
 
         with pytest.raises(UnauthorizedError) as exc_info:
             await auth_service.login("wrong@example.com", "wrong_password")
@@ -450,7 +450,7 @@ class TestAuthService:
             async_session.execute.return_value = mock_result
 
             # Test refresh
-            auth_service = AuthService(async_session)
+            auth_service = AuthManager(async_session)
             new_tokens = await auth_service.refresh_token(refresh_token)
 
             assert "access_token" in new_tokens
