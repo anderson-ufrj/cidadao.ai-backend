@@ -42,7 +42,7 @@ class EquityAnalysisResult:
 class SocialJusticeRequest(BaseModel):
     """Request for social justice analysis."""
 
-    query: str = PydanticField(description="Social equity analysis query")
+    query: str = PydanticField(min_length=1, description="Social equity analysis query")
     target_groups: Optional[list[str]] = PydanticField(
         default=None, description="Specific demographic groups to analyze"
     )
