@@ -89,7 +89,7 @@ async def integrate_existing_agents():
             logger.warning("Memory integration not available")
             return
 
-        agent_pool = get_agent_pool()
+        agent_pool = await get_agent_pool()
         if not agent_pool:
             logger.warning("Agent pool not available")
             return
