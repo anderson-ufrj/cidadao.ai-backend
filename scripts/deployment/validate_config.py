@@ -32,10 +32,10 @@ def check_required_vars() -> tuple[list[str], list[str]]:
 
     # At least one LLM provider
     llm_providers = {
-        "GROQ_API_KEY": "Groq API (Recommended)",
-        "MARITACA_API_KEY": "Maritaca AI (Portuguese)",
-        "TOGETHER_API_KEY": "Together AI",
-        "HUGGINGFACE_API_KEY": "HuggingFace",
+        "MARITACA_API_KEY": "Maritaca AI (Primary - Brazilian Portuguese)",
+        "ANTHROPIC_API_KEY": "Anthropic Claude (Secondary - Fallback)",
+        "TOGETHER_API_KEY": "Together AI (Alternative)",
+        "HUGGINGFACE_API_KEY": "HuggingFace (Alternative)",
     }
 
     missing = []
@@ -58,7 +58,7 @@ def check_required_vars() -> tuple[list[str], list[str]]:
             found.append(f"{var} ({desc}) ✓")
 
     if not llm_found:
-        missing.append("At least one LLM provider (GROQ_API_KEY recommended)")
+        missing.append("At least one LLM provider (MARITACA_API_KEY recommended)")
 
     return found, missing
 
@@ -128,7 +128,7 @@ def print_section(title: str, items: list[str], color: str = BLUE):
         print(f"  {item}")
 
 
-def main():  # noqa: C901
+def main():  # noqa: C901, PLR0915
     parser = argparse.ArgumentParser(description="Validate environment configuration")
     parser.add_argument(
         "--env",
@@ -207,9 +207,13 @@ def main():  # noqa: C901
         print(f"\n{BLUE}💡 Quick fixes:{RESET}")
         print("\n  1. Generate secrets:")
         print("     python scripts/deployment/generate_production_secrets.py")
-        print("\n  2. Get GROQ API key:")
-        print("     https://console.groq.com/keys")
-        print("\n  3. Update .env file with the generated values")
+        print("\n  2. Get Maritaca AI API key:")
+        print("     https://plataforma.maritaca.ai/")
+        print("\n  3. Get Anthropic Claude API key (optional):")
+        print("     https://console.anthropic.com/")
+        print("\n  4. Update .env file with the generated values")
+        print("\n  5. Test LLM providers:")
+        print("     python scripts/deployment/test_llm_providers.py")
 
     return 0
 
