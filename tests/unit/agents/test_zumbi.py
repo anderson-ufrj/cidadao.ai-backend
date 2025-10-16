@@ -21,19 +21,25 @@ def zumbi_agent():
 
 
 @pytest.fixture
-def mock_transparency_client():
-    """Mock TransparencyAPIClient."""
-    client = AsyncMock()
-    client.search_contracts.return_value = [
-        {
-            "numeroContratoCompra": "123/2024",
-            "valorTotalCompra": 100000.0,
-            "dataPublicacaoContrato": "01/01/2024",
-            "orgaoEntidade": {"nome": "Ministério Teste"},
-            "fornecedor": {"nome": "Empresa ABC", "cnpj": "12345678901234"},
-        }
-    ]
-    return client
+def mock_transparency_collector():
+    """Mock TransparencyDataCollector."""
+    collector = AsyncMock()
+    collector.collect_contracts.return_value = {
+        "contracts": [
+            {
+                "id": "123/2024",
+                "valorInicial": 100000.0,
+                "dataAssinatura": "01/01/2024",
+                "orgao": {"nome": "Ministério Teste"},
+                "fornecedor": {"nome": "Empresa ABC", "cnpj": "12345678901234"},
+                "objeto": "Contrato de teste",
+            }
+        ],
+        "total": 1,
+        "sources": ["Federal Portal"],
+        "errors": [],
+    }
+    return collector
 
 
 class TestZumbiAgent:
@@ -47,23 +53,28 @@ class TestZumbiAgent:
         assert zumbi_agent.concentration_threshold == 0.7
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_initialize(self, zumbi_agent):
         """Test agent initialization method."""
         await zumbi_agent.initialize()
         # Should complete without errors
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_shutdown(self, zumbi_agent):
         """Test agent shutdown method."""
         await zumbi_agent.shutdown()
         # Should complete without errors
 
     @pytest.mark.unit
-    async def test_process_investigation(self, zumbi_agent, mock_transparency_client):
+    @pytest.mark.asyncio
+    async def test_process_investigation(
+        self, zumbi_agent, mock_transparency_collector
+    ):
         """Test processing an investigation request."""
         with patch(
-            "src.agents.zumbi.TransparencyAPIClient",
-            return_value=mock_transparency_client,
+            "src.agents.zumbi.get_transparency_collector",
+            return_value=mock_transparency_collector,
         ):
             context = AgentContext(investigation_id="test-123")
             message = AgentMessage(
@@ -81,6 +92,7 @@ class TestZumbiAgent:
             assert "anomalies" in response.result
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_process_invalid_action(self, zumbi_agent):
         """Test processing with invalid action."""
         context = AgentContext(investigation_id="test-123")
