@@ -13,7 +13,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 
-from src.agents.agent_pool import get_agent_pool
+from src.agents.simple_agent_pool import get_agent_pool
 from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
 from src.core import AgentStatus, get_logger
 
