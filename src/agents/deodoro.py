@@ -90,7 +90,7 @@ class AgentResponse(BaseModel):
 class BaseAgent(ABC):
     """Abstract base class for all agents in the system."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
         description: str,
@@ -117,6 +117,8 @@ class BaseAgent(ABC):
         self.logger = get_logger(f"agent.{name}")
         self._message_history: list[AgentMessage] = []
         self._response_history: list[AgentResponse] = []
+        self._metadata: dict[str, Any] = {}
+        self._start_time = datetime.utcnow()
 
         self.logger.info(
             "agent_initialized",
@@ -360,6 +362,111 @@ class BaseAgent(ABC):
         self._response_history.clear()
         self.logger.info("agent_history_cleared", agent_name=self.name)
 
+    def has_capability(self, capability: str) -> bool:
+        """
+        Check if agent has a specific capability.
+
+        Args:
+            capability: Capability to check
+
+        Returns:
+            True if agent has the capability
+        """
+        return capability in self.capabilities
+
+    def set_status(self, status: AgentStatus) -> None:
+        """
+        Set agent status.
+
+        Args:
+            status: New agent status
+        """
+        self.status = status
+        self.logger.debug(
+            "agent_status_changed", agent_name=self.name, status=status.value
+        )
+
+    def set_metadata(self, key: str, value: Any) -> None:  # noqa: ANN401
+        """
+        Set agent metadata value.
+
+        Args:
+            key: Metadata key
+            value: Metadata value
+        """
+        self._metadata[key] = value
+
+    def get_metadata(self, key: str, default: Any = None) -> Any:  # noqa: ANN401
+        """
+        Get agent metadata value.
+
+        Args:
+            key: Metadata key
+            default: Default value if key not found
+
+        Returns:
+            Metadata value or default
+        """
+        return self._metadata.get(key, default)
+
+    def update_metadata(self, metadata: dict[str, Any]) -> None:
+        """
+        Update multiple metadata values.
+
+        Args:
+            metadata: Dictionary of metadata to update
+        """
+        self._metadata.update(metadata)
+
+    def health_check(self) -> dict[str, Any]:
+        """
+        Get agent health status.
+
+        Returns:
+            Dictionary with health information
+        """
+        uptime = (datetime.utcnow() - self._start_time).total_seconds()
+        return {
+            "status": "healthy" if self.status != AgentStatus.ERROR else "unhealthy",
+            "name": self.name,
+            "capabilities": self.capabilities,
+            "uptime": uptime,
+            "message_count": len(self._message_history),
+            "response_count": len(self._response_history),
+        }
+
+    async def execute_with_timeout(
+        self,
+        message: AgentMessage,
+        context: AgentContext,
+    ) -> AgentResponse:
+        """
+        Execute message processing with timeout.
+
+        Args:
+            message: Message to process
+            context: Agent context
+
+        Returns:
+            Agent response
+
+        Raises:
+            AgentExecutionError: If execution times out or fails
+        """
+        import asyncio
+
+        try:
+            return await asyncio.wait_for(
+                self.process(message, context),
+                timeout=self.timeout,
+            )
+        except asyncio.TimeoutError as e:
+            self.status = AgentStatus.ERROR
+            raise AgentExecutionError(
+                f"Agent {self.name} execution timed out after {self.timeout}s",
+                details={"agent": self.name, "timeout": self.timeout},
+            ) from e
+
     def __repr__(self) -> str:
         """String representation of agent."""
         return f"<{self.__class__.__name__}(name='{self.name}', status={self.status.value})>"
@@ -368,14 +475,14 @@ class BaseAgent(ABC):
 class ReflectiveAgent(BaseAgent):
     """Base class for agents with reflection capabilities."""
 
-    def __init__(
+    def __init__(  # noqa: PLR0913
         self,
         name: str,
         description: str,
         capabilities: list[str],
         reflection_threshold: float = 0.7,
         max_reflection_loops: int = 3,
-        **kwargs: Any,
+        **kwargs: Any,  # noqa: ANN401
     ) -> None:
         """
         Initialize reflective agent.
@@ -391,11 +498,40 @@ class ReflectiveAgent(BaseAgent):
         super().__init__(name, description, capabilities, **kwargs)
         self.reflection_threshold = reflection_threshold
         self.max_reflection_loops = max_reflection_loops
+        # Alias for backwards compatibility with tests
+        self.max_reflection_iterations = max_reflection_loops
+
+    def _needs_reflection(self, result: dict[str, Any]) -> bool:
+        """
+        Check if result needs reflection based on quality assessment.
+
+        Args:
+            result: Result to assess
+
+        Returns:
+            True if result needs reflection
+        """
+        quality = self._assess_result_quality(result)
+        return quality < self.reflection_threshold
+
+    def _assess_result_quality(self, result: dict[str, Any]) -> float:
+        """
+        Assess the quality of a result.
+
+        Args:
+            result: Result to assess
+
+        Returns:
+            Quality score between 0 and 1
+        """
+        # Default implementation returns 1.0 (perfect quality)
+        # Subclasses should override this method
+        return result.get("quality", 1.0)
 
     @abstractmethod
     async def reflect(
         self,
-        result: Any,
+        result: Any,  # noqa: ANN401
         context: AgentContext,
     ) -> dict[str, Any]:
         """
@@ -445,7 +581,17 @@ class ReflectiveAgent(BaseAgent):
                 reflected_message = AgentMessage(**message_data)
                 current_result = await self.process(reflected_message, context)
 
-            # Reflect on the result
+            # First check if current quality is already good enough
+            if isinstance(current_result.result, dict):
+                original_quality = self._assess_result_quality(current_result.result)
+            else:
+                original_quality = 0.0
+
+            # If quality is already good, return without reflection
+            if original_quality >= self.reflection_threshold:
+                return current_result
+
+            # Quality is low, perform reflection
             reflection = await self.reflect(current_result, context)
             quality_score = reflection.get("quality_score", 0.0)
 
@@ -456,7 +602,11 @@ class ReflectiveAgent(BaseAgent):
                 quality_score=quality_score,
             )
 
-            # Check if quality threshold is met
+            # Apply improved result if available
+            if "improved_result" in reflection:
+                current_result.result = reflection["improved_result"]
+
+            # Check if quality threshold is met after reflection
             if quality_score >= self.reflection_threshold:
                 current_result.metadata["reflection"] = reflection
                 current_result.metadata["reflection_count"] = reflection_count + 1

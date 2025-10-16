@@ -3,6 +3,7 @@ Unit tests for Deodoro (BaseAgent) - Foundation of the multi-agent system.
 Tests core agent functionality, messaging, and context management.
 """
 
+import asyncio
 from datetime import datetime
 
 import pytest
@@ -151,6 +152,14 @@ class TestAgentResponse:
 class ConcreteAgent(BaseAgent):
     """Concrete implementation of BaseAgent for testing."""
 
+    async def initialize(self) -> None:
+        """Initialize agent resources for testing."""
+        self.logger.info(f"{self.name} initialized for testing")
+
+    async def shutdown(self) -> None:
+        """Cleanup agent resources for testing."""
+        self.logger.info(f"{self.name} shutdown completed")
+
     async def process(
         self, message: AgentMessage, context: AgentContext
     ) -> AgentResponse:
@@ -201,6 +210,7 @@ class TestBaseAgent:
         assert agent.logger is not None
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_agent_process_success(self, agent, agent_context):
         """Test successful agent processing."""
         message = AgentMessage(
@@ -230,8 +240,8 @@ class TestBaseAgent:
         """Test agent status transitions."""
         assert agent.status == AgentStatus.IDLE
 
-        agent.set_status(AgentStatus.PROCESSING)
-        assert agent.status == AgentStatus.PROCESSING
+        agent.set_status(AgentStatus.THINKING)
+        assert agent.status == AgentStatus.THINKING
 
         agent.set_status(AgentStatus.COMPLETED)
         assert agent.status == AgentStatus.COMPLETED
@@ -254,6 +264,7 @@ class TestBaseAgent:
         assert agent.validate_input(invalid_message) is False
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_agent_timeout_handling(self, agent, agent_context):
         """Test agent timeout handling."""
         # Create agent with very short timeout
@@ -311,6 +322,28 @@ class TestBaseAgent:
 class ConcreteReflectiveAgent(ReflectiveAgent):
     """Concrete implementation of ReflectiveAgent for testing."""
 
+    async def initialize(self) -> None:
+        """Initialize agent resources for testing."""
+        self.logger.info(f"{self.name} reflective agent initialized for testing")
+
+    async def shutdown(self) -> None:
+        """Cleanup agent resources for testing."""
+        self.logger.info(f"{self.name} reflective agent shutdown completed")
+
+    async def reflect(self, result, context: AgentContext) -> dict:
+        """Reflect on result to improve quality."""
+        # If result is AgentResponse, extract the result dict
+        result_dict = result.result if isinstance(result, AgentResponse) else result
+
+        improved = await self._reflect_on_result(result_dict, None)
+        quality = self._assess_result_quality(improved)
+
+        return {
+            "improved_result": improved,
+            "quality_score": quality,
+            "suggestions": ["Improved confidence score"],
+        }
+
     async def process(
         self, message: AgentMessage, context: AgentContext
     ) -> AgentResponse:
@@ -352,7 +385,7 @@ class TestReflectiveAgent:
             description="Agent with reflection",
             capabilities=["reflection", "processing"],
             reflection_threshold=0.7,
-            max_reflection_iterations=2,
+            max_reflection_loops=2,
         )
 
     @pytest.fixture
@@ -368,6 +401,7 @@ class TestReflectiveAgent:
         assert "reflection" in reflective_agent.capabilities
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_process_without_reflection(self, reflective_agent, agent_context):
         """Test processing that doesn't require reflection."""
         message = AgentMessage(
@@ -385,6 +419,7 @@ class TestReflectiveAgent:
         assert "reflection_applied" not in response.result
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_process_with_reflection(self, reflective_agent, agent_context):
         """Test processing that triggers reflection."""
         message = AgentMessage(
@@ -402,6 +437,7 @@ class TestReflectiveAgent:
         assert response.result["reflection_applied"] is True
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_reflection_iteration_limit(self, reflective_agent, agent_context):
         """Test reflection iteration limit."""
         # Create agent that always reflects
@@ -410,7 +446,7 @@ class TestReflectiveAgent:
             description="Always reflects",
             capabilities=["reflection"],
             reflection_threshold=1.0,  # Always reflect
-            max_reflection_iterations=3,
+            max_reflection_loops=3,
         )
 
         # Override to always return low quality
@@ -445,10 +481,12 @@ class TestReflectiveAgent:
         assert reflective_agent._assess_result_quality(medium_quality_result) == 0.65
         assert reflective_agent._assess_result_quality(low_quality_result) == 0.4
 
-        # Test reflection needed
-        assert not reflective_agent._needs_reflection(high_quality_result)
-        assert not reflective_agent._needs_reflection(medium_quality_result)
-        assert reflective_agent._needs_reflection(low_quality_result)
+        # Test reflection needed (threshold is 0.7)
+        assert not reflective_agent._needs_reflection(
+            high_quality_result
+        )  # 0.95 >= 0.7
+        assert reflective_agent._needs_reflection(medium_quality_result)  # 0.65 < 0.7
+        assert reflective_agent._needs_reflection(low_quality_result)  # 0.4 < 0.7
 
 
 @pytest.mark.integration
@@ -456,6 +494,7 @@ class TestAgentIntegration:
     """Integration tests for agent system."""
 
     @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_agent_communication(self):
         """Test communication between agents."""
         agent_a = ConcreteAgent(
@@ -482,6 +521,7 @@ class TestAgentIntegration:
         assert response.result["processed"]["forwarded_data"] == "test"
 
     @pytest.mark.integration
+    @pytest.mark.asyncio
     async def test_agent_chain_processing(self):
         """Test chain of agent processing."""
         agents = [
