@@ -126,6 +126,18 @@ class Settings(BaseSettings):
         description="Default Maritaca AI model (sabiazinho-3, sabia-3, sabia-3-medium, sabia-3-large)",
     )
 
+    # Anthropic Claude Configuration
+    anthropic_api_key: Optional[SecretStr] = Field(  # noqa: UP007
+        default=None, description="Anthropic Claude API key"
+    )
+    anthropic_api_base_url: str = Field(
+        default="https://api.anthropic.com", description="Anthropic API base URL"
+    )
+    anthropic_model: str = Field(
+        default="claude-sonnet-4-20250514",
+        description="Default Claude model (claude-sonnet-4-20250514, claude-opus-4-20250514, claude-3-7-sonnet-20250219)",
+    )
+
     # Vector Store
     vector_store_type: str = Field(
         default="faiss", description="Vector store type (faiss, chromadb)"
@@ -362,6 +374,8 @@ class Settings(BaseSettings):
             "groq_api_key",
             "together_api_key",
             "huggingface_api_key",
+            "maritaca_api_key",
+            "anthropic_api_key",
             "redis_password",
             "database_url",
             "supabase_service_role_key",
