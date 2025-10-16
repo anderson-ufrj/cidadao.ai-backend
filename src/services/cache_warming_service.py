@@ -96,7 +96,7 @@ class CacheWarmingService:
 
         strategies = [
             self._warm_popular_data(),
-            self._warm_recent_investigations(),
+            # self._warm_recent_investigations(),  # Disabled: Investigation is Pydantic model, not SQLAlchemy ORM
             self._warm_frequent_queries(),
             self._warm_agent_pools(),
             self._warm_static_resources(),
