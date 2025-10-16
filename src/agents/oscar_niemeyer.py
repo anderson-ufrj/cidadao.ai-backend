@@ -930,7 +930,7 @@ class OscarNiemeyerAgent(BaseAgent):
             async with httpx.AsyncClient() as client:
                 response = await client.get(geojson_url, timeout=10.0)
                 response.raise_for_status()
-                geojson = response.json()
+                geojson = await response.json()
         except Exception as e:
             self.logger.error(f"Failed to load GeoJSON: {e}")
             # Return fallback data structure
@@ -1010,7 +1010,11 @@ class OscarNiemeyerAgent(BaseAgent):
         )
 
         # Call Network Graph API
-        api_base_url = settings.api_base_url or "http://localhost:8000"
+        # Construct API base URL from settings host/port
+        if settings.host == "0.0.0.0":  # noqa: S104
+            api_base_url = f"http://localhost:{settings.port}"
+        else:
+            api_base_url = f"http://{settings.host}:{settings.port}"
         endpoint = f"{api_base_url}/api/v1/network/entities/{entity_id}/network"
 
         try:
@@ -1019,7 +1023,7 @@ class OscarNiemeyerAgent(BaseAgent):
                     endpoint, params={"depth": depth}, timeout=10.0
                 )
                 response.raise_for_status()
-                network_data = response.json()
+                network_data = await response.json()
 
             # Transform API response to visualization format
             entities = []
