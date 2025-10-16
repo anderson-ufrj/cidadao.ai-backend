@@ -41,15 +41,28 @@ def get_investigation_service() -> "InvestigationService":
     Get the appropriate investigation service for the current environment.
 
     Returns:
-        Investigation service instance (REST API or direct PostgreSQL)
+        Investigation service instance (PostgreSQL direct or in-memory)
     """
-    # Priority 1: HuggingFace Spaces MUST use REST API
+    # Priority 1: PostgreSQL direct connection (Railway, VPS, Local)
+    if _has_postgres_config():
+        logger.info(
+            "🐘 Using PostgreSQL direct connection for investigations (Railway/VPS)"
+        )
+        from src.services.investigation_service import investigation_service
+
+        return investigation_service
+
+    # Priority 2: HuggingFace Spaces - use Supabase REST API if available
     if _is_huggingface_spaces():
         if not _has_supabase_rest_config():
-            raise RuntimeError(
-                "HuggingFace Spaces detected but SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY not configured. "
-                "Add these to your Space secrets: https://huggingface.co/spaces/YOUR_SPACE/settings"
+            logger.warning(
+                "⚠️  HuggingFace Spaces detected but no database configured. "
+                "Using in-memory storage (data will be lost on restart). "
+                "Add SUPABASE_URL/SUPABASE_SERVICE_ROLE_KEY for persistence."
             )
+            from src.services.investigation_service import investigation_service
+
+            return investigation_service
 
         logger.info(
             "🚀 Using Supabase REST service for investigations (HuggingFace Spaces)"
@@ -60,27 +73,9 @@ def get_investigation_service() -> "InvestigationService":
 
         return investigation_service_supabase_rest
 
-    # Priority 2: If REST API config available, prefer it (more portable)
-    if _has_supabase_rest_config():
-        logger.info("🚀 Using Supabase REST service for investigations (Railway/VPS)")
-        from src.services.investigation_service_supabase_rest import (
-            investigation_service_supabase_rest,
-        )
-
-        return investigation_service_supabase_rest
-
-    # Priority 3: If PostgreSQL config available, use direct connection
-    if _has_postgres_config():
-        logger.info("🔌 Using Supabase direct PostgreSQL connection for investigations")
-        from src.services.investigation_service_supabase import (
-            investigation_service_supabase,
-        )
-
-        return investigation_service_supabase
-
     # Fallback: Use in-memory service (no persistence)
     logger.warning(
-        "⚠️  Using IN-MEMORY investigation service (no persistence!) - Configure SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY for persistence"
+        "⚠️  Using IN-MEMORY investigation service (no persistence!) - Configure DATABASE_URL for persistence"
     )
     from src.services.investigation_service import investigation_service
 

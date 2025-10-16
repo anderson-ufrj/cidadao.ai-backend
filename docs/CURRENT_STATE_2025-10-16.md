@@ -408,6 +408,397 @@ DATABASE_URL=postgresql+asyncpg://user:pass@host/db  # Async mode
 
 ---
 
+## 💾 Persistência de Investigações e Relatórios
+
+### 🎯 Arquitetura de Persistência Inteligente
+
+O sistema usa um **seletor automático** (`investigation_service_selector.py`) que escolhe a implementação correta baseado no ambiente:
+
+**Lógica de Seleção (por prioridade):**
+
+1. **HuggingFace Spaces** → `investigation_service_supabase_rest` (REST API obrigatória)
+2. **Railway/VPS com Supabase REST** → `investigation_service_supabase_rest` ✅ **ATUAL EM PRODUÇÃO**
+3. **Local com PostgreSQL** → `investigation_service_supabase` (conexão direta)
+4. **Fallback** → `investigation_service` (in-memory, sem persistência)
+
+### 🚀 Configuração Atual (Produção Railway)
+
+**Serviço Ativo:** `InvestigationServiceSupabaseRest`
+
+**Onde os dados são salvos:**
+- **Database:** Supabase PostgreSQL Cloud
+- **Project:** pbsiyuattnwgohvkkkks
+- **URL:** https://pbsiyuattnwgohvkkkks.supabase.co
+- **Método:** REST API (HTTP/HTTPS) - não usa conexão direta PostgreSQL
+- **Tabela:** `investigations`
+
+**Variáveis Configuradas:**
+```bash
+SUPABASE_URL=https://pbsiyuattnwgohvkkkks.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGc... (configurado)
+SUPABASE_ANON_KEY=eyJhbGc... (configurado)
+```
+
+### 📊 Schema da Tabela `investigations`
+
+```sql
+CREATE TABLE investigations (
+    -- Identificação
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id VARCHAR NOT NULL,
+    session_id VARCHAR,
+
+    -- Query e Configuração
+    query TEXT NOT NULL,
+    data_source VARCHAR NOT NULL,
+    filters JSONB DEFAULT '{}'::jsonb,
+    anomaly_types JSONB DEFAULT '[]'::jsonb,
+
+    -- Status e Progresso
+    status VARCHAR NOT NULL,  -- pending, processing, completed, failed, cancelled
+    progress FLOAT DEFAULT 0.0,
+    current_phase VARCHAR,
+
+    -- Resultados
+    results JSONB,  -- Array de anomalias detectadas
+    summary TEXT,
+    confidence_score FLOAT,
+    total_records_analyzed INTEGER,
+    anomalies_found INTEGER,
+
+    -- Erro (se falhar)
+    error_message TEXT,
+
+    -- Timestamps
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    started_at TIMESTAMP,
+    completed_at TIMESTAMP,
+
+    -- Índices
+    INDEX idx_user_id (user_id),
+    INDEX idx_status (status),
+    INDEX idx_created_at (created_at DESC)
+);
+```
+
+### 🔄 Fluxo Completo de Persistência
+
+#### 1️⃣ Criação da Investigação
+**Arquivo:** `src/services/supabase_service_rest.py:121-166`
+**Método:** `create_investigation()`
+
+```python
+data = {
+    "user_id": user_id,
+    "session_id": session_id,
+    "query": query,
+    "data_source": data_source,
+    "status": "pending",
+    "filters": filters or {},
+    "anomaly_types": anomaly_types or [],
+    "progress": 0.0,
+    "created_at": datetime.utcnow().isoformat(),
+}
+
+# Salva no Supabase via REST API
+result = client.table("investigations").insert(data).execute()
+```
+
+**Status Inicial:** `pending` | **Progress:** 0.0
+
+#### 2️⃣ Início da Investigação
+**Arquivo:** `src/services/investigation_service_supabase_rest.py:79-125`
+**Método:** `start_investigation()`
+
+```python
+await supabase.update_investigation(
+    investigation_id,
+    status="processing",
+    started_at=datetime.utcnow().isoformat(),
+    progress=0.1,
+    current_phase="initializing",
+)
+```
+
+**Status:** `processing` | **Progress:** 0.1 (10%)
+
+#### 3️⃣ Atualizações de Progresso
+
+**Fases de Execução:**
+
+| Progress | Phase | Descrição |
+|----------|-------|-----------|
+| 0.1 (10%) | `initializing` | Inicializando agentes |
+| 0.2 (20%) | `data_retrieval` | Buscando dados do Portal da Transparência |
+| 0.4 (40%) | `anomaly_detection` | Executando agente investigador |
+| 0.7 (70%) | `analysis` | Analisando resultados e gerando resumo |
+| 1.0 (100%) | `completed` | Investigação finalizada |
+
+```python
+await supabase.update_progress(
+    investigation_id,
+    progress=0.4,
+    current_phase="anomaly_detection",
+    records_processed=100,
+    anomalies_found=5,
+)
+```
+
+#### 4️⃣ Conclusão da Investigação
+**Arquivo:** `src/services/investigation_service_supabase_rest.py:267-235`
+**Método:** `complete_investigation()`
+
+```python
+# Formata resultados das anomalias
+formatted_results = [
+    {
+        "anomaly_id": str(uuid.uuid4()),
+        "type": result.anomaly_type,
+        "severity": result.severity,
+        "confidence": result.confidence,
+        "description": result.description,
+        "explanation": result.explanation,
+        "affected_records": result.affected_data,
+        "suggested_actions": result.recommendations,
+        "metadata": result.metadata,
+    }
+    for result in results
+]
+
+# Salva tudo no Supabase
+await supabase.complete_investigation(
+    investigation_id=investigation_id,
+    results=formatted_results,  # JSONB array
+    summary=summary,  # TEXT
+    confidence_score=confidence_score,  # FLOAT
+    total_records=total_records,  # INTEGER
+    anomalies_found=len(results),  # INTEGER
+)
+```
+
+**Status Final:** `completed` | **Progress:** 1.0 (100%)
+
+### 📦 Estrutura dos Dados Salvos
+
+#### Exemplo de Registro Completo
+
+```json
+{
+    "id": "a3f2b1c4-d5e6-7f8g-9h0i-1j2k3l4m5n6o",
+    "user_id": "user123",
+    "session_id": "session456",
+    "query": "Investigar contratos da empresa ABC em 2023",
+    "data_source": "contracts",
+    "status": "completed",
+    "progress": 1.0,
+    "current_phase": "completed",
+    "filters": {
+        "year": 2023,
+        "supplier": "ABC"
+    },
+    "anomaly_types": ["price_deviation", "unusual_supplier"],
+    "results": [
+        {
+            "anomaly_id": "anomaly-001",
+            "type": "price_deviation",
+            "severity": "high",
+            "confidence": 0.92,
+            "description": "Preço 250% acima da média",
+            "explanation": "Contrato 2023NE00145 pagou R$ 15.000 por item que usualmente custa R$ 6.000",
+            "affected_records": [
+                {
+                    "contract_id": "2023NE00145",
+                    "supplier": "Empresa XYZ Ltda",
+                    "value": 15000.00,
+                    "expected_value": 6000.00
+                }
+            ],
+            "suggested_actions": [
+                "Solicitar justificativa ao órgão comprador",
+                "Comparar com licitações anteriores"
+            ],
+            "metadata": {
+                "detection_method": "statistical_analysis",
+                "z_score": 3.8
+            }
+        }
+    ],
+    "summary": "Foram analisados 42 contratos da empresa ABC em 2023. Detectadas 5 anomalias significativas, incluindo desvios de preço e concentração incomum de fornecedores. Recomenda-se auditoria aprofundada dos contratos identificados.",
+    "confidence_score": 0.87,
+    "total_records_analyzed": 42,
+    "anomalies_found": 5,
+    "created_at": "2025-10-16T10:00:00Z",
+    "started_at": "2025-10-16T10:00:05Z",
+    "completed_at": "2025-10-16T10:02:30Z"
+}
+```
+
+### 🔍 Como Acessar os Dados Salvos
+
+#### 1. Via Supabase Dashboard (Recomendado)
+
+**URL:** https://app.supabase.com/project/pbsiyuattnwgohvkkkks/editor
+
+**Passos:**
+1. Login no Supabase Dashboard
+2. Selecione o projeto `pbsiyuattnwgohvkkkks`
+3. Vá em **Table Editor** → `investigations`
+4. Visualize todos os registros salvos com resultados completos
+
+#### 2. Via API REST do Backend
+
+```bash
+# Listar investigações do usuário
+curl -X GET "https://cidadao-api-production.up.railway.app/api/v1/investigations?user_id=YOUR_USER_ID" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+
+# Obter investigação específica com resultados
+curl -X GET "https://cidadao-api-production.up.railway.app/api/v1/investigations/{investigation_id}" \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+#### 3. Via SQL Direto (Supabase SQL Editor)
+
+```sql
+-- Ver todas as investigações recentes
+SELECT id, user_id, query, status, progress, anomalies_found, created_at
+FROM investigations
+ORDER BY created_at DESC
+LIMIT 10;
+
+-- Ver investigação específica com resultados completos
+SELECT
+    id,
+    query,
+    status,
+    results,  -- JSONB com todas as anomalias
+    summary,  -- Resumo executivo
+    confidence_score,
+    total_records_analyzed,
+    anomalies_found
+FROM investigations
+WHERE id = 'YOUR_INVESTIGATION_ID';
+
+-- Estatísticas gerais
+SELECT
+    status,
+    COUNT(*) as total,
+    AVG(confidence_score) as avg_confidence,
+    SUM(anomalies_found) as total_anomalies
+FROM investigations
+GROUP BY status;
+
+-- Investigações com anomalias de alta severidade
+SELECT
+    id,
+    query,
+    anomalies_found,
+    jsonb_array_length(results) as num_results,
+    results -> 0 ->> 'severity' as first_anomaly_severity
+FROM investigations
+WHERE status = 'completed'
+  AND results IS NOT NULL
+  AND jsonb_array_length(results) > 0
+ORDER BY anomalies_found DESC;
+```
+
+### ✅ Checklist de Validação
+
+**Status Atual:**
+
+- [x] **Supabase configurado** - URL e Service Role Key presentes
+- [x] **Serviço REST ativo** - Usando `investigation_service_supabase_rest`
+- [x] **Auto-seleção funcionando** - Selector escolhe REST API automaticamente
+- [x] **Código de persistência completo** - Todos os métodos implementados
+- [ ] **Tabela existe no Supabase** - PENDENTE VERIFICAÇÃO ⚠️
+- [ ] **Dados sendo salvos** - PENDENTE TESTE ⚠️
+- [ ] **Resultados completos** - Campo `results` populado - PENDENTE TESTE ⚠️
+
+### ⚠️ Próximos Passos de Validação
+
+1. **Verificar se tabela existe no Supabase**
+   - Acessar: https://app.supabase.com/project/pbsiyuattnwgohvkkkks/editor
+   - Confirmar tabela `investigations` com schema correto
+
+2. **Testar criação de investigação via API**
+   ```bash
+   curl -X POST "https://cidadao-api-production.up.railway.app/api/v1/investigations" \
+     -H "Content-Type: application/json" \
+     -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+     -d '{
+       "query": "Teste de persistência - investigar contratos 2024",
+       "data_source": "contracts"
+     }'
+   ```
+
+3. **Confirmar dados salvos no Supabase Dashboard**
+   - Ver registro criado
+   - Verificar campo `results` após conclusão
+   - Confirmar `summary` gerado
+
+4. **Verificar logs do Railway**
+   ```bash
+   railway logs --tail 50 | grep -i "investigation"
+   ```
+
+   Procurar por:
+   - `🚀 Using Supabase REST service for investigations (Railway/VPS)`
+   - `Created investigation XXX via REST API`
+   - `investigation_completed investigation_id=XXX`
+
+### 🔒 Segurança dos Dados
+
+**Row Level Security (RLS)** - Recomendado:
+
+```sql
+-- Política: Usuários só veem suas próprias investigações
+CREATE POLICY "Users can view own investigations"
+ON investigations
+FOR SELECT
+USING (auth.uid() = user_id);
+
+-- Política: Usuários só podem criar investigações para si
+CREATE POLICY "Users can create own investigations"
+ON investigations
+FOR INSERT
+WITH CHECK (auth.uid() = user_id);
+
+-- Política: Apenas o dono pode atualizar
+CREATE POLICY "Users can update own investigations"
+ON investigations
+FOR UPDATE
+USING (auth.uid() = user_id);
+```
+
+### 📝 Logs Importantes
+
+**Inicialização (Startup):**
+```
+[INFO] Initializing Supabase REST client
+[INFO] Supabase REST service initialized successfully
+[INFO] 🚀 Using Supabase REST service for investigations (Railway/VPS)
+```
+
+**Criação de Investigação:**
+```
+[INFO] Created investigation a3f2b1c4-... via REST API
+[INFO] investigation_created investigation_id=a3f2b1c4-... user_id=user123 data_source=contracts
+```
+
+**Durante Execução:**
+```
+[INFO] investigation_processing investigation_id=a3f2b1c4-... phase=data_retrieval progress=0.2
+[INFO] investigation_processing investigation_id=a3f2b1c4-... phase=anomaly_detection progress=0.4
+```
+
+**Conclusão:**
+```
+[INFO] investigation_completed investigation_id=a3f2b1c4-... anomalies_found=5 confidence_score=0.87
+```
+
+---
+
 ## 🧪 Testes
 
 ### Estrutura de Testes (128 arquivos)
