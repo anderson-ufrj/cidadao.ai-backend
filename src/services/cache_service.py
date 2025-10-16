@@ -68,11 +68,6 @@ class CacheService:
                 decode_responses=True,
                 max_connections=50,
                 socket_keepalive=True,
-                socket_keepalive_options={
-                    1: 1,  # TCP_KEEPIDLE
-                    2: 1,  # TCP_KEEPINTVL
-                    3: 3,  # TCP_KEEPCNT
-                },
             )
 
             # Create Redis client
