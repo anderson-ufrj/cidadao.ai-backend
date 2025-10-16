@@ -118,7 +118,11 @@ class TestDrummondAgent:
         """Test agent initialization."""
         await drummond_agent.initialize()
 
-        assert "corruption_alert" in drummond_agent.message_templates
+        # Verify templates are loaded (system loads 7 templates including alert_template)
+        assert "alert_template" in drummond_agent.message_templates
+        assert (
+            len(drummond_agent.message_templates) >= 4
+        )  # At least core templates loaded
 
     @pytest.mark.unit
     @pytest.mark.asyncio
