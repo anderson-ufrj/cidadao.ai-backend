@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from src.agents.deodoro import AgentContext, AgentMessage, AgentStatus
-from src.agents.nana import NanaAgent
+from src.agents.nana import ContextMemoryAgent
 
 
 @pytest.fixture
@@ -30,10 +30,10 @@ def mock_health_service():
 @pytest.fixture
 def nana_agent(mock_health_service):
     with patch("src.agents.nana.HealthDataService", return_value=mock_health_service):
-        return NanaAgent(health_threshold=0.75)
+        return ContextMemoryAgent()
 
 
-class TestNanaAgent:
+class TestContextMemoryAgent:
     @pytest.mark.unit
     def test_agent_initialization(self, nana_agent):
         assert nana_agent.name == "Nana"

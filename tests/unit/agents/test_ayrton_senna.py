@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 from src.agents.ayrton_senna import (
-    AyrtonSennaAgent,
+    SemanticRouter,
 )
 from src.agents.deodoro import AgentContext, AgentMessage, AgentStatus
 
@@ -33,11 +33,11 @@ def ayrton_agent(mock_performance_monitor):
         "src.agents.ayrton_senna.PerformanceMonitor",
         return_value=mock_performance_monitor,
     ):
-        agent = AyrtonSennaAgent(performance_threshold=0.8, optimization_target=0.9)
+        agent = SemanticRouter()
         return agent
 
 
-class TestAyrtonSennaAgent:
+class TestSemanticRouter:
     """Test suite for Ayrton Senna (Performance Agent)."""
 
     @pytest.mark.unit

@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from src.agents.ceuci import CeuciAgent
+from src.agents.ceuci import PredictiveAgent
 from src.agents.deodoro import AgentContext, AgentMessage, AgentStatus
 
 
@@ -27,10 +27,10 @@ def ceuci_agent(mock_cultural_service):
     with patch(
         "src.agents.ceuci.CulturalAnalysisService", return_value=mock_cultural_service
     ):
-        return CeuciAgent(cultural_threshold=0.7)
+        return PredictiveAgent()
 
 
-class TestCeuciAgent:
+class TestPredictiveAgent:
     @pytest.mark.unit
     def test_agent_initialization(self, ceuci_agent):
         assert ceuci_agent.name == "Ceuci"
