@@ -5,6 +5,8 @@ from datetime import datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
+import pytest_asyncio
+from redis.exceptions import RedisError
 
 from src.core.exceptions import CacheError
 from src.services.cache_service import CacheService, cache_result
@@ -13,7 +15,7 @@ from src.services.cache_service import CacheService, cache_result
 class TestCacheService:
     """Test CacheService functionality"""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def cache_service(self):
         """Create cache service instance"""
         service = CacheService()
@@ -22,18 +24,20 @@ class TestCacheService:
         service._initialized = True
         yield service
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def uninitialized_cache(self):
         """Create uninitialized cache service"""
         service = CacheService()
         yield service
 
-    def test_generate_key_short(self, cache_service):
+    @pytest.mark.asyncio
+    async def test_generate_key_short(self, cache_service):
         """Test key generation for short inputs"""
         key = cache_service._generate_key("test", "arg1", "arg2")
         assert key == "cidadao:test:arg1:arg2"
 
-    def test_generate_key_long(self, cache_service):
+    @pytest.mark.asyncio
+    async def test_generate_key_long(self, cache_service):
         """Test key generation for long inputs (should hash)"""
         long_arg = "a" * 200
         key = cache_service._generate_key("test", long_arg)
@@ -45,16 +49,18 @@ class TestCacheService:
         """Test successful initialization"""
         service = CacheService()
 
-        with patch("redis.asyncio.ConnectionPool.from_url") as mock_pool:
-            with patch("redis.asyncio.Redis") as mock_redis:
-                mock_redis_instance = AsyncMock()
-                mock_redis_instance.ping = AsyncMock(return_value=True)
-                mock_redis.return_value = mock_redis_instance
+        with (
+            patch("redis.asyncio.ConnectionPool.from_url"),
+            patch("redis.asyncio.Redis") as mock_redis,
+        ):
+            mock_redis_instance = AsyncMock()
+            mock_redis_instance.ping = AsyncMock(return_value=True)
+            mock_redis.return_value = mock_redis_instance
 
-                await service.initialize()
+            await service.initialize()
 
-                assert service._initialized is True
-                mock_redis_instance.ping.assert_called_once()
+            assert service._initialized is True
+            mock_redis_instance.ping.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_initialize_failure(self):
@@ -97,7 +103,7 @@ class TestCacheService:
     @pytest.mark.asyncio
     async def test_get_redis_error(self, cache_service):
         """Test get with Redis error"""
-        cache_service.redis.get.side_effect = Exception("Redis error")
+        cache_service.redis.get.side_effect = RedisError("Redis error")
 
         result = await cache_service.get("test_key")
         assert result is None
@@ -251,10 +257,14 @@ class TestCacheService:
             {"used_memory_human": "10M"},
         ]
         cache_service.redis.dbsize = AsyncMock(return_value=1000)
-        cache_service.redis.scan_iter = AsyncMock()
-        cache_service.redis.scan_iter.return_value.__aiter__.return_value = iter(
-            ["key1", "key2"]
-        )
+
+        # Create async iterator for scan_iter
+        async def async_scan_iter(pattern):
+            keys = ["key1", "key2"] if "chat" in pattern else []
+            for key in keys:
+                yield key
+
+        cache_service.redis.scan_iter = lambda pattern: async_scan_iter(pattern)
 
         stats = await cache_service.get_cache_stats()
 
@@ -266,10 +276,16 @@ class TestCacheService:
     @pytest.mark.asyncio
     async def test_cache_stampede_protection(self, cache_service):
         """Test cache stampede protection mechanism"""
-        # Mock pipeline
+        from unittest.mock import Mock
+
+        # Mock pipeline - pipeline() is NOT async, but execute() is
         pipeline = AsyncMock()
-        pipeline.execute.return_value = ['{"value": "test"}', 5]  # value, TTL
-        cache_service.redis.pipeline.return_value = pipeline
+        pipeline.execute = AsyncMock(
+            return_value=['{"value": "test"}', 5]
+        )  # value, TTL
+        pipeline.get = Mock()  # Sync method
+        pipeline.ttl = Mock()  # Sync method
+        cache_service.redis.pipeline = Mock(return_value=pipeline)  # pipeline() is sync
 
         refresh_called = False
 
@@ -290,10 +306,13 @@ class TestCacheService:
     async def test_auto_initialization(self, uninitialized_cache):
         """Test automatic initialization on first operation"""
         with patch.object(uninitialized_cache, "initialize") as mock_init:
-            mock_init.return_value = None
-            uninitialized_cache._initialized = True
-            uninitialized_cache.redis = AsyncMock()
-            uninitialized_cache.redis.get.return_value = None
+            # Setup mock to mark as initialized and set redis when called
+            async def mock_initialize():
+                uninitialized_cache._initialized = True
+                uninitialized_cache.redis = AsyncMock()
+                uninitialized_cache.redis.get = AsyncMock(return_value=None)
+
+            mock_init.side_effect = mock_initialize
 
             await uninitialized_cache.get("test_key")
             mock_init.assert_called_once()
@@ -305,9 +324,12 @@ class TestCacheDecorator:
     @pytest.mark.asyncio
     async def test_cache_decorator_hit(self):
         """Test cache decorator with cache hit"""
+        from unittest.mock import Mock
+
         mock_cache = AsyncMock()
-        mock_cache._generate_key.return_value = "test_key"
-        mock_cache.get.return_value = {"cached": "result"}
+        # _generate_key is not async, so use Mock for it
+        mock_cache._generate_key = Mock(return_value="test_key")
+        mock_cache.get = AsyncMock(return_value={"cached": "result"})
 
         with patch("src.services.cache_service.CacheService", return_value=mock_cache):
 
@@ -324,10 +346,13 @@ class TestCacheDecorator:
     @pytest.mark.asyncio
     async def test_cache_decorator_miss(self):
         """Test cache decorator with cache miss"""
+        from unittest.mock import Mock
+
         mock_cache = AsyncMock()
-        mock_cache._generate_key.return_value = "test_key"
-        mock_cache.get.return_value = None
-        mock_cache.set.return_value = True
+        # _generate_key is not async, so use Mock for it
+        mock_cache._generate_key = Mock(return_value="test_key")
+        mock_cache.get = AsyncMock(return_value=None)
+        mock_cache.set = AsyncMock(return_value=True)
 
         with patch("src.services.cache_service.CacheService", return_value=mock_cache):
 
