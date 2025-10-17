@@ -11,10 +11,10 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
-from src.agents.simple_agent_pool import get_agent_pool
 from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
+from src.agents.simple_agent_pool import get_agent_pool
 from src.core import AgentStatus, get_logger
 
 logger = get_logger(__name__)
@@ -35,9 +35,9 @@ class ParallelTask:
 
     agent_type: type[BaseAgent]
     message: AgentMessage
-    timeout: Optional[float] = None
+    timeout: float | None = None
     weight: float = 1.0  # For weighted results
-    fallback: Optional[Callable] = None
+    fallback: Callable | None = None
 
 
 @dataclass
@@ -47,10 +47,10 @@ class ParallelResult:
     task_id: str
     agent_name: str
     success: bool
-    result: Optional[AgentResponse] = None
-    error: Optional[str] = None
+    result: AgentResponse | None = None
+    error: str | None = None
     execution_time: float = 0.0
-    metadata: dict[str, Any] = None
+    metadata: dict[str, Any] | None = None
 
 
 class ParallelAgentProcessor:
@@ -69,7 +69,7 @@ class ParallelAgentProcessor:
         max_concurrent: int = 5,
         default_timeout: float = 30.0,
         enable_pooling: bool = True,
-    ):
+    ) -> None:
         """
         Initialize parallel processor.
 
@@ -162,11 +162,21 @@ class ParallelAgentProcessor:
 
                 execution_time = (datetime.now() - start_time).total_seconds()
 
+                # Extract error message if agent returned ERROR status
+                error_msg = None
+                if (
+                    result.status == AgentStatus.ERROR
+                    and hasattr(result, "error")
+                    and result.error
+                ):
+                    error_msg = result.error
+
                 return ParallelResult(
                     task_id=task_id,
                     agent_name=agent.name,
                     success=result.status == AgentStatus.COMPLETED,
                     result=result,
+                    error=error_msg,
                     execution_time=execution_time,
                     metadata={"task_type": task.agent_type.__name__},
                 )
@@ -246,7 +256,9 @@ class ParallelAgentProcessor:
         self, coroutines: list[asyncio.Task]
     ) -> list[ParallelResult]:
         """Execute tasks until first success."""
-        pending = set(coroutines)
+        # Convert coroutines to tasks for asyncio.wait() (required in Python 3.11+)
+        tasks = [asyncio.create_task(coro) for coro in coroutines]
+        pending = set(tasks)
         results = []
 
         while pending:
