@@ -4,6 +4,7 @@ Tests concurrent execution, strategies, and result aggregation.
 """
 
 import asyncio
+from contextlib import asynccontextmanager
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -172,10 +173,11 @@ class TestParallelAgentProcessor:
 
         assert processor.max_concurrent == 5
         assert processor.default_timeout == 10.0
-        assert processor.enable_pooling == True
+        assert processor.enable_pooling is True
         assert processor._stats["total_tasks"] == 0
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_execute_parallel_all_succeed(
         self, parallel_processor, agent_context, sample_tasks
     ):
@@ -196,6 +198,7 @@ class TestParallelAgentProcessor:
         assert parallel_processor._stats["failed_tasks"] == 0
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_execute_parallel_best_effort(
         self, parallel_processor, agent_context
     ):
@@ -234,6 +237,7 @@ class TestParallelAgentProcessor:
         assert failed[0].error is not None
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_execute_parallel_first_success(
         self, parallel_processor, agent_context
     ):
@@ -273,6 +277,7 @@ class TestParallelAgentProcessor:
         assert success_results[0].agent_name == "SuccessAgent"
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_execute_parallel_with_timeout(
         self, parallel_processor, agent_context
     ):
@@ -302,6 +307,7 @@ class TestParallelAgentProcessor:
         )
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_execute_parallel_with_fallback(
         self, parallel_processor, agent_context
     ):
@@ -335,9 +341,10 @@ class TestParallelAgentProcessor:
         assert results[0].success
         assert results[0].agent_name == "fallback"
         assert fallback_called
-        assert results[0].metadata.get("used_fallback") == True
+        assert results[0].metadata.get("used_fallback") is True
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_max_concurrent_limit(self, agent_context):
         """Test max concurrent execution limit."""
         processor = ParallelAgentProcessor(
@@ -404,6 +411,7 @@ class TestParallelAgentProcessor:
         assert max_concurrent_observed <= 2
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_with_agent_pooling(self, agent_context):
         """Test parallel execution with agent pooling enabled."""
         processor = ParallelAgentProcessor(
@@ -443,6 +451,7 @@ class TestParallelAgentProcessor:
             assert all(r.success for r in results)
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_get_stats(self, parallel_processor, agent_context, sample_tasks):
         """Test statistics collection."""
         # Execute some tasks
@@ -462,6 +471,7 @@ class TestParallelAgentProcessor:
         assert stats["avg_execution_time"] > 0
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_aggregate_results(self, parallel_processor):
         """Test aggregating results from multiple agents."""
         results = [
@@ -514,6 +524,7 @@ class TestParallelAgentProcessor:
         assert len(aggregated["findings"]) == 4  # All findings aggregated
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_majority_vote_strategy(self, parallel_processor, agent_context):
         """Test majority vote strategy."""
         # Create tasks where 2/3 will succeed
@@ -546,12 +557,3 @@ class TestParallelAgentProcessor:
         assert len(results) == 3
         successful = [r for r in results if r.success]
         assert len(successful) >= 2  # At least majority succeeded
-
-
-from contextlib import asynccontextmanager
-
-
-@asynccontextmanager
-async def mock_acquire(agent_type, context):
-    """Mock context manager for agent pool acquire."""
-    yield MockSuccessAgent()
