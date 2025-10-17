@@ -104,6 +104,7 @@ class TestTiradentesReporterAgent:
             assert capability in tiradentes_agent.capabilities
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_initialize_and_shutdown(self, tiradentes_agent):
         """Test agent lifecycle methods."""
         await tiradentes_agent.initialize()
@@ -111,6 +112,7 @@ class TestTiradentesReporterAgent:
         # Should complete without errors
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_generate_investigation_report(
         self, tiradentes_agent, agent_context, investigation_results
     ):
@@ -137,6 +139,7 @@ class TestTiradentesReporterAgent:
         assert "anomalies" in response.result["content"].lower()
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_generate_analysis_report(
         self, tiradentes_agent, agent_context, analysis_results
     ):
@@ -160,6 +163,7 @@ class TestTiradentesReporterAgent:
         assert "patterns" in response.result["content"].lower()
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_generate_executive_summary(
         self, tiradentes_agent, agent_context, investigation_results, analysis_results
     ):
@@ -183,6 +187,7 @@ class TestTiradentesReporterAgent:
         # Executive summary should be concise
         assert len(response.result["content"]) < 5000
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_invalid_action(self, tiradentes_agent, agent_context):
         """Test handling of invalid action."""
@@ -195,6 +200,7 @@ class TestTiradentesReporterAgent:
         assert response.status == AgentStatus.ERROR
         assert "Unsupported action" in response.error
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_missing_data_error(self, tiradentes_agent, agent_context):
         """Test error when no data provided."""
@@ -214,6 +220,7 @@ class TestTiradentesReporterAgent:
         assert response.status == AgentStatus.ERROR
         assert "No data provided" in response.error
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_multi_language_support(
         self, tiradentes_agent, agent_context, investigation_results
@@ -239,6 +246,7 @@ class TestTiradentesReporterAgent:
             assert response.status == AgentStatus.COMPLETED
             assert response.result["metadata"]["language"] == lang
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_report_format_rendering(
         self, tiradentes_agent, agent_context, investigation_results
