@@ -95,8 +95,11 @@ async def process_zumbi_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Zumbi agent
@@ -159,8 +162,11 @@ async def process_anita_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Anita agent
@@ -223,8 +229,11 @@ async def process_tiradentes_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Tiradentes agent
@@ -282,8 +291,11 @@ async def process_bonifacio_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Bonifacio agent
@@ -353,8 +365,11 @@ async def process_maria_quiteria_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Maria Quiteria agent
@@ -427,8 +442,11 @@ async def process_machado_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Machado agent
@@ -516,8 +534,11 @@ async def process_dandara_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Dandara agent
@@ -605,8 +626,11 @@ async def process_lampiao_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Lampiao agent
@@ -690,8 +714,11 @@ async def process_oscar_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Oscar agent
@@ -772,8 +799,11 @@ async def process_drummond_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Drummond agent
@@ -838,8 +868,11 @@ async def process_obaluaie_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Obaluaie agent
@@ -910,8 +943,11 @@ async def process_oxossi_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Oxossi agent
@@ -982,8 +1018,11 @@ async def process_ceuci_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Ceuci agent
@@ -1054,8 +1093,11 @@ async def process_abaporu_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Abaporu agent
@@ -1128,8 +1170,11 @@ async def process_ayrton_senna_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Ayrton Senna agent
@@ -1206,8 +1251,11 @@ async def process_nana_request(
         context = AgentContext(
             user_id=current_user.id if current_user else "anonymous",
             session_id=str(request.context.get("session_id", "default")),
-            request_id=str(request.context.get("request_id", "unknown")),
-            metadata={"rate_limit_tier": rate_limit_tier.value, **request.context},
+            metadata={
+                "rate_limit_tier": rate_limit_tier.value,
+                "request_id": str(request.context.get("request_id", "unknown")),
+                **request.context,
+            },
         )
 
         # Initialize Nana agent
