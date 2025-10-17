@@ -4,10 +4,11 @@ Tests pooling, lifecycle management, and resource optimization.
 """
 
 import asyncio
+import contextlib
 
 import pytest
+import pytest_asyncio
 
-from src.agents.simple_agent_pool import AgentPool, AgentPoolEntry
 from src.agents.deodoro import (
     AgentContext,
     AgentMessage,
@@ -15,6 +16,7 @@ from src.agents.deodoro import (
     AgentStatus,
     BaseAgent,
 )
+from src.agents.simple_agent_pool import AgentPool, AgentPoolEntry
 
 
 class MockAgent(BaseAgent):
@@ -66,7 +68,7 @@ class SlowMockAgent(MockAgent):
         self.initialized = True
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def agent_pool():
     """Create an agent pool for testing."""
     pool = AgentPool(
@@ -106,6 +108,7 @@ class TestAgentPoolEntry:
         assert entry.idle_time < 1  # Just created
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_entry_acquire_release(self):
         """Test acquiring and releasing agents."""
         agent = MockAgent()
@@ -136,6 +139,7 @@ class TestAgentPool:
     """Test AgentPool class."""
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_pool_initialization(self):
         """Test agent pool initialization."""
         pool = AgentPool(min_size=2, max_size=5)
@@ -156,6 +160,7 @@ class TestAgentPool:
         assert not pool._running
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_acquire_and_release(self, agent_pool, agent_context):
         """Test acquiring and releasing agents from pool."""
         # First acquisition - should create new agent
@@ -182,35 +187,37 @@ class TestAgentPool:
         assert agent_pool._stats["reused"] == 1
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_pool_max_size_limit(self, agent_pool, agent_context):
         """Test pool respects max size limit."""
         agent_pool.max_size = 2
 
         # Acquire two agents
-        async with agent_pool.acquire(MockAgent, agent_context) as agent1:
-            async with agent_pool.acquire(MockAgent, agent_context) as agent2:
-                assert agent1 != agent2
-                assert agent_pool._stats["created"] == 2
+        async with (
+            agent_pool.acquire(MockAgent, agent_context) as agent1,
+            agent_pool.acquire(MockAgent, agent_context) as agent2,
+        ):
+            assert agent1 != agent2
+            assert agent_pool._stats["created"] == 2
 
-                # Try to acquire third agent - should wait
-                acquire_task = asyncio.create_task(
-                    agent_pool._get_or_create_agent(MockAgent)
-                )
+            # Try to acquire third agent - should wait
+            acquire_task = asyncio.create_task(
+                agent_pool._get_or_create_agent(MockAgent)
+            )
 
-                # Give it some time
-                await asyncio.sleep(0.1)
+            # Give it some time
+            await asyncio.sleep(0.1)
 
-                # Task should still be running (waiting)
-                assert not acquire_task.done()
+            # Task should still be running (waiting)
+            assert not acquire_task.done()
 
-                # Cancel the waiting task
-                acquire_task.cancel()
-                try:
-                    await acquire_task
-                except asyncio.CancelledError:
-                    pass
+            # Cancel the waiting task
+            acquire_task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await acquire_task
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_multiple_agent_types(self, agent_pool, agent_context):
         """Test pool handles multiple agent types."""
         # Create agents of different types
@@ -228,6 +235,7 @@ class TestAgentPool:
         assert len(agent_pool._pools[SlowMockAgent]) == 1
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_cleanup_idle_agents(self, agent_context):
         """Test cleanup of idle agents."""
         # Create pool with short idle timeout
@@ -236,7 +244,7 @@ class TestAgentPool:
 
         try:
             # Create and release an agent
-            async with pool.acquire(MockAgent, agent_context) as agent:
+            async with pool.acquire(MockAgent, agent_context):
                 pass
 
             # Check agent exists in pool
@@ -256,6 +264,7 @@ class TestAgentPool:
             await pool.stop()
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_cleanup_old_agents(self, agent_context):
         """Test cleanup of agents exceeding lifetime."""
         # Create pool with short lifetime
@@ -264,7 +273,7 @@ class TestAgentPool:
 
         try:
             # Create and release an agent
-            async with pool.acquire(MockAgent, agent_context) as agent:
+            async with pool.acquire(MockAgent, agent_context):
                 pass
 
             # Check agent exists in pool
@@ -284,6 +293,7 @@ class TestAgentPool:
             await pool.stop()
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_prewarm_pool(self, agent_context):
         """Test pre-warming the agent pool."""
         pool = AgentPool(min_size=3, max_size=5)
@@ -306,12 +316,13 @@ class TestAgentPool:
             await pool.stop()
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_get_stats(self, agent_pool, agent_context):
         """Test getting pool statistics."""
         # Create some activity
-        async with agent_pool.acquire(MockAgent, agent_context) as agent1:
+        async with agent_pool.acquire(MockAgent, agent_context):
             pass
-        async with agent_pool.acquire(MockAgent, agent_context) as agent2:
+        async with agent_pool.acquire(MockAgent, agent_context):
             pass
 
         stats = agent_pool.get_stats()
@@ -329,6 +340,7 @@ class TestAgentPool:
         assert stats["total_agents"] == 1
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_error_handling(self, agent_context):
         """Test error handling in agent creation."""
 
@@ -362,6 +374,7 @@ class TestAgentPool:
             await pool.stop()
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_concurrent_access(self, agent_pool, agent_context):
         """Test concurrent access to the pool."""
 
@@ -400,6 +413,7 @@ class TestGlobalAgentPool:
     """Test global agent pool functions."""
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_get_agent_pool(self):
         """Test getting the global agent pool instance."""
         from src.agents.simple_agent_pool import agent_pool as global_pool
@@ -415,6 +429,7 @@ class TestGlobalAgentPool:
         assert isinstance(pool, AgentPool)
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_maintain_minimum_pool(self):
         """Test maintaining minimum pool size."""
         pool = AgentPool(min_size=2, max_size=5)
