@@ -42,6 +42,7 @@ class TestPredictiveAgent:
         assert ceuci_agent.cultural_threshold == 0.7
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_cultural_analysis(self, ceuci_agent):
         context = AgentContext(investigation_id="cultural-test")
         message = AgentMessage(
@@ -55,6 +56,7 @@ class TestPredictiveAgent:
         assert "cultural_analysis" in response.result
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_social_cohesion_evaluation(self, ceuci_agent):
         context = AgentContext(investigation_id="cohesion-test")
         message = AgentMessage(
