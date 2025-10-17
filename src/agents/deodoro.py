@@ -56,7 +56,7 @@ class AgentMessage(BaseModel):
         ..., description="Agent that should receive the message"
     )
     action: str = PydanticField(..., description="Action to perform")
-    payload: dict[str, Any] = PydanticField(
+    payload: Any = PydanticField(  # noqa: ANN401
         default_factory=dict, description="Message payload"
     )
     context: dict[str, Any] = PydanticField(
@@ -571,13 +571,24 @@ class ReflectiveAgent(BaseAgent):
             else:
                 # Modify message based on reflection feedback
                 message_data = message.model_dump()
-                message_data["payload"] = {
-                    **message.payload,
-                    "reflection_feedback": current_result.metadata.get(
-                        "reflection", {}
-                    ),
-                    "reflection_iteration": reflection_count,
-                }
+                # Handle both dict and non-dict payloads
+                if isinstance(message.payload, dict):
+                    message_data["payload"] = {
+                        **message.payload,
+                        "reflection_feedback": current_result.metadata.get(
+                            "reflection", {}
+                        ),
+                        "reflection_iteration": reflection_count,
+                    }
+                else:
+                    # Wrap non-dict payload
+                    message_data["payload"] = {
+                        "original_payload": message.payload,
+                        "reflection_feedback": current_result.metadata.get(
+                            "reflection", {}
+                        ),
+                        "reflection_iteration": reflection_count,
+                    }
                 reflected_message = AgentMessage(**message_data)
                 current_result = await self.process(reflected_message, context)
 
