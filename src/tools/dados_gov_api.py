@@ -119,17 +119,17 @@ class DadosGovAPIClient:
                     elif response.status_code == 401:
                         raise DadosGovAPIError(
                             "Authentication failed. Please check your API key.",
-                            status_code=401,
+                            details={"status_code": 401},
                         )
                     elif response.status_code == 403:
                         raise DadosGovAPIError(
                             "Access forbidden. You may need additional permissions.",
-                            status_code=403,
+                            details={"status_code": 403},
                         )
                     elif response.status_code == 404:
                         raise DadosGovAPIError(
                             f"Resource not found: {url}",
-                            status_code=404,
+                            details={"status_code": 404},
                         )
                     elif response.status_code == 429:
                         # Rate limit exceeded, wait and retry
@@ -147,7 +147,10 @@ class DadosGovAPIClient:
                     if attempt == self.MAX_RETRIES - 1:
                         raise DadosGovAPIError(
                             f"Failed to connect to Dados.gov.br API: {str(e)}",
-                            original_error=e,
+                            details={
+                                "original_error": str(e),
+                                "error_type": type(e).__name__,
+                            },
                         )
                     await asyncio.sleep(2**attempt)  # Exponential backoff
 
