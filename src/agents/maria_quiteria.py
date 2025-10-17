@@ -332,7 +332,7 @@ class MariaQuiteriaAgent(BaseAgent):
             )
 
             # Determine security action
-            action = message.action if hasattr(message, "type") else "security_audit"
+            action = message.action
 
             # Route to appropriate security function
             if action == "intrusion_detection":
