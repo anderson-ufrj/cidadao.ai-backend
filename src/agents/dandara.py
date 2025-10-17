@@ -70,7 +70,7 @@ class DandaraAgent(BaseAgent):
 
     def __init__(self):
         super().__init__(
-            name="dandara",
+            name="Dandara",
             description="Social Justice Agent specialized in monitoring inclusion policies and social equity",
             capabilities=[
                 "social_equity_analysis",
