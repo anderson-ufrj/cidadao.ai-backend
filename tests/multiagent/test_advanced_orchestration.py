@@ -10,6 +10,7 @@ from uuid import uuid4
 
 import numpy as np
 import pytest
+import pytest_asyncio
 
 from src.agents import (
     AgentContext,
@@ -22,7 +23,7 @@ from src.agents import (
 from src.services.agent_orchestrator import AgentOrchestrator
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def orchestrator():
     """Create agent orchestrator for tests."""
     orch = AgentOrchestrator()
@@ -284,7 +285,7 @@ class TestAdvancedOrchestration:
 
         # Attempt multiple requests
         results = []
-        for i in range(5):
+        for _ in range(5):
             try:
                 result = await orchestrator.execute_with_circuit_breaker(
                     agent, message, orchestration_context
@@ -331,8 +332,8 @@ class TestAdvancedOrchestration:
                     response = await agent.process(message, orchestration_context)
                     if response.success:
                         success_count += 1
-                except:
-                    pass
+                except Exception:  # noqa: S110
+                    pass  # Expected failures in performance monitoring
 
                 elapsed = (datetime.utcnow() - start_time).total_seconds()
                 stats["response_times"].append(elapsed)
@@ -344,7 +345,7 @@ class TestAdvancedOrchestration:
             performance_stats[agent.name] = stats
 
         # Verify performance metrics
-        for agent_name, stats in performance_stats.items():
+        for _, stats in performance_stats.items():
             assert stats["success_rate"] >= 0.9  # 90% success rate
             assert stats["avg_response_time"] < 5  # Under 5 seconds average
             assert stats["p95_response_time"] < 10  # P95 under 10 seconds
