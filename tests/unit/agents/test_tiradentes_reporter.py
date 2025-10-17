@@ -3,7 +3,6 @@ Unit tests for Tiradentes Agent (ReporterAgent) - Report generation specialist.
 Tests report generation, formatting, and multi-language support.
 """
 
-
 import pytest
 
 from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, AgentStatus
@@ -136,7 +135,9 @@ class TestTiradentesReporterAgent:
         assert response.agent_name == "Tiradentes"
         assert response.status == AgentStatus.COMPLETED
         assert "content" in response.result
-        assert "anomalies" in response.result["content"].lower()
+        # Accept both Portuguese "anomalias" and English "anomalies"
+        content_lower = response.result["content"].lower()
+        assert "anomal" in content_lower  # Works for both languages
 
     @pytest.mark.unit
     @pytest.mark.asyncio
@@ -160,7 +161,9 @@ class TestTiradentesReporterAgent:
         response = await tiradentes_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
-        assert "patterns" in response.result["content"].lower()
+        # Accept both Portuguese "padrões" and English "patterns"
+        content_lower = response.result["content"].lower()
+        assert "padr" in content_lower or "pattern" in content_lower
 
     @pytest.mark.unit
     @pytest.mark.asyncio
@@ -269,4 +272,5 @@ class TestTiradentesReporterAgent:
             response = await tiradentes_agent.process(message, agent_context)
 
             assert response.status == AgentStatus.COMPLETED
-            assert response.result["metadata"]["format"] == fmt
+            # Format is in result, not result["metadata"]
+            assert response.result["format"] == fmt
