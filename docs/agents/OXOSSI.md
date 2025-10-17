@@ -16,11 +16,12 @@
 | Métrica | Valor |
 |---------|-------|
 | **Status** | ✅ 100% Operacional |
-| **Arquivo** | `src/agents/oxossi.py` (1.057 linhas) |
-| **Métodos** | 30+ implementados |
-| **Algoritmos** | 7+ tipos de detecção de fraude |
+| **Arquivo** | `src/agents/oxossi.py` (1.698 linhas) |
+| **Métodos** | 27 métodos implementados |
+| **Algoritmos** | 10 tipos de detecção de fraude |
+| **Técnicas Avançadas** | Lei de Benford, Análise Temporal, Circular Payments |
 | **Testes** | ✅ `tests/unit/agents/test_oxossi.py` |
-| **Última Validação** | 13/10/2025 20:00 |
+| **Última Validação** | 17/10/2025 |
 
 ---
 
@@ -112,6 +113,284 @@ Detecta esquemas sofisticados envolvendo múltiplos tipos de fraude.
 **Severidade**: CRITICAL
 **Confiança**: 0.85
 **Risk Score**: 9.5
+
+---
+
+## 🎓 Técnicas Avançadas Implementadas
+
+### 1. Lei de Benford (Benford's Law) - Detecção de Manipulação Numérica
+
+**Implementação**: `_analyze_benfords_law()` (linhas 1401-1528)
+
+A Lei de Benford estabelece que em muitas coleções naturais de números, o primeiro dígito segue uma distribuição logarítmica específica:
+
+| Dígito | Frequência Esperada |
+|--------|---------------------|
+| 1 | 30.1% |
+| 2 | 17.6% |
+| 3 | 12.5% |
+| 4 | 9.7% |
+| 5 | 7.9% |
+| 6 | 6.7% |
+| 7 | 5.8% |
+| 8 | 5.1% |
+| 9 | 4.6% |
+
+**Como funciona**:
+```python
+# 1. Extrai primeiro dígito de cada valor
+first_digits = [int(str(abs(value))[0]) for value in values]
+
+# 2. Calcula distribuição observada vs esperada
+expected = math.log10(1 + 1/digit) for digit in range(1, 10)
+
+# 3. Teste chi-quadrado (χ²)
+chi_square = sum((observed - expected)² / expected)
+
+# 4. Threshold de detecção
+if chi_square > 15.51:  # 95% confidence, 8 degrees of freedom
+    # Fraude detectada!
+```
+
+**Aplicações**:
+- ✅ Valores de contratos fabricados
+- ✅ Notas fiscais falsificadas
+- ✅ Declarações financeiras manipuladas
+- ✅ Transações fraudulentas
+
+**Thresholds**:
+- χ² > 30: Confiança 0.9, Severidade HIGH
+- χ² > 20: Confiança 0.8, Severidade MEDIUM
+- χ² > 15.51: Confiança 0.7, Severidade MEDIUM
+
+**Exemplo Real**:
+```python
+# Dataset: 100 contratos
+contract_values = [123450.00, 98765.00, 456789.00, ...]
+
+# Análise de Benford
+patterns = oxossi._analyze_benfords_law(contract_values, "Contratos 2025")
+
+# Resultado
+{
+    "fraud_type": "FALSE_CLAIMS",
+    "confidence": 0.85,
+    "chi_square": 28.4,
+    "major_deviations": [
+        {"digit": 5, "expected": 7.9%, "observed": 15.2%, "deviation": 7.3%},
+        {"digit": 9, "expected": 4.6%, "observed": 11.1%, "deviation": 6.5%}
+    ]
+}
+```
+
+---
+
+### 2. Análise Temporal de Anomalias
+
+**Implementação**: `_detect_temporal_anomalies()` (linhas 1529-1684)
+
+Detecta padrões temporais suspeitos que indicam manipulação ou automação fraudulenta.
+
+#### 2.1 After-Hours Activity (Atividade Fora do Horário)
+```python
+after_hours = df[(df["hour"] >= 20) | (df["hour"] < 6)]
+if len(after_hours) > len(df) * 0.2:  # >20% after hours
+    # Suspeito: Por que tantas transações à noite?
+```
+
+**Indicadores**:
+- Transações entre 20h-6h (80% do horário comercial)
+- Aprovações em finais de semana (sábado/domingo)
+- Padrões de madrugada (2h-5h) sem justificativa
+
+**Risk Score**: 6.5-7.0
+
+#### 2.2 Velocity Anomalies (Anomalias de Velocidade)
+```python
+time_diffs = df_sorted["timestamp"].diff()
+very_fast = time_diffs[time_diffs < pd.Timedelta(minutes=1)]
+
+if len(very_fast) > 3:
+    # Processamento humano impossível - automação suspeita
+```
+
+**Indicadores**:
+- Múltiplas transações <1 minuto de intervalo
+- Sequência de aprovações <30 segundos
+- Padrão robótico de timing
+
+**Casos de Uso**:
+- Bots de fraude automatizada
+- Scripts de manipulação em massa
+- Backdoors em sistemas
+
+**Risk Score**: 7.0
+
+#### 2.3 Temporal Clustering (Agrupamento Temporal)
+```python
+# Detecta dias com atividade anormalmente alta
+daily_counts = df.groupby("date").size()
+outliers = daily_counts[daily_counts > mean + 2*std]
+
+# Exemplo: 5 transações/dia normalmente, 50 transações em 15/01
+```
+
+**Indicadores**:
+- Picos inexplicados de atividade (>2σ)
+- Concentração de transações em datas específicas
+- Padrões de "dumping" de dados
+
+**Aplicações**:
+- Detecção de fraudes coordenadas
+- Identificação de manipulações em massa
+- Descoberta de janelas de vulnerabilidade
+
+**Risk Score**: 6.5
+
+---
+
+### 3. Circular Payment Detection (Pagamentos Circulares)
+
+**Implementação**: `_detect_circular_payments()` (linhas 1148-1241)
+
+Identifica esquemas de lavagem de dinheiro através de ciclos de pagamento: A → B → C → A
+
+**Algoritmo**:
+```python
+# 1. Constrói grafo de pagamentos
+payment_graph = {payer: [(recipient, amount, date)]}
+
+# 2. Busca ciclos de 3 nós (triangles)
+for A in graph:
+    for B in graph[A]:
+        for C in graph[B]:
+            if A in graph[C]:
+                # Ciclo detectado: A → B → C → A
+                circular_fraud_detected()
+```
+
+**Exemplo de Detecção**:
+```python
+# Transações suspeitas
+[
+    {"payer": "Empresa A", "recipient": "Empresa B", "amount": 100000},
+    {"payer": "Empresa B", "recipient": "Empresa C", "amount": 95000},
+    {"payer": "Empresa C", "recipient": "Empresa A", "amount": 90000}
+]
+
+# Resultado
+{
+    "fraud_type": "MONEY_LAUNDERING",
+    "pattern": "circular_payments",
+    "path": "Empresa A → Empresa B → Empresa C → Empresa A",
+    "total_flow": 285000,
+    "severity": "CRITICAL",
+    "confidence": 0.85,
+    "risk_score": 9.0
+}
+```
+
+**Indicadores de Suspeição**:
+- ✅ Ciclo completo de pagamentos
+- ✅ Valores decrescentes (fees de layering)
+- ✅ Timing coordenado (<30 dias)
+- ✅ Empresas sem relação comercial óbvia
+
+**Técnicas de Lavagem Detectadas**:
+1. **Layering**: Múltiplos hops para obscurecer origem
+2. **Integration**: Retorno do dinheiro "limpo"
+3. **Smurfing**: Quebra em transações menores
+
+**Risk Score**: 9.0 (CRITICAL)
+
+---
+
+### 4. Kickback Schemes - Análise Sofisticada
+
+**Implementação**: `_detect_kickback_schemes()` (linhas 881-1072)
+
+Detecta esquemas de propina através de análise temporal e de percentuais.
+
+#### 4.1 Round-Number Payments
+```python
+if amount > 0 and (amount % 10000 == 0 or amount % 5000 == 0):
+    if recipient_type == "individual":
+        # Pagamento arredondado para pessoa física - suspeito!
+```
+
+**Exemplos**:
+- R$ 50.000,00 para assessor (não R$ 49.387,23)
+- R$ 100.000,00 para consultor (não R$ 103.256,78)
+
+**Risk Score**: 7.5
+
+#### 4.2 Percentage-Based Kickbacks
+```python
+# Detecta pagamentos que são exatamente % do contrato
+percentage = (payment_amount / contract_value) * 100
+
+common_kickback_percentages = [5, 10, 15, 20, 25]
+for pct in common_kickback_percentages:
+    if abs(percentage - pct) < 0.5:  # Margem de 0.5%
+        # ALERTA: Pagamento é exatamente 10% do contrato!
+```
+
+**Exemplo Real**:
+```python
+# Contrato adjudicado: R$ 2.000.000,00
+# 15 dias depois: Pagamento de R$ 200.000,00 (exatamente 10%)
+# Destinatário: Pessoa física relacionada ao decisor
+
+{
+    "fraud_type": "KICKBACK_SCHEME",
+    "indicator": "percentage_payment",
+    "percentage": 10.0,
+    "days_after_contract": 15,
+    "confidence": 0.8,
+    "severity": "HIGH",
+    "risk_score": 8.5
+}
+```
+
+#### 4.3 Vendor Payment After Award
+```python
+# Pagamento do vencedor da licitação para terceiro
+if payer_id == winning_vendor_id:
+    if days_after_award < 30:
+        # Propina detectada!
+```
+
+**Pattern**:
+1. Empresa X vence licitação (Dia 0)
+2. Empresa X paga R$ 150k para Pessoa Y (Dia 7)
+3. Pessoa Y tem vínculo com decisor (verificar)
+
+**Risk Score**: 7.0
+
+---
+
+### 5. Chi-Square Statistical Testing
+
+Usado em múltiplas análises para validação estatística:
+
+```python
+# Benford's Law
+chi_square = sum((observed - expected)² / expected)
+if chi_square > 15.51:  # p-value < 0.05
+    fraud_detected()
+
+# Graus de liberdade: 8 (dígitos 1-9)
+# Níveis de confiança:
+# - 95%: χ² > 15.51
+# - 99%: χ² > 20.09
+# - 99.9%: χ² > 26.12
+```
+
+**Aplicações em Oxóssi**:
+- Distribuição de primeiros dígitos (Benford)
+- Distribuição de valores por categoria
+- Padrões temporais de atividade
+- Clustering de entidades relacionadas
 
 ---
 
@@ -627,7 +906,24 @@ Oxóssi é nomeado em homenagem ao **orixá da caça** na mitologia Yorubá, sí
 
 ---
 
-**Última Atualização**: 13/10/2025 20:00 -03:00
-**Versão**: 1.0.0
+**Última Atualização**: 17/10/2025 -03:00
+**Versão**: 1.1.0
 **Status**: ✅ Produção
 **Mantido por**: Anderson Henrique da Silva (Minas Gerais, Brasil)
+
+---
+
+## 📝 Changelog
+
+### v1.1.0 (17/10/2025)
+- ✅ Documentação completa de técnicas avançadas
+- ✅ Lei de Benford com chi-square testing
+- ✅ Análise temporal detalhada (after-hours, velocity, clustering)
+- ✅ Detecção de pagamentos circulares (money laundering)
+- ✅ Análise sofisticada de kickback schemes
+- ✅ Atualização de métricas (1.698 linhas, 27 métodos)
+
+### v1.0.0 (13/10/2025)
+- ✅ Implementação base com 10 tipos de fraude
+- ✅ Testes unitários completos
+- ✅ Documentação inicial
