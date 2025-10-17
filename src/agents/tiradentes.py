@@ -191,7 +191,7 @@ class ReporterAgent(BaseAgent):
                 request = ReportRequest(**message.payload)
             else:
                 raise AgentExecutionError(
-                    f"Unsupported action: {message.action}", agent_id=self.name
+                    f"Unsupported action: {message.action}"
                 )
 
             # Validate input data
@@ -286,7 +286,7 @@ class ReporterAgent(BaseAgent):
             return await generator(request, context)
         else:
             raise AgentExecutionError(
-                f"Unsupported report type: {request.report_type}", agent_id=self.name
+                f"Unsupported report type: {request.report_type}"
             )
 
     async def _generate_investigation_report(
