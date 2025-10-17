@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from src.agents.abaporu import MasterAgent
-from src.agents.ayrton_senna import SemanticRouterAgent
+from src.agents.ayrton_senna import SemanticRouter as SemanticRouterAgent
 from src.agents.deodoro import (
     AgentContext,
     AgentMessage,
