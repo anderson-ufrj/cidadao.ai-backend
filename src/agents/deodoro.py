@@ -581,15 +581,24 @@ class ReflectiveAgent(BaseAgent):
                 reflected_message = AgentMessage(**message_data)
                 current_result = await self.process(reflected_message, context)
 
-            # First check if current quality is already good enough
-            if isinstance(current_result.result, dict):
-                original_quality = self._assess_result_quality(current_result.result)
-            else:
-                original_quality = 0.0
+            # On first iteration only, check if quality already meets threshold (optimization)
+            if reflection_count == 0:
+                if isinstance(current_result.result, dict):
+                    original_quality = self._assess_result_quality(
+                        current_result.result
+                    )
+                else:
+                    original_quality = 0.0
 
-            # If quality is already good, return without reflection
-            if original_quality >= self.reflection_threshold:
-                return current_result
+                # If initial quality is already good, return without reflection
+                if original_quality >= self.reflection_threshold:
+                    current_result.metadata["reflection"] = {
+                        "quality_score": original_quality,
+                        "reflection_needed": False,
+                        "reason": "Original quality already meets threshold",
+                    }
+                    current_result.metadata["reflection_count"] = 0
+                    return current_result
 
             # Quality is low, perform reflection
             reflection = await self.reflect(current_result, context)
