@@ -6,7 +6,7 @@ Date: 2025-01-25
 License: Proprietary - All rights reserved
 """
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -72,10 +72,10 @@ class TestExportRoutes:
         mock_investigation,
     ):
         """Test export investigation as Excel."""
-        # Setup mocks
-        mock_investigation_service.get_investigation.return_value = mock_investigation
-        mock_export_service.convert_investigation_to_excel.return_value = (
-            b"excel-content"
+        # Setup mocks - use AsyncMock for async methods
+        mock_investigation_service.get_investigation = AsyncMock(return_value=mock_investigation)
+        mock_export_service.convert_investigation_to_excel = AsyncMock(
+            return_value=b"excel-content"
         )
 
         # Call function
@@ -107,9 +107,9 @@ class TestExportRoutes:
         mock_investigation,
     ):
         """Test export investigation as CSV."""
-        # Setup mocks
-        mock_investigation_service.get_investigation.return_value = mock_investigation
-        mock_export_service.generate_csv.return_value = b"csv-content"
+        # Setup mocks - use AsyncMock for async methods
+        mock_investigation_service.get_investigation = AsyncMock(return_value=mock_investigation)
+        mock_export_service.generate_csv = AsyncMock(return_value=b"csv-content")
 
         # Call function
         response = await export_investigation(
@@ -132,9 +132,9 @@ class TestExportRoutes:
         mock_investigation,
     ):
         """Test export investigation as PDF."""
-        # Setup mocks
-        mock_investigation_service.get_investigation.return_value = mock_investigation
-        mock_export_service.generate_pdf.return_value = b"pdf-content"
+        # Setup mocks - use AsyncMock for async methods
+        mock_investigation_service.get_investigation = AsyncMock(return_value=mock_investigation)
+        mock_export_service.generate_pdf = AsyncMock(return_value=b"pdf-content")
 
         # Call function
         response = await export_investigation(
@@ -158,8 +158,8 @@ class TestExportRoutes:
         self, mock_investigation_service, mock_current_user
     ):
         """Test export investigation when not found."""
-        # Setup mock
-        mock_investigation_service.get_investigation.return_value = None
+        # Setup mock - use AsyncMock for async methods
+        mock_investigation_service.get_investigation = AsyncMock(return_value=None)
 
         # Call function and expect exception
         with pytest.raises(HTTPException) as exc_info:
@@ -181,13 +181,13 @@ class TestExportRoutes:
         """Test export contracts as Excel."""
         from src.api.routes.export import ExportRequest
 
-        # Setup mocks
+        # Setup mocks - use AsyncMock for async methods
         mock_contracts = [
             {"id": "C001", "value": 100000, "supplier": "Company A"},
             {"id": "C002", "value": 200000, "supplier": "Company B"},
         ]
-        mock_data_service.search_contracts.return_value = mock_contracts
-        mock_export_service.generate_excel.return_value = b"excel-content"
+        mock_data_service.search_contracts = AsyncMock(return_value=mock_contracts)
+        mock_export_service.generate_excel = AsyncMock(return_value=b"excel-content")
 
         # Create request
         request = ExportRequest(
@@ -223,7 +223,7 @@ class TestExportRoutes:
         """Test export anomalies as Excel."""
         from src.api.routes.export import ExportRequest
 
-        # Setup mocks
+        # Setup mocks - use AsyncMock for async methods
         mock_investigations = [
             {
                 "id": "INV-001",
@@ -239,10 +239,10 @@ class TestExportRoutes:
                 ],
             },
         ]
-        mock_investigation_service.list_investigations.return_value = (
-            mock_investigations
+        mock_investigation_service.list_investigations = AsyncMock(
+            return_value=mock_investigations
         )
-        mock_export_service.generate_excel.return_value = b"excel-content"
+        mock_export_service.generate_excel = AsyncMock(return_value=b"excel-content")
 
         # Create request
         request = ExportRequest(
@@ -285,9 +285,9 @@ class TestExportRoutes:
         """Test bulk export functionality."""
         from src.api.routes.export import BulkExportRequest
 
-        # Setup mocks
-        mock_investigation_service.get_investigation.return_value = mock_investigation
-        mock_export_service.generate_bulk_export.return_value = b"zip-content"
+        # Setup mocks - use AsyncMock for async methods
+        mock_investigation_service.get_investigation = AsyncMock(return_value=mock_investigation)
+        mock_export_service.generate_bulk_export = AsyncMock(return_value=b"zip-content")
         mock_json_utils.dumps.return_value = '{"test": "json"}'
 
         # Create request
@@ -351,8 +351,8 @@ class TestExportRoutes:
         """Test export contracts when none found."""
         from src.api.routes.export import ExportRequest
 
-        # Setup mock
-        mock_data_service.search_contracts.return_value = []
+        # Setup mock - use AsyncMock for async methods
+        mock_data_service.search_contracts = AsyncMock(return_value=[])
 
         # Create request
         request = ExportRequest(
@@ -374,13 +374,13 @@ class TestExportRoutes:
         """Test export anomalies when none found."""
         from src.api.routes.export import ExportRequest
 
-        # Setup mock - investigations without anomalies
+        # Setup mock - use AsyncMock for async methods
         mock_investigations = [
             {"id": "INV-001", "anomalies": []},
             {"id": "INV-002", "anomalies": []},
         ]
-        mock_investigation_service.list_investigations.return_value = (
-            mock_investigations
+        mock_investigation_service.list_investigations = AsyncMock(
+            return_value=mock_investigations
         )
 
         # Create request
