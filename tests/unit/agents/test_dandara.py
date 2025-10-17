@@ -31,11 +31,10 @@ def mock_social_data_service():
 @pytest.fixture
 def dandara_agent(mock_social_data_service):
     """Create Dandara agent with mocked dependencies."""
-    with patch(
-        "src.agents.dandara.SocialDataService", return_value=mock_social_data_service
-    ):
-        agent = DandaraAgent(inclusion_threshold=0.7, diversity_target=0.8)
-        return agent
+    # DandaraAgent doesn't use SocialDataService - it uses IBGE, DataSUS, INEP clients directly
+    # The agent will handle API calls internally or gracefully fail
+    agent = DandaraAgent()
+    return agent
 
 
 class TestDandaraAgent:
@@ -49,6 +48,7 @@ class TestDandaraAgent:
         assert "diversity_analysis" in dandara_agent.capabilities
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_inclusion_analysis(self, dandara_agent):
         """Test social inclusion analysis."""
         context = AgentContext(investigation_id="inclusion-test")
@@ -65,6 +65,7 @@ class TestDandaraAgent:
         assert "inclusion_analysis" in response.result
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_diversity_metrics(self, dandara_agent):
         """Test diversity metrics calculation."""
         context = AgentContext(investigation_id="diversity-test")
