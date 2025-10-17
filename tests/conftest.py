@@ -9,6 +9,7 @@ from collections.abc import AsyncGenerator, Generator
 from unittest.mock import patch
 
 import pytest
+import pytest_asyncio
 from httpx import AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 
@@ -16,8 +17,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 os.environ["ENVIRONMENT"] = "testing"
 os.environ["TESTING"] = "true"
 
-from src.api.app import app as app_instance
-from src.core.config import Settings
+from src.api.app import app as app_instance  # noqa: E402
+from src.core.config import Settings  # noqa: E402
 
 
 @pytest.fixture(scope="session")
@@ -29,7 +30,7 @@ def event_loop() -> Generator[asyncio.AbstractEventLoop, None, None]:
     loop.close()
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def test_database() -> AsyncGenerator[str, None]:
     """Integration test database using testcontainers."""
     # For simple integration tests, we don't need a real database
@@ -38,7 +39,7 @@ async def test_database() -> AsyncGenerator[str, None]:
     yield database_url
 
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session")
 async def test_redis() -> AsyncGenerator[str, None]:
     """Test Redis instance using testcontainers."""
     # For simple integration tests, we don't need a real Redis instance
@@ -47,7 +48,7 @@ async def test_redis() -> AsyncGenerator[str, None]:
     yield redis_url
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def db_session(test_database: str) -> AsyncGenerator[AsyncSession, None]:
     """Database session for individual tests."""
     engine = create_async_engine(test_database)
@@ -62,27 +63,27 @@ async def db_session(test_database: str) -> AsyncGenerator[AsyncSession, None]:
     await engine.dispose()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def test_settings(test_database: str, test_redis: str) -> Settings:
     """Test application settings."""
     return Settings(
         database_url=test_database,
         redis_url=test_redis,
         testing=True,
-        secret_key="test-secret-key-do-not-use-in-production",
+        secret_key="test-secret-key-do-not-use-in-production",  # noqa: S106
         transparency_api_key="test-api-key",
         environment="testing",
     )
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def app(test_settings: Settings):
     """FastAPI application for testing."""
     # Use the existing app instance for testing
     return app_instance
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def client(
     app, db_session: AsyncSession, test_settings: Settings
 ) -> AsyncGenerator[AsyncClient, None]:
@@ -102,7 +103,7 @@ async def client(
     # app.dependency_overrides.clear()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def authenticated_client(
     client: AsyncClient,
 ) -> AsyncGenerator[AsyncClient, None]:
