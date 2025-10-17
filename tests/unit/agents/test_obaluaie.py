@@ -42,6 +42,7 @@ def obaluaie_agent(mock_healing_service):
 )
 class TestObaluaieAgent:
     @pytest.mark.unit
+    @pytest.mark.asyncio
     def test_agent_initialization(self, obaluaie_agent):
         assert obaluaie_agent.name == "Obaluaiê"
         assert "healing_analysis" in obaluaie_agent.capabilities
@@ -50,6 +51,7 @@ class TestObaluaieAgent:
         assert obaluaie_agent.healing_threshold == 0.7
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_recovery_pattern_analysis(self, obaluaie_agent):
         context = AgentContext(investigation_id="recovery-test")
         message = AgentMessage(
@@ -67,6 +69,7 @@ class TestObaluaieAgent:
         assert response.result["recovery_analysis"]["social_healing_index"] == 0.72
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_healing_strategy_recommendation(self, obaluaie_agent):
         context = AgentContext(investigation_id="healing-test")
         message = AgentMessage(

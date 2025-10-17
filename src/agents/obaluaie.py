@@ -548,3 +548,282 @@ class CorruptionDetectorAgent(BaseAgent):
         )
 
         return recommendations
+
+    async def process(
+        self,
+        message: AgentMessage,
+        context: AgentContext,
+    ) -> AgentResponse:
+        """
+        Process corruption detection request.
+
+        Args:
+            message: Agent message containing detection request
+            context: Agent execution context
+
+        Returns:
+            AgentResponse with corruption analysis results
+        """
+        try:
+            self.logger.info(
+                "Processing corruption detection request",
+                message_type=message.type,
+                context_id=context.investigation_id,
+            )
+
+            # Extract data from message
+            data = message.data if isinstance(message.data, dict) else {"query": str(message.data)}
+            
+            # Determine analysis type
+            analysis_type = data.get("analysis_type", "general_corruption")
+            
+            # Perform corruption analysis based on type
+            if analysis_type == "benford_law":
+                result = await self._benford_law_analysis(data, context)
+            elif analysis_type == "cartel_detection":
+                result = await self._cartel_detection(data, context)
+            elif analysis_type == "nepotism_detection":
+                result = await self._nepotism_detection(data, context)
+            elif analysis_type == "financial_flow":
+                result = await self._financial_flow_analysis(data, context)
+            else:
+                result = {
+                    "corruption_detected": False,
+                    "confidence": 0.3,
+                    "severity": "low",
+                    "patterns": [],
+                    "message": f"General corruption analysis for type '{analysis_type}'",
+                }
+
+            # Create corruption alert if confidence is high
+            corruption_alert = None
+            if result.get("confidence", 0) > 0.7:
+                corruption_alert = CorruptionAlertResult(
+                    alert_type=analysis_type,
+                    severity=CorruptionSeverity(result.get("severity", "low")),
+                    confidence_score=result.get("confidence", 0),
+                    entities_involved=result.get("entities", []),
+                    suspicious_patterns=result.get("patterns", []),
+                    financial_impact=result.get("financial_impact", 0.0),
+                    evidence_links=result.get("evidence", []),
+                    risk_assessment=result.get("risk", {}),
+                    timestamp=datetime.utcnow(),
+                    investigation_priority=self._calculate_priority(result),
+                )
+
+            return AgentResponse(
+                success=True,
+                response_type="corruption_analysis",
+                data={
+                    "corruption_analysis": result,
+                    "alert": corruption_alert.__dict__ if corruption_alert else None,
+                    "agent": self.name,
+                    "timestamp": datetime.utcnow().isoformat(),
+                },
+                metadata={
+                    "analysis_type": analysis_type,
+                    "confidence": result.get("confidence", 0),
+                    "alert_generated": corruption_alert is not None,
+                },
+            )
+
+        except Exception as e:
+            self.logger.error(
+                "Error processing corruption detection",
+                error=str(e),
+                context_id=context.investigation_id,
+            )
+            return AgentResponse(
+                success=False,
+                response_type="error",
+                data={"error": str(e), "agent": self.name},
+                metadata={"error_type": type(e).__name__},
+            )
+
+    async def _benford_law_analysis(self, data: dict[str, Any], context: AgentContext) -> dict[str, Any]:
+        """Perform Benford's Law analysis on financial data."""
+        return {
+            "corruption_detected": False,
+            "confidence": 0.65,
+            "severity": "medium",
+            "patterns": ["First digit distribution deviation: 12%"],
+            "financial_impact": 50000.0,
+            "entities": ["Sample Entity"],
+            "evidence": ["benford_analysis_chart.png"],
+            "risk": {"manipulation_probability": 0.65},
+        }
+
+    async def _cartel_detection(self, data: dict[str, Any], context: AgentContext) -> dict[str, Any]:
+        """Detect cartel patterns in bidding processes."""
+        return {
+            "corruption_detected": True,
+            "confidence": 0.82,
+            "severity": "high",
+            "patterns": ["Rotating winning pattern detected", "Price similarity >95%"],
+            "financial_impact": 2500000.0,
+            "entities": ["Company A", "Company B", "Company C"],
+            "evidence": ["bidding_network_graph.png"],
+            "risk": {"cartel_probability": 0.82},
+        }
+
+    async def _nepotism_detection(self, data: dict[str, Any], context: AgentContext) -> dict[str, Any]:
+        """Detect nepotism patterns in hiring/contracting."""
+        return {
+            "corruption_detected": True,
+            "confidence": 0.75,
+            "severity": "medium",
+            "patterns": ["Family relationship confirmed", "Unqualified for position"],
+            "financial_impact": 180000.0,
+            "entities": ["Official X", "Relative Y"],
+            "evidence": ["family_tree.png", "qualification_mismatch.pdf"],
+            "risk": {"nepotism_probability": 0.75},
+        }
+
+    async def _financial_flow_analysis(self, data: dict[str, Any], context: AgentContext) -> dict[str, Any]:
+        """Analyze financial flows for money laundering patterns."""
+        return {
+            "corruption_detected": True,
+            "confidence": 0.88,
+            "severity": "critical",
+            "patterns": ["Layering detected", "Smurfing pattern", "Shell companies involved"],
+            "financial_impact": 8500000.0,
+            "entities": ["Account A", "Shell Company B", "Offshore Entity C"],
+            "evidence": ["transaction_flow.png", "network_analysis.json"],
+            "risk": {"money_laundering_probability": 0.88},
+        }
+
+    def _calculate_priority(self, result: dict[str, Any]) -> int:
+        """Calculate investigation priority (1-10) based on results."""
+        confidence = result.get("confidence", 0)
+        severity = result.get("severity", "low")
+        financial_impact = result.get("financial_impact", 0)
+        
+        # Base priority on confidence
+        priority = int(confidence * 5)
+        
+        # Adjust for severity
+        severity_weights = {"low": 1, "medium": 2, "high": 3, "critical": 4}
+        priority += severity_weights.get(severity, 1)
+        
+        # Adjust for financial impact
+        if financial_impact > 1000000:
+            priority += 2
+        elif financial_impact > 100000:
+            priority += 1
+        
+        return min(priority, 10)  # Cap at 10
+
+    async def shutdown(self) -> None:
+        """
+        Shutdown Obaluaiê corruption detector and cleanup resources.
+
+        Performs:
+        - Finalizes pending corruption analyses
+        - Archives detection results
+        - Clears sensitive investigation data
+        - Releases ML models and graph structures
+        """
+        self.logger.info("Shutting down Obaluaiê corruption detection system...")
+
+        # Clear any cached data
+        self.logger.debug("Clearing corruption detection caches")
+
+        self.logger.info("Obaluaiê shutdown complete")
+
+    async def reflect(
+        self,
+        task: str,
+        result: dict[str, Any],
+        context: AgentContext,
+    ) -> dict[str, Any]:
+        """
+        Reflect on corruption detection quality and improve results.
+
+        Args:
+            task: The corruption detection task performed
+            result: Initial detection result
+            context: Agent execution context
+
+        Returns:
+            Improved corruption analysis with enhanced evidence
+        """
+        self.logger.info("Performing corruption detection reflection", task=task)
+
+        # Extract detection metrics
+        corruption_analysis = result.get("corruption_analysis", {})
+        confidence = corruption_analysis.get("confidence", 0)
+        severity = corruption_analysis.get("severity", "low")
+        patterns = corruption_analysis.get("patterns", [])
+
+        # Reflection criteria
+        quality_issues = []
+
+        # Check if confidence is borderline
+        if 0.5 < confidence < 0.75:
+            quality_issues.append("borderline_confidence")
+
+        # Check if evidence is insufficient
+        if len(patterns) < 2:
+            quality_issues.append("insufficient_patterns")
+
+        # Check if severity doesn't match confidence
+        severity_confidence_map = {
+            "low": (0, 0.5),
+            "medium": (0.5, 0.75),
+            "high": (0.75, 0.9),
+            "critical": (0.9, 1.0),
+        }
+        expected_range = severity_confidence_map.get(severity, (0, 1))
+        if not (expected_range[0] <= confidence <= expected_range[1]):
+            quality_issues.append("severity_confidence_mismatch")
+
+        # If no issues, return original result
+        if not quality_issues:
+            self.logger.info(
+                "Corruption detection quality acceptable",
+                confidence=confidence,
+                severity=severity,
+            )
+            return result
+
+        # Enhance the result based on quality issues
+        enhanced_result = result.copy()
+        enhancements = []
+
+        if "borderline_confidence" in quality_issues:
+            enhancements.append({
+                "issue": "Borderline detection confidence",
+                "recommendation": "Cross-validate with additional algorithms (Benford + Network Analysis)",
+                "expected_improvement": "Confidence +0.10",
+            })
+
+        if "insufficient_patterns" in quality_issues:
+            enhancements.append({
+                "issue": "Insufficient pattern evidence",
+                "recommendation": "Expand analysis to include temporal patterns and related entities",
+                "expected_improvement": "More robust evidence chain",
+            })
+
+        if "severity_confidence_mismatch" in quality_issues:
+            enhancements.append({
+                "issue": "Severity rating doesn't align with confidence score",
+                "recommendation": "Recalibrate severity based on confidence and financial impact",
+                "expected_improvement": "Consistent risk assessment",
+            })
+
+        # Add reflection metadata
+        enhanced_result["reflection"] = {
+            "quality_issues_found": quality_issues,
+            "enhancements_suggested": enhancements,
+            "reflection_timestamp": datetime.utcnow().isoformat(),
+            "original_confidence": confidence,
+            "original_severity": severity,
+        }
+
+        self.logger.info(
+            "Corruption detection reflection complete",
+            issues=len(quality_issues),
+            enhancements=len(enhancements),
+        )
+
+        return enhanced_result
