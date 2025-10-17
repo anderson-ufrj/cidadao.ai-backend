@@ -1,9 +1,8 @@
 """
 Chat API endpoints for conversational interface
-VERSION: 2025-09-20 13:45:00 - Lazy initialization fix
+VERSION: 2025-10-17 15:00:00 - Consolidated implementation
 """
 
-print("=== CHAT.PY LOADING - VERSION 13:45:00 ===")
 import asyncio
 import uuid
 from datetime import datetime
@@ -315,11 +314,6 @@ async def send_message(
                     data_source = DataSourceType.EXPENSES
                 elif any(word in search_query for word in ["licitação", "pregão"]):
                     data_source = DataSourceType.BIDDINGS
-
-                # Create investigation request
-                investigation_request = UniversalSearchRequest(
-                    query=request.message, data_source=data_source, max_results=10
-                )
 
                 # Run investigation with Zumbi agent
                 logger.info("Running Zumbi investigation with dados.gov.br integration")
@@ -679,7 +673,7 @@ async def get_chat_history_paginated(
         limit: Number of messages per page (max: 100)
         direction: "next" for newer messages, "prev" for older (default)
     """
-    session = await ChatService.get_session(session_id)
+    session = await chat_service.get_session(session_id)
 
     if not session:
         raise HTTPException(status_code=404, detail="Sessão não encontrada")
@@ -689,7 +683,7 @@ async def get_chat_history_paginated(
         raise HTTPException(status_code=403, detail="Acesso negado")
 
     # Get paginated messages
-    paginated_response = await ChatService.get_session_messages_paginated(
+    paginated_response = await chat_service.get_session_messages_paginated(
         session_id=session_id,
         cursor=cursor,
         limit=min(limit, 100),  # Cap at 100
@@ -734,8 +728,7 @@ async def get_cache_stats(
     Get cache statistics (admin only in production)
     """
     try:
-        stats = await ChatService.get_cache_stats()
-        return stats
+        return await chat_service.get_cache_stats()
     except Exception as e:
         logger.error(f"Error getting cache stats: {e}")
         return {"error": "Unable to get cache statistics"}
@@ -815,4 +808,66 @@ async def debug_drummond_status():
             "THANKS",
             "GOODBYE",
         ],
+    }
+
+
+@router.get("/test-portal/{query}")
+async def test_portal_integration(query: str):
+    """
+    Test endpoint to verify Portal da Transparência integration
+    Example: /api/v1/chat/test-portal/contratos%20ministerio%20saude
+    """
+    try:
+        result = await chat_data_integration.process_user_query(query)
+        return {
+            "success": True,
+            "query": query,
+            "data_type": result.get("data_type"),
+            "entities_found": result.get("entities"),
+            "total_records": (
+                result.get("data", {}).get("total", 0) if result.get("data") else 0
+            ),
+            "response": result.get("response"),
+            "sample_data": (
+                result.get("data", {}).get("dados", [])[:3]
+                if result.get("data")
+                else []
+            ),
+        }
+    except Exception as e:
+        return {"success": False, "query": query, "error": str(e)}
+
+
+@router.get("/debug/portal-status")
+async def debug_portal_status():
+    """Debug endpoint to check Portal da Transparência configuration"""
+    import os
+
+    from src.core.config import settings
+
+    # Check environment variable
+    env_key = os.getenv("TRANSPARENCY_API_KEY")
+
+    # Check settings
+    settings_key = None
+    if hasattr(settings, "transparency_api_key") and settings.transparency_api_key:
+        settings_key = "Configured"
+
+    # Check service
+    service_key = None
+    if (
+        hasattr(chat_data_integration, "portal")
+        and chat_data_integration.portal.api_key
+    ):
+        service_key = "Loaded"
+
+    return {
+        "env_variable": "Found" if env_key else "Not Found",
+        "settings_config": settings_key or "Not Configured",
+        "service_loaded": service_key or "Not Loaded",
+        "portal_base_url": (
+            chat_data_integration.portal.BASE_URL
+            if hasattr(chat_data_integration, "portal")
+            else "Not initialized"
+        ),
     }
