@@ -103,6 +103,9 @@ class AgentPool:
         self._cleanup_task: Optional[asyncio.Task] = None
         self._running = False
 
+        # Lock for thread-safe pool operations
+        self._pool_lock = asyncio.Lock()
+
     async def start(self):
         """Start the agent pool and cleanup task."""
         self._running = True
@@ -172,31 +175,32 @@ class AgentPool:
 
     async def _get_or_create_agent(self, agent_type: type[BaseAgent]) -> AgentPoolEntry:
         """Get an available agent or create a new one."""
-        # Initialize pool for agent type if needed
-        if agent_type not in self._pools:
-            self._pools[agent_type] = []
+        async with self._pool_lock:
+            # Initialize pool for agent type if needed
+            if agent_type not in self._pools:
+                self._pools[agent_type] = []
 
-        pool = self._pools[agent_type]
+            pool = self._pools[agent_type]
 
-        # Find available agent
-        for entry in pool:
-            if not entry.in_use:
-                self._stats["reused"] += 1
-                logger.debug(f"Reusing agent {agent_type.__name__} from pool")
+            # Find available agent
+            for entry in pool:
+                if not entry.in_use:
+                    self._stats["reused"] += 1
+                    logger.debug(f"Reusing agent {agent_type.__name__} from pool")
+                    return entry
+
+            # Create new agent if under limit
+            if len(pool) < self.max_size:
+                agent = await self._create_agent(agent_type)
+                entry = AgentPoolEntry(agent)
+                pool.append(entry)
+                self._stats["created"] += 1
+                logger.info(
+                    f"Created new agent {agent_type.__name__} (pool size: {len(pool)})"
+                )
                 return entry
 
-        # Create new agent if under limit
-        if len(pool) < self.max_size:
-            agent = await self._create_agent(agent_type)
-            entry = AgentPoolEntry(agent)
-            pool.append(entry)
-            self._stats["created"] += 1
-            logger.info(
-                f"Created new agent {agent_type.__name__} (pool size: {len(pool)})"
-            )
-            return entry
-
-        # Wait for available agent
+        # Wait for available agent (outside lock to avoid deadlock)
         logger.warning(f"Agent pool full for {agent_type.__name__}, waiting...")
         while True:
             await asyncio.sleep(0.1)
@@ -266,14 +270,11 @@ class AgentPool:
             for entry in pool:
                 # Check idle timeout
                 if not entry.in_use and entry.idle_time > self.idle_timeout:
-                    # Keep minimum pool size
-                    active_count = sum(1 for e in pool if not e.in_use)
-                    if active_count > self.min_size:
-                        to_remove.append(entry)
+                    to_remove.append(entry)
 
                 # Check lifetime
                 lifetime = (datetime.now() - entry.created_at).total_seconds()
-                if lifetime > self.max_agent_lifetime:
+                if not entry.in_use and lifetime > self.max_agent_lifetime:
                     to_remove.append(entry)
 
             # Remove identified agents
@@ -339,6 +340,7 @@ class AgentPool:
                     agent = await self._create_agent(agent_type)
                     entry = AgentPoolEntry(agent)
                     pool.append(entry)
+                    self._stats["created"] += 1  # Increment stats
                     logger.info(f"Pre-warmed {agent_type.__name__} agent")
                 except Exception as e:
                     logger.error(f"Failed to prewarm {agent_type.__name__}: {e}")
