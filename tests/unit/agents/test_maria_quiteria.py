@@ -7,7 +7,7 @@ from unittest.mock import patch
 
 import pytest
 
-from src.agents.deodoro import AgentContext, AgentMessage
+from src.agents.deodoro import AgentContext, AgentMessage, AgentStatus
 from src.agents.maria_quiteria import (
     ComplianceFramework,
     MariaQuiteriaAgent,
@@ -62,8 +62,9 @@ class TestMariaQuiteriaAgent:
     ):
         """Test security analysis with dictionary input."""
         message = AgentMessage(
-            type="security_audit",
-            data={
+            action="security_audit",
+            recipient="MariaQuiteriaAgent",
+            payload={
                 "system_name": "Production Server",
                 "audit_scope": "full_system",
                 "compliance_frameworks": ["LGPD", "ISO27001"],
@@ -74,11 +75,10 @@ class TestMariaQuiteriaAgent:
 
         response = await maria_quiteria_agent.process(message, agent_context)
 
-        assert response.success is True
-        assert response.response_type == "security_analysis"
-        assert "security_assessment" in response.data
+        assert response.status == AgentStatus.COMPLETED
+        assert "security_assessment" in response.result
 
-        assessment = response.data["security_assessment"]
+        assessment = response.result["security_assessment"]
         assert "overall_threat_level" in assessment
         assert "security_score" in assessment
         assert "vulnerabilities_found" in assessment
@@ -91,16 +91,17 @@ class TestMariaQuiteriaAgent:
     ):
         """Test security analysis with simple string input."""
         message = AgentMessage(
-            type="security_audit",
-            data="Check system security status",
+            action="security_audit",
+            recipient="MariaQuiteriaAgent",
+            payload="Check system security status",
             sender="admin",
             metadata={},
         )
 
         response = await maria_quiteria_agent.process(message, agent_context)
 
-        assert response.success is True
-        assert response.data is not None
+        assert response.status == AgentStatus.COMPLETED
+        assert response.result is not None
 
     @pytest.mark.asyncio
     @pytest.mark.unit
@@ -109,15 +110,16 @@ class TestMariaQuiteriaAgent:
     ):
         """Test threat level classification."""
         message = AgentMessage(
-            type="security_audit",
-            data={"system_name": "Test System"},
+            action="security_audit",
+            recipient="MariaQuiteriaAgent",
+            payload={"system_name": "Test System"},
             sender="test",
             metadata={},
         )
 
         response = await maria_quiteria_agent.process(message, agent_context)
 
-        threat_level = response.data["security_assessment"]["overall_threat_level"]
+        threat_level = response.result["security_assessment"]["overall_threat_level"]
         assert threat_level in ["minimal", "low", "medium", "high", "critical"]
 
     @pytest.mark.asyncio
@@ -125,8 +127,9 @@ class TestMariaQuiteriaAgent:
     async def test_compliance_verification(self, maria_quiteria_agent, agent_context):
         """Test compliance verification for multiple frameworks."""
         message = AgentMessage(
-            type="security_audit",
-            data={
+            action="security_audit",
+            recipient="MariaQuiteriaAgent",
+            payload={
                 "system_name": "Data Processing System",
                 "compliance_frameworks": ["LGPD", "ISO27001", "OWASP"],
             },
@@ -136,7 +139,7 @@ class TestMariaQuiteriaAgent:
 
         response = await maria_quiteria_agent.process(message, agent_context)
 
-        compliance_status = response.data["security_assessment"]["compliance_status"]
+        compliance_status = response.result["security_assessment"]["compliance_status"]
         assert "LGPD" in compliance_status
         assert "ISO27001" in compliance_status
         assert "OWASP" in compliance_status
@@ -150,8 +153,9 @@ class TestMariaQuiteriaAgent:
     async def test_vulnerability_detection(self, maria_quiteria_agent, agent_context):
         """Test vulnerability detection and reporting."""
         message = AgentMessage(
-            type="vulnerability_scan",
-            data={"system_name": "Web Application", "scan_depth": "comprehensive"},
+            action="vulnerability_scan",
+            recipient="MariaQuiteriaAgent",
+            payload={"system_name": "Web Application", "scan_depth": "comprehensive"},
             sender="security_scanner",
             metadata={},
         )
@@ -159,7 +163,7 @@ class TestMariaQuiteriaAgent:
         response = await maria_quiteria_agent.process(message, agent_context)
 
         # Should have vulnerability count
-        vulnerabilities = response.data.get("security_assessment", {}).get(
+        vulnerabilities = response.result.get("security_assessment", {}).get(
             "vulnerabilities_found", 0
         )
         assert isinstance(vulnerabilities, int)
@@ -170,15 +174,16 @@ class TestMariaQuiteriaAgent:
     async def test_security_recommendations(self, maria_quiteria_agent, agent_context):
         """Test security recommendations generation."""
         message = AgentMessage(
-            type="security_audit",
-            data={"system_name": "Corporate Network"},
+            action="security_audit",
+            recipient="MariaQuiteriaAgent",
+            payload={"system_name": "Corporate Network"},
             sender="ciso",
             metadata={},
         )
 
         response = await maria_quiteria_agent.process(message, agent_context)
 
-        recommendations = response.data.get("recommendations", [])
+        recommendations = response.result.get("recommendations", [])
         assert isinstance(recommendations, list)
         assert len(recommendations) > 0
 
@@ -192,8 +197,9 @@ class TestMariaQuiteriaAgent:
     async def test_intrusion_detection_mode(self, maria_quiteria_agent, agent_context):
         """Test intrusion detection functionality."""
         message = AgentMessage(
-            type="intrusion_detection",
-            data={
+            action="intrusion_detection",
+            recipient="MariaQuiteriaAgent",
+            payload={
                 "network_data": [
                     {"src_ip": "192.168.1.100", "dst_port": 22, "packets": 1000},
                     {"src_ip": "10.0.0.50", "dst_port": 80, "packets": 500},
@@ -216,7 +222,7 @@ class TestMariaQuiteriaAgent:
         ) as mock_detect:
             response = await maria_quiteria_agent.process(message, agent_context)
 
-            assert response.success is True
+            assert response.status == AgentStatus.COMPLETED
             assert mock_detect.called
             mock_detect.assert_called_once()
 
@@ -227,15 +233,16 @@ class TestMariaQuiteriaAgent:
     ):
         """Test security score calculation."""
         message = AgentMessage(
-            type="security_audit",
-            data={"system_name": "Secure System"},
+            action="security_audit",
+            recipient="MariaQuiteriaAgent",
+            payload={"system_name": "Secure System"},
             sender="auditor",
             metadata={},
         )
 
         response = await maria_quiteria_agent.process(message, agent_context)
 
-        security_score = response.data["security_assessment"]["security_score"]
+        security_score = response.result["security_assessment"]["security_score"]
         assert isinstance(security_score, float)
         assert 0 <= security_score <= 1
 
@@ -244,15 +251,16 @@ class TestMariaQuiteriaAgent:
     async def test_analysis_confidence(self, maria_quiteria_agent, agent_context):
         """Test analysis confidence scoring."""
         message = AgentMessage(
-            type="security_audit",
-            data={"system_name": "Test Environment"},
+            action="security_audit",
+            recipient="MariaQuiteriaAgent",
+            payload={"system_name": "Test Environment"},
             sender="qa_team",
             metadata={},
         )
 
         response = await maria_quiteria_agent.process(message, agent_context)
 
-        confidence = response.data.get("analysis_confidence", 0)
+        confidence = response.result.get("analysis_confidence", 0)
         assert isinstance(confidence, float)
         assert 0 <= confidence <= 1
         assert confidence >= 0.85  # High confidence for security assessments
@@ -262,8 +270,9 @@ class TestMariaQuiteriaAgent:
     async def test_error_handling(self, maria_quiteria_agent, agent_context):
         """Test error handling for invalid requests."""
         message = AgentMessage(
-            type="invalid_security_action",
-            data={"invalid": "data"},
+            action="invalid_security_action",
+            recipient="MariaQuiteriaAgent",
+            payload={"invalid": "data"},
             sender="test",
             metadata={},
         )
@@ -276,9 +285,8 @@ class TestMariaQuiteriaAgent:
         ):
             response = await maria_quiteria_agent.process(message, agent_context)
 
-            assert response.success is False
-            assert response.response_type == "error"
-            assert "error" in response.data
+            assert response.status == AgentStatus.ERROR
+            assert "error" in response.result
 
 
 class TestSecurityThreatLevel:

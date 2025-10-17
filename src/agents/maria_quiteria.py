@@ -15,7 +15,7 @@ from typing import Any, Optional
 import numpy as np
 
 from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
-from src.core import get_logger
+from src.core import AgentStatus, get_logger
 from src.core.exceptions import AgentExecutionError
 
 
@@ -328,23 +328,23 @@ class MariaQuiteriaAgent(BaseAgent):
             self.logger.info(
                 "Processing security analysis request",
                 investigation_id=context.investigation_id,
-                message_type=message.type,
+                message_type=message.action,
             )
 
             # Determine security action
-            action = message.type if hasattr(message, "type") else "security_audit"
+            action = message.action if hasattr(message, "type") else "security_audit"
 
             # Route to appropriate security function
             if action == "intrusion_detection":
                 result = await self.detect_intrusions(
-                    message.data.get("network_data", []),
-                    message.data.get("time_window_minutes", 60),
+                    message.payload.get("network_data", []),
+                    message.payload.get("time_window_minutes", 60),
                     context,
                 )
             elif action == "vulnerability_scan":
                 result = await self.perform_security_audit(
-                    message.data.get("system_name", "unknown"),
-                    message.data.get(
+                    message.payload.get("system_name", "unknown"),
+                    message.payload.get(
                         "compliance_frameworks", [ComplianceFramework.LGPD]
                     ),
                     context,
@@ -353,19 +353,18 @@ class MariaQuiteriaAgent(BaseAgent):
                 # Default security audit
                 result = await self._perform_comprehensive_security_analysis(
                     (
-                        message.data
-                        if isinstance(message.data, dict)
-                        else {"query": str(message.data)}
+                        message.payload
+                        if isinstance(message.payload, dict)
+                        else {"query": str(message.payload)}
                     ),
                     context,
                 )
 
             return AgentResponse(
                 agent_name=self.name,
-                response_type="security_analysis",
-                data=result,
-                success=True,
-                context=context,
+                status=AgentStatus.COMPLETED,
+                result=result,
+                metaresult={"response_type": "security_analysis"},
             )
 
         except Exception as e:
@@ -378,10 +377,10 @@ class MariaQuiteriaAgent(BaseAgent):
 
             return AgentResponse(
                 agent_name=self.name,
-                response_type="error",
-                data={"error": str(e), "analysis_type": "security"},
-                success=False,
-                context=context,
+                status=AgentStatus.ERROR,
+                error=str(e),
+                result={"error": str(e), "analysis_type": "security"},
+                metadata={"response_type": "error"},
             )
 
     async def _perform_comprehensive_security_analysis(
@@ -2493,7 +2492,9 @@ class MariaQuiteriaAgent(BaseAgent):
         self.logger.info("Performing security analysis reflection", task=task)
 
         # Extract current quality metrics
-        security_score = result.get("security_assessment", {}).get("security_score", 0.5)
+        security_score = result.get("security_assessment", {}).get(
+            "security_score", 0.5
+        )
         vulnerabilities_found = result.get("security_assessment", {}).get(
             "vulnerabilities_found", 0
         )
@@ -2519,7 +2520,9 @@ class MariaQuiteriaAgent(BaseAgent):
 
         # If no quality issues, return original result
         if not quality_issues:
-            self.logger.info("Security analysis quality acceptable", score=security_score)
+            self.logger.info(
+                "Security analysis quality acceptable", score=security_score
+            )
             return result
 
         # Enhance the result based on quality issues
@@ -2533,18 +2536,22 @@ class MariaQuiteriaAgent(BaseAgent):
         enhanced_recommendations = recommendations.copy()
 
         if "low_security_score" in quality_issues:
-            enhanced_recommendations.extend([
-                "Conduct comprehensive security assessment",
-                "Implement defense-in-depth strategy",
-                "Schedule emergency security review",
-            ])
+            enhanced_recommendations.extend(
+                [
+                    "Conduct comprehensive security assessment",
+                    "Implement defense-in-depth strategy",
+                    "Schedule emergency security review",
+                ]
+            )
 
         if "insufficient_recommendations" in quality_issues:
-            enhanced_recommendations.extend([
-                "Deploy intrusion detection system",
-                "Implement automated security monitoring",
-                "Enable real-time threat intelligence feeds",
-            ])
+            enhanced_recommendations.extend(
+                [
+                    "Deploy intrusion detection system",
+                    "Implement automated security monitoring",
+                    "Enable real-time threat intelligence feeds",
+                ]
+            )
 
         if "threat_level_mismatch" in quality_issues:
             # Upgrade threat level
@@ -2559,7 +2566,9 @@ class MariaQuiteriaAgent(BaseAgent):
 
         # Create enhanced result
         enhanced_result = result.copy()
-        enhanced_result["recommendations"] = list(dict.fromkeys(enhanced_recommendations))  # Remove duplicates
+        enhanced_result["recommendations"] = list(
+            dict.fromkeys(enhanced_recommendations)
+        )  # Remove duplicates
         enhanced_result["analysis_confidence"] = min(
             result.get("analysis_confidence", 0.85) + 0.05, 0.95
         )
@@ -2567,7 +2576,9 @@ class MariaQuiteriaAgent(BaseAgent):
         enhanced_result["quality_improvements"] = quality_issues
 
         if "security_assessment" in enhanced_result:
-            enhanced_result["security_assessment"]["overall_threat_level"] = threat_level
+            enhanced_result["security_assessment"][
+                "overall_threat_level"
+            ] = threat_level
 
         self.logger.info(
             "Security analysis enhanced through reflection",
