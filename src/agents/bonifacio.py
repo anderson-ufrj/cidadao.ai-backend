@@ -17,7 +17,7 @@ from pydantic import BaseModel
 from pydantic import Field as PydanticField
 
 from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
-from src.core import get_logger
+from src.core import AgentStatus, get_logger
 
 
 class PolicyStatus(Enum):
@@ -220,14 +220,14 @@ class BonifacioAgent(BaseAgent):
             self.logger.info(
                 "Processing policy analysis request",
                 investigation_id=context.investigation_id,
-                message_type=message.type,
+                message_type=message.action,
             )
 
             # Parse request
-            if isinstance(message.data, dict):
-                request = PolicyAnalysisRequest(**message.data)
+            if isinstance(message.payload, dict):
+                request = PolicyAnalysisRequest(**message.payload)
             else:
-                request = PolicyAnalysisRequest(policy_name=str(message.data))
+                request = PolicyAnalysisRequest(policy_name=str(message.payload))
 
             # Perform comprehensive policy evaluation
             evaluation = await self._evaluate_policy(request, context)
@@ -297,10 +297,9 @@ class BonifacioAgent(BaseAgent):
 
             return AgentResponse(
                 agent_name=self.name,
-                response_type="policy_analysis",
-                data=response_data,
-                success=True,
-                context=context,
+                status=AgentStatus.COMPLETED,
+                result=response_data,
+                metadata={"response_type": "policy_analysis"},
             )
 
         except Exception as e:
@@ -313,10 +312,10 @@ class BonifacioAgent(BaseAgent):
 
             return AgentResponse(
                 agent_name=self.name,
-                response_type="error",
-                data={"error": str(e), "analysis_type": "policy_effectiveness"},
-                success=False,
-                context=context,
+                status=AgentStatus.ERROR,
+                error=str(e),
+                result={"error": str(e), "analysis_type": "policy_effectiveness"},
+                metadata={"response_type": "error"},
             )
 
     async def _evaluate_policy(

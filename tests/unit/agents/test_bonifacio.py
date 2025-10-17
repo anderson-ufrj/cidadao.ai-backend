@@ -9,6 +9,7 @@ import pytest
 
 from src.agents.bonifacio import BonifacioAgent, PolicyIndicator
 from src.agents.deodoro import AgentContext, AgentMessage
+from src.core import AgentStatus
 
 
 @pytest.fixture
@@ -54,8 +55,9 @@ class TestBonifacioAgent:
     ):
         """Test policy analysis with dictionary input."""
         message = AgentMessage(
-            type="policy_analysis",
-            data={
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
                 "policy_name": "Programa Nacional de Educação Digital",
                 "policy_area": "education",
                 "geographical_scope": "federal",
@@ -68,11 +70,10 @@ class TestBonifacioAgent:
 
         response = await bonifacio_agent.process(message, agent_context)
 
-        assert response.success is True
-        assert response.response_type == "policy_analysis"
-        assert "policy_evaluation" in response.data
+        assert response.status == AgentStatus.COMPLETED
+        assert "policy_evaluation" in response.result
 
-        evaluation = response.data["policy_evaluation"]
+        evaluation = response.result["policy_evaluation"]
         assert evaluation["policy_name"] == "Programa Nacional de Educação Digital"
         assert "effectiveness_scores" in evaluation
         assert "roi_social" in evaluation
@@ -84,17 +85,18 @@ class TestBonifacioAgent:
     async def test_policy_analysis_with_string(self, bonifacio_agent, agent_context):
         """Test policy analysis with simple string input."""
         message = AgentMessage(
-            type="policy_analysis",
-            data="Programa Bolsa Família",
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload="Programa Bolsa Família",
             sender="analyst",
             metadata={},
         )
 
         response = await bonifacio_agent.process(message, agent_context)
 
-        assert response.success is True
+        assert response.status == AgentStatus.COMPLETED
         assert (
-            response.data["policy_evaluation"]["policy_name"]
+            response.result["policy_evaluation"]["policy_name"]
             == "Programa Bolsa Família"
         )
 
@@ -105,8 +107,9 @@ class TestBonifacioAgent:
     ):
         """Test effectiveness score calculation logic."""
         message = AgentMessage(
-            type="policy_analysis",
-            data={
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
                 "policy_name": "Test Policy",
                 "budget_data": {
                     "planned": 100_000_000,
@@ -119,7 +122,7 @@ class TestBonifacioAgent:
 
         response = await bonifacio_agent.process(message, agent_context)
 
-        scores = response.data["policy_evaluation"]["effectiveness_scores"]
+        scores = response.result["policy_evaluation"]["effectiveness_scores"]
         assert "efficacy" in scores
         assert "efficiency" in scores
         assert "effectiveness" in scores
@@ -134,15 +137,16 @@ class TestBonifacioAgent:
     async def test_impact_level_classification(self, bonifacio_agent, agent_context):
         """Test impact level classification based on effectiveness."""
         message = AgentMessage(
-            type="policy_analysis",
-            data="High Impact Policy Test",
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload="High Impact Policy Test",
             sender="test",
             metadata={},
         )
 
         response = await bonifacio_agent.process(message, agent_context)
 
-        impact_level = response.data["policy_evaluation"]["impact_level"]
+        impact_level = response.result["policy_evaluation"]["impact_level"]
         assert impact_level in ["very_low", "low", "medium", "high", "very_high"]
 
     @pytest.mark.unit
@@ -150,8 +154,9 @@ class TestBonifacioAgent:
     async def test_policy_indicators_evaluation(self, bonifacio_agent, agent_context):
         """Test evaluation of policy performance indicators."""
         message = AgentMessage(
-            type="policy_analysis",
-            data={
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
                 "policy_name": "Healthcare Initiative",
                 "policy_area": "health",
                 "target_indicators": ["mortality_rate", "vaccination_coverage"],
@@ -162,7 +167,7 @@ class TestBonifacioAgent:
 
         response = await bonifacio_agent.process(message, agent_context)
 
-        indicators = response.data["indicators"]
+        indicators = response.result["indicators"]
         assert len(indicators) > 0
 
         for indicator in indicators:
@@ -180,8 +185,9 @@ class TestBonifacioAgent:
     async def test_strategic_recommendations(self, bonifacio_agent, agent_context):
         """Test strategic recommendations generation."""
         message = AgentMessage(
-            type="policy_analysis",
-            data={
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
                 "policy_name": "Education Reform",
                 "budget_data": {
                     "planned": 100_000_000,
@@ -194,7 +200,7 @@ class TestBonifacioAgent:
 
         response = await bonifacio_agent.process(message, agent_context)
 
-        recommendations = response.data["strategic_recommendations"]
+        recommendations = response.result["strategic_recommendations"]
         assert len(recommendations) > 0
 
         # Should have budget recommendation due to high deviation
@@ -209,8 +215,9 @@ class TestBonifacioAgent:
     async def test_benchmarking_analysis(self, bonifacio_agent, agent_context):
         """Test benchmarking against similar policies."""
         message = AgentMessage(
-            type="policy_analysis",
-            data={
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
                 "policy_name": "Digital Inclusion Program",
                 "comparison_policies": ["Previous Digital Program"],
                 "benchmarking_scope": "national",
@@ -221,7 +228,7 @@ class TestBonifacioAgent:
 
         response = await bonifacio_agent.process(message, agent_context)
 
-        benchmarking = response.data["benchmarking"]
+        benchmarking = response.result["benchmarking"]
         assert "reference_policies" in benchmarking
         assert "percentile_ranking" in benchmarking
         assert "improvement_potential" in benchmarking
@@ -237,15 +244,16 @@ class TestBonifacioAgent:
     async def test_sustainability_assessment(self, bonifacio_agent, agent_context):
         """Test policy sustainability scoring."""
         message = AgentMessage(
-            type="policy_analysis",
-            data="Long-term Infrastructure Project",
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload="Long-term Infrastructure Project",
             sender="planning_dept",
             metadata={},
         )
 
         response = await bonifacio_agent.process(message, agent_context)
 
-        sustainability_score = response.data["policy_evaluation"][
+        sustainability_score = response.result["policy_evaluation"][
             "sustainability_score"
         ]
         assert isinstance(sustainability_score, int)
@@ -256,8 +264,9 @@ class TestBonifacioAgent:
     async def test_social_roi_calculation(self, bonifacio_agent, agent_context):
         """Test social return on investment calculation."""
         message = AgentMessage(
-            type="policy_analysis",
-            data={
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
                 "policy_name": "Social Investment Program",
                 "budget_data": {"planned": 50_000_000, "executed": 45_000_000},
             },
@@ -267,7 +276,7 @@ class TestBonifacioAgent:
 
         response = await bonifacio_agent.process(message, agent_context)
 
-        roi_social = response.data["policy_evaluation"]["roi_social"]
+        roi_social = response.result["policy_evaluation"]["roi_social"]
         assert isinstance(roi_social, float)
         # ROI can be negative (loss) or positive (gain)
         assert -10 <= roi_social <= 10  # Reasonable bounds for social ROI
@@ -277,29 +286,33 @@ class TestBonifacioAgent:
     async def test_error_handling(self, bonifacio_agent, agent_context):
         """Test error handling for malformed requests."""
         message = AgentMessage(
-            type="invalid_action", data={"invalid": "data"}, sender="test", metadata={}
+            action="invalid_action",
+            recipient="bonifacio",
+            payload={"invalid": "data"},
+            sender="test",
+            metadata={},
         )
 
         response = await bonifacio_agent.process(message, agent_context)
 
-        assert response.success is False
-        assert response.response_type == "error"
-        assert "error" in response.data
+        assert response.status == AgentStatus.ERROR
+        assert "error" in response.result
 
     @pytest.mark.unit
     @pytest.mark.asyncio
     async def test_evidence_hash_generation(self, bonifacio_agent, agent_context):
         """Test evidence hash for verification."""
         message = AgentMessage(
-            type="policy_analysis",
-            data="Test Policy for Hash",
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload="Test Policy for Hash",
             sender="auditor",
             metadata={},
         )
 
         response = await bonifacio_agent.process(message, agent_context)
 
-        hash_verification = response.data["hash_verification"]
+        hash_verification = response.result["hash_verification"]
         assert isinstance(hash_verification, str)
         assert len(hash_verification) == 64  # SHA-256 hash length
 
@@ -308,8 +321,9 @@ class TestBonifacioAgent:
     async def test_coverage_analysis(self, bonifacio_agent, agent_context):
         """Test beneficiary coverage analysis."""
         message = AgentMessage(
-            type="policy_analysis",
-            data={
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
                 "policy_name": "Universal Healthcare",
                 "policy_area": "health",
                 "geographical_scope": "national",
@@ -320,7 +334,7 @@ class TestBonifacioAgent:
 
         response = await bonifacio_agent.process(message, agent_context)
 
-        beneficiaries = response.data["policy_evaluation"]["beneficiaries"]
+        beneficiaries = response.result["policy_evaluation"]["beneficiaries"]
         assert "target_population" in beneficiaries
         assert "reached_population" in beneficiaries
         assert "coverage_rate" in beneficiaries
