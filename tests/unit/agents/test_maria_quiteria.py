@@ -55,6 +55,7 @@ class TestMariaQuiteriaAgent:
         assert maria_quiteria_agent.security_config["max_failed_attempts"] == 5
         assert maria_quiteria_agent.security_config["threat_detection_threshold"] == 0.7
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_security_analysis_with_dict(
         self, maria_quiteria_agent, agent_context
@@ -83,6 +84,7 @@ class TestMariaQuiteriaAgent:
         assert "vulnerabilities_found" in assessment
         assert "compliance_status" in assessment
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_security_analysis_with_string(
         self, maria_quiteria_agent, agent_context
@@ -100,6 +102,7 @@ class TestMariaQuiteriaAgent:
         assert response.success is True
         assert response.data is not None
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_threat_level_classification(
         self, maria_quiteria_agent, agent_context
@@ -117,6 +120,7 @@ class TestMariaQuiteriaAgent:
         threat_level = response.data["security_assessment"]["overall_threat_level"]
         assert threat_level in ["minimal", "low", "medium", "high", "critical"]
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_compliance_verification(self, maria_quiteria_agent, agent_context):
         """Test compliance verification for multiple frameworks."""
@@ -141,6 +145,7 @@ class TestMariaQuiteriaAgent:
         for framework, score in compliance_status.items():
             assert 0 <= score <= 1
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_vulnerability_detection(self, maria_quiteria_agent, agent_context):
         """Test vulnerability detection and reporting."""
@@ -160,6 +165,7 @@ class TestMariaQuiteriaAgent:
         assert isinstance(vulnerabilities, int)
         assert vulnerabilities >= 0
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_security_recommendations(self, maria_quiteria_agent, agent_context):
         """Test security recommendations generation."""
@@ -181,6 +187,7 @@ class TestMariaQuiteriaAgent:
             assert isinstance(rec, str)
             assert len(rec) > 10  # Non-trivial recommendation
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_intrusion_detection_mode(self, maria_quiteria_agent, agent_context):
         """Test intrusion detection functionality."""
@@ -213,6 +220,7 @@ class TestMariaQuiteriaAgent:
             assert mock_detect.called
             mock_detect.assert_called_once()
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_security_score_calculation(
         self, maria_quiteria_agent, agent_context
@@ -231,6 +239,7 @@ class TestMariaQuiteriaAgent:
         assert isinstance(security_score, float)
         assert 0 <= security_score <= 1
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_analysis_confidence(self, maria_quiteria_agent, agent_context):
         """Test analysis confidence scoring."""
@@ -248,6 +257,7 @@ class TestMariaQuiteriaAgent:
         assert 0 <= confidence <= 1
         assert confidence >= 0.85  # High confidence for security assessments
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_error_handling(self, maria_quiteria_agent, agent_context):
         """Test error handling for invalid requests."""
