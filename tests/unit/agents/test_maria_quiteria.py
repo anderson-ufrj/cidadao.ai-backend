@@ -3,7 +3,7 @@ Unit tests for Maria Quitéria Agent - Security auditor and system guardian.
 Tests security auditing, threat detection, and compliance verification capabilities.
 """
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -217,8 +217,11 @@ class TestMariaQuiteriaAgent:
             "suspicious_ips": ["192.168.1.100"],
         }
 
+        # Use AsyncMock for async methods
         with patch.object(
-            maria_quiteria_agent, "detect_intrusions", return_value=mock_result
+            maria_quiteria_agent,
+            "detect_intrusions",
+            new=AsyncMock(return_value=mock_result),
         ) as mock_detect:
             response = await maria_quiteria_agent.process(message, agent_context)
 
