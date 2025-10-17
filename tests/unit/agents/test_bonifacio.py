@@ -7,10 +7,7 @@ from datetime import datetime
 
 import pytest
 
-from src.agents.bonifacio import (
-    BonifacioAgent,
-    PolicyIndicator,
-)
+from src.agents.bonifacio import BonifacioAgent, PolicyIndicator
 from src.agents.deodoro import AgentContext, AgentMessage
 
 
@@ -51,6 +48,7 @@ class TestBonifacioAgent:
         assert len(bonifacio_agent.capabilities) == 14
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_policy_effectiveness_analysis_with_dict(
         self, bonifacio_agent, agent_context
     ):
@@ -82,6 +80,7 @@ class TestBonifacioAgent:
         assert "impact_level" in evaluation
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_policy_analysis_with_string(self, bonifacio_agent, agent_context):
         """Test policy analysis with simple string input."""
         message = AgentMessage(
@@ -100,6 +99,7 @@ class TestBonifacioAgent:
         )
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_effectiveness_score_calculation(
         self, bonifacio_agent, agent_context
     ):
@@ -130,6 +130,7 @@ class TestBonifacioAgent:
             assert 0 <= score_value <= 1
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_impact_level_classification(self, bonifacio_agent, agent_context):
         """Test impact level classification based on effectiveness."""
         message = AgentMessage(
@@ -145,6 +146,7 @@ class TestBonifacioAgent:
         assert impact_level in ["very_low", "low", "medium", "high", "very_high"]
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_policy_indicators_evaluation(self, bonifacio_agent, agent_context):
         """Test evaluation of policy performance indicators."""
         message = AgentMessage(
@@ -174,6 +176,7 @@ class TestBonifacioAgent:
             assert indicator["trend"] in ["improving", "deteriorating", "stable"]
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_strategic_recommendations(self, bonifacio_agent, agent_context):
         """Test strategic recommendations generation."""
         message = AgentMessage(
@@ -202,6 +205,7 @@ class TestBonifacioAgent:
         assert budget_rec["priority"] == "high"
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_benchmarking_analysis(self, bonifacio_agent, agent_context):
         """Test benchmarking against similar policies."""
         message = AgentMessage(
@@ -229,6 +233,7 @@ class TestBonifacioAgent:
             assert 0 <= rankings[metric] <= 100
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_sustainability_assessment(self, bonifacio_agent, agent_context):
         """Test policy sustainability scoring."""
         message = AgentMessage(
@@ -247,6 +252,7 @@ class TestBonifacioAgent:
         assert 0 <= sustainability_score <= 100
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_social_roi_calculation(self, bonifacio_agent, agent_context):
         """Test social return on investment calculation."""
         message = AgentMessage(
@@ -267,6 +273,7 @@ class TestBonifacioAgent:
         assert -10 <= roi_social <= 10  # Reasonable bounds for social ROI
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_error_handling(self, bonifacio_agent, agent_context):
         """Test error handling for malformed requests."""
         message = AgentMessage(
@@ -280,6 +287,7 @@ class TestBonifacioAgent:
         assert "error" in response.data
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_evidence_hash_generation(self, bonifacio_agent, agent_context):
         """Test evidence hash for verification."""
         message = AgentMessage(
@@ -296,6 +304,7 @@ class TestBonifacioAgent:
         assert len(hash_verification) == 64  # SHA-256 hash length
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_coverage_analysis(self, bonifacio_agent, agent_context):
         """Test beneficiary coverage analysis."""
         message = AgentMessage(
