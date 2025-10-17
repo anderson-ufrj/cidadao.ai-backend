@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from src.core.exceptions import LLMError, LLMRateLimitError
+from src.core.exceptions import LLMError
 from src.services.maritaca_client import (
     MaritacaClient,
     MaritacaMessage,
