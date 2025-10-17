@@ -398,6 +398,9 @@ class MaritacaClient:
                     details={"provider": "maritaca"},
                 )
 
+            except (LLMError, LLMRateLimitError):
+                # Re-raise LLM exceptions without wrapping them
+                raise
             except Exception as e:
                 self._record_failure()
                 self.logger.error(
