@@ -40,7 +40,7 @@ def obaluaie_agent(mock_healing_service):
 @pytest.mark.skip(
     reason="HealingAnalysisService not implemented - tests require mock of unimplemented service"
 )
-class TestCorruptionDetectorAgent:
+class TestObaluaieAgent:
     @pytest.mark.unit
     def test_agent_initialization(self, obaluaie_agent):
         assert obaluaie_agent.name == "Obaluaiê"
