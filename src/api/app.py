@@ -694,6 +694,20 @@ async def api_info() -> dict[str, Any]:
     }
 
 
+def create_app() -> FastAPI:
+    """
+    Factory function to create the FastAPI application.
+
+    This function exists for backward compatibility with tests that expect
+    a create_app() factory function. The actual app is created at module level
+    above for direct import.
+
+    Returns:
+        FastAPI: The application instance
+    """
+    return app
+
+
 if __name__ == "__main__":
     import uvicorn
 
