@@ -711,8 +711,12 @@ class BonifacioAgent(BaseAgent):
             # Monetize improvement based on indicator type (IPEA social benefit estimates)
             # More important indicators (earlier in list) have higher benefit values
             benefit_per_unit = 500 - (i * 80)  # R$ 500, 420, 340, 260, 180 per unit
+            # Scale by dividing reached_population by 1000 (express per thousand people)
             social_benefits += (
-                improvement * benefit_per_unit * beneficiaries["reached_population"]
+                improvement
+                * benefit_per_unit
+                * beneficiaries["reached_population"]
+                / 1000
             )
 
         # Calculate ROI
