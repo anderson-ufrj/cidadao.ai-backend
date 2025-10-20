@@ -12,9 +12,8 @@ from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Response
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from pydantic import Field as PydanticField
-from pydantic import validator
 
 from src.agents import AgentContext
 from src.agents.tiradentes import ReporterAgent
@@ -512,9 +511,9 @@ async def _generate_report(report_id: str, request: ReportRequest):
 
         # Create agent context
         context = AgentContext(
-            conversation_id=report_id,
+            investigation_id=report_id,
             user_id=report["user_id"],
-            session_data={"report_type": request.report_type},
+            metadata={"report_type": request.report_type},
         )
 
         # Initialize ReporterAgent
@@ -524,9 +523,8 @@ async def _generate_report(report_id: str, request: ReportRequest):
         report["progress"] = 0.3
 
         # Create report request for Tiradentes
-        from src.agents.tiradentes import ReportFormat
+        from src.agents.tiradentes import ReportFormat, ReportType
         from src.agents.tiradentes import ReportRequest as TiradentesReportRequest
-        from src.agents.tiradentes import ReportType
 
         # Map report type
         report_type_map = {
