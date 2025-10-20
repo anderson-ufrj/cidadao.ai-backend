@@ -6,7 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **Cidadão.AI Backend** is a production-ready multi-agent AI system for Brazilian government transparency analysis. It uses 17 specialized AI agents with Brazilian cultural identities to analyze public contracts, detect anomalies, and generate comprehensive reports.
 
-**Current Status**: Deployed on HuggingFace Spaces, 80%+ test coverage, 17/17 agents operational
+**Current Status**: Deployed on Railway (Production), 80%+ test coverage, 17/17 agents operational
+**Production URL**: https://cidadao-api-production.up.railway.app/
 
 ## Critical Development Commands
 
@@ -400,20 +401,28 @@ municipalities = await client.get_municipalities(state_code="33")  # Rio de Jane
 
 ## Deployment
 
-### HuggingFace Spaces (Current Production)
-- **Entry point**: Uses `src/api/app.py` directly (NO `app.py` in root)
-- **Branch**: Deploy from `main` branch
-- **Resources**: 2 vCPU, 16GB RAM
-- **Environment**: Set variables in HF Spaces settings
-- **Auto-deploy**: Enabled on push
+### Railway (Current Production)
+- **URL**: https://cidadao-api-production.up.railway.app/
+- **Full features**: PostgreSQL, Redis, Celery workers
+- **Environment**: Configure variables in Railway dashboard
+- **Auto-deploy**: Enabled from GitHub main branch
 
-### Railway (Alternative)
-Full features with Celery, PostgreSQL, Redis:
 ```bash
+# Deploy to Railway
 railway login
 railway link
 railway up
+
+# Set environment variables
+railway variables set GROQ_API_KEY=xxx
+railway variables set JWT_SECRET_KEY=xxx
+railway variables set SECRET_KEY=xxx
 ```
+
+### HuggingFace Spaces (Archived - Pre v1.0)
+**Note**: HuggingFace deployment was used during development but migrated to Railway before v1.0 launch.
+- **Documentation**: See `/docs/archive/HUGGINGFACE_DEPLOYMENT_ARCHIVED.md` for historical reference
+- **Status**: No longer in use
 
 ### Local Docker
 ```bash
