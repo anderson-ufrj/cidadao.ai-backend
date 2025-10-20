@@ -12,9 +12,8 @@ from typing import Any, Optional
 from urllib.parse import urljoin
 
 import httpx
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from pydantic import Field as PydanticField
-from pydantic import validator
 
 from src.core import get_logger, settings
 from src.core.exceptions import DataNotFoundError, TransparencyAPIError
@@ -91,8 +90,8 @@ class TransparencyAPIFilter(BaseModel):
     cnpj_contratado: Optional[str] = PydanticField(
         default=None, description="Contracted CNPJ"
     )
-    modalidade: Optional[int] = PydanticField(
-        default=None, description="Bidding modality"
+    modalidade: Optional[Any] = PydanticField(
+        default=None, description="Bidding modality (int code or string name)"
     )
     pagina: int = PydanticField(default=1, ge=1, description="Page number")
     tamanho_pagina: int = PydanticField(
