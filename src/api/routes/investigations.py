@@ -20,9 +20,6 @@ from src.agents import AgentContext, InvestigatorAgent
 from src.agents.zumbi_wrapper import patch_investigator_agent
 from src.api.middleware.authentication import get_current_user
 from src.config.system_users import SYSTEM_AUTO_MONITOR_USER_ID
-
-# Patch InvestigatorAgent with the wrapper method
-patch_investigator_agent()
 from src.core import get_logger, json_utils
 from src.infrastructure.observability.metrics import (
     BusinessMetrics,
@@ -36,6 +33,9 @@ from src.tools import TransparencyAPIFilter
 logger = get_logger(__name__)
 
 router = APIRouter()
+
+# Apply the wrapper to InvestigatorAgent to add investigate_anomalies method
+patch_investigator_agent()
 
 
 class InvestigationRequest(BaseModel):
