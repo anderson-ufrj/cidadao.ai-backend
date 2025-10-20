@@ -11,9 +11,8 @@ from typing import Any, Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from pydantic import Field as PydanticField
-from pydantic import validator
 
 from src.agents import AgentContext, AnalystAgent
 from src.api.middleware.authentication import get_current_user
@@ -210,9 +209,9 @@ async def get_spending_trends(
     try:
         # Create agent context
         context = AgentContext(
-            conversation_id=str(uuid4()),
+            investigation_id=str(uuid4()),
             user_id=current_user.get("user_id"),
-            session_data={"analysis_type": "trends"},
+            metadata={"analysis_type": "trends"},
         )
 
         # Initialize AnalystAgent
@@ -275,9 +274,9 @@ async def get_correlations(
     try:
         # Create agent context
         context = AgentContext(
-            conversation_id=str(uuid4()),
+            investigation_id=str(uuid4()),
             user_id=current_user.get("user_id"),
-            session_data={"analysis_type": "correlations"},
+            metadata={"analysis_type": "correlations"},
         )
 
         # Initialize AnalystAgent
@@ -344,9 +343,9 @@ async def detect_patterns(
     try:
         # Create agent context
         context = AgentContext(
-            conversation_id=str(uuid4()),
+            investigation_id=str(uuid4()),
             user_id=current_user.get("user_id"),
-            session_data={"analysis_type": "patterns"},
+            metadata={"analysis_type": "patterns"},
         )
 
         # Initialize AnalystAgent
@@ -533,9 +532,9 @@ async def _run_analysis(analysis_id: str, request: AnalysisRequest):
 
         # Create agent context
         context = AgentContext(
-            conversation_id=analysis_id,
+            investigation_id=analysis_id,
             user_id=analysis["user_id"],
-            session_data={"analysis_type": request.analysis_type},
+            metadata={"analysis_type": request.analysis_type},
         )
 
         # Initialize AnalystAgent

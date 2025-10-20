@@ -13,9 +13,8 @@ from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 from pydantic import Field as PydanticField
-from pydantic import validator
 
 from src.agents import AgentContext, InvestigatorAgent
 from src.api.middleware.authentication import get_current_user
@@ -486,9 +485,9 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
 
         # Create agent context
         context = AgentContext(
-            conversation_id=investigation_id,
+            investigation_id=investigation_id,
             user_id=investigation["user_id"],
-            session_data={"investigation_query": request.query},
+            metadata={"investigation_query": request.query},
         )
 
         # Initialize InvestigatorAgent
