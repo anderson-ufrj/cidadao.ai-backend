@@ -425,6 +425,55 @@ async def check_database_constraints() -> dict[str, Any]:
     return result
 
 
+@router.post("/add-investigation-columns")
+async def add_investigation_columns() -> dict[str, Any]:
+    """Add missing investigation tracking columns (SAFE - uses IF NOT EXISTS)."""
+
+    result = {"status": "started", "columns_added": [], "errors": []}
+
+    try:
+        from src.infrastructure.database import get_db_pool
+
+        pool = await get_db_pool()
+
+        # SQL commands to add missing columns
+        columns_to_add = [
+            ("progress", "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS progress FLOAT DEFAULT 0.0"),
+            ("current_phase", "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS current_phase VARCHAR(100) DEFAULT 'pending'"),
+            ("summary", "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS summary TEXT"),
+            ("records_processed", "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS records_processed INTEGER DEFAULT 0"),
+        ]
+
+        async with pool.acquire() as conn:
+            for column_name, sql in columns_to_add:
+                try:
+                    await conn.execute(sql)
+                    result["columns_added"].append({
+                        "column": column_name,
+                        "status": "success",
+                        "message": f"Column '{column_name}' added successfully"
+                    })
+                except Exception as e:
+                    result["errors"].append({
+                        "column": column_name,
+                        "error": str(e),
+                        "type": type(e).__name__
+                    })
+
+        result["status"] = "completed" if not result["errors"] else "completed_with_errors"
+
+    except Exception as e:
+        result["status"] = "error"
+        result["errors"].append({
+            "phase": "database_connection",
+            "error": str(e),
+            "type": type(e).__name__,
+            "traceback": traceback.format_exc(),
+        })
+
+    return result
+
+
 @router.post("/fix-database")
 async def fix_database_schema() -> dict[str, Any]:
     """Fix database schema issues (USE WITH CAUTION IN PRODUCTION)."""
