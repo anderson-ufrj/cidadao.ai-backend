@@ -333,8 +333,10 @@ async def run_migration() -> dict[str, Any]:
         import subprocess
 
         # Check current migration version
+        alembic_cmd = "venv/bin/alembic" if os.path.exists("venv/bin/alembic") else "alembic"
+
         current_cmd = subprocess.run(
-            ["venv/bin/alembic", "current"],
+            [alembic_cmd, "current"],
             capture_output=True,
             text=True,
             timeout=30,
@@ -345,7 +347,7 @@ async def run_migration() -> dict[str, Any]:
 
         # Run upgrade
         upgrade_cmd = subprocess.run(
-            ["venv/bin/alembic", "upgrade", "head"],
+            [alembic_cmd, "upgrade", "head"],
             capture_output=True,
             text=True,
             timeout=120,
