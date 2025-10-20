@@ -376,6 +376,53 @@ async def run_migration() -> dict[str, Any]:
     return result
 
 
+@router.get("/check-constraints")
+async def check_database_constraints() -> dict[str, Any]:
+    """Check database constraints for investigations table."""
+
+    result = {"status": "started", "constraints": [], "errors": []}
+
+    try:
+        from src.infrastructure.database import get_db_pool
+
+        # Get database pool
+        pool = await get_db_pool()
+
+        # Check constraints on investigations table
+        try:
+            async with pool.acquire() as conn:
+                rows = await conn.fetch(
+                    """
+                    SELECT conname, pg_get_constraintdef(oid) as definition
+                    FROM pg_constraint
+                    WHERE conrelid = 'investigations'::regclass;
+                    """
+                )
+                result["constraints"] = [
+                    {"name": row["conname"], "definition": row["definition"]}
+                    for row in rows
+                ]
+        except Exception as e:
+            result["errors"].append(
+                {"check": "constraints", "error": str(e), "type": type(e).__name__}
+            )
+
+        result["status"] = "completed" if not result["errors"] else "completed_with_errors"
+
+    except Exception as e:
+        result["status"] = "error"
+        result["errors"].append(
+            {
+                "phase": "database_connection",
+                "error": str(e),
+                "type": type(e).__name__,
+                "traceback": traceback.format_exc(),
+            }
+        )
+
+    return result
+
+
 @router.post("/fix-database")
 async def fix_database_schema() -> dict[str, Any]:
     """Fix database schema issues (USE WITH CAUTION IN PRODUCTION)."""
