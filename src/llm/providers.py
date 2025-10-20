@@ -408,8 +408,8 @@ class GroqProvider(BaseLLMProvider):
             api_key=actual_api_key,
             base_url=settings.groq_api_base_url,
             default_model="mixtral-8x7b-32768",
-            timeout=60,
-            max_retries=3,
+            timeout=30,  # Reduced from 60s to 30s for faster failure
+            max_retries=2,  # Reduced from 3 to 2 for faster failure
         )
         self._provider_name = "groq"
 
@@ -680,11 +680,13 @@ class MaritacaProvider(BaseLLMProvider):
             )
         self.default_model = settings.maritaca_model
 
-        # Create Maritaca client
+        # Create Maritaca client with shorter timeout
         self.maritaca_client = MaritacaClient(
             api_key=self.api_key,
             base_url=settings.maritaca_api_base_url,
             model=self.default_model,
+            timeout=30,  # Reduced from 60s to 30s for faster failure
+            max_retries=2,  # Reduced from 3 to 2 for faster failure
         )
 
     async def __aenter__(self):
