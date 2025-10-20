@@ -435,25 +435,54 @@ async def fix_database_schema() -> dict[str, Any]:
         # Get database pool
         pool = await get_db_pool()
 
-        # Fix 1: Convert id column from UUID to VARCHAR
+        # Fix 1: Drop existing status CHECK constraint and recreate with 'running'
         try:
             async with pool.acquire() as conn:
-                await conn.execute(
+                # First, find the constraint name
+                constraint_row = await conn.fetchrow(
                     """
-                    ALTER TABLE investigations
-                    ALTER COLUMN id TYPE VARCHAR(255);
-                """
+                    SELECT conname
+                    FROM pg_constraint
+                    WHERE conrelid = 'investigations'::regclass
+                    AND contype = 'c'
+                    AND pg_get_constraintdef(oid) LIKE '%status%';
+                    """
                 )
-            result["fixes_applied"].append(
-                {
-                    "fix": "id_column_type",
-                    "description": "Converted id column from UUID to VARCHAR(255)",
-                    "status": "success",
-                }
-            )
+
+                if constraint_row:
+                    constraint_name = constraint_row["conname"]
+
+                    # Drop the old constraint
+                    await conn.execute(
+                        f"""
+                        ALTER TABLE investigations
+                        DROP CONSTRAINT {constraint_name};
+                        """
+                    )
+
+                    # Create new constraint with 'running' status
+                    await conn.execute(
+                        """
+                        ALTER TABLE investigations
+                        ADD CONSTRAINT investigations_status_check
+                        CHECK (status IN ('pending', 'running', 'completed', 'failed'));
+                        """
+                    )
+
+                    result["fixes_applied"].append(
+                        {
+                            "fix": "status_constraint",
+                            "description": f"Dropped constraint '{constraint_name}' and recreated with 'running' status",
+                            "status": "success",
+                        }
+                    )
+                else:
+                    result["errors"].append(
+                        {"fix": "status_constraint", "error": "No status constraint found", "type": "NotFound"}
+                    )
         except Exception as e:
             result["errors"].append(
-                {"fix": "id_column_type", "error": str(e), "type": type(e).__name__}
+                {"fix": "status_constraint", "error": str(e), "type": type(e).__name__}
             )
 
         # Verify the fix
@@ -461,17 +490,17 @@ async def fix_database_schema() -> dict[str, Any]:
             async with pool.acquire() as conn:
                 row = await conn.fetchrow(
                     """
-                    SELECT column_name, data_type, character_maximum_length
-                    FROM information_schema.columns
-                    WHERE table_name = 'investigations'
-                    AND column_name = 'id';
+                    SELECT conname, pg_get_constraintdef(oid) as definition
+                    FROM pg_constraint
+                    WHERE conrelid = 'investigations'::regclass
+                    AND contype = 'c'
+                    AND pg_get_constraintdef(oid) LIKE '%status%';
                 """
                 )
                 if row:
                     result["verification"] = {
-                        "column_name": row["column_name"],
-                        "data_type": row["data_type"],
-                        "max_length": row["character_maximum_length"],
+                        "constraint_name": row["conname"],
+                        "definition": row["definition"],
                     }
         except Exception as e:
             result["errors"].append(
