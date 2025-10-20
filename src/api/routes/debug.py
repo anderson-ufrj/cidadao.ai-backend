@@ -321,3 +321,51 @@ async def module_info(module_path: str) -> dict[str, Any]:
             "error": str(e),
             "traceback": traceback.format_exc(),
         }
+
+
+@router.post("/run-migration")
+async def run_migration() -> dict[str, Any]:
+    """Run pending database migrations (USE WITH CAUTION IN PRODUCTION)."""
+
+    result = {"status": "started", "migrations_applied": [], "errors": []}
+
+    try:
+        import subprocess
+
+        # Check current migration version
+        current_cmd = subprocess.run(
+            ["venv/bin/alembic", "current"], capture_output=True, text=True, timeout=30, check=False
+        )
+
+        result["current_version"] = current_cmd.stdout.strip()
+
+        # Run upgrade
+        upgrade_cmd = subprocess.run(
+            ["venv/bin/alembic", "upgrade", "head"],
+            capture_output=True,
+            text=True,
+            timeout=120, check=False,
+        )
+
+        result["upgrade_output"] = upgrade_cmd.stdout
+        result["upgrade_errors"] = upgrade_cmd.stderr
+
+        if upgrade_cmd.returncode == 0:
+            result["status"] = "success"
+            result["message"] = "Migrations applied successfully"
+        else:
+            result["status"] = "failed"
+            result["message"] = "Migration failed"
+            result["return_code"] = upgrade_cmd.returncode
+
+    except Exception as e:
+        result["status"] = "error"
+        result["errors"].append(
+            {
+                "error": str(e),
+                "type": type(e).__name__,
+                "traceback": traceback.format_exc(),
+            }
+        )
+
+    return result
