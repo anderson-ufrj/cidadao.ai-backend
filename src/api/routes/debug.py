@@ -184,8 +184,8 @@ async def llm_config_status() -> dict[str, Any]:
         from src.llm.services import LLMService
 
         service = LLMService()
-        test_response = await service.complete_text(
-            "Responda em português: Olá", max_tokens=50
+        test_response = await service.generate_text(
+            prompt="Responda em português: Olá", max_tokens=50
         )
 
         result["provider_status"]["test_call"] = {
@@ -219,27 +219,69 @@ async def investigation_logs(investigation_id: str) -> dict[str, Any]:
         from src.services.investigation_service import InvestigationService
 
         service = InvestigationService()
-        investigation = await service.get_investigation(investigation_id)
+        investigation = await service.get_by_id(investigation_id)
 
         if investigation:
             result["status"] = {
-                "current_status": investigation.get("status"),
-                "progress": investigation.get("progress", 0),
-                "current_phase": investigation.get("current_phase"),
-                "created_at": str(investigation.get("created_at")),
-                "updated_at": str(investigation.get("updated_at")),
-                "anomalies_found": investigation.get("anomalies_found", 0),
-                "error_message": investigation.get("error_message"),
+                "current_status": investigation.status,
+                "progress": (
+                    investigation.progress if hasattr(investigation, "progress") else 0
+                ),
+                "current_phase": (
+                    investigation.current_phase
+                    if hasattr(investigation, "current_phase")
+                    else None
+                ),
+                "created_at": (
+                    str(investigation.created_at)
+                    if hasattr(investigation, "created_at")
+                    else None
+                ),
+                "updated_at": (
+                    str(investigation.updated_at)
+                    if hasattr(investigation, "updated_at")
+                    else None
+                ),
+                "anomalies_found": (
+                    investigation.anomalies_found
+                    if hasattr(investigation, "anomalies_found")
+                    else 0
+                ),
+                "error_message": (
+                    investigation.error_message
+                    if hasattr(investigation, "error_message")
+                    else None
+                ),
             }
 
             # Check investigation metadata for LLM info
-            metadata = investigation.get("investigation_metadata", {})
+            metadata = (
+                investigation.investigation_metadata
+                if hasattr(investigation, "investigation_metadata")
+                else {}
+            )
             if metadata:
                 result["llm_info"] = {
-                    "provider": metadata.get("llm_provider"),
-                    "model": metadata.get("llm_model"),
-                    "total_time": metadata.get("total_time"),
-                    "llm_response_time": metadata.get("llm_response_time"),
+                    "provider": (
+                        metadata.get("llm_provider")
+                        if isinstance(metadata, dict)
+                        else None
+                    ),
+                    "model": (
+                        metadata.get("llm_model")
+                        if isinstance(metadata, dict)
+                        else None
+                    ),
+                    "total_time": (
+                        metadata.get("total_time")
+                        if isinstance(metadata, dict)
+                        else None
+                    ),
+                    "llm_response_time": (
+                        metadata.get("llm_response_time")
+                        if isinstance(metadata, dict)
+                        else None
+                    ),
                 }
         else:
             result["error"] = "Investigation not found"
