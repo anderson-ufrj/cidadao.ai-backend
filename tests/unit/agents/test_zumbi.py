@@ -632,3 +632,262 @@ class TestZumbiIntegration:
             assert hasattr(anomaly, "recommendations")
             assert isinstance(anomaly.recommendations, list)
             assert len(anomaly.recommendations) > 0
+
+
+class TestZumbiSummaryGeneration:
+    """Test suite for summary generation functionality."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_summary_with_no_anomalies(self, zumbi_agent):
+        """Test summary generation when no anomalies found."""
+        context = AgentContext(investigation_id="test-summary-empty")
+        results = []
+
+        summary = await zumbi_agent.generate_summary(results, context)
+
+        assert "Nenhuma anomalia" in summary or "sem anomalias" in summary.lower()
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_summary_with_high_severity(self, zumbi_agent):
+        """Test summary generation with high severity anomalies."""
+        from src.agents.zumbi import AnomalyResult
+
+        context = AgentContext(investigation_id="test-summary-high")
+        results = [
+            AnomalyResult(
+                anomaly_type="price_anomaly",
+                severity=0.9,
+                confidence=0.85,
+                description="Alto superfaturamento",
+                explanation="Valor muito acima da média",
+                evidence={"value": 500000},
+                recommendations=["Investigar imediatamente"],
+                affected_entities=[{"id": "C1", "nome": "Contrato 1"}],
+            ),
+            AnomalyResult(
+                anomaly_type="vendor_concentration",
+                severity=0.8,
+                confidence=0.9,
+                description="Monopolização",
+                explanation="Único fornecedor",
+                evidence={"concentration": 100},
+                recommendations=["Revisar processo licitatório"],
+                affected_entities=[{"id": "F1", "nome": "Fornecedor 1"}],
+            ),
+        ]
+
+        summary = await zumbi_agent.generate_summary(results, context)
+
+        assert "2" in summary
+        assert "anomalia" in summary.lower()
+        assert isinstance(summary, str)
+        assert len(summary) > 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_summary_with_mixed_severity(self, zumbi_agent):
+        """Test summary generation with mixed severity levels."""
+        from src.agents.zumbi import AnomalyResult
+
+        context = AgentContext(investigation_id="test-summary-mixed")
+        results = [
+            AnomalyResult(
+                anomaly_type="price_anomaly",
+                severity=0.9,  # High
+                confidence=0.85,
+                description="High severity",
+                explanation="Test",
+                evidence={},
+                recommendations=["Test recommendation"],
+                affected_entities=[],
+            ),
+            AnomalyResult(
+                anomaly_type="temporal_patterns",
+                severity=0.6,  # Medium
+                confidence=0.7,
+                description="Medium severity",
+                explanation="Test",
+                evidence={},
+                recommendations=["Another recommendation"],
+                affected_entities=[],
+            ),
+            AnomalyResult(
+                anomaly_type="duplicate_contracts",
+                severity=0.3,  # Low
+                confidence=0.5,
+                description="Low severity",
+                explanation="Test",
+                evidence={},
+                recommendations=["Low priority action"],
+                affected_entities=[],
+            ),
+        ]
+
+        summary = await zumbi_agent.generate_summary(results, context)
+
+        assert "3" in summary
+        assert "anomalia" in summary.lower()
+        assert isinstance(summary, str)
+        assert len(summary) > 50  # Should have substantial content
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_summary_with_long_recommendation(self, zumbi_agent):
+        """Test summary handles long recommendations correctly."""
+        from src.agents.zumbi import AnomalyResult
+
+        context = AgentContext(investigation_id="test-summary-long")
+        long_recommendation = "A" * 150  # 150 chars - should be truncated
+
+        results = [
+            AnomalyResult(
+                anomaly_type="price_anomaly",
+                severity=0.8,
+                confidence=0.9,
+                description="Test",
+                explanation="Test",
+                evidence={},
+                recommendations=[long_recommendation],
+                affected_entities=[],
+            )
+        ]
+
+        summary = await zumbi_agent.generate_summary(results, context)
+
+        # Should have summary content
+        assert isinstance(summary, str)
+        assert len(summary) > 0
+        assert "anomalia" in summary.lower() or "analysis" in summary.lower()
+
+
+class TestZumbiEdgeCases:
+    """Test suite for edge cases and error handling."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_detect_price_anomalies_with_none_values(self, zumbi_agent):
+        """Test price detection handles None values gracefully."""
+        contracts = [
+            {"id": "C1", "valorInicial": None, "valorGlobal": None},
+            {"id": "C2", "valorInicial": 100000.0},
+            {"id": "C3"},  # Missing value fields
+        ]
+
+        # Add more valid contracts to reach minimum
+        for i in range(10):
+            contracts.append({"id": f"VALID-{i}", "valorInicial": 100000.0})
+
+        context = AgentContext(investigation_id="test-none-values")
+        anomalies = await zumbi_agent._detect_price_anomalies(contracts, context)
+
+        # Should handle gracefully without errors
+        assert isinstance(anomalies, list)
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_detect_vendor_concentration_with_zero_total(self, zumbi_agent):
+        """Test vendor concentration when total value is zero."""
+        contracts = [
+            {
+                "id": "C1",
+                "valorInicial": 0,
+                "fornecedor": {"nome": "Vendor A", "cnpj": "111"},
+            },
+            {
+                "id": "C2",
+                "valorInicial": 0,
+                "fornecedor": {"nome": "Vendor B", "cnpj": "222"},
+            },
+        ]
+
+        context = AgentContext(investigation_id="test-zero-total")
+        anomalies = await zumbi_agent._detect_vendor_concentration(contracts, context)
+
+        # Should return empty list when total is zero
+        assert len(anomalies) == 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_detect_temporal_anomalies_with_invalid_dates(self, zumbi_agent):
+        """Test temporal detection handles invalid dates."""
+        contracts = [
+            {"id": "C1", "dataAssinatura": "invalid-date", "valorInicial": 100000.0},
+            {"id": "C2", "dataAssinatura": "99/99/9999", "valorInicial": 100000.0},
+            {"id": "C3", "dataAssinatura": "", "valorInicial": 100000.0},
+        ]
+
+        # Add valid dates
+        for month in range(1, 7):
+            for i in range(5):
+                contracts.append(
+                    {
+                        "id": f"VALID-{month}-{i}",
+                        "dataAssinatura": f"15/{month:02d}/2024",
+                        "valorInicial": 100000.0,
+                    }
+                )
+
+        context = AgentContext(investigation_id="test-invalid-dates")
+        anomalies = await zumbi_agent._detect_temporal_anomalies(contracts, context)
+
+        # Should skip invalid dates and process valid ones
+        assert isinstance(anomalies, list)
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_detect_duplicate_contracts_with_empty_objects(self, zumbi_agent):
+        """Test duplicate detection handles empty object descriptions."""
+        contracts = [
+            {"id": "C1", "objeto": ""},
+            {"id": "C2", "objeto": ""},
+            {"id": "C3"},  # Missing objeto field
+        ]
+
+        context = AgentContext(investigation_id="test-empty-objects")
+        anomalies = await zumbi_agent._detect_duplicate_contracts(contracts, context)
+
+        # Should skip empty/short descriptions
+        assert len(anomalies) == 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_detect_payment_anomalies_with_invalid_types(self, zumbi_agent):
+        """Test payment detection handles invalid value types."""
+        contracts = [
+            {
+                "id": "C1",
+                "valorInicial": "not_a_number",
+                "valorGlobal": "also_not_a_number",
+            },
+            {"id": "C2", "valorInicial": [], "valorGlobal": {}},
+            {"id": "C3", "valorInicial": 100000.0, "valorGlobal": "invalid"},
+        ]
+
+        context = AgentContext(investigation_id="test-invalid-types")
+        anomalies = await zumbi_agent._detect_payment_anomalies(contracts, context)
+
+        # Should handle type errors gracefully
+        assert isinstance(anomalies, list)
+
+
+class TestZumbiProcessMethod:
+    """Test suite for the main process method with different actions."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_with_unsupported_action(self, zumbi_agent):
+        """Test process method with unsupported action."""
+        context = AgentContext(investigation_id="test-unsupported")
+        message = AgentMessage(
+            sender="test",
+            recipient="Zumbi",
+            action="unsupported_action",
+            payload={},
+        )
+
+        response = await zumbi_agent.process(message, context)
+
+        assert response.status == AgentStatus.ERROR
+        assert "Unsupported action" in response.error
