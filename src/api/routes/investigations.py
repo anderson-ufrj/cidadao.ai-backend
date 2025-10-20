@@ -518,7 +518,7 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
         except Exception as e:
             logger.warning(f"Failed to update investigation progress in database: {e}")
 
-        # Execute investigation
+        # Execute investigation and track contracts analyzed
         results = await investigator.investigate_anomalies(
             query=request.query,
             data_source=request.data_source,
@@ -526,6 +526,9 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
             anomaly_types=request.anomaly_types,
             context=context,
         )
+
+        # Get total contracts analyzed from context metadata
+        total_contracts_analyzed = context.metadata.get("total_contracts_analyzed", 0)
 
         investigation["current_phase"] = "forensic_enrichment"
         investigation["progress"] = 0.7
@@ -594,7 +597,7 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
         investigation["results"] = enriched_results
 
         investigation["anomalies_detected"] = len(results)
-        investigation["records_processed"] = sum(
+        investigation["records_processed"] = total_contracts_analyzed if total_contracts_analyzed > 0 else sum(
             len(r.affected_entities) for r in results
         )
 
