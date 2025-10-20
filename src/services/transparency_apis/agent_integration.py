@@ -9,6 +9,7 @@ Created: 2025-10-09 15:40:00 -03 (Minas Gerais, Brazil)
 License: Proprietary - All rights reserved
 """
 
+import asyncio
 from datetime import datetime
 from typing import Any, Optional
 
@@ -32,6 +33,91 @@ class TransparencyDataCollector:
         self.cache = get_cache()
         self.health_monitor = get_health_monitor()
 
+    async def _collect_from_single_api(
+        self,
+        api_key: str,
+        year: Optional[int] = None,
+        start_date: Optional[str] = None,
+        end_date: Optional[str] = None,
+        municipality_code: Optional[str] = None,
+        validate: bool = True,
+        timeout: float = 15.0,
+    ) -> dict[str, Any]:
+        """
+        Collect contracts from a single API with timeout protection.
+
+        Args:
+            api_key: API identifier
+            year: Filter by year
+            start_date: Start date
+            end_date: End date
+            municipality_code: Municipality code
+            validate: Whether to validate data
+            timeout: Timeout in seconds for this API
+
+        Returns:
+            Dict with contracts, source, and any errors
+        """
+        try:
+            client = registry.get_client(api_key)
+            if not client:
+                return {"contracts": [], "source": None, "error": "Client not found"}
+
+            # Check cache first
+            cached_data = self.cache.get_contracts(
+                api_key, year=year, municipality_code=municipality_code
+            )
+
+            if cached_data:
+                return {
+                    "contracts": cached_data,
+                    "source": f"{api_key} (cached)",
+                    "error": None,
+                }
+
+            # Fetch from API with timeout
+            contracts = await asyncio.wait_for(
+                client.get_contracts(
+                    start_date=start_date,
+                    end_date=end_date,
+                    year=year,
+                    municipality_code=municipality_code,
+                ),
+                timeout=timeout,
+            )
+
+            if contracts:
+                # Validate if requested
+                if validate:
+                    validation = DataValidator.validate_batch(contracts, "contract")
+                    if validation["validation_rate"] < 0.8:
+                        return {
+                            "contracts": contracts,
+                            "source": api_key,
+                            "error": f"Low validation rate: {validation['validation_rate']:.1%}",
+                        }
+
+                # Cache the results
+                self.cache.set_contracts(
+                    api_key,
+                    contracts,
+                    year=year,
+                    municipality_code=municipality_code,
+                )
+
+                return {"contracts": contracts, "source": api_key, "error": None}
+
+            return {"contracts": [], "source": None, "error": "No data returned"}
+
+        except asyncio.TimeoutError:
+            return {
+                "contracts": [],
+                "source": None,
+                "error": f"Timeout after {timeout}s",
+            }
+        except Exception as e:
+            return {"contracts": [], "source": None, "error": str(e)}
+
     async def collect_contracts(
         self,
         state: Optional[str] = None,
@@ -40,9 +126,11 @@ class TransparencyDataCollector:
         start_date: Optional[str] = None,
         end_date: Optional[str] = None,
         validate: bool = True,
+        api_timeout: float = 15.0,
+        global_timeout: float = 60.0,
     ) -> dict[str, Any]:
         """
-        Collect contracts from available APIs.
+        Collect contracts from available APIs in parallel.
 
         Args:
             state: State code (e.g., "PE", "CE")
@@ -51,6 +139,8 @@ class TransparencyDataCollector:
             start_date: Start date (YYYY-MM-DD)
             end_date: End date (YYYY-MM-DD)
             validate: Whether to validate data
+            api_timeout: Timeout per API in seconds (default: 15s)
+            global_timeout: Global timeout for all APIs in seconds (default: 60s)
 
         Returns:
             Dictionary with contracts and metadata
@@ -62,57 +152,49 @@ class TransparencyDataCollector:
         # Determine which APIs to use
         api_keys = self._select_apis(state)
 
-        for api_key in api_keys:
-            try:
-                client = registry.get_client(api_key)
-                if not client:
+        # Create collection tasks for all APIs in parallel
+        tasks = [
+            self._collect_from_single_api(
+                api_key=api_key,
+                year=year,
+                start_date=start_date,
+                end_date=end_date,
+                municipality_code=municipality_code,
+                validate=validate,
+                timeout=api_timeout,
+            )
+            for api_key in api_keys
+        ]
+
+        try:
+            # Execute all API calls in parallel with global timeout
+            results = await asyncio.wait_for(
+                asyncio.gather(*tasks, return_exceptions=True), timeout=global_timeout
+            )
+
+            # Process results
+            for api_key, result in zip(api_keys, results):
+                if isinstance(result, Exception):
+                    errors.append({"api": api_key, "error": str(result)})
                     continue
 
-                # Check cache first
-                cache_key = f"{api_key}:{year}:{municipality_code}"
-                cached_data = self.cache.get_contracts(
-                    api_key, year=year, municipality_code=municipality_code
-                )
+                if isinstance(result, dict):
+                    if result.get("contracts"):
+                        all_contracts.extend(result["contracts"])
 
-                if cached_data:
-                    all_contracts.extend(cached_data)
-                    sources_used.append(f"{api_key} (cached)")
-                    continue
+                    if result.get("source"):
+                        sources_used.append(result["source"])
 
-                # Fetch from API
-                contracts = await client.get_contracts(
-                    start_date=start_date,
-                    end_date=end_date,
-                    year=year,
-                    municipality_code=municipality_code,
-                )
+                    if result.get("error"):
+                        errors.append({"api": api_key, "error": result["error"]})
 
-                if contracts:
-                    # Validate if requested
-                    if validate:
-                        validation = DataValidator.validate_batch(contracts, "contract")
-                        if validation["validation_rate"] < 0.8:
-                            errors.append(
-                                {
-                                    "api": api_key,
-                                    "error": f"Low validation rate: {validation['validation_rate']:.1%}",
-                                    "issues": validation["common_issues"],
-                                }
-                            )
-
-                    # Cache the results
-                    self.cache.set_contracts(
-                        api_key,
-                        contracts,
-                        year=year,
-                        municipality_code=municipality_code,
-                    )
-
-                    all_contracts.extend(contracts)
-                    sources_used.append(api_key)
-
-            except Exception as e:
-                errors.append({"api": api_key, "error": str(e)})
+        except asyncio.TimeoutError:
+            errors.append(
+                {
+                    "api": "global",
+                    "error": f"Global timeout reached after {global_timeout}s",
+                }
+            )
 
         return {
             "contracts": all_contracts,
@@ -121,6 +203,12 @@ class TransparencyDataCollector:
             "errors": errors,
             "metadata": {
                 "collected_at": datetime.utcnow().isoformat(),
+                "collection_mode": "parallel",
+                "api_timeout": api_timeout,
+                "global_timeout": global_timeout,
+                "apis_attempted": len(api_keys),
+                "apis_succeeded": len(sources_used),
+                "apis_failed": len(errors),
                 "filters": {
                     "state": state,
                     "municipality_code": municipality_code,
