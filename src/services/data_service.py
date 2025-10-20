@@ -107,7 +107,13 @@ class DataService:
 
             # Fetch recent contracts (current year)
             current_year = datetime.now().year
-            await self.fetch_contracts({"ano": current_year, "tamanho_pagina": 100})
+            await self.fetch_contracts(
+                {
+                    "ano": current_year,
+                    "tamanho_pagina": 100,
+                    "codigo_orgao": "26000",  # Required parameter for API
+                }
+            )
 
             # Check cache again
             if contract_id in self._contract_cache:
@@ -169,10 +175,13 @@ class DataService:
             # Fetch recent contracts if cache is empty or small
             if len(self._contract_cache) < limit:
                 current_year = datetime.now().year
+                # Use a default organization code for cache warming
+                # 26000 = Ministério da Saúde (commonly available data)
                 await self.fetch_contracts(
                     {
                         "ano": current_year,
                         "tamanho_pagina": limit,
+                        "codigo_orgao": "26000",  # Required parameter for API
                     }
                 )
 
