@@ -4,10 +4,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**Cidadão.AI Backend** is a production-ready multi-agent AI system for Brazilian government transparency analysis. It uses 17 specialized AI agents with Brazilian cultural identities to analyze public contracts, detect anomalies, and generate comprehensive reports.
+**Cidadão.AI Backend** is a production-ready multi-agent AI system for Brazilian government transparency analysis. It uses **16 specialized AI agents** with Brazilian cultural identities to analyze public contracts, detect anomalies, and generate comprehensive reports.
 
-**Current Status**: Deployed on Railway (Production), 80%+ test coverage, 17/17 agents operational
+**Production Status**: Live on Railway since 07/10/2025 (99.9% uptime)
 **Production URL**: https://cidadao-api-production.up.railway.app/
+**Infrastructure**: PostgreSQL + Redis + Celery (24/7 monitoring)
+**API Endpoints**: 266+ endpoints across 40 route modules
+**Agent Status**:
+- **10 Tier 1 agents**: Fully operational (Zumbi, Anita, Tiradentes, Machado, Senna, Bonifácio, Maria Quitéria, Oxóssi, Lampião, Oscar Niemeyer)
+- **5 Tier 2 agents**: Substantial framework (Abaporu, Nanã, Drummond, Céuci, Obaluaiê)
+- **1 Tier 3 agent**: Minimal implementation (Dandara)
+
+**Detailed Analysis**: See `docs/project/COMPREHENSIVE_ANALYSIS_2025_10_20.md` for complete verified metrics
+
+---
+
+## 🔍 Quick Facts (Verified 2025-10-20)
+
+| Metric | Value | Notes |
+|--------|-------|-------|
+| **Total Agents** | 16 agents (26,141 LOC) | Not 17 - verified count |
+| **Tier 1 (Operational)** | 10 agents (62.5%) | Zumbi, Anita, Tiradentes, Machado, Senna, Bonifácio, Maria Quitéria, Oxóssi, Lampião, Niemeyer |
+| **Tier 2 (Framework)** | 5 agents (31.25%) | Abaporu, Nanã, Drummond, Céuci, Obaluaiê |
+| **Tier 3 (Minimal)** | 1 agent (6.25%) | Dandara |
+| **Test Files** | 24 files (9,322 LOC) | 75% agents have tests |
+| **API Endpoints** | 266+ endpoints | Across 40 route modules |
+| **Documentation** | 100% coverage | 21 agent docs + 8 status docs |
+| **Production** | Railway (since 07/10/25) | 99.9% uptime, no HuggingFace |
+| **Critical Gaps** | Oxóssi, Lampião | Tier 1 agents with ZERO tests |
+
+---
 
 ## Critical Development Commands
 
@@ -19,7 +45,8 @@ make install-dev
 # Configure environment (REQUIRED before running)
 cp .env.example .env
 # Edit .env and add at minimum:
-# - GROQ_API_KEY (or another LLM provider key)
+# - MARITACA_API_KEY (primary LLM provider)
+# - ANTHROPIC_API_KEY (backup LLM provider)
 # - JWT_SECRET_KEY
 # - SECRET_KEY
 ```
@@ -53,9 +80,15 @@ make test-agents            # Multi-agent tests
 # Specific agent
 JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_zumbi.py -v
 
+# Single test function
+JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_zumbi.py::TestZumbiAgent::test_detect_anomalies -v
+
 # With coverage report
 JWT_SECRET_KEY=test SECRET_KEY=test pytest --cov=src --cov-report=html
 # Report: htmlcov/index.html
+
+# Debug specific test with output
+JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_zumbi.py -v -s
 ```
 
 ### Code Quality
@@ -72,6 +105,20 @@ make type-check     # MyPy static typing
 make ci             # format + lint + type-check + security + coverage
 ```
 
+### Project Management
+```bash
+# Roadmap and sprint tracking
+make roadmap                # Show v1.0 roadmap summary
+make roadmap-progress       # Check v1.0 progress with task counts
+make sprint-status          # Show current sprint status
+make v1-report              # Generate v1.0 progress report
+
+# Celery background tasks (24/7 monitoring)
+make celery                 # Start Celery worker
+make celery-beat            # Start Celery Beat scheduler
+make celery-flower          # Start Flower monitoring UI
+```
+
 ### Database Migrations
 ```bash
 # Create migration
@@ -86,38 +133,41 @@ make db-downgrade
 
 ## High-Level Architecture
 
-### Multi-Agent System (17 Agents)
+### Multi-Agent System (16 Agents - 26,141 LOC)
 
-All agents inherit from `ReflectiveAgent` in `src/agents/deodoro.py`:
+All agents inherit from `ReflectiveAgent` in `src/agents/deodoro.py` (478 lines - base framework).
 
-**Orchestration Layer**:
-- `abaporu.py` (1,089 lines) - Master orchestrator using ReAct pattern
-- `ayrton_senna.py` (963 lines) - Semantic routing and intent detection
+#### **TIER 1: Fully Operational (10 agents - 90-100% complete)**
 
-**Analysis Layer**:
-- `zumbi.py` (1,374 lines) - Anomaly detection with FFT spectral analysis
-- `anita.py` (1,560 lines) - Statistical data analysis
-- `oxossi.py` (1,698 lines) - Fraud detection (7+ fraud patterns)
-- `obaluaie.py` (550 lines) - Corruption detection (Benford's Law)
-- `ceuci.py` (1,494 lines) - Predictive AI with ML/Time series
-- `lampiao.py` (1,587 lines) - Regional/spatial analysis
+**Analysis & Investigation**:
+- `zumbi.py` (1,427 lines) ✅ - Anomaly detection with FFT spectral analysis, statistical analysis
+- `anita.py` (1,560 lines) ✅ - Statistical pattern analysis, clustering, data profiling
+- `oxossi.py` (1,698 lines) ✅ - Fraud detection (7+ patterns: bid rigging, phantom vendors, price fixing)
+- `lampiao.py` (1,587 lines) ✅ - Regional/spatial inequality analysis
 
-**Communication Layer**:
-- `drummond.py` (1,678 lines) - NLG + Portuguese poetry style
-- `tiradentes.py` (1,938 lines) - Report generation (PDF, HTML, JSON)
-- `oscar_niemeyer.py` (1,228 lines) - Data visualization (Plotly, NetworkX)
+**Routing & Orchestration**:
+- `ayrton_senna.py` (646 lines) ✅ - Intent detection, semantic routing, load balancing
 
-**Governance Layer**:
-- `maria_quiteria.py` (2,449 lines) - Security (MITRE ATT&CK, UEBA)
-- `bonifacio.py` (1,924 lines) - Legal/policy analysis
-- `dandara.py` (788 lines) - Social justice metrics (IBGE/DataSUS/INEP)
+**Communication & Reporting**:
+- `tiradentes.py` (1,934 lines) ✅ - Report generation (PDF, HTML, Excel, JSON)
+- `oscar_niemeyer.py` (1,228 lines) ✅ - Data visualization (Plotly, NetworkX)
+- `machado.py` (678 lines) ✅ - NER, textual analysis, narrative extraction
 
-**Support Layer**:
-- `nana.py` (963 lines) - Memory and context management
-- `machado.py` (678 lines) - Narrative analysis
+**Governance & Security**:
+- `bonifacio.py` (2,131 lines) ✅ - Legal compliance analysis, policy evaluation
+- `maria_quiteria.py` (2,589 lines) ✅ - Security auditing (MITRE ATT&CK, UEBA)
 
-**Base Architecture**:
-- `deodoro.py` (478 lines) - BaseAgent and ReflectiveAgent framework
+#### **TIER 2: Substantial Framework (5 agents - 10-70% complete)**
+
+- `abaporu.py` (1,089 lines) ⚠️ 70% - Multi-agent orchestration (needs real coordination)
+- `nana.py` (963 lines) ⚠️ 65% - Memory system (needs persistence integration)
+- `drummond.py` (1,678 lines) ⚠️ 25% - NLG communication (needs LLM integration)
+- `ceuci.py` (1,697 lines) ⚠️ 10% - ML/Predictive (no trained models)
+- `obaluaie.py` (829 lines) ⚠️ 15% - Corruption detection (Benford's Law partial)
+
+#### **TIER 3: Minimal Implementation (1 agent)**
+
+- `dandara.py` (788 lines) ⚠️ 30% - Social justice metrics (framework only)
 
 ### Orchestration System
 
@@ -181,14 +231,16 @@ FastAPI Request → Middleware Stack → Route Handler → Service Layer → Age
 SECRET_KEY=<generate-with-scripts/generate_secrets.py>
 JWT_SECRET_KEY=<generate-with-scripts/generate_secrets.py>
 
-# LLM Provider (at least one)
-GROQ_API_KEY=<groq-api-key>              # Recommended (fast, 14K tokens/min)
-# OR
-MARITACA_API_KEY=<maritaca-key>          # Best for Portuguese
-# OR
-TOGETHER_API_KEY=<together-key>
-# OR
-HUGGINGFACE_API_KEY=<hf-key>
+# LLM Provider Configuration
+LLM_PROVIDER=maritaca                    # Current provider in use
+
+# Maritaca AI (Primary - Brazilian Portuguese model)
+MARITACA_API_KEY=<maritaca-api-key>      # Required for Sabiá models
+MARITACA_MODEL=sabiazinho-3              # Options: sabiazinho-3, sabia-3
+
+# Anthropic Claude (Backup)
+ANTHROPIC_API_KEY=<anthropic-key>        # Claude Sonnet 4 as fallback
+ANTHROPIC_MODEL=claude-sonnet-4-20250514
 ```
 
 ### Optional (Enhanced Features)
@@ -319,9 +371,14 @@ async def reflect_and_retry(self, message, initial_result):
 
 ## Testing Strategy
 
+### Test Status (Verified 2025-10-20)
+- **24 test files** with **9,322 lines** of test code
+- **75% of agents have tests** (12 out of 16 agents)
+- **Test coverage**: Target 80%+ overall
+
 ### Test Categories
-- **Unit**: Individual components (161 tests)
-- **Integration**: Multi-component flows (36 tests)
+- **Unit**: Individual components (161+ tests)
+- **Integration**: Multi-component flows (36+ tests)
 - **E2E**: Complete user workflows
 - **Multiagent**: Agent collaboration
 
@@ -340,10 +397,16 @@ JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/services/test_orchestratio
 JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_zumbi.py::TestZumbiAgent::test_detect_anomalies -v
 ```
 
-### Coverage Requirements
+### Coverage Requirements & Critical Gaps
 - **Agents**: Minimum 80% per agent
 - **Services**: Minimum 75%
 - **Overall**: Maintain 80%+
+
+**⚠️ CRITICAL TESTING GAPS**:
+- **Oxóssi** (1,698 LOC): Fully operational fraud detection agent but **ZERO test files** - HIGH PRIORITY
+- **Lampião** (1,587 LOC): Fully operational regional analysis agent but **NO test files** - HIGH PRIORITY
+- **Oscar Niemeyer** (1,228 LOC): Only 1 basic test file despite complex visualization code
+- **Céuci, Obaluaiê, Dandara**: Tier 2/3 agents without adequate tests (expected)
 
 ## Transparency APIs Integration
 
@@ -401,11 +464,12 @@ municipalities = await client.get_municipalities(state_code="33")  # Rio de Jane
 
 ## Deployment
 
-### Railway (Current Production)
+### Railway (Production)
 - **URL**: https://cidadao-api-production.up.railway.app/
-- **Full features**: PostgreSQL, Redis, Celery workers
+- **Features**: PostgreSQL, Redis, Celery workers (24/7 monitoring)
 - **Environment**: Configure variables in Railway dashboard
 - **Auto-deploy**: Enabled from GitHub main branch
+- **Documentation**: See `docs/deployment/railway/` for detailed guides
 
 ```bash
 # Deploy to Railway
@@ -414,15 +478,18 @@ railway link
 railway up
 
 # Set environment variables
-railway variables set GROQ_API_KEY=xxx
+railway variables set LLM_PROVIDER=maritaca
+railway variables set MARITACA_API_KEY=xxx
+railway variables set MARITACA_MODEL=sabiazinho-3
+railway variables set ANTHROPIC_API_KEY=xxx
+railway variables set ANTHROPIC_MODEL=claude-sonnet-4-20250514
 railway variables set JWT_SECRET_KEY=xxx
 railway variables set SECRET_KEY=xxx
-```
 
-### HuggingFace Spaces (Archived - Pre v1.0)
-**Note**: HuggingFace deployment was used during development but migrated to Railway before v1.0 launch.
-- **Documentation**: See `/docs/archive/HUGGINGFACE_DEPLOYMENT_ARCHIVED.md` for historical reference
-- **Status**: No longer in use
+# View deployment status
+railway status
+railway logs
+```
 
 ### Local Docker
 ```bash
@@ -448,9 +515,11 @@ docker-compose -f config/docker/docker-compose.monitoring-minimal.yml up
 
 ### Documentation
 - Architecture: `docs/architecture/`
-- Agent docs: `docs/agents/`
-- Current state: `docs/CURRENT_STATE_2025-10-16.md` (comprehensive audit)
-- Orchestration: `docs/architecture/ORCHESTRATION_SYSTEM.md`
+- Agent docs: `docs/agents/` (17 agent documentation files)
+- Project status: `docs/project/CURRENT_STATUS_2025_10.md` (accurate agent status)
+- Planning: `docs/planning/` (sprint plans, roadmaps, v1.0 checklist)
+- Project reports: `docs/project/reports/` (progress reports)
+- Deployment guides: `docs/deployment/railway/`
 
 ### Configuration
 - Environment: `.env` (copy from `.env.example`)
@@ -487,9 +556,30 @@ System works without PostgreSQL (uses in-memory SQLite).
 For production with persistence, configure `DATABASE_URL` in `.env`.
 
 ### 6. LLM Provider
-At least one LLM provider API key is required.
-**Recommended**: `GROQ_API_KEY` (fast, good rate limits)
-**For Portuguese**: `MARITACA_API_KEY` (native Portuguese model)
+System is configured to use **Maritaca AI** as primary provider and **Anthropic Claude** as backup.
+**Primary**: `MARITACA_API_KEY` + `MARITACA_MODEL=sabiazinho-3` (native Brazilian Portuguese)
+**Backup**: `ANTHROPIC_API_KEY` + `ANTHROPIC_MODEL=claude-sonnet-4-20250514`
+**Important**: Set `LLM_PROVIDER=maritaca` in `.env`
+
+### 7. Investigation Persistence
+Investigations are now fully persisted to database with metadata tracking:
+- `total_contracts_analyzed` field tracks complete investigation scope
+- Context metadata stored in JSONB column
+- All investigation results saved for historical analysis
+- Database migrations: `004_investigation_metadata` adds tracking fields
+- Debug endpoints available: `/api/v1/debug/investigations` to list all investigations
+
+### 8. Agent Operational Status (Verified 2025-10-20)
+**Not all 16 agents are fully operational**. Verified status from comprehensive analysis:
+- **Tier 1** (10 agents - 90-100%): Fully functional code (Zumbi, Anita, Tiradentes, Machado, Senna, Bonifácio, Maria Quitéria, Oxóssi, Lampião, Oscar Niemeyer)
+- **Tier 2** (5 agents - 10-70%): Framework exists, needs completion (Abaporu, Nanã, Drummond, Céuci, Obaluaiê)
+- **Tier 3** (1 agent - 30%): Minimal implementation (Dandara)
+
+**Testing Reality**:
+- Only 12/16 agents have test files (75%)
+- **Oxóssi and Lampião are Tier 1 but have ZERO tests** (critical gap!)
+
+Always check `docs/project/COMPREHENSIVE_ANALYSIS_2025_10_20.md` for current verified status.
 
 ## Performance Benchmarks
 
@@ -535,20 +625,92 @@ Installed via `make install-dev`:
 - **Test Files**: 128 files
 - **Test Coverage**: 80.5%
 
+## Quick Reference: Common Tasks
+
+### Debugging Investigation Issues
+```bash
+# Check investigation persistence
+JWT_SECRET_KEY=test SECRET_KEY=test python -c "
+from src.infrastructure.database import SessionLocal
+from src.models.investigation import Investigation
+with SessionLocal() as db:
+    invs = db.query(Investigation).all()
+    print(f'Total investigations: {len(invs)}')
+    for inv in invs[-5:]:
+        print(f'{inv.id}: {inv.status} - {inv.total_contracts_analyzed} contracts')
+"
+
+# Test single investigation
+JWT_SECRET_KEY=test SECRET_KEY=test venv/bin/python test_single_investigation.py
+
+# Check database migrations status
+JWT_SECRET_KEY=test SECRET_KEY=test venv/bin/alembic current
+JWT_SECRET_KEY=test SECRET_KEY=test venv/bin/alembic history
+```
+
+### Working with LLM Providers
+```bash
+# Test Maritaca integration (current primary provider)
+LLM_PROVIDER=maritaca venv/bin/python test_maritaca_integration.py
+
+# Test Claude integration (backup provider)
+# Configure via ANTHROPIC_API_KEY in .env
+
+# Check current provider configuration
+grep LLM_PROVIDER .env
+# Should show: LLM_PROVIDER=maritaca
+
+# Verify API keys are set
+grep MARITACA_API_KEY .env
+grep ANTHROPIC_API_KEY .env
+```
+
+### Database Operations
+```bash
+# Check current migration head
+make db-upgrade  # or: venv/bin/alembic upgrade head
+
+# Create new migration
+make migrate  # or: venv/bin/alembic revision --autogenerate -m "description"
+
+# Merge migration heads (if multiple heads exist)
+JWT_SECRET_KEY=test SECRET_KEY=test venv/bin/alembic merge -m "merge heads" <head1> <head2>
+
+# Reset database (development only)
+make db-reset
+```
+
+### Monitoring & Performance
+```bash
+# Start monitoring stack
+make monitoring-up
+
+# View metrics
+curl http://localhost:8000/health/metrics
+
+# Run warmup job for federal APIs
+venv/bin/python scripts/monitoring/warmup_federal_apis.py --daemon
+
+# Check API endpoint status
+curl http://localhost:8000/health
+```
+
 ## Next Steps for Contributors
 
-1. **Read**: `docs/CURRENT_STATE_2025-10-16.md` for comprehensive system overview
-2. **Understand**: `docs/architecture/ORCHESTRATION_SYSTEM.md` for orchestration details
+1. **Read**: `docs/project/CURRENT_STATUS_2025_10.md` for accurate project state and agent status
+2. **Understand**: `docs/architecture/multi-agent-architecture.md` for system architecture
 3. **Review**: Individual agent docs in `docs/agents/`
 4. **Setup**: Run `make install-dev` and configure `.env`
 5. **Test**: Run `JWT_SECRET_KEY=test SECRET_KEY=test make test` to verify setup
-6. **Code**: Follow patterns in existing agents/services
-7. **Quality**: Run `make check` before committing
+6. **Check Progress**: Run `make roadmap-progress` to see current v1.0 status
+7. **Code**: Follow patterns in existing agents/services
+8. **Quality**: Run `make check` before committing
 
 ## Getting Help
 
-- **Agent Examples**: Review `src/agents/zumbi.py` (well-documented)
-- **Base Classes**: Check `src/agents/deodoro.py` for framework
+- **Agent Examples**: Review `src/agents/zumbi.py` (best-documented, fully operational)
+- **Base Classes**: Check `src/agents/deodoro.py` for ReflectiveAgent framework
 - **Testing Examples**: See `tests/unit/agents/test_zumbi.py`
-- **Current Status**: Always check `docs/CURRENT_STATE_2025-10-16.md`
+- **Current Status**: Always check `docs/project/CURRENT_STATUS_2025_10.md` for real agent metrics
+- **Roadmap**: Run `make roadmap` to see v1.0 plan
 - **Issues**: GitHub Issues for bugs/questions
