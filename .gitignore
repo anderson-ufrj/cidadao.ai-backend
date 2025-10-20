@@ -1,6 +1,12 @@
 # Local archive - planning and internal docs
 .local-archive/
 .archive/
+archive/
+
+# Logs and temporary files
+logs/
+*.log
+*.log.*
 
 # Add-ons - separate repositories
 add-ons/
