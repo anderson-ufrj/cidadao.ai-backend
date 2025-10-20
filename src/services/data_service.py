@@ -107,11 +107,18 @@ class DataService:
 
             # Fetch recent contracts (current year)
             current_year = datetime.now().year
+
+            # Use a diverse set of organizations for better coverage
+            # Pick based on contract_id hash for consistency
+            org_codes = ["26000", "25000", "36000", "53000", "44000", "20000"]
+            org_index = hash(contract_id) % len(org_codes)
+            selected_org = org_codes[org_index]
+
             await self.fetch_contracts(
                 {
                     "ano": current_year,
                     "tamanho_pagina": 100,
-                    "codigo_orgao": "26000",  # Required parameter for API
+                    "codigo_orgao": selected_org,  # Organization based on contract_id
                 }
             )
 
@@ -175,13 +182,41 @@ class DataService:
             # Fetch recent contracts if cache is empty or small
             if len(self._contract_cache) < limit:
                 current_year = datetime.now().year
-                # Use a default organization code for cache warming
-                # 26000 = Ministério da Saúde (commonly available data)
+
+                # Rotate through important government organizations
+                # This provides diverse data for cache warming
+                org_codes = [
+                    "26000",  # Ministério da Saúde
+                    "25000",  # Ministério da Economia
+                    "36000",  # Ministério da Educação
+                    "53000",  # Ministério da Infraestrutura
+                    "44000",  # Ministério do Meio Ambiente
+                    "20000",  # Presidência da República
+                    "30000",  # Ministério da Justiça
+                    "52000",  # Ministério da Defesa
+                    "22000",  # Ministério da Agricultura
+                    "42000",  # Ministério da Cultura
+                ]
+
+                # Rotate through organizations using hash of current time
+                import hashlib
+
+                time_hash = int(
+                    hashlib.md5(str(datetime.now().hour).encode()).hexdigest()[:8], 16
+                )
+                selected_org = org_codes[time_hash % len(org_codes)]
+
+                logger.info(
+                    "cache_warming_org_selected",
+                    codigo_orgao=selected_org,
+                    org_index=time_hash % len(org_codes),
+                )
+
                 await self.fetch_contracts(
                     {
                         "ano": current_year,
                         "tamanho_pagina": limit,
-                        "codigo_orgao": "26000",  # Required parameter for API
+                        "codigo_orgao": selected_org,  # Rotating organization
                     }
                 )
 
