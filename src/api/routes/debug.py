@@ -334,7 +334,11 @@ async def run_migration() -> dict[str, Any]:
 
         # Check current migration version
         current_cmd = subprocess.run(
-            ["venv/bin/alembic", "current"], capture_output=True, text=True, timeout=30, check=False
+            ["venv/bin/alembic", "current"],
+            capture_output=True,
+            text=True,
+            timeout=30,
+            check=False,
         )
 
         result["current_version"] = current_cmd.stdout.strip()
@@ -344,7 +348,8 @@ async def run_migration() -> dict[str, Any]:
             ["venv/bin/alembic", "upgrade", "head"],
             capture_output=True,
             text=True,
-            timeout=120, check=False,
+            timeout=120,
+            check=False,
         )
 
         result["upgrade_output"] = upgrade_cmd.stdout
@@ -362,6 +367,83 @@ async def run_migration() -> dict[str, Any]:
         result["status"] = "error"
         result["errors"].append(
             {
+                "error": str(e),
+                "type": type(e).__name__,
+                "traceback": traceback.format_exc(),
+            }
+        )
+
+    return result
+
+
+@router.post("/fix-database")
+async def fix_database_schema() -> dict[str, Any]:
+    """Fix database schema issues (USE WITH CAUTION IN PRODUCTION)."""
+
+    result = {"status": "started", "fixes_applied": [], "errors": []}
+
+    try:
+        from sqlalchemy import text
+
+        from src.infrastructure.database import engine
+
+        # Fix 1: Convert id column from UUID to VARCHAR
+        try:
+            async with engine.begin() as conn:
+                await conn.execute(
+                    text(
+                        """
+                    ALTER TABLE investigations
+                    ALTER COLUMN id TYPE VARCHAR(255);
+                """
+                    )
+                )
+            result["fixes_applied"].append(
+                {
+                    "fix": "id_column_type",
+                    "description": "Converted id column from UUID to VARCHAR(255)",
+                    "status": "success",
+                }
+            )
+        except Exception as e:
+            result["errors"].append(
+                {"fix": "id_column_type", "error": str(e), "type": type(e).__name__}
+            )
+
+        # Verify the fix
+        try:
+            async with engine.connect() as conn:
+                verify_result = await conn.execute(
+                    text(
+                        """
+                    SELECT column_name, data_type, character_maximum_length
+                    FROM information_schema.columns
+                    WHERE table_name = 'investigations'
+                    AND column_name = 'id';
+                """
+                    )
+                )
+                row = verify_result.fetchone()
+                if row:
+                    result["verification"] = {
+                        "column_name": row[0],
+                        "data_type": row[1],
+                        "max_length": row[2],
+                    }
+        except Exception as e:
+            result["errors"].append(
+                {"phase": "verification", "error": str(e), "type": type(e).__name__}
+            )
+
+        result["status"] = (
+            "completed" if not result["errors"] else "completed_with_errors"
+        )
+
+    except Exception as e:
+        result["status"] = "error"
+        result["errors"].append(
+            {
+                "phase": "database_connection",
                 "error": str(e),
                 "type": type(e).__name__,
                 "traceback": traceback.format_exc(),
