@@ -397,16 +397,25 @@ JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/services/test_orchestratio
 JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_zumbi.py::TestZumbiAgent::test_detect_anomalies -v
 ```
 
-### Coverage Requirements & Critical Gaps
-- **Agents**: Minimum 80% per agent
-- **Services**: Minimum 75%
-- **Overall**: Maintain 80%+
+### Coverage Requirements & Current Status (Measured 2025-10-20)
+- **Target**: 80% overall coverage
+- **Current**: **44.59%** overall (agents module)
+- **Gap**: -35.41 percentage points 🔴
 
-**⚠️ CRITICAL TESTING GAPS**:
-- **Oxóssi** (1,698 LOC): Fully operational fraud detection agent but **ZERO test files** - HIGH PRIORITY
-- **Lampião** (1,587 LOC): Fully operational regional analysis agent but **NO test files** - HIGH PRIORITY
-- **Oscar Niemeyer** (1,228 LOC): Only 1 basic test file despite complex visualization code
-- **Céuci, Obaluaiê, Dandara**: Tier 2/3 agents without adequate tests (expected)
+**✅ EXCELLENT COVERAGE (≥80% - 7 agents)**:
+- Deodoro (96.45%), Oscar Niemeyer (93.78%), Parallel Processor (90.00%)
+- **Oxóssi (83.80%)** - ✅ COMPLETED TODAY (43 tests, 527 statements)
+- Simple Agent Pool (83.21%), Lampião (79.10%), Dandara (73.79%)
+
+**🟡 MODERATE COVERAGE (50-79% - 3 agents)**:
+- Zumbi (58.90%), Tiradentes (52.99%), Bonifácio (49.13%)
+
+**🔴 CRITICAL GAPS (<30% - 9 agents)**:
+- Anita (10.59%), Céuci (10.49%), Nanã (11.76%), Abaporu (13.37%)
+- Obaluaiê (13.11%), Maria Quitéria (23.23%), Machado (24.84%)
+- Drummond (35.48%), Ayrton Senna (46.59%)
+
+**📊 Detailed Report**: See `docs/project/TEST_COVERAGE_REPORT_2025_10_20.md`
 
 ## Transparency APIs Integration
 
@@ -589,7 +598,8 @@ Always check `docs/project/COMPREHENSIVE_ANALYSIS_2025_10_20.md` for current ver
 | Agent Processing | <5s | 3.2s ✅ |
 | Chat First Token | <500ms | 380ms ✅ |
 | Investigation (6 agents) | <15s | 12.5s ✅ |
-| Test Coverage | >80% | 80.5% ✅ |
+| Test Coverage (Agents) | >80% | **44.59%** 🔴 |
+| Tests Passing | >250 | 251 ✅ |
 
 ## Code Style
 
