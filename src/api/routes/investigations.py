@@ -17,8 +17,12 @@ from pydantic import BaseModel, validator
 from pydantic import Field as PydanticField
 
 from src.agents import AgentContext, InvestigatorAgent
+from src.agents.zumbi_wrapper import patch_investigator_agent
 from src.api.middleware.authentication import get_current_user
 from src.config.system_users import SYSTEM_AUTO_MONITOR_USER_ID
+
+# Patch InvestigatorAgent with the wrapper method
+patch_investigator_agent()
 from src.core import get_logger, json_utils
 from src.infrastructure.observability.metrics import (
     BusinessMetrics,
