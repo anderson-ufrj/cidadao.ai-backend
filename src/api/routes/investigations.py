@@ -154,9 +154,12 @@ async def start_investigation(
     for irregularities and suspicious patterns.
     """
     try:
+        # Get user_id or use system default for unauthenticated requests
+        user_id = current_user.get("user_id") or SYSTEM_AUTO_MONITOR_USER_ID
+
         # Create investigation in database (Supabase via REST API on HuggingFace)
         db_investigation = await investigation_service.create(
-            user_id=current_user.get("user_id"),
+            user_id=user_id,
             query=request.query,
             data_source=request.data_source,
             filters=request.filters,
@@ -193,7 +196,7 @@ async def start_investigation(
         "data_source": request.data_source,
         "filters": request.filters,
         "anomaly_types": request.anomaly_types,
-        "user_id": current_user.get("user_id"),
+        "user_id": user_id,  # Use the same user_id as database
         "started_at": datetime.utcnow(),
         "progress": 0.0,
         "current_phase": "initializing",
