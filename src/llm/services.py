@@ -12,7 +12,7 @@ from typing import Any, Optional
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
 
-from src.core import get_logger
+from src.core import get_logger, settings
 from src.llm.providers import LLMRequest, create_llm_manager
 
 
@@ -20,7 +20,7 @@ from src.llm.providers import LLMRequest, create_llm_manager
 class LLMServiceConfig:
     """Configuration for LLM service."""
 
-    primary_provider: str = "groq"
+    primary_provider: str = None  # Will default to settings.llm_provider
     enable_fallback: bool = True
     enable_caching: bool = True
     cache_ttl: int = 3600  # 1 hour
@@ -78,6 +78,10 @@ class LLMService:
         """
         self.config = config or LLMServiceConfig()
         self.logger = get_logger(__name__)
+
+        # Use settings.llm_provider if not specified in config
+        if self.config.primary_provider is None:
+            self.config.primary_provider = settings.llm_provider
 
         # Initialize LLM manager
         self.llm_manager = create_llm_manager(
