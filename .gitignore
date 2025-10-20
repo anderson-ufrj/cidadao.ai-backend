@@ -2,6 +2,9 @@
 .local-archive/
 .archive/
 
+# Add-ons - separate repositories
+add-ons/
+
 # Virtual environments
 venv/
 venv_new/
