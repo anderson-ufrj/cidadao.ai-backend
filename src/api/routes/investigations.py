@@ -486,6 +486,7 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
                 status="running",
                 progress=0.1,
                 current_phase="data_retrieval",
+                started_at=start_time,
             )
         except Exception as e:
             logger.warning(f"Failed to update investigation status in database: {e}")
@@ -620,14 +621,18 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
                 status="completed",
                 progress=1.0,
                 current_phase="completed",
-                records_processed=investigation["records_processed"],
+                total_records_analyzed=investigation["records_processed"],
                 anomalies_found=investigation["anomalies_detected"],
                 summary=summary,
                 confidence_score=investigation["confidence_score"],
                 results=investigation["results"],
+                completed_at=investigation["completed_at"],
             )
             logger.info(
-                "investigation_saved_to_database", investigation_id=investigation_id
+                "investigation_saved_to_database",
+                investigation_id=investigation_id,
+                records=investigation["records_processed"],
+                anomalies=investigation["anomalies_detected"]
             )
         except Exception as e:
             logger.error(

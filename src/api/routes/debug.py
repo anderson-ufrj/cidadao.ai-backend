@@ -439,9 +439,9 @@ async def run_migration() -> dict[str, Any]:
 
 @router.get("/check-constraints")
 async def check_database_constraints() -> dict[str, Any]:
-    """Check database constraints for investigations table."""
+    """Check database constraints for investigations table and list recent investigations."""
 
-    result = {"status": "started", "constraints": [], "errors": []}
+    result = {"status": "started", "constraints": [], "investigations": [], "errors": []}
 
     try:
         from src.infrastructure.database import get_db_pool
