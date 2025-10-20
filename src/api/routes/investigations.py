@@ -833,6 +833,50 @@ async def create_public_investigation(
         )
 
 
+@router.get("/public/status/{investigation_id}", response_model=InvestigationStatus)
+async def get_public_investigation_status(investigation_id: str):
+    """
+    Get investigation status without authentication (for system processes).
+
+    This endpoint allows monitoring investigations created by automated processes
+    without requiring authentication.
+    """
+    if investigation_id not in _active_investigations:
+        # Try to fetch from database if not in memory
+        try:
+            db_investigation = await investigation_service.get_by_id(investigation_id)
+            if db_investigation:
+                return InvestigationStatus(
+                    investigation_id=investigation_id,
+                    status=db_investigation.status,
+                    progress=getattr(db_investigation, "progress", 0.0),
+                    current_phase=getattr(db_investigation, "current_phase", "unknown"),
+                    records_processed=getattr(
+                        db_investigation, "records_processed", 0
+                    ),
+                    anomalies_detected=getattr(db_investigation, "anomalies_found", 0),
+                )
+        except Exception as e:
+            logger.warning(
+                "Investigation not found in memory or database",
+                investigation_id=investigation_id,
+                error=str(e),
+            )
+
+        raise HTTPException(status_code=404, detail="Investigation not found")
+
+    investigation = _active_investigations[investigation_id]
+
+    return InvestigationStatus(
+        investigation_id=investigation_id,
+        status=investigation["status"],
+        progress=investigation["progress"],
+        current_phase=investigation["current_phase"],
+        records_processed=investigation["records_processed"],
+        anomalies_detected=investigation["anomalies_detected"],
+    )
+
+
 @router.get("/public/health", response_model=dict[str, Any])
 async def public_health_check():
     """
