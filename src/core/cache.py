@@ -3,6 +3,8 @@ Advanced caching system with Redis, memory cache, and intelligent cache strategi
 Provides multi-level caching, cache warming, and performance optimization.
 """
 
+from __future__ import annotations
+
 import asyncio
 import hashlib
 import pickle
@@ -12,7 +14,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 import redis.asyncio as redis
 from redis.asyncio import Redis
@@ -100,7 +102,7 @@ class MemoryCache:
         self.access_times = {}
         self.expiry_times = {}
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """Get item from memory cache."""
         if key not in self.cache:
             return None
@@ -115,7 +117,7 @@ class MemoryCache:
         self.access_times[key] = time.time()
         return self.cache[key]
 
-    def set(self, key: str, value: Any, ttl: Optional[int] = None):
+    def set(self, key: str, value: Any, ttl: int | None = None):
         """Set item in memory cache."""
         # Evict old items if necessary
         if len(self.cache) >= self.max_size and key not in self.cache:
@@ -161,7 +163,7 @@ class RedisCache:
     """Redis-based distributed cache."""
 
     def __init__(self):
-        self.redis_client: Optional[Redis] = None
+        self.redis_client: Redis | None = None
         self._connection_pool = None
 
     async def get_redis_client(self) -> Redis:
@@ -177,7 +179,7 @@ class RedisCache:
 
         return self.redis_client
 
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str) -> Any | None:
         """Get item from Redis cache."""
         try:
             client = await self.get_redis_client()
@@ -284,7 +286,7 @@ class MultiLevelCache:
         """Generate cache key with namespace."""
         return f"cidadao_ai:{namespace}:{key}"
 
-    async def get(self, namespace: str, key: str) -> Optional[Any]:
+    async def get(self, namespace: str, key: str) -> Any | None:
         """Get item from multi-level cache."""
         cache_key = self._get_cache_key(namespace, key)
 
@@ -383,7 +385,7 @@ def cache_key_generator(*args, **kwargs) -> str:
 
 
 def cached(
-    namespace: str, ttl: Optional[int] = None, key_generator: Optional[Callable] = None
+    namespace: str, ttl: int | None = None, key_generator: Callable | None = None
 ):
     """Decorator for caching function results."""
 
@@ -502,9 +504,178 @@ class CacheWarming:
 cache_warmer = CacheWarming(cache)
 
 
-async def get_redis_client() -> Redis:
-    """Get Redis client - convenience function."""
-    return await cache.redis_cache.get_redis_client()
+class FallbackRedisClient:
+    """
+    In-memory Redis client fallback for development/testing.
+
+    Implements a subset of Redis operations using in-memory storage
+    when Redis is not available.
+    """
+
+    def __init__(self):
+        self._data: dict[str, tuple[Any, float | None]] = {}
+        self._hash_data: dict[str, dict[str, Any]] = {}
+
+    async def get(self, key: str) -> bytes | None:
+        """Get value by key."""
+        if key in self._data:
+            value, expiry = self._data[key]
+            if expiry is None or time.time() < expiry:
+                return value
+            del self._data[key]
+        return None
+
+    async def set(self, key: str, value: bytes, ex: int | None = None) -> bool:
+        """Set value with optional expiry."""
+        expiry = None if ex is None else time.time() + ex
+        self._data[key] = (value, expiry)
+        return True
+
+    async def setex(self, key: str, time_seconds: int, value: bytes) -> bool:
+        """Set value with expiry (alias for set with ex)."""
+        return await self.set(key, value, ex=time_seconds)
+
+    async def delete(self, *keys: str) -> int:
+        """Delete one or more keys."""
+        count = 0
+        for key in keys:
+            if key in self._data:
+                del self._data[key]
+                count += 1
+            if key in self._hash_data:
+                del self._hash_data[key]
+                count += 1
+        return count
+
+    async def exists(self, *keys: str) -> int:
+        """Check if keys exist."""
+        count = 0
+        for key in keys:
+            if key in self._data or key in self._hash_data:
+                count += 1
+        return count
+
+    async def expire(self, key: str, time_seconds: int) -> bool:
+        """Set expiry on key."""
+        if key in self._data:
+            value, _ = self._data[key]
+            self._data[key] = (value, time.time() + time_seconds)
+            return True
+        return False
+
+    async def hset(self, name: str, key: str, value: Any) -> int:
+        """Set hash field."""
+        if name not in self._hash_data:
+            self._hash_data[name] = {}
+            created = 1
+        else:
+            created = 0
+        self._hash_data[name][key] = value
+        return created
+
+    async def hget(self, name: str, key: str) -> Any | None:
+        """Get hash field."""
+        if name in self._hash_data:
+            return self._hash_data[name].get(key)
+        return None
+
+    async def hgetall(self, name: str) -> dict[str, Any]:
+        """Get all hash fields."""
+        return self._hash_data.get(name, {})
+
+    async def hdel(self, name: str, *keys: str) -> int:
+        """Delete hash fields."""
+        if name not in self._hash_data:
+            return 0
+        count = 0
+        for key in keys:
+            if key in self._hash_data[name]:
+                del self._hash_data[name][key]
+                count += 1
+        return count
+
+    async def keys(self, pattern: str) -> list[str]:
+        """Get keys matching pattern (simple implementation)."""
+        import fnmatch
+
+        all_keys = list(self._data.keys()) + list(self._hash_data.keys())
+        return [key for key in all_keys if fnmatch.fnmatch(key, pattern)]
+
+    async def incr(self, key: str, amount: int = 1) -> int:
+        """Increment integer value."""
+        current = await self.get(key)
+        if current is None:
+            value = amount
+        else:
+            value = (
+                int(current.decode()) + amount
+                if isinstance(current, bytes)
+                else current + amount
+            )
+
+        await self.set(key, str(value).encode())
+        return value
+
+    async def decr(self, key: str, amount: int = 1) -> int:
+        """Decrement integer value."""
+        return await self.incr(key, -amount)
+
+    async def sadd(self, key: str, *values: str) -> int:
+        """Add members to set."""
+        if key not in self._hash_data:
+            self._hash_data[key] = set()
+        elif not isinstance(self._hash_data[key], set):
+            self._hash_data[key] = set()
+
+        initial_size = len(self._hash_data[key])
+        self._hash_data[key].update(values)
+        return len(self._hash_data[key]) - initial_size
+
+    async def smembers(self, key: str) -> set[str]:
+        """Get all members of set."""
+        if key in self._hash_data and isinstance(self._hash_data[key], set):
+            return self._hash_data[key]
+        return set()
+
+    async def srem(self, key: str, *values: str) -> int:
+        """Remove members from set."""
+        if key not in self._hash_data or not isinstance(self._hash_data[key], set):
+            return 0
+
+        count = 0
+        for value in values:
+            if value in self._hash_data[key]:
+                self._hash_data[key].discard(value)
+                count += 1
+        return count
+
+    async def ping(self) -> bool:
+        """Ping (always returns True for fallback)."""
+        return True
+
+    async def close(self):
+        """Close connection (no-op for in-memory)."""
+        pass
+
+
+async def get_redis_client() -> Redis | FallbackRedisClient:
+    """
+    Get Redis client with automatic fallback to in-memory client.
+
+    Returns:
+        Real Redis client if available, FallbackRedisClient otherwise
+    """
+    try:
+        client = await cache.redis_cache.get_redis_client()
+        # Test connection
+        await client.ping()
+        return client
+    except Exception as e:
+        logger.warning(
+            f"Redis not available, using in-memory fallback: {e}",
+            exc_info=False,
+        )
+        return FallbackRedisClient()
 
 
 # Cache management functions
