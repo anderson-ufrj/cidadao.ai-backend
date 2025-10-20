@@ -17,8 +17,23 @@ from sqlalchemy.ext.asyncio import (
 
 load_dotenv()
 
-# Get DATABASE_URL from environment
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./cidadao_ai.db")
+
+def _ensure_async_driver(url: str) -> str:
+    """Ensure PostgreSQL URL uses the async driver (asyncpg)."""
+    # If it's a PostgreSQL URL without a driver specification, add asyncpg
+    if url.startswith("postgresql://") or url.startswith("postgres://"):
+        # Replace postgresql:// or postgres:// with postgresql+asyncpg://
+        if url.startswith("postgresql://"):
+            return url.replace("postgresql://", "postgresql+asyncpg://", 1)
+        else:
+            return url.replace("postgres://", "postgresql+asyncpg://", 1)
+    # If it already has a driver (like postgresql+asyncpg or sqlite+aiosqlite), keep it
+    return url
+
+
+# Get DATABASE_URL from environment and ensure it uses async driver
+_raw_url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./cidadao_ai.db")
+DATABASE_URL = _ensure_async_driver(_raw_url)
 
 # Lazy initialization
 _engine: Optional[AsyncEngine] = None
