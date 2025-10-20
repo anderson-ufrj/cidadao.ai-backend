@@ -10,6 +10,8 @@ from typing import Any
 
 from fastapi import APIRouter
 
+from src.core import settings
+
 router = APIRouter(prefix="/debug", tags=["debug"])
 
 
@@ -98,6 +100,161 @@ async def drummond_status() -> dict[str, Any]:
             "error": str(e),
             "traceback": traceback.format_exc(),
         }
+
+    return result
+
+
+@router.get("/llm-config")
+async def llm_config_status() -> dict[str, Any]:
+    """Check LLM configuration and provider status."""
+
+    result = {
+        "environment": os.getenv("ENVIRONMENT", "unknown"),
+        "configuration": {},
+        "environment_variables": {},
+        "provider_status": {},
+    }
+
+    # Check configuration from settings
+    result["configuration"] = {
+        "llm_provider": settings.llm_provider,
+        "llm_model_name": settings.llm_model_name,
+        "llm_temperature": settings.llm_temperature,
+        "llm_max_tokens": settings.llm_max_tokens,
+    }
+
+    # Check environment variables directly
+    result["environment_variables"] = {
+        "LLM_PROVIDER": os.getenv("LLM_PROVIDER"),
+        "MARITACA_API_KEY": (
+            "***" + os.getenv("MARITACA_API_KEY", "")[-4:]
+            if os.getenv("MARITACA_API_KEY")
+            else None
+        ),
+        "MARITACA_MODEL": os.getenv("MARITACA_MODEL"),
+        "GROQ_API_KEY": (
+            "***" + os.getenv("GROQ_API_KEY", "")[-4:]
+            if os.getenv("GROQ_API_KEY")
+            else None
+        ),
+        "ANTHROPIC_API_KEY": (
+            "***" + os.getenv("ANTHROPIC_API_KEY", "")[-4:]
+            if os.getenv("ANTHROPIC_API_KEY")
+            else None
+        ),
+    }
+
+    # Check if Maritaca is configured in settings
+    result["provider_status"]["maritaca"] = {
+        "api_key_configured": bool(settings.maritaca_api_key),
+        "model": (
+            settings.maritaca_model if hasattr(settings, "maritaca_model") else None
+        ),
+        "base_url": (
+            settings.maritaca_api_base_url
+            if hasattr(settings, "maritaca_api_base_url")
+            else None
+        ),
+    }
+
+    # Test LLM provider initialization
+    try:
+        from src.llm.providers import create_llm_manager
+
+        manager = create_llm_manager(
+            primary_provider=settings.llm_provider, enable_fallback=False
+        )
+
+        result["provider_status"]["initialization"] = {
+            "status": "success",
+            "primary_provider": str(manager.primary_provider),
+            "providers_available": (
+                list(manager.providers.keys()) if hasattr(manager, "providers") else []
+            ),
+        }
+    except Exception as e:
+        result["provider_status"]["initialization"] = {
+            "status": "failed",
+            "error": str(e),
+            "type": type(e).__name__,
+        }
+
+    # Test actual LLM call
+    try:
+        from src.llm.services import LLMService
+
+        service = LLMService()
+        test_response = await service.complete_text(
+            "Responda em português: Olá", max_tokens=50
+        )
+
+        result["provider_status"]["test_call"] = {
+            "status": "success",
+            "response_preview": test_response[:100] if test_response else None,
+            "provider_used": service.config.primary_provider,
+        }
+    except Exception as e:
+        result["provider_status"]["test_call"] = {
+            "status": "failed",
+            "error": str(e),
+            "type": type(e).__name__,
+        }
+
+    return result
+
+
+@router.get("/investigation/{investigation_id}/logs")
+async def investigation_logs(investigation_id: str) -> dict[str, Any]:
+    """Get detailed logs for a specific investigation."""
+
+    result = {
+        "investigation_id": investigation_id,
+        "status": {},
+        "llm_calls": [],
+        "errors": [],
+    }
+
+    # Try to get investigation from database
+    try:
+        from src.services.investigation_service import InvestigationService
+
+        service = InvestigationService()
+        investigation = await service.get_investigation(investigation_id)
+
+        if investigation:
+            result["status"] = {
+                "current_status": investigation.get("status"),
+                "progress": investigation.get("progress", 0),
+                "current_phase": investigation.get("current_phase"),
+                "created_at": str(investigation.get("created_at")),
+                "updated_at": str(investigation.get("updated_at")),
+                "anomalies_found": investigation.get("anomalies_found", 0),
+                "error_message": investigation.get("error_message"),
+            }
+
+            # Check investigation metadata for LLM info
+            metadata = investigation.get("investigation_metadata", {})
+            if metadata:
+                result["llm_info"] = {
+                    "provider": metadata.get("llm_provider"),
+                    "model": metadata.get("llm_model"),
+                    "total_time": metadata.get("total_time"),
+                    "llm_response_time": metadata.get("llm_response_time"),
+                }
+        else:
+            result["error"] = "Investigation not found"
+
+    except Exception as e:
+        result["errors"].append(
+            {"phase": "database_lookup", "error": str(e), "type": type(e).__name__}
+        )
+
+    # Add current LLM configuration for comparison
+    result["current_llm_config"] = {
+        "provider": settings.llm_provider,
+        "model": settings.llm_model_name,
+        "maritaca_configured": bool(settings.maritaca_api_key),
+    }
 
     return result
 
