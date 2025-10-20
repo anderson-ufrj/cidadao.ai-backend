@@ -301,6 +301,65 @@ async def investigation_logs(investigation_id: str) -> dict[str, Any]:
     return result
 
 
+@router.get("/list-all-investigations")
+async def list_all_investigations() -> dict[str, Any]:
+    """List all investigations from database (debug only)."""
+
+    result = {"status": "started", "investigations": [], "errors": []}
+
+    try:
+        from src.infrastructure.database import get_db_pool
+
+        pool = await get_db_pool()
+
+        async with pool.acquire() as conn:
+            rows = await conn.fetch("""
+                SELECT
+                    id,
+                    user_id,
+                    query,
+                    status,
+                    progress,
+                    current_phase,
+                    created_at,
+                    completed_at,
+                    anomalies_found,
+                    records_processed,
+                    confidence_score
+                FROM investigations
+                ORDER BY created_at DESC
+                LIMIT 10
+            """)
+
+            for row in rows:
+                result["investigations"].append({
+                    "id": row["id"],
+                    "user_id": row["user_id"],
+                    "query": row["query"][:100],
+                    "status": row["status"],
+                    "progress": row["progress"] if "progress" in row.keys() else None,
+                    "current_phase": row["current_phase"] if "current_phase" in row.keys() else None,
+                    "created_at": str(row["created_at"]),
+                    "completed_at": str(row["completed_at"]) if row["completed_at"] else None,
+                    "anomalies_found": row["anomalies_found"],
+                    "records_processed": row["records_processed"] if "records_processed" in row.keys() else None,
+                    "confidence_score": row["confidence_score"],
+                })
+
+        result["status"] = "completed"
+        result["total"] = len(result["investigations"])
+
+    except Exception as e:
+        result["status"] = "error"
+        result["errors"].append({
+            "error": str(e),
+            "type": type(e).__name__,
+            "traceback": traceback.format_exc(),
+        })
+
+    return result
+
+
 @router.get("/module-info/{module_path}")
 async def module_info(module_path: str) -> dict[str, Any]:
     """Get information about a specific module."""
