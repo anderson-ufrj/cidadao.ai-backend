@@ -379,7 +379,7 @@ setup_*.py
 # Project planning files
 next-steps.md
 *next-steps*
-planning/
+/planning/
 *.planning
 ROADMAP_MELHORIAS_2025.md
 *ROADMAP*.md
