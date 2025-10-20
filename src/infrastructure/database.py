@@ -79,7 +79,10 @@ class Investigation(BaseModel):
     user_id: Optional[str] = Field(None, description="ID do usuário")
     query: str = Field(..., description="Query da investigação")
     status: str = Field("pending", description="Status atual")
+    progress: float = Field(0.0, description="Progresso da investigação (0.0 a 1.0)")
+    current_phase: str = Field("pending", description="Fase atual da investigação")
     results: Optional[dict[str, Any]] = Field(None, description="Resultados")
+    summary: Optional[str] = Field(None, description="Sumário da investigação")
     metadata: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
@@ -87,6 +90,7 @@ class Investigation(BaseModel):
     error_message: Optional[str] = None
     confidence_score: Optional[float] = None
     anomalies_found: int = 0
+    records_processed: int = 0
     processing_time_ms: Optional[int] = None
 
 
