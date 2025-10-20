@@ -32,6 +32,7 @@ celery_app = Celery(
         "src.infrastructure.queue.tasks.katana_tasks",
         "src.infrastructure.queue.tasks.alert_tasks",
         "src.infrastructure.queue.tasks.network_tasks",  # Network graph analysis
+        "src.infrastructure.queue.tasks.memory_tasks",  # Nanã memory management
         # Temporarily disabled - missing service dependencies
         # "src.infrastructure.queue.tasks.report_tasks",
         # "src.infrastructure.queue.tasks.export_tasks",
@@ -313,6 +314,29 @@ celery_app.conf.beat_schedule = {
     "network-health-check-hourly": {
         "task": "tasks.network_health_check",
         "schedule": timedelta(hours=1),  # Every hour
+        "options": {"queue": "high"},
+    },
+    # Memory Management Tasks (Nanã)
+    "memory-decay-daily": {
+        "task": "tasks.memory_decay",
+        "schedule": timedelta(hours=24),  # Daily memory decay
+        "args": (30,),  # Decay memories older than 30 days
+        "options": {"queue": "background"},
+    },
+    "memory-consolidation-weekly": {
+        "task": "tasks.memory_consolidation",
+        "schedule": timedelta(days=7),  # Weekly consolidation
+        "args": (0.85,),  # 85% similarity threshold
+        "options": {"queue": "background"},
+    },
+    "memory-cleanup-weekly": {
+        "task": "tasks.memory_cleanup",
+        "schedule": timedelta(days=7),  # Weekly cleanup
+        "options": {"queue": "background"},
+    },
+    "memory-health-check-hourly": {
+        "task": "tasks.memory_health_check",
+        "schedule": timedelta(hours=1),  # Hourly health check
         "options": {"queue": "high"},
     },
 }
