@@ -383,20 +383,19 @@ async def fix_database_schema() -> dict[str, Any]:
     result = {"status": "started", "fixes_applied": [], "errors": []}
 
     try:
-        from sqlalchemy import text
+        from src.infrastructure.database import get_db_pool
 
-        from src.infrastructure.database import engine
+        # Get database pool
+        pool = await get_db_pool()
 
         # Fix 1: Convert id column from UUID to VARCHAR
         try:
-            async with engine.begin() as conn:
+            async with pool.acquire() as conn:
                 await conn.execute(
-                    text(
-                        """
+                    """
                     ALTER TABLE investigations
                     ALTER COLUMN id TYPE VARCHAR(255);
                 """
-                    )
                 )
             result["fixes_applied"].append(
                 {
@@ -412,23 +411,20 @@ async def fix_database_schema() -> dict[str, Any]:
 
         # Verify the fix
         try:
-            async with engine.connect() as conn:
-                verify_result = await conn.execute(
-                    text(
-                        """
+            async with pool.acquire() as conn:
+                row = await conn.fetchrow(
+                    """
                     SELECT column_name, data_type, character_maximum_length
                     FROM information_schema.columns
                     WHERE table_name = 'investigations'
                     AND column_name = 'id';
                 """
-                    )
                 )
-                row = verify_result.fetchone()
                 if row:
                     result["verification"] = {
-                        "column_name": row[0],
-                        "data_type": row[1],
-                        "max_length": row[2],
+                        "column_name": row["column_name"],
+                        "data_type": row["data_type"],
+                        "max_length": row["character_maximum_length"],
                     }
         except Exception as e:
             result["errors"].append(
