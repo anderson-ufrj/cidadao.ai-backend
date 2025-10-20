@@ -33,6 +33,7 @@ from src.api.routes import (
     batch,
     chat,
     cqrs,
+    debug,
     federal_apis,
     geographic,
     graphql,
@@ -357,6 +358,9 @@ if os.path.exists(static_path):
 
 # Include routers with security
 app.include_router(health.router, prefix="/health", tags=["Health Check"])
+
+# Debug endpoints for troubleshooting
+app.include_router(debug.router, tags=["Debug"])
 
 app.include_router(auth.router, tags=["Authentication"])
 
