@@ -322,6 +322,59 @@ class InvestigatorAgent(BaseAgent):
                 metadata={"investigation_id": context.investigation_id},
             )
 
+    async def generate_summary(
+        self, results: list[AnomalyResult], context: AgentContext
+    ) -> str:
+        """
+        Generate a human-readable summary of investigation results.
+
+        Args:
+            results: List of detected anomalies
+            context: Agent execution context
+
+        Returns:
+            Summary text describing findings
+        """
+        if not results:
+            return "Nenhuma anomalia significativa foi detectada nos contratos analisados."
+
+        # Count by severity
+        high_severity = len([r for r in results if r.severity > 0.7])
+        medium_severity = len([r for r in results if 0.4 < r.severity <= 0.7])
+        low_severity = len([r for r in results if r.severity <= 0.4])
+
+        # Count by type
+        by_type = {}
+        for result in results:
+            by_type[result.anomaly_type] = by_type.get(result.anomaly_type, 0) + 1
+
+        # Build summary
+        summary_parts = [
+            f"Foram detectadas {len(results)} anomalia(s) nos contratos analisados:",
+            f"- {high_severity} de severidade alta",
+            f"- {medium_severity} de severidade média",
+            f"- {low_severity} de severidade baixa",
+            "",
+            "Distribuição por tipo:",
+        ]
+
+        for anomaly_type, count in by_type.items():
+            summary_parts.append(f"- {anomaly_type}: {count} ocorrência(s)")
+
+        # Add top recommendations
+        if results:
+            summary_parts.append("")
+            summary_parts.append("Recomendações prioritárias:")
+            for i, result in enumerate(results[:3], 1):
+                if result.recommendations:
+                    summary_parts.append(
+                        f"{i}. {result.recommendations[0][:100]}..."
+                        if len(result.recommendations[0]) > 100
+                        else f"{i}. {result.recommendations[0]}"
+                    )
+
+        return "\n".join(summary_parts)
+
     async def _fetch_investigation_data(
         self, request: InvestigationRequest, context: AgentContext
     ) -> list[dict[str, Any]]:
