@@ -89,7 +89,8 @@ class Settings(BaseSettings):
 
     # LLM Configuration
     llm_provider: str = Field(
-        default="groq", description="LLM provider (groq, together, huggingface)"
+        default="groq",
+        description="LLM provider (groq, together, huggingface, maritaca)",
     )
     llm_model_name: str = Field(
         default="mixtral-8x7b-32768", description="LLM model name"

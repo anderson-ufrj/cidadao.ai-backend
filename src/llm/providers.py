@@ -153,24 +153,29 @@ class BaseLLMProvider(ABC):
         self, endpoint: str, data: dict[str, Any], stream: bool = False
     ) -> Union[dict[str, Any], AsyncGenerator[dict[str, Any], None]]:
         """Make HTTP request with retry logic."""
+        if stream:
+            # Return async generator for streaming
+            return self._stream_request(endpoint, data)
+        else:
+            # Return regular result for non-streaming
+            return await self._non_stream_request(endpoint, data)
+
+    async def _non_stream_request(
+        self, endpoint: str, data: dict[str, Any]
+    ) -> dict[str, Any]:
+        """Make non-streaming HTTP request."""
         # Use connection pool if available
         if self._use_pool and hasattr(self, "_provider_name"):
             try:
                 pool = await get_llm_pool()
-                if stream:
-                    # For streaming, fall back to regular client for now
-                    self.logger.debug(
-                        "Streaming not yet supported with pool, using regular client"
-                    )
-                else:
-                    result = await pool.post(self._provider_name, endpoint, data)
-                    return result
+                result = await pool.post(self._provider_name, endpoint, data)
+                return result
             except Exception as e:
                 self.logger.warning(
                     f"Pool request failed, falling back to regular client: {e}"
                 )
 
-        # Original implementation for fallback or streaming
+        # Original implementation for fallback
         if not self.client:
             self.client = httpx.AsyncClient(
                 timeout=httpx.Timeout(self.timeout),
@@ -189,41 +194,27 @@ class BaseLLMProvider(ABC):
                     provider=self.__class__.__name__,
                     url=url,
                     attempt=attempt + 1,
-                    stream=stream,
+                    stream=False,
                 )
 
-                if stream:
-                    async with self.client.stream(
-                        "POST",
-                        url,
-                        json=data,
-                        headers=headers,
-                    ) as response:
-                        if response.status_code == 200:
-                            async for chunk in self._process_stream_response(response):
-                                yield chunk
-                            return
-                        else:
-                            await self._handle_error_response(response, attempt)
-                else:
-                    response = await self.client.post(
-                        url,
-                        content=dumps_bytes(data),
-                        headers=headers,
+                response = await self.client.post(
+                    url,
+                    json=data,
+                    headers=headers,
+                )
+
+                if response.status_code == 200:
+                    response_time = (datetime.utcnow() - start_time).total_seconds()
+
+                    self.logger.info(
+                        "llm_request_success",
+                        provider=self.__class__.__name__,
+                        response_time=response_time,
                     )
 
-                    if response.status_code == 200:
-                        response_time = (datetime.utcnow() - start_time).total_seconds()
-
-                        self.logger.info(
-                            "llm_request_success",
-                            provider=self.__class__.__name__,
-                            response_time=response_time,
-                        )
-
-                        return loads(response.content)
-                    else:
-                        await self._handle_error_response(response, attempt)
+                    return loads(response.content)
+                else:
+                    await self._handle_error_response(response, attempt)
 
             except httpx.TimeoutException:
                 self.logger.error(
@@ -261,6 +252,80 @@ class BaseLLMProvider(ABC):
 
         raise LLMError(
             f"Failed after {self.max_retries + 1} attempts",
+            details={"provider": self.__class__.__name__},
+        )
+
+    async def _stream_request(
+        self, endpoint: str, data: dict[str, Any]
+    ) -> AsyncGenerator[dict[str, Any], None]:
+        """Make streaming HTTP request."""
+        if not self.client:
+            self.client = httpx.AsyncClient(
+                timeout=httpx.Timeout(self.timeout),
+                limits=httpx.Limits(max_keepalive_connections=10, max_connections=20),
+            )
+
+        url = f"{self.base_url}{endpoint}"
+        headers = self._get_headers()
+
+        for attempt in range(self.max_retries + 1):
+            try:
+                self.logger.info(
+                    "llm_stream_request_started",
+                    provider=self.__class__.__name__,
+                    url=url,
+                    attempt=attempt + 1,
+                )
+
+                async with self.client.stream(
+                    "POST",
+                    url,
+                    json=data,
+                    headers=headers,
+                ) as response:
+                    if response.status_code == 200:
+                        async for chunk in self._process_stream_response(response):
+                            yield chunk
+                        return
+                    else:
+                        await self._handle_error_response(response, attempt)
+
+            except httpx.TimeoutException:
+                self.logger.error(
+                    "llm_stream_timeout",
+                    provider=self.__class__.__name__,
+                    timeout=self.timeout,
+                    attempt=attempt + 1,
+                )
+
+                if attempt < self.max_retries:
+                    await asyncio.sleep(2**attempt)
+                    continue
+
+                raise LLMError(
+                    f"Stream request timeout after {self.timeout} seconds",
+                    details={"provider": self.__class__.__name__},
+                )
+
+            except Exception as e:
+                self.logger.error(
+                    "llm_stream_error",
+                    provider=self.__class__.__name__,
+                    error=str(e),
+                    attempt=attempt + 1,
+                )
+
+                if attempt < self.max_retries:
+                    await asyncio.sleep(2**attempt)
+                    continue
+
+                raise LLMError(
+                    f"Stream error: {str(e)}",
+                    details={"provider": self.__class__.__name__},
+                )
+
+        raise LLMError(
+            f"Stream failed after {self.max_retries + 1} attempts",
             details={"provider": self.__class__.__name__},
         )
 
@@ -332,8 +397,15 @@ class GroqProvider(BaseLLMProvider):
 
     def __init__(self, api_key: Optional[str] = None):
         """Initialize Groq provider."""
+        if api_key:
+            actual_api_key = api_key
+        elif settings.groq_api_key:
+            actual_api_key = settings.groq_api_key.get_secret_value()
+        else:
+            actual_api_key = "gsk-test-dummy-key"  # Dummy key for testing
+
         super().__init__(
-            api_key=api_key or settings.groq_api_key.get_secret_value(),
+            api_key=actual_api_key,
             base_url=settings.groq_api_base_url,
             default_model="mixtral-8x7b-32768",
             timeout=60,
@@ -409,8 +481,15 @@ class TogetherProvider(BaseLLMProvider):
 
     def __init__(self, api_key: Optional[str] = None):
         """Initialize Together AI provider."""
+        if api_key:
+            actual_api_key = api_key
+        elif settings.together_api_key:
+            actual_api_key = settings.together_api_key.get_secret_value()
+        else:
+            actual_api_key = "together-test-dummy-key"  # Dummy key for testing
+
         super().__init__(
-            api_key=api_key or settings.together_api_key.get_secret_value(),
+            api_key=actual_api_key,
             base_url=settings.together_api_base_url,
             default_model="meta-llama/Llama-2-70b-chat-hf",
             timeout=60,
@@ -485,8 +564,15 @@ class HuggingFaceProvider(BaseLLMProvider):
 
     def __init__(self, api_key: Optional[str] = None):
         """Initialize Hugging Face provider."""
+        if api_key:
+            actual_api_key = api_key
+        elif settings.huggingface_api_key:
+            actual_api_key = settings.huggingface_api_key.get_secret_value()
+        else:
+            actual_api_key = "hf-test-dummy-key"  # Dummy key for testing
+
         super().__init__(
-            api_key=api_key or settings.huggingface_api_key.get_secret_value(),
+            api_key=actual_api_key,
             base_url="https://api-inference.huggingface.co",
             default_model="mistralai/Mistral-7B-Instruct-v0.2",
             timeout=60,
@@ -579,9 +665,20 @@ class MaritacaProvider(BaseLLMProvider):
     def __init__(self, api_key: Optional[str] = None):
         """Initialize Maritaca AI provider."""
         # We don't use the base class init for Maritaca since it has its own client
-        self.api_key = api_key or settings.maritaca_api_key.get_secret_value()
-        self.default_model = settings.maritaca_model
         self.logger = get_logger(__name__)
+
+        if api_key:
+            self.api_key = api_key
+        elif settings.maritaca_api_key:
+            self.api_key = settings.maritaca_api_key.get_secret_value()
+        else:
+            # Use a dummy key for testing/development
+            self.api_key = "sk-test-dummy-key"
+            self.logger.warning(
+                "No Maritaca API key configured. Using dummy key for testing. "
+                "Set MARITACA_API_KEY environment variable for production use."
+            )
+        self.default_model = settings.maritaca_model
 
         # Create Maritaca client
         self.maritaca_client = MaritacaClient(
@@ -628,17 +725,10 @@ class MaritacaProvider(BaseLLMProvider):
 
     async def stream_complete(self, request: LLMRequest) -> AsyncGenerator[str, None]:
         """Stream text generation using Maritaca AI."""
-        messages = self._prepare_messages(request)
-
-        async for chunk in await self.maritaca_client.chat_completion(
-            messages=messages,
-            model=request.model or self.default_model,
-            temperature=request.temperature,
-            max_tokens=request.max_tokens,
-            top_p=request.top_p,
-            stream=True,
-        ):
-            yield chunk
+        # Note: Maritaca client doesn't support streaming yet
+        # Fall back to regular completion and yield the result
+        response = await self.complete(request)
+        yield response.content
 
     def _prepare_messages(self, request: LLMRequest) -> list[dict[str, str]]:
         """Prepare messages for Maritaca API."""
