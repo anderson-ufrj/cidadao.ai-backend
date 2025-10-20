@@ -620,7 +620,7 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
                 status="completed",
                 progress=1.0,
                 current_phase="completed",
-                total_records_analyzed=investigation["records_processed"],
+                records_processed=investigation["records_processed"],
                 anomalies_found=investigation["anomalies_detected"],
                 summary=summary,
                 confidence_score=investigation["confidence_score"],
@@ -634,6 +634,7 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
                 "Failed to save investigation results to database",
                 investigation_id=investigation_id,
                 error=str(e),
+                exc_info=True,
             )
 
         # Calculate duration
