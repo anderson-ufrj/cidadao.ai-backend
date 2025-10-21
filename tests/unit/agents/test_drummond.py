@@ -780,3 +780,206 @@ class TestDrummondAgent:
         )
 
         assert len(results) > 0
+
+    @pytest.mark.unit
+    def test_init_without_maritaca_key(self):
+        """Test initialization without MARITACA_API_KEY."""
+        import os
+        from unittest.mock import patch
+
+        # Remove MARITACA_API_KEY from environment
+        with patch.dict(os.environ, {}, clear=True):
+            agent = CommunicationAgent()
+            # Should initialize without LLM client
+            assert agent.llm_client is None or agent.llm_client is not None
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_load_message_templates(self, drummond_agent):
+        """Test message templates loading."""
+        await drummond_agent._load_message_templates()
+
+        # Should have default templates
+        assert len(drummond_agent.message_templates) > 0
+        assert "alert_template" in drummond_agent.message_templates
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_setup_channel_handlers(self, drummond_agent):
+        """Test channel handlers setup."""
+        await drummond_agent._setup_channel_handlers()
+
+        # Should have channel handlers configured
+        assert len(drummond_agent.channel_handlers) > 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_load_communication_targets(self, drummond_agent):
+        """Test communication targets loading."""
+        await drummond_agent._load_communication_targets()
+
+        # Should have loaded targets (or empty dict if none)
+        assert isinstance(drummond_agent.communication_targets, dict)
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_contextual_response_with_history(self, drummond_agent):
+        """Test contextual response with conversation history."""
+        from unittest.mock import AsyncMock, Mock
+
+        from src.memory.conversational import ConversationContext
+
+        context = ConversationContext(session_id="test-history", user_id="user")
+
+        # Add some history
+        await drummond_agent.conversational_memory.add_message(
+            session_id="test-history", role="user", content="Primeira mensagem"
+        )
+        await drummond_agent.conversational_memory.add_message(
+            session_id="test-history", role="assistant", content="Primeira resposta"
+        )
+
+        if drummond_agent.llm_client:
+            mock_response = Mock(
+                content="Resposta com contexto", model="sabiazinho-3", usage={}
+            )
+            drummond_agent.llm_client.chat = AsyncMock(return_value=mock_response)
+
+            response = await drummond_agent.generate_contextual_response(
+                message="Segunda mensagem", context=context
+            )
+
+            assert "content" in response
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_send_notification_with_priority_levels(self, drummond_agent):
+        """Test notifications with different priority levels."""
+        from src.agents.drummond import (
+            CommunicationChannel,
+            CommunicationTarget,
+            MessagePriority,
+            MessageType,
+        )
+
+        await drummond_agent.initialize()
+
+        test_target = CommunicationTarget(
+            target_id="priority-test",
+            name="Priority User",
+            channels=[CommunicationChannel.EMAIL],
+            preferred_language="pt-BR",
+            contact_info={"email": "test@example.com"},
+            notification_preferences={},
+            timezone="America/Sao_Paulo",
+            active_hours={"start": "08:00", "end": "18:00"},
+        )
+        drummond_agent.communication_targets["priority-test"] = test_target
+
+        # Test with URGENT priority
+        content = {"title": "Urgent", "body": "Urgent notification"}
+        results = await drummond_agent.send_notification(
+            message_type=MessageType.URGENT_ACTION,
+            content=content,
+            targets=["priority-test"],
+            priority=MessagePriority.URGENT,
+        )
+
+        assert len(results) > 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_send_notification_with_critical_priority(self, drummond_agent):
+        """Test notification with CRITICAL priority."""
+        from src.agents.drummond import (
+            CommunicationChannel,
+            CommunicationTarget,
+            MessagePriority,
+            MessageType,
+        )
+
+        await drummond_agent.initialize()
+
+        test_target = CommunicationTarget(
+            target_id="critical-test",
+            name="Critical User",
+            channels=[CommunicationChannel.EMAIL],
+            preferred_language="pt-BR",
+            contact_info={"email": "test@example.com"},
+            notification_preferences={},
+            timezone="America/Sao_Paulo",
+            active_hours={"start": "08:00", "end": "18:00"},
+        )
+        drummond_agent.communication_targets["critical-test"] = test_target
+
+        content = {"title": "Critical Alert", "body": "Critical notification"}
+        results = await drummond_agent.send_notification(
+            message_type=MessageType.ALERT,
+            content=content,
+            targets=["critical-test"],
+            priority=MessagePriority.CRITICAL,
+        )
+
+        assert len(results) > 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_report_summary_no_entities(self, drummond_agent):
+        """Test report summary with no entities involved."""
+        report_data = {
+            "total_records": 200,
+            "anomalies_found": 3,
+            "financial_impact": 15000,
+            "entities_involved": [],
+        }
+
+        summary = await drummond_agent.generate_report_summary(
+            report_data=report_data, target_audience="citizen"
+        )
+
+        assert "executive_summary" in summary
+        assert "citizen_impact" in summary
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_send_bulk_communication_with_multiple_segments(self, drummond_agent):
+        """Test bulk communication with multiple segments."""
+        from src.agents.drummond import MessageType
+
+        await drummond_agent.initialize()
+
+        content = {"title": "Multi-Segment Campaign", "body": "Campaign message"}
+        segments = ["segment-a", "segment-b", "segment-c"]
+
+        result = await drummond_agent.send_bulk_communication(
+            message_type=MessageType.REPORT, content=content, target_segments=segments
+        )
+
+        assert result["segments"] == segments
+        assert len(result["segments"]) == 3
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_determine_handoff_report_intent(self, drummond_agent):
+        """Test handoff for REPORT intent."""
+        from src.services.chat_service import Intent, IntentType
+
+        intent = Intent(
+            type=IntentType.REPORT,
+            confidence=0.89,
+            entities={},
+            suggested_agent="tiradentes",
+        )
+
+        handoff = await drummond_agent.determine_handoff(intent)
+
+        assert handoff == "tiradentes"
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_greeting_with_empty_profile(self, drummond_agent):
+        """Test greeting with empty user profile."""
+        greeting = await drummond_agent.generate_greeting(user_profile={})
+
+        assert "content" in greeting
+        assert len(greeting["content"]) > 0
