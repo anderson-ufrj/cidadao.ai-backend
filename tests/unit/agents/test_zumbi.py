@@ -543,6 +543,98 @@ class TestZumbiSpectralAnomalies:
         # Should complete analysis without errors
         assert isinstance(anomalies, list)
 
+    @pytest.mark.asyncio
+    async def test_spectral_anomalies_with_real_detections(self, zumbi_agent):
+        """Test spectral analysis with mocked spectral anomaly detections."""
+        from datetime import datetime
+        from unittest.mock import patch
+
+        from src.ml.spectral_analyzer import SpectralAnomaly
+
+        contracts = []
+        # Create 50 contracts over 50 unique days
+        for i in range(50):
+            day = (i % 28) + 1
+            month = ((i // 28) % 12) + 1
+            contracts.append(
+                {
+                    "id": f"C{i}",
+                    "dataAssinatura": f"{day:02d}/{month:02d}/2024",
+                    "valorInicial": 100000.0 + (i * 1000),
+                }
+            )
+
+        # Mock spectral anomalies
+        mock_spectral_anomaly = SpectralAnomaly(
+            timestamp=datetime(2024, 1, 15),
+            anomaly_type="high_frequency_pattern",
+            severity="high",
+            frequency_band=(0.1, 0.5),
+            anomaly_score=0.85,
+            description="High frequency pattern detected",
+            evidence={"power": 0.95, "frequency": 0.3},
+            recommendations=["Investigate pattern cause", "Review procedures"],
+        )
+
+        with patch.object(
+            zumbi_agent.spectral_analyzer, "detect_anomalies"
+        ) as mock_detect:
+            mock_detect.return_value = [mock_spectral_anomaly]
+
+            context = AgentContext(investigation_id="test-spectral-real")
+            anomalies = await zumbi_agent._detect_spectral_anomalies(contracts, context)
+
+            assert len(anomalies) > 0
+            assert any("spectral_" in a.anomaly_type for a in anomalies)
+            assert any(a.severity >= 0.8 for a in anomalies)
+
+    @pytest.mark.asyncio
+    async def test_periodic_patterns_detection(self, zumbi_agent):
+        """Test periodic pattern detection and conversion to anomalies."""
+        from unittest.mock import patch
+
+        from src.ml.spectral_analyzer import PeriodicPattern
+
+        contracts = []
+        # Create 50 contracts over 50 unique days
+        for i in range(50):
+            day = (i % 28) + 1
+            month = ((i // 28) % 12) + 1
+            contracts.append(
+                {
+                    "id": f"C{i}",
+                    "dataAssinatura": f"{day:02d}/{month:02d}/2024",
+                    "valorInicial": 100000.0,
+                }
+            )
+
+        # Mock periodic pattern
+        mock_pattern = PeriodicPattern(
+            period_days=7.0,
+            frequency_hz=0.14285,
+            amplitude=0.6,
+            confidence=0.88,
+            pattern_type="suspicious",
+            business_interpretation="Weekly spending pattern",
+            statistical_significance=0.95,
+        )
+
+        with patch.object(
+            zumbi_agent.spectral_analyzer, "find_periodic_patterns"
+        ) as mock_find:
+            mock_find.return_value = [mock_pattern]
+
+            context = AgentContext(investigation_id="test-periodic")
+            anomalies = await zumbi_agent._detect_spectral_anomalies(contracts, context)
+
+            assert len(anomalies) > 0
+            assert any(
+                a.anomaly_type == "suspicious_periodic_pattern" for a in anomalies
+            )
+            pattern_anomaly = next(a for a in anomalies if "periodic" in a.anomaly_type)
+            assert pattern_anomaly.severity == 0.6
+            assert pattern_anomaly.confidence == 0.88
+
 
 class TestZumbiIntegration:
     """Integration tests for Zumbi agent with multiple detection methods."""
