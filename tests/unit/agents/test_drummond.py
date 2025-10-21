@@ -34,7 +34,7 @@ class TestDrummondAgent:
     @pytest.mark.unit
     def test_agent_initialization(self, drummond_agent):
         """Test agent initializes correctly."""
-        assert drummond_agent.name == "CommunicationAgent"
+        assert drummond_agent.name == "drummond"
         assert "process_chat" in drummond_agent.capabilities
         assert "send_notification" in drummond_agent.capabilities
         assert drummond_agent.communication_config["max_daily_messages_per_user"] == 10
