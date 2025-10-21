@@ -983,3 +983,61 @@ class TestDrummondAgent:
 
         assert "content" in greeting
         assert len(greeting["content"]) > 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_analyze_communication_effectiveness_with_campaign(
+        self, drummond_agent, context
+    ):
+        """Test communication effectiveness analysis with campaign ID."""
+        await drummond_agent.initialize()
+
+        # Add some campaign messages to history
+        drummond_agent.communication_history = [
+            {"campaign_id": "campaign-123", "status": "sent", "channel": "email"},
+            {"campaign_id": "campaign-123", "status": "delivered", "channel": "email"},
+            {"campaign_id": "campaign-123", "status": "opened", "channel": "sms"},
+        ]
+
+        analysis = await drummond_agent.analyze_communication_effectiveness(
+            campaign_id="campaign-123", context=context
+        )
+
+        assert "campaign_id" in analysis
+        assert analysis["campaign_id"] == "campaign-123"
+        assert "total_sent" in analysis
+        assert "delivery_rate" in analysis
+        assert "channel_performance" in analysis
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_analyze_communication_effectiveness_no_messages(
+        self, drummond_agent, context
+    ):
+        """Test communication effectiveness with no messages."""
+        await drummond_agent.initialize()
+
+        analysis = await drummond_agent.analyze_communication_effectiveness(
+            campaign_id="nonexistent-campaign", context=context
+        )
+
+        # Should return default metrics
+        assert "total_sent" in analysis
+        assert analysis["total_sent"] == 100  # Default value
+        assert "recommendations" in analysis
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_analyze_communication_effectiveness_without_context(
+        self, drummond_agent
+    ):
+        """Test effectiveness analysis without context."""
+        await drummond_agent.initialize()
+
+        analysis = await drummond_agent.analyze_communication_effectiveness(
+            campaign_id="test-campaign"
+        )
+
+        assert "campaign_id" in analysis
+        assert "ab_testing" in analysis
+        assert "audience_insights" in analysis
