@@ -16,7 +16,13 @@ from typing import Any, Optional
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
 
-from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
+from src.agents.deodoro import (
+    AgentContext,
+    AgentMessage,
+    AgentResponse,
+    AgentStatus,
+    BaseAgent,
+)
 from src.core import get_logger
 
 
@@ -190,14 +196,14 @@ class MachadoAgent(BaseAgent):
             self.logger.info(
                 "Processing textual analysis request",
                 investigation_id=context.investigation_id,
-                message_type=message.type,
+                action=message.action,
             )
 
             # Parse request
-            if isinstance(message.data, dict):
-                request = TextualAnalysisRequest(**message.data)
+            if isinstance(message.payload, dict):
+                request = TextualAnalysisRequest(**message.payload)
             else:
-                request = TextualAnalysisRequest(document_content=str(message.data))
+                request = TextualAnalysisRequest(document_content=str(message.payload))
 
             # Perform comprehensive textual analysis
             analysis_result = await self._analyze_document(request, context)
@@ -250,10 +256,9 @@ class MachadoAgent(BaseAgent):
 
             return AgentResponse(
                 agent_name=self.name,
-                response_type="textual_analysis",
-                data=response_data,
-                success=True,
-                context=context,
+                status=AgentStatus.COMPLETED,
+                result=response_data,
+                metadata={"analysis_type": "textual_analysis"},
             )
 
         except Exception as e:
@@ -266,10 +271,10 @@ class MachadoAgent(BaseAgent):
 
             return AgentResponse(
                 agent_name=self.name,
-                response_type="error",
-                data={"error": str(e), "analysis_type": "textual_analysis"},
-                success=False,
-                context=context,
+                status=AgentStatus.ERROR,
+                result=None,
+                error=str(e),
+                metadata={"analysis_type": "textual_analysis"},
             )
 
     async def _analyze_document(
