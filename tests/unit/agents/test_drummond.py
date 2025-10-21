@@ -622,3 +622,161 @@ class TestDrummondAgent:
 
         assert summary["metadata"]["complexity"] == "medium"
         assert "Investigação formal recomendada" in summary["action_items"]
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_shutdown_with_llm_client(self, drummond_agent):
+        """Test shutdown with active LLM client."""
+        from unittest.mock import AsyncMock
+
+        # Mock LLM client
+        drummond_agent.llm_client = Mock()
+        drummond_agent.llm_client.close = AsyncMock()
+
+        await drummond_agent.shutdown()
+
+        # Verify client was closed
+        drummond_agent.llm_client.close.assert_called_once()
+        assert len(drummond_agent.communication_history) == 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_shutdown_with_llm_client_error(self, drummond_agent):
+        """Test shutdown when LLM client close fails."""
+        from unittest.mock import AsyncMock
+
+        drummond_agent.llm_client = Mock()
+        drummond_agent.llm_client.close = AsyncMock(
+            side_effect=Exception("Close error")
+        )
+
+        # Should not raise, error should be caught
+        await drummond_agent.shutdown()
+
+        assert len(drummond_agent.communication_history) == 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_contextual_response_with_llm_error(self, drummond_agent):
+        """Test contextual response when LLM call fails."""
+        from unittest.mock import AsyncMock
+
+        from src.memory.conversational import ConversationContext
+
+        context = ConversationContext(session_id="test", user_id="user")
+
+        if drummond_agent.llm_client:
+            drummond_agent.llm_client.chat = AsyncMock(
+                side_effect=Exception("LLM error")
+            )
+
+            response = await drummond_agent.generate_contextual_response(
+                message="Test message", context=context
+            )
+
+            # Should fallback to template response
+            assert "content" in response
+            assert "metadata" in response
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_send_bulk_communication_with_context(self, drummond_agent, context):
+        """Test bulk communication with context."""
+        from src.agents.drummond import MessageType
+
+        await drummond_agent.initialize()
+
+        content = {"title": "Context Test", "body": "Test with context"}
+        result = await drummond_agent.send_bulk_communication(
+            message_type=MessageType.ALERT,
+            content=content,
+            target_segments=["segment-test"],
+            context=context,
+        )
+
+        assert "campaign_id" in result
+        assert "estimated_delivery" in result
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_greeting_late_night(self, drummond_agent):
+        """Test late night greeting."""
+        with patch("src.agents.drummond.datetime") as mock_dt:
+            mock_dt.now.return_value = Mock(hour=2)
+
+            greeting = await drummond_agent.generate_greeting()
+
+            assert "content" in greeting
+            assert len(greeting["content"]) > 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_send_notification_multiple_channels(self, drummond_agent):
+        """Test notification to target with multiple channels."""
+        from src.agents.drummond import (
+            CommunicationChannel,
+            CommunicationTarget,
+            MessagePriority,
+            MessageType,
+        )
+
+        await drummond_agent.initialize()
+
+        test_target = CommunicationTarget(
+            target_id="multi-channel",
+            name="Multi Channel User",
+            channels=[CommunicationChannel.EMAIL, CommunicationChannel.SMS],
+            preferred_language="pt-BR",
+            contact_info={"email": "test@example.com", "sms": "+5511999999999"},
+            notification_preferences={},
+            timezone="America/Sao_Paulo",
+            active_hours={"start": "08:00", "end": "18:00"},
+        )
+        drummond_agent.communication_targets["multi-channel"] = test_target
+
+        content = {"title": "Multi Test", "body": "Test body"}
+        results = await drummond_agent.send_notification(
+            message_type=MessageType.NOTIFICATION,
+            content=content,
+            targets=["multi-channel"],
+            priority=MessagePriority.NORMAL,
+        )
+
+        # Should have results for each channel
+        assert len(results) >= 2
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_send_notification_with_specific_channels(self, drummond_agent):
+        """Test notification with specific channels override."""
+        from src.agents.drummond import (
+            CommunicationChannel,
+            CommunicationTarget,
+            MessagePriority,
+            MessageType,
+        )
+
+        await drummond_agent.initialize()
+
+        test_target = CommunicationTarget(
+            target_id="channel-override",
+            name="Override User",
+            channels=[CommunicationChannel.EMAIL, CommunicationChannel.SMS],
+            preferred_language="pt-BR",
+            contact_info={"email": "test@example.com"},
+            notification_preferences={},
+            timezone="America/Sao_Paulo",
+            active_hours={"start": "08:00", "end": "18:00"},
+        )
+        drummond_agent.communication_targets["channel-override"] = test_target
+
+        content = {"title": "Override Test", "body": "Test body"}
+        results = await drummond_agent.send_notification(
+            message_type=MessageType.ALERT,
+            content=content,
+            targets=["channel-override"],
+            channels=[CommunicationChannel.EMAIL],  # Override to EMAIL only
+            priority=MessagePriority.HIGH,
+        )
+
+        assert len(results) > 0
