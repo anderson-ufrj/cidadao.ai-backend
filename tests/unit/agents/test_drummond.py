@@ -430,3 +430,195 @@ class TestDrummondAgent:
 
         assert "Notificar órgãos de controle" in summary["action_items"]
         assert "Investigação formal recomendada" in summary["action_items"]
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_greeting_afternoon(self, drummond_agent):
+        """Test afternoon greeting generation."""
+        with patch("src.agents.drummond.datetime") as mock_dt:
+            mock_dt.now.return_value = Mock(hour=15)
+
+            greeting = await drummond_agent.generate_greeting()
+
+            assert "content" in greeting
+            assert "tarde" in greeting["content"].lower()
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_greeting_evening(self, drummond_agent):
+        """Test evening greeting generation."""
+        with patch("src.agents.drummond.datetime") as mock_dt:
+            mock_dt.now.return_value = Mock(hour=20)
+
+            greeting = await drummond_agent.generate_greeting()
+
+            assert "content" in greeting
+            assert "noite" in greeting["content"].lower()
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_greeting_with_user_profile(self, drummond_agent):
+        """Test greeting with user profile."""
+        user_profile = {"name": "João", "preferred_name": "João"}
+
+        greeting = await drummond_agent.generate_greeting(user_profile=user_profile)
+
+        assert "content" in greeting
+        assert len(greeting["content"]) > 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_conversation_without_intent(self, drummond_agent):
+        """Test conversation without explicit intent."""
+        from src.memory.conversational import ConversationContext
+
+        context = ConversationContext(session_id="test", user_id="user")
+
+        response = await drummond_agent.process_conversation(
+            message="Qual é a temperatura hoje?", context=context, intent=None
+        )
+
+        assert "content" in response
+        assert "metadata" in response
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_conversation_with_handoff_needed(self, drummond_agent):
+        """Test conversation that requires handoff."""
+        from src.memory.conversational import ConversationContext
+        from src.services.chat_service import Intent, IntentType
+
+        context = ConversationContext(session_id="test", user_id="user")
+        intent = Intent(
+            type=IntentType.ANALYZE,
+            confidence=0.88,
+            entities={},
+            suggested_agent="anita",
+        )
+
+        response = await drummond_agent.process_conversation(
+            message="Analise os contratos", context=context, intent=intent
+        )
+
+        assert "suggested_handoff" in response
+        assert response["suggested_handoff"] == "anita"
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_send_notification_with_error_handling(self, drummond_agent):
+        """Test notification sending with error."""
+        from src.agents.drummond import (
+            CommunicationChannel,
+            CommunicationTarget,
+            MessagePriority,
+            MessageType,
+        )
+
+        await drummond_agent.initialize()
+
+        # Add target with problematic channel
+        test_target = CommunicationTarget(
+            target_id="error-target",
+            name="Error User",
+            channels=[CommunicationChannel.WEBHOOK],
+            preferred_language="pt-BR",
+            contact_info={"webhook": "invalid-url"},
+            notification_preferences={},
+            timezone="America/Sao_Paulo",
+            active_hours={"start": "08:00", "end": "18:00"},
+        )
+        drummond_agent.communication_targets["error-target"] = test_target
+
+        content = {"title": "Test", "body": "Test body"}
+        results = await drummond_agent.send_notification(
+            message_type=MessageType.ALERT,
+            content=content,
+            targets=["error-target"],
+            priority=MessagePriority.HIGH,
+        )
+
+        # Should still return results even if delivery fails
+        assert len(results) > 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_translate_content_to_spanish(self, drummond_agent):
+        """Test translation to Spanish."""
+        content = "Dados públicos"
+        result = await drummond_agent.translate_content(
+            content=content, source_language="pt-BR", target_language="es"
+        )
+
+        assert "[Traducido al español]" in result
+        assert content in result
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_translate_content_unknown_language(self, drummond_agent):
+        """Test translation to unknown language."""
+        content = "Test content"
+        result = await drummond_agent.translate_content(
+            content=content, source_language="pt-BR", target_language="fr"
+        )
+
+        # Should return original content or default translation
+        assert len(result) > 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_determine_handoff_status_intent(self, drummond_agent):
+        """Test handoff for status intent."""
+        from src.services.chat_service import Intent, IntentType
+
+        intent = Intent(
+            type=IntentType.STATUS,
+            confidence=0.85,
+            entities={},
+            suggested_agent="abaporu",
+        )
+
+        handoff = await drummond_agent.determine_handoff(intent)
+
+        assert handoff == "abaporu"
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_determine_handoff_none_intent(self, drummond_agent):
+        """Test handoff with no intent."""
+        handoff = await drummond_agent.determine_handoff(None)
+
+        assert handoff is None
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_send_bulk_communication_empty_segments(self, drummond_agent):
+        """Test bulk communication with empty segments."""
+        from src.agents.drummond import MessageType
+
+        await drummond_agent.initialize()
+
+        content = {"title": "Empty Test", "body": "Test"}
+        result = await drummond_agent.send_bulk_communication(
+            message_type=MessageType.NOTIFICATION, content=content, target_segments=[]
+        )
+
+        assert "campaign_id" in result
+        assert result["total_targets"] >= 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_report_summary_executive_audience(self, drummond_agent):
+        """Test executive report summary."""
+        report_data = {
+            "total_records": 3000,
+            "anomalies_found": 8,
+            "financial_impact": 500000,
+            "entities_involved": ["Entity1"],
+        }
+
+        summary = await drummond_agent.generate_report_summary(
+            report_data=report_data, target_audience="executive"
+        )
+
+        assert summary["metadata"]["complexity"] == "medium"
+        assert "Investigação formal recomendada" in summary["action_items"]
