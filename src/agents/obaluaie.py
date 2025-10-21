@@ -105,9 +105,15 @@ class CorruptionDetectorAgent(BaseAgent):
 
     def __init__(self, config: Optional[dict[str, Any]] = None):
         super().__init__(
-            name="CorruptionDetectorAgent",
+            name="obaluaie",
             description="Obaluâiê - Detector avançado de corrupção sistêmica",
-            config=config or {},
+            capabilities=[
+                "corruption_detection",
+                "benford_analysis",
+                "cartel_detection",
+                "nepotism_detection",
+                "financial_flow_analysis",
+            ],
         )
         self.logger = get_logger(__name__)
 
@@ -572,11 +578,15 @@ class CorruptionDetectorAgent(BaseAgent):
             )
 
             # Extract data from message
-            data = message.data if isinstance(message.data, dict) else {"query": str(message.data)}
-            
+            data = (
+                message.data
+                if isinstance(message.data, dict)
+                else {"query": str(message.data)}
+            )
+
             # Determine analysis type
             analysis_type = data.get("analysis_type", "general_corruption")
-            
+
             # Perform corruption analysis based on type
             if analysis_type == "benford_law":
                 result = await self._benford_law_analysis(data, context)
@@ -640,7 +650,9 @@ class CorruptionDetectorAgent(BaseAgent):
                 metadata={"error_type": type(e).__name__},
             )
 
-    async def _benford_law_analysis(self, data: dict[str, Any], context: AgentContext) -> dict[str, Any]:
+    async def _benford_law_analysis(
+        self, data: dict[str, Any], context: AgentContext
+    ) -> dict[str, Any]:
         """Perform Benford's Law analysis on financial data."""
         return {
             "corruption_detected": False,
@@ -653,7 +665,9 @@ class CorruptionDetectorAgent(BaseAgent):
             "risk": {"manipulation_probability": 0.65},
         }
 
-    async def _cartel_detection(self, data: dict[str, Any], context: AgentContext) -> dict[str, Any]:
+    async def _cartel_detection(
+        self, data: dict[str, Any], context: AgentContext
+    ) -> dict[str, Any]:
         """Detect cartel patterns in bidding processes."""
         return {
             "corruption_detected": True,
@@ -666,7 +680,9 @@ class CorruptionDetectorAgent(BaseAgent):
             "risk": {"cartel_probability": 0.82},
         }
 
-    async def _nepotism_detection(self, data: dict[str, Any], context: AgentContext) -> dict[str, Any]:
+    async def _nepotism_detection(
+        self, data: dict[str, Any], context: AgentContext
+    ) -> dict[str, Any]:
         """Detect nepotism patterns in hiring/contracting."""
         return {
             "corruption_detected": True,
@@ -679,13 +695,19 @@ class CorruptionDetectorAgent(BaseAgent):
             "risk": {"nepotism_probability": 0.75},
         }
 
-    async def _financial_flow_analysis(self, data: dict[str, Any], context: AgentContext) -> dict[str, Any]:
+    async def _financial_flow_analysis(
+        self, data: dict[str, Any], context: AgentContext
+    ) -> dict[str, Any]:
         """Analyze financial flows for money laundering patterns."""
         return {
             "corruption_detected": True,
             "confidence": 0.88,
             "severity": "critical",
-            "patterns": ["Layering detected", "Smurfing pattern", "Shell companies involved"],
+            "patterns": [
+                "Layering detected",
+                "Smurfing pattern",
+                "Shell companies involved",
+            ],
             "financial_impact": 8500000.0,
             "entities": ["Account A", "Shell Company B", "Offshore Entity C"],
             "evidence": ["transaction_flow.png", "network_analysis.json"],
@@ -697,20 +719,20 @@ class CorruptionDetectorAgent(BaseAgent):
         confidence = result.get("confidence", 0)
         severity = result.get("severity", "low")
         financial_impact = result.get("financial_impact", 0)
-        
+
         # Base priority on confidence
         priority = int(confidence * 5)
-        
+
         # Adjust for severity
         severity_weights = {"low": 1, "medium": 2, "high": 3, "critical": 4}
         priority += severity_weights.get(severity, 1)
-        
+
         # Adjust for financial impact
         if financial_impact > 1000000:
             priority += 2
         elif financial_impact > 100000:
             priority += 1
-        
+
         return min(priority, 10)  # Cap at 10
 
     async def shutdown(self) -> None:
@@ -791,25 +813,31 @@ class CorruptionDetectorAgent(BaseAgent):
         enhancements = []
 
         if "borderline_confidence" in quality_issues:
-            enhancements.append({
-                "issue": "Borderline detection confidence",
-                "recommendation": "Cross-validate with additional algorithms (Benford + Network Analysis)",
-                "expected_improvement": "Confidence +0.10",
-            })
+            enhancements.append(
+                {
+                    "issue": "Borderline detection confidence",
+                    "recommendation": "Cross-validate with additional algorithms (Benford + Network Analysis)",
+                    "expected_improvement": "Confidence +0.10",
+                }
+            )
 
         if "insufficient_patterns" in quality_issues:
-            enhancements.append({
-                "issue": "Insufficient pattern evidence",
-                "recommendation": "Expand analysis to include temporal patterns and related entities",
-                "expected_improvement": "More robust evidence chain",
-            })
+            enhancements.append(
+                {
+                    "issue": "Insufficient pattern evidence",
+                    "recommendation": "Expand analysis to include temporal patterns and related entities",
+                    "expected_improvement": "More robust evidence chain",
+                }
+            )
 
         if "severity_confidence_mismatch" in quality_issues:
-            enhancements.append({
-                "issue": "Severity rating doesn't align with confidence score",
-                "recommendation": "Recalibrate severity based on confidence and financial impact",
-                "expected_improvement": "Consistent risk assessment",
-            })
+            enhancements.append(
+                {
+                    "issue": "Severity rating doesn't align with confidence score",
+                    "recommendation": "Recalibrate severity based on confidence and financial impact",
+                    "expected_improvement": "Consistent risk assessment",
+                }
+            )
 
         # Add reflection metadata
         enhanced_result["reflection"] = {
