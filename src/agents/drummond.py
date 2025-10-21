@@ -227,7 +227,7 @@ class CommunicationAgent(BaseAgent):
 
     def __init__(self, config: Optional[dict[str, Any]] = None):
         super().__init__(
-            name="CommunicationAgent",
+            name="drummond",
             description="Carlos Drummond de Andrade - Comunicador do povo",
             capabilities=[
                 "process_chat",
