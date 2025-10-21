@@ -291,3 +291,142 @@ class TestDrummondAgent:
         handoff = await drummond_agent.determine_handoff(intent)
 
         assert handoff is None
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_conversation_smalltalk_intent(self, drummond_agent):
+        """Test conversation with smalltalk intent."""
+        from src.memory.conversational import ConversationContext
+        from src.services.chat_service import Intent, IntentType
+
+        context = ConversationContext(session_id="test", user_id="user")
+        intent = Intent(
+            type=IntentType.SMALLTALK,
+            confidence=0.9,
+            entities={},
+            suggested_agent="drummond",
+        )
+
+        response = await drummond_agent.process_conversation(
+            message="Como está o tempo?", context=context, intent=intent
+        )
+
+        assert "content" in response
+        assert response["metadata"]["style"] == "poetic_philosophical"
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_conversation_about_system_intent(self, drummond_agent):
+        """Test conversation with about_system intent."""
+        from src.memory.conversational import ConversationContext
+        from src.services.chat_service import Intent, IntentType
+
+        context = ConversationContext(session_id="test", user_id="user")
+        intent = Intent(
+            type=IntentType.ABOUT_SYSTEM,
+            confidence=0.95,
+            entities={},
+            suggested_agent="drummond",
+        )
+
+        response = await drummond_agent.process_conversation(
+            message="O que é o Cidadão.AI?", context=context, intent=intent
+        )
+
+        assert "content" in response
+        assert "Cidadão.AI" in response["content"]
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_conversation_thanks_intent(self, drummond_agent):
+        """Test conversation with thanks intent."""
+        from src.memory.conversational import ConversationContext
+        from src.services.chat_service import Intent, IntentType
+
+        context = ConversationContext(session_id="test", user_id="user")
+        intent = Intent(
+            type=IntentType.THANKS,
+            confidence=0.98,
+            entities={},
+            suggested_agent="drummond",
+        )
+
+        response = await drummond_agent.process_conversation(
+            message="Muito obrigado!", context=context, intent=intent
+        )
+
+        assert "content" in response
+        assert response["metadata"]["type"] == "gratitude_response"
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_conversation_goodbye_intent(self, drummond_agent):
+        """Test conversation with goodbye intent."""
+        from src.memory.conversational import ConversationContext
+        from src.services.chat_service import Intent, IntentType
+
+        context = ConversationContext(session_id="test", user_id="user")
+        intent = Intent(
+            type=IntentType.GOODBYE,
+            confidence=0.96,
+            entities={},
+            suggested_agent="drummond",
+        )
+
+        response = await drummond_agent.process_conversation(
+            message="Até logo!", context=context, intent=intent
+        )
+
+        assert "content" in response
+        assert response["metadata"]["type"] == "farewell"
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_provide_help_understanding_query(self, drummond_agent):
+        """Test help for understanding queries."""
+        response = await drummond_agent.provide_help("Quero entender os dados")
+
+        assert "content" in response
+        assert "termos técnicos" in response["content"]
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_provide_help_general_query(self, drummond_agent):
+        """Test help for general queries."""
+        response = await drummond_agent.provide_help("Me ajude")
+
+        assert "content" in response
+        assert (
+            "especialistas" in response["content"]
+            or "transparência" in response["content"]
+        )
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_translate_content_to_english(self, drummond_agent):
+        """Test translation to English."""
+        content = "Transparência governamental"
+        result = await drummond_agent.translate_content(
+            content=content, source_language="pt-BR", target_language="en"
+        )
+
+        assert "[Translated to English]" in result
+        assert content in result
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_report_summary_with_high_impact(self, drummond_agent):
+        """Test report summary with high financial impact."""
+        report_data = {
+            "total_records": 5000,
+            "anomalies_found": 50,
+            "financial_impact": 2000000,
+            "entities_involved": ["Entity1", "Entity2"],
+        }
+
+        summary = await drummond_agent.generate_report_summary(
+            report_data=report_data, target_audience="executive"
+        )
+
+        assert "Notificar órgãos de controle" in summary["action_items"]
+        assert "Investigação formal recomendada" in summary["action_items"]
