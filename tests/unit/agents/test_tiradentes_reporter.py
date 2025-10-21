@@ -647,3 +647,266 @@ class TestTiradentesReporterAgent:
         # Report should be generated successfully with trends
         assert "content" in response.result
         assert len(response.result["content"]) > 0
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_trend_analysis_with_upward_trends(
+        self, tiradentes_agent, agent_context
+    ):
+        """Test trend analysis content creation with upward trends."""
+        patterns = [
+            {
+                "type": "temporal",
+                "description": "Spending increase in Q4",
+                "direction": "upward",
+                "confidence": 0.92,
+                "rate": 45.3,
+                "significance": "high",
+            },
+            {
+                "type": "temporal",
+                "description": "Contract count growth",
+                "direction": "upward",
+                "confidence": 0.85,
+                "rate": 23.1,
+            },
+        ]
+
+        content = tiradentes_agent._create_trend_analysis_content(patterns)
+
+        assert "Tendências Ascendentes" in content
+        assert "Spending increase in Q4" in content
+        assert "92.0%" in content  # Confidence
+        assert "45.3% ao período" in content  # Rate
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_trend_analysis_with_downward_trends(
+        self, tiradentes_agent, agent_context
+    ):
+        """Test trend analysis content creation with downward trends."""
+        patterns = [
+            {
+                "type": "temporal",
+                "description": "Reduction in anomalies",
+                "direction": "downward",
+                "confidence": 0.88,
+                "rate": -32.5,
+                "significance": "medium",
+            }
+        ]
+
+        content = tiradentes_agent._create_trend_analysis_content(patterns)
+
+        assert "Tendências Descendentes" in content
+        assert "Reduction in anomalies" in content
+        assert "88.0%" in content
+        assert "32.5% ao período" in content  # Absolute value
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_trend_analysis_with_seasonal_patterns(
+        self, tiradentes_agent, agent_context
+    ):
+        """Test trend analysis with seasonal patterns."""
+        patterns = [
+            {
+                "type": "seasonal",
+                "description": "Year-end budget rush",
+                "direction": "upward",
+                "confidence": 0.75,
+            },
+            {
+                "type": "seasonal",
+                "description": "Post-holiday slowdown",
+                "direction": "downward",
+                "confidence": 0.70,
+            },
+        ]
+
+        content = tiradentes_agent._create_trend_analysis_content(patterns)
+
+        assert "Padrões Sazonais" in content
+        assert "Year-end budget rush" in content
+        assert "Post-holiday slowdown" in content
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_trend_analysis_with_cyclical_patterns(
+        self, tiradentes_agent, agent_context
+    ):
+        """Test trend analysis with cyclical patterns."""
+        patterns = [
+            {
+                "type": "cyclical",
+                "description": "Quarterly procurement cycle",
+                "direction": "stable",
+                "confidence": 0.82,
+            }
+        ]
+
+        content = tiradentes_agent._create_trend_analysis_content(patterns)
+
+        assert "Padrões Cíclicos" in content
+        assert "Quarterly procurement cycle" in content
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_trend_analysis_with_stable_trends(
+        self, tiradentes_agent, agent_context
+    ):
+        """Test trend analysis with stable trends."""
+        patterns = [
+            {
+                "type": "temporal",
+                "description": "Consistent spending pattern",
+                "direction": "stable",
+                "confidence": 0.90,
+            }
+        ]
+
+        content = tiradentes_agent._create_trend_analysis_content(patterns)
+
+        assert "Tendências estáveis:** 1" in content  # With markdown bold formatting
+        assert "Distribuição de Tendências" in content
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_trend_analysis_with_empty_patterns(
+        self, tiradentes_agent, agent_context
+    ):
+        """Test trend analysis with no patterns."""
+        content = tiradentes_agent._create_trend_analysis_content([])
+
+        assert "Nenhuma tendência significativa" in content
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_trend_analysis_comprehensive(self, tiradentes_agent, agent_context):
+        """Test comprehensive trend analysis with all trend types."""
+        patterns = [
+            {
+                "type": "temporal",
+                "description": "Upward trend A",
+                "direction": "upward",
+                "confidence": 0.95,
+                "rate": 50.0,
+            },
+            {
+                "type": "temporal",
+                "description": "Downward trend B",
+                "direction": "downward",
+                "confidence": 0.85,
+                "rate": -30.0,
+            },
+            {
+                "type": "seasonal",
+                "description": "Seasonal pattern C",
+                "direction": "upward",
+                "confidence": 0.75,
+            },
+            {
+                "type": "cyclical",
+                "description": "Cyclical pattern D",
+                "direction": "stable",
+                "confidence": 0.80,
+            },
+        ]
+
+        content = tiradentes_agent._create_trend_analysis_content(patterns)
+
+        # Check all sections are present
+        assert "Tendências Ascendentes" in content
+        assert "Tendências Descendentes" in content
+        assert "Padrões Sazonais" in content
+        assert "Padrões Cíclicos" in content
+        assert "Recomendações Baseadas em Tendências" in content
+        assert "Projeções e Implicações" in content
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_correlation_analysis_with_strong_correlations(
+        self, tiradentes_agent, agent_context
+    ):
+        """Test correlation analysis content with strong correlations."""
+        correlations = [
+            {
+                "variable1": "contract_value",
+                "variable2": "supplier_count",
+                "strength": 0.85,
+                "p_value": 0.001,
+                "interpretation": "Strong positive correlation",
+            },
+            {
+                "variable1": "anomaly_rate",
+                "variable2": "contract_complexity",
+                "strength": -0.72,
+                "p_value": 0.005,
+                "interpretation": "Strong negative correlation",
+            },
+        ]
+
+        content = tiradentes_agent._create_correlation_section(correlations)
+
+        assert "Correlações Fortes" in content
+        assert "contract_value" in content
+        assert "0.85 (positiva)" in content
+        assert "0.0010" in content  # p-value formatted to 4 decimals
+        assert "Strong positive correlation" in content
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_correlation_analysis_with_moderate_correlations(
+        self, tiradentes_agent, agent_context
+    ):
+        """Test correlation analysis with moderate correlations."""
+        correlations = [
+            {
+                "variable1": "time_to_award",
+                "variable2": "vendor_experience",
+                "strength": 0.55,
+                "p_value": 0.02,
+            }
+        ]
+
+        content = tiradentes_agent._create_correlation_section(correlations)
+
+        assert "Correlações Moderadas" in content
+        assert "time_to_award" in content
+        assert "0.55" in content
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_executive_summary_with_high_importance_sections(
+        self, tiradentes_agent, agent_context
+    ):
+        """Test executive summary creation with high importance sections."""
+        from src.agents.tiradentes import ReportRequest, ReportSection, ReportType
+
+        sections = [
+            ReportSection(
+                title="Critical Finding",
+                content="This is the first paragraph.\n\nThis is the second paragraph.\n\nThis is the third paragraph.",
+                importance=5,
+            ),
+            ReportSection(
+                title="Important Discovery",
+                content="Key point 1\nKey point 2\nKey point 3",
+                importance=4,
+            ),
+            ReportSection(
+                title="Low Priority",
+                content="Not important",
+                importance=2,
+            ),
+        ]
+
+        request = ReportRequest(report_type=ReportType.INVESTIGATION_REPORT)
+        summary = await tiradentes_agent._render_executive_summary(
+            sections, request, agent_context
+        )
+
+        assert "RESUMO EXECUTIVO" in summary
+        assert "Critical Finding" in summary
+        assert "Important Discovery" in summary
+        assert "Low Priority" not in summary  # Low importance excluded
