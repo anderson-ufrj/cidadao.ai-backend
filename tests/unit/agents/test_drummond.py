@@ -1122,3 +1122,73 @@ class TestDrummondAgent:
 
         assert result["optimal_send_time"] == "16:00"
         assert "estimated_delivery" in result
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_send_notification_with_warning_type(self, drummond_agent):
+        """Test notification with WARNING message type."""
+        from src.agents.drummond import (
+            CommunicationChannel,
+            CommunicationTarget,
+            MessagePriority,
+            MessageType,
+        )
+
+        await drummond_agent.initialize()
+
+        test_target = CommunicationTarget(
+            target_id="warning-test",
+            name="Warning User",
+            channels=[CommunicationChannel.EMAIL],
+            preferred_language="pt-BR",
+            contact_info={"email": "warning@example.com"},
+            notification_preferences={},
+            timezone="America/Sao_Paulo",
+            active_hours={"start": "00:00", "end": "23:59"},
+        )
+        drummond_agent.communication_targets["warning-test"] = test_target
+
+        content = {"title": "Warning", "body": "Warning message"}
+        results = await drummond_agent.send_notification(
+            message_type=MessageType.WARNING,
+            content=content,
+            targets=["warning-test"],
+            priority=MessagePriority.HIGH,
+        )
+
+        assert len(results) > 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_send_notification_with_summary_type(self, drummond_agent):
+        """Test notification with SUMMARY message type."""
+        from src.agents.drummond import (
+            CommunicationChannel,
+            CommunicationTarget,
+            MessagePriority,
+            MessageType,
+        )
+
+        await drummond_agent.initialize()
+
+        test_target = CommunicationTarget(
+            target_id="summary-test",
+            name="Summary User",
+            channels=[CommunicationChannel.PUSH_NOTIFICATION],
+            preferred_language="pt-BR",
+            contact_info={"push_token": "test-token"},
+            notification_preferences={"push": True},
+            timezone="America/Sao_Paulo",
+            active_hours={"start": "08:00", "end": "20:00"},
+        )
+        drummond_agent.communication_targets["summary-test"] = test_target
+
+        content = {"title": "Summary", "body": "Daily summary"}
+        results = await drummond_agent.send_notification(
+            message_type=MessageType.SUMMARY,
+            content=content,
+            targets=["summary-test"],
+            priority=MessagePriority.NORMAL,
+        )
+
+        assert len(results) > 0
