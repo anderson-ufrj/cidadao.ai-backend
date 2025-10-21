@@ -272,7 +272,7 @@ async def test_brazil_regions_data(lampiao_agent):
     assert regions["BA"]["region"] == "Nordeste"
 
     # Check all regions have required fields
-    for state, info in regions.items():
+    for _, info in regions.items():
         assert "name" in info
         assert "region" in info
         assert "capital" in info
@@ -383,10 +383,8 @@ async def test_gini_coefficient_with_real_data(lampiao_agent):
 @pytest.mark.asyncio
 async def test_theil_index_with_real_data(lampiao_agent):
     """Test Theil index with real Brazilian data."""
-    # Real population by state (millions)
-    populations = [46.6, 21.4, 17.5, 15.0, 11.6]  # SP, MG, RJ, BA, PR
     # Real GDP per capita (R$ thousands)
-    gdp_per_capita = [59.3, 40.2, 52.7, 28.7, 47.8]
+    gdp_per_capita = [59.3, 40.2, 52.7, 28.7, 47.8]  # SP, MG, RJ, BA, PR
 
     theil = lampiao_agent._calculate_theil_index(gdp_per_capita)
 
@@ -558,3 +556,117 @@ async def test_regional_convergence_trends(lampiao_agent):
     # Brazilian regions show convergence (negative change)
     assert result["trends"]["5_year_change"] < 0, "Should show declining inequality"
     assert result["trends"]["convergence_rate"] > 0, "Should have positive convergence"
+
+
+@pytest.mark.asyncio
+async def test_spatial_correlation_with_gdp_variable(lampiao_agent):
+    """Test spatial correlation with GDP per capita variable."""
+    await lampiao_agent.initialize()
+
+    result = await lampiao_agent.analyze_spatial_correlation(
+        "gdp_per_capita", RegionType.STATE
+    )
+
+    assert "morans_i" in result
+    assert "local_indicators" in result
+    assert -1 <= result["morans_i"] <= 1
+
+    # Should have cluster information
+    assert "high_high_clusters" in result["local_indicators"]
+    assert "low_low_clusters" in result["local_indicators"]
+
+
+@pytest.mark.asyncio
+async def test_spatial_correlation_with_hdi_variable(lampiao_agent):
+    """Test spatial correlation with HDI variable."""
+    await lampiao_agent.initialize()
+
+    result = await lampiao_agent.analyze_spatial_correlation("hdi", RegionType.STATE)
+
+    assert "morans_i" in result
+    assert "interpretation" in result
+    assert -1 <= result["morans_i"] <= 1
+
+
+@pytest.mark.asyncio
+async def test_spatial_correlation_with_population_variable(lampiao_agent):
+    """Test spatial correlation with population variable."""
+    await lampiao_agent.initialize()
+
+    result = await lampiao_agent.analyze_spatial_correlation(
+        "population", RegionType.STATE
+    )
+
+    assert "morans_i" in result
+    assert "local_indicators" in result
+    assert -1 <= result["morans_i"] <= 1
+
+
+@pytest.mark.asyncio
+async def test_spatial_correlation_with_unknown_variable(lampiao_agent):
+    """Test spatial correlation with unknown variable (should use default)."""
+    await lampiao_agent.initialize()
+
+    result = await lampiao_agent.analyze_spatial_correlation(
+        "unknown_metric", RegionType.STATE
+    )
+
+    assert "morans_i" in result
+    # Should use default (gdp_per_capita)
+    assert isinstance(result["morans_i"], int | float)
+
+
+@pytest.mark.asyncio
+async def test_spatial_correlation_cluster_identification(lampiao_agent):
+    """Test that spatial correlation correctly identifies clusters."""
+    await lampiao_agent.initialize()
+
+    result = await lampiao_agent.analyze_spatial_correlation(
+        "gdp_per_capita", RegionType.STATE
+    )
+
+    local_indicators = result["local_indicators"]
+
+    # Should have all cluster types
+    assert "high_high_clusters" in local_indicators
+    assert "low_low_clusters" in local_indicators
+    assert "high_low_outliers" in local_indicators
+    assert "low_high_outliers" in local_indicators
+
+    # All should be lists
+    assert isinstance(local_indicators["high_high_clusters"], list)
+    assert isinstance(local_indicators["low_low_clusters"], list)
+    assert isinstance(local_indicators["high_low_outliers"], list)
+    assert isinstance(local_indicators["low_high_outliers"], list)
+
+
+@pytest.mark.asyncio
+async def test_geographic_boundaries_fallback(lampiao_agent):
+    """Test that agent handles IBGE API failure gracefully."""
+    with patch("httpx.AsyncClient.get") as mock_get:
+        # Simulate API failure
+        mock_get.side_effect = Exception("IBGE API unavailable")
+
+        # Agent should still initialize with fallback data
+        await lampiao_agent._load_geographic_boundaries()
+
+        # Should have fallback boundaries loaded
+        assert len(lampiao_agent.geographic_boundaries) > 0
+        assert "SP" in lampiao_agent.geographic_boundaries
+
+
+@pytest.mark.asyncio
+async def test_spatial_indices_error_handling(lampiao_agent):
+    """Test spatial indices setup error handling."""
+    # Force an error by corrupting internal state
+    original_states = lampiao_agent.states_data
+    lampiao_agent.states_data = None
+
+    # Should handle error gracefully
+    await lampiao_agent._setup_spatial_indices()
+
+    # Should have empty indices as fallback
+    assert isinstance(lampiao_agent.region_index, dict)
+
+    # Restore state
+    lampiao_agent.states_data = original_states
