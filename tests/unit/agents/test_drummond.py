@@ -1041,3 +1041,84 @@ class TestDrummondAgent:
         assert "campaign_id" in analysis
         assert "ab_testing" in analysis
         assert "audience_insights" in analysis
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_send_notification_with_custom_context(self, drummond_agent, context):
+        """Test notification with custom context."""
+        from src.agents.drummond import (
+            CommunicationChannel,
+            CommunicationTarget,
+            MessagePriority,
+            MessageType,
+        )
+
+        await drummond_agent.initialize()
+
+        test_target = CommunicationTarget(
+            target_id="context-test",
+            name="Context User",
+            channels=[CommunicationChannel.EMAIL],
+            preferred_language="pt-BR",
+            contact_info={"email": "context@example.com"},
+            notification_preferences={},
+            timezone="America/Sao_Paulo",
+            active_hours={"start": "08:00", "end": "18:00"},
+        )
+        drummond_agent.communication_targets["context-test"] = test_target
+
+        content = {"title": "Context Test", "body": "Test with context"}
+        results = await drummond_agent.send_notification(
+            message_type=MessageType.INFORMATION,
+            content=content,
+            targets=["context-test"],
+            priority=MessagePriority.LOW,
+            context=context,
+        )
+
+        assert len(results) > 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_generate_report_summary_with_language(self, drummond_agent, context):
+        """Test report summary with specific language."""
+        report_data = {
+            "total_records": 1000,
+            "anomalies_found": 10,
+            "financial_impact": 100000,
+            "entities_involved": ["Entity1"],
+        }
+
+        summary = await drummond_agent.generate_report_summary(
+            report_data=report_data,
+            target_audience="technical",
+            language="en-US",
+            context=context,
+        )
+
+        assert "executive_summary" in summary
+        assert summary["metadata"]["language"] == "en-US"
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_send_bulk_communication_with_scheduling(
+        self, drummond_agent, context
+    ):
+        """Test bulk communication with scheduling."""
+        from src.agents.drummond import MessageType
+
+        await drummond_agent.initialize()
+
+        content = {"title": "Scheduled", "body": "Scheduled message"}
+        scheduling = {"preferred_time": 16, "timezone": "America/Sao_Paulo"}
+
+        result = await drummond_agent.send_bulk_communication(
+            message_type=MessageType.SUMMARY,
+            content=content,
+            target_segments=["premium-users"],
+            scheduling=scheduling,
+            context=context,
+        )
+
+        assert result["optimal_send_time"] == "16:00"
+        assert "estimated_delivery" in result
