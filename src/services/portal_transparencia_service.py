@@ -137,10 +137,21 @@ class PortalTransparenciaService:
 
             data = response.json()
 
+            # Handle different response formats
+            # Portal API can return: array directly, or object with 'resultado'
+            if isinstance(data, list):
+                # Direct array response
+                contratos = data
+                total = len(data)
+            else:
+                # Object response with 'resultado' key
+                contratos = data.get("resultado", [])
+                total = data.get("quantidadeTotal", len(contratos))
+
             # Process and enrich data
             result = {
-                "contratos": data.get("resultado", []),
-                "total": data.get("quantidadeTotal", 0),
+                "contratos": contratos,
+                "total": total,
                 "pagina": page,
                 "tamanho_pagina": size,
                 "timestamp": datetime.utcnow().isoformat(),
