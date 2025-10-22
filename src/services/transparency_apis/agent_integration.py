@@ -42,6 +42,7 @@ class TransparencyDataCollector:
         municipality_code: Optional[str] = None,
         validate: bool = True,
         timeout: float = 15.0,
+        **kwargs: Any,
     ) -> dict[str, Any]:
         """
         Collect contracts from a single API with timeout protection.
@@ -82,6 +83,7 @@ class TransparencyDataCollector:
                     end_date=end_date,
                     year=year,
                     municipality_code=municipality_code,
+                    **kwargs,
                 ),
                 timeout=timeout,
             )
@@ -128,6 +130,7 @@ class TransparencyDataCollector:
         validate: bool = True,
         api_timeout: float = 15.0,
         global_timeout: float = 60.0,
+        **kwargs: Any,
     ) -> dict[str, Any]:
         """
         Collect contracts from available APIs in parallel.
@@ -162,6 +165,7 @@ class TransparencyDataCollector:
                 municipality_code=municipality_code,
                 validate=validate,
                 timeout=api_timeout,
+                **kwargs,
             )
             for api_key in api_keys
         ]
