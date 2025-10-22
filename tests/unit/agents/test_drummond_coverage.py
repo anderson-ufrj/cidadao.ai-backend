@@ -40,6 +40,7 @@ class TestReportGeneration:
         assert (
             "1000" in summary["executive_summary"]
             or "1.000" in summary["executive_summary"]
+            or "1,000" in summary["executive_summary"]
         )
         assert "25" in summary["key_findings"]
 
