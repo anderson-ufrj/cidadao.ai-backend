@@ -20,12 +20,16 @@ def mock_redis_client():
     client.ping.return_value = True
     client.get.return_value = None
     client.set.return_value = True
+    client.setex.return_value = True
     client.hset.return_value = 1
     client.hget.return_value = None
     client.hgetall.return_value = {}
     client.incr.return_value = 1
     client.sadd.return_value = 1
     client.smembers.return_value = set()
+    client.keys.return_value = []
+    client.delete.return_value = 1
+    client.exists.return_value = False
     return client
 
 
@@ -152,7 +156,7 @@ class TestEpisodicMemory:
     @pytest.mark.unit
     @pytest.mark.asyncio
     async def test_retrieve_episodic_memory_success(
-        self, nana_agent, sample_context, mock_vector_store
+        self, nana_agent, sample_context, mock_vector_store, mock_redis_client
     ):
         """Test retrieving episodic memories."""
         # Mock vector store to return sample memories
@@ -168,6 +172,17 @@ class TestEpisodicMemory:
                 "similarity": 0.95,
             }
         ]
+
+        # Mock Redis to return the memory data
+        import json
+
+        memory_data = {
+            "id": "mem_001",
+            "investigation_id": "inv_001",
+            "query": "IT contracts",
+            "result": {"test": "data"},
+        }
+        mock_redis_client.get.return_value = json.dumps(memory_data)
 
         message = AgentMessage(
             sender="test_client",
@@ -317,11 +332,22 @@ class TestConversationMemory:
         self, nana_agent, sample_context, mock_redis_client
     ):
         """Test retrieving conversation context."""
-        # Mock Redis to return conversation data
-        mock_redis_client.hgetall.return_value = {
-            "turn_1": '{"speaker": "user", "message": "test message"}',
-            "turn_2": '{"speaker": "assistant", "message": "test response"}',
-        }
+        # Mock Redis keys() to return conversation keys
+        mock_redis_client.keys.return_value = [
+            "cidadao:memory:conversation:conv_001:1",
+            "cidadao:memory:conversation:conv_001:2",
+        ]
+        # Mock Redis get() to return conversation data
+        import json
+
+        mock_redis_client.get.side_effect = [
+            json.dumps(
+                {"speaker": "user", "message": "test message", "turn_number": 1}
+            ),
+            json.dumps(
+                {"speaker": "assistant", "message": "test response", "turn_number": 2}
+            ),
+        ]
 
         message = AgentMessage(
             sender="test_client",
@@ -333,7 +359,8 @@ class TestConversationMemory:
         response = await nana_agent.process(message, sample_context)
 
         assert response.status == AgentStatus.COMPLETED
-        mock_redis_client.hgetall.assert_called()
+        assert "conversation" in response.result
+        assert isinstance(response.result["conversation"], list)
 
 
 class TestMemoryConsolidation:
@@ -403,7 +430,11 @@ class TestMemoryRetrieval:
         response = await nana_agent.process(message, sample_context)
 
         assert response.status == AgentStatus.COMPLETED
-        assert "context" in response.result
+        # get_relevant_context returns nested structure with episodic, semantic, conversation
+        assert "episodic" in response.result
+        assert "semantic" in response.result
+        assert "conversation" in response.result
+        assert "query" in response.result
 
 
 class TestMemoryForget:
