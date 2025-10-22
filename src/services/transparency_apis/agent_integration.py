@@ -173,7 +173,7 @@ class TransparencyDataCollector:
             )
 
             # Process results
-            for api_key, result in zip(api_keys, results):
+            for api_key, result in zip(api_keys, results, strict=False):
                 if isinstance(result, Exception):
                     errors.append({"api": api_key, "error": str(result)})
                     continue
@@ -456,18 +456,34 @@ class TransparencyDataCollector:
         """
         Select appropriate APIs based on state.
 
+        Prioritizes Portal da Transparência Federal for national coverage,
+        followed by state-specific APIs.
+
         Args:
             state: State code
 
         Returns:
-            List of API keys to use
+            List of API keys to use (federal first, then state/municipal)
         """
+        api_keys = []
+
+        # Always include federal Portal da Transparência first (national coverage)
+        api_keys.append("FEDERAL-portal")
+
         if state:
             # Get APIs for specific state
-            return [f"{state}-tce", f"{state}-state", f"{state}-ckan"]
+            api_keys.extend([f"{state}-tce", f"{state}-state", f"{state}-ckan"])
+        else:
+            # Return all available APIs (excluding federal portal since already added)
+            api_keys.extend(
+                [
+                    key
+                    for key in registry.list_available_apis()
+                    if key != "FEDERAL-portal"
+                ]
+            )
 
-        # Return all available APIs
-        return registry.list_available_apis()
+        return api_keys
 
 
 # Global collector instance
