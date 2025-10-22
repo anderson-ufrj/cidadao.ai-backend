@@ -315,26 +315,43 @@ class ContextMemoryAgent(BaseAgent):
             if not memory_entry:
                 raise MemoryStorageError("No memory entry provided")
 
+            # Generate ID if not present
+            if "id" not in memory_entry:
+                investigation_id = memory_entry.get("investigation_id", "unknown")
+                memory_entry["id"] = (
+                    f"mem_{investigation_id}_{int(datetime.utcnow().timestamp())}"
+                )
+
             # Store in Redis for fast access
             key = f"{self.episodic_key}:{memory_entry['id']}"
+            ttl_seconds = int(timedelta(days=self.memory_decay_days).total_seconds())
             await self.redis_client.setex(
                 key,
-                timedelta(days=self.memory_decay_days),
+                ttl_seconds,
                 json_utils.dumps(memory_entry),
             )
 
             # Store in vector store for semantic search
+            # Create searchable content from memory entry
             content = memory_entry.get("content", {})
-            if content:
-                await self.vector_store.add_documents(
-                    [
-                        {
-                            "id": memory_entry["id"],
-                            "content": json_utils.dumps(content),
-                            "metadata": memory_entry,
-                        }
-                    ]
-                )
+            if not content:
+                # Build content from available fields for older test compatibility
+                content = {
+                    "query": memory_entry.get("query", ""),
+                    "result": memory_entry.get("result", {}),
+                    "investigation_id": memory_entry.get("investigation_id", ""),
+                }
+
+            # Always store in vector store for semantic search
+            await self.vector_store.add_documents(
+                [
+                    {
+                        "id": memory_entry["id"],
+                        "content": json_utils.dumps(content),
+                        "metadata": memory_entry,
+                    }
+                ]
+            )
 
             # Manage memory size
             await self._manage_memory_size()
@@ -354,7 +371,7 @@ class ContextMemoryAgent(BaseAgent):
         self,
         payload: dict[str, Any],
         context: AgentContext,
-    ) -> list[dict[str, Any]]:
+    ) -> dict[str, Any]:
         """Retrieve episodic memories."""
         try:
             query = payload.get("query", "")
@@ -362,7 +379,8 @@ class ContextMemoryAgent(BaseAgent):
 
             if not query:
                 # Return recent memories
-                return await self._get_recent_memories(limit)
+                memories = await self._get_recent_memories(limit)
+                return {"memories": memories}
 
             # Semantic search using vector store
             results = await self.vector_store.similarity_search(
@@ -387,7 +405,7 @@ class ContextMemoryAgent(BaseAgent):
                 count=len(memories),
             )
 
-            return memories
+            return {"memories": memories}
 
         except Exception as e:
             raise MemoryRetrievalError(f"Failed to retrieve episodic memory: {str(e)}")
@@ -407,6 +425,10 @@ class ContextMemoryAgent(BaseAgent):
                     "Concept and content required for semantic memory"
                 )
 
+            # Normalize content to dict if it's a string
+            if isinstance(content, str):
+                content = {"description": content}
+
             memory_entry = SemanticMemory(
                 id=f"sem_{concept.lower().replace(' ', '_')}_{int(datetime.utcnow().timestamp())}",
                 concept=concept,
@@ -420,11 +442,12 @@ class ContextMemoryAgent(BaseAgent):
 
             # Store in Redis
             key = f"{self.semantic_key}:{memory_entry.id}"
+            ttl_seconds = int(
+                timedelta(days=self.memory_decay_days * 2).total_seconds()
+            )
             await self.redis_client.setex(
                 key,
-                timedelta(
-                    days=self.memory_decay_days * 2
-                ),  # Semantic memories last longer
+                ttl_seconds,
                 json_utils.dumps(memory_entry.model_dump()),
             )
 
@@ -454,7 +477,7 @@ class ContextMemoryAgent(BaseAgent):
         self,
         payload: dict[str, Any],
         context: AgentContext,
-    ) -> list[dict[str, Any]]:
+    ) -> dict[str, Any]:
         """Retrieve semantic memories."""
         try:
             query = payload.get("query", "")
@@ -481,7 +504,7 @@ class ContextMemoryAgent(BaseAgent):
                 count=len(memories),
             )
 
-            return memories
+            return {"concepts": memories}
 
         except Exception as e:
             raise MemoryRetrievalError(f"Failed to retrieve semantic memory: {str(e)}")
@@ -522,9 +545,10 @@ class ContextMemoryAgent(BaseAgent):
 
             # Store in Redis with conversation-specific key
             key = f"{self.conversation_key}:{conversation_id}:{turn_number}"
+            ttl_seconds = int(timedelta(hours=24).total_seconds())
             await self.redis_client.setex(
                 key,
-                timedelta(hours=24),  # Conversations expire after 24 hours
+                ttl_seconds,
                 json_utils.dumps(memory_entry.model_dump()),
             )
 
@@ -547,14 +571,14 @@ class ContextMemoryAgent(BaseAgent):
         self,
         payload: dict[str, Any],
         context: AgentContext,
-    ) -> list[dict[str, Any]]:
+    ) -> dict[str, Any]:
         """Get conversation context."""
         try:
             conversation_id = payload.get("conversation_id", context.session_id)
             limit = payload.get("limit", 10)
 
             if not conversation_id:
-                return []
+                return {"conversation": []}
 
             # Get recent conversation turns
             pattern = f"{self.conversation_key}:{conversation_id}:*"
@@ -578,7 +602,7 @@ class ContextMemoryAgent(BaseAgent):
                 count=len(memories),
             )
 
-            return memories
+            return {"conversation": memories}
 
         except Exception as e:
             raise MemoryRetrievalError(f"Failed to get conversation context: {str(e)}")
@@ -683,13 +707,27 @@ class ContextMemoryAgent(BaseAgent):
                             await self.vector_store.delete_documents([memory_id])
                             forgotten_count += 1
 
+            # Handle forget by investigation_id (special case for tests)
+            investigation_id = payload.get("investigation_id")
+            if investigation_id:
+                pattern = f"{self.episodic_key}:*"
+                keys = await self.redis_client.keys(pattern)
+                for key in keys:
+                    memory_data = await self.redis_client.get(key)
+                    if memory_data:
+                        memory = json_utils.loads(memory_data)
+                        if memory.get("investigation_id") == investigation_id:
+                            await self.redis_client.delete(key)
+                            await self.vector_store.delete_documents([memory.get("id")])
+                            forgotten_count += 1
+
             self.logger.info(
                 "memories_forgotten", strategy=strategy, count=forgotten_count
             )
 
             return {
                 "status": "completed",
-                "forgotten_count": forgotten_count,
+                "deleted_count": forgotten_count,
                 "strategy": strategy,
             }
 
@@ -769,9 +807,12 @@ class ContextMemoryAgent(BaseAgent):
 
                     # Store consolidated memory
                     key = f"{self.episodic_key}:{consolidated['id']}"
+                    ttl_seconds = int(
+                        timedelta(days=self.memory_decay_days).total_seconds()
+                    )
                     await self.redis_client.setex(
                         key,
-                        timedelta(days=self.memory_decay_days),
+                        ttl_seconds,
                         json_utils.dumps(consolidated),
                     )
 
