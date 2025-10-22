@@ -367,33 +367,43 @@ class TestNotificationSystem:
         }
 
         # Mock LLM response
+        mock_response = Mock()
+        mock_response.content = "Summary generated"
+        mock_response.model = "sabiazinho-3"
+        mock_response.usage = {"total_tokens": 100}
+
         with patch.object(
-            agent.llm_client, "generate", return_value="Summary generated"
+            agent.llm_client, "chat_completion", return_value=mock_response
         ):
             summary = await agent.generate_report_summary(
-                report_data=report_data, language="pt-BR"
+                report_data=report_data, target_audience="executive", language="pt-BR"
             )
 
-            assert "summary" in summary
+            assert "executive_summary" in summary
             assert "metadata" in summary
-            assert len(summary["summary"]) > 0
+            assert len(summary["executive_summary"]) > 0
 
     @pytest.mark.asyncio
     async def test_translate_content(self, agent):
         """Test content translation."""
         content = "Olá, este é um teste de tradução."
 
+        mock_response = Mock()
+        mock_response.content = "Hello, this is a translation test."
+        mock_response.model = "sabiazinho-3"
+        mock_response.usage = {"total_tokens": 50}
+
         with patch.object(
             agent.llm_client,
-            "generate",
-            return_value="Hello, this is a translation test.",
+            "chat_completion",
+            return_value=mock_response,
         ):
             translated = await agent.translate_content(
                 content=content, source_language="pt-BR", target_language="en"
             )
 
-            assert "translated_text" in translated
-            assert len(translated["translated_text"]) > 0
+            assert isinstance(translated, str)
+            assert len(translated) > 0
 
 
 class TestBulkCommunication:
@@ -641,22 +651,29 @@ class TestEdgeCases:
     async def test_unknown_intent_type(self, agent, conversation_context):
         """Test handling unknown intent type."""
         # Use a regular intent type but with contextual fallback
-        from src.services.chat_service import IntentType
-
         intent = Intent(
-            type=IntentType.GENERAL_QUESTION,
+            type=IntentType.QUESTION,
             confidence=0.6,
             entities={},
             suggested_agent="drummond",
         )
 
-        response = await agent.process_conversation(
-            message="test message", context=conversation_context, intent=intent
-        )
+        # Mock LLM response for contextual generation
+        mock_response = Mock()
+        mock_response.content = "Esta é uma resposta contextual."
+        mock_response.model = "sabiazinho-3"
+        mock_response.usage = {"total_tokens": 50}
 
-        # Should use contextual response generation
-        assert "content" in response
-        assert len(response["content"]) > 0
+        with patch.object(
+            agent.llm_client, "chat_completion", return_value=mock_response
+        ):
+            response = await agent.process_conversation(
+                message="test message", context=conversation_context, intent=intent
+            )
+
+            # Should use contextual response generation
+            assert "content" in response
+            assert len(response["content"]) > 0
 
 
 class TestContextualResponseGeneration:
