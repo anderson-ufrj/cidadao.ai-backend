@@ -98,11 +98,13 @@ class ChatResponse(BaseModel):
     """Chat message response"""
 
     session_id: str
+    message_id: Optional[str] = None
     agent_id: str
     agent_name: str
     message: str
     confidence: float
     suggested_actions: Optional[list[str]] = None
+    follow_up_questions: Optional[list[str]] = None
     requires_input: Optional[dict[str, str]] = None
     metadata: dict[str, Any] = {}
 
@@ -495,16 +497,85 @@ async def send_message(
             agent_id = "portal_transparencia"
             agent_name = "Portal da Transparência"
 
-        # Build metadata
+        # CRITICAL: Validate message is not empty
+        if not message_text or len(message_text.strip()) < 5:
+            logger.error(
+                f"Empty or invalid message detected! Agent: {agent_id}, Response: {response}, "
+                f"Intent: {intent.type}, Portal data: {bool(portal_data)}"
+            )
+
+            # Generate intelligent fallback based on intent
+            if intent.type == IntentType.GREETING:
+                message_text = (
+                    "Olá! Sou o Cidadão.AI, seu assistente para análise de transparência governamental. "
+                    "Posso ajudar você a investigar contratos, analisar gastos públicos, detectar anomalias "
+                    "em licitações, ou gerar relatórios detalhados. O que você gostaria de explorar?"
+                )
+            elif intent.type == IntentType.INVESTIGATE:
+                message_text = (
+                    "Entendo que você quer investigar algo. Para que eu possa ajudar melhor, "
+                    "você poderia ser mais específico? Por exemplo: 'Quero investigar contratos do "
+                    "Ministério da Saúde em 2024' ou 'Analisar gastos da Educação com fornecedor X'."
+                )
+            elif intent.type == IntentType.HELP_REQUEST:
+                message_text = (
+                    "Posso ajudar você de várias formas:\n\n"
+                    "🔍 **Investigações**: Analiso contratos, licitações e gastos públicos\n"
+                    "📊 **Detecção de Anomalias**: Identifico padrões suspeitos e irregularidades\n"
+                    "📝 **Relatórios**: Gero documentos detalhados sobre suas investigações\n"
+                    "📈 **Análises Estatísticas**: Forneço insights sobre tendências e padrões\n\n"
+                    "Experimente perguntar: 'Quero investigar contratos da saúde' ou 'Mostre anomalias recentes'"
+                )
+            else:
+                message_text = (
+                    "Estou processando sua solicitação. Enquanto isso, posso ajudar você com:\n\n"
+                    "• Investigação de contratos e licitações públicas\n"
+                    "• Análise de gastos e despesas governamentais\n"
+                    "• Detecção de anomalias e irregularidades\n"
+                    "• Geração de relatórios detalhados\n\n"
+                    "Por favor, reformule sua pergunta de forma mais específica para que eu possa ajudar melhor."
+                )
+
+        # Build comprehensive metadata
+        start_time = datetime.utcnow()
+        processing_time = (
+            response.metadata.get("processing_time", 0)
+            if hasattr(response, "metadata")
+            else 0
+        )
+
         metadata = {
+            # Basic info
             "intent_type": intent.type.value,
-            "processing_time": (
-                response.metadata.get("processing_time", 0)
+            "message_id": str(uuid.uuid4()),
+            "timestamp": start_time.isoformat(),
+            "is_demo_mode": not bool(current_user),
+            # Processing details
+            "processing_time_ms": processing_time,
+            "model_used": "maritaca-sabia-3",  # TODO: Get from actual LLM config
+            "tokens_used": (
+                response.metadata.get("tokens_used", 0)
                 if hasattr(response, "metadata")
                 else 0
             ),
-            "is_demo_mode": not bool(current_user),
-            "timestamp": datetime.utcnow().isoformat(),
+            # Orchestration info
+            "orchestration": {
+                "target_agent": target_agent,
+                "agent_id": agent_id,
+                "agent_name": agent_name,
+                "routing_reason": f"Intent {intent.type.value} routed to {target_agent}",
+                "confidence": (
+                    response.metadata.get("confidence", intent.confidence)
+                    if hasattr(response, "metadata")
+                    else intent.confidence
+                ),
+            },
+            # Request context
+            "session_info": {
+                "session_id": session_id,
+                "investigation_id": session.current_investigation_id,
+                "user_id": session.user_id if session.user_id else "anonymous",
+            },
         }
 
         # Add Portal da Transparência data to metadata if available
@@ -520,8 +591,24 @@ async def send_message(
                 "has_data": bool(portal_data.get("data")),
             }
 
+        # Add follow-up questions based on intent
+        follow_up_questions = []
+        if intent.type == IntentType.GREETING:
+            follow_up_questions = [
+                "Você gostaria de iniciar uma investigação?",
+                "Quer saber sobre algum órgão específico?",
+                "Precisa de ajuda para navegar no sistema?",
+            ]
+        elif intent.type == IntentType.INVESTIGATE:
+            follow_up_questions = [
+                "Gostaria de filtrar por período específico?",
+                "Quer incluir análise de anomalias?",
+                "Precisa de um relatório detalhado?",
+            ]
+
         return ChatResponse(
             session_id=session_id,
+            message_id=metadata.get("message_id"),
             agent_id=agent_id,
             agent_name=agent_name,
             message=message_text,
@@ -531,6 +618,7 @@ async def send_message(
                 else intent.confidence
             ),
             suggested_actions=suggested_actions,
+            follow_up_questions=follow_up_questions,
             requires_input=requires_input,
             metadata=metadata,
         )
@@ -559,12 +647,24 @@ async def stream_message(request: ChatRequest):
             yield f"data: {json_utils.dumps({'type': 'intent', 'intent': intent.type.value, 'confidence': intent.confidence})}\n\n"
 
             # Select agent
-            agent = await chat_service.get_agent_for_intent(intent)
-            yield f"data: {json_utils.dumps({'type': 'agent_selected', 'agent_id': agent.agent_id, 'agent_name': agent.name})}\n\n"
+            agent = (
+                await chat_service.get_agent_for_intent(intent)
+                if chat_service
+                else None
+            )
+
+            # Check if agent was successfully retrieved
+            if not agent:
+                logger.warning(f"No agent available for intent: {intent.type}")
+                yield f"data: {json_utils.dumps({'type': 'error', 'message': 'Serviço temporariamente indisponível', 'fallback_endpoint': '/api/v1/chat/message'})}\n\n"
+                return
+
+            yield f"data: {json_utils.dumps({'type': 'agent_selected', 'agent_id': getattr(agent, 'agent_id', 'unknown'), 'agent_name': getattr(agent, 'name', 'Sistema')})}\n\n"
             await asyncio.sleep(0.3)
 
             # Process message in chunks (simulate typing)
-            response_text = f"Olá! Sou {agent.name} e vou ajudá-lo com sua solicitação sobre {intent.type.value}."
+            agent_name = getattr(agent, "name", "Sistema")
+            response_text = f"Olá! Sou {agent_name} e vou ajudá-lo com sua solicitação sobre {intent.type.value}."
 
             # Send response in chunks
             words = response_text.split()
@@ -583,8 +683,8 @@ async def stream_message(request: ChatRequest):
             yield f"data: {json_utils.dumps({'type': 'complete', 'suggested_actions': ['start_investigation', 'learn_more']})}\n\n"
 
         except Exception as e:
-            logger.error(f"Stream error: {str(e)}")
-            yield f"data: {json_utils.dumps({'type': 'error', 'message': 'Erro ao processar mensagem'})}\n\n"
+            logger.error(f"Stream error: {str(e)}", exc_info=True)
+            yield f"data: {json_utils.dumps({'type': 'error', 'message': str(e), 'fallback_endpoint': '/api/v1/chat/message'})}\n\n"
 
     return StreamingResponse(
         generate(),
