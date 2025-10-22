@@ -119,6 +119,25 @@ class PortalTransparenciaService:
         if modalidade:
             params["modalidadeCompra"] = modalidade
 
+        # Portal API requires at least one filter (date or orgao)
+        # If no filters provided, use last 30 days as default
+        has_filter = any(
+            [
+                orgao,
+                cnpj_fornecedor,
+                data_inicial,
+                data_final,
+                valor_minimo,
+                valor_maximo,
+            ]
+        )
+        if not has_filter:
+            # Default to last 30 days
+            today = date.today()
+            thirty_days_ago = today - timedelta(days=30)
+            params["dataInicial"] = thirty_days_ago.strftime("%d/%m/%Y")
+            params["dataFinal"] = today.strftime("%d/%m/%Y")
+
         # Check cache
         cache_key = f"contracts:{urlencode(params)}"
         cached = await self.cache.get(cache_key)
