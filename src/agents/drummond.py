@@ -689,11 +689,25 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
             )
 
         # Salvar resposta na memória
+        # Handle intent as either object or string
+        intent_value = None
+        if intent:
+            if isinstance(intent, str):
+                intent_value = intent
+            elif hasattr(intent, "type"):
+                intent_value = (
+                    intent.type.value
+                    if hasattr(intent.type, "value")
+                    else str(intent.type)
+                )
+            else:
+                intent_value = str(intent)
+
         await self.conversational_memory.add_message(
             session_id=context.session_id,
             role="assistant",
             content=response["content"],
-            metadata={"intent": intent.type.value if intent else None},
+            metadata={"intent": intent_value},
         )
 
         return response
@@ -1073,6 +1087,21 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         template = self.message_templates.get(
             template_key, self.message_templates.get("corruption_alert")
         )
+
+        # If no template found, create default template
+        if template is None:
+            subject_default = "{{recipient_name}}, {{description}}"
+            body_default = "Olá {{recipient_name}},\n\n{{description}}\n\nAtenciosamente,\nCidadão.AI"
+            template = MessageTemplate(
+                template_id="default",
+                message_type=message_type,
+                language=target.preferred_language,
+                subject_template=subject_default,
+                body_template=body_default,
+                variables=["recipient_name", "description"],
+                formatting_rules={},
+                channel_adaptations={},
+            )
 
         # 2. Variable Substitution - replace placeholders with actual values
         subject = template.subject_template
