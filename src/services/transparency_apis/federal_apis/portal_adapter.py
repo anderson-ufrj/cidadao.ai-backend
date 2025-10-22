@@ -130,12 +130,17 @@ class PortalTransparenciaAdapter(TransparencyAPIClient):
             # Return contracts list
             contracts = result.get("contratos", [])
 
+            # DEBUG: Log detailed info
             logger.info(
                 f"Portal da Transparência returned {len(contracts)} contracts",
                 extra={
                     "source": "FEDERAL-portal",
                     "count": len(contracts),
                     "demo_mode": result.get("demo_mode", False),
+                    "has_api_key": bool(self.portal_service.api_key),
+                    "orgao_requested": orgao,
+                    "result_keys": list(result.keys()),
+                    "total_in_result": result.get("total", 0),
                 },
             )
 
