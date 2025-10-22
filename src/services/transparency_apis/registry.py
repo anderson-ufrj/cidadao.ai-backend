@@ -13,6 +13,7 @@ from enum import Enum
 from typing import Optional
 
 from .base import TransparencyAPIClient
+from .federal_apis.portal_adapter import PortalTransparenciaAdapter
 from .state_apis.ckan_client import CKANClient
 from .state_apis.rondonia import RondoniaAPIClient
 from .tce_apis.tce_ba import TCEBahiaClient
@@ -52,6 +53,9 @@ class TransparencyAPIRegistry:
 
     def _register_default_apis(self) -> None:
         """Register all default API clients."""
+
+        # Federal APIs
+        self.register("FEDERAL-portal", PortalTransparenciaAdapter, APIType.FEDERAL)
 
         # State APIs
         self.register("RO-state", RondoniaAPIClient, APIType.STATE)
