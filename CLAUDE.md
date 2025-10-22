@@ -10,12 +10,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **Production URL**: https://cidadao-api-production.up.railway.app/
 **Infrastructure**: PostgreSQL + Redis + Celery (24/7 monitoring)
 **API Endpoints**: 266+ endpoints across 40 route modules
+
+**⚠️ IMPORTANT - DATA MODE (Updated 2025-10-22)**:
+- **Demo Mode**: `is_demo_mode: true` - Backend operates with simulated data
+- **Real Data**: Only IBGE API (states/municipalities) works with real data
+- **Portal da Transparência**: Not integrated (requires `TRANSPARENCY_API_KEY`)
+- **Agents**: Cannot analyze real government contracts (no real data available)
+
 **Agent Status**:
 - **10 Tier 1 agents**: Fully operational (Zumbi, Anita, Tiradentes, Machado, Senna, Bonifácio, Maria Quitéria, Oxóssi, Lampião, Oscar Niemeyer)
 - **5 Tier 2 agents**: Substantial framework (Abaporu, Nanã, Drummond, Céuci, Obaluaiê)
 - **1 Tier 3 agent**: Minimal implementation (Dandara)
 
 **Detailed Analysis**: See `docs/project/COMPREHENSIVE_ANALYSIS_2025_10_20.md` for complete verified metrics
+**Real Data Analysis**: See `docs/backend-real-data-analysis.md` for demo mode investigation
 
 ---
 
@@ -253,13 +261,52 @@ SUPABASE_SERVICE_ROLE_KEY=<key>
 # Cache (defaults to in-memory)
 REDIS_URL=redis://localhost:6379/0
 
-# Real data access
-TRANSPARENCY_API_KEY=<portal-api-key>    # Portal da Transparência
-DADOS_GOV_API_KEY=<dados-gov-key>        # Dados.gov.br
-
 # Monitoring
 ENABLE_METRICS=true
 ```
+
+### ⚠️ Real Government Data Integration (Currently NOT Configured)
+```bash
+# Portal da Transparência API
+TRANSPARENCY_API_KEY=<portal-api-key>    # ❌ NOT configured in production
+# Get key at: https://api.portaldatransparencia.gov.br/
+# Status: Without this key, backend operates in demo mode (is_demo_mode: true)
+
+# Dados.gov.br API
+DADOS_GOV_API_KEY=<dados-gov-key>        # ❌ NOT configured in production
+# Optional: Additional government data sources
+
+# Impact of missing keys:
+# - Chat responses show "is_demo_mode": true
+# - /api/v1/transparency/contracts returns CKAN metadata (not real contracts)
+# - Agents cannot analyze real government data
+# - Anomaly detection works only with simulated data
+```
+
+### How to Exit Demo Mode
+1. **Get Portal da Transparência API Key**:
+   - Visit https://api.portaldatransparencia.gov.br/
+   - Register and obtain your API key
+   - Free tier: 500 requests/hour
+
+2. **Configure in Railway**:
+   ```bash
+   railway variables set TRANSPARENCY_API_KEY=your-key-here
+   ```
+
+3. **Restart Backend**:
+   ```bash
+   railway restart
+   ```
+
+4. **Verify Real Data**:
+   ```bash
+   curl https://cidadao-api-production.up.railway.app/api/v1/chat/message \
+     -H 'Content-Type: application/json' \
+     -d '{"message": "Mostre contratos do Ministério da Saúde"}' \
+     | jq '.metadata.is_demo_mode'
+   # Should return: false
+   ```
 
 ## Agent Development Pattern
 
@@ -419,29 +466,74 @@ JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_zumbi.py::Test
 
 ## Transparency APIs Integration
 
+### ⚠️ Current Status: Demo Mode (Updated 2025-10-22)
+
+**CRITICAL**: The backend currently operates in **demo mode** for government transparency data.
+
+#### What Works (Real Data) ✅
+- **IBGE API**: States and municipalities (27 states, 5,570 municipalities)
+  ```bash
+  curl https://cidadao-api-production.up.railway.app/api/v1/federal/ibge/states
+  # Returns: Real data from IBGE
+  ```
+
+#### What Doesn't Work (Demo Mode) ❌
+- **Portal da Transparência**: Contracts, servants, expenses
+  ```bash
+  curl https://cidadao-api-production.up.railway.app/api/v1/transparency/contracts
+  # Returns: CKAN metadata (links to Excel files, not structured data)
+  # Metadata shows: "is_demo_mode": true
+  ```
+
+- **Government Contracts**: No real-time queries
+  ```bash
+  curl -X POST https://cidadao-api-production.up.railway.app/api/v1/chat/message \
+    -d '{"message": "Contratos do Ministério da Saúde"}'
+  # Returns: "Desculpe, estou em manutenção"
+  # Metadata shows: "is_demo_mode": true
+  ```
+
+#### Why Demo Mode?
+1. **Missing API Key**: `TRANSPARENCY_API_KEY` not configured in Railway
+2. **API Protection**: Backend returns generic responses instead of errors
+3. **No Real Data**: Agents cannot analyze government contracts without API access
+
+#### Impact on Features
+| Feature | Status | Reason |
+|---------|--------|--------|
+| Contract anomaly detection | ❌ | No real contract data |
+| Fraud pattern analysis | ❌ | No real contract data |
+| Servant salary analysis | ❌ | Portal API not configured |
+| Government expense tracking | ❌ | Portal API not configured |
+| Real-time investigations | ❌ | No real-time data source |
+| Source traceability | ❌ | No contract IDs from Portal |
+
 ### Federal APIs (7 APIs)
 Located in `src/services/transparency_apis/federal_apis/`:
-- `ibge_client.py` - Geography/statistics
-- `datasus_client.py` - Health data
-- `inep_client.py` - Education data
-- `pncp_client.py` - Public contracts
-- `compras_gov_client.py` - Government purchases
-- `minha_receita_client.py` - Federal revenue
-- `bcb_client.py` - Central bank
+- `ibge_client.py` - Geography/statistics ✅ **Working with real data**
+- `datasus_client.py` - Health data ⚠️ Demo mode
+- `inep_client.py` - Education data ⚠️ Demo mode
+- `pncp_client.py` - Public contracts ⚠️ Demo mode
+- `compras_gov_client.py` - Government purchases ⚠️ Demo mode
+- `minha_receita_client.py` - Federal revenue ⚠️ Demo mode
+- `bcb_client.py` - Central bank ⚠️ Demo mode
 
 ### State APIs (11 sources)
-- **TCEs**: 6 state audit courts (SP, RJ, MG, BA, PE, CE)
-- **CKAN**: 5 state portals (SP, RJ, RS, SC, BA)
+- **TCEs**: 6 state audit courts (SP, RJ, MG, BA, PE, CE) ⚠️ Demo mode
+- **CKAN**: 5 state portals (SP, RJ, RS, SC, BA) ⚠️ Returns metadata only
 - Located in `src/services/transparency_apis/state_apis/` and `tce_apis/`
 
-### Usage Pattern
+### Usage Pattern (IBGE - Working Example)
 ```python
 from src.services.transparency_apis.federal_apis.ibge_client import IBGEClient
 
 client = IBGEClient()
-states = await client.get_states()
+states = await client.get_states()  # ✅ Returns real data
 municipalities = await client.get_municipalities(state_code="33")  # Rio de Janeiro
 ```
+
+### How to Enable Real Data
+See **"How to Exit Demo Mode"** section above for step-by-step instructions.
 
 ## Common Workflows
 
@@ -589,6 +681,54 @@ Investigations are now fully persisted to database with metadata tracking:
 - **Oxóssi and Lampião are Tier 1 but have ZERO tests** (critical gap!)
 
 Always check `docs/project/COMPREHENSIVE_ANALYSIS_2025_10_20.md` for current verified status.
+
+### 9. Demo Mode - Real Data Not Available (2025-10-22)
+**CRITICAL**: Backend operates in demo mode for government transparency data.
+
+**Evidence**:
+```bash
+# All transparency endpoints return demo data
+curl -X POST https://cidadao-api-production.up.railway.app/api/v1/chat/message \
+  -d '{"message": "Contratos do Ministério da Saúde"}'
+# Response metadata: "is_demo_mode": true
+```
+
+**Root Cause**: `TRANSPARENCY_API_KEY` environment variable not configured in Railway.
+
+**Impact**:
+- ❌ No real government contracts
+- ❌ No fraud detection on real data
+- ❌ No anomaly analysis on real data
+- ❌ No source traceability to Portal da Transparência
+- ✅ Only IBGE API works with real data (states/municipalities)
+
+**Solution**: Configure `TRANSPARENCY_API_KEY` in Railway (see "How to Exit Demo Mode" section)
+
+**Detailed Investigation**: See `docs/backend-real-data-analysis.md` for complete analysis
+
+### 10. Frontend Integration Considerations (2025-10-22)
+**For Frontend Developers**:
+
+1. **Always Check `is_demo_mode` Flag**:
+   ```typescript
+   if (response.metadata.is_demo_mode) {
+     // Show warning: "Dados simulados - Configure API key para dados reais"
+   }
+   ```
+
+2. **Health Endpoint Trailing Slash**:
+   - Use `/health/` (with slash) or follow 307 redirects
+   - `/health` → 307 redirect → `/health/`
+
+3. **Chat Agents vs All Agents**:
+   - Use `/api/v1/chat/agents` for chat (6 active agents)
+   - Not `/api/v1/agents/` (returns all 16 agents, not all chat-enabled)
+
+4. **Empty Investigations List**:
+   - `/api/v1/investigations` returns `[]` (expected on fresh deployment)
+   - Not a bug, just no historical data yet
+
+**Full Frontend Integration Guide**: See `docs/FRONTEND-BACKEND-INTEGRATION-STATUS.md`
 
 ## Performance Benchmarks
 
