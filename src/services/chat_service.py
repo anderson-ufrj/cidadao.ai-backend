@@ -12,6 +12,7 @@ from typing import Any
 from src.agents import BaseAgent
 from src.core import get_logger
 from src.services.cache_service import cache_service
+from src.utils.organization_mapping import get_organization_mapper
 
 logger = get_logger(__name__)
 
@@ -281,12 +282,19 @@ class IntentDetector:
         )
 
     def _extract_organs(self, text: str) -> list[dict[str, str]]:
-        """Extract government organ mentions"""
-        found = []
-        for keyword, info in self.organ_map.items():
-            if keyword in text:
-                found.append(info)
-        return found
+        """Extract government organ mentions using advanced mapper"""
+        mapper = get_organization_mapper()
+        organizations = mapper.extract_organizations_from_text(text)
+
+        # Convert to expected format with code included
+        return [
+            {
+                "name": org["name"],
+                "code": org["code"],
+                "matched_text": org["matched_text"],
+            }
+            for org in organizations
+        ]
 
     def _extract_period(self, text: str) -> dict[str, str] | None:
         """Extract time period mentions"""
