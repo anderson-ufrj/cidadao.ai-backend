@@ -96,44 +96,29 @@ class BaseTask(Task):
         """Called before task execution."""
         self._task_start_time = datetime.now()
         logger.info(
-            "task_started",
-            task_id=task_id,
-            task_name=self.name,
-            args=args,
-            kwargs=kwargs,
+            f"Task started: {self.name} (ID: {task_id}, args: {args}, kwargs: {kwargs})"
         )
 
     def on_success(self, retval, task_id, args, kwargs):
         """Called on successful task completion."""
         duration = (datetime.now() - self._task_start_time).total_seconds()
+        result_size = len(str(retval)) if retval else 0
         logger.info(
-            "task_completed",
-            task_id=task_id,
-            task_name=self.name,
-            duration=duration,
-            result_size=len(str(retval)) if retval else 0,
+            f"Task completed: {self.name} (ID: {task_id}, duration: {duration:.2f}s, result_size: {result_size})"
         )
 
     def on_failure(self, exc, task_id, args, kwargs, einfo):
         """Called on task failure."""
         duration = (datetime.now() - self._task_start_time).total_seconds()
         logger.error(
-            "task_failed",
-            task_id=task_id,
-            task_name=self.name,
-            duration=duration,
-            error=str(exc),
+            f"Task failed: {self.name} (ID: {task_id}, duration: {duration:.2f}s, error: {str(exc)})",
             exc_info=einfo,
         )
 
     def on_retry(self, exc, task_id, args, kwargs, einfo):
         """Called when task is retried."""
         logger.warning(
-            "task_retry",
-            task_id=task_id,
-            task_name=self.name,
-            error=str(exc),
-            retry_count=self.request.retries,
+            f"Task retry: {self.name} (ID: {task_id}, error: {str(exc)}, retry_count: {self.request.retries})"
         )
 
 
@@ -214,7 +199,7 @@ def send_task_callback(
 
     except Exception as e:
         logger.error(
-            "callback_failed", task_id=task_id, callback_url=callback_url, error=str(e)
+            f"Callback failed (task_id: {task_id}, url: {callback_url}): {str(e)}"
         )
         return {"success": False, "error": str(e)}
 
@@ -226,7 +211,7 @@ def cleanup_old_results(days: int = 7) -> dict[str, Any]:
 
     # This would integrate with your result backend
     # For now, just log the action
-    logger.info("cleanup_started", cutoff_date=cutoff_date.isoformat(), days=days)
+    logger.info(f"Cleanup started (cutoff: {cutoff_date.isoformat()}, days: {days})")
 
     return {"status": "completed", "cutoff_date": cutoff_date.isoformat()}
 
