@@ -70,16 +70,24 @@ class TransparencyAPIRegistry:
 
         # CKAN states (will be instantiated on demand)
         ckan_states = {
-            "SP": "https://dadosabertos.sp.gov.br",
-            "RJ": "https://dadosabertos.rj.gov.br",
-            "RS": "https://dados.rs.gov.br",
-            "SC": "https://dados.sc.gov.br",
-            "BA": "https://dados.ba.gov.br",
+            "SP": ("https://dadosabertos.sp.gov.br", 30.0),
+            "RJ": (
+                "https://dadosabertos.rj.gov.br",
+                90.0,
+            ),  # Increased timeout for slow API
+            "RS": ("https://dados.rs.gov.br", 30.0),
+            "SC": ("https://dados.sc.gov.br", 30.0),
+            "BA": ("https://dados.ba.gov.br", 30.0),
         }
 
-        for state_code, base_url in ckan_states.items():
+        for state_code, (base_url, timeout) in ckan_states.items():
             # Register CKAN factory
-            self._clients[f"{state_code}-ckan"] = (CKANClient, base_url, state_code)
+            self._clients[f"{state_code}-ckan"] = (
+                CKANClient,
+                base_url,
+                state_code,
+                timeout,
+            )
 
     def register(
         self, key: str, client_class: type[TransparencyAPIClient], api_type: APIType
@@ -116,9 +124,9 @@ class TransparencyAPIRegistry:
         client_info = self._clients[key]
 
         if isinstance(client_info, tuple):
-            # CKAN factory
-            client_class, base_url, state_code = client_info
-            instance = client_class(base_url, state_code)
+            # CKAN factory (now with 4 parameters: class, base_url, state_code, timeout)
+            client_class, base_url, state_code, timeout = client_info
+            instance = client_class(base_url, state_code, timeout=timeout)
         else:
             # Regular class
             instance = client_info()

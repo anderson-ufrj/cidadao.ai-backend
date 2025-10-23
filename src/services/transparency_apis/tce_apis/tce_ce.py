@@ -43,7 +43,7 @@ class TCECearaClient(TransparencyAPIClient):
             base_url="https://api.tce.ce.gov.br/sim/1_0",
             name="TCE-CE",
             rate_limit_per_minute=60,
-            timeout=30.0,
+            timeout=90.0,  # Increased timeout for slow API response times
         )
 
     async def test_connection(self) -> bool:
