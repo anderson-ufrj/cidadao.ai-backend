@@ -7,7 +7,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from src.agents import BaseAgent
 from src.core import get_logger
@@ -84,10 +84,10 @@ class ChatSession:
     """Chat session data"""
 
     id: str
-    user_id: Optional[str]
+    user_id: str | None
     created_at: datetime
     last_activity: datetime
-    current_investigation_id: Optional[str] = None
+    current_investigation_id: str | None = None
     context: dict[str, Any] = None
 
     def to_dict(self):
@@ -114,6 +114,24 @@ class IntentDetector:
                 r"procurar?\s+irregularidades",
                 r"detectar?\s+anomalias",
                 r"buscar?\s+problemas",
+                # Data listing/viewing queries
+                r"listar?\s+contratos",
+                r"mostrar?\s+contratos",
+                r"ver\s+contratos",
+                r"quais\s+contratos",
+                r"contratos\s+d[oa]",
+                r"gastos\s+d[oa]",
+                r"despesas\s+d[oa]",
+                r"licitac[õo]es\s+d[oa]",
+                r"fornecedores?\s+d[oa]",
+                r"listar?\s+gastos",
+                r"mostrar?\s+gastos",
+                r"ver\s+gastos",
+                r"listar?\s+despesas",
+                r"mostrar?\s+despesas",
+                r"ver\s+despesas",
+                r"dados\s+d[oa]",
+                r"informa[çc][õo]es\s+d[oa]",
             ],
             IntentType.ANALYZE: [
                 r"anomalias?\s+",
@@ -270,7 +288,7 @@ class IntentDetector:
                 found.append(info)
         return found
 
-    def _extract_period(self, text: str) -> Optional[dict[str, str]]:
+    def _extract_period(self, text: str) -> dict[str, str] | None:
         """Extract time period mentions"""
         # Look for year patterns
         year_match = re.search(r"20\d{2}", text)
@@ -303,7 +321,7 @@ class IntentDetector:
         if "último" in text or "ultimo" in text:
             if "mês" in text or "mes" in text:
                 return {"relative": "last_month", "type": "relative"}
-            elif "ano" in text:
+            if "ano" in text:
                 return {"relative": "last_year", "type": "relative"}
 
         return None
@@ -383,7 +401,7 @@ class ChatService:
         self._agents_initialized = False
 
     async def get_or_create_session(
-        self, session_id: str, user_id: Optional[str] = None
+        self, session_id: str, user_id: str | None = None
     ) -> ChatSession:
         """Get existing session or create new one"""
         if session_id in self.sessions:
@@ -403,12 +421,12 @@ class ChatService:
         self.sessions[session_id] = session
         return session
 
-    async def get_session(self, session_id: str) -> Optional[ChatSession]:
+    async def get_session(self, session_id: str) -> ChatSession | None:
         """Get session by ID"""
         return self.sessions.get(session_id)
 
     async def save_message(
-        self, session_id: str, role: str, content: str, agent_id: Optional[str] = None
+        self, session_id: str, role: str, content: str, agent_id: str | None = None
     ):
         """Save message to session history"""
         message = {
