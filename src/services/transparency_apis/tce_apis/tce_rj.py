@@ -42,7 +42,7 @@ class TCERioDeJaneiroClient(TransparencyAPIClient):
             base_url="https://www.tcerj.tc.br/portaldados/api",
             name="TCE-RJ",
             rate_limit_per_minute=60,
-            timeout=30.0,
+            timeout=90.0,  # Increased timeout for slow API response times
         )
 
     async def test_connection(self) -> bool:
