@@ -265,24 +265,31 @@ class HealthMonitor:
             api_key: self.get_api_stats(api_key) for api_key in check_results.keys()
         }
 
+        # Create summary string
+        summary_text = (
+            f"{len(healthy_apis)}/{total_apis} APIs healthy "
+            f"({overall_health_percentage:.1f}% overall health)"
+        )
+
         return {
-            "timestamp": datetime.utcnow().isoformat(),
             "overall_status": overall_status.value,
             "overall_health_percentage": round(overall_health_percentage, 2),
-            "summary": {
-                "total_apis": total_apis,
-                "healthy": len(healthy_apis),
-                "degraded": len(degraded_apis),
-                "unhealthy": len(unhealthy_apis),
-                "unknown": len(unknown_apis),
-            },
+            "summary": summary_text,
             "apis": {
                 "healthy": healthy_apis,
                 "degraded": degraded_apis,
                 "unhealthy": unhealthy_apis,
                 "unknown": unknown_apis,
+                "details": api_details,
             },
-            "details": api_details,
+            "metadata": {
+                "timestamp": datetime.utcnow().isoformat(),
+                "total_apis": total_apis,
+                "healthy_count": len(healthy_apis),
+                "degraded_count": len(degraded_apis),
+                "unhealthy_count": len(unhealthy_apis),
+                "unknown_count": len(unknown_apis),
+            },
         }
 
     def get_history(
