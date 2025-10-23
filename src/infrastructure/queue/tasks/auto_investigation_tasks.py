@@ -197,9 +197,7 @@ def auto_investigation_health_check() -> dict[str, Any]:
                     dataFinal=datetime.utcnow().strftime("%d/%m/%Y"),
                 )
 
-                contracts = loop.run_until_complete(
-                    api.get_contracts(filters=filters, limit=1)
-                )
+                contracts = loop.run_until_complete(api.get_contracts(filters=filters))
 
                 health["components"]["transparency_api"] = "healthy"
 
