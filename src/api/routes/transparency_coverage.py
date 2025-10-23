@@ -67,23 +67,193 @@ async def get_coverage_map(
             "last_update": datetime.utcnow().isoformat(),
             "summary": {
                 "total_states": 27,
-                "states_with_apis": 10,
-                "states_working": 10,
+                "states_with_apis": 11,
+                "states_working": 11,
                 "overall_coverage_percentage": 37.0,
-                "total_apis": 13,
+                "total_apis": 15,
+                "total_endpoints": 47,
             },
             "states": {
-                "SP": {"status": "healthy", "apis": 2, "coverage": 100.0},
-                "RJ": {"status": "healthy", "apis": 2, "coverage": 100.0},
-                "MG": {"status": "healthy", "apis": 1, "coverage": 100.0},
-                "RS": {"status": "healthy", "apis": 2, "coverage": 100.0},
-                "SC": {"status": "healthy", "apis": 1, "coverage": 100.0},
-                "BA": {"status": "healthy", "apis": 2, "coverage": 100.0},
-                "PE": {"status": "healthy", "apis": 1, "coverage": 100.0},
-                "CE": {"status": "healthy", "apis": 1, "coverage": 100.0},
-                "AC": {"status": "healthy", "apis": 1, "coverage": 100.0},
-                "RN": {"status": "healthy", "apis": 1, "coverage": 100.0},
-                "RO": {"status": "healthy", "apis": 1, "coverage": 100.0},
+                "BR": {
+                    "name": "Federal",
+                    "status": "healthy",
+                    "apis": [
+                        {
+                            "name": "IBGE - Geografia",
+                            "url": "https://servicodados.ibge.gov.br/api/v1/localidades",
+                            "endpoints": 4,
+                            "status": "operational",
+                        },
+                        {
+                            "name": "Portal da Transparência",
+                            "url": "https://api.portaldatransparencia.gov.br",
+                            "endpoints": 3,
+                            "status": "partial",
+                        },
+                        {
+                            "name": "PNCP - Contratos Públicos",
+                            "url": "https://pncp.gov.br/api",
+                            "endpoints": 5,
+                            "status": "operational",
+                        },
+                    ],
+                },
+                "SP": {
+                    "name": "São Paulo",
+                    "status": "healthy",
+                    "apis": [
+                        {
+                            "name": "TCE-SP",
+                            "url": "https://transparencia.tce.sp.gov.br",
+                            "endpoints": 3,
+                            "status": "operational",
+                        },
+                        {
+                            "name": "Dados Abertos SP",
+                            "url": "https://dados.sp.gov.br/api/3",
+                            "endpoints": 5,
+                            "status": "operational",
+                        },
+                    ],
+                },
+                "RJ": {
+                    "name": "Rio de Janeiro",
+                    "status": "healthy",
+                    "apis": [
+                        {
+                            "name": "TCE-RJ",
+                            "url": "https://www.tcerj.tc.br",
+                            "endpoints": 2,
+                            "status": "operational",
+                        },
+                        {
+                            "name": "Dados Abertos RJ",
+                            "url": "https://dados.rj.gov.br/api/3",
+                            "endpoints": 4,
+                            "status": "operational",
+                        },
+                    ],
+                },
+                "MG": {
+                    "name": "Minas Gerais",
+                    "status": "healthy",
+                    "apis": [
+                        {
+                            "name": "TCE-MG",
+                            "url": "https://www.tce.mg.gov.br",
+                            "endpoints": 2,
+                            "status": "operational",
+                        }
+                    ],
+                },
+                "RS": {
+                    "name": "Rio Grande do Sul",
+                    "status": "healthy",
+                    "apis": [
+                        {
+                            "name": "TCE-RS",
+                            "url": "https://www1.tce.rs.gov.br",
+                            "endpoints": 2,
+                            "status": "operational",
+                        },
+                        {
+                            "name": "Dados Abertos RS",
+                            "url": "https://dados.rs.gov.br/api/3",
+                            "endpoints": 3,
+                            "status": "operational",
+                        },
+                    ],
+                },
+                "SC": {
+                    "name": "Santa Catarina",
+                    "status": "healthy",
+                    "apis": [
+                        {
+                            "name": "Dados Abertos SC",
+                            "url": "https://dados.sc.gov.br/api/3",
+                            "endpoints": 3,
+                            "status": "operational",
+                        }
+                    ],
+                },
+                "BA": {
+                    "name": "Bahia",
+                    "status": "healthy",
+                    "apis": [
+                        {
+                            "name": "TCE-BA",
+                            "url": "https://www.tce.ba.gov.br",
+                            "endpoints": 2,
+                            "status": "operational",
+                        },
+                        {
+                            "name": "Dados Abertos BA",
+                            "url": "https://dados.ba.gov.br/api/3",
+                            "endpoints": 2,
+                            "status": "operational",
+                        },
+                    ],
+                },
+                "PE": {
+                    "name": "Pernambuco",
+                    "status": "healthy",
+                    "apis": [
+                        {
+                            "name": "TCE-PE",
+                            "url": "https://www.tce.pe.gov.br",
+                            "endpoints": 2,
+                            "status": "operational",
+                        }
+                    ],
+                },
+                "CE": {
+                    "name": "Ceará",
+                    "status": "healthy",
+                    "apis": [
+                        {
+                            "name": "TCE-CE",
+                            "url": "https://www.tce.ce.gov.br",
+                            "endpoints": 2,
+                            "status": "operational",
+                        }
+                    ],
+                },
+                "RO": {
+                    "name": "Rondônia",
+                    "status": "healthy",
+                    "apis": [
+                        {
+                            "name": "CGE-RO",
+                            "url": "https://transparencia.ro.gov.br",
+                            "endpoints": 1,
+                            "status": "operational",
+                        }
+                    ],
+                },
+                "AC": {
+                    "name": "Acre",
+                    "status": "healthy",
+                    "apis": [
+                        {
+                            "name": "Dados Abertos AC",
+                            "url": "https://dados.ac.gov.br/api/3",
+                            "endpoints": 1,
+                            "status": "operational",
+                        }
+                    ],
+                },
+                "RN": {
+                    "name": "Rio Grande do Norte",
+                    "status": "healthy",
+                    "apis": [
+                        {
+                            "name": "Dados Abertos RN",
+                            "url": "https://dados.rn.gov.br/api/3",
+                            "endpoints": 1,
+                            "status": "operational",
+                        }
+                    ],
+                },
             },
             "cache_info": {
                 "cached": False,
