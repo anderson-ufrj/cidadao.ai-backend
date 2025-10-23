@@ -45,7 +45,7 @@ class TCEMinasGeraisClient(TransparencyAPIClient):
 
     def __init__(self):
         super().__init__(
-            base_url="https://www.tce.mg.gov.br/TCETransparenciaAPI/api",
+            base_url="https://dadosabertos.tce.mg.gov.br/api/3/action",  # CKAN API
             name="TCE-MG",
             rate_limit_per_minute=60,
             timeout=30.0,
@@ -59,17 +59,19 @@ class TCEMinasGeraisClient(TransparencyAPIClient):
             True if API is accessible, False otherwise
         """
         try:
-            # Try to fetch municipality list (small dataset)
+            # TCE-MG now uses CKAN API at dadosabertos.tce.mg.gov.br
+            # Test with package_list endpoint
             result = await self._make_request(
-                method="GET", endpoint="/municipios", params={"limite": 1}
+                method="GET", endpoint="/package_list", params={"limit": 1}
             )
 
-            is_success = result is not None
+            # CKAN returns {"success": true, "result": [...]}
+            is_success = result is not None and result.get("success") == True
 
             if is_success:
-                self.logger.info("TCE-MG connection successful")
+                self.logger.info("TCE-MG connection successful (CKAN API)")
             else:
-                self.logger.warning("TCE-MG returned empty response")
+                self.logger.warning("TCE-MG returned unsuccessful response")
 
             return is_success
 
