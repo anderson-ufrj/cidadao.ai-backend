@@ -35,7 +35,7 @@ def auto_monitor_new_contracts(
     Returns:
         Monitoring results summary
     """
-    logger.info("auto_monitor_task_started", lookback_hours=lookback_hours)
+    logger.info(f"Auto-monitor task started (lookback_hours: {lookback_hours})")
 
     try:
         loop = asyncio.new_event_loop()
@@ -49,10 +49,8 @@ def auto_monitor_new_contracts(
             )
 
             logger.info(
-                "auto_monitor_task_completed",
-                contracts_analyzed=result.get("contracts_analyzed"),
-                investigations_created=result.get("investigations_created"),
-                anomalies_detected=result.get("anomalies_detected"),
+                f"Auto-monitor task completed (contracts: {result.get('contracts_analyzed')}, "
+                f"investigations: {result.get('investigations_created')}, anomalies: {result.get('anomalies_detected')})"
             )
 
             return result
@@ -61,7 +59,7 @@ def auto_monitor_new_contracts(
             loop.close()
 
     except Exception as e:
-        logger.error("auto_monitor_task_failed", error=str(e), exc_info=True)
+        logger.error(f"Auto-monitor task failed: {str(e)}", exc_info=True)
         raise
 
 
@@ -79,7 +77,7 @@ def auto_reanalyze_historical(
     Returns:
         Reanalysis results summary
     """
-    logger.info("historical_reanalysis_task_started", months_back=months_back)
+    logger.info(f"Historical reanalysis task started (months_back: {months_back})")
 
     try:
         loop = asyncio.new_event_loop()
@@ -93,9 +91,8 @@ def auto_reanalyze_historical(
             )
 
             logger.info(
-                "historical_reanalysis_task_completed",
-                contracts_analyzed=result.get("contracts_analyzed"),
-                anomalies_detected=result.get("anomalies_detected"),
+                f"Historical reanalysis task completed (contracts: {result.get('contracts_analyzed')}, "
+                f"anomalies: {result.get('anomalies_detected')})"
             )
 
             return result
@@ -104,7 +101,7 @@ def auto_reanalyze_historical(
             loop.close()
 
     except Exception as e:
-        logger.error("historical_reanalysis_task_failed", error=str(e), exc_info=True)
+        logger.error(f"Historical reanalysis task failed: {str(e)}", exc_info=True)
         raise
 
 
@@ -125,7 +122,7 @@ def auto_monitor_priority_orgs() -> dict[str, Any]:
         # "20101",  # Ministério da Educação
     ]
 
-    logger.info("priority_orgs_monitor_started", org_count=len(priority_orgs))
+    logger.info(f"Priority orgs monitor started (org_count: {len(priority_orgs)})")
 
     try:
         loop = asyncio.new_event_loop()
@@ -140,9 +137,8 @@ def auto_monitor_priority_orgs() -> dict[str, Any]:
             )
 
             logger.info(
-                "priority_orgs_monitor_completed",
-                contracts_analyzed=result.get("contracts_analyzed"),
-                anomalies_detected=result.get("anomalies_detected"),
+                f"Priority orgs monitor completed (contracts: {result.get('contracts_analyzed')}, "
+                f"anomalies: {result.get('anomalies_detected')})"
             )
 
             return result
@@ -151,7 +147,7 @@ def auto_monitor_priority_orgs() -> dict[str, Any]:
             loop.close()
 
     except Exception as e:
-        logger.error("priority_orgs_monitor_failed", error=str(e), exc_info=True)
+        logger.error(f"Priority orgs monitor failed: {str(e)}", exc_info=True)
         raise
 
 
@@ -165,7 +161,7 @@ def auto_investigation_health_check() -> dict[str, Any]:
     Returns:
         System health status
     """
-    logger.info("auto_investigation_health_check_started")
+    logger.info("Auto-investigation health check started")
 
     try:
         # Check system components
@@ -240,15 +236,13 @@ def auto_investigation_health_check() -> dict[str, Any]:
             health["status"] = "degraded"
 
         logger.info(
-            "auto_investigation_health_check_completed", status=health["status"]
+            f"Auto-investigation health check completed (status: {health['status']})"
         )
 
         return health
 
     except Exception as e:
-        logger.error(
-            "auto_investigation_health_check_failed", error=str(e), exc_info=True
-        )
+        logger.error(f"Auto-investigation health check failed: {str(e)}", exc_info=True)
         return {
             "status": "unhealthy",
             "error": str(e),

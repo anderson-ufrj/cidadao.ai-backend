@@ -41,9 +41,7 @@ def run_investigation(
     """
     try:
         logger.info(
-            "investigation_started",
-            investigation_id=investigation_id,
-            query=query[:100],
+            f"Investigation started (ID: {investigation_id}, query: {query[:100]})"
         )
 
         # Run async investigation in sync context
@@ -56,9 +54,7 @@ def run_investigation(
             )
 
             logger.info(
-                "investigation_completed",
-                investigation_id=investigation_id,
-                findings_count=len(result.get("findings", [])),
+                f"Investigation completed (ID: {investigation_id}, findings: {len(result.get('findings', []))})"
             )
 
             return result
@@ -68,9 +64,7 @@ def run_investigation(
 
     except Exception as e:
         logger.error(
-            "investigation_failed",
-            investigation_id=investigation_id,
-            error=str(e),
+            f"Investigation failed (ID: {investigation_id}): {str(e)}",
             exc_info=True,
         )
 
@@ -115,9 +109,7 @@ def analyze_contracts_batch(
         Batch analysis results
     """
     logger.info(
-        "batch_analysis_started",
-        contract_count=len(contract_ids),
-        analysis_type=analysis_type,
+        f"Batch analysis started (contracts: {len(contract_ids)}, type: {analysis_type})"
     )
 
     # Create subtasks for each contract
@@ -148,9 +140,7 @@ def analyze_contracts_batch(
     }
 
     logger.info(
-        "batch_analysis_completed",
-        total=summary["total_contracts"],
-        anomalies=summary["anomalies_found"],
+        f"Batch analysis completed (total: {summary['total_contracts']}, anomalies: {summary['anomalies_found']})"
     )
 
     return summary
@@ -174,7 +164,7 @@ def analyze_single_contract(
             loop.close()
 
     except Exception as e:
-        logger.error("contract_analysis_failed", contract_id=contract_id, error=str(e))
+        logger.error(f"Contract analysis failed (contract_id: {contract_id}): {str(e)}")
         return {"contract_id": contract_id, "error": str(e), "has_anomaly": False}
 
 
@@ -236,7 +226,7 @@ def detect_anomalies_batch(
         Anomaly detection results
     """
     logger.info(
-        "anomaly_detection_started", data_source=data_source, time_range=time_range
+        f"Anomaly detection started (source: {data_source}, range: {time_range})"
     )
 
     try:
@@ -249,8 +239,7 @@ def detect_anomalies_batch(
             )
 
             logger.info(
-                "anomaly_detection_completed",
-                anomalies_found=len(result.get("anomalies", [])),
+                f"Anomaly detection completed (anomalies: {len(result.get('anomalies', []))})"
             )
 
             return result
@@ -259,7 +248,7 @@ def detect_anomalies_batch(
             loop.close()
 
     except Exception as e:
-        logger.error("anomaly_detection_failed", error=str(e), exc_info=True)
+        logger.error(f"Anomaly detection failed: {str(e)}", exc_info=True)
         raise
 
 
@@ -329,10 +318,7 @@ def emergency_investigation(
         Investigation results
     """
     logger.warning(
-        "emergency_investigation_started",
-        query=query[:100],
-        reason=reason,
-        initiated_by=initiated_by,
+        f"Emergency investigation started (query: {query[:100]}, reason: {reason}, by: {initiated_by})"
     )
 
     # Create investigation with special handling
