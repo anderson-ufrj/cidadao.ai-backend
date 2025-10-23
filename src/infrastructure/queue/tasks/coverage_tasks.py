@@ -82,7 +82,7 @@ API_TO_STATE = {
     "PE-tce": "PE",
     "PE-ckan": "PE",  # New: Pernambuco state CKAN
     "CE-tce": "CE",
-    "RO-state": "RO",
+    "RO-cge": "RO",  # Rondônia CGE (replaced RO-state)
     "GO-ckan": "GO",  # New: Goiás
     "ES-ckan": "ES",  # New: Espírito Santo
     "DF-ckan": "DF",  # New: Distrito Federal
