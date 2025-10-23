@@ -9,11 +9,12 @@ Author: Anderson Henrique da Silva
 Created: 2025-10-22
 """
 
-from datetime import date
+from datetime import date, datetime
 from typing import Any, Optional
 
 from src.core import get_logger
 from src.services.portal_transparencia_service import portal_transparencia
+from src.utils.date_range_defaults import DateRangeDefaults
 
 from ..base import TransparencyAPIClient
 
@@ -101,6 +102,22 @@ class PortalTransparenciaAdapter(TransparencyAPIClient):
             if year and not end_date:
                 end_date = f"{year}-12-31"
 
+            # Apply smart defaults if no dates provided
+            if not start_date and not end_date:
+                default_start, default_end = DateRangeDefaults.get_contracts_range()
+                # Convert DD/MM/YYYY to YYYY-MM-DD format
+                start_date = datetime.strptime(default_start, "%d/%m/%Y").strftime(
+                    "%Y-%m-%d"
+                )
+                end_date = datetime.strptime(default_end, "%d/%m/%Y").strftime(
+                    "%Y-%m-%d"
+                )
+
+                logger.info(
+                    f"Applied default date range for contracts: {start_date} to {end_date}",
+                    extra={"source": "FEDERAL-portal", "default_range": "last_30_days"},
+                )
+
             # Convert string dates to date objects
             data_inicial = None
             data_final = None
@@ -173,6 +190,25 @@ class PortalTransparenciaAdapter(TransparencyAPIClient):
             List of expense dictionaries
         """
         try:
+            # Apply smart defaults if no dates provided
+            if not start_date and not end_date and not year:
+                default_start, default_end = DateRangeDefaults.get_expenses_range()
+                # Convert DD/MM/YYYY to YYYY-MM-DD format
+                start_date = datetime.strptime(default_start, "%d/%m/%Y").strftime(
+                    "%Y-%m-%d"
+                )
+                end_date = datetime.strptime(default_end, "%d/%m/%Y").strftime(
+                    "%Y-%m-%d"
+                )
+
+                logger.info(
+                    f"Applied default date range for expenses: {start_date} to {end_date}",
+                    extra={
+                        "source": "FEDERAL-portal",
+                        "default_range": "current_fiscal_year",
+                    },
+                )
+
             # Convert dates
             data_inicial = None
             data_final = None
