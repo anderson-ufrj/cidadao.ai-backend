@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.dependencies import get_db
 from src.infrastructure.queue.tasks.coverage_tasks import transform_to_map_format
@@ -54,7 +54,7 @@ async def get_coverage_map(
         default=False,
         description="Include last 7 days of historical snapshots for trend analysis",
     ),
-    db: Session = Depends(get_db),
+    db: AsyncSession = Depends(get_db),
 ):
     """
     Get transparency API coverage map for Brazil.
@@ -84,7 +84,8 @@ async def get_coverage_map(
             .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
             .limit(1)
         )
-        latest_snapshot = db.scalars(stmt).first()
+        result = await db.execute(stmt)
+        latest_snapshot = result.scalar_one_or_none()
 
         if not latest_snapshot:
             # Cold start: No snapshot exists yet
@@ -109,7 +110,7 @@ async def get_coverage_map(
                 ],
             )
             db.add(snapshot)
-            db.commit()
+            await db.commit()
 
             logger.info(
                 f"Coverage map generated on-demand: "
@@ -153,7 +154,8 @@ async def get_coverage_map(
                 )
                 .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
             )
-            history_snapshots = db.scalars(history_stmt).all()
+            history_result = await db.execute(history_stmt)
+            history_snapshots = history_result.scalars().all()
 
             coverage_data["history"] = [
                 {
@@ -196,7 +198,7 @@ async def get_coverage_map(
     ```
     """,
 )
-async def get_state_coverage(state_code: str, db: Session = Depends(get_db)):
+async def get_state_coverage(state_code: str, db: AsyncSession = Depends(get_db)):
     """
     Get detailed coverage information for a specific state.
 
@@ -222,7 +224,8 @@ async def get_state_coverage(state_code: str, db: Session = Depends(get_db)):
             .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
             .limit(1)
         )
-        latest = db.scalars(latest_stmt).first()
+        latest_result = await db.execute(latest_stmt)
+        latest = latest_result.scalar_one_or_none()
 
         if not latest:
             logger.warning(f"No coverage data found for state: {state_code}")
@@ -257,7 +260,8 @@ async def get_state_coverage(state_code: str, db: Session = Depends(get_db)):
             )
             .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
         )
-        history = db.scalars(history_stmt).all()
+        history_result = await db.execute(history_stmt)
+        history = history_result.scalars().all()
 
         # Analyze trend
         trend = analyze_trend(history)
@@ -363,7 +367,7 @@ def analyze_trend(history: list) -> dict:
     **Fast Response**: <10ms (direct query on summary_stats)
     """,
 )
-async def get_coverage_stats(db: Session = Depends(get_db)):
+async def get_coverage_stats(db: AsyncSession = Depends(get_db)):
     """
     Get quick coverage statistics.
 
@@ -387,7 +391,8 @@ async def get_coverage_stats(db: Session = Depends(get_db)):
             .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
             .limit(1)
         )
-        latest = db.scalars(stats_stmt).first()
+        stats_result = await db.execute(stats_stmt)
+        latest = stats_result.scalar_one_or_none()
 
         if not latest:
             logger.warning("No coverage stats available - no snapshots exist")
