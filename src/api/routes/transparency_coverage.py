@@ -9,6 +9,7 @@ Created: 2025-10-23
 """
 
 import logging
+import os
 from datetime import datetime
 
 import httpx
@@ -22,6 +23,9 @@ router = APIRouter(prefix="/transparency", tags=["Transparency Coverage"])
 
 # Cache instance for storing API health checks
 cache = CacheService()
+
+# Portal da Transparência API key (if configured)
+TRANSPARENCY_API_KEY = os.getenv("TRANSPARENCY_API_KEY")
 
 # API definitions to test
 APIS_TO_TEST = {
@@ -42,9 +46,10 @@ APIS_TO_TEST = {
             },
             {
                 "name": "Portal da Transparência",
-                "url": "https://api.portaldatransparencia.gov.br/api-de-dados/acordos-leniencia",
+                "url": "https://api.portaldatransparencia.gov.br/api-de-dados/orgaos-siafi",
                 "test_path": "",
                 "endpoints": 3,
+                "requires_auth": True,
             },
             {
                 "name": "PNCP - Contratos Públicos",
@@ -167,21 +172,29 @@ APIS_TO_TEST = {
 }
 
 
-async def test_api_health(url: str, timeout: float = 10.0) -> dict:
+async def test_api_health(
+    url: str, timeout: float = 10.0, requires_auth: bool = False
+) -> dict:
     """
     Test if an API endpoint is responding.
 
     Args:
         url: API URL to test
         timeout: Request timeout in seconds (default 10s)
+        requires_auth: Whether this API requires Portal da Transparência auth
 
     Returns:
         dict: Status information
     """
     try:
+        # Prepare headers for Portal da Transparência API
+        headers = {}
+        if requires_auth and TRANSPARENCY_API_KEY:
+            headers["chave-api-dados"] = TRANSPARENCY_API_KEY
+
         # Disable SSL verification for government APIs with certificate issues
         async with httpx.AsyncClient(timeout=timeout, verify=False) as client:
-            response = await client.get(url)
+            response = await client.get(url, headers=headers)
 
             if response.status_code == 200:
                 return {
@@ -234,8 +247,9 @@ async def generate_coverage_map() -> dict:
             total_apis += 1
             total_endpoints += api_def["endpoints"]
 
-            # Test API health
-            health = await test_api_health(api_def["url"])
+            # Test API health (with auth if required)
+            requires_auth = api_def.get("requires_auth", False)
+            health = await test_api_health(api_def["url"], requires_auth=requires_auth)
 
             if health["status"] in ["operational", "restricted", "partial"]:
                 working_apis += 1
