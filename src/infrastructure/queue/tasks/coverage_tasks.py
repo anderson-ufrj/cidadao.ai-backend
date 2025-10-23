@@ -86,6 +86,8 @@ API_TO_STATE = {
     "GO-ckan": "GO",  # New: Goiás
     "ES-ckan": "ES",  # New: Espírito Santo
     "DF-ckan": "DF",  # New: Distrito Federal
+    "AC-ckan": "AC",  # New: Acre
+    "RN-ckan": "RN",  # New: Rio Grande do Norte
     "FEDERAL-portal": "BR",
 }
 

@@ -14,6 +14,8 @@ Supported states:
 - Espírito Santo: https://dados.es.gov.br/
 - Distrito Federal: https://dados.df.gov.br/
 - Pernambuco: http://web.transparencia.pe.gov.br/ckan/
+- Acre: https://dados.ac.gov.br/
+- Rio Grande do Norte: https://dados.rn.gov.br/
 
 CKAN API v3 standard endpoints:
 - /api/3/action/package_list: List all datasets
