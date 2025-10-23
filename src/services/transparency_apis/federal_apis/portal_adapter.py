@@ -53,8 +53,20 @@ class PortalTransparenciaAdapter(TransparencyAPIClient):
             True if API is responding, False otherwise
         """
         try:
-            # Try to fetch a single contract to test connectivity
-            result = await self.portal_service.search_contracts(page=1, size=1)
+            # Portal API requires codigoOrgao parameter
+            # Use Ministério da Saúde (36000) as test organization
+            from datetime import date, timedelta
+
+            data_inicial = date.today() - timedelta(days=1)
+            data_final = date.today()
+
+            result = await self.portal_service.search_contracts(
+                orgao="36000",  # Ministério da Saúde
+                data_inicial=data_inicial,
+                data_final=data_final,
+                page=1,
+                size=1,
+            )
 
             # Check if we got data (not demo mode)
             has_data = bool(result.get("contratos"))
