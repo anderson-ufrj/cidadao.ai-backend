@@ -10,6 +10,10 @@ Supported states:
 - Rio Grande do Sul: https://dados.rs.gov.br/
 - Santa Catarina: https://dados.sc.gov.br/
 - Bahia: https://dados.ba.gov.br/
+- Goiás: https://dadosabertos.go.gov.br/
+- Espírito Santo: https://dados.es.gov.br/
+- Distrito Federal: https://dados.df.gov.br/
+- Pernambuco: http://web.transparencia.pe.gov.br/ckan/
 
 CKAN API v3 standard endpoints:
 - /api/3/action/package_list: List all datasets
