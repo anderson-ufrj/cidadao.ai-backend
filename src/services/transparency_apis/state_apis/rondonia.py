@@ -37,7 +37,7 @@ class RondoniaAPIClient(TransparencyAPIClient):
 
     def __init__(self):
         super().__init__(
-            base_url="http://portaldatransparencia.ro.gov.br/DadosAbertos",
+            base_url="https://portaldatransparencia.ro.gov.br/DadosAbertos",  # Changed HTTP → HTTPS
             name="Rondônia-State",
             rate_limit_per_minute=60,  # Conservative rate limit
             timeout=30.0,
