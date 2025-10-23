@@ -21,6 +21,7 @@ from src.api.routes.chat_zumbi_integration import (
     run_zumbi_investigation,
 )
 from src.core import get_logger, json_utils
+from src.core.config import get_settings
 from src.services.chat_data_integration import chat_data_integration
 from src.services.chat_service import IntentDetector, IntentType
 
@@ -613,12 +614,16 @@ async def send_message(
             else 0
         )
 
+        # Check if we have real API key configured
+        settings = get_settings()
+        has_transparency_key = bool(settings.transparency_api_key)
+
         metadata = {
             # Basic info
             "intent_type": intent.type.value,
             "message_id": str(uuid.uuid4()),
             "timestamp": start_time.isoformat(),
-            "is_demo_mode": not bool(current_user),
+            "is_demo_mode": not has_transparency_key,  # False if API key configured
             # Processing details
             "processing_time_ms": processing_time,
             "model_used": "maritaca-sabia-3",  # TODO: Get from actual LLM config
