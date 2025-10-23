@@ -14,7 +14,7 @@ from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
-from src.infrastructure.database import get_db
+from src.api.dependencies import get_db
 from src.infrastructure.queue.tasks.coverage_tasks import transform_to_map_format
 from src.models.transparency_coverage import TransparencyCoverageSnapshot
 from src.services.transparency_apis.health_check import HealthMonitor
