@@ -78,6 +78,13 @@ class TransparencyAPIRegistry:
             "RS": ("https://dados.rs.gov.br", 30.0),
             "SC": ("https://dados.sc.gov.br", 30.0),
             "BA": ("https://dados.ba.gov.br", 30.0),
+            "GO": ("https://dadosabertos.go.gov.br", 30.0),  # New: Goiás
+            "ES": ("https://dados.es.gov.br", 30.0),  # New: Espírito Santo
+            "DF": ("https://dados.df.gov.br", 30.0),  # New: Distrito Federal
+            "PE": (
+                "http://web.transparencia.pe.gov.br/ckan",
+                30.0,
+            ),  # New: Pernambuco state portal
         }
 
         for state_code, (base_url, timeout) in ckan_states.items():
