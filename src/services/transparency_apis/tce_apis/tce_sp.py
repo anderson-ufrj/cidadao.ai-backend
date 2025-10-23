@@ -56,12 +56,12 @@ class TCESaoPauloClient(TransparencyAPIClient):
             True if API is accessible, False otherwise
         """
         try:
-            # Try to fetch municipality list (small dataset)
+            # TCE-SP requires format in path: /json/municipios or /xml/municipios
             result = await self._make_request(
-                method="GET", endpoint="/municipios", params={"limit": 1}
+                method="GET", endpoint="/json/municipios", params=None
             )
 
-            is_success = result is not None
+            is_success = result is not None and isinstance(result, list)
 
             if is_success:
                 self.logger.info("TCE-SP connection successful")
@@ -82,8 +82,9 @@ class TCESaoPauloClient(TransparencyAPIClient):
             List of municipality dictionaries with IBGE codes
         """
         try:
+            # TCE-SP requires format in path: /json/municipios
             raw_data = await self._make_request(
-                method="GET", endpoint="/municipios", params=None
+                method="GET", endpoint="/json/municipios", params=None
             )
 
             municipalities = self._normalize_municipalities(raw_data)
