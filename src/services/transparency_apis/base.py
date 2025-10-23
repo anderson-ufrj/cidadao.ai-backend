@@ -140,7 +140,11 @@ class TransparencyAPIClient(ABC):
         # Make request with retries
         for attempt in range(self.max_retries):
             try:
-                async with httpx.AsyncClient(timeout=self.timeout) as client:
+                async with httpx.AsyncClient(
+                    timeout=self.timeout,
+                    verify=False,  # Disable SSL verification for state government APIs
+                    follow_redirects=True,  # Follow HTTP → HTTPS redirects
+                ) as client:
                     response = await client.request(
                         method=method, url=url, params=params, headers=headers
                     )
