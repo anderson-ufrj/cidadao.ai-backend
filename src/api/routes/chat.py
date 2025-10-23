@@ -295,10 +295,21 @@ async def send_message(
                 )
                 agent_id = "drummond"
                 agent_name = "Carlos Drummond de Andrade"
-        elif target_agent == "abaporu" and intent.type == IntentType.INVESTIGATE:
+        elif target_agent == "abaporu" and (
+            intent.type == IntentType.INVESTIGATE
+            or (
+                intent.type
+                in [IntentType.QUESTION, IntentType.UNKNOWN, IntentType.ANALYZE]
+                and should_fetch_data
+            )
+        ):
             # Handle investigation requests with Zumbi
+            # This includes explicit INVESTIGATE intents and QUESTION/UNKNOWN intents
+            # that contain data-related keywords (contracts, expenses, etc.)
             try:
-                logger.info("Routing investigation to Zumbi agent")
+                logger.info(
+                    f"Routing to Zumbi agent (intent: {intent.type}, has_data_keywords: {should_fetch_data})"
+                )
 
                 # Extract what to investigate from the message
                 search_query = request.message.lower()
