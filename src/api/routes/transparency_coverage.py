@@ -12,6 +12,7 @@ import logging
 from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from src.api.dependencies import get_db
@@ -77,12 +78,14 @@ async def get_coverage_map(
         )
 
         # Query latest main snapshot (state_code=None)
-        latest_snapshot = (
-            db.query(TransparencyCoverageSnapshot)
+        stmt = (
+            select(TransparencyCoverageSnapshot)
             .filter(TransparencyCoverageSnapshot.state_code.is_(None))
             .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
-            .first()
+            .limit(1)
         )
+        result = db.execute(stmt)
+        latest_snapshot = result.scalar_one_or_none()
 
         if not latest_snapshot:
             # Cold start: No snapshot exists yet
@@ -143,15 +146,16 @@ async def get_coverage_map(
         # Include historical data if requested
         if include_history:
             seven_days_ago = datetime.utcnow() - timedelta(days=7)
-            history_snapshots = (
-                db.query(TransparencyCoverageSnapshot)
+            history_stmt = (
+                select(TransparencyCoverageSnapshot)
                 .filter(
                     TransparencyCoverageSnapshot.state_code.is_(None),
                     TransparencyCoverageSnapshot.snapshot_date >= seven_days_ago,
                 )
                 .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
-                .all()
             )
+            history_result = db.execute(history_stmt)
+            history_snapshots = history_result.scalars().all()
 
             coverage_data["history"] = [
                 {
@@ -214,12 +218,14 @@ async def get_state_coverage(state_code: str, db: Session = Depends(get_db)):
         logger.info(f"State coverage endpoint accessed for: {state_code}")
 
         # Get latest state snapshot
-        latest = (
-            db.query(TransparencyCoverageSnapshot)
+        latest_stmt = (
+            select(TransparencyCoverageSnapshot)
             .filter(TransparencyCoverageSnapshot.state_code == state_code)
             .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
-            .first()
+            .limit(1)
         )
+        latest_result = db.execute(latest_stmt)
+        latest = latest_result.scalar_one_or_none()
 
         if not latest:
             logger.warning(f"No coverage data found for state: {state_code}")
@@ -246,15 +252,16 @@ async def get_state_coverage(state_code: str, db: Session = Depends(get_db)):
 
         # Get historical trend (last 7 days)
         seven_days_ago = datetime.utcnow() - timedelta(days=7)
-        history = (
-            db.query(TransparencyCoverageSnapshot)
+        history_stmt = (
+            select(TransparencyCoverageSnapshot)
             .filter(
                 TransparencyCoverageSnapshot.state_code == state_code,
                 TransparencyCoverageSnapshot.snapshot_date >= seven_days_ago,
             )
             .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
-            .all()
         )
+        history_result = db.execute(history_stmt)
+        history = history_result.scalars().all()
 
         # Analyze trend
         trend = analyze_trend(history)
@@ -300,6 +307,12 @@ async def get_state_coverage(state_code: str, db: Session = Depends(get_db)):
         )
 
 
+# Constants for trend analysis
+MIN_DATA_POINTS_FOR_TREND = 2
+COVERAGE_IMPROVEMENT_THRESHOLD = 10  # percentage points
+COVERAGE_DEGRADATION_THRESHOLD = -10  # percentage points
+
+
 def analyze_trend(history: list) -> dict:
     """
     Analyze coverage trend over time.
@@ -310,7 +323,7 @@ def analyze_trend(history: list) -> dict:
     Returns:
         dict: Trend analysis with direction and change percentage
     """
-    if len(history) < 2:
+    if len(history) < MIN_DATA_POINTS_FOR_TREND:
         return {
             "trend": "insufficient_data",
             "message": "Need at least 2 data points to analyze trend",
@@ -320,10 +333,10 @@ def analyze_trend(history: list) -> dict:
     older = history[-1].coverage_percentage or 0
     change = recent - older
 
-    if change > 10:
+    if change > COVERAGE_IMPROVEMENT_THRESHOLD:
         trend = "improving"
         message = f"Coverage improved by {change:.1f}% in the last 7 days"
-    elif change < -10:
+    elif change < COVERAGE_DEGRADATION_THRESHOLD:
         trend = "degrading"
         message = f"Coverage degraded by {abs(change):.1f}% in the last 7 days"
     else:
@@ -372,12 +385,14 @@ async def get_coverage_stats(db: Session = Depends(get_db)):
     """
     try:
         # Query latest main snapshot
-        latest = (
-            db.query(TransparencyCoverageSnapshot)
+        stats_stmt = (
+            select(TransparencyCoverageSnapshot)
             .filter(TransparencyCoverageSnapshot.state_code.is_(None))
             .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
-            .first()
+            .limit(1)
         )
+        stats_result = db.execute(stats_stmt)
+        latest = stats_result.scalar_one_or_none()
 
         if not latest:
             logger.warning("No coverage stats available - no snapshots exist")
