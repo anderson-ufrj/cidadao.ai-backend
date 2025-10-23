@@ -57,6 +57,42 @@ APIS_TO_TEST = {
                 "test_path": "",
                 "endpoints": 5,
             },
+            {
+                "name": "SICONFI - Tesouro Nacional",
+                "url": "https://apidatalake.tesouro.gov.br/ords/siconfi/tt/rgf",
+                "test_path": "",
+                "endpoints": 12,
+            },
+            {
+                "name": "Dados.gov.br - Catálogo",
+                "url": "https://dados.gov.br/api/3/action/package_list",
+                "test_path": "",
+                "endpoints": 8,
+            },
+            {
+                "name": "Câmara dos Deputados",
+                "url": "https://dadosabertos.camara.leg.br/api/v2/deputados",
+                "test_path": "",
+                "endpoints": 15,
+            },
+            {
+                "name": "Senado Federal",
+                "url": "https://legis.senado.leg.br/dadosabertos/senador/lista/atual",
+                "test_path": "",
+                "endpoints": 10,
+            },
+            {
+                "name": "CNJ - DataJud",
+                "url": "https://api-publica.datajud.cnj.jus.br",
+                "test_path": "",
+                "endpoints": 1,
+            },
+            {
+                "name": "TCU - Tribunal de Contas",
+                "url": "https://contas.tcu.gov.br/ords/condenacao/consulta/inabilitados",
+                "test_path": "",
+                "endpoints": 6,
+            },
         ],
     },
     "SP": {
@@ -172,6 +208,13 @@ APIS_TO_TEST = {
 }
 
 
+# HTTP status codes
+HTTP_OK = 200
+HTTP_BAD_REQUEST = 400
+HTTP_UNAUTHORIZED = 401
+HTTP_FORBIDDEN = 403
+
+
 async def test_api_health(
     url: str, timeout: float = 10.0, requires_auth: bool = False
 ) -> dict:
@@ -193,32 +236,40 @@ async def test_api_health(
             headers["chave-api-dados"] = TRANSPARENCY_API_KEY
 
         # Disable SSL verification for government APIs with certificate issues
-        async with httpx.AsyncClient(timeout=timeout, verify=False) as client:
+        # S501: This is intentional - many Brazilian government APIs have certificate issues
+        async with httpx.AsyncClient(
+            timeout=timeout, verify=False
+        ) as client:  # noqa: S501
             response = await client.get(url, headers=headers)
 
-            if response.status_code == 200:
-                return {
+            status_code = response.status_code
+            response_time_ms = int(response.elapsed.total_seconds() * 1000)
+
+            # Map status codes to results
+            status_map = {
+                HTTP_OK: {
                     "status": "operational",
-                    "response_time_ms": int(response.elapsed.total_seconds() * 1000),
-                }
-            if response.status_code == 403:
-                return {
+                    "response_time_ms": response_time_ms,
+                },
+                HTTP_FORBIDDEN: {
                     "status": "restricted",
-                    "response_time_ms": int(response.elapsed.total_seconds() * 1000),
-                }
-            if response.status_code == 401:
-                return {
+                    "response_time_ms": response_time_ms,
+                },
+                HTTP_UNAUTHORIZED: {
                     "status": "restricted",
-                    "response_time_ms": int(response.elapsed.total_seconds() * 1000),
+                    "response_time_ms": response_time_ms,
                     "error": "Requires authentication",
-                }
-            if response.status_code == 400:
-                return {
+                },
+                HTTP_BAD_REQUEST: {
                     "status": "partial",
-                    "response_time_ms": int(response.elapsed.total_seconds() * 1000),
+                    "response_time_ms": response_time_ms,
                     "error": "Requires query parameters",
-                }
-            return {"status": "error", "error": f"HTTP {response.status_code}"}
+                },
+            }
+
+            return status_map.get(
+                status_code, {"status": "error", "error": f"HTTP {status_code}"}
+            )
 
     except httpx.TimeoutException:
         return {"status": "timeout", "error": "Request timeout"}
