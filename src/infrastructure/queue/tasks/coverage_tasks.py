@@ -80,8 +80,12 @@ API_TO_STATE = {
     "BA-tce": "BA",
     "BA-ckan": "BA",
     "PE-tce": "PE",
+    "PE-ckan": "PE",  # New: Pernambuco state CKAN
     "CE-tce": "CE",
     "RO-state": "RO",
+    "GO-ckan": "GO",  # New: Goiás
+    "ES-ckan": "ES",  # New: Espírito Santo
+    "DF-ckan": "DF",  # New: Distrito Federal
     "FEDERAL-portal": "BR",
 }
 
