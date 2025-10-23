@@ -345,16 +345,14 @@ async def check_health():
         report = await monitor.generate_report()
 
         logger.info(
-            "health_check_endpoint_accessed",
-            overall_status=report["overall_status"],
-            healthy_apis=report["healthy_apis"],
-            total_apis=report["total_apis"],
+            f"Health check endpoint accessed (status: {report.get('overall_status')}, "
+            f"healthy: {report.get('healthy_apis', 0)}, total: {report.get('total_apis', 0)})"
         )
 
         return HealthReportResponse(**report)
 
     except Exception as e:
-        logger.error("health_check_endpoint_failed", error=str(e))
+        logger.error(f"Health check endpoint failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to check health: {str(e)}")
 
 
@@ -382,7 +380,7 @@ async def list_apis():
     try:
         apis = registry.list_available_apis()
 
-        logger.info("list_apis_endpoint_accessed", total_apis=len(apis))
+        logger.info(f"List APIs endpoint accessed (total: {len(apis)})")
 
         return AvailableAPIsResponse(
             total=len(apis),
@@ -391,5 +389,5 @@ async def list_apis():
         )
 
     except Exception as e:
-        logger.error("list_apis_endpoint_failed", error=str(e))
+        logger.error(f"List APIs endpoint failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to list APIs: {str(e)}")
