@@ -85,6 +85,8 @@ class TransparencyAPIRegistry:
                 "http://web.transparencia.pe.gov.br/ckan",
                 30.0,
             ),  # New: Pernambuco state portal
+            "AC": ("https://dados.ac.gov.br", 30.0),  # New: Acre
+            "RN": ("https://dados.rn.gov.br", 30.0),  # New: Rio Grande do Norte
         }
 
         for state_code, (base_url, timeout) in ckan_states.items():
