@@ -33,6 +33,7 @@ celery_app = Celery(
         "src.infrastructure.queue.tasks.alert_tasks",
         "src.infrastructure.queue.tasks.network_tasks",  # Network graph analysis
         "src.infrastructure.queue.tasks.memory_tasks",  # Nanã memory management
+        "src.infrastructure.queue.tasks.coverage_tasks",  # Transparency coverage map
         # Temporarily disabled - missing service dependencies
         # "src.infrastructure.queue.tasks.report_tasks",
         # "src.infrastructure.queue.tasks.export_tasks",
@@ -323,6 +324,12 @@ celery_app.conf.beat_schedule = {
         "task": "tasks.memory_health_check",
         "schedule": timedelta(hours=1),  # Hourly health check
         "options": {"queue": "high"},
+    },
+    # Transparency Coverage Map Tasks
+    "update-transparency-coverage-6h": {
+        "task": "update_transparency_coverage",
+        "schedule": timedelta(hours=6),  # Every 6 hours
+        "options": {"queue": "normal"},
     },
 }
 
