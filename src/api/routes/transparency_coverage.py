@@ -103,14 +103,36 @@ APIS_TO_TEST = {
             },
         ],
     },
+    "PE": {
+        "name": "Pernambuco",
+        "apis": [
+            {
+                "name": "Dados Abertos PE",
+                "url": "https://dados.pe.gov.br/api/3/action/package_list",
+                "test_path": "",
+                "endpoints": 4,
+            },
+        ],
+    },
+    "CE": {
+        "name": "Ceará",
+        "apis": [
+            {
+                "name": "TCE-CE",
+                "url": "https://api.tce.ce.gov.br/",
+                "test_path": "",
+                "endpoints": 2,
+            },
+        ],
+    },
     "RO": {
         "name": "Rondônia",
         "apis": [
             {
                 "name": "CGE-RO",
-                "url": "https://transparencia.ro.gov.br/api/contratos",
+                "url": "https://transparencia.api.ro.gov.br/api/v1/contratos",
                 "test_path": "",
-                "endpoints": 1,
+                "endpoints": 8,
             },
         ],
     },
@@ -139,19 +161,20 @@ APIS_TO_TEST = {
 }
 
 
-async def test_api_health(url: str, timeout: float = 5.0) -> dict:
+async def test_api_health(url: str, timeout: float = 10.0) -> dict:
     """
     Test if an API endpoint is responding.
 
     Args:
         url: API URL to test
-        timeout: Request timeout in seconds
+        timeout: Request timeout in seconds (default 10s)
 
     Returns:
         dict: Status information
     """
     try:
-        async with httpx.AsyncClient(timeout=timeout) as client:
+        # Disable SSL verification for government APIs with certificate issues
+        async with httpx.AsyncClient(timeout=timeout, verify=False) as client:
             response = await client.get(url)
 
             if response.status_code == 200:
@@ -163,6 +186,18 @@ async def test_api_health(url: str, timeout: float = 5.0) -> dict:
                 return {
                     "status": "restricted",
                     "response_time_ms": int(response.elapsed.total_seconds() * 1000),
+                }
+            if response.status_code == 401:
+                return {
+                    "status": "restricted",
+                    "response_time_ms": int(response.elapsed.total_seconds() * 1000),
+                    "error": "Requires authentication",
+                }
+            if response.status_code == 400:
+                return {
+                    "status": "partial",
+                    "response_time_ms": int(response.elapsed.total_seconds() * 1000),
+                    "error": "Requires query parameters",
                 }
             return {"status": "error", "error": f"HTTP {response.status_code}"}
 
@@ -196,7 +231,7 @@ async def generate_coverage_map() -> dict:
             # Test API health
             health = await test_api_health(api_def["url"])
 
-            if health["status"] in ["operational", "restricted"]:
+            if health["status"] in ["operational", "restricted", "partial"]:
                 working_apis += 1
 
             state_apis.append(
