@@ -84,8 +84,7 @@ async def get_coverage_map(
             .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
             .limit(1)
         )
-        result = db.execute(stmt)
-        latest_snapshot = result.scalar_one_or_none()
+        latest_snapshot = db.scalars(stmt).first()
 
         if not latest_snapshot:
             # Cold start: No snapshot exists yet
@@ -154,8 +153,7 @@ async def get_coverage_map(
                 )
                 .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
             )
-            history_result = db.execute(history_stmt)
-            history_snapshots = history_result.scalars().all()
+            history_snapshots = db.scalars(history_stmt).all()
 
             coverage_data["history"] = [
                 {
@@ -224,8 +222,7 @@ async def get_state_coverage(state_code: str, db: Session = Depends(get_db)):
             .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
             .limit(1)
         )
-        latest_result = db.execute(latest_stmt)
-        latest = latest_result.scalar_one_or_none()
+        latest = db.scalars(latest_stmt).first()
 
         if not latest:
             logger.warning(f"No coverage data found for state: {state_code}")
@@ -260,8 +257,7 @@ async def get_state_coverage(state_code: str, db: Session = Depends(get_db)):
             )
             .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
         )
-        history_result = db.execute(history_stmt)
-        history = history_result.scalars().all()
+        history = db.scalars(history_stmt).all()
 
         # Analyze trend
         trend = analyze_trend(history)
@@ -391,8 +387,7 @@ async def get_coverage_stats(db: Session = Depends(get_db)):
             .order_by(TransparencyCoverageSnapshot.snapshot_date.desc())
             .limit(1)
         )
-        stats_result = db.execute(stats_stmt)
-        latest = stats_result.scalar_one_or_none()
+        latest = db.scalars(stats_stmt).first()
 
         if not latest:
             logger.warning("No coverage stats available - no snapshots exist")
