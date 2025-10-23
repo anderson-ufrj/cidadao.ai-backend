@@ -15,7 +15,7 @@ from typing import Optional
 from .base import TransparencyAPIClient
 from .federal_apis.portal_adapter import PortalTransparenciaAdapter
 from .state_apis.ckan_client import CKANClient
-from .state_apis.rondonia import RondoniaAPIClient
+from .state_apis.rondonia_cge_client import RondoniaCGEClient
 from .tce_apis.tce_ba import TCEBahiaClient
 from .tce_apis.tce_ce import TCECearaClient
 from .tce_apis.tce_mg import TCEMinasGeraisClient
@@ -58,7 +58,7 @@ class TransparencyAPIRegistry:
         self.register("FEDERAL-portal", PortalTransparenciaAdapter, APIType.FEDERAL)
 
         # State APIs
-        self.register("RO-state", RondoniaAPIClient, APIType.STATE)
+        self.register("RO-cge", RondoniaCGEClient, APIType.STATE)
 
         # TCE APIs
         self.register("PE-tce", TCEPernambucoClient, APIType.TCE)
