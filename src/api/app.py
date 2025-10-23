@@ -48,6 +48,7 @@ from src.api.routes import (
     resilience,
     tasks,
     transparency,
+    transparency_coverage,
     visualization,
     websocket_chat,
 )
@@ -449,6 +450,11 @@ app.include_router(tasks.router, tags=["Tasks & Background Jobs"])
 # Transparency APIs endpoints
 app.include_router(
     transparency.router, prefix="/api/v1/transparency", tags=["Transparency APIs"]
+)
+
+# Transparency Coverage Map endpoints (hybrid cache with 6-hour updates)
+app.include_router(
+    transparency_coverage.router, prefix="/api/v1", tags=["Transparency Coverage"]
 )
 
 # Federal APIs REST endpoints
