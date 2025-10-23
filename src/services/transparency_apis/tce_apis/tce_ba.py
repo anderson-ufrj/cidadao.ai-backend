@@ -46,7 +46,7 @@ class TCEBahiaClient(TransparencyAPIClient):
             base_url="https://sistemas.tce.ba.gov.br/egestaoapi",
             name="TCE-BA",
             rate_limit_per_minute=60,
-            timeout=30.0,
+            timeout=90.0,  # Increased timeout for slow API response times
         )
 
     async def test_connection(self) -> bool:

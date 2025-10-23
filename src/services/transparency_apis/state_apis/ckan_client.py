@@ -41,7 +41,13 @@ class CKANClient(TransparencyAPIClient):
         523
     """
 
-    def __init__(self, base_url: str, state_code: str, api_token: Optional[str] = None):
+    def __init__(
+        self,
+        base_url: str,
+        state_code: str,
+        api_token: Optional[str] = None,
+        timeout: float = 30.0,
+    ):
         """
         Initialize CKAN client for a specific state portal.
 
@@ -49,12 +55,13 @@ class CKANClient(TransparencyAPIClient):
             base_url: Base URL of the CKAN portal (e.g., https://dadosabertos.sp.gov.br)
             state_code: Two-letter state code (e.g., "SP", "RJ")
             api_token: Optional API token for authenticated requests
+            timeout: Request timeout in seconds (default: 30.0)
         """
         super().__init__(
             base_url=base_url,
             name=f"CKAN-{state_code}",
             rate_limit_per_minute=60,
-            timeout=30.0,
+            timeout=timeout,
         )
 
         self.state_code = state_code
