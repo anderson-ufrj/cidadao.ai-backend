@@ -35,6 +35,12 @@ APIS_TO_TEST = {
                 "endpoints": 4,
             },
             {
+                "name": "CGU e-Aud (Auditoria)",
+                "url": "https://eaud.cgu.gov.br/v3/api-docs",
+                "test_path": "",
+                "endpoints": 378,
+            },
+            {
                 "name": "Portal da Transparência",
                 "url": "https://api.portaldatransparencia.gov.br/api-de-dados/acordos-leniencia",
                 "test_path": "",
