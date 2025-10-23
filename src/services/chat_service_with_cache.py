@@ -8,6 +8,7 @@ from typing import Any, Optional
 
 from src.api.models.pagination import ChatMessagePagination, CursorPaginationResponse
 from src.core import get_logger
+from src.core.config import get_settings
 from src.services.cache_service import cache_service
 from src.services.chat_service import ChatService, Intent, IntentDetector
 
@@ -174,7 +175,7 @@ class CachedChatService(ChatService):
             "metadata": {
                 "intent_type": intent.type.value,
                 "processing_time": result.get("processing_time", 0),
-                "is_demo_mode": not bool(intent.entities.get("api_key")),
+                "is_demo_mode": not bool(get_settings().transparency_api_key),
                 "timestamp": session.last_activity.isoformat(),
             },
         }
