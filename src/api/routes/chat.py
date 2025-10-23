@@ -423,29 +423,87 @@ async def send_message(
                 agent_id = "system"
                 agent_name = "Sistema"
         else:
-            # For now, return a simple response if agents are not available
+            # Intelligent fallback: Try to fetch Portal data if query contains data keywords
             logger.warning(
-                f"Falling back to maintenance message. Target: {target_agent}"
+                f"No agent handler matched. Target: {target_agent}, Intent: {intent.type}, HasDataKeywords: {should_fetch_data}"
             )
-            # Include debug info about why Drummond failed
-            debug_info = ""
-            if target_agent == "drummond":
-                debug_info = " (Drummond not initialized)"
 
-            response = AgentResponse(
-                agent_name="Sistema",
-                status=AgentStatus.COMPLETED,
-                result={
-                    "message": f"Desculpe, estou em manutenção. Por favor, tente novamente em alguns instantes.{debug_info}",
-                    "status": "maintenance",
-                    "debug": (
-                        "Drummond not available" if target_agent == "drummond" else None
-                    ),
-                },
-                metadata={"confidence": 0.0},
-            )
-            agent_id = "system"
-            agent_name = "Sistema"
+            # If user is asking for data but we haven't fetched it yet, try now
+            if should_fetch_data and portal_data is None:
+                try:
+                    logger.info("Attempting Portal data fetch in fallback handler")
+                    portal_result = await chat_data_integration.process_user_query(
+                        request.message, request.context
+                    )
+                    if portal_result and portal_result.get("data"):
+                        portal_data = portal_result
+                        logger.info(
+                            f"Fallback successfully fetched {portal_result.get('data', {}).get('total', 0)} records"
+                        )
+                except Exception as e:
+                    logger.warning(f"Fallback Portal data fetch failed: {e}")
+
+            # If we have Portal data, return it with a simple message
+            if portal_data and portal_data.get("data"):
+                data_info = portal_data.get("data", {})
+                total_records = data_info.get("total", 0)
+                data_type = portal_data.get("data_type", "dados")
+
+                message = f"Encontrei {total_records} registros de {data_type}. "
+                if total_records > 0:
+                    message += (
+                        "Os dados foram coletados do Portal da Transparência Federal. "
+                    )
+                    message += "Posso analisar esses dados em busca de anomalias ou padrões suspeitos. "
+                    message += "Gostaria de uma análise detalhada?"
+                else:
+                    message += (
+                        "Não encontrei registros para os critérios especificados. "
+                    )
+                    message += (
+                        "Tente ajustar sua busca ou consultar outro período/órgão."
+                    )
+
+                response = AgentResponse(
+                    agent_name="Sistema de Dados",
+                    status=AgentStatus.COMPLETED,
+                    result={
+                        "message": message,
+                        "data_summary": {
+                            "total": total_records,
+                            "type": data_type,
+                            "source": "Portal da Transparência",
+                        },
+                        "status": "data_fetched",
+                    },
+                    metadata={"confidence": 0.7, "has_portal_data": True},
+                )
+                agent_id = "system"
+                agent_name = "Sistema de Dados"
+            else:
+                # No data available - return maintenance message
+                debug_info = ""
+                if target_agent == "drummond":
+                    debug_info = " (Drummond not initialized)"
+                elif should_fetch_data:
+                    debug_info = " (Portal data not available)"
+
+                response = AgentResponse(
+                    agent_name="Sistema",
+                    status=AgentStatus.COMPLETED,
+                    result={
+                        "message": f"Desculpe, estou em manutenção. Por favor, tente novamente em alguns instantes.{debug_info}",
+                        "status": "maintenance",
+                        "debug": (
+                            "Drummond not available"
+                            if target_agent == "drummond"
+                            else "No data handler available"
+                        ),
+                    },
+                    metadata={"confidence": 0.0},
+                )
+                agent_id = "system"
+                agent_name = "Sistema"
 
         # Save to chat history
         await chat_service.save_message(
