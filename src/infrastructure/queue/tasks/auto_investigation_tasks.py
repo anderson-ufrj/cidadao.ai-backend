@@ -191,10 +191,11 @@ def auto_investigation_health_check() -> dict[str, Any]:
 
                 api = TransparencyAPIClient()
                 filters = TransparencyAPIFilter(
-                    dataInicial=(datetime.utcnow() - timedelta(days=1)).strftime(
+                    codigo_orgao="36000",  # Ministério da Saúde (test org)
+                    data_inicio=(datetime.utcnow() - timedelta(days=1)).strftime(
                         "%d/%m/%Y"
                     ),
-                    dataFinal=datetime.utcnow().strftime("%d/%m/%Y"),
+                    data_fim=datetime.utcnow().strftime("%d/%m/%Y"),
                 )
 
                 contracts = loop.run_until_complete(api.get_contracts(filters=filters))
