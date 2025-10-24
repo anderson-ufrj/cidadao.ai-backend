@@ -2,7 +2,17 @@
 
 **Autor**: Anderson Henrique da Silva
 **Localização**: Minas Gerais, Brasil
-**Última Atualização**: 2025-10-16 16:55:00 -03:00
+**Última Atualização**: 2025-10-24 (Comprehensive Repository Analysis)
+
+---
+
+> **⚠️ IMPORTANT - OCTOBER 2025 UPDATE**
+>
+> **Comprehensive repository analysis completed** (2025-10-24):
+> - See [`COMPREHENSIVE_REPOSITORY_ANALYSIS_2025_10_24.md`](COMPREHENSIVE_REPOSITORY_ANALYSIS_2025_10_24.md) for complete audit
+> - Documentation reorganization in progress (gradual implementation)
+> - Current metrics verified: **16 agents** (10 Tier 1, 5 Tier 2, 1 Tier 3)
+> - Production: Railway (99.9% uptime since 07/10/2025)
 
 ---
 
@@ -164,11 +174,12 @@ Common issues and solutions.
 
 ### 📊 Current Status
 
-- **APIs Integrated:** 15+ (Federal + State)
-- **Agents Operational:** 8/17 fully functional
-- **Test Coverage:** 80% backend
-- **Deployment Platform:** Railway (production)
-- **Database:** PostgreSQL with migrations
+- **APIs Integrated:** 30+ (Federal + State + Municipal)
+- **Agents Operational:** 10/16 fully functional (Tier 1), 5/16 substantial framework (Tier 2), 1/16 minimal (Tier 3)
+- **Test Coverage:** ~44% backend (Target: 80%)
+- **Deployment Platform:** Railway (production since 07/10/2025)
+- **Production URL:** https://cidadao-api-production.up.railway.app/
+- **Database:** PostgreSQL (Supabase) + Redis (Railway)
 - **Cache:** Redis (fully operational)
 
 ---
