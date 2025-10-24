@@ -79,11 +79,15 @@ async def run_zumbi_investigation(
             session_id=session_id or "default",
         )
 
-        # Create message
-        message = {
-            "action": "investigate",
-            "payload": investigation_request.model_dump(),
-        }
+        # Create agent message
+        from src.agents.deodoro import AgentMessage
+
+        message = AgentMessage(
+            sender="chat_api",
+            recipient="zumbi",
+            action="investigate",
+            payload=investigation_request.model_dump(),
+        )
 
         logger.info(f"Starting Zumbi investigation: {query}")
 
