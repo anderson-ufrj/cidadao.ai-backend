@@ -207,12 +207,25 @@ async def get_entity_investigations(
     Get all investigations involving a specific entity.
 
     **Returns**: List of investigation references with details
+
+    **Performance**: Uses eager loading to prevent N+1 queries
     """
-    entity = await db.get(EntityNode, entity_id)
+    # Use selectinload() to eagerly fetch investigation_references in single query
+    from sqlalchemy.orm import selectinload
+
+    stmt = (
+        select(EntityNode)
+        .options(selectinload(EntityNode.investigation_references))
+        .where(EntityNode.id == entity_id)
+    )
+
+    result = await db.execute(stmt)
+    entity = result.scalar_one_or_none()
+
     if not entity:
         raise HTTPException(status_code=404, detail="Entity not found")
 
-    # Get investigation references
+    # Now investigation_references is already loaded (no extra query)
     references = entity.investigation_references
 
     return [ref.to_dict() for ref in references]
