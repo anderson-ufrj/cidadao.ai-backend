@@ -425,6 +425,11 @@ app.include_router(admin_lazy_loading.router, prefix="/api/v1/admin", tags=["Adm
 
 app.include_router(api_keys.router, prefix="/api/v1", tags=["API Keys"])
 
+# LLM Cost Tracking endpoints
+from src.api.routes import llm_costs
+
+app.include_router(llm_costs.router, tags=["LLM Cost Tracking"])
+
 app.include_router(dados_gov.router, prefix="/api/v1", tags=["Dados.gov.br"])
 
 app.include_router(agents.router, prefix="/api/v1/agents", tags=["AI Agents"])
