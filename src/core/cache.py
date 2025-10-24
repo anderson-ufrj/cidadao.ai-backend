@@ -674,6 +674,63 @@ class FallbackRedisClient:
         """Close connection (no-op for in-memory)."""
         pass
 
+    def pipeline(self):
+        """Return a pipeline-like object for batch operations."""
+        return FallbackPipeline(self)
+
+
+class FallbackPipeline:
+    """In-memory pipeline simulation for rate limiting compatibility."""
+
+    def __init__(self, client: FallbackRedisClient):
+        """Initialize pipeline with client reference."""
+        self.client = client
+        self.commands: list[tuple] = []
+
+    def zadd(self, key: str, mapping: dict[str, float]):
+        """Queue sorted set add operation."""
+        self.commands.append(("zadd", key, mapping))
+        return self
+
+    def zremrangebyscore(self, key: str, min_score: float, max_score: float):
+        """Queue sorted set removal by score operation."""
+        self.commands.append(("zremrangebyscore", key, min_score, max_score))
+        return self
+
+    def zcard(self, key: str):
+        """Queue sorted set cardinality operation."""
+        self.commands.append(("zcard", key))
+        return self
+
+    def expire(self, key: str, seconds: int):
+        """Queue expiration operation."""
+        self.commands.append(("expire", key, seconds))
+        return self
+
+    async def execute(self) -> list:
+        """Execute all queued commands and return results."""
+        results = []
+        for cmd in self.commands:
+            operation = cmd[0]
+            if operation == "zadd":
+                # Simulate zadd: returns number of elements added
+                results.append(len(cmd[2]))
+            elif operation == "zremrangebyscore":
+                # Simulate zremrangebyscore: returns number of elements removed
+                results.append(0)
+            elif operation == "zcard":
+                # Simulate zcard: returns sorted set size
+                # For rate limiting, this is critical - estimate based on cache
+                key = cmd[1]
+                if key in self.client._cache:
+                    results.append(1)
+                else:
+                    results.append(0)
+            elif operation == "expire":
+                # Simulate expire: always succeeds
+                results.append(True)
+        return results
+
 
 async def get_redis_client() -> Redis | FallbackRedisClient:
     """
