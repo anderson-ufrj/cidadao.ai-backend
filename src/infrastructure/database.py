@@ -38,11 +38,13 @@ logger = structlog.get_logger(__name__)
 class DatabaseConfig(BaseModel):
     """Configuração do sistema de banco de dados"""
 
-    # PostgreSQL
+    # PostgreSQL - Optimized pool configuration
+    # Pool sizing: Hikari formula (core_count * 2) + effective_spindle_count
+    # For cloud: 4 cores → 9 base * 2× safety = 18-20 connections
     postgres_url: str = "postgresql+asyncpg://user:pass@localhost:5432/cidadao_ai"
-    postgres_pool_size: int = 20
-    postgres_max_overflow: int = 30
-    postgres_pool_timeout: int = 30
+    postgres_pool_size: int = 20  # Base pool (optimized for typical load)
+    postgres_max_overflow: int = 30  # Extra connections during spikes
+    postgres_pool_timeout: int = 30  # Wait time for connection (seconds)
 
     # Redis Cluster
     redis_nodes: list[dict[str, Union[str, int]]] = [
@@ -140,15 +142,30 @@ class DatabaseManager:
             return False
 
     async def _init_postgresql(self):
-        """Inicializar PostgreSQL com pool de conexões"""
+        """Inicializar PostgreSQL com pool de conexões otimizado
+
+        Pool configuration based on Hikari formula and production best practices.
+        Total capacity: pool_size (20) + max_overflow (30) = 50 connections
+        Target: 200+ concurrent requests with avg 100ms query time
+        """
 
         self.pg_engine = create_async_engine(
             self.config.postgres_url,
             pool_size=self.config.postgres_pool_size,
             max_overflow=self.config.postgres_max_overflow,
             pool_timeout=self.config.postgres_pool_timeout,
+            pool_recycle=3600,  # Recycle connections every hour (prevent stale)
+            pool_pre_ping=True,  # Validate connections before use (health check)
             echo=False,  # Set True for SQL debugging
             future=True,
+            connect_args={
+                "server_settings": {
+                    "application_name": "cidadao-ai-backend",
+                    "jit": "off",  # Disable JIT for small/frequent queries
+                },
+                "command_timeout": 30,  # Query execution timeout
+                "timeout": 10,  # Connection establishment timeout
+            },
         )
 
         self.session_factory = sessionmaker(
@@ -158,7 +175,7 @@ class DatabaseManager:
         # Criar tabelas se não existirem
         await self._create_tables()
 
-        logger.info("✅ PostgreSQL inicializado")
+        logger.info("✅ PostgreSQL inicializado com pool otimizado")
 
     async def _init_redis_cluster(self):
         """Inicializar Redis Cluster"""
