@@ -616,8 +616,9 @@ docker-compose -f config/docker/docker-compose.monitoring-minimal.yml up
 
 ### Documentation
 - Architecture: `docs/architecture/`
-- Agent docs: `docs/agents/` (17 agent documentation files)
-- Project status: `docs/project/CURRENT_STATUS_2025_10.md` (accurate agent status)
+- Agent docs: `docs/agents/` (21 files: 16 agents + deodoro + INVENTORY + README + 2 examples)
+- Project status: `docs/project/COMPREHENSIVE_ANALYSIS_2025_10_20.md` (verified metrics)
+- Latest analysis: `docs/COMPREHENSIVE_REPOSITORY_ANALYSIS_2025_10_24.md` (complete repository audit)
 - Planning: `docs/planning/` (sprint plans, roadmaps, v1.0 checklist)
 - Project reports: `docs/project/reports/` (progress reports)
 - Deployment guides: `docs/deployment/railway/`
