@@ -167,15 +167,32 @@ class RedisCache:
         self._connection_pool = None
 
     async def get_redis_client(self) -> Redis:
-        """Get Redis client with connection pooling."""
+        """Get Redis client with optimized connection pooling.
+
+        Pool sizing calculation (Hikari formula):
+        connections = (core_count * 2) + effective_spindle_count
+        For cloud: core_count=4, spindles=1 → 9 connections base
+        Safety margin: 5× → 45-50 connections recommended for 1000 rps @ 5ms latency
+        """
         if not self.redis_client:
             self._connection_pool = redis.ConnectionPool.from_url(
                 settings.redis_url,
-                max_connections=20,
+                max_connections=50,  # Increased from 20 for higher concurrency
                 retry_on_timeout=True,
-                health_check_interval=30,
+                socket_keepalive=True,  # Prevent connection drops
+                socket_keepalive_options={
+                    1: 1,  # TCP_KEEPIDLE (seconds)
+                    2: 1,  # TCP_KEEPINTVL (seconds)
+                    3: 3,  # TCP_KEEPCNT (retries)
+                },
+                health_check_interval=30,  # Regular health checks
+                socket_connect_timeout=5,  # Connection timeout
+                socket_timeout=5,  # Socket operation timeout
             )
-            self.redis_client = Redis(connection_pool=self._connection_pool)
+            self.redis_client = Redis(
+                connection_pool=self._connection_pool,
+                decode_responses=False,  # Handle encoding manually for compression
+            )
 
         return self.redis_client
 
