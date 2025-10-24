@@ -1,0 +1,83 @@
+name: Documentation Validation
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run weekly on Sunday at midnight UTC
+    - cron: '0 0 * * 0'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  validate-documentation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Run documentation validation
+        id: validate
+        run: |
+          python3 scripts/validate_docs.py --json > validation_results.json
+          cat validation_results.json
+        continue-on-error: true
+
+      - name: Upload validation results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: documentation-validation-results
+          path: validation_results.json
+          retention-days: 30
+
+      - name: Check validation status
+        run: |
+          if python3 scripts/validate_docs.py; then
+            echo "✅ Documentation validation passed!"
+            exit 0
+          else
+            echo "❌ Documentation validation failed!"
+            echo "📝 See docs/project/DOCUMENTATION_AUDIT_2025_10_24.md for details"
+            exit 1
+          fi
+
+      - name: Create issue on failure
+        if: failure() && github.event_name == 'schedule'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: '📋 Documentation validation failed',
+              body: `## Documentation Validation Alert
+
+              The weekly documentation validation check has failed.
+
+              **Triggered by**: Scheduled workflow
+              **Date**: ${new Date().toISOString()}
+              **Workflow**: [View run](${context.payload.repository.html_url}/actions/runs/${context.runId})
+
+              ### Action Required
+              1. Review validation results in workflow artifacts
+              2. Check \`docs/project/DOCUMENTATION_AUDIT_2025_10_24.md\` for audit details
+              3. Run \`python3 scripts/validate_docs.py\` locally to see failures
+              4. Update documentation to match codebase reality
+
+              ### Common Issues
+              - Agent count mismatch
+              - Test file count changed
+              - Route modules added/removed
+              - API key configuration changes
+
+              See \`docs/project/DOCUMENTATION_FIXES_PRIORITY.md\` for fix procedures.`,
+              labels: ['documentation', 'automated-alert']
+            })
