@@ -23,8 +23,15 @@ from redis.exceptions import RedisError
 from src.core import get_logger, json_utils, settings
 from src.core.exceptions import CacheError
 from src.core.json_utils import dumps, dumps_bytes, loads
+from src.infrastructure.observability.metrics import metrics_manager
 
 logger = get_logger(__name__)
+
+# Prometheus metrics for cache
+CACHE_HITS = "cidadao_ai_cache_hits_total"
+CACHE_MISSES = "cidadao_ai_cache_misses_total"
+CACHE_ERRORS = "cidadao_ai_cache_errors_total"
+CACHE_SIZE_BYTES = "cidadao_ai_cache_size_bytes"
 
 
 class CacheTTL(Enum):
@@ -112,6 +119,14 @@ class CacheService:
         try:
             value = await self.redis.get(key)
             if value:
+                # Record cache hit
+                metrics_manager.increment_counter(
+                    CACHE_HITS,
+                    labels={
+                        "key_prefix": key.split(":")[1] if ":" in key else "unknown"
+                    },
+                )
+
                 # Decompress if needed
                 if decompress and isinstance(value, bytes):
                     try:
@@ -124,9 +139,21 @@ class CacheService:
                     return loads(value)
                 except Exception:
                     return value
+            else:
+                # Record cache miss
+                metrics_manager.increment_counter(
+                    CACHE_MISSES,
+                    labels={
+                        "key_prefix": key.split(":")[1] if ":" in key else "unknown"
+                    },
+                )
             return None
         except RedisError as e:
             logger.error(f"Redis get error: {e}")
+            metrics_manager.increment_counter(
+                CACHE_ERRORS,
+                labels={"operation": "get", "error_type": type(e).__name__},
+            )
             return None
 
     async def set(
@@ -143,6 +170,11 @@ class CacheService:
             elif not isinstance(value, bytes):
                 value = str(value).encode("utf-8")
 
+            # Record cache size
+            metrics_manager.observe_histogram(
+                CACHE_SIZE_BYTES, len(value), labels={"compressed": str(compress)}
+            )
+
             # Compress if requested and value is large enough
             if compress and len(value) > 1024:  # Compress if > 1KB
                 value = zlib.compress(value, level=6)
@@ -155,6 +187,10 @@ class CacheService:
             return True
         except RedisError as e:
             logger.error(f"Redis set error: {e}")
+            metrics_manager.increment_counter(
+                CACHE_ERRORS,
+                labels={"operation": "set", "error_type": type(e).__name__},
+            )
             return False
 
     async def delete(self, key: str) -> bool:
