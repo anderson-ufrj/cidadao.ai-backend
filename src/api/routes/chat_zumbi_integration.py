@@ -76,7 +76,7 @@ async def run_zumbi_investigation(
         context = AgentContext(
             investigation_id=f"chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
             user_id=user_id or "anonymous",
-            correlation_id=session_id or "default",
+            session_id=session_id or "default",
         )
 
         # Create message
