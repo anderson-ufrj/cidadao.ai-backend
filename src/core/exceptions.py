@@ -89,6 +89,12 @@ class InvestigationTimeoutError(InvestigationError):
     pass
 
 
+class TimeoutBudgetExceeded(InvestigationError):
+    """Raised when timeout budget is exhausted in hierarchical timeout system."""
+
+    pass
+
+
 class InvestigationValidationError(InvestigationError):
     """Raised when investigation input is invalid."""
 
