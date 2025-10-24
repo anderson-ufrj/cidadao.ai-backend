@@ -334,13 +334,12 @@ async def send_message(
 
                 # Extract organization codes from intent entities if available
                 org_codes = None
-                if intent.entities:
-                    orgs = [
-                        e.value for e in intent.entities if e.type == "organization"
-                    ]
+                if intent.entities and isinstance(intent.entities, dict):
+                    # intent.entities is a dict[str, Any], not a list of objects
+                    orgs = intent.entities.get("organization", [])
                     if orgs:
-                        # Map organization names to codes if needed
-                        org_codes = orgs  # For now, use as-is
+                        # Ensure it's a list
+                        org_codes = orgs if isinstance(orgs, list) else [orgs]
 
                 # Run investigation with dados.gov.br enabled
                 investigation_result = await run_zumbi_investigation(

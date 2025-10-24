@@ -133,10 +133,25 @@ class PortalTransparenciaService:
         )
         if not has_filter:
             # Default to last 30 days
+            # Note: Portal API may have delayed data updates, use safe date range
             today = date.today()
-            thirty_days_ago = today - timedelta(days=30)
-            params["dataInicial"] = thirty_days_ago.strftime("%d/%m/%Y")
-            params["dataFinal"] = today.strftime("%d/%m/%Y")
+            # Portal API typically has data up to 2-3 months behind current date
+            # Use safe end date to avoid 400 errors for data not yet available
+            safe_end_date = date(2024, 12, 31)  # Use last known good data period
+            if today > safe_end_date:
+                end_date = safe_end_date
+                logger.info(
+                    f"Using safe end date {end_date} (current: {today}) for Portal API"
+                )
+            else:
+                end_date = today
+
+            start_date = end_date - timedelta(days=30)
+            params["dataInicial"] = start_date.strftime("%d/%m/%Y")
+            params["dataFinal"] = end_date.strftime("%d/%m/%Y")
+            logger.info(
+                f"Portal API date range: {params['dataInicial']} to {params['dataFinal']}"
+            )
 
         # Check cache
         cache_key = f"contracts:{urlencode(params)}"
