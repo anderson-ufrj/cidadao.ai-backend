@@ -893,11 +893,11 @@ class MariaQuiteriaAgent(BaseAgent):
     ) -> AgentResponse:
         """Processa mensagens e coordena atividades de segurança."""
         try:
-            action = message.content.get("action")
+            action = message.action
 
             if action == "detect_intrusions":
-                network_data = message.content.get("network_data", [])
-                time_window = message.content.get("time_window_minutes", 60)
+                network_data = message.payload.get("network_data", [])
+                time_window = message.payload.get("time_window_minutes", 60)
 
                 result = await self.detect_intrusions(
                     network_data, time_window, context
@@ -905,7 +905,8 @@ class MariaQuiteriaAgent(BaseAgent):
 
                 return AgentResponse(
                     agent_name=self.name,
-                    content={
+                    status=AgentStatus.COMPLETED,
+                    result={
                         "intrusion_detection": {
                             "detection_id": result.detection_id,
                             "intrusion_detected": result.intrusion_detected,
@@ -918,16 +919,16 @@ class MariaQuiteriaAgent(BaseAgent):
                         },
                         "status": "detection_completed",
                     },
-                    confidence=result.confidence_score,
                     metadata={
                         "detection_type": "intrusion",
                         "systems_analyzed": len(network_data),
+                        "confidence": result.confidence_score,
                     },
                 )
 
             elif action == "security_audit":
-                systems = message.content.get("systems", ["all"])
-                audit_type = message.content.get("audit_type", "comprehensive")
+                systems = message.payload.get("systems", ["all"])
+                audit_type = message.payload.get("audit_type", "comprehensive")
 
                 result = await self.perform_security_audit(
                     systems, audit_type, context=context
@@ -935,7 +936,8 @@ class MariaQuiteriaAgent(BaseAgent):
 
                 return AgentResponse(
                     agent_name=self.name,
-                    content={
+                    status=AgentStatus.COMPLETED,
+                    result={
                         "security_audit": {
                             "audit_id": result.audit_id,
                             "security_score": result.security_score,
@@ -947,22 +949,23 @@ class MariaQuiteriaAgent(BaseAgent):
                         },
                         "status": "audit_completed",
                     },
-                    confidence=0.95,
                     metadata={
                         "audit_duration": (
                             result.end_time - result.start_time
-                        ).total_seconds()
+                        ).total_seconds(),
+                        "confidence": 0.95,
                     },
                 )
 
             elif action == "monitor_behavior":
-                activities = message.content.get("user_activities", [])
+                activities = message.payload.get("user_activities", [])
 
                 security_events = await self.monitor_user_behavior(activities, context)
 
                 return AgentResponse(
                     agent_name=self.name,
-                    content={
+                    status=AgentStatus.COMPLETED,
+                    result={
                         "behavior_monitoring": {
                             "activities_analyzed": len(activities),
                             "security_events": len(security_events),
@@ -980,12 +983,12 @@ class MariaQuiteriaAgent(BaseAgent):
                         },
                         "status": "monitoring_completed",
                     },
-                    confidence=0.88,
+                    metadata={"confidence": 0.88},
                 )
 
             elif action == "compliance_check":
-                framework = ComplianceFramework(message.content.get("framework"))
-                systems = message.content.get("systems", ["all"])
+                framework = ComplianceFramework(message.payload.get("framework"))
+                systems = message.payload.get("systems", ["all"])
 
                 report = await self.generate_compliance_report(
                     framework, systems, context
@@ -993,17 +996,19 @@ class MariaQuiteriaAgent(BaseAgent):
 
                 return AgentResponse(
                     agent_name=self.name,
-                    content={
+                    status=AgentStatus.COMPLETED,
+                    result={
                         "compliance_report": report,
                         "status": "compliance_checked",
                     },
-                    confidence=0.92,
+                    metadata={"confidence": 0.92},
                 )
 
             return AgentResponse(
                 agent_name=self.name,
-                content={"error": "Unknown security action"},
-                confidence=0.0,
+                status=AgentStatus.ERROR,
+                error="Unknown security action",
+                result=None,
             )
 
         except Exception as e:
