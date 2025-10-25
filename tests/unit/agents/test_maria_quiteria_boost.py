@@ -8,7 +8,7 @@ Date: 2025-10-22
 
 import pytest
 
-from src.agents.deodoro import AgentContext
+from src.agents.deodoro import AgentContext, AgentStatus
 from src.agents.maria_quiteria import ComplianceFramework, MariaQuiteriaAgent
 
 
@@ -560,3 +560,210 @@ class TestShutdownAndReflection:
         reflected = await agent.reflect(task, result, context)
 
         assert isinstance(reflected, dict)
+
+
+class TestProcessMessage:
+    """
+    Test process_message() method to cover lines 895-1011 (117 lines).
+    This is the MAIN entry point for the agent that routes to different actions.
+    """
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_message_detect_intrusions(self, agent, context):
+        """Test process_message with detect_intrusions action (lines 898-926)."""
+        from src.agents.deodoro import AgentMessage
+
+        # Create proper AgentMessage with action and payload
+        message = AgentMessage(
+            sender="test_sender",
+            recipient="MariaQuiteriaAgent",
+            action="detect_intrusions",
+            payload={
+                "network_data": [
+                    {
+                        "source_ip": "192.168.1.100",
+                        "destination_ip": "10.0.0.5",
+                        "port": 22,
+                        "protocol": "SSH",
+                        "packet_size": 5000,
+                        "flags": "SYN-ACK",
+                    },
+                    {
+                        "source_ip": "192.168.1.101",
+                        "destination_ip": "10.0.0.5",
+                        "port": 22,
+                        "protocol": "SSH",
+                        "packet_size": 5100,
+                        "flags": "SYN",
+                    },
+                ],
+                "time_window_minutes": 30,
+            },
+        )
+
+        response = await agent.process_message(message, context)
+
+        assert response is not None
+        assert response.agent_name == agent.name
+        assert response.status == AgentStatus.COMPLETED
+        assert response.result is not None
+        assert "intrusion_detection" in response.result
+        assert response.result["status"] == "detection_completed"
+
+        detection = response.result["intrusion_detection"]
+        assert "detection_id" in detection
+        assert "intrusion_detected" in detection
+        assert "threat_level" in detection
+        assert "confidence" in detection
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_message_security_audit(self, agent, context):
+        """Test process_message with security_audit action (lines 928-956)."""
+        from src.agents.deodoro import AgentMessage
+
+        message = AgentMessage(
+            sender="test_sender",
+            recipient="MariaQuiteriaAgent",
+            action="security_audit",
+            payload={
+                "systems": ["web_server", "database"],
+                "audit_type": "comprehensive",
+            },
+        )
+
+        response = await agent.process_message(message, context)
+
+        assert response is not None
+        assert response.agent_name == agent.name
+        assert response.status == AgentStatus.COMPLETED
+        assert response.result is not None
+        assert "security_audit" in response.result
+        assert response.result["status"] == "audit_completed"
+
+        audit = response.result["security_audit"]
+        assert "audit_id" in audit
+        assert "security_score" in audit
+        assert "vulnerabilities_found" in audit
+        assert "compliance_average" in audit
+        assert "recommendations_count" in audit
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_message_monitor_behavior(self, agent, context):
+        """Test process_message with monitor_behavior action (lines 958-984)."""
+        from datetime import datetime
+
+        from src.agents.deodoro import AgentMessage
+
+        message = AgentMessage(
+            sender="test_sender",
+            recipient="MariaQuiteriaAgent",
+            action="monitor_behavior",
+            payload={
+                "user_activities": [
+                    {
+                        "user_id": "user001",
+                        "action": "login",
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "ip_address": "192.168.1.50",
+                    },
+                    {
+                        "user_id": "user001",
+                        "action": "file_access",
+                        "timestamp": datetime.utcnow().isoformat(),
+                        "resource": "/sensitive/data.csv",
+                    },
+                ],
+            },
+        )
+
+        response = await agent.process_message(message, context)
+
+        assert response is not None
+        assert response.agent_name == agent.name
+        assert response.status == AgentStatus.COMPLETED
+        assert response.result is not None
+        assert "behavior_monitoring" in response.result
+        assert response.result["status"] == "monitoring_completed"
+
+        monitoring = response.result["behavior_monitoring"]
+        assert "activities_analyzed" in monitoring
+        assert "security_events" in monitoring
+        assert "high_risk_events" in monitoring
+        assert monitoring["activities_analyzed"] == 2
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_message_compliance_check(self, agent, context):
+        """Test process_message with compliance_check action (lines 986-1001)."""
+        from src.agents.deodoro import AgentMessage
+
+        message = AgentMessage(
+            sender="test_sender",
+            recipient="MariaQuiteriaAgent",
+            action="compliance_check",
+            payload={
+                "framework": "lgpd",  # Enum value is lowercase
+                "systems": ["data_processing", "user_management"],
+            },
+        )
+
+        response = await agent.process_message(message, context)
+
+        assert response is not None
+        assert response.agent_name == agent.name
+        assert response.status == AgentStatus.COMPLETED
+        assert response.result is not None
+        assert "compliance_report" in response.result
+        assert response.result["status"] == "compliance_checked"
+
+        report = response.result["compliance_report"]
+        assert "framework" in report
+        assert report["framework"] == "lgpd"  # Enum value is lowercase
+        assert "compliance_percentage" in report
+        assert "control_results" in report
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_message_unknown_action(self, agent, context):
+        """Test process_message with unknown action (lines 1003-1007)."""
+        from src.agents.deodoro import AgentMessage
+
+        message = AgentMessage(
+            sender="test_sender",
+            recipient="MariaQuiteriaAgent",
+            action="unknown_action_xyz",
+            payload={},
+        )
+
+        response = await agent.process_message(message, context)
+
+        assert response is not None
+        assert response.agent_name == agent.name
+        assert response.status == AgentStatus.ERROR
+        assert response.error == "Unknown security action"
+        assert response.result is None
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_message_exception_handling(self, agent, context):
+        """Test process_message exception handling (lines 1009-1011)."""
+        from src.agents.deodoro import AgentMessage
+        from src.core.exceptions import AgentExecutionError
+
+        # Create message with invalid payload that will cause exception
+        message = AgentMessage(
+            sender="test_sender",
+            recipient="MariaQuiteriaAgent",
+            action="detect_intrusions",
+            payload={
+                "network_data": None,  # Will cause error in processing
+            },
+        )
+
+        with pytest.raises(AgentExecutionError) as exc_info:
+            await agent.process_message(message, context)
+
+        assert "Security operation failed" in str(exc_info.value)
