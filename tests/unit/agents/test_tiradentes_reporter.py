@@ -910,3 +910,92 @@ class TestTiradentesReporterAgent:
         assert "Critical Finding" in summary
         assert "Important Discovery" in summary
         assert "Low Priority" not in summary  # Low importance excluded
+
+
+class TestTiradentesCoverageBoost:
+    """Tests to boost Tiradentes coverage from 91.03% to 95%+."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_render_pdf_method(self, tiradentes_agent, agent_context):
+        """Test PDF rendering method - Lines 1915-1934."""
+        from unittest.mock import AsyncMock, patch
+
+        from src.agents.tiradentes import ReportRequest, ReportSection, ReportType
+
+        # Create test sections
+        sections = [
+            ReportSection(
+                title="Test Report",
+                content="Test content for PDF generation",
+                importance=5,
+            )
+        ]
+
+        request = ReportRequest(
+            report_type=ReportType.INVESTIGATION_REPORT, target_audience="technical"
+        )
+
+        # Mock the export_service to avoid actual PDF generation
+        mock_pdf_bytes = b"fake-pdf-content-for-testing"
+
+        with patch(
+            "src.agents.tiradentes.export_service.generate_pdf",
+            new_callable=AsyncMock,
+            return_value=mock_pdf_bytes,
+        ):
+            # Call the _render_pdf method directly (lines 1915-1934)
+            result = await tiradentes_agent._render_pdf(
+                sections, request, agent_context
+            )
+
+            # Verify it returns base64 encoded string
+            assert isinstance(result, str)
+            # Verify it's valid base64
+            import base64
+
+            decoded = base64.b64decode(result)
+            assert decoded == mock_pdf_bytes
+
+    @pytest.mark.unit
+    def test_risk_mitigation_critical_risk(self, tiradentes_agent):
+        """Test risk mitigation recommendations for critical risk (score >= 7) - Lines 1029-1032."""
+        anomalies = [
+            {
+                "anomaly_type": "price_anomaly",
+                "severity": 0.95,
+                "description": "Critical price deviation",
+            }
+        ]
+
+        # Critical risk score (>= 7) should trigger urgent recommendations
+        recommendations = tiradentes_agent._generate_risk_mitigation_recommendations(
+            risk_score=8.5, anomalies=anomalies
+        )
+
+        # Lines 1029-1032 should be executed
+        assert "URGENTE" in recommendations
+        assert "Suspender processos" in recommendations
+        assert "controladoria" in recommendations
+
+    @pytest.mark.unit
+    def test_risk_mitigation_medium_risk(self, tiradentes_agent):
+        """Test risk mitigation recommendations for medium risk (4 <= score < 7) - Lines 1034-1037."""
+        anomalies = [
+            {
+                "anomaly_type": "temporal_anomaly",
+                "severity": 0.65,
+                "description": "Medium risk pattern",
+            }
+        ]
+
+        # Medium risk score (>= 4 but < 7) should trigger monitoring recommendations
+        recommendations = tiradentes_agent._generate_risk_mitigation_recommendations(
+            risk_score=5.5, anomalies=anomalies
+        )
+
+        # Lines 1034-1037 should be executed
+        assert "Intensificar monitoramento" in recommendations
+        assert "Revisar controles internos" in recommendations
+        # Should NOT contain urgent recommendations
+        assert "URGENTE" not in recommendations
