@@ -670,3 +670,102 @@ async def test_spatial_indices_error_handling(lampiao_agent):
 
     # Restore state
     lampiao_agent.states_data = original_states
+
+
+# New tests to reach 95%+ coverage
+
+
+@pytest.mark.asyncio
+async def test_gini_coefficient_with_zero_sum(lampiao_agent):
+    """Test Gini coefficient calculation with zero sum - Lines 1025-1026."""
+    # Data with all zeros (sum = 0)
+    values = [0.0, 0.0, 0.0]
+    gini = lampiao_agent._calculate_gini_coefficient(values)
+
+    # Should return 0.0 with warning
+    assert gini == 0.0
+
+
+@pytest.mark.asyncio
+async def test_theil_index_insufficient_values(lampiao_agent):
+    """Test Theil index with insufficient data - Lines 1043-1046."""
+    # Only 1 value (< 2 required)
+    values = [100000.0]
+    theil = lampiao_agent._calculate_theil_index(values)
+
+    # Should return 0.0 with warning
+    assert theil == 0.0
+
+
+@pytest.mark.asyncio
+async def test_theil_index_zero_mean(lampiao_agent):
+    """Test Theil index with zero mean - Lines 1052-1053."""
+    # All zeros (mean = 0)
+    values = [0.0, 0.0, 0.0]
+    theil = lampiao_agent._calculate_theil_index(values)
+
+    # Should return 0.0 with warning
+    assert theil == 0.0
+
+
+@pytest.mark.asyncio
+async def test_williamson_index_zero_mean(lampiao_agent):
+    """Test Williamson index with zero mean - Lines 1094-1095."""
+    # Data with zero mean
+    regional_values = [0.0, 0.0, 0.0]
+    populations = [1000000, 2000000, 3000000]
+
+    williamson = lampiao_agent._calculate_williamson_index(regional_values, populations)
+
+    # Should return 0.0 with warning
+    assert williamson == 0.0
+
+
+@pytest.mark.asyncio
+async def test_decorator_unknown_region_code(lampiao_agent, agent_context):
+    """Test decorator with unknown region code - Lines 99-100."""
+    from src.core import AgentStatus
+
+    await lampiao_agent.initialize()
+
+    # Create message with invalid region code
+    message = AgentMessage(
+        sender="test-user",
+        recipient="LampiaoAgent",
+        action="analyze_regions",
+        payload={
+            "metric": "government_spending",
+            "regions": ["XX", "YY"],
+        },  # Invalid codes
+    )
+
+    # Process should handle invalid region gracefully (with warnings)
+    response = await lampiao_agent.process(message, agent_context)
+
+    # Should complete (decorator logs warning but continues)
+    assert response.status == AgentStatus.COMPLETED
+
+
+@pytest.mark.asyncio
+async def test_decorator_unknown_metric(lampiao_agent, agent_context):
+    """Test decorator with unknown metric - Lines 105-108."""
+    from src.core import AgentStatus
+
+    await lampiao_agent.initialize()
+
+    # Create message with invalid metric
+    message = AgentMessage(
+        sender="test-user",
+        recipient="LampiaoAgent",
+        action="analyze_regions",
+        payload={
+            "metric": "invalid_metric_xyz",
+            "regions": ["SP", "RJ"],
+        },  # Invalid metric
+    )
+
+    # Process should handle invalid metric gracefully (fallback to gdp_per_capita)
+    response = await lampiao_agent.process(message, agent_context)
+
+    # Should complete (decorator logs warning and uses fallback)
+    assert response.status == AgentStatus.COMPLETED
