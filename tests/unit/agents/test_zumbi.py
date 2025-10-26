@@ -983,3 +983,102 @@ class TestZumbiProcessMethod:
 
         assert response.status == AgentStatus.ERROR
         assert "Unsupported action" in response.error
+
+
+class TestZumbiDateRangeExceptions:
+    """Test suite for date range parsing exception handling."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_collect_contracts_invalid_date_format(
+        self, zumbi_agent, mock_transparency_collector
+    ):
+        """Test date range parsing with invalid format - Lines 399-404."""
+        # Mock the collector to track the year parameter used
+        with patch(
+            "src.agents.zumbi.get_transparency_collector",
+            return_value=mock_transparency_collector,
+        ):
+            context = AgentContext(investigation_id="test-invalid-date")
+
+            # Create a request with malformed date format
+            from src.agents.zumbi import InvestigationRequest
+
+            request = InvestigationRequest(
+                query="test",
+                date_range=("invalid/date/format", "25/10/2025"),
+                max_records=10,
+            )
+
+            # Should not crash, should use default year 2024
+            contracts = await zumbi_agent._fetch_investigation_data(request, context)
+
+            # Verify collector was called (with default year 2024 after exception)
+            mock_transparency_collector.collect_contracts.assert_called_once()
+            call_args = mock_transparency_collector.collect_contracts.call_args
+
+            # Should have fallen back to default year 2024
+            assert call_args.kwargs["year"] == 2024
+            assert isinstance(contracts, list)
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_collect_contracts_empty_date_parts(
+        self, zumbi_agent, mock_transparency_collector
+    ):
+        """Test date range parsing with missing date parts - Line 404."""
+        with patch(
+            "src.agents.zumbi.get_transparency_collector",
+            return_value=mock_transparency_collector,
+        ):
+            context = AgentContext(investigation_id="test-empty-date-parts")
+
+            from src.agents.zumbi import InvestigationRequest
+
+            # Date without slashes (will raise IndexError on split)
+            request = InvestigationRequest(
+                query="test", date_range=("2024", "2025"), max_records=10
+            )
+
+            # Should fall back to default year 2024
+            contracts = await zumbi_agent._fetch_investigation_data(request, context)
+
+            # Verify collector was called
+            mock_transparency_collector.collect_contracts.assert_called_once()
+            call_args = mock_transparency_collector.collect_contracts.call_args
+
+            # Should use default year 2024 after exception
+            assert call_args.kwargs["year"] == 2024
+            assert isinstance(contracts, list)
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_collect_contracts_non_numeric_year(
+        self, zumbi_agent, mock_transparency_collector
+    ):
+        """Test date range parsing with non-numeric year - Line 402-404."""
+        with patch(
+            "src.agents.zumbi.get_transparency_collector",
+            return_value=mock_transparency_collector,
+        ):
+            context = AgentContext(investigation_id="test-non-numeric-year")
+
+            from src.agents.zumbi import InvestigationRequest
+
+            # Year part is not a number (will raise ValueError on int())
+            request = InvestigationRequest(
+                query="test",
+                date_range=("01/01/ABCD", "31/12/2025"),
+                max_records=10,
+            )
+
+            # Should fall back to default year 2024
+            contracts = await zumbi_agent._fetch_investigation_data(request, context)
+
+            # Verify collector was called
+            mock_transparency_collector.collect_contracts.assert_called_once()
+            call_args = mock_transparency_collector.collect_contracts.call_args
+
+            # Should use default year 2024 after ValueError
+            assert call_args.kwargs["year"] == 2024
+            assert isinstance(contracts, list)
