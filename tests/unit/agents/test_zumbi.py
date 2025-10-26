@@ -1082,3 +1082,148 @@ class TestZumbiDateRangeExceptions:
             # Should use default year 2024 after ValueError
             assert call_args.kwargs["year"] == 2024
             assert isinstance(contracts, list)
+
+
+class TestZumbiErrorHandling:
+    """Test suite for error handling and resilience in Zumbi agent."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_fetch_data_with_source_errors(self, zumbi_agent):
+        """Test partial source failures - Lines 450-462."""
+        # Mock collector to return success with some errors
+        mock_collector = AsyncMock()
+        mock_collector.collect_contracts.return_value = {
+            "total": 5,
+            "contracts": [
+                {
+                    "id": "C1",
+                    "valorInicial": 100000.0,
+                    "dataAssinatura": "01/01/2024",
+                    "orgao": {"nome": "Ministério Teste"},
+                    "fornecedor": {"nome": "Empresa ABC", "cnpj": "12345678901234"},
+                    "objeto": "Contrato teste 1",
+                },
+                {
+                    "id": "C2",
+                    "valorInicial": 200000.0,
+                    "dataAssinatura": "02/01/2024",
+                    "orgao": {"nome": "Secretaria Teste"},
+                    "fornecedor": {"nome": "Empresa XYZ", "cnpj": "98765432109876"},
+                    "objeto": "Contrato teste 2",
+                },
+                {
+                    "id": "C3",
+                    "valorInicial": 150000.0,
+                    "dataAssinatura": "03/01/2024",
+                    "orgao": {"nome": "Autarquia Teste"},
+                    "fornecedor": {"nome": "Empresa DEF", "cnpj": "11122233344455"},
+                    "objeto": "Contrato teste 3",
+                },
+                {
+                    "id": "C4",
+                    "valorInicial": 250000.0,
+                    "dataAssinatura": "04/01/2024",
+                    "orgao": {"nome": "Fundação Teste"},
+                    "fornecedor": {"nome": "Empresa GHI", "cnpj": "55566677788899"},
+                    "objeto": "Contrato teste 4",
+                },
+                {
+                    "id": "C5",
+                    "valorInicial": 300000.0,
+                    "dataAssinatura": "05/01/2024",
+                    "orgao": {"nome": "Instituto Teste"},
+                    "fornecedor": {"nome": "Empresa JKL", "cnpj": "99988877766655"},
+                    "objeto": "Contrato teste 5",
+                },
+            ],
+            "sources": ["portal_transparencia", "tce_sp"],
+            "errors": [
+                {"api": "tce_rj", "error": "Connection timeout"},
+                {"api": "ckan_sp", "error": "404 Not Found"},
+            ],
+        }
+
+        with patch(
+            "src.agents.zumbi.get_transparency_collector", return_value=mock_collector
+        ):
+            from src.agents.zumbi import InvestigationRequest
+
+            context = AgentContext(investigation_id="test-partial-errors")
+            request = InvestigationRequest(
+                query="test", date_range=("01/01/2024", "31/12/2024"), max_records=10
+            )
+
+            # Should log warnings but not fail
+            contracts = await zumbi_agent._fetch_investigation_data(request, context)
+
+            # Verify we got contracts despite some sources failing
+            assert len(contracts) == 5
+            assert contracts[0]["id"] == "C1"
+
+            # Verify collector was called
+            mock_collector.collect_contracts.assert_called_once()
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_fetch_data_total_failure(self, zumbi_agent):
+        """Test catastrophic collector failure - Lines 476-488."""
+        # Mock collector to raise exception
+        mock_collector = AsyncMock()
+        mock_collector.collect_contracts.side_effect = Exception(
+            "Database connection failed"
+        )
+
+        with patch(
+            "src.agents.zumbi.get_transparency_collector", return_value=mock_collector
+        ):
+            from src.agents.zumbi import InvestigationRequest
+
+            context = AgentContext(investigation_id="test-total-failure")
+            request = InvestigationRequest(
+                query="test", date_range=("01/01/2024", "31/12/2024"), max_records=10
+            )
+
+            # Should return empty list, not crash
+            contracts = await zumbi_agent._fetch_investigation_data(request, context)
+
+            # Verify empty list returned
+            assert contracts == []
+
+            # Verify collector was called
+            mock_collector.collect_contracts.assert_called_once()
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_fetch_data_with_only_errors(self, zumbi_agent):
+        """Test when all sources fail - Lines 450-462."""
+        # Mock collector to return no contracts but many errors
+        mock_collector = AsyncMock()
+        mock_collector.collect_contracts.return_value = {
+            "total": 0,
+            "contracts": [],
+            "sources": [],
+            "errors": [
+                {"api": "portal_transparencia", "error": "API key invalid"},
+                {"api": "tce_sp", "error": "Rate limit exceeded"},
+                {"api": "tce_rj", "error": "Service unavailable"},
+                {"api": "ckan_sp", "error": "Authentication failed"},
+            ],
+        }
+
+        with patch(
+            "src.agents.zumbi.get_transparency_collector", return_value=mock_collector
+        ):
+            from src.agents.zumbi import InvestigationRequest
+
+            context = AgentContext(investigation_id="test-all-errors")
+            request = InvestigationRequest(query="test", max_records=10)
+
+            # Should handle gracefully
+            contracts = await zumbi_agent._fetch_investigation_data(request, context)
+
+            # Verify empty list returned
+            assert contracts == []
+
+            # Verify collector was called
+            mock_collector.collect_contracts.assert_called_once()
