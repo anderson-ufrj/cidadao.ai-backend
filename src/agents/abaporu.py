@@ -1,10 +1,42 @@
 """
 Module: agents.abaporu
-Codinome: Abaporu - Núcleo Central da IA
-Description: Master agent that orchestrates other agents with self-reflection
+Codinome: Abaporu - Núcleo Central da IA (Master Orchestrator)
+Description: Master agent that orchestrates multi-agent investigations with self-reflection
+
+This module implements the Abaporu master agent, responsible for:
+- Orchestrating complex investigations across multiple specialized agents
+- Dynamic investigation planning based on query analysis
+- Parallel execution of independent investigation steps
+- Self-reflection and quality assessment of results
+- Adaptive strategy adjustment based on intermediate findings
+
+The agent uses keyword-based query analysis to intelligently select and coordinate
+the most appropriate specialized agents for each investigation.
+
 Author: Anderson H. Silva
 Date: 2025-01-24
 License: Proprietary - All rights reserved
+
+Example:
+    >>> from src.agents.abaporu import MasterAgent
+    >>> from src.agents.deodoro import AgentContext, AgentMessage
+    >>>
+    >>> # Initialize master agent with dependencies
+    >>> master = MasterAgent(llm_service=llm, memory_agent=memory)
+    >>> await master.initialize()
+    >>>
+    >>> # Register specialized agents
+    >>> master.register_agent("Zumbi", zumbi_instance)
+    >>> master.register_agent("Anita", anita_instance)
+    >>>
+    >>> # Process investigation
+    >>> message = AgentMessage(
+    ...     sender="user",
+    ...     recipient="Abaporu",
+    ...     action="investigate",
+    ...     payload={"query": "Detect anomalies in health contracts"}
+    ... )
+    >>> result = await master.process(message, context)
 """
 
 from datetime import datetime
