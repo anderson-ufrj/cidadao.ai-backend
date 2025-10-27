@@ -163,3 +163,52 @@ class TestTranslation:
 
         assert isinstance(translation, str)
         assert len(translation) > 0
+
+
+class TestProcessMethodCoverage:
+    """Tests to cover the process() method - Lines 964-1071."""
+
+    @pytest.mark.asyncio
+    async def test_process_chat_action(self, agent):
+        """Test process() with process_chat action - Lines 970-1004."""
+        from src.agents.deodoro import AgentContext, AgentMessage
+
+        message = AgentMessage(
+            sender="test_user",
+            recipient="drummond",
+            action="process_chat",
+            payload={
+                "user_message": "Olá, preciso de um relatório sobre contratos",
+                "intent": {
+                    "type": "report_request",
+                    "entities": {"report_type": "contracts"},
+                    "confidence": 0.85,
+                    "suggested_agent": "tiradentes",
+                },
+                "session": {
+                    "session_id": "test_session_123",
+                    "user_id": "user_456",
+                },
+                "context": {
+                    "user_profile": {
+                        "name": "Test User",
+                        "role": "analyst",
+                    }
+                },
+            },
+        )
+
+        context = AgentContext(
+            investigation_id="test_inv_1",
+            user_id="user_456",
+            session_id="test_session_123",
+        )
+
+        # Execute process_chat action (lines 970-1004)
+        response = await agent.process(message, context)
+
+        # Verify response structure
+        assert response.agent_name == "drummond"
+        assert response.status.value == "completed"
+        assert "message" in response.result
+        assert response.result["status"] == "conversation_processed"
