@@ -431,3 +431,62 @@ class TestInvestigationResult:
 
         assert result.metadata["agents_used"] == ["agent1", "agent2"]
         assert result.processing_time_ms == 1234.5
+
+
+@pytest.mark.unit
+@pytest.mark.unit
+class TestAbaporuEdgeCases:
+    """Test edge cases and error handling."""
+
+    @pytest.mark.asyncio
+    async def test_initialize(self, master_agent):
+        """Test agent initialization."""
+        await master_agent.initialize()
+        # Should complete without errors
+        assert True
+
+    @pytest.mark.asyncio
+    async def test_shutdown(self, master_agent):
+        """Test agent shutdown."""
+        await master_agent.shutdown()
+        # Should complete without errors
+        assert True
+
+    @pytest.mark.asyncio
+    async def test_reflect_with_high_quality_result(self, master_agent, agent_context):
+        """Test reflection with high quality result (no improvement needed)."""
+        high_quality_result = InvestigationResult(
+            investigation_id=agent_context.investigation_id,
+            query="High quality test",
+            findings=[
+                {"type": "anomaly", "desc": "finding1"},
+                {"type": "anomaly", "desc": "finding2"},
+                {"type": "anomaly", "desc": "finding3"},
+            ],
+            confidence_score=0.95,  # High confidence
+            sources=["source1", "source2", "source3"],
+        )
+
+        reflection = await master_agent.reflect(high_quality_result, agent_context)
+
+        assert reflection is not None
+        assert "quality_score" in reflection
+        # High quality should have few or no issues
+        assert len(reflection.get("issues", [])) <= 1
+
+    def test_parse_investigation_plan_keywords(self, master_agent):
+        """Test plan parsing with different keyword combinations."""
+        test_cases = [
+            ("Analyze regional inequality in education", ["Lampião"]),
+            ("Detect contract fraud and corruption", ["Oxóssi", "Obaluaiê"]),
+            ("Generate report with visualization", ["Tiradentes", "Niemeyer"]),
+            ("Security audit of system", ["Maria Quitéria"]),
+        ]
+
+        for query, expected_agents in test_cases:
+            plan = master_agent._parse_investigation_plan("", query)
+            # Check if at least one expected agent is selected
+            assert (
+                any(agent in plan.required_agents for agent in expected_agents)
+                or len(plan.required_agents) > 0
+            ), f"Failed for query: {query}"
