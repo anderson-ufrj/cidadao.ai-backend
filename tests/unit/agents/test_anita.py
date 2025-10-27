@@ -195,6 +195,7 @@ class TestAnitaAgent:
         for capability in expected_capabilities:
             assert capability in anita_agent.capabilities
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_temporal_pattern_analysis(self, anita_agent, agent_context):
         """Test temporal pattern detection in government data."""
@@ -225,6 +226,7 @@ class TestAnitaAgent:
         assert monthly_pattern["confidence"] > 0.8
         assert monthly_pattern["description"] == "Monthly spending cycle detected"
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_correlation_analysis(self, anita_agent, agent_context):
         """Test correlation detection between different data dimensions."""
@@ -255,6 +257,7 @@ class TestAnitaAgent:
         assert high_corr["correlation_coefficient"] > 0.7
         assert high_corr["p_value"] < 0.01
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_semantic_routing(self, anita_agent, agent_context):
         """Test semantic routing of analysis requests."""
@@ -288,6 +291,7 @@ class TestAnitaAgent:
             assert "confidence" in route
             assert route["confidence"] > 0.5
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_supplier_concentration_analysis(self, anita_agent, agent_context):
         """Test analysis of supplier concentration patterns."""
@@ -318,6 +322,7 @@ class TestAnitaAgent:
         assert "hhi_index" in metrics
         assert 0 <= metrics["hhi_index"] <= 1
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_network_pattern_detection(self, anita_agent, agent_context):
         """Test network pattern detection in government relationships."""
@@ -349,6 +354,7 @@ class TestAnitaAgent:
         assert "average_path_length" in metrics
         assert metrics["clustering_coefficient"] > 0
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_anomaly_scoring(self, anita_agent, agent_context):
         """Test anomaly scoring for pattern deviations."""
@@ -389,6 +395,7 @@ class TestAnitaAgent:
         march_score = anomalies["anomaly_scores"][2]
         assert march_score > 0.7  # Should be detected as anomaly
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_trend_forecasting(self, anita_agent, agent_context):
         """Test trend analysis and forecasting capabilities."""
@@ -426,6 +433,7 @@ class TestAnitaAgent:
         trend = forecast["trend_components"]
         assert trend["trend_direction"] in ["increasing", "decreasing", "stable"]
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_pattern_significance_filtering(self, anita_agent, agent_context):
         """Test filtering patterns by significance threshold."""
@@ -448,6 +456,7 @@ class TestAnitaAgent:
         for pattern in patterns:
             assert pattern["confidence"] >= 0.9
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_multi_dimensional_analysis(self, anita_agent, agent_context):
         """Test multi-dimensional pattern analysis."""
@@ -483,6 +492,7 @@ class TestAnitaAgent:
         for dim in ["temporal", "geographic", "categorical", "financial"]:
             assert dim in dim_analysis
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_error_handling_insufficient_data(self, anita_agent, agent_context):
         """Test error handling when insufficient data for analysis."""
@@ -504,6 +514,7 @@ class TestAnitaAgent:
         assert response.status == AgentStatus.WARNING
         assert "insufficient data" in response.error.lower()
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_concurrent_pattern_analysis(self, anita_agent):
         """Test concurrent analysis of multiple data streams."""
@@ -533,6 +544,7 @@ class TestAnitaAgent:
         assert all(r.status == AgentStatus.COMPLETED for r in responses)
         assert len({r.metadata.get("investigation_id") for r in responses}) == 3
 
+    @pytest.mark.asyncio
     @pytest.mark.unit
     async def test_pattern_caching(self, anita_agent, agent_context):
         """Test caching of pattern analysis results."""
@@ -855,9 +867,204 @@ class TestCorrelationAnalysis:
 
         assert isinstance(result, list)
         # High performer should have good efficiency metrics
-        # vendor_diversity = 8/96 ≈ 0.083
-        # activity_consistency = 12/12 = 1.0
-        # efficiency = 0.083 * 0.4 + 1.0 * 0.6 ≈ 0.633
+
+
+@pytest.mark.unit
+class TestAnitaHelperMethods:
+    """Test helper methods for increased coverage."""
+
+    @pytest.fixture
+    def anita_agent(self):
+        """Create Anita agent instance for testing."""
+        return AnalystAgent()
+
+    @pytest.fixture
+    def agent_context(self):
+        """Create agent context for testing."""
+        return AgentContext(
+            investigation_id="test_helper_001",
+            user_id="test_user",
+            session_id="test_session",
+        )
+
+    @pytest.fixture
+    def sample_contracts_data(self):
+        """Create sample contracts data for testing."""
+        contracts = []
+        # Create 20 contracts over 4 months
+        for month in range(1, 5):
+            for i in range(5):
+                contracts.append(
+                    {
+                        "_org_code": f"ORG_{i % 2}",  # 2 organizations
+                        "_month": month,
+                        "_year": 2024,
+                        "valorInicial": 100000 * (1 + month * 0.2 + i * 0.1),
+                        "valorGlobal": None,
+                        "fornecedor": {"nome": f"Fornecedor_{i % 3}"},  # 3 suppliers
+                        "dataAssinatura": f"15/{month:02d}/2024",
+                        "modalidadeCompra": {"nome": "Pregão Eletrônico"},
+                    }
+                )
+        return contracts
+
+    @pytest.mark.asyncio
+    async def test_analyze_spending_trends(
+        self, anita_agent, agent_context, sample_contracts_data
+    ):
+        """Test spending trend analysis method (lines 477-551)."""
+        result = await anita_agent._analyze_spending_trends(
+            sample_contracts_data, agent_context
+        )
+
+        assert isinstance(result, dict)
+        assert "trend_direction" in result
+        assert "trend_strength" in result
+        assert result["trend_direction"] in ["increasing", "decreasing", "stable"]
+        assert 0 <= result["trend_strength"] <= 1
+
+    @pytest.mark.asyncio
+    async def test_analyze_organizational_patterns(
+        self, anita_agent, agent_context, sample_contracts_data
+    ):
+        """Test organizational pattern analysis (lines 553-636)."""
+        result = await anita_agent._analyze_organizational_patterns(
+            sample_contracts_data, agent_context
+        )
+
+        assert isinstance(result, dict)
+        assert "patterns" in result or "organizations" in result
+
+    @pytest.mark.asyncio
+    async def test_analyze_vendor_behavior(
+        self, anita_agent, agent_context, sample_contracts_data
+    ):
+        """Test vendor behavior analysis (lines 638-714)."""
+        result = await anita_agent._analyze_vendor_behavior(
+            sample_contracts_data, agent_context
+        )
+
+        assert isinstance(result, dict)
+        assert "vendors" in result or "vendor_metrics" in result
+
+    @pytest.mark.asyncio
+    async def test_analyze_seasonal_patterns(
+        self, anita_agent, agent_context, sample_contracts_data
+    ):
+        """Test seasonal pattern detection (lines 716-788)."""
+        result = await anita_agent._analyze_seasonal_patterns(
+            sample_contracts_data, agent_context
+        )
+
+        assert isinstance(result, dict)
+        # Should detect some seasonal components
+        assert "seasonal_components" in result or "patterns" in result
+
+    @pytest.mark.asyncio
+    async def test_analyze_value_distribution(
+        self, anita_agent, agent_context, sample_contracts_data
+    ):
+        """Test value distribution analysis (lines 790-879)."""
+        result = await anita_agent._analyze_value_distribution(
+            sample_contracts_data, agent_context
+        )
+
+        assert isinstance(result, dict)
+        assert "distribution_stats" in result or "quartiles" in result
+
+    @pytest.mark.asyncio
+    async def test_perform_correlation_analysis_empty_data(
+        self, anita_agent, agent_context
+    ):
+        """Test correlation analysis with empty data."""
+        result = await anita_agent._perform_correlation_analysis([], agent_context)
+
+        assert isinstance(result, list)
+        # Empty data should return empty correlations
+        assert len(result) == 0
+
+    @pytest.mark.asyncio
+    async def test_calculate_efficiency_metrics_empty_data(
+        self, anita_agent, agent_context
+    ):
+        """Test efficiency metrics with empty data."""
+        result = await anita_agent._calculate_efficiency_metrics([], agent_context)
+
+        assert isinstance(result, list)
+        # Empty data should return empty metrics
+        assert len(result) == 0
+
+    def test_classify_trend_from_spectral(self, anita_agent):
+        """Test spectral trend classification (lines 1408-1428)."""
+        # Test increasing trend
+        assert anita_agent._classify_trend_from_spectral(0.8) == "increasing"
+
+        # Test decreasing trend
+        assert anita_agent._classify_trend_from_spectral(-0.8) == "decreasing"
+
+        # Test stable trend
+        assert anita_agent._classify_trend_from_spectral(0.05) == "stable"
+
+    def test_assess_spectral_significance(self, anita_agent):
+        """Test spectral significance assessment (lines 1430-1437)."""
+        # High coherence
+        assert anita_agent._assess_spectral_significance(0.85) == "high"
+
+        # Medium coherence
+        assert anita_agent._assess_spectral_significance(0.62) == "medium"
+
+        # Low coherence
+        assert anita_agent._assess_spectral_significance(0.3) == "low"
+
+    def test_pattern_to_dict(self, anita_agent):
+        """Test pattern conversion to dict (lines 1533-1535)."""
+        pattern = PatternResult(
+            pattern_type="temporal",
+            description="Monthly pattern",
+            significance=0.85,
+            confidence=0.92,
+            details={"period": 30, "amplitude": 0.7},
+        )
+
+        result = anita_agent._pattern_to_dict(pattern)
+
+        assert isinstance(result, dict)
+        assert result["pattern_type"] == "temporal"
+        assert result["significance"] == 0.85
+        assert result["confidence"] == 0.92
+
+    def test_correlation_to_dict(self, anita_agent):
+        """Test correlation conversion to dict (lines 1548-1550)."""
+        correlation = CorrelationResult(
+            variables=["var1", "var2"],
+            coefficient=0.78,
+            p_value=0.001,
+            significance="high",
+            relationship_type="positive",
+            strength="strong",
+            details={"method": "pearson"},
+        )
+
+        result = anita_agent._correlation_to_dict(correlation)
+
+        assert isinstance(result, dict)
+        assert result["coefficient"] == 0.78
+        assert result["significance"] == "high"
+        assert result["strength"] == "strong"
+
+    @pytest.mark.asyncio
+    async def test_initialize(self, anita_agent):
+        """Test agent initialization (line 154)."""
+        await anita_agent.initialize()
+        # Should complete without errors
+        assert True
+
+    @pytest.mark.asyncio
+    async def test_shutdown(self, anita_agent):
+        """Test agent shutdown (line 158)."""
+        await anita_agent.shutdown()
+        # Should complete without errors
+        assert True
 
     @pytest.mark.unit
     @pytest.mark.asyncio
