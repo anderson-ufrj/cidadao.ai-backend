@@ -7,11 +7,12 @@ description: "Agente especializado em detecção avançada de corrupção sistê
 # 🏥 Obaluaiê - Corruption Detector Agent
 
 **Autor**: Anderson Henrique da Silva
-**Data**: 12 de outubro de 2025
+**Última Atualização**: 2025-10-27
 
-:::warning **Status: 🚧 15% Em Desenvolvimento**
-Implementado em `src/agents/obaluaie.py` (236 linhas) com framework excelente mas algoritmos principais pendentes.
-Documentação inline detalhada de algoritmos a implementar. Zero testes.
+:::info **Status: ✅ Tier 2 (15% → 75% Completo) - Beta 1.0**
+Implementado em `src/agents/obaluaie.py` (858 linhas) com framework robusto.
+Algorithms: Benford's Law, cartel detection, nepotism analysis, money laundering detection.
+Test coverage: `tests/unit/agents/test_obaluaie.py`
 :::
 
 ## 📋 Visão Geral
