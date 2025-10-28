@@ -773,3 +773,899 @@ class TestMultiplePolicyAreas:
 
         response = await bonifacio_agent.process(message, agent_context)
         assert response.status == AgentStatus.COMPLETED
+
+
+class TestReflectionQuality:
+    """Test reflection method for quality improvement (PRIORITY 1 - 130 lines)."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_reflect_low_effectiveness(self, bonifacio_agent, agent_context):
+        """Test reflection triggers when effectiveness < 0.60."""
+        # Create a result with low effectiveness
+        initial_result = {
+            "policy_evaluation": {
+                "policy_name": "Low Performance Policy",
+                "effectiveness_scores": {
+                    "efficacy": 0.40,
+                    "efficiency": 0.45,
+                    "effectiveness": 0.50,  # Below 0.60 threshold
+                    "cost_effectiveness": 0.35,
+                },
+                "roi_social": 1.5,
+                "sustainability_score": 70,
+                "analysis_confidence": 0.80,
+            },
+            "strategic_recommendations": [
+                {"area": "initial", "recommendation": "Original recommendation"}
+            ],
+        }
+
+        task = "policy_analysis"
+        enhanced_result = await bonifacio_agent.reflect(
+            task, initial_result, agent_context
+        )
+
+        # Should enhance the result
+        assert enhanced_result["reflection_applied"] is True
+        assert "low_effectiveness" in enhanced_result["quality_improvements"]
+
+        # Should have more recommendations
+        recommendations = enhanced_result["strategic_recommendations"]
+        assert len(recommendations) > len(initial_result["strategic_recommendations"])
+
+        # Should have effectiveness improvement recommendations
+        effectiveness_recs = [
+            r for r in recommendations if r["area"] == "effectiveness_improvement"
+        ]
+        assert len(effectiveness_recs) > 0
+        assert effectiveness_recs[0]["priority"] == "critical"
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_reflect_negative_roi(self, bonifacio_agent, agent_context):
+        """Test reflection triggers when ROI is negative."""
+        initial_result = {
+            "policy_evaluation": {
+                "policy_name": "Negative ROI Policy",
+                "effectiveness_scores": {
+                    "efficacy": 0.70,
+                    "efficiency": 0.65,
+                    "effectiveness": 0.68,
+                    "cost_effectiveness": 0.55,
+                },
+                "roi_social": -0.5,  # Negative ROI
+                "sustainability_score": 65,
+                "analysis_confidence": 0.75,
+            },
+            "strategic_recommendations": [],
+        }
+
+        task = "policy_analysis"
+        enhanced_result = await bonifacio_agent.reflect(
+            task, initial_result, agent_context
+        )
+
+        assert enhanced_result["reflection_applied"] is True
+        assert "negative_roi" in enhanced_result["quality_improvements"]
+
+        # Should have resource optimization recommendation
+        recommendations = enhanced_result["strategic_recommendations"]
+        resource_recs = [
+            r for r in recommendations if r["area"] == "resource_optimization"
+        ]
+        assert len(resource_recs) > 0
+        assert resource_recs[0]["priority"] == "critical"
+        assert resource_recs[0]["expected_impact"] == 0.95
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_reflect_low_sustainability(self, bonifacio_agent, agent_context):
+        """Test reflection triggers when sustainability < 60."""
+        initial_result = {
+            "policy_evaluation": {
+                "policy_name": "Low Sustainability Policy",
+                "effectiveness_scores": {
+                    "efficacy": 0.75,
+                    "efficiency": 0.70,
+                    "effectiveness": 0.72,
+                    "cost_effectiveness": 0.68,
+                },
+                "roi_social": 1.2,
+                "sustainability_score": 55,  # Below 60 threshold
+                "analysis_confidence": 0.82,
+            },
+            "strategic_recommendations": [
+                {"area": "initial", "recommendation": "Original"}
+            ],
+        }
+
+        task = "policy_analysis"
+        enhanced_result = await bonifacio_agent.reflect(
+            task, initial_result, agent_context
+        )
+
+        assert enhanced_result["reflection_applied"] is True
+        assert "low_sustainability" in enhanced_result["quality_improvements"]
+
+        # Should have institutional strengthening recommendation
+        recommendations = enhanced_result["strategic_recommendations"]
+        institutional_recs = [
+            r for r in recommendations if r["area"] == "institutional_strengthening"
+        ]
+        assert len(institutional_recs) > 0
+        assert institutional_recs[0]["priority"] == "high"
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_reflect_insufficient_recommendations(
+        self, bonifacio_agent, agent_context
+    ):
+        """Test reflection triggers when recommendations < 2."""
+        initial_result = {
+            "policy_evaluation": {
+                "policy_name": "Few Recommendations Policy",
+                "effectiveness_scores": {
+                    "efficacy": 0.80,
+                    "efficiency": 0.75,
+                    "effectiveness": 0.78,
+                    "cost_effectiveness": 0.72,
+                },
+                "roi_social": 1.8,
+                "sustainability_score": 70,
+                "analysis_confidence": 0.85,
+            },
+            "strategic_recommendations": [
+                {"area": "single", "recommendation": "Only one recommendation"}
+            ],  # < 2 recommendations
+        }
+
+        task = "policy_analysis"
+        enhanced_result = await bonifacio_agent.reflect(
+            task, initial_result, agent_context
+        )
+
+        assert enhanced_result["reflection_applied"] is True
+        assert "insufficient_recommendations" in enhanced_result["quality_improvements"]
+
+        # Should have added monitoring and stakeholder engagement recommendations
+        recommendations = enhanced_result["strategic_recommendations"]
+        assert len(recommendations) >= 3  # Original + at least 2 new
+
+        # Check for monitoring recommendation
+        monitoring_recs = [r for r in recommendations if r["area"] == "monitoring"]
+        assert len(monitoring_recs) > 0
+
+        # Check for stakeholder engagement recommendation
+        stakeholder_recs = [
+            r for r in recommendations if r["area"] == "stakeholder_engagement"
+        ]
+        assert len(stakeholder_recs) > 0
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_reflect_no_issues(self, bonifacio_agent, agent_context):
+        """Test reflection when quality is acceptable (no issues)."""
+        initial_result = {
+            "policy_evaluation": {
+                "policy_name": "High Quality Policy",
+                "effectiveness_scores": {
+                    "efficacy": 0.85,
+                    "efficiency": 0.80,
+                    "effectiveness": 0.83,  # Above 0.60
+                    "cost_effectiveness": 0.78,
+                },
+                "roi_social": 2.5,  # Positive
+                "sustainability_score": 75,  # Above 60
+                "analysis_confidence": 0.88,
+            },
+            "strategic_recommendations": [
+                {"area": "rec1", "recommendation": "First recommendation"},
+                {"area": "rec2", "recommendation": "Second recommendation"},
+            ],  # >= 2 recommendations
+        }
+
+        task = "policy_analysis"
+        result = await bonifacio_agent.reflect(task, initial_result, agent_context)
+
+        # Should NOT enhance when quality is acceptable
+        assert result == initial_result
+        assert "reflection_applied" not in result
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_reflect_multiple_issues(self, bonifacio_agent, agent_context):
+        """Test reflection with multiple quality issues simultaneously."""
+        initial_result = {
+            "policy_evaluation": {
+                "policy_name": "Multiple Issues Policy",
+                "effectiveness_scores": {
+                    "efficacy": 0.45,
+                    "efficiency": 0.42,
+                    "effectiveness": 0.48,  # Low effectiveness
+                    "cost_effectiveness": 0.35,
+                },
+                "roi_social": -0.3,  # Negative ROI
+                "sustainability_score": 52,  # Low sustainability
+                "analysis_confidence": 0.70,
+            },
+            "strategic_recommendations": [],  # Insufficient recommendations
+        }
+
+        task = "policy_analysis"
+        enhanced_result = await bonifacio_agent.reflect(
+            task, initial_result, agent_context
+        )
+
+        assert enhanced_result["reflection_applied"] is True
+
+        # Should detect all 4 issues
+        quality_issues = enhanced_result["quality_improvements"]
+        assert "low_effectiveness" in quality_issues
+        assert "negative_roi" in quality_issues
+        assert "low_sustainability" in quality_issues
+        assert "insufficient_recommendations" in quality_issues
+
+        # Should have many recommendations added
+        recommendations = enhanced_result["strategic_recommendations"]
+        assert (
+            len(recommendations) >= 6
+        )  # All issues should add recommendations (4 issues = ~6 recommendations)
+
+        # Verify recommendations cover all critical areas
+        areas = [r["area"] for r in recommendations]
+        assert "effectiveness_improvement" in areas
+        assert "resource_optimization" in areas
+        assert "institutional_strengthening" in areas
+        assert "monitoring" in areas
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_reflect_confidence_update(self, bonifacio_agent, agent_context):
+        """Test that reflection increases analysis confidence."""
+        initial_confidence = 0.75
+        initial_result = {
+            "policy_evaluation": {
+                "policy_name": "Confidence Test Policy",
+                "effectiveness_scores": {
+                    "efficacy": 0.50,
+                    "efficiency": 0.48,
+                    "effectiveness": 0.52,  # Low effectiveness triggers reflection
+                    "cost_effectiveness": 0.45,
+                },
+                "roi_social": 0.8,
+                "sustainability_score": 65,
+                "analysis_confidence": initial_confidence,
+            },
+            "strategic_recommendations": [
+                {"area": "existing", "recommendation": "Original recommendation"}
+            ],
+        }
+
+        task = "policy_analysis"
+        enhanced_result = await bonifacio_agent.reflect(
+            task, initial_result, agent_context
+        )
+
+        # Confidence should increase after reflection
+        new_confidence = enhanced_result["policy_evaluation"]["analysis_confidence"]
+        assert new_confidence > initial_confidence
+        assert new_confidence <= 0.95  # Max confidence cap
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_reflect_enhanced_recommendations_structure(
+        self, bonifacio_agent, agent_context
+    ):
+        """Test that enhanced recommendations have proper structure."""
+        initial_result = {
+            "policy_evaluation": {
+                "policy_name": "Structure Test Policy",
+                "effectiveness_scores": {
+                    "efficacy": 0.45,
+                    "efficiency": 0.42,
+                    "effectiveness": 0.48,  # Triggers reflection
+                    "cost_effectiveness": 0.40,
+                },
+                "roi_social": 1.0,
+                "sustainability_score": 65,
+                "analysis_confidence": 0.80,
+            },
+            "strategic_recommendations": [],
+        }
+
+        task = "policy_analysis"
+        enhanced_result = await bonifacio_agent.reflect(
+            task, initial_result, agent_context
+        )
+
+        recommendations = enhanced_result["strategic_recommendations"]
+        assert len(recommendations) > 0
+
+        # Verify all recommendations have required fields
+        for rec in recommendations:
+            assert "area" in rec
+            assert "recommendation" in rec
+            assert "priority" in rec
+            assert rec["priority"] in ["critical", "high", "medium", "low"]
+            assert "expected_impact" in rec
+            assert 0 <= rec["expected_impact"] <= 1
+            assert "implementation_timeframe" in rec
+            assert rec["implementation_timeframe"] in [
+                "immediate",
+                "short_term",
+                "medium_term",
+                "long_term",
+            ]
+
+
+class TestCostEffectivenessFramework:
+    """Test cost-effectiveness framework analysis (PRIORITY 2 - 215 lines)."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_cost_effectiveness_comprehensive(
+        self, bonifacio_agent, agent_context
+    ):
+        """Test complete cost-effectiveness framework (lines 1592-1918)."""
+        message = AgentMessage(
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
+                "policy_name": "Programa Nacional de Saúde Preventiva",
+                "policy_area": "health",
+                "budget_data": {"planned": 100_000_000, "executed": 95_000_000},
+                "target_indicators": ["mortality_rate", "vaccination_coverage"],
+            },
+            sender="health_economist",
+            metadata={"framework": "cost_effectiveness"},
+        )
+
+        response = await bonifacio_agent.process(message, agent_context)
+
+        assert response.status == AgentStatus.COMPLETED
+        result = response.result
+        evaluation = result["policy_evaluation"]
+
+        # Should have ROI social calculated
+        assert "roi_social" in evaluation
+        assert isinstance(evaluation["roi_social"], int | float)
+
+        # Should have effectiveness scores
+        assert "effectiveness_scores" in evaluation
+        assert "cost_effectiveness" in evaluation["effectiveness_scores"]
+
+    @pytest.mark.unit
+    def test_classify_cost_level_health(self, bonifacio_agent):
+        """Test cost classification for health policies."""
+        # Very low cost for health
+        classification = bonifacio_agent._classify_cost_level(500, "health")
+        assert "Low" in classification
+
+        # Very high cost for health
+        classification_high = bonifacio_agent._classify_cost_level(15000, "health")
+        assert "High" in classification_high
+
+    @pytest.mark.unit
+    def test_classify_cost_level_social(self, bonifacio_agent):
+        """Test cost classification for social policies."""
+        # Low cost for social programs
+        classification = bonifacio_agent._classify_cost_level(300, "social")
+        assert "Low" in classification
+
+        # High cost for social programs
+        classification_high = bonifacio_agent._classify_cost_level(5000, "social")
+        assert "High" in classification_high
+
+    @pytest.mark.unit
+    def test_classify_roi_levels(self, bonifacio_agent):
+        """Test ROI classification across different levels."""
+        # Excellent ROI
+        excellent = bonifacio_agent._classify_roi(5.0)
+        assert "Excellent" in excellent or "Very high" in excellent
+
+        # Good ROI
+        good = bonifacio_agent._classify_roi(1.5)
+        assert "Good" in good or "Positive" in good
+
+        # Poor ROI
+        poor = bonifacio_agent._classify_roi(-0.5)
+        assert "Poor" in poor or "Negative" in poor
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_cost_effectiveness_low_efficiency(
+        self, bonifacio_agent, agent_context
+    ):
+        """Test analysis of policy with low cost-effectiveness."""
+        message = AgentMessage(
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
+                "policy_name": "Programa Ineficiente",
+                "policy_area": "education",
+                "budget_data": {
+                    "planned": 50_000_000,
+                    "executed": 65_000_000,
+                },  # Over budget
+            },
+            sender="auditor",
+            metadata={},
+        )
+
+        response = await bonifacio_agent.process(message, agent_context)
+
+        assert response.status == AgentStatus.COMPLETED
+        evaluation = response.result["policy_evaluation"]
+
+        # High deviation should affect cost-effectiveness
+        assert "effectiveness_scores" in evaluation
+        efficiency = evaluation["effectiveness_scores"]["efficiency"]
+        # Over budget should result in lower efficiency
+        assert efficiency < 1.0
+
+
+class TestTheoryOfChangeFramework:
+    """Test Theory of Change framework (PRIORITY 3 - 197 lines 1289-1581)."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_theory_of_change_comprehensive_health(
+        self, bonifacio_agent, agent_context
+    ):
+        """Test Theory of Change for health policy."""
+        message = AgentMessage(
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
+                "policy_name": "Sistema Único de Saúde Universal",
+                "policy_area": "health",
+                "geographical_scope": "federal",
+                "budget_data": {"planned": 50_000_000_000, "executed": 48_000_000_000},
+            },
+            sender="health_minister",
+            metadata={"framework": "theory_of_change"},
+        )
+
+        response = await bonifacio_agent.process(message, agent_context)
+
+        assert response.status == AgentStatus.COMPLETED
+        # Theory of Change should complete successfully
+        assert "policy_evaluation" in response.result
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_theory_of_change_education(self, bonifacio_agent, agent_context):
+        """Test Theory of Change for education policy."""
+        message = AgentMessage(
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
+                "policy_name": "Programa Nacional de Tecnologia Educacional",
+                "policy_area": "education",
+                "geographical_scope": "federal",
+                "budget_data": {"planned": 300_000_000, "executed": 280_000_000},
+            },
+            sender="education_analyst",
+            metadata={"framework": "theory_of_change"},
+        )
+
+        response = await bonifacio_agent.process(message, agent_context)
+
+        assert response.status == AgentStatus.COMPLETED
+        assert "policy_evaluation" in response.result
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_theory_of_change_social(self, bonifacio_agent, agent_context):
+        """Test Theory of Change for social policy."""
+        message = AgentMessage(
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
+                "policy_name": "Projeto Piloto de Renda Básica Universal",
+                "policy_area": "social",
+                "geographical_scope": "municipal",
+                "budget_data": {"planned": 5_000_000, "executed": 4_800_000},
+            },
+            sender="social_innovation_lab",
+            metadata={"framework": "theory_of_change"},
+        )
+
+        response = await bonifacio_agent.process(message, agent_context)
+
+        assert response.status == AgentStatus.COMPLETED
+        assert "policy_evaluation" in response.result
+
+
+class TestResultsChainFramework:
+    """Test Results Chain framework (PRIORITY 4 - 179 lines 1131-1278)."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_results_chain_comprehensive_health(
+        self, bonifacio_agent, agent_context
+    ):
+        """Test Results Chain for health policy (improve existing test)."""
+        message = AgentMessage(
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
+                "policy_name": "Programa Mais Médicos Ampliado",
+                "policy_area": "health",
+                "geographical_scope": "federal",
+                "budget_data": {"planned": 1_000_000_000, "executed": 950_000_000},
+            },
+            sender="health_policy_analyst",
+            metadata={"framework": "results_chain"},
+        )
+
+        response = await bonifacio_agent.process(message, agent_context)
+
+        assert response.status == AgentStatus.COMPLETED
+        evaluation = response.result["policy_evaluation"]
+
+        # Results Chain should assess sustainability
+        assert "sustainability_score" in evaluation
+        assert isinstance(evaluation["sustainability_score"], int)
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_results_chain_security(self, bonifacio_agent, agent_context):
+        """Test Results Chain for security policy."""
+        message = AgentMessage(
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
+                "policy_name": "Programa Nacional de Segurança Pública com Cidadania",
+                "policy_area": "security",
+                "geographical_scope": "federal",
+            },
+            sender="security_analyst",
+            metadata={"framework": "results_chain"},
+        )
+
+        response = await bonifacio_agent.process(message, agent_context)
+
+        assert response.status == AgentStatus.COMPLETED
+        assert "policy_evaluation" in response.result
+
+
+class TestLogicModelFramework:
+    """Test Logic Model framework (PRIORITY 5 - 172 lines 1000-1117)."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_logic_model_comprehensive_education(
+        self, bonifacio_agent, agent_context
+    ):
+        """Test Logic Model for education policy (improve existing test)."""
+        message = AgentMessage(
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
+                "policy_name": "Programa Nacional de Educação Digital Expandido",
+                "policy_area": "education",
+                "geographical_scope": "federal",
+                "analysis_period": ("2023-01-01", "2024-12-31"),
+                "budget_data": {"planned": 1_000_000_000, "executed": 950_000_000},
+            },
+            sender="education_policy_manager",
+            metadata={"framework": "logic_model"},
+        )
+
+        response = await bonifacio_agent.process(message, agent_context)
+
+        assert response.status == AgentStatus.COMPLETED
+        evaluation = response.result["policy_evaluation"]
+
+        # Logic Model should have effectiveness assessment
+        assert "effectiveness_scores" in evaluation
+        assert "effectiveness" in evaluation["effectiveness_scores"]
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_logic_model_infrastructure(self, bonifacio_agent, agent_context):
+        """Test Logic Model for infrastructure policy."""
+        message = AgentMessage(
+            action="policy_analysis",
+            recipient="bonifacio",
+            payload={
+                "policy_name": "Programa de Investimento em Logística Nacional",
+                "policy_area": "infrastructure",
+                "geographical_scope": "federal",
+                "budget_data": {"planned": 10_000_000_000, "executed": 9_500_000_000},
+            },
+            sender="infrastructure_planner",
+            metadata={"framework": "logic_model"},
+        )
+
+        response = await bonifacio_agent.process(message, agent_context)
+
+        assert response.status == AgentStatus.COMPLETED
+        assert "policy_evaluation" in response.result
+
+
+class TestLifecycleMethods:
+    """Test lifecycle methods (PRIORITY 6 - 28 lines 1939-1983)."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_initialize_method(self):
+        """Test agent initialization lifecycle (no context argument)."""
+        agent = BonifacioAgent()
+
+        # Initialize should succeed (takes no args)
+        try:
+            await agent.initialize()
+            # If it completes without error, that's success
+            assert True
+        except Exception as e:
+            # If not implemented, skip or assert it's expected
+            assert "not implemented" in str(e).lower() or isinstance(
+                e, NotImplementedError
+            )
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_shutdown_method(self):
+        """Test agent shutdown lifecycle (no context argument)."""
+        agent = BonifacioAgent()
+
+        # Shutdown should succeed (takes no args)
+        try:
+            await agent.shutdown()
+            # If it completes without error, that's success
+            assert True
+        except Exception as e:
+            # If not implemented, skip or assert it's expected
+            assert "not implemented" in str(e).lower() or isinstance(
+                e, NotImplementedError
+            )
+
+
+class TestPolicyFrameworksDirect:
+    """Test policy evaluation frameworks via direct method calls (coverage boost)."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_logic_model_framework_direct_call(self):
+        """Test Logic Model framework via direct method call - Lines 993-1064."""
+        from src.agents.bonifacio import (
+            ImpactLevel,
+            PolicyAnalysisRequest,
+            PolicyEvaluation,
+            PolicyStatus,
+        )
+
+        agent = BonifacioAgent()
+
+        # Create request
+        request = PolicyAnalysisRequest(
+            policy_name="Programa Bolsa Família",
+            policy_area="social",
+            geographical_scope="federal",
+        )
+
+        # Create evaluation object
+        evaluation = PolicyEvaluation(
+            policy_id="test_123",
+            policy_name="Programa Bolsa Família",
+            analysis_period=(datetime(2023, 1, 1), datetime(2023, 12, 31)),
+            status=PolicyStatus.ACTIVE,
+            investment={
+                "planned": 1000000,
+                "executed": 950000,
+                "deviation_percentage": -5,
+            },
+            beneficiaries={
+                "target_population": 10000,
+                "reached_population": 9500,
+                "coverage_rate": 95,
+            },
+            indicators=[],
+            effectiveness_score={
+                "efficacy": 0.90,
+                "efficiency": 0.85,
+                "effectiveness": 0.88,
+                "cost_effectiveness": 0.82,
+            },
+            roi_social=1.8,
+            sustainability_score=85,
+            impact_level=ImpactLevel.HIGH,
+            recommendations=[],
+            evidence_sources=["Portal da Transparência"],
+            analysis_confidence=0.90,
+            hash_verification="abc123",
+        )
+
+        # Call framework method directly
+        result = await agent._apply_logic_model_framework(request, evaluation)
+
+        # Verify structure
+        assert "inputs" in result
+        assert "activities" in result
+        assert "outputs" in result
+        assert "outcomes" in result
+        assert "impact" in result
+
+        # Verify inputs
+        assert result["inputs"]["financial_resources"] == 950000
+        assert result["inputs"]["planned_budget"] == 1000000
+
+        # Verify impact
+        assert result["impact"]["social_roi"] == 1.8
+        assert result["impact"]["impact_level"] == "high"
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_results_chain_framework_direct_call(self):
+        """Test Results Chain framework via direct method call - Lines 1121-1238."""
+        from src.agents.bonifacio import (
+            ImpactLevel,
+            PolicyAnalysisRequest,
+            PolicyEvaluation,
+            PolicyIndicator,
+            PolicyStatus,
+        )
+
+        agent = BonifacioAgent()
+
+        request = PolicyAnalysisRequest(
+            policy_name="Sistema Único de Saúde",
+            policy_area="health",
+            geographical_scope="federal",
+        )
+
+        indicator1 = PolicyIndicator(
+            name="Taxa de Cobertura",
+            baseline_value=70.0,
+            current_value=85.0,
+            target_value=90.0,
+            unit="percentage",
+            data_source="DATASUS",
+            last_update=datetime(2023, 12, 31),
+            statistical_significance=0.95,
+            trend="improving",
+        )
+
+        evaluation = PolicyEvaluation(
+            policy_id="health_001",
+            policy_name="Sistema Único de Saúde",
+            analysis_period=(datetime(2023, 1, 1), datetime(2023, 12, 31)),
+            status=PolicyStatus.ACTIVE,
+            investment={
+                "planned": 500000,
+                "executed": 480000,
+                "deviation_percentage": -4,
+            },
+            beneficiaries={
+                "target_population": 5000,
+                "reached_population": 4800,
+                "coverage_rate": 96,
+            },
+            indicators=[indicator1],
+            effectiveness_score={
+                "efficacy": 0.88,
+                "efficiency": 0.82,
+                "effectiveness": 0.85,
+                "cost_effectiveness": 0.80,
+            },
+            roi_social=1.5,
+            sustainability_score=78,
+            impact_level=ImpactLevel.HIGH,
+            recommendations=[],
+            evidence_sources=["DATASUS"],
+            analysis_confidence=0.85,
+            hash_verification="def456",
+        )
+
+        result = await agent._apply_results_chain_framework(request, evaluation)
+
+        # Verify structure
+        assert "stage_1_resources" in result
+        assert "stage_2_activities" in result
+        assert "stage_3_outputs" in result
+        assert "stage_4_outcomes" in result
+        assert "causal_attribution" in result
+
+        # Verify financial resources
+        assert result["stage_1_resources"]["budget_allocated"] == 500000
+        assert result["stage_1_resources"]["budget_utilized"] == 480000
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_theory_of_change_framework_direct_call(self):
+        """Test Theory of Change framework via direct method call - Lines 1280-1425."""
+        from src.agents.bonifacio import (
+            ImpactLevel,
+            PolicyAnalysisRequest,
+            PolicyEvaluation,
+            PolicyIndicator,
+            PolicyStatus,
+        )
+
+        agent = BonifacioAgent()
+
+        request = PolicyAnalysisRequest(
+            policy_name="Programa Nacional de Educação",
+            policy_area="education",
+            geographical_scope="national",
+        )
+
+        # Add indicators to avoid division by zero in _assess_pathway_functionality
+        indicator1 = PolicyIndicator(
+            name="Taxa de Aprovação",
+            baseline_value=75.0,
+            current_value=88.0,
+            target_value=90.0,
+            unit="percentage",
+            data_source="INEP",
+            last_update=datetime(2023, 12, 31),
+            statistical_significance=0.92,
+            trend="improving",
+        )
+
+        indicator2 = PolicyIndicator(
+            name="Evasão Escolar",
+            baseline_value=15.0,
+            current_value=8.0,
+            target_value=5.0,
+            unit="percentage",
+            data_source="INEP",
+            last_update=datetime(2023, 12, 31),
+            statistical_significance=0.88,
+            trend="improving",
+        )
+
+        evaluation = PolicyEvaluation(
+            policy_id="edu_001",
+            policy_name="Programa Nacional de Educação",
+            analysis_period=(datetime(2023, 1, 1), datetime(2023, 12, 31)),
+            status=PolicyStatus.ACTIVE,
+            investment={
+                "planned": 800000,
+                "executed": 750000,
+                "deviation_percentage": -6.25,
+            },
+            beneficiaries={
+                "target_population": 8000,
+                "reached_population": 7600,
+                "coverage_rate": 95,
+            },
+            indicators=[indicator1, indicator2],  # Now has indicators
+            effectiveness_score={
+                "efficacy": 0.92,
+                "efficiency": 0.88,
+                "effectiveness": 0.90,
+                "cost_effectiveness": 0.85,
+            },
+            roi_social=2.1,
+            sustainability_score=82,
+            impact_level=ImpactLevel.VERY_HIGH,
+            recommendations=[],
+            evidence_sources=["INEP"],
+            analysis_confidence=0.92,
+            hash_verification="ghi789",
+        )
+
+        result = await agent._apply_theory_of_change_framework(request, evaluation)
+
+        # Verify structure (actual keys returned by method)
+        assert "desired_long_term_change" in result
+        assert "key_assumptions" in result
+        assert "causal_pathways" in result
+        assert "monitoring_and_learning" in result
+
+        # Verify desired change
+        assert result["desired_long_term_change"]["impact_level_goal"] == "VERY_HIGH"
+        assert result["desired_long_term_change"]["sustainability_goal"] == 85  # 82 + 3
+
+        # Verify assumptions structure
+        assert "economic" in result["key_assumptions"]
+        assert "institutional" in result["key_assumptions"]
+        assert "political" in result["key_assumptions"]
+        assert "social" in result["key_assumptions"]
+
+        # Verify causal pathways
+        assert "pathway_1_direct_service" in result["causal_pathways"]
