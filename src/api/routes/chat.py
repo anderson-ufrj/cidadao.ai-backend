@@ -24,6 +24,11 @@ from src.core import get_logger, json_utils
 from src.core.config import get_settings
 from src.services.chat_data_integration import chat_data_integration
 from src.services.chat_service import IntentDetector, IntentType
+from src.services.maritaca_direct_service import (
+    MaritacaChatRequest,
+    MaritacaChatResponse,
+    get_maritaca_service,
+)
 
 
 # Import models for the simple fallback agent
@@ -1148,4 +1153,296 @@ async def debug_portal_status():
             if hasattr(chat_data_integration, "portal")
             else "Not initialized"
         ),
+    }
+
+
+# ============================================================================
+# DIRECT MARITACA.AI CHAT ENDPOINTS
+# ============================================================================
+
+
+@router.post("/direct/maritaca", response_model=MaritacaChatResponse)
+async def chat_with_maritaca_direct(
+    request: MaritacaChatRequest,
+    current_user=Depends(get_current_optional_user),
+) -> MaritacaChatResponse:
+    """
+    Direct chat completion with Maritaca.ai language model.
+
+    This endpoint provides unfiltered access to Maritaca.ai's language models
+    for testing, benchmarking, and partnership demonstrations.
+
+    **Use Cases**:
+    - Testing Maritaca.ai model capabilities
+    - Comparing responses with other LLM providers
+    - Demonstrating Brazilian Portuguese language understanding
+    - Partnership evaluation and benchmarking
+
+    **Features**:
+    - Direct access to Sabiá-3 and Sabiazinho-3 models
+    - Temperature control for response creativity
+    - Token limit configuration
+    - Non-streaming synchronous responses
+
+    **Request Example**:
+    ```json
+    {
+      "messages": [
+        {"role": "system", "content": "Você é um assistente útil."},
+        {"role": "user", "content": "Explique licitações públicas no Brasil"}
+      ],
+      "temperature": 0.7,
+      "max_tokens": 1024
+    }
+    ```
+
+    **Response Example**:
+    ```json
+    {
+      "id": "maritaca-1234567890",
+      "model": "sabiazinho-3",
+      "content": "Licitações públicas são processos...",
+      "usage": {
+        "prompt_tokens": 25,
+        "completion_tokens": 150,
+        "total_tokens": 175
+      },
+      "created_at": "2025-10-28T15:30:00Z",
+      "finish_reason": "stop"
+    }
+    ```
+
+    Args:
+        request: Chat request with messages and parameters
+        current_user: Optional authenticated user
+
+    Returns:
+        Chat completion response with content and metadata
+
+    Raises:
+        HTTPException: If Maritaca API is unavailable or request fails
+    """
+    try:
+        maritaca_service = get_maritaca_service()
+
+        logger.info(
+            f"Direct Maritaca chat request: {len(request.messages)} messages, "
+            f"user={current_user.id if current_user else 'anonymous'}"
+        )
+
+        response = await maritaca_service.chat_completion(request)
+
+        logger.info(
+            f"Direct Maritaca response: {len(response.content)} chars, "
+            f"tokens={response.usage.get('total_tokens') if response.usage else 'unknown'}"
+        )
+
+        return response
+
+    except Exception as e:
+        logger.error(f"Direct Maritaca chat failed: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Falha ao comunicar com Maritaca.ai: {str(e)}",
+        )
+
+
+@router.post("/direct/maritaca/stream")
+async def chat_with_maritaca_stream(
+    request: MaritacaChatRequest,
+    current_user=Depends(get_current_optional_user),
+):
+    """
+    Streaming chat completion with Maritaca.ai language model.
+
+    Returns Server-Sent Events (SSE) stream for real-time response generation.
+
+    **Use Cases**:
+    - Real-time chat interfaces
+    - Live response generation
+    - Better user experience for long responses
+
+    **Features**:
+    - Server-Sent Events (SSE) streaming
+    - Real-time token generation
+    - Progressive content delivery
+    - Lower perceived latency
+
+    **Example cURL**:
+    ```bash
+    curl -X POST "http://localhost:8000/api/v1/chat/direct/maritaca/stream" \\
+      -H "Content-Type: application/json" \\
+      -d '{
+        "messages": [
+          {"role": "user", "content": "Conte uma história sobre transparência"}
+        ],
+        "stream": true
+      }' \\
+      --no-buffer
+    ```
+
+    Args:
+        request: Chat request with messages and streaming enabled
+        current_user: Optional authenticated user
+
+    Returns:
+        StreamingResponse with SSE events
+
+    Raises:
+        HTTPException: If Maritaca API is unavailable or request fails
+    """
+
+    async def generate_stream():
+        """Generate SSE stream from Maritaca API."""
+        try:
+            maritaca_service = get_maritaca_service()
+
+            logger.info(
+                f"Direct Maritaca streaming: {len(request.messages)} messages, "
+                f"user={current_user.id if current_user else 'anonymous'}"
+            )
+
+            # Force streaming mode
+            request.stream = True
+
+            async for chunk in maritaca_service.chat_completion_stream(request):
+                # Send as SSE event
+                yield f"data: {json_utils.dumps({'content': chunk})}\n\n"
+
+            # Send completion marker
+            yield f"data: {json_utils.dumps({'done': True})}\n\n"
+
+            logger.info("Direct Maritaca streaming completed")
+
+        except Exception as e:
+            logger.error(f"Direct Maritaca streaming failed: {e}")
+            error_data = {"error": str(e), "done": True}
+            yield f"data: {json_utils.dumps(error_data)}\n\n"
+
+    return StreamingResponse(
+        generate_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",  # Disable nginx buffering
+        },
+    )
+
+
+@router.get("/direct/maritaca/health")
+async def maritaca_health_check() -> dict[str, Any]:
+    """
+    Check Maritaca.ai API health and availability.
+
+    Useful for monitoring, debugging, and partnership demonstrations.
+
+    **Response Example**:
+    ```json
+    {
+      "status": "healthy",
+      "model": "sabiazinho-3",
+      "api_base": "https://chat.maritaca.ai/api",
+      "response_received": true,
+      "checked_at": "2025-10-28T15:30:00Z"
+    }
+    ```
+
+    Returns:
+        Health status information
+
+    Raises:
+        HTTPException: If health check fails
+    """
+    try:
+        maritaca_service = get_maritaca_service()
+        health_status = await maritaca_service.health_check()
+        return health_status
+
+    except Exception as e:
+        logger.error(f"Maritaca health check failed: {e}")
+        raise HTTPException(
+            status_code=503,
+            detail=f"Maritaca API não disponível: {str(e)}",
+        )
+
+
+@router.get("/direct/maritaca/models")
+async def list_maritaca_models() -> dict[str, Any]:
+    """
+    List available Maritaca.ai models for frontend model selector.
+
+    Returns information about available models including:
+    - Model ID and name
+    - Context window size
+    - Recommended use cases
+    - Pricing tier
+    - Performance characteristics
+
+    **Response Example**:
+    ```json
+    {
+      "models": [
+        {
+          "id": "sabiazinho-3",
+          "name": "Sabiazinho-3",
+          "description": "Fast, efficient model for general use",
+          "context_window": 8192,
+          "recommended_for": ["chat", "quick_responses", "general_qa"],
+          "tier": "standard",
+          "is_default": true
+        },
+        {
+          "id": "sabia-3",
+          "name": "Sabiá-3",
+          "description": "Most capable model with advanced reasoning",
+          "context_window": 32768,
+          "recommended_for": ["analysis", "complex_reasoning", "long_context"],
+          "tier": "premium",
+          "is_default": false
+        }
+      ],
+      "default_model": "sabiazinho-3"
+    }
+    ```
+
+    Returns:
+        List of available models with metadata
+
+    Note:
+        Frontend can use this to populate a model selector dropdown
+    """
+    settings = get_settings()
+
+    models = [
+        {
+            "id": "sabiazinho-3",
+            "name": "Sabiazinho-3",
+            "description": "Modelo rápido e eficiente para uso geral",
+            "context_window": 8192,
+            "recommended_for": ["chat", "respostas_rapidas", "perguntas_gerais"],
+            "tier": "standard",
+            "is_default": settings.maritaca_model == "sabiazinho-3",
+            "icon": "⚡",
+            "color": "#00D9FF",
+        },
+        {
+            "id": "sabia-3",
+            "name": "Sabiá-3",
+            "description": "Modelo mais avançado com raciocínio complexo",
+            "context_window": 32768,
+            "recommended_for": ["analise", "raciocinio_complexo", "contexto_longo"],
+            "tier": "premium",
+            "is_default": settings.maritaca_model == "sabia-3",
+            "icon": "🧠",
+            "color": "#FF6B35",
+        },
+    ]
+
+    return {
+        "models": models,
+        "default_model": settings.maritaca_model,
+        "provider": "maritaca",
+        "provider_name": "Maritaca AI",
+        "provider_url": "https://maritaca.ai",
     }
