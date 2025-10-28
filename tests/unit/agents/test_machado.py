@@ -843,3 +843,25 @@ class TestResponseStructure:
         assert "transparency_score" in metrics
         assert "legal_compliance" in metrics
         assert "readability_grade" in metrics
+
+
+class TestMachadoCoverageBoost:
+    """Quick tests to boost coverage from 93.55% to 95%+."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_process_with_string_payload(self, agent, agent_context):
+        """Test process with non-dict payload - Line 206."""
+        # Test with string payload instead of dict
+        message = AgentMessage(
+            sender="test",
+            recipient="machado",
+            action="analyze_text",
+            payload="Simple text to analyze",  # String, not dict
+        )
+
+        response = await agent.process(message, agent_context)
+
+        # Should convert string to TextualAnalysisRequest
+        assert response.status == AgentStatus.COMPLETED
+        assert "document_type" in response.result
