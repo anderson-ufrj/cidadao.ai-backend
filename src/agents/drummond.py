@@ -1004,10 +1004,10 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
                 )
 
             elif action == "send_notification":
-                message_type = MessageType(message.content.get("message_type"))
-                content = message.content.get("content", {})
-                targets = message.content.get("targets", [])
-                priority = MessagePriority(message.content.get("priority", "normal"))
+                message_type = MessageType(payload.get("message_type"))
+                content = payload.get("content", {})
+                targets = payload.get("targets", [])
+                priority = MessagePriority(payload.get("priority", "normal"))
 
                 results = await self.send_notification(
                     message_type, content, targets, priority, context=context
@@ -1017,7 +1017,8 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
 
                 return AgentResponse(
                     agent_name=self.name,
-                    content={
+                    status=AgentStatus.COMPLETED,
+                    result={
                         "communication_results": {
                             "total_targets": len(targets),
                             "successful_sends": len(successful_sends),
@@ -1026,14 +1027,13 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
                         },
                         "status": "communication_completed",
                     },
-                    confidence=0.95 if successful_sends else 0.3,
                     metadata={"results_count": len(results)},
                 )
 
             elif action == "generate_report_summary":
-                report_data = message.content.get("report_data", {})
-                audience = message.content.get("target_audience", "general")
-                language = message.content.get("language", "pt-BR")
+                report_data = payload.get("report_data", {})
+                audience = payload.get("target_audience", "general")
+                language = payload.get("language", "pt-BR")
 
                 summary = await self.generate_report_summary(
                     report_data, audience, language, context
@@ -1041,14 +1041,14 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
 
                 return AgentResponse(
                     agent_name=self.name,
-                    content={"report_summary": summary, "status": "summary_generated"},
-                    confidence=0.85,
+                    status=AgentStatus.COMPLETED,
+                    result={"report_summary": summary, "status": "summary_generated"},
                 )
 
             elif action == "send_bulk_communication":
-                message_type = MessageType(message.content.get("message_type"))
-                content = message.content.get("content", {})
-                segments = message.content.get("target_segments", [])
+                message_type = MessageType(payload.get("message_type"))
+                content = payload.get("content", {})
+                segments = payload.get("target_segments", [])
 
                 bulk_result = await self.send_bulk_communication(
                     message_type, content, segments, context=context
@@ -1056,8 +1056,8 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
 
                 return AgentResponse(
                     agent_name=self.name,
-                    content={"bulk_campaign": bulk_result, "status": "bulk_scheduled"},
-                    confidence=0.90,
+                    status=AgentStatus.COMPLETED,
+                    result={"bulk_campaign": bulk_result, "status": "bulk_scheduled"},
                 )
 
             return AgentResponse(
