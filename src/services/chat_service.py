@@ -47,6 +47,14 @@ class IntentType(Enum):
     REPORT = "report"
     STATUS = "status"
 
+    # Specialized agent intents
+    TEXT_ANALYSIS = "text_analysis"  # For Machado
+    LEGAL_COMPLIANCE = "legal_compliance"  # For Bonifácio
+    SECURITY_AUDIT = "security_audit"  # For Maria Quitéria
+    VISUALIZATION = "visualization"  # For Oscar Niemeyer
+    STATISTICAL = "statistical"  # For Anita
+    FRAUD_DETECTION = "fraud_detection"  # For Oxóssi
+
     # Conversational intents
     GREETING = "greeting"
     CONVERSATION = "conversation"
@@ -71,7 +79,7 @@ class Intent:
     confidence: float
     suggested_agent: str
 
-    def dict(self):
+    def dict(self) -> dict[str, Any]:
         return {
             "type": self.type.value,
             "entities": self.entities,
@@ -91,7 +99,7 @@ class ChatSession:
     current_investigation_id: str | None = None
     context: dict[str, Any] = None
 
-    def to_dict(self):
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "user_id": self.user_id,
@@ -105,7 +113,7 @@ class ChatSession:
 class IntentDetector:
     """Detects user intent from messages"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         # Intent patterns in Portuguese
         self.patterns = {
             IntentType.INVESTIGATE: [
@@ -155,6 +163,70 @@ class IntentDetector:
                 r"progresso\s+",
                 r"como\s+est[áa]",
                 r"andamento\s+",
+            ],
+            IntentType.TEXT_ANALYSIS: [
+                r"analis[ae]r?\s+texto",
+                r"analis[ae]r?\s+contrato",
+                r"verificar?\s+cl[áa]usulas",
+                r"ler\s+contrato",
+                r"entender\s+documento",
+                r"interpretar\s+",
+                r"analis[ae]r?\s+documento",
+                r"revisar?\s+texto",
+                r"extrair?\s+informa[çc][õo]es",
+            ],
+            IntentType.LEGAL_COMPLIANCE: [
+                r"conformidade\s+legal",
+                r"legalidade\s+",
+                r"lei\s+\d",
+                r"verificar?\s+lei",
+                r"est[áa]\s+legal",
+                r"conforme\s+a\s+lei",
+                r"legisla[çc][ãa]o",
+                r"normas?\s+legais",
+                r"regulamenta[çc][ãa]o",
+            ],
+            IntentType.SECURITY_AUDIT: [
+                r"auditoria\s+de\s+seguran[çc]a",
+                r"verificar?\s+seguran[çc]a",
+                r"vulne?r",
+                r"seguran[çc]a\s+dos\s+dados",
+                r"ataques?\s+",
+                r"brechas?\s+",
+                r"riscos?\s+de\s+seguran[çc]a",
+                r"an[áa]lise\s+de\s+seguran[çc]a",
+            ],
+            IntentType.VISUALIZATION: [
+                r"gr[áa]ficos?",
+                r"visualiza[çc][ãa]o",
+                r"criar?\s+gr[áa]fico",
+                r"mostrar?\s+gr[áa]fico",
+                r"plotar",
+                r"desenhar\s+",
+                r"dashboard",
+                r"representa[çc][ãa]o\s+visual",
+            ],
+            IntentType.STATISTICAL: [
+                r"estat[íi]sticas?",
+                r"m[ée]dia",
+                r"mediana",
+                r"desvio\s+padr[ãa]o",
+                r"correla[çc][ãa]o",
+                r"distribui[çc][ãa]o",
+                r"an[áa]lise\s+estat[íi]stica",
+                r"percentual",
+                r"propor[çc][ãa]o",
+            ],
+            IntentType.FRAUD_DETECTION: [
+                r"fraude",
+                r"fraudulento",
+                r"esquema",
+                r"corrup[çc][ãa]o",
+                r"superfaturamento",
+                r"favorecimento",
+                r"direcionamento",
+                r"cartel",
+                r"conluio",
             ],
             IntentType.HELP: [
                 r"como\s+funciona",
@@ -361,8 +433,9 @@ class IntentDetector:
                         value *= 1_000
 
                     values.append(value)
-                except:
-                    pass
+                except (ValueError, AttributeError):
+                    # Ignore invalid numeric formats
+                    continue
 
         return values
 
@@ -380,6 +453,13 @@ class IntentDetector:
             IntentType.ANALYZE: "anita",  # Analyst for patterns
             IntentType.REPORT: "tiradentes",  # Reporter for documents
             IntentType.STATUS: "abaporu",  # Master for status
+            # Specialized agent routing
+            IntentType.TEXT_ANALYSIS: "machado",  # Machado de Assis for textual analysis
+            IntentType.LEGAL_COMPLIANCE: "bonifacio",  # José Bonifácio for legal compliance
+            IntentType.SECURITY_AUDIT: "maria_quiteria",  # Maria Quitéria for security
+            IntentType.VISUALIZATION: "oscar_niemeyer",  # Oscar Niemeyer for graphs
+            IntentType.STATISTICAL: "anita",  # Anita Garibaldi for statistics
+            IntentType.FRAUD_DETECTION: "oxossi",  # Oxóssi for fraud detection
             # Conversational routing to Drummond
             IntentType.GREETING: "drummond",  # Carlos handles greetings
             IntentType.CONVERSATION: "drummond",  # Carlos handles conversation
@@ -399,7 +479,7 @@ class IntentDetector:
 class ChatService:
     """Service for managing chat sessions and conversations"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.cache = cache_service
         self.sessions: dict[str, ChatSession] = {}
         self.messages: dict[str, list[dict]] = defaultdict(list)
@@ -435,7 +515,7 @@ class ChatService:
 
     async def save_message(
         self, session_id: str, role: str, content: str, agent_id: str | None = None
-    ):
+    ) -> None:
         """Save message to session history"""
         message = {
             "role": role,
@@ -457,7 +537,7 @@ class ChatService:
         messages = self.messages.get(session_id, [])
         return messages[-limit:] if len(messages) > limit else messages
 
-    async def clear_session(self, session_id: str):
+    async def clear_session(self, session_id: str) -> None:
         """Clear session data"""
         self.sessions.pop(session_id, None)
         self.messages.pop(session_id, None)
@@ -472,13 +552,13 @@ class ChatService:
 
     async def update_session_investigation(
         self, session_id: str, investigation_id: str
-    ):
+    ) -> None:
         """Update session with current investigation"""
         if session_id in self.sessions:
             self.sessions[session_id].current_investigation_id = investigation_id
             self.sessions[session_id].last_activity = datetime.utcnow()
 
-    def _ensure_agents_initialized(self):
+    def _ensure_agents_initialized(self) -> None:
         """Initialize agents on first use (lazy loading)"""
         if self._agents_initialized:
             return
