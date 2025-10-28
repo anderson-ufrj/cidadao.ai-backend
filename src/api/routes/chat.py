@@ -66,6 +66,78 @@ except Exception as e:
 # Services are already initialized
 intent_detector = IntentDetector()
 
+# Agent name to import path mapping
+AGENT_MAP = {
+    "drummond": ("src.agents.drummond", "DrummondAgent"),
+    "zumbi": ("src.agents.zumbi", "ZumbiAgent"),
+    "abaporu": ("src.agents.abaporu", "AbaporuAgent"),
+    "machado": ("src.agents.machado", "MachadoAgent"),
+    "bonifacio": ("src.agents.bonifacio", "BonifacioAgent"),
+    "maria_quiteria": ("src.agents.maria_quiteria", "MariaQuiteriaAgent"),
+    "tiradentes": ("src.agents.tiradentes", "TiradentesAgent"),
+    "oscar_niemeyer": ("src.agents.oscar_niemeyer", "OscarNiemeyerAgent"),
+    "anita": ("src.agents.anita", "AnitaAgent"),
+    "oxossi": ("src.agents.oxossi", "OxossiAgent"),
+}
+
+# Cache for loaded agents
+_agent_cache: dict[str, Any] = {}
+
+
+async def get_agent_by_name(agent_name: str) -> Any | None:
+    """
+    Get agent instance by name with lazy loading.
+
+    Args:
+        agent_name: Name of the agent (e.g., 'machado', 'bonifacio')
+
+    Returns:
+        Agent instance or None if not available
+    """
+    # Check cache first
+    if agent_name in _agent_cache:
+        return _agent_cache[agent_name]
+
+    # Special handling for Drummond (already has a factory)
+    if agent_name == "drummond":
+        try:
+            agent = await get_drummond_agent()
+            if agent:
+                _agent_cache[agent_name] = agent
+            return agent
+        except Exception as e:
+            logger.error(f"Error loading Drummond agent: {e}")
+            return None
+
+    # Get agent import info
+    if agent_name not in AGENT_MAP:
+        logger.warning(f"Unknown agent: {agent_name}")
+        return None
+
+    module_path, class_name = AGENT_MAP[agent_name]
+
+    try:
+        # Dynamic import
+        import importlib
+
+        module = importlib.import_module(module_path)
+        agent_class = getattr(module, class_name)
+
+        # Create instance
+        agent = agent_class()
+        _agent_cache[agent_name] = agent
+
+        logger.info(f"Loaded agent: {agent_name} ({class_name})")
+        return agent
+
+    except Exception as e:
+        logger.error(f"Error loading agent {agent_name}: {type(e).__name__}: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return None
+
+
 # Agents will be initialized lazily to avoid import-time errors
 master_agent = None
 
