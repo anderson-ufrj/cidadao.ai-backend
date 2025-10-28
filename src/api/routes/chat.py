@@ -74,9 +74,12 @@ AGENT_MAP = {
     "machado": ("src.agents.machado", "MachadoAgent"),
     "bonifacio": ("src.agents.bonifacio", "BonifacioAgent"),
     "maria_quiteria": ("src.agents.maria_quiteria", "MariaQuiteriaAgent"),
-    "tiradentes": ("src.agents.tiradentes", "TiradentesAgent"),
+    "tiradentes": (
+        "src.agents.tiradentes",
+        "ReporterAgent",
+    ),  # Fixed: was TiradentesAgent
     "oscar_niemeyer": ("src.agents.oscar_niemeyer", "OscarNiemeyerAgent"),
-    "anita": ("src.agents.anita", "AnitaAgent"),
+    "anita": ("src.agents.anita", "AnalystAgent"),  # Fixed: was AnitaAgent
     "oxossi": ("src.agents.oxossi", "OxossiAgent"),
 }
 
