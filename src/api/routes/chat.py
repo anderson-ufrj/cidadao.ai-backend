@@ -263,24 +263,11 @@ async def send_message(
             except Exception as e:
                 logger.warning(f"Portal da Transparência integration failed: {e}")
 
-        # Determine target agent based on intent
-        if intent.type in [
-            IntentType.GREETING,
-            IntentType.CONVERSATION,
-            IntentType.HELP_REQUEST,
-            IntentType.ABOUT_SYSTEM,
-            IntentType.SMALLTALK,
-            IntentType.THANKS,
-            IntentType.GOODBYE,
-        ]:
-            target_agent = "drummond"
-            logger.info(f"Routing to Drummond for intent type: {intent.type}")
-        elif intent.type == IntentType.INVESTIGATE:
-            target_agent = "abaporu"
-            logger.info(f"Routing to Abaporu for intent type: {intent.type}")
-        else:
-            target_agent = "abaporu"  # Default to master agent
-            logger.info(f"Defaulting to Abaporu for intent type: {intent.type}")
+        # Determine target agent based on intent (uses _get_agent_for_intent mapping)
+        target_agent = intent.suggested_agent
+        logger.info(
+            f"Routing {intent.type.value} → {target_agent} (confidence: {intent.confidence})"
+        )
 
         # Create agent message with Portal data if available
         payload_data = {
@@ -491,6 +478,49 @@ async def send_message(
                         "error": str(e),
                     },
                     metadata={"confidence": 0.0},
+                )
+                agent_id = "system"
+                agent_name = "Sistema"
+        elif target_agent in AGENT_MAP:
+            # Handle specialized agents (machado, bonifacio, maria_quiteria, etc.)
+            try:
+                logger.info(f"Loading specialized agent: {target_agent}")
+                specialized_agent = await get_agent_by_name(target_agent)
+
+                if specialized_agent:
+                    # Process with specialized agent
+                    response = await specialized_agent.process(
+                        agent_message, agent_context
+                    )
+                    agent_id = target_agent
+                    agent_name = getattr(
+                        specialized_agent, "name", target_agent.title()
+                    )
+                    logger.info(
+                        f"Specialized agent {target_agent} completed successfully"
+                    )
+                else:
+                    # Agent not available - fallback to error
+                    raise Exception(f"{target_agent} agent not available")
+
+            except Exception as e:
+                logger.error(
+                    f"Error processing with {target_agent}: {type(e).__name__}: {e}"
+                )
+                import traceback
+
+                traceback.print_exc()
+
+                # Fallback response
+                response = AgentResponse(
+                    agent_name="Sistema",
+                    status=AgentStatus.ERROR,
+                    result={
+                        "message": f"Desculpe, o agente {target_agent} não está disponível no momento. Por favor, tente novamente.",
+                        "error": str(e),
+                        "agent_requested": target_agent,
+                    },
+                    metadata={"confidence": 0.0, "fallback": True},
                 )
                 agent_id = "system"
                 agent_name = "Sistema"
