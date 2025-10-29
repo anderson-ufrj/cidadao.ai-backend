@@ -1,7 +1,7 @@
 # Local archive - planning and internal docs
 .local-archive/
 .archive/
-archive/
+# Note: docs/archive/ is intentionally versioned for historical reference
 
 # Logs and temporary files
 logs/
@@ -384,8 +384,8 @@ next-steps.md
 ROADMAP_MELHORIAS_2025.md
 *ROADMAP*.md
 
-# Local archive - internal reports and notes
+# Local archive - internal reports and notes (temporary files only)
 .local-archive/
 local-archive/
-*-archive/
+# Note: docs/archive/ is versioned, *-archive/ pattern removed to allow it
 coverage_output.txt
