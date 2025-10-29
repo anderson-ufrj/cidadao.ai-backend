@@ -181,7 +181,8 @@ class AnalystAgent(BaseAgent):
             )
 
             # Parse analysis request
-            if message.action == "analyze":
+            if message.action in ["analyze", "process_chat"]:
+                # Support both 'analyze' (direct) and 'process_chat' (from chat API)
                 request = AnalysisRequest(**message.payload)
             else:
                 raise AgentExecutionError(
