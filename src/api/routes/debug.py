@@ -749,12 +749,21 @@ async def database_config() -> dict[str, Any]:
         engine = _get_engine()
 
         async with engine.begin() as conn:
-            # Check if investigations table exists
-            def check_table(connection):
-                inspector = inspect(connection.sync_connection)
-                return "investigations" in inspector.get_table_names()
-
-            table_exists = await conn.run_sync(check_table)
+            # Check if investigations table exists using direct query
+            try:
+                check_result = await conn.execute(
+                    text(
+                        "SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'investigations')"
+                    )
+                )
+                table_exists = check_result.scalar()
+            except Exception:
+                # Fallback for SQLite
+                try:
+                    await conn.execute(text("SELECT 1 FROM investigations LIMIT 1"))
+                    table_exists = True
+                except Exception:
+                    table_exists = False
 
             result["tables"]["investigations_exists"] = table_exists
 
