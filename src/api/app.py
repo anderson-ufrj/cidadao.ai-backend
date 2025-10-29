@@ -361,7 +361,7 @@ if os.path.exists(static_path):
 app.include_router(health.router, prefix="/health", tags=["Health Check"])
 
 # Debug endpoints for troubleshooting
-app.include_router(debug.router, tags=["Debug"])
+app.include_router(debug.router, prefix="/api/v1/debug", tags=["Debug"])
 
 app.include_router(auth.router, tags=["Authentication"])
 
