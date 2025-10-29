@@ -68,7 +68,7 @@ async def run_zumbi_investigation(
                 session_id=session_id,
                 query=query,
                 data_source="contratos",
-                status="processing",
+                status="running",
                 filters={
                     "organization_codes": organization_codes,
                     "enable_open_data": enable_open_data,
