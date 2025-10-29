@@ -170,7 +170,7 @@ async def run_zumbi_investigation(
                     inv.total_records_analyzed = investigation_data["records_analyzed"]
                     inv.results = investigation_data["anomalies"]
                     inv.completed_at = datetime.utcnow()
-                    inv.progress = 100.0
+                    inv.progress = 1.0
                     await db.commit()
                     logger.info(
                         f"✅ Updated investigation {investigation.id} with results: {inv.anomalies_found} anomalies, {inv.total_records_analyzed} records"
