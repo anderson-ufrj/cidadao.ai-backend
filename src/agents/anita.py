@@ -185,7 +185,8 @@ class AnalystAgent(BaseAgent):
                 request = AnalysisRequest(**message.payload)
             else:
                 raise AgentExecutionError(
-                    f"Unsupported action: {message.action}", agent_id=self.name
+                    f"Unsupported action: {message.action}",
+                    details={"agent_id": self.name, "action": message.action},
                 )
 
             # Fetch data for analysis
