@@ -268,8 +268,10 @@ prometheus_data/
 docs-internal/
 docs/internal/
 
-# Claude Code artifacts
+# Claude Code artifacts (local development only)
 .claude/
+CLAUDE.md
+**/CLAUDE.md
 
 # Local planning and notes
 .local/
