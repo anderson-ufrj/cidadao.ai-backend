@@ -56,6 +56,36 @@ async def run_zumbi_investigation(
         Investigation results
     """
     try:
+        # CREATE AND SAVE INVESTIGATION TO DATABASE
+        from src.db.simple_session import get_db_session
+        from src.models.investigation import Investigation
+
+        # Create investigation record
+        investigation = None
+        async with get_db_session() as db:
+            investigation = Investigation(
+                user_id=user_id or "anonymous",
+                session_id=session_id,
+                query=query,
+                data_source="contratos",
+                status="processing",
+                filters={
+                    "organization_codes": organization_codes,
+                    "enable_open_data": enable_open_data,
+                },
+                anomaly_types=[
+                    "price_anomaly",
+                    "vendor_concentration",
+                    "temporal_patterns",
+                ],
+                progress=0.0,
+            )
+            db.add(investigation)
+            await db.commit()
+            await db.refresh(investigation)
+
+        logger.info(f"✅ Created investigation {investigation.id} in database")
+
         # Get agent instance
         agent = await get_zumbi_agent()
 
@@ -72,9 +102,9 @@ async def run_zumbi_investigation(
             ],
         )
 
-        # Create context
+        # Create context with real investigation ID
         context = AgentContext(
-            investigation_id=f"chat_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            investigation_id=str(investigation.id),
             user_id=user_id or "anonymous",
             session_id=session_id or "default",
         )
@@ -89,7 +119,7 @@ async def run_zumbi_investigation(
             payload=investigation_request.model_dump(),
         )
 
-        logger.info(f"Starting Zumbi investigation: {query}")
+        logger.info(f"Starting Zumbi investigation: {query} (ID: {investigation.id})")
 
         # Process investigation
         response = await agent.process(message, context)
@@ -126,10 +156,45 @@ async def run_zumbi_investigation(
 
                 investigation_data["related_datasets"] = list(datasets_found)
 
+            # UPDATE INVESTIGATION RECORD WITH RESULTS
+            from sqlalchemy import select
+
+            async with get_db_session() as db:
+                result_query = await db.execute(
+                    select(Investigation).where(Investigation.id == investigation.id)
+                )
+                inv = result_query.scalar_one_or_none()
+                if inv:
+                    inv.status = "completed"
+                    inv.anomalies_found = investigation_data["anomalies_found"]
+                    inv.total_records_analyzed = investigation_data["records_analyzed"]
+                    inv.results = investigation_data["anomalies"]
+                    inv.completed_at = datetime.utcnow()
+                    inv.progress = 100.0
+                    await db.commit()
+                    logger.info(
+                        f"✅ Updated investigation {investigation.id} with results: {inv.anomalies_found} anomalies, {inv.total_records_analyzed} records"
+                    )
+
             return investigation_data
 
         else:
             logger.error(f"Zumbi investigation failed: {response.error}")
+
+            # UPDATE INVESTIGATION STATUS TO ERROR
+            from sqlalchemy import select
+
+            async with get_db_session() as db:
+                result_query = await db.execute(
+                    select(Investigation).where(Investigation.id == investigation.id)
+                )
+                inv = result_query.scalar_one_or_none()
+                if inv:
+                    inv.status = "error"
+                    inv.completed_at = datetime.utcnow()
+                    await db.commit()
+                    logger.info(f"❌ Marked investigation {investigation.id} as error")
+
             return {
                 "status": "error",
                 "error": response.error or "Investigation failed",
@@ -139,6 +204,29 @@ async def run_zumbi_investigation(
 
     except Exception as e:
         logger.error(f"Error in Zumbi investigation: {e}")
+
+        # UPDATE INVESTIGATION STATUS TO ERROR (if investigation was created)
+        if investigation is not None:
+            try:
+                from sqlalchemy import select
+
+                async with get_db_session() as db:
+                    result_query = await db.execute(
+                        select(Investigation).where(
+                            Investigation.id == investigation.id
+                        )
+                    )
+                    inv = result_query.scalar_one_or_none()
+                    if inv:
+                        inv.status = "error"
+                        inv.completed_at = datetime.utcnow()
+                        await db.commit()
+                        logger.info(
+                            f"❌ Marked investigation {investigation.id} as error due to exception"
+                        )
+            except Exception as db_error:
+                logger.error(f"Failed to update investigation status: {db_error}")
+
         return {
             "status": "error",
             "error": str(e),
