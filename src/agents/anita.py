@@ -183,7 +183,11 @@ class AnalystAgent(BaseAgent):
             # Parse analysis request
             if message.action in ["analyze", "process_chat"]:
                 # Support both 'analyze' (direct) and 'process_chat' (from chat API)
-                request = AnalysisRequest(**message.payload)
+                # For process_chat, extract query from user_message if needed
+                payload = message.payload.copy()
+                if "user_message" in payload and "query" not in payload:
+                    payload["query"] = payload.pop("user_message")
+                request = AnalysisRequest(**payload)
             else:
                 raise AgentExecutionError(
                     f"Unsupported action: {message.action}",
