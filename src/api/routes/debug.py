@@ -12,7 +12,7 @@ from fastapi import APIRouter
 
 from src.core import settings
 
-router = APIRouter(prefix="/debug", tags=["debug"])
+router = APIRouter(tags=["debug"])
 
 
 @router.get("/drummond-status")
@@ -744,7 +744,7 @@ async def database_config() -> dict[str, Any]:
         }
 
         # Try to connect and check tables
-        from sqlalchemy import inspect, text
+        from sqlalchemy import text
 
         engine = _get_engine()
 
