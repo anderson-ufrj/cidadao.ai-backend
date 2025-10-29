@@ -313,7 +313,8 @@ async def list_all_investigations() -> dict[str, Any]:
         pool = await get_db_pool()
 
         async with pool.acquire() as conn:
-            rows = await conn.fetch("""
+            rows = await conn.fetch(
+                """
                 SELECT
                     id,
                     user_id,
@@ -329,33 +330,50 @@ async def list_all_investigations() -> dict[str, Any]:
                 FROM investigations
                 ORDER BY created_at DESC
                 LIMIT 10
-            """)
+            """
+            )
 
             for row in rows:
-                result["investigations"].append({
-                    "id": row["id"],
-                    "user_id": row["user_id"],
-                    "query": row["query"][:100],
-                    "status": row["status"],
-                    "progress": row["progress"] if "progress" in row.keys() else None,
-                    "current_phase": row["current_phase"] if "current_phase" in row.keys() else None,
-                    "created_at": str(row["created_at"]),
-                    "completed_at": str(row["completed_at"]) if row["completed_at"] else None,
-                    "anomalies_found": row["anomalies_found"],
-                    "records_processed": row["records_processed"] if "records_processed" in row.keys() else None,
-                    "confidence_score": row["confidence_score"],
-                })
+                result["investigations"].append(
+                    {
+                        "id": row["id"],
+                        "user_id": row["user_id"],
+                        "query": row["query"][:100],
+                        "status": row["status"],
+                        "progress": (
+                            row["progress"] if "progress" in row.keys() else None
+                        ),
+                        "current_phase": (
+                            row["current_phase"]
+                            if "current_phase" in row.keys()
+                            else None
+                        ),
+                        "created_at": str(row["created_at"]),
+                        "completed_at": (
+                            str(row["completed_at"]) if row["completed_at"] else None
+                        ),
+                        "anomalies_found": row["anomalies_found"],
+                        "records_processed": (
+                            row["records_processed"]
+                            if "records_processed" in row.keys()
+                            else None
+                        ),
+                        "confidence_score": row["confidence_score"],
+                    }
+                )
 
         result["status"] = "completed"
         result["total"] = len(result["investigations"])
 
     except Exception as e:
         result["status"] = "error"
-        result["errors"].append({
-            "error": str(e),
-            "type": type(e).__name__,
-            "traceback": traceback.format_exc(),
-        })
+        result["errors"].append(
+            {
+                "error": str(e),
+                "type": type(e).__name__,
+                "traceback": traceback.format_exc(),
+            }
+        )
 
     return result
 
@@ -392,7 +410,9 @@ async def run_migration() -> dict[str, Any]:
         import subprocess
 
         # Check current migration version
-        alembic_cmd = "venv/bin/alembic" if os.path.exists("venv/bin/alembic") else "alembic"
+        alembic_cmd = (
+            "venv/bin/alembic" if os.path.exists("venv/bin/alembic") else "alembic"
+        )
 
         current_cmd = subprocess.run(
             [alembic_cmd, "current"],
@@ -441,7 +461,12 @@ async def run_migration() -> dict[str, Any]:
 async def check_database_constraints() -> dict[str, Any]:
     """Check database constraints for investigations table and list recent investigations."""
 
-    result = {"status": "started", "constraints": [], "investigations": [], "errors": []}
+    result = {
+        "status": "started",
+        "constraints": [],
+        "investigations": [],
+        "errors": [],
+    }
 
     try:
         from src.infrastructure.database import get_db_pool
@@ -468,7 +493,9 @@ async def check_database_constraints() -> dict[str, Any]:
                 {"check": "constraints", "error": str(e), "type": type(e).__name__}
             )
 
-        result["status"] = "completed" if not result["errors"] else "completed_with_errors"
+        result["status"] = (
+            "completed" if not result["errors"] else "completed_with_errors"
+        )
 
     except Exception as e:
         result["status"] = "error"
@@ -497,38 +524,58 @@ async def add_investigation_columns() -> dict[str, Any]:
 
         # SQL commands to add missing columns
         columns_to_add = [
-            ("progress", "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS progress FLOAT DEFAULT 0.0"),
-            ("current_phase", "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS current_phase VARCHAR(100) DEFAULT 'pending'"),
-            ("summary", "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS summary TEXT"),
-            ("records_processed", "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS records_processed INTEGER DEFAULT 0"),
+            (
+                "progress",
+                "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS progress FLOAT DEFAULT 0.0",
+            ),
+            (
+                "current_phase",
+                "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS current_phase VARCHAR(100) DEFAULT 'pending'",
+            ),
+            (
+                "summary",
+                "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS summary TEXT",
+            ),
+            (
+                "records_processed",
+                "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS records_processed INTEGER DEFAULT 0",
+            ),
         ]
 
         async with pool.acquire() as conn:
             for column_name, sql in columns_to_add:
                 try:
                     await conn.execute(sql)
-                    result["columns_added"].append({
-                        "column": column_name,
-                        "status": "success",
-                        "message": f"Column '{column_name}' added successfully"
-                    })
+                    result["columns_added"].append(
+                        {
+                            "column": column_name,
+                            "status": "success",
+                            "message": f"Column '{column_name}' added successfully",
+                        }
+                    )
                 except Exception as e:
-                    result["errors"].append({
-                        "column": column_name,
-                        "error": str(e),
-                        "type": type(e).__name__
-                    })
+                    result["errors"].append(
+                        {
+                            "column": column_name,
+                            "error": str(e),
+                            "type": type(e).__name__,
+                        }
+                    )
 
-        result["status"] = "completed" if not result["errors"] else "completed_with_errors"
+        result["status"] = (
+            "completed" if not result["errors"] else "completed_with_errors"
+        )
 
     except Exception as e:
         result["status"] = "error"
-        result["errors"].append({
-            "phase": "database_connection",
-            "error": str(e),
-            "type": type(e).__name__,
-            "traceback": traceback.format_exc(),
-        })
+        result["errors"].append(
+            {
+                "phase": "database_connection",
+                "error": str(e),
+                "type": type(e).__name__,
+                "traceback": traceback.format_exc(),
+            }
+        )
 
     return result
 
@@ -588,7 +635,11 @@ async def fix_database_schema() -> dict[str, Any]:
                     )
                 else:
                     result["errors"].append(
-                        {"fix": "status_constraint", "error": "No status constraint found", "type": "NotFound"}
+                        {
+                            "fix": "status_constraint",
+                            "error": "No status constraint found",
+                            "type": "NotFound",
+                        }
                     )
         except Exception as e:
             result["errors"].append(
@@ -631,5 +682,122 @@ async def fix_database_schema() -> dict[str, Any]:
                 "traceback": traceback.format_exc(),
             }
         )
+
+    return result
+
+
+@router.get("/database-config")
+async def database_config() -> dict[str, Any]:
+    """
+    Check database configuration and connection status.
+
+    Returns information about:
+    - DATABASE_URL configuration
+    - Database type (PostgreSQL vs SQLite)
+    - Connection status
+    - Table existence
+    """
+    import os
+
+    from src.db.simple_session import DATABASE_URL, _get_engine
+
+    result = {
+        "status": "checking",
+        "environment": {},
+        "database": {},
+        "tables": {},
+        "investigations": {},
+    }
+
+    try:
+        # Check environment variables
+        raw_db_url = os.getenv("DATABASE_URL")
+        result["environment"] = {
+            "DATABASE_URL_configured": raw_db_url is not None,
+            "DATABASE_URL_type": (
+                "PostgreSQL"
+                if raw_db_url and "postgres" in raw_db_url
+                else "SQLite" if raw_db_url else "Not configured"
+            ),
+            "DATABASE_URL_preview": (
+                f"{raw_db_url[:20]}...{raw_db_url[-20:]}"
+                if raw_db_url and len(raw_db_url) > 60
+                else "Not set"
+            ),
+        }
+
+        # Check actual DATABASE_URL being used
+        result["database"] = {
+            "active_url_preview": (
+                f"{DATABASE_URL[:30]}..." if len(DATABASE_URL) > 30 else DATABASE_URL
+            ),
+            "database_type": (
+                "PostgreSQL"
+                if "postgres" in DATABASE_URL
+                else "SQLite" if "sqlite" in DATABASE_URL else "Unknown"
+            ),
+            "async_driver": (
+                "asyncpg"
+                if "asyncpg" in DATABASE_URL
+                else "aiosqlite" if "aiosqlite" in DATABASE_URL else "Unknown"
+            ),
+        }
+
+        # Try to connect and check tables
+        from sqlalchemy import inspect, text
+
+        engine = _get_engine()
+
+        async with engine.begin() as conn:
+            # Check if investigations table exists
+            def check_table(connection):
+                inspector = inspect(connection.sync_connection)
+                return "investigations" in inspector.get_table_names()
+
+            table_exists = await conn.run_sync(check_table)
+
+            result["tables"]["investigations_exists"] = table_exists
+
+            if table_exists:
+                # Count investigations
+                count_result = await conn.execute(
+                    text("SELECT COUNT(*) as count FROM investigations")
+                )
+                row = count_result.fetchone()
+                investigation_count = row[0] if row else 0
+
+                # Get recent investigations
+                recent_result = await conn.execute(
+                    text(
+                        "SELECT id, status, created_at FROM investigations ORDER BY created_at DESC LIMIT 5"
+                    )
+                )
+                recent = [
+                    {"id": r[0], "status": r[1], "created_at": str(r[2])}
+                    for r in recent_result.fetchall()
+                ]
+
+                result["investigations"] = {
+                    "total_count": investigation_count,
+                    "recent_investigations": recent,
+                    "table_accessible": True,
+                }
+            else:
+                result["investigations"] = {
+                    "error": "investigations table does not exist",
+                    "suggestion": "Run database migrations: alembic upgrade head",
+                }
+
+        result["status"] = "success"
+        result["connection_test"] = "✅ Connection successful"
+
+    except Exception as e:
+        result["status"] = "error"
+        result["error"] = {
+            "message": str(e),
+            "type": type(e).__name__,
+            "traceback": traceback.format_exc(),
+        }
+        result["connection_test"] = "❌ Connection failed"
 
     return result
