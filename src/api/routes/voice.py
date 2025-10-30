@@ -10,8 +10,8 @@ This module provides RESTful endpoints for:
 All voice features are optimized for Brazilian Portuguese.
 """
 
+from collections.abc import AsyncGenerator
 from io import BytesIO
-from typing import AsyncGenerator
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
@@ -325,12 +325,76 @@ async def voice_conversation(request: ConversationRequest) -> ConversationRespon
             return_audio=request.return_audio,
         )
 
-        # TODO: Integrate with agent pool to process query
-        # For now, return placeholder response
-        response_text = (
-            f"Recebi sua pergunta: '{request.query}'. "
-            "A integração com agentes será implementada em breve."
+        # Integrate with agent pool to process query
+        from src.agents.deodoro import AgentContext
+        from src.agents.drummond import DrummondAgent
+        from src.agents.simple_agent_pool import get_agent_pool
+        from src.memory.conversational import ConversationContext
+
+        # Get agent pool
+        agent_pool = await get_agent_pool()
+
+        # Create agent context
+        context = AgentContext(
+            user_id="voice_user",
+            session_id=f"voice_session_{int(time.time())}",
+            request_id=f"voice_req_{int(time.time())}",
         )
+
+        # Process with Drummond agent for conversational responses
+        response_text = ""
+        try:
+            async with agent_pool.acquire(DrummondAgent, context) as agent:
+                # Create conversation context
+                conv_context = ConversationContext(
+                    session_id=context.session_id,
+                    user_id=context.user_id,
+                )
+
+                # Process conversation with Drummond
+                result = await agent.process_conversation(
+                    message=request.query, context=conv_context, intent=None
+                )
+
+                # Extract response text
+                response_text = result.get(
+                    "response", "Desculpe, não consegui processar sua pergunta."
+                )
+
+                logger.info(
+                    "agent_processing_complete",
+                    response_length=len(response_text),
+                )
+
+        except Exception as agent_error:
+            logger.error(
+                "agent_processing_failed",
+                error=str(agent_error),
+                exc_info=True,
+            )
+            # Fallback response
+            response_text = (
+                "Desculpe, houve um problema ao processar sua pergunta. "
+                "Por favor, tente novamente."
+            )
+
+        # Generate audio if requested
+        audio_available = False
+        if request.return_audio and response_text:
+            try:
+                voice_service = get_voice_service()
+                await voice_service.synthesize_speech(
+                    text=response_text, voice_name=request.voice_name
+                )
+                audio_available = True
+                logger.info("tts_synthesis_complete")
+            except Exception as tts_error:
+                logger.error(
+                    "tts_synthesis_failed",
+                    error=str(tts_error),
+                    exc_info=True,
+                )
+                # Continue without audio
 
         processing_time_ms = (time.time() - start_time) * 1000
 
@@ -338,12 +402,13 @@ async def voice_conversation(request: ConversationRequest) -> ConversationRespon
             "voice_conversation_success",
             processing_time_ms=processing_time_ms,
             response_length=len(response_text),
+            audio_generated=audio_available,
         )
 
         return ConversationResponse(
             query=request.query,
             response_text=response_text,
-            audio_available=False,  # TODO: Generate audio with TTS
+            audio_available=audio_available,
             audio_format="mp3",
             processing_time_ms=processing_time_ms,
         )
@@ -389,12 +454,12 @@ async def voice_conversation_stream(
             )
 
             # Send initial event
-            yield f"event: start\ndata: {{'status': 'processing'}}\n\n"
+            yield "event: start\ndata: {'status': 'processing'}\n\n"
 
             # TODO: Integrate with agent pool for real processing
             # For now, send placeholder response
-            yield f"event: text\ndata: {{'text': 'Processando sua pergunta...'}}\n\n"
-            yield f"event: text\ndata: {{'text': 'Consultando agentes...'}}\n\n"
+            yield "event: text\ndata: {'text': 'Processando sua pergunta...'}\n\n"
+            yield "event: text\ndata: {'text': 'Consultando agentes...'}\n\n"
 
             response_text = (
                 "A integração com streaming de agentes será implementada em breve."
@@ -402,7 +467,7 @@ async def voice_conversation_stream(
             yield f"event: text\ndata: {{'text': '{response_text}'}}\n\n"
 
             # Send completion event
-            yield f"event: done\ndata: {{'status': 'completed'}}\n\n"
+            yield "event: done\ndata: {'status': 'completed'}\n\n"
 
             logger.info("voice_conversation_stream_completed")
 
