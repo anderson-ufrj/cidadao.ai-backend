@@ -23,7 +23,13 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import TimeSeriesSplit
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
-from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
+from src.agents.deodoro import (
+    AgentContext,
+    AgentMessage,
+    AgentResponse,
+    AgentStatus,
+    BaseAgent,
+)
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError
 
@@ -223,11 +229,20 @@ class PredictiveAgent(BaseAgent):
 
     def __init__(self, config: Optional[dict[str, Any]] = None):
         super().__init__(
-            name="PredictiveAgent",
-            description="Ceuci - Agente especializado em análise preditiva",
-            config=config or {},
+            name="Ceuci",
+            description="Ceuci - Agente especializado em análise preditiva e machine learning",
+            capabilities=[
+                "time_series_forecasting",
+                "anomaly_prediction",
+                "trend_modeling",
+                "seasonal_analysis",
+                "predictive_analytics",
+            ],
         )
         self.logger = get_logger(__name__)
+
+        # Store user config
+        self.config = config or {}
 
         # Configurações de modelos
         self.model_config = {
@@ -1493,7 +1508,6 @@ class PredictiveAgent(BaseAgent):
         )
         self.logger.debug("Metric thresholds set for model acceptance criteria")
 
-
     async def process(
         self,
         message: AgentMessage,
@@ -1512,16 +1526,20 @@ class PredictiveAgent(BaseAgent):
         try:
             self.logger.info(
                 "Processing predictive analysis request",
-                message_type=message.type,
+                message_action=message.action,
                 context_id=context.investigation_id,
             )
 
-            # Extract data from message
-            data = message.data if isinstance(message.data, dict) else {"query": str(message.data)}
-            
+            # Extract data from message payload
+            data = (
+                message.payload
+                if isinstance(message.payload, dict)
+                else {"query": str(message.payload)}
+            )
+
             # Determine prediction type
             prediction_type = data.get("prediction_type", "time_series")
-            
+
             # Perform prediction based on type
             if prediction_type == "time_series":
                 result = await self._time_series_prediction(data, context)
@@ -1538,9 +1556,9 @@ class PredictiveAgent(BaseAgent):
                 }
 
             return AgentResponse(
-                success=True,
-                response_type="prediction",
-                data={
+                agent_name=self.name,
+                status=AgentStatus.COMPLETED,
+                result={
                     "prediction_result": result,
                     "agent": self.name,
                     "timestamp": datetime.utcnow().isoformat(),
@@ -1558,13 +1576,15 @@ class PredictiveAgent(BaseAgent):
                 context_id=context.investigation_id,
             )
             return AgentResponse(
-                success=False,
-                response_type="error",
-                data={"error": str(e), "agent": self.name},
+                agent_name=self.name,
+                status=AgentStatus.ERROR,
+                error=str(e),
                 metadata={"error_type": type(e).__name__},
             )
 
-    async def _time_series_prediction(self, data: dict[str, Any], context: AgentContext) -> dict[str, Any]:
+    async def _time_series_prediction(
+        self, data: dict[str, Any], context: AgentContext
+    ) -> dict[str, Any]:
         """Perform time series prediction using configured models."""
         return {
             "prediction": "Time series forecast",
@@ -1574,7 +1594,9 @@ class PredictiveAgent(BaseAgent):
             "horizon": data.get("horizon", 12),
         }
 
-    async def _anomaly_forecast(self, data: dict[str, Any], context: AgentContext) -> dict[str, Any]:
+    async def _anomaly_forecast(
+        self, data: dict[str, Any], context: AgentContext
+    ) -> dict[str, Any]:
         """Forecast potential anomalies in future periods."""
         return {
             "prediction": "Anomaly forecast",
@@ -1584,7 +1606,9 @@ class PredictiveAgent(BaseAgent):
             "model_used": "Isolation Forest",
         }
 
-    async def _trend_analysis(self, data: dict[str, Any], context: AgentContext) -> dict[str, Any]:
+    async def _trend_analysis(
+        self, data: dict[str, Any], context: AgentContext
+    ) -> dict[str, Any]:
         """Analyze and predict trends in the data."""
         return {
             "prediction": "Trend analysis",
@@ -1666,19 +1690,23 @@ class PredictiveAgent(BaseAgent):
 
         if "low_confidence" in quality_issues:
             # Suggest ensemble methods for better confidence
-            enhancements.append({
-                "issue": "Low prediction confidence",
-                "recommendation": "Consider ensemble methods (combine ARIMA, LSTM, Prophet)",
-                "expected_improvement": "Confidence +0.15",
-            })
+            enhancements.append(
+                {
+                    "issue": "Low prediction confidence",
+                    "recommendation": "Consider ensemble methods (combine ARIMA, LSTM, Prophet)",
+                    "expected_improvement": "Confidence +0.15",
+                }
+            )
 
         if "default_model_used" in quality_issues:
             # Recommend model selection analysis
-            enhancements.append({
-                "issue": "Default model used",
-                "recommendation": "Run model selection analysis (compare MAE, RMSE, MAPE across models)",
-                "expected_improvement": "Better model fit",
-            })
+            enhancements.append(
+                {
+                    "issue": "Default model used",
+                    "recommendation": "Run model selection analysis (compare MAE, RMSE, MAPE across models)",
+                    "expected_improvement": "Better model fit",
+                }
+            )
 
         # Add reflection metadata
         enhanced_result["reflection"] = {
