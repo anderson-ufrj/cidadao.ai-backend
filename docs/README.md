@@ -80,6 +80,17 @@ Guides for developers working on the project.
 - **[Cursor Pagination](development/CURSOR_PAGINATION_IMPLEMENTATION.md)** - Efficient pagination
 - **[Frontend Integration](development/FRONTEND_INTEGRATION_GUIDE.md)** - Frontend connection
 
+### 📊 [Monitoring](monitoring/)
+
+Production monitoring and observability.
+
+- **[Grafana Dashboards Guide](monitoring/GRAFANA_DASHBOARDS_GUIDE.md)** ⭐ NEW! - Complete monitoring setup
+  - 6 production dashboards documented
+  - PromQL query examples for all metrics
+  - Alert configurations (Critical/Warning)
+  - Troubleshooting guide
+  - Daily monitoring procedures
+
 ### 📊 [Project](project/)
 
 Project management, status tracking, and planning.
