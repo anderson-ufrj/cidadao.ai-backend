@@ -310,30 +310,32 @@ app.add_middleware(
 )
 
 # Add IP whitelist middleware (only in production)
-if settings.is_production or settings.app_env == "staging":
-    app.add_middleware(
-        IPWhitelistMiddleware,
-        enabled=True,
-        excluded_paths=[
-            "/health",
-            "/healthz",
-            "/ping",
-            "/ready",
-            "/docs",
-            "/redoc",
-            "/openapi.json",
-            "/metrics",
-            "/static",
-            "/favicon.ico",
-            "/_next",
-            "/api/v1/auth/login",
-            "/api/v1/auth/register",
-            "/api/v1/auth/refresh",
-            "/api/v1/public",
-            "/api/v1/webhooks/incoming",
-        ],
-        strict_mode=False,  # Allow requests if IP can't be determined
-    )
+# DISABLED: Temporarily disabled to allow frontend access
+# TODO: Re-enable after configuring Vercel IP ranges or implementing API key auth
+# if settings.is_production or settings.app_env == "staging":
+#     app.add_middleware(
+#         IPWhitelistMiddleware,
+#         enabled=True,
+#         excluded_paths=[
+#             "/health",
+#             "/healthz",
+#             "/ping",
+#             "/ready",
+#             "/docs",
+#             "/redoc",
+#             "/openapi.json",
+#             "/metrics",
+#             "/static",
+#             "/favicon.ico",
+#             "/_next",
+#             "/api/v1/auth/login",
+#             "/api/v1/auth/register",
+#             "/api/v1/auth/refresh",
+#             "/api/v1/public",
+#             "/api/v1/webhooks/incoming",
+#         ],
+#         strict_mode=False,  # Allow requests if IP can't be determined
+#     )
 
 # Add rate limiting middleware
 app.add_middleware(RateLimitMiddleware, default_tier="free", strategy="sliding_window")
