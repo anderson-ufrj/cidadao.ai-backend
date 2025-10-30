@@ -13,10 +13,8 @@ import os
 from contextlib import suppress
 from typing import Any
 
-from prometheus_client import push_to_gateway
+from prometheus_client import REGISTRY, push_to_gateway
 from prometheus_client.exposition import basic_auth_handler
-
-from src.infrastructure.observability.metrics import registry
 
 logger = logging.getLogger(__name__)
 
@@ -80,7 +78,7 @@ class GrafanaCloudPusher:
             push_to_gateway(
                 gateway=f"{gateway}:443",
                 job="cidadao-ai-backend",
-                registry=registry,
+                registry=REGISTRY,
                 handler=auth_handler,
                 timeout=self.timeout,
             )
