@@ -47,6 +47,7 @@ from pydantic import Field as PydanticField
 
 from src.core import AgentStatus, ReflectionType
 from src.core.exceptions import AgentExecutionError, InvestigationError
+from src.services.maritaca_client import MaritacaClient, MaritacaMessage, MaritacaModel
 
 from .deodoro import AgentContext, AgentMessage, AgentResponse, ReflectiveAgent
 from .parallel_processor import ParallelStrategy, ParallelTask, parallel_processor
@@ -103,7 +104,7 @@ class MasterAgent(ReflectiveAgent):
 
     def __init__(
         self,
-        llm_service: Any,
+        maritaca_client: MaritacaClient,
         memory_agent: Any,
         reflection_threshold: float = 0.8,
         max_reflection_loops: int = 3,
@@ -113,7 +114,7 @@ class MasterAgent(ReflectiveAgent):
         Initialize master agent.
 
         Args:
-            llm_service: LLM service instance
+            maritaca_client: Maritaca AI client for LLM operations
             memory_agent: Memory agent instance
             reflection_threshold: Minimum quality threshold
             max_reflection_loops: Maximum reflection iterations
@@ -135,7 +136,7 @@ class MasterAgent(ReflectiveAgent):
             **kwargs,
         )
 
-        self.llm_service = llm_service
+        self.maritaca_client = maritaca_client
         self.memory_agent = memory_agent
         self.active_investigations: dict[str, InvestigationPlan] = {}
         self.agent_registry: dict[str, Any] = {}
@@ -151,11 +152,23 @@ class MasterAgent(ReflectiveAgent):
         self.logger.info("abaporu_initializing")
 
         # Initialize sub-services
-        if hasattr(self.llm_service, "initialize"):
-            await self.llm_service.initialize()
-
         if hasattr(self.memory_agent, "initialize"):
             await self.memory_agent.initialize()
+
+        # Verify Maritaca client is functional
+        try:
+            health = await self.maritaca_client.health_check()
+            self.logger.info(
+                "maritaca_health_check",
+                status=health.get("status"),
+                model=health.get("model"),
+            )
+        except Exception as e:
+            self.logger.warning(
+                "maritaca_health_check_failed",
+                error=str(e),
+                message="Continuing without health check",
+            )
 
         self.status = AgentStatus.IDLE
         self.logger.info("abaporu_initialized")
@@ -165,8 +178,8 @@ class MasterAgent(ReflectiveAgent):
         self.logger.info("abaporu_shutting_down")
 
         # Cleanup resources
-        if hasattr(self.llm_service, "shutdown"):
-            await self.llm_service.shutdown()
+        if hasattr(self.maritaca_client, "shutdown"):
+            await self.maritaca_client.shutdown()
 
         if hasattr(self.memory_agent, "shutdown"):
             await self.memory_agent.shutdown()
@@ -426,7 +439,7 @@ class MasterAgent(ReflectiveAgent):
         context: AgentContext,
     ) -> InvestigationPlan:
         """
-        Create an investigation plan.
+        Create an investigation plan using Maritaca AI.
 
         Args:
             payload: Planning payload
@@ -438,16 +451,52 @@ class MasterAgent(ReflectiveAgent):
         query = payload.get("query", "")
 
         # Get relevant context from memory
-        memory_context = await self.memory_agent.get_relevant_context(query, context)
+        memory_context = {}
+        try:
+            if hasattr(self.memory_agent, "get_relevant_context"):
+                memory_context = await self.memory_agent.get_relevant_context(
+                    query, context
+                )
+        except Exception as e:
+            self.logger.warning(
+                "memory_context_retrieval_failed",
+                error=str(e),
+                message="Continuing without memory context",
+            )
 
-        # Use LLM to generate plan
+        # Use Maritaca AI to generate plan
         planning_prompt = self._create_planning_prompt(query, memory_context)
-        plan_response = await self.llm_service.generate(
-            prompt=planning_prompt,
-            context=context,
-        )
 
-        # Parse and validate plan
+        try:
+            response = await self.maritaca_client.chat_completion(
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Você é um especialista em análise de transparência pública brasileira, responsável por planejar investigações detalhadas.",
+                    },
+                    {"role": "user", "content": planning_prompt},
+                ],
+                temperature=0.7,
+                max_tokens=2048,
+            )
+
+            plan_response = response.content
+            self.logger.info(
+                "llm_plan_generation_success",
+                investigation_id=context.investigation_id,
+                tokens_used=response.usage.get("total_tokens", 0),
+            )
+
+        except Exception as e:
+            self.logger.warning(
+                "llm_plan_generation_failed",
+                error=str(e),
+                message="Falling back to keyword-based planning",
+            )
+            # Fallback to keyword-based plan
+            plan_response = ""
+
+        # Parse and validate plan (fallback to keyword-based if LLM fails)
         plan = self._parse_investigation_plan(plan_response, query)
 
         self.logger.info(
@@ -506,7 +555,7 @@ class MasterAgent(ReflectiveAgent):
         context: AgentContext,
     ) -> str:
         """
-        Generate explanation for investigation findings.
+        Generate explanation for investigation findings using Maritaca AI.
 
         Args:
             findings: Investigation findings
@@ -518,10 +567,92 @@ class MasterAgent(ReflectiveAgent):
         """
         explanation_prompt = self._create_explanation_prompt(findings, query)
 
-        explanation = await self.llm_service.generate(
-            prompt=explanation_prompt,
-            context=context,
+        try:
+            response = await self.maritaca_client.chat_completion(
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "Você é um jornalista investigativo especializado em transparência pública brasileira. Crie explicações claras e objetivas para cidadãos comuns.",
+                    },
+                    {"role": "user", "content": explanation_prompt},
+                ],
+                temperature=0.6,  # Lower temperature for more focused explanations
+                max_tokens=3000,  # Allow longer explanations
+            )
+
+            explanation = response.content
+            self.logger.info(
+                "llm_explanation_generation_success",
+                investigation_id=context.investigation_id,
+                tokens_used=response.usage.get("total_tokens", 0),
+                explanation_length=len(explanation),
+            )
+
+        except Exception as e:
+            self.logger.error(
+                "llm_explanation_generation_failed",
+                error=str(e),
+                investigation_id=context.investigation_id,
+            )
+            # Fallback to basic summary
+            explanation = self._generate_fallback_explanation(findings, query)
+
+        return explanation
+
+    def _generate_fallback_explanation(
+        self,
+        findings: list[dict[str, Any]],
+        query: str,
+    ) -> str:
+        """
+        Generate a basic fallback explanation when LLM is unavailable.
+
+        Args:
+            findings: Investigation findings
+            query: Original query
+
+        Returns:
+            Basic explanation text
+        """
+        findings_count = len(findings)
+        high_anomaly_count = len(
+            [f for f in findings if f.get("anomaly_score", 0) > 0.7]
         )
+
+        explanation = f"""
+## Resumo da Investigação
+
+**Consulta**: {query}
+
+**Achados**: {findings_count} contratos/registros analisados, {high_anomaly_count} com alta suspeita.
+
+### Principais Achados:
+"""
+
+        for i, finding in enumerate(findings[:5], 1):  # Top 5 findings
+            anomaly_score = finding.get("anomaly_score", 0)
+            value = finding.get("value", "N/A")
+            description = finding.get("description", "Sem descrição")
+
+            severity = (
+                "🔴 CRÍTICO"
+                if anomaly_score > 0.9
+                else "🟡 ALTO" if anomaly_score > 0.7 else "🟢 MODERADO"
+            )
+
+            explanation += f"\n{i}. {severity} - {description}"
+            explanation += (
+                f"\n   - Valor: R$ {value:,.2f}"
+                if isinstance(value, (int, float))
+                else f"\n   - Valor: {value}"
+            )
+            explanation += f"\n   - Score de Anomalia: {anomaly_score:.2%}\n"
+
+        explanation += """
+### Nota:
+Esta é uma análise automatizada básica. Para uma interpretação mais detalhada,
+recomendamos consulta com especialistas em transparência pública.
+"""
 
         return explanation
 
