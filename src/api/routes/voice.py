@@ -17,10 +17,10 @@ from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from src.core.logging_config import get_logger
+from src.core import get_logger
 from src.services.voice_service import get_voice_service
 
-logger = get_logger(__name__)
+logger = get_logger("api.voice")
 
 router = APIRouter()
 
