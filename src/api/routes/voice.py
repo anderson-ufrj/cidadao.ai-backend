@@ -448,26 +448,115 @@ async def voice_conversation_stream(
     async def event_generator() -> AsyncGenerator[str, None]:
         """Generate SSE events for streaming conversation."""
         try:
+            import json
+            import time
+
+            from src.agents.deodoro import AgentContext
+            from src.agents.drummond import DrummondAgent
+            from src.agents.simple_agent_pool import get_agent_pool
+            from src.memory.conversational import ConversationContext
+
             logger.info(
                 "voice_conversation_stream_started",
                 query=request.query,
             )
 
             # Send initial event
-            yield "event: start\ndata: {'status': 'processing'}\n\n"
+            yield f"event: start\ndata: {json.dumps({'status': 'processing', 'query': request.query})}\n\n"
 
-            # TODO: Integrate with agent pool for real processing
-            # For now, send placeholder response
-            yield "event: text\ndata: {'text': 'Processando sua pergunta...'}\n\n"
-            yield "event: text\ndata: {'text': 'Consultando agentes...'}\n\n"
+            # Get agent pool
+            agent_pool = await get_agent_pool()
 
-            response_text = (
-                "A integração com streaming de agentes será implementada em breve."
+            # Create agent context
+            context = AgentContext(
+                user_id="voice_stream_user",
+                session_id=f"voice_stream_{int(time.time())}",
+                request_id=f"voice_stream_req_{int(time.time())}",
             )
-            yield f"event: text\ndata: {{'text': '{response_text}'}}\n\n"
+
+            # Send progress event
+            yield f"event: progress\ndata: {json.dumps({'message': 'Conectando com agente Drummond...'})}\n\n"
+
+            response_text = ""
+            try:
+                async with agent_pool.acquire(DrummondAgent, context) as agent:
+                    # Create conversation context
+                    conv_context = ConversationContext(
+                        session_id=context.session_id,
+                        user_id=context.user_id,
+                    )
+
+                    # Send progress event
+                    yield f"event: progress\ndata: {json.dumps({'message': 'Processando pergunta...'})}\n\n"
+
+                    # Process conversation with Drummond
+                    result = await agent.process_conversation(
+                        message=request.query, context=conv_context, intent=None
+                    )
+
+                    # Extract response text
+                    response_text = result.get(
+                        "response", "Desculpe, não consegui processar sua pergunta."
+                    )
+
+                    # Stream response in chunks (simulate streaming)
+                    words = response_text.split()
+                    chunk_size = 5  # Words per chunk
+                    for i in range(0, len(words), chunk_size):
+                        chunk = " ".join(words[i : i + chunk_size])
+                        yield f"event: text\ndata: {json.dumps({'text': chunk})}\n\n"
+
+                    logger.info(
+                        "agent_streaming_complete",
+                        response_length=len(response_text),
+                    )
+
+            except Exception as agent_error:
+                logger.error(
+                    "agent_streaming_failed",
+                    error=str(agent_error),
+                    exc_info=True,
+                )
+                # Send error event but continue
+                error_msg = "Desculpe, houve um problema. Por favor, tente novamente."
+                yield f"event: error\ndata: {json.dumps({'error': str(agent_error), 'fallback': error_msg})}\n\n"
+                response_text = error_msg
+
+            # Generate audio if requested
+            if request.return_audio and response_text:
+                try:
+                    yield f"event: progress\ndata: {json.dumps({'message': 'Gerando áudio...'})}\n\n"
+
+                    voice_service = get_voice_service()
+                    audio_content = await voice_service.synthesize_speech(
+                        text=response_text, voice_name=request.voice_name
+                    )
+
+                    # Convert audio to base64 for streaming
+                    import base64
+
+                    audio_base64 = base64.b64encode(audio_content).decode("utf-8")
+
+                    # Stream audio in chunks (4KB per chunk)
+                    chunk_size = 4096
+                    for i in range(0, len(audio_base64), chunk_size):
+                        chunk = audio_base64[i : i + chunk_size]
+                        is_final = i + chunk_size >= len(audio_base64)
+                        yield f"event: audio\ndata: {json.dumps({'chunk': chunk, 'final': is_final})}\n\n"
+
+                    logger.info("audio_streaming_complete")
+
+                except Exception as tts_error:
+                    logger.error(
+                        "audio_streaming_failed",
+                        error=str(tts_error),
+                        exc_info=True,
+                    )
+                    # Continue without audio
+                    yield f"event: warning\ndata: {json.dumps({'message': 'Áudio não disponível'})}\n\n"
 
             # Send completion event
-            yield "event: done\ndata: {'status': 'completed'}\n\n"
+            yield f"event: done\ndata: {json.dumps({'status': 'completed', 'total_length': len(response_text)})}\n\n"
 
             logger.info("voice_conversation_stream_completed")
 
@@ -477,7 +566,7 @@ async def voice_conversation_stream(
                 error=str(e),
                 exc_info=True,
             )
-            yield f"event: error\ndata: {{'error': '{str(e)}'}}\n\n"
+            yield f"event: error\ndata: {json.dumps({'error': str(e)})}\n\n"
 
     return StreamingResponse(
         event_generator(),
