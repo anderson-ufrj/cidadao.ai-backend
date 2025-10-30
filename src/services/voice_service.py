@@ -9,7 +9,9 @@ This service integrates with Google Cloud Speech APIs to provide:
 """
 
 import io
+import os
 from collections.abc import AsyncGenerator
+from pathlib import Path
 from typing import Optional
 
 from google.cloud import speech_v1, texttospeech_v1
@@ -55,7 +57,11 @@ class VoiceService:
         )
 
     def _get_credentials(self) -> Optional[service_account.Credentials]:
-        """Load Google Cloud credentials from file."""
+        """Load Google Cloud credentials from file.
+
+        Supports both absolute and relative paths.
+        Relative paths are resolved from the project root.
+        """
         if not self.credentials_path:
             logger.warning(
                 "google_credentials_not_configured",
@@ -64,11 +70,33 @@ class VoiceService:
             return None
 
         try:
+            # Convert to Path object for easier handling
+            credentials_path = Path(self.credentials_path)
+
+            # If relative path, resolve from project root
+            if not credentials_path.is_absolute():
+                # Get project root (assumes src/services/voice_service.py structure)
+                project_root = Path(__file__).parent.parent.parent
+                credentials_path = project_root / credentials_path
+
+            # Ensure path exists
+            if not credentials_path.exists():
+                logger.error(
+                    "google_credentials_file_not_found",
+                    path=str(credentials_path),
+                    original_path=self.credentials_path,
+                )
+                return None
+
             credentials = service_account.Credentials.from_service_account_file(
-                self.credentials_path,
+                str(credentials_path),
                 scopes=["https://www.googleapis.com/auth/cloud-platform"],
             )
-            logger.info("google_credentials_loaded", path=self.credentials_path)
+            logger.info(
+                "google_credentials_loaded",
+                path=str(credentials_path),
+                relative=not Path(self.credentials_path).is_absolute(),
+            )
             return credentials
         except Exception as e:
             logger.error(
