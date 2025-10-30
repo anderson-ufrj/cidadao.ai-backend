@@ -24,6 +24,21 @@
 
 ## 🗂️ Documentation Structure
 
+### 🎨 [Frontend Integration](frontend-integration/) **NEW!** ⭐
+
+**Complete API guide for frontend developers** - Everything you need to integrate with Cidadão.AI backend.
+
+- **[README](frontend-integration/README.md)** - Start here! Navigation guide and quick reference
+- **[Comprehensive API Guide](frontend-integration/COMPREHENSIVE_API_GUIDE.md)** ⭐ - 1,650 lines, 90+ endpoints
+  - Complete endpoint catalog with schemas
+  - 30+ government data sources
+  - 5 integration patterns with code examples
+  - Working curl/JavaScript examples
+- **[Executive Summary](frontend-integration/EXECUTIVE_SUMMARY.md)** - Quick overview for decision makers
+  - 45-item implementation checklist
+  - Key findings and recommendations
+  - Performance metrics and validation
+
 ### 🚀 [Deployment](deployment/)
 
 Production deployment guides and configurations.
