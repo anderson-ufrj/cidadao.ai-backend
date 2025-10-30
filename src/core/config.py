@@ -149,6 +149,10 @@ class Settings(BaseSettings):
         default=None,
         description="Path to Google Cloud service account JSON file for Speech API",
     )
+    google_credentials_base64: str | None = Field(
+        default=None,
+        description="Base64-encoded Google Cloud service account JSON (for Railway/cloud deployments)",
+    )
     google_cloud_project_id: str | None = Field(
         default=None,
         description="Google Cloud project ID for Speech API services",
