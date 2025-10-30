@@ -61,6 +61,7 @@ from src.infrastructure.observability import (
     initialize_app_info,
     tracing_manager,
 )
+from src.infrastructure.observability.grafana_cloud_pusher import grafana_pusher
 
 # Swagger UI imports removed - using FastAPI defaults now
 
@@ -142,6 +143,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     if getattr(settings, "ENABLE_MEMORY_OPTIMIZATION", True):
         memory_task = asyncio.create_task(periodic_memory_optimization())
 
+    # Start Grafana Cloud metrics push
+    await grafana_pusher.start()
+
     yield
 
     # Shutdown
@@ -157,6 +161,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         memory_task.cancel()
         with suppress(asyncio.CancelledError):
             await memory_task
+
+    # Stop Grafana Cloud metrics push
+    await grafana_pusher.stop()
 
     # Cleanup memory system
     from src.services.memory_startup import cleanup_memory_on_shutdown
