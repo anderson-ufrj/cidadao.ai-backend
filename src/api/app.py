@@ -50,6 +50,7 @@ from src.api.routes import (
     transparency,
     transparency_coverage,
     visualization,
+    voice,
     websocket_chat,
 )
 from src.api.v1 import dados_gov
@@ -393,6 +394,9 @@ app.include_router(export.router, prefix="/api/v1/export", tags=["Export"])
 app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
 
 app.include_router(websocket_chat.router, prefix="/api/v1", tags=["WebSocket"])
+
+# Voice API endpoints for Speech-to-Text and Text-to-Speech
+app.include_router(voice.router, prefix="/api/v1/voice", tags=["Voice AI"])
 
 app.include_router(batch.router, tags=["Batch Operations"])
 

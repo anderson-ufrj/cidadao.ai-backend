@@ -144,6 +144,32 @@ class Settings(BaseSettings):
         description="Default Claude model (claude-sonnet-4-20250514, claude-opus-4-20250514, claude-3-7-sonnet-20250219)",
     )
 
+    # Google Cloud Speech API Configuration (Voice Integration)
+    google_credentials_path: str | None = Field(
+        default=None,
+        description="Path to Google Cloud service account JSON file for Speech API",
+    )
+    google_cloud_project_id: str | None = Field(
+        default=None,
+        description="Google Cloud project ID for Speech API services",
+    )
+    google_speech_language_code: str = Field(
+        default="pt-BR",
+        description="Default language code for Speech-to-Text (pt-BR for Brazilian Portuguese)",
+    )
+    google_tts_voice_name: str = Field(
+        default="pt-BR-Wavenet-A",
+        description="Default Text-to-Speech voice (pt-BR-Wavenet-A: female, pt-BR-Wavenet-B: male)",
+    )
+    google_tts_speaking_rate: float = Field(
+        default=1.0,
+        description="Default TTS speaking rate (0.25-4.0, default: 1.0 is normal speed)",
+    )
+    google_tts_pitch: float = Field(
+        default=0.0,
+        description="Default TTS pitch adjustment (-20.0 to 20.0, default: 0.0 is normal pitch)",
+    )
+
     # Vector Store
     vector_store_type: str = Field(
         default="faiss", description="Vector store type (faiss, chromadb)"
@@ -385,6 +411,8 @@ class Settings(BaseSettings):
             "redis_password",
             "database_url",
             "supabase_service_role_key",
+            "google_credentials_path",
+            "google_cloud_project_id",
         ]
         for field in sensitive_fields:
             if field in data:
