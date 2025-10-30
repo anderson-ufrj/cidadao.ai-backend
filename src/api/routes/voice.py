@@ -330,9 +330,13 @@ async def voice_conversation(request: ConversationRequest) -> ConversationRespon
         from src.agents.drummond import DrummondAgent
         from src.agents.simple_agent_pool import get_agent_pool
         from src.memory.conversational import ConversationContext
+        from src.services.agent_voice_profiles import get_agent_voice_profile
 
         # Get agent pool
         agent_pool = await get_agent_pool()
+
+        # Get voice profile for the agent
+        voice_profile = get_agent_voice_profile(request.agent_id)
 
         # Create agent context
         context = AgentContext(
@@ -383,11 +387,19 @@ async def voice_conversation(request: ConversationRequest) -> ConversationRespon
         if request.return_audio and response_text:
             try:
                 voice_service = get_voice_service()
+                # Use agent's voice profile (personality-matched voice)
                 await voice_service.synthesize_speech(
-                    text=response_text, voice_name=request.voice_name
+                    text=response_text,
+                    voice_name=voice_profile.voice_name,
+                    speaking_rate=voice_profile.speaking_rate,
+                    pitch=voice_profile.pitch,
                 )
                 audio_available = True
-                logger.info("tts_synthesis_complete")
+                logger.info(
+                    "tts_synthesis_complete",
+                    agent_voice=voice_profile.voice_name,
+                    speaking_rate=voice_profile.speaking_rate,
+                )
             except Exception as tts_error:
                 logger.error(
                     "tts_synthesis_failed",
@@ -455,14 +467,19 @@ async def voice_conversation_stream(
             from src.agents.drummond import DrummondAgent
             from src.agents.simple_agent_pool import get_agent_pool
             from src.memory.conversational import ConversationContext
+            from src.services.agent_voice_profiles import get_agent_voice_profile
 
             logger.info(
                 "voice_conversation_stream_started",
                 query=request.query,
+                agent=request.agent_id,
             )
 
-            # Send initial event
-            yield f"event: start\ndata: {json.dumps({'status': 'processing', 'query': request.query})}\n\n"
+            # Get voice profile for the agent
+            voice_profile = get_agent_voice_profile(request.agent_id)
+
+            # Send initial event with agent info
+            yield f"event: start\ndata: {json.dumps({'status': 'processing', 'query': request.query, 'agent': request.agent_id, 'voice': voice_profile.voice_name})}\n\n"
 
             # Get agent pool
             agent_pool = await get_agent_pool()
@@ -525,11 +542,15 @@ async def voice_conversation_stream(
             # Generate audio if requested
             if request.return_audio and response_text:
                 try:
-                    yield f"event: progress\ndata: {json.dumps({'message': 'Gerando áudio...'})}\n\n"
+                    yield f"event: progress\ndata: {json.dumps({'message': f'Gerando áudio com voz de {voice_profile.agent_name}...'})}\n\n"
 
                     voice_service = get_voice_service()
+                    # Use agent's personality-matched voice
                     audio_content = await voice_service.synthesize_speech(
-                        text=response_text, voice_name=request.voice_name
+                        text=response_text,
+                        voice_name=voice_profile.voice_name,
+                        speaking_rate=voice_profile.speaking_rate,
+                        pitch=voice_profile.pitch,
                     )
 
                     # Convert audio to base64 for streaming
@@ -638,6 +659,77 @@ async def list_available_voices():
         ],
         "recommended": ["pt-BR-Neural2-A", "pt-BR-Neural2-B"],
         "default": "pt-BR-Wavenet-A",
+    }
+
+
+@router.get("/agent-voices")
+async def list_agent_voice_profiles():
+    """
+    List voice profiles for all AI agents.
+
+    Each agent has a personality-matched voice with specific characteristics:
+    - Voice name (Google Cloud TTS voice)
+    - Speaking rate (faster/slower based on personality)
+    - Pitch adjustment (higher/lower for character)
+    - Voice description explaining the choice
+
+    **Example Usage:**
+    ```bash
+    curl http://localhost:8000/api/v1/voice/agent-voices
+    ```
+
+    **Example Response:**
+    ```json
+    {
+      "agents": {
+        "drummond": {
+          "agent_name": "Carlos Drummond de Andrade",
+          "voice_name": "pt-BR-Wavenet-A",
+          "gender": "female",
+          "quality": "wavenet",
+          "speaking_rate": 1.0,
+          "pitch": 0.0,
+          "description": "Voz feminina calorosa...",
+          "personality_traits": ["Poetic", "Conversational"]
+        }
+      },
+      "statistics": {
+        "total_agents": 16,
+        "gender_distribution": {"male": 10, "female": 6},
+        "quality_distribution": {"neural2": 6, "wavenet": 10},
+        "fastest_agent": "ayrton_senna",
+        "slowest_agent": "machado"
+      }
+    }
+    ```
+    """
+    from src.services.agent_voice_profiles import (
+        get_voice_statistics,
+        list_all_agent_voices,
+    )
+
+    profiles = list_all_agent_voices()
+    stats = get_voice_statistics()
+
+    # Convert profiles to dict format
+    agents_data = {}
+    for agent_id, profile in profiles.items():
+        agents_data[agent_id] = {
+            "agent_id": profile.agent_id,
+            "agent_name": profile.agent_name,
+            "voice_name": profile.voice_name,
+            "gender": profile.gender.value,
+            "quality": profile.quality.value,
+            "speaking_rate": profile.speaking_rate,
+            "pitch": profile.pitch,
+            "description": profile.description,
+            "personality_traits": profile.personality_traits,
+        }
+
+    return {
+        "agents": agents_data,
+        "statistics": stats,
+        "total_voices": len(agents_data),
     }
 
 
