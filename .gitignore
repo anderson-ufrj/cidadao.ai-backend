@@ -232,6 +232,12 @@ temp/
 *.crt
 *.p12
 
+# Google Cloud credentials (Added 2025-10-30)
+config/credentials/
+config/credentials/*.json
+google-cloud-key.json
+*-service-account.json
+
 # Local configuration
 local.env
 config.local.yaml
