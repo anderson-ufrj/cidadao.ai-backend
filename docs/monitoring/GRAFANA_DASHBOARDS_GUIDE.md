@@ -48,7 +48,38 @@ monitoring/
 
 ## 🚀 Quick Start
 
-### Iniciar Stack de Monitoramento
+### Opção 1: Grafana Cloud (Produção) ⭐ RECOMENDADO
+
+Para monitoramento em produção no Railway, use Grafana Cloud (gratuito):
+
+**Documentação completa**: [GRAFANA_CLOUD_SETUP.md](../deployment/railway/GRAFANA_CLOUD_SETUP.md)
+
+```bash
+# 1. Criar conta: https://grafana.com/auth/sign-up
+# 2. Configurar variáveis no Railway:
+railway variables set GRAFANA_CLOUD_ENABLED=true
+railway variables set GRAFANA_CLOUD_URL=https://prometheus-prod-XX.grafana.net/api/prom/push
+railway variables set GRAFANA_CLOUD_USER=123456
+railway variables set GRAFANA_CLOUD_KEY=glc_xxx...
+
+# 3. Deploy
+git push origin main
+
+# 4. Importar dashboards
+# - Login no Grafana Cloud
+# - Upload dos 6 dashboards JSON de monitoring/grafana/dashboards/
+```
+
+**Benefícios**:
+- ✅ Gratuito até 10k séries métricas
+- ✅ 13 meses de retenção
+- ✅ Alertas por email/Slack/Discord
+- ✅ Zero infraestrutura para gerenciar
+- ✅ Alta disponibilidade
+
+### Opção 2: Local (Desenvolvimento)
+
+Para desenvolvimento local:
 
 ```bash
 # 1. Subir Prometheus + Grafana
