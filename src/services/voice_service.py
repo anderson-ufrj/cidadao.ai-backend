@@ -32,7 +32,7 @@ class VoiceService:
     def __init__(
         self,
         credentials_path: Optional[str] = None,
-        language_code: str = "pt-BR",
+        language_code: Optional[str] = None,
     ):
         """
         Initialize voice service with Google Cloud credentials.
@@ -41,8 +41,8 @@ class VoiceService:
             credentials_path: Path to Google Cloud service account JSON
             language_code: Language code (default: pt-BR for Brazilian Portuguese)
         """
-        self.language_code = language_code
-        self.credentials_path = credentials_path or settings.GOOGLE_CREDENTIALS_PATH
+        self.language_code = language_code or settings.google_speech_language_code
+        self.credentials_path = credentials_path or settings.google_credentials_path
 
         # Initialize clients (lazy loading)
         self._stt_client: Optional[speech_v1.SpeechClient] = None

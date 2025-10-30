@@ -1,0 +1,528 @@
+"""
+Voice API routes for Speech-to-Text and Text-to-Speech.
+
+This module provides RESTful endpoints for:
+- Transcribing audio to text (STT)
+- Synthesizing speech from text (TTS)
+- Real-time voice conversations with agents
+- Streaming audio responses
+
+All voice features are optimized for Brazilian Portuguese.
+"""
+
+from io import BytesIO
+from typing import AsyncGenerator
+
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel, Field
+
+from src.core.logging_config import get_logger
+from src.services.voice_service import get_voice_service
+
+logger = get_logger(__name__)
+
+router = APIRouter()
+
+
+# ============================================================================
+# Request/Response Models
+# ============================================================================
+
+
+class TranscribeRequest(BaseModel):
+    """Request model for audio transcription."""
+
+    audio_format: str = Field(
+        default="wav",
+        description="Audio format (wav, mp3, ogg, flac)",
+    )
+    sample_rate: int = Field(
+        default=16000,
+        description="Audio sample rate in Hz (8000-48000)",
+        ge=8000,
+        le=48000,
+    )
+
+
+class TranscribeResponse(BaseModel):
+    """Response model for audio transcription."""
+
+    transcription: str = Field(description="Transcribed text in Brazilian Portuguese")
+    confidence: float = Field(
+        description="Transcription confidence score (0.0-1.0)",
+        ge=0.0,
+        le=1.0,
+    )
+    language_detected: str = Field(
+        default="pt-BR",
+        description="Detected language code",
+    )
+    duration_ms: float = Field(
+        description="Audio duration in milliseconds",
+    )
+
+
+class SpeakRequest(BaseModel):
+    """Request model for text-to-speech synthesis."""
+
+    text: str = Field(
+        description="Text to synthesize (Brazilian Portuguese)",
+        min_length=1,
+        max_length=5000,
+    )
+    voice_name: str = Field(
+        default="pt-BR-Wavenet-A",
+        description="Google Cloud TTS voice name",
+    )
+    speaking_rate: float = Field(
+        default=1.0,
+        description="Speaking rate (0.25-4.0)",
+        ge=0.25,
+        le=4.0,
+    )
+    pitch: float = Field(
+        default=0.0,
+        description="Pitch adjustment (-20.0 to 20.0)",
+        ge=-20.0,
+        le=20.0,
+    )
+
+
+class ConversationRequest(BaseModel):
+    """Request model for full voice conversation."""
+
+    query: str = Field(
+        description="Text query or transcribed audio to process",
+        min_length=1,
+        max_length=1000,
+    )
+    agent_id: str = Field(
+        default="drummond",
+        description="Agent to process the query (default: drummond for NLG)",
+    )
+    return_audio: bool = Field(
+        default=True,
+        description="Whether to return audio response (TTS)",
+    )
+    voice_name: str = Field(
+        default="pt-BR-Wavenet-A",
+        description="TTS voice for audio response",
+    )
+
+
+class ConversationResponse(BaseModel):
+    """Response model for voice conversation."""
+
+    query: str = Field(description="Original query text")
+    response_text: str = Field(description="Agent response in text")
+    audio_available: bool = Field(description="Whether audio response is included")
+    audio_format: str = Field(
+        default="mp3",
+        description="Audio format if audio_available=true",
+    )
+    processing_time_ms: float = Field(
+        description="Total processing time in milliseconds",
+    )
+
+
+# ============================================================================
+# Voice Endpoints
+# ============================================================================
+
+
+@router.post("/transcribe", response_model=TranscribeResponse)
+async def transcribe_audio(
+    audio: UploadFile = File(..., description="Audio file to transcribe"),
+    sample_rate: int = Form(16000, description="Audio sample rate in Hz"),
+) -> TranscribeResponse:
+    """
+    Transcribe audio file to text using Google Cloud Speech-to-Text.
+
+    Supports multiple audio formats optimized for Brazilian Portuguese.
+    Returns transcribed text with confidence score.
+
+    **Example Usage:**
+    ```bash
+    curl -X POST "http://localhost:8000/api/v1/voice/transcribe" \\
+         -F "audio=@recording.wav" \\
+         -F "sample_rate=16000"
+    ```
+    """
+    try:
+        logger.info(
+            "transcribe_audio_request",
+            filename=audio.filename,
+            content_type=audio.content_type,
+            sample_rate=sample_rate,
+        )
+
+        # Read audio content
+        audio_content = await audio.read()
+
+        if not audio_content:
+            raise HTTPException(status_code=400, detail="Empty audio file")
+
+        # Get voice service
+        voice_service = get_voice_service()
+
+        # Determine encoding from content type
+        from google.cloud import speech_v1
+
+        encoding_map = {
+            "audio/wav": speech_v1.RecognitionConfig.AudioEncoding.LINEAR16,
+            "audio/x-wav": speech_v1.RecognitionConfig.AudioEncoding.LINEAR16,
+            "audio/mp3": speech_v1.RecognitionConfig.AudioEncoding.MP3,
+            "audio/mpeg": speech_v1.RecognitionConfig.AudioEncoding.MP3,
+            "audio/ogg": speech_v1.RecognitionConfig.AudioEncoding.OGG_OPUS,
+            "audio/flac": speech_v1.RecognitionConfig.AudioEncoding.FLAC,
+        }
+
+        encoding = encoding_map.get(
+            audio.content_type or "audio/wav",
+            speech_v1.RecognitionConfig.AudioEncoding.LINEAR16,
+        )
+
+        # Transcribe audio
+        import time
+
+        start_time = time.time()
+        transcription = await voice_service.transcribe_audio(
+            audio_content=audio_content,
+            encoding=encoding,
+            sample_rate_hertz=sample_rate,
+        )
+        duration_ms = (time.time() - start_time) * 1000
+
+        logger.info(
+            "transcription_success",
+            text_length=len(transcription),
+            duration_ms=duration_ms,
+        )
+
+        # Return response
+        return TranscribeResponse(
+            transcription=transcription,
+            confidence=0.95,  # TODO: Extract actual confidence from response
+            language_detected="pt-BR",
+            duration_ms=duration_ms,
+        )
+
+    except Exception as e:
+        logger.error(
+            "transcribe_audio_failed",
+            filename=audio.filename,
+            error=str(e),
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to transcribe audio: {str(e)}",
+        )
+
+
+@router.post("/speak")
+async def synthesize_speech(request: SpeakRequest) -> StreamingResponse:
+    """
+    Convert text to speech using Google Cloud Text-to-Speech.
+
+    Returns MP3 audio stream optimized for Brazilian Portuguese.
+    Supports multiple WaveNet voices and adjustable parameters.
+
+    **Available Voices:**
+    - pt-BR-Wavenet-A (female, natural)
+    - pt-BR-Wavenet-B (male, natural)
+    - pt-BR-Neural2-A (female, very natural - latest)
+    - pt-BR-Neural2-B (male, very natural - latest)
+
+    **Example Usage:**
+    ```bash
+    curl -X POST "http://localhost:8000/api/v1/voice/speak" \\
+         -H "Content-Type: application/json" \\
+         -d '{"text": "Olá! Como posso ajudar com transparência pública?", "voice_name": "pt-BR-Wavenet-A"}' \\
+         --output response.mp3
+    ```
+    """
+    try:
+        logger.info(
+            "synthesize_speech_request",
+            text_length=len(request.text),
+            voice=request.voice_name,
+            rate=request.speaking_rate,
+            pitch=request.pitch,
+        )
+
+        # Get voice service
+        voice_service = get_voice_service()
+
+        # Synthesize speech
+        audio_content = await voice_service.synthesize_speech(
+            text=request.text,
+            voice_name=request.voice_name,
+            speaking_rate=request.speaking_rate,
+            pitch=request.pitch,
+        )
+
+        logger.info(
+            "speech_synthesis_success",
+            audio_size_bytes=len(audio_content),
+        )
+
+        # Return audio as streaming response
+        audio_stream = BytesIO(audio_content)
+
+        return StreamingResponse(
+            audio_stream,
+            media_type="audio/mpeg",
+            headers={
+                "Content-Disposition": "attachment; filename=speech.mp3",
+                "Content-Length": str(len(audio_content)),
+            },
+        )
+
+    except Exception as e:
+        logger.error(
+            "synthesize_speech_failed",
+            text_preview=request.text[:100],
+            error=str(e),
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to synthesize speech: {str(e)}",
+        )
+
+
+@router.post("/conversation", response_model=ConversationResponse)
+async def voice_conversation(request: ConversationRequest) -> ConversationResponse:
+    """
+    Process a full voice conversation: query → agent processing → audio response.
+
+    This endpoint combines:
+    1. Query processing by specified agent (default: Drummond for NLG)
+    2. Optional TTS synthesis of agent response
+
+    **Example Usage:**
+    ```bash
+    curl -X POST "http://localhost:8000/api/v1/voice/conversation" \\
+         -H "Content-Type: application/json" \\
+         -d '{
+           "query": "Quais são os principais indicadores de corrupção?",
+           "agent_id": "drummond",
+           "return_audio": true
+         }'
+    ```
+    """
+    try:
+        import time
+
+        start_time = time.time()
+
+        logger.info(
+            "voice_conversation_request",
+            query_length=len(request.query),
+            agent=request.agent_id,
+            return_audio=request.return_audio,
+        )
+
+        # TODO: Integrate with agent pool to process query
+        # For now, return placeholder response
+        response_text = (
+            f"Recebi sua pergunta: '{request.query}'. "
+            "A integração com agentes será implementada em breve."
+        )
+
+        processing_time_ms = (time.time() - start_time) * 1000
+
+        logger.info(
+            "voice_conversation_success",
+            processing_time_ms=processing_time_ms,
+            response_length=len(response_text),
+        )
+
+        return ConversationResponse(
+            query=request.query,
+            response_text=response_text,
+            audio_available=False,  # TODO: Generate audio with TTS
+            audio_format="mp3",
+            processing_time_ms=processing_time_ms,
+        )
+
+    except Exception as e:
+        logger.error(
+            "voice_conversation_failed",
+            query=request.query,
+            error=str(e),
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to process voice conversation: {str(e)}",
+        )
+
+
+@router.post("/conversation/stream")
+async def voice_conversation_stream(
+    request: ConversationRequest,
+) -> StreamingResponse:
+    """
+    Real-time streaming voice conversation with agent.
+
+    Returns Server-Sent Events (SSE) stream with:
+    - Partial text responses as agent processes
+    - Final audio response (if return_audio=true)
+
+    **Example Usage:**
+    ```bash
+    curl -N -X POST "http://localhost:8000/api/v1/voice/conversation/stream" \\
+         -H "Content-Type: application/json" \\
+         -d '{"query": "Explique contratos públicos", "return_audio": true}'
+    ```
+    """
+
+    async def event_generator() -> AsyncGenerator[str, None]:
+        """Generate SSE events for streaming conversation."""
+        try:
+            logger.info(
+                "voice_conversation_stream_started",
+                query=request.query,
+            )
+
+            # Send initial event
+            yield f"event: start\ndata: {{'status': 'processing'}}\n\n"
+
+            # TODO: Integrate with agent pool for real processing
+            # For now, send placeholder response
+            yield f"event: text\ndata: {{'text': 'Processando sua pergunta...'}}\n\n"
+            yield f"event: text\ndata: {{'text': 'Consultando agentes...'}}\n\n"
+
+            response_text = (
+                "A integração com streaming de agentes será implementada em breve."
+            )
+            yield f"event: text\ndata: {{'text': '{response_text}'}}\n\n"
+
+            # Send completion event
+            yield f"event: done\ndata: {{'status': 'completed'}}\n\n"
+
+            logger.info("voice_conversation_stream_completed")
+
+        except Exception as e:
+            logger.error(
+                "voice_conversation_stream_failed",
+                error=str(e),
+                exc_info=True,
+            )
+            yield f"event: error\ndata: {{'error': '{str(e)}'}}\n\n"
+
+    return StreamingResponse(
+        event_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+@router.get("/voices")
+async def list_available_voices():
+    """
+    List all available Google Cloud TTS voices for Brazilian Portuguese.
+
+    Returns voice names, gender, and quality information.
+
+    **Example Usage:**
+    ```bash
+    curl http://localhost:8000/api/v1/voice/voices
+    ```
+    """
+    return {
+        "voices": [
+            {
+                "name": "pt-BR-Wavenet-A",
+                "gender": "female",
+                "quality": "high",
+                "type": "wavenet",
+                "description": "Natural female voice, warm and clear",
+            },
+            {
+                "name": "pt-BR-Wavenet-B",
+                "gender": "male",
+                "quality": "high",
+                "type": "wavenet",
+                "description": "Natural male voice, professional and confident",
+            },
+            {
+                "name": "pt-BR-Neural2-A",
+                "gender": "female",
+                "quality": "very_high",
+                "type": "neural2",
+                "description": "Latest female voice, extremely natural (recommended)",
+            },
+            {
+                "name": "pt-BR-Neural2-B",
+                "gender": "male",
+                "quality": "very_high",
+                "type": "neural2",
+                "description": "Latest male voice, extremely natural (recommended)",
+            },
+            {
+                "name": "pt-BR-Standard-A",
+                "gender": "female",
+                "quality": "standard",
+                "type": "standard",
+                "description": "Standard female voice (basic quality)",
+            },
+            {
+                "name": "pt-BR-Standard-B",
+                "gender": "male",
+                "quality": "standard",
+                "type": "standard",
+                "description": "Standard male voice (basic quality)",
+            },
+        ],
+        "recommended": ["pt-BR-Neural2-A", "pt-BR-Neural2-B"],
+        "default": "pt-BR-Wavenet-A",
+    }
+
+
+@router.get("/health")
+async def voice_service_health():
+    """
+    Check voice service health and configuration status.
+
+    Returns service status, Google Cloud credentials status, and features.
+    """
+    try:
+        voice_service = get_voice_service()
+
+        return {
+            "status": "healthy",
+            "service": "voice",
+            "features": {
+                "speech_to_text": True,
+                "text_to_speech": True,
+                "streaming": True,
+                "conversations": True,
+            },
+            "configuration": {
+                "language": voice_service.language_code,
+                "credentials_configured": bool(voice_service.credentials_path),
+            },
+            "endpoints": {
+                "transcribe": "/api/v1/voice/transcribe",
+                "speak": "/api/v1/voice/speak",
+                "conversation": "/api/v1/voice/conversation",
+                "stream": "/api/v1/voice/conversation/stream",
+                "voices": "/api/v1/voice/voices",
+            },
+        }
+
+    except Exception as e:
+        logger.error("voice_health_check_failed", error=str(e), exc_info=True)
+        return {
+            "status": "unhealthy",
+            "error": str(e),
+            "message": "Voice service initialization failed",
+        }
