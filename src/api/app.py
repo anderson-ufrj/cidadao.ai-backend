@@ -19,7 +19,6 @@ from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from src.api.middleware.compression import CompressionMiddleware
-from src.api.middleware.ip_whitelist import IPWhitelistMiddleware
 from src.api.middleware.logging_middleware import LoggingMiddleware
 from src.api.middleware.metrics_middleware import MetricsMiddleware, setup_http_metrics
 from src.api.middleware.rate_limit import RateLimitMiddleware
