@@ -8,7 +8,9 @@ This service integrates with Google Cloud Speech APIs to provide:
 - Accessibility features for visually impaired users
 """
 
+import base64
 import io
+import json
 from collections.abc import AsyncGenerator
 from pathlib import Path
 from typing import Optional
@@ -56,11 +58,37 @@ class VoiceService:
         )
 
     def _get_credentials(self) -> Optional[service_account.Credentials]:
-        """Load Google Cloud credentials from file.
+        """Load Google Cloud credentials from file or base64 env var.
 
-        Supports both absolute and relative paths.
-        Relative paths are resolved from the project root.
+        Priority:
+        1. GOOGLE_CREDENTIALS_BASE64 (Railway/cloud deployments)
+        2. GOOGLE_CREDENTIALS_PATH (local file)
+        3. Default credentials (Application Default Credentials)
         """
+        # Try base64 credentials first (Railway/cloud)
+        if settings.google_credentials_base64:
+            try:
+                credentials_json = base64.b64decode(
+                    settings.google_credentials_base64
+                ).decode("utf-8")
+                credentials_info = json.loads(credentials_json)
+                credentials = service_account.Credentials.from_service_account_info(
+                    credentials_info,
+                    scopes=["https://www.googleapis.com/auth/cloud-platform"],
+                )
+                logger.info(
+                    "google_credentials_loaded_from_base64",
+                    project_id=credentials_info.get("project_id"),
+                )
+                return credentials
+            except Exception as e:
+                logger.error(
+                    "google_credentials_base64_load_failed",
+                    error=str(e),
+                )
+                # Fall through to file-based credentials
+
+        # Try file-based credentials
         if not self.credentials_path:
             logger.warning(
                 "google_credentials_not_configured",
@@ -92,7 +120,7 @@ class VoiceService:
                 scopes=["https://www.googleapis.com/auth/cloud-platform"],
             )
             logger.info(
-                "google_credentials_loaded",
+                "google_credentials_loaded_from_file",
                 path=str(credentials_path),
                 relative=not Path(self.credentials_path).is_absolute(),
             )
