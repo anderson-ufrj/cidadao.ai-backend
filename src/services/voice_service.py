@@ -9,7 +9,6 @@ This service integrates with Google Cloud Speech APIs to provide:
 """
 
 import io
-import os
 from collections.abc import AsyncGenerator
 from pathlib import Path
 from typing import Optional
@@ -17,10 +16,10 @@ from typing import Optional
 from google.cloud import speech_v1, texttospeech_v1
 from google.oauth2 import service_account
 
+from src.core import get_logger
 from src.core.config import settings
-from src.core.logging_config import get_logger
 
-logger = get_logger(__name__)
+logger = get_logger("services.voice")
 
 
 class VoiceService:
