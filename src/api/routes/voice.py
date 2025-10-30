@@ -439,7 +439,7 @@ async def voice_conversation(request: ConversationRequest) -> ConversationRespon
 
 
 @router.post("/conversation/stream")
-async def voice_conversation_stream(
+async def voice_conversation_stream(  # noqa: PLR0915
     request: ConversationRequest,
 ) -> StreamingResponse:
     """
@@ -457,7 +457,7 @@ async def voice_conversation_stream(
     ```
     """
 
-    async def event_generator() -> AsyncGenerator[str, None]:
+    async def event_generator() -> AsyncGenerator[str, None]:  # noqa: PLR0915
         """Generate SSE events for streaming conversation."""
         try:
             import json
@@ -741,10 +741,35 @@ async def voice_service_health():
     Returns service status, Google Cloud credentials status, and features.
     """
     try:
+        from src.core.config import settings
+
         voice_service = get_voice_service()
 
+        # Check multiple credential sources
+        has_base64_creds = bool(settings.google_credentials_base64)
+        has_file_creds = bool(voice_service.credentials_path)
+        credentials_configured = has_base64_creds or has_file_creds
+
+        # Try to actually load credentials to verify they work
+        credentials_valid = False
+        credential_source = None
+        credential_error = None
+
+        try:
+            creds = voice_service._get_credentials()
+            if creds:
+                credentials_valid = True
+                if has_base64_creds:
+                    credential_source = "base64_env_var"
+                elif has_file_creds:
+                    credential_source = "file"
+                else:
+                    credential_source = "application_default"
+        except Exception as cred_error:
+            credential_error = str(cred_error)
+
         return {
-            "status": "healthy",
+            "status": "healthy" if credentials_valid else "degraded",
             "service": "voice",
             "features": {
                 "speech_to_text": True,
@@ -754,7 +779,12 @@ async def voice_service_health():
             },
             "configuration": {
                 "language": voice_service.language_code,
-                "credentials_configured": bool(voice_service.credentials_path),
+                "credentials_configured": credentials_configured,
+                "credentials_valid": credentials_valid,
+                "credential_source": credential_source,
+                "has_base64_credentials": has_base64_creds,
+                "has_file_credentials": has_file_creds,
+                "credential_error": credential_error,
             },
             "endpoints": {
                 "transcribe": "/api/v1/voice/transcribe",
