@@ -13,8 +13,9 @@ from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 from pydantic import Field as PydanticField
+from pydantic import validator
 
 from src.agents import AgentContext, InvestigatorAgent
 from src.agents.zumbi_wrapper import patch_investigator_agent
@@ -597,8 +598,10 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
         investigation["results"] = enriched_results
 
         investigation["anomalies_detected"] = len(results)
-        investigation["records_processed"] = total_contracts_analyzed if total_contracts_analyzed > 0 else sum(
-            len(r.affected_entities) for r in results
+        investigation["records_processed"] = (
+            total_contracts_analyzed
+            if total_contracts_analyzed > 0
+            else sum(len(r.affected_entities) for r in results)
         )
 
         # Generate summary
@@ -635,7 +638,7 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
                 "investigation_saved_to_database",
                 investigation_id=investigation_id,
                 records=investigation["records_processed"],
-                anomalies=investigation["anomalies_detected"]
+                anomalies=investigation["anomalies_detected"],
             )
         except Exception as e:
             logger.error(
@@ -860,9 +863,7 @@ async def get_public_investigation_status(investigation_id: str):
                     status=db_investigation.status,
                     progress=getattr(db_investigation, "progress", 0.0),
                     current_phase=getattr(db_investigation, "current_phase", "unknown"),
-                    records_processed=getattr(
-                        db_investigation, "records_processed", 0
-                    ),
+                    records_processed=getattr(db_investigation, "records_processed", 0),
                     anomalies_detected=getattr(db_investigation, "anomalies_found", 0),
                 )
         except Exception as e:
@@ -884,6 +885,102 @@ async def get_public_investigation_status(investigation_id: str):
         records_processed=investigation["records_processed"],
         anomalies_detected=investigation["anomalies_detected"],
     )
+
+
+@router.get("/public/results/{investigation_id}", response_model=InvestigationResponse)
+async def get_public_investigation_results(investigation_id: str):
+    """
+    Get complete investigation results without authentication (for public access).
+
+    This endpoint allows retrieving investigation results without authentication,
+    making it suitable for public dashboards, sharing, and system monitoring.
+
+    Returns all anomalies found, analysis summary, and processing metrics.
+    """
+    # Check in-memory first
+    if investigation_id in _active_investigations:
+        investigation = _active_investigations[investigation_id]
+
+        if investigation["status"] not in ["completed", "failed"]:
+            raise HTTPException(
+                status_code=409, detail="Investigation not yet completed"
+            )
+
+        processing_time = 0.0
+        if investigation.get("completed_at") and investigation.get("started_at"):
+            processing_time = (
+                investigation["completed_at"] - investigation["started_at"]
+            ).total_seconds()
+
+        return InvestigationResponse(
+            investigation_id=investigation_id,
+            status=investigation["status"],
+            query=investigation["query"],
+            data_source=investigation["data_source"],
+            started_at=investigation["started_at"],
+            completed_at=investigation.get("completed_at"),
+            anomalies_found=len(investigation["results"]),
+            total_records_analyzed=investigation["records_processed"],
+            results=investigation["results"],
+            summary=investigation.get("summary", "Investigation completed"),
+            confidence_score=investigation.get("confidence_score", 0.0),
+            processing_time=processing_time,
+        )
+
+    # Try to fetch from database if not in memory
+    try:
+        db_investigation = await investigation_service.get_by_id(investigation_id)
+        if not db_investigation:
+            raise HTTPException(status_code=404, detail="Investigation not found")
+
+        # Check if completed
+        if db_investigation.status not in ["completed", "failed"]:
+            raise HTTPException(
+                status_code=409, detail="Investigation not yet completed"
+            )
+
+        processing_time = 0.0
+        if (
+            hasattr(db_investigation, "completed_at")
+            and hasattr(db_investigation, "started_at")
+            and db_investigation.completed_at
+            and db_investigation.started_at
+        ):
+            processing_time = (
+                db_investigation.completed_at - db_investigation.started_at
+            ).total_seconds()
+
+        return InvestigationResponse(
+            investigation_id=investigation_id,
+            status=db_investigation.status,
+            query=db_investigation.query,
+            data_source=getattr(db_investigation, "data_source", "contracts"),
+            started_at=db_investigation.started_at,
+            completed_at=getattr(db_investigation, "completed_at", None),
+            anomalies_found=getattr(db_investigation, "anomalies_found", 0),
+            total_records_analyzed=getattr(
+                db_investigation, "total_records_analyzed", 0
+            ),
+            results=getattr(db_investigation, "results", []) or [],
+            summary=getattr(
+                db_investigation, "summary", "Investigation completed from database"
+            ),
+            confidence_score=getattr(db_investigation, "confidence_score", 0.0),
+            processing_time=processing_time,
+        )
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(
+            "Failed to fetch investigation results from database",
+            investigation_id=investigation_id,
+            error=str(e),
+            exc_info=True,
+        )
+        raise HTTPException(
+            status_code=500, detail=f"Failed to retrieve results: {str(e)}"
+        )
 
 
 @router.get("/public/health", response_model=dict[str, Any])
