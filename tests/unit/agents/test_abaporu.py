@@ -74,13 +74,30 @@ def agent_context():
 @pytest.fixture
 def master_agent(mock_agent_registry):
     """Create MasterAgent instance for testing."""
-    # Mock LLM and memory services
-    mock_llm = AsyncMock()
+    # Mock MaritacaClient and memory services
+    mock_maritaca = AsyncMock()
+    # Mock chat_completion to return a proper response structure
+    mock_maritaca.chat_completion = AsyncMock(
+        return_value=AsyncMock(
+            content="Plano gerado por LLM:\n1. Zumbi para detecção\n2. Anita para análise",
+            usage={"total_tokens": 150},
+        )
+    )
+    # Mock health_check
+    mock_maritaca.health_check = AsyncMock(
+        return_value={"status": "healthy", "model": "sabiazinho-3"}
+    )
+    # Mock shutdown
+    mock_maritaca.shutdown = AsyncMock()
+
     mock_memory = AsyncMock()
+    # Mock memory methods
+    mock_memory.get_relevant_context = AsyncMock(return_value={})
+    mock_memory.store_investigation = AsyncMock()
 
     # Create MasterAgent with mocked dependencies
     agent = MasterAgent(
-        llm_service=mock_llm,
+        maritaca_client=mock_maritaca,
         memory_agent=mock_memory,
         reflection_threshold=0.8,
         max_reflection_loops=3,
@@ -490,3 +507,196 @@ class TestAbaporuEdgeCases:
                 any(agent in plan.required_agents for agent in expected_agents)
                 or len(plan.required_agents) > 0
             ), f"Failed for query: {query}"
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_generate_explanation(self, master_agent, agent_context):
+        """Test explanation generation using Maritaca AI."""
+        findings = [
+            {
+                "description": "Superfaturamento de 300%",
+                "value": 150000.00,
+                "anomaly_score": 0.95,
+            },
+            {
+                "description": "Fornecedor sem registro",
+                "value": 50000.00,
+                "anomaly_score": 0.85,
+            },
+        ]
+
+        explanation = await master_agent._generate_explanation(
+            findings, "Analisar contratos da saúde", agent_context
+        )
+
+        assert explanation is not None
+        assert isinstance(explanation, str)
+        assert len(explanation) > 0
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_generate_fallback_explanation(self, master_agent):
+        """Test fallback explanation generation when LLM fails."""
+        findings = [
+            {
+                "description": "Teste de anomalia",
+                "value": 100000,
+                "anomaly_score": 0.9,
+            }
+        ]
+
+        explanation = master_agent._generate_fallback_explanation(
+            findings, "Teste de consulta"
+        )
+
+        assert "Resumo da Investigação" in explanation
+        assert "Teste de consulta" in explanation
+        assert "100000" in explanation or "100,000" in explanation
+
+    @pytest.mark.unit
+    def test_calculate_confidence_score(self, master_agent):
+        """Test confidence score calculation."""
+        findings = [
+            {"anomaly_score": 0.9},
+            {"anomaly_score": 0.8},
+            {"anomaly_score": 0.75},
+        ]
+        sources = ["contracts", "expenses", "portal"]
+
+        score = master_agent._calculate_confidence_score(findings, sources)
+
+        assert 0.0 <= score <= 1.0
+        assert score > 0.5  # Should be relatively high with good findings
+
+    @pytest.mark.unit
+    def test_group_parallel_steps(self, master_agent):
+        """Test grouping steps for parallel execution."""
+        steps = [
+            {"agent": "Zumbi", "action": "detect", "depends_on": []},
+            {"agent": "Anita", "action": "analyze", "depends_on": []},
+            {
+                "agent": "Tiradentes",
+                "action": "report",
+                "depends_on": ["Zumbi", "Anita"],
+            },
+        ]
+
+        groups = master_agent._group_parallel_steps(steps)
+
+        assert len(groups) >= 2  # At least 2 groups due to dependencies
+        # First group should have Zumbi and Anita (can run in parallel)
+        assert len(groups[0]) >= 1
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_monitor_progress(self, master_agent, agent_context):
+        """Test investigation progress monitoring."""
+        # Create a plan and add to active investigations
+        plan = InvestigationPlan(
+            objective="Test monitoring",
+            steps=[{"agent": "Zumbi", "action": "detect"}],
+            required_agents=["Zumbi"],
+            estimated_time=60,
+            quality_criteria={"min_confidence": 0.7},
+        )
+
+        master_agent.active_investigations[agent_context.investigation_id] = plan
+
+        result = await master_agent._monitor_progress({}, agent_context)
+
+        assert result["status"] == "active"
+        assert "plan" in result
+        assert "progress" in result
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_adapt_strategy_low_findings(self, master_agent, agent_context):
+        """Test strategy adaptation when findings are low."""
+        # Create a minimal plan
+        plan = InvestigationPlan(
+            objective="Test adaptation",
+            steps=[],
+            required_agents=["Zumbi"],
+            estimated_time=30,
+            quality_criteria={"min_findings": 5, "min_confidence": 0.75},
+        )
+
+        master_agent.active_investigations[agent_context.investigation_id] = plan
+
+        payload = {
+            "query": "Test query",
+            "current_results": {
+                "findings": [],  # No findings (below minimum)
+                "confidence_score": 0.6,  # Low confidence
+                "sources": ["source1"],  # Few sources
+                "anomaly_rate": 0.1,
+            },
+        }
+
+        result = await master_agent._adapt_strategy(payload, agent_context)
+
+        assert result["status"] == "adapted"
+        assert len(result["changes"]) > 0
+        assert len(result["new_steps"]) > 0
+
+    @pytest.mark.unit
+    def test_calculate_quality_score(self, master_agent):
+        """Test quality score calculation."""
+        high_quality_result = InvestigationResult(
+            investigation_id="test-123",
+            query="High quality test",
+            findings=[{"desc": "finding" + str(i)} for i in range(5)],
+            confidence_score=0.9,
+            sources=["s1", "s2", "s3"],
+            explanation="Detailed explanation with more than 100 characters" * 3,
+        )
+
+        score = master_agent._calculate_quality_score(high_quality_result, [])
+
+        assert 0.0 <= score <= 1.0
+        assert score > 0.8  # High quality should have high score
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_register_agent(self, master_agent):
+        """Test agent registration."""
+        new_agent = AsyncMock(name="TestAgent")
+        master_agent.register_agent("TestAgent", new_agent)
+
+        assert "TestAgent" in master_agent.agent_registry
+        assert master_agent.agent_registry["TestAgent"] == new_agent
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_process_with_invalid_action(self, master_agent, agent_context):
+        """Test processing with invalid action."""
+        message = AgentMessage(
+            sender="user",
+            recipient="Abaporu",
+            action="invalid_action",
+            payload={},
+        )
+
+        response = await master_agent.process(message, agent_context)
+
+        assert response.status == AgentStatus.ERROR
+        assert response.error is not None
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_plan_investigation_with_llm_failure(
+        self, master_agent, agent_context
+    ):
+        """Test investigation planning when LLM fails (uses keyword fallback)."""
+        # Make Maritaca client fail
+        master_agent.maritaca_client.chat_completion.side_effect = Exception(
+            "LLM unavailable"
+        )
+
+        payload = {"query": "Detect contract anomalies"}
+        plan = await master_agent._plan_investigation(payload, agent_context)
+
+        # Should still return a valid plan using keyword-based fallback
+        assert isinstance(plan, InvestigationPlan)
+        assert len(plan.steps) > 0
+        assert "Zumbi" in plan.required_agents  # Keyword "anomalies" triggers Zumbi
