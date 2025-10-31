@@ -62,7 +62,7 @@ class WebhookPayload(BaseModel):
     data: dict[str, Any]
     metadata: Optional[dict[str, Any]] = None
 
-    @field_validator("timestamp", pre=True)
+    @field_validator("timestamp", mode="before")
     @classmethod
     def ensure_timezone(cls, v):
         """Ensure timestamp has timezone."""
