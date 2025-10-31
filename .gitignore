@@ -8,6 +8,17 @@ logs/
 *.log
 *.log.*
 
+# Test files in root (should be in tests/)
+/test_*.py
+/test*.py
+/*_test.py
+
+# Temporary database files
+cidadao_ai.db
+*.db
+*.sqlite
+*.sqlite3
+
 # Add-ons - separate repositories
 add-ons/
 
