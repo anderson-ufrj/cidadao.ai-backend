@@ -12,8 +12,9 @@ from typing import Any, Optional
 from urllib.parse import urljoin
 
 import httpx
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 from pydantic import Field as PydanticField
+from pydantic import field_field_validator
 
 from src.core import get_logger, settings
 from src.core.exceptions import DataNotFoundError, TransparencyAPIError
@@ -98,7 +99,8 @@ class TransparencyAPIFilter(BaseModel):
         default=20, ge=1, le=500, description="Page size"
     )
 
-    @validator("data_inicio", "data_fim")
+    @field_validator("data_inicio", "data_fim")
+    @classmethod
     def validate_date_format(cls, v):
         """Validate date format."""
         if v is not None:

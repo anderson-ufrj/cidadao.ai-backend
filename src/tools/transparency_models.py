@@ -12,7 +12,7 @@ from typing import Any, Optional, Union
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
-from pydantic import validator
+from pydantic import field_field_field_validator
 
 
 class Organization(BaseModel):
@@ -40,7 +40,8 @@ class Supplier(BaseModel):
     municipio: Optional[str] = PydanticField(default=None, description="Municipality")
     uf: Optional[str] = PydanticField(default=None, description="State")
 
-    @validator("cnpj", "cpf")
+    @field_validator("cnpj", "cpf")
+    @classmethod
     def validate_document_format(cls, v):
         """Validate document format."""
         if v:
@@ -119,12 +120,13 @@ class Contract(BaseModel):
         default=None, description="Resource origin"
     )
 
-    @validator(
+    @field_validator(
         "data_assinatura",
         "data_inicio_vigencia",
         "data_fim_vigencia",
         "data_publicacao",
     )
+    @classmethod
     def parse_date(cls, v):
         """Parse date from various formats."""
         if isinstance(v, str):
@@ -137,7 +139,8 @@ class Contract(BaseModel):
             return None
         return v
 
-    @validator("valor_inicial", "valor_global", "valor_acumulado")
+    @field_validator("valor_inicial", "valor_global", "valor_acumulado")
+    @classmethod
     def parse_decimal(cls, v):
         """Parse decimal values."""
         if isinstance(v, (int, float)):
@@ -200,7 +203,8 @@ class Expense(BaseModel):
         default=None, description="Beneficiary"
     )
 
-    @validator("data_pagamento", "data_documento")
+    @field_validator("data_pagamento", "data_documento")
+    @classmethod
     def parse_date(cls, v):
         """Parse date from various formats."""
         if isinstance(v, str):
@@ -212,7 +216,8 @@ class Expense(BaseModel):
             return None
         return v
 
-    @validator("valor", "valor_empenhado", "valor_liquidado", "valor_pago")
+    @field_validator("valor", "valor_empenhado", "valor_liquidado", "valor_pago")
+    @classmethod
     def parse_decimal(cls, v):
         """Parse decimal values."""
         if isinstance(v, (int, float)):
@@ -273,12 +278,13 @@ class Agreement(BaseModel):
         default=None, description="Agreement partner"
     )
 
-    @validator(
+    @field_validator(
         "data_assinatura",
         "data_inicio_vigencia",
         "data_fim_vigencia",
         "data_publicacao",
     )
+    @classmethod
     def parse_date(cls, v):
         """Parse date from various formats."""
         if isinstance(v, str):
@@ -290,7 +296,8 @@ class Agreement(BaseModel):
             return None
         return v
 
-    @validator("valor_global", "valor_repasse", "valor_contrapartida")
+    @field_validator("valor_global", "valor_repasse", "valor_contrapartida")
+    @classmethod
     def parse_decimal(cls, v):
         """Parse decimal values."""
         if isinstance(v, (int, float)):
@@ -345,7 +352,8 @@ class Bidding(BaseModel):
     )
     vencedor: Optional[Supplier] = PydanticField(default=None, description="Winner")
 
-    @validator("data_abertura", "data_homologacao", "data_publicacao")
+    @field_validator("data_abertura", "data_homologacao", "data_publicacao")
+    @classmethod
     def parse_date(cls, v):
         """Parse date from various formats."""
         if isinstance(v, str):
@@ -357,7 +365,8 @@ class Bidding(BaseModel):
             return None
         return v
 
-    @validator("valor_estimado", "valor_homologado")
+    @field_validator("valor_estimado", "valor_homologado")
+    @classmethod
     def parse_decimal(cls, v):
         """Parse decimal values."""
         if isinstance(v, (int, float)):
@@ -407,7 +416,8 @@ class Servant(BaseModel):
         default=None, description="Organization"
     )
 
-    @validator("cpf")
+    @field_validator("cpf")
+    @classmethod
     def validate_cpf(cls, v):
         """Validate CPF format."""
         if v:
@@ -416,7 +426,8 @@ class Servant(BaseModel):
                 return None
         return v
 
-    @validator("data_ingresso", "data_diploma_ingresso")
+    @field_validator("data_ingresso", "data_diploma_ingresso")
+    @classmethod
     def parse_date(cls, v):
         """Parse date from various formats."""
         if isinstance(v, str):
@@ -428,7 +439,8 @@ class Servant(BaseModel):
             return None
         return v
 
-    @validator("remuneracao_basica", "remuneracao_total")
+    @field_validator("remuneracao_basica", "remuneracao_total")
+    @classmethod
     def parse_decimal(cls, v):
         """Parse decimal values."""
         if isinstance(v, (int, float)):
@@ -482,7 +494,8 @@ class SanctionedCompany(BaseModel):
         default=None, description="Sanctioning organization"
     )
 
-    @validator("cnpj")
+    @field_validator("cnpj")
+    @classmethod
     def validate_cnpj(cls, v):
         """Validate CNPJ format."""
         if v:
@@ -491,7 +504,8 @@ class SanctionedCompany(BaseModel):
                 return None
         return v
 
-    @validator("data_inicio_sancao", "data_fim_sancao", "data_publicacao")
+    @field_validator("data_inicio_sancao", "data_fim_sancao", "data_publicacao")
+    @classmethod
     def parse_date(cls, v):
         """Parse date from various formats."""
         if isinstance(v, str):

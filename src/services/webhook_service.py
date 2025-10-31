@@ -16,7 +16,7 @@ from enum import Enum
 from typing import Any, Optional
 
 import httpx
-from pydantic import BaseModel, Field, HttpUrl, validator
+from pydantic import BaseModel, Field, HttpUrl, field_validator
 from tenacity import (
     retry,
     retry_if_exception_type,
@@ -62,7 +62,8 @@ class WebhookPayload(BaseModel):
     data: dict[str, Any]
     metadata: Optional[dict[str, Any]] = None
 
-    @validator("timestamp", pre=True)
+    @field_validator("timestamp", pre=True)
+    @classmethod
     def ensure_timezone(cls, v):
         """Ensure timestamp has timezone."""
         if isinstance(v, datetime) and v.tzinfo is None:

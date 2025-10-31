@@ -11,8 +11,9 @@ from typing import Any, Optional
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 from pydantic import Field as PydanticField
+from pydantic import field_validator
 
 from src.agents import AgentContext, AnalystAgent
 from src.api.middleware.authentication import get_current_user
@@ -45,7 +46,8 @@ class AnalysisRequest(BaseModel):
         default=False, description="Include predictive analysis"
     )
 
-    @validator("analysis_type")
+    @field_validator("analysis_type")
+    @classmethod
     def validate_analysis_type(cls, v):
         """Validate analysis type."""
         allowed_types = [
@@ -60,7 +62,8 @@ class AnalysisRequest(BaseModel):
             raise ValueError(f"Analysis type must be one of: {allowed_types}")
         return v
 
-    @validator("data_source")
+    @field_validator("data_source")
+    @classmethod
     def validate_data_source(cls, v):
         """Validate data source."""
         allowed_sources = [
