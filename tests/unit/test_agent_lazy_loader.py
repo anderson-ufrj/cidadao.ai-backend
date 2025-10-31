@@ -6,12 +6,11 @@ import asyncio
 from datetime import datetime, timedelta
 
 import pytest
+import pytest_asyncio
 
 from src.agents.deodoro import BaseAgent
 from src.core.exceptions import AgentExecutionError
-from src.services.agent_lazy_loader import (
-    AgentLazyLoader,
-)
+from src.services.agent_lazy_loader import AgentLazyLoader
 
 
 class MockAgent(BaseAgent):
@@ -32,7 +31,7 @@ class MockAgent(BaseAgent):
 class TestAgentLazyLoader:
     """Test agent lazy loader functionality."""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def lazy_loader(self):
         """Create a lazy loader instance."""
         loader = AgentLazyLoader(unload_after_minutes=1, max_loaded_agents=3)
@@ -40,6 +39,7 @@ class TestAgentLazyLoader:
         yield loader
         await loader.stop()
 
+    @pytest.mark.asyncio
     async def test_register_agent(self, lazy_loader):
         """Test agent registration."""
         # Register a new agent
@@ -64,6 +64,7 @@ class TestAgentLazyLoader:
         assert metadata.priority == 5
         assert metadata.preload is False
 
+    @pytest.mark.asyncio
     async def test_get_agent_class_lazy_load(self, lazy_loader):
         """Test lazy loading of agent class."""
         # Register agent
@@ -88,6 +89,7 @@ class TestAgentLazyLoader:
         assert agent_class2 == MockAgent
         assert lazy_loader._stats["cache_hits"] == 1
 
+    @pytest.mark.asyncio
     async def test_create_agent_instance(self, lazy_loader):
         """Test creating agent instance."""
         # Register agent
@@ -107,6 +109,7 @@ class TestAgentLazyLoader:
         assert agent.initialized  # Should be initialized
         assert len(lazy_loader._instances) == 1
 
+    @pytest.mark.asyncio
     async def test_agent_not_found(self, lazy_loader):
         """Test error when agent not found."""
         with pytest.raises(AgentExecutionError) as exc_info:
@@ -114,6 +117,7 @@ class TestAgentLazyLoader:
 
         assert "not registered" in str(exc_info.value)
 
+    @pytest.mark.asyncio
     async def test_preload_agents(self, lazy_loader):
         """Test preloading of high-priority agents."""
         # Register agents with different priorities
@@ -144,6 +148,7 @@ class TestAgentLazyLoader:
         assert lazy_loader._registry["HighPriority"].loaded_class is not None
         assert lazy_loader._registry["LowPriority"].loaded_class is None
 
+    @pytest.mark.asyncio
     async def test_memory_pressure_unloading(self, lazy_loader):
         """Test unloading agents under memory pressure."""
         lazy_loader.max_loaded_agents = 2
@@ -167,6 +172,7 @@ class TestAgentLazyLoader:
         loaded_count = sum(1 for m in lazy_loader._registry.values() if m.loaded_class)
         assert loaded_count <= 2
 
+    @pytest.mark.asyncio
     async def test_cleanup_unused_agents(self, lazy_loader):
         """Test cleanup of unused agents."""
         # Register and load agent
@@ -192,6 +198,7 @@ class TestAgentLazyLoader:
         assert metadata.loaded_class is None
         assert lazy_loader._stats["total_unloads"] == 1
 
+    @pytest.mark.asyncio
     async def test_get_available_agents(self, lazy_loader):
         """Test getting available agents list."""
         # Register some agents
@@ -226,6 +233,7 @@ class TestAgentLazyLoader:
         assert agent1["capabilities"] == ["cap1"]
         assert agent1["priority"] == 10
 
+    @pytest.mark.asyncio
     async def test_get_stats(self, lazy_loader):
         """Test getting loader statistics."""
         # Perform some operations
@@ -250,6 +258,7 @@ class TestAgentLazyLoader:
         assert stats["statistics"]["total_loads"] >= 1
         assert stats["memory_usage"]["max_loaded_agents"] == 3
 
+    @pytest.mark.asyncio
     async def test_unload_with_active_instances(self, lazy_loader):
         """Test that agents with active instances are not unloaded."""
         # Register and create agent
@@ -271,6 +280,7 @@ class TestAgentLazyLoader:
         # Should still be loaded due to active instance
         assert metadata.loaded_class is not None
 
+    @pytest.mark.asyncio
     async def test_invalid_module_path(self, lazy_loader):
         """Test loading agent with invalid module path."""
         # Register with invalid module
@@ -288,6 +298,7 @@ class TestAgentLazyLoader:
 
         assert "Failed to load agent" in str(exc_info.value)
 
+    @pytest.mark.asyncio
     async def test_invalid_class_name(self, lazy_loader):
         """Test loading agent with invalid class name."""
         # Register with invalid class

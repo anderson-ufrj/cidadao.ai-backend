@@ -6,6 +6,7 @@ knowledge sharing and context preservation.
 """
 
 import hashlib
+import json
 from datetime import datetime, timedelta
 from enum import Enum
 from typing import Any, Optional
@@ -200,7 +201,7 @@ class AgentMemoryIntegration:
             ]:
                 memories = await self.retrieve_relevant_memories(
                     agent_id=agent_id,
-                    query=message.content,
+                    query=str(message.payload) if message.payload else "",
                     context=context,
                     tags=config["tags"],
                 )
@@ -331,7 +332,7 @@ class AgentMemoryIntegration:
                 id=memory_id,
                 content={
                     "agent": agent_id,
-                    "message": message.content,
+                    "message": str(message.payload) if message.payload else "",
                     "result": result.data if hasattr(result, "data") else str(result),
                 },
                 importance=importance,
@@ -339,7 +340,7 @@ class AgentMemoryIntegration:
                 investigation_id=context.investigation_id,
                 user_id=context.user_id,
                 session_id=context.session_id,
-                query=message.content,
+                query=str(message.payload) if message.payload else "",
                 result=(
                     result.data if hasattr(result, "data") else {"result": str(result)}
                 ),
