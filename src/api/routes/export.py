@@ -14,7 +14,7 @@ import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
-from pydantic import validator
+from pydantic import field_validator
 
 from src.api.middleware.authentication import get_current_user
 from src.core import get_logger, json_utils
@@ -38,7 +38,8 @@ class ExportRequest(BaseModel):
     include_metadata: bool = PydanticField(default=True, description="Include metadata")
     compress: bool = PydanticField(default=False, description="Compress output")
 
-    @validator("export_type")
+    @field_validator("export_type")
+    @classmethod
     def validate_export_type(cls, v):
         """Validate export type."""
         allowed_types = [
@@ -56,7 +57,8 @@ class ExportRequest(BaseModel):
             raise ValueError(f"Export type must be one of: {allowed_types}")
         return v
 
-    @validator("format")
+    @field_validator("format")
+    @classmethod
     def validate_format(cls, v):
         """Validate export format."""
         allowed_formats = ["excel", "csv", "json", "pdf"]
@@ -73,7 +75,8 @@ class BulkExportRequest(BaseModel):
     )
     compress: bool = PydanticField(default=True, description="Compress all exports")
 
-    @validator("exports")
+    @field_validator("exports")
+    @classmethod
     def validate_exports(cls, v):
         """Validate exports list."""
         if not v:
