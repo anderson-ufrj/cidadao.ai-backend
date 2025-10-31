@@ -15,7 +15,7 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
-from pydantic import validator
+from pydantic import field_validator
 
 from src.agents import AgentContext, InvestigatorAgent
 from src.agents.zumbi_wrapper import patch_investigator_agent
@@ -60,7 +60,8 @@ class InvestigationRequest(BaseModel):
         default=False, description="Stream results as they're found"
     )
 
-    @validator("data_source")
+    @field_validator("data_source")
+    @classmethod
     def validate_data_source(cls, v):
         """Validate data source."""
         allowed_sources = [
@@ -74,7 +75,8 @@ class InvestigationRequest(BaseModel):
             raise ValueError(f"Data source must be one of: {allowed_sources}")
         return v
 
-    @validator("anomaly_types")
+    @field_validator("anomaly_types")
+    @classmethod
     def validate_anomaly_types(cls, v):
         """Validate anomaly types."""
         allowed_types = [
@@ -727,7 +729,8 @@ class PublicInvestigationRequest(BaseModel):
         description="System creating investigation",
     )
 
-    @validator("data_source")
+    @field_validator("data_source")
+    @classmethod
     def validate_data_source(cls, v):
         """Validate data source."""
         allowed_sources = [
