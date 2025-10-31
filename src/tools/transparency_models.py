@@ -12,7 +12,7 @@ from typing import Any, Optional, Union
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
-from pydantic import field_field_field_validator
+from pydantic import field_validator
 
 
 class Organization(BaseModel):
