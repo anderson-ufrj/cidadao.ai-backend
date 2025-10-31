@@ -40,7 +40,7 @@ Classe base abstrata (BaseAgent) da qual todos os agentes herdam - intencional
 ## 1. 🔍 Zumbi dos Palmares - Investigador de Anomalias
 
 **Status**: ✅ **100% Operacional**
-**Arquivo**: `src/agents/zumbi.py` (1,266 linhas)
+**Arquivo**: `src/agents/zumbi.py` (1,427 linhas)
 **Testes**: ✅ 2 arquivos completos (`test_zumbi.py`, `test_zumbi_complete.py`)
 **Última Validação**: 09/10/2025
 
@@ -116,7 +116,7 @@ print(result.correlation)  # Coeficiente de correlação
 ## 3. 📝 Tiradentes - Gerador de Relatórios
 
 **Status**: ✅ **100% Operacional**
-**Arquivo**: `src/agents/tiradentes.py` (1,066 linhas)
+**Arquivo**: `src/agents/tiradentes.py` (1,934 linhas)
 **Testes**: ✅ **3 arquivos** (`test_tiradentes.py`, `test_tiradentes_reporter.py`, `test_tiradentes_pdf.py`)
 **Última Validação**: 09/10/2025
 
@@ -158,7 +158,7 @@ with open("report.pdf", "wb") as f:
 ## 4. 🏎️ Ayrton Senna - Roteador Semântico
 
 **Status**: ✅ **100% Operacional**
-**Arquivo**: `src/agents/ayrton_senna.py` (625 linhas)
+**Arquivo**: `src/agents/ayrton_senna.py` (646 linhas)
 **Testes**: ✅ 2 arquivos (`test_ayrton_senna.py`, `test_ayrton_senna_complete.py`)
 **Última Validação**: 09/10/2025
 
@@ -197,7 +197,7 @@ print(routing.confidence) # 0.95
 ## 5. ⚖️ José Bonifácio - Analista de Políticas
 
 **Status**: ✅ **100% Operacional**
-**Arquivo**: `src/agents/bonifacio.py` (657 linhas)
+**Arquivo**: `src/agents/bonifacio.py` (2,131 linhas)
 **Testes**: ✅ `test_bonifacio.py`
 **Última Validação**: 09/10/2025
 
@@ -238,7 +238,7 @@ print(evaluation.social_roi)          # 3.2x
 ## 6. 📚 Machado de Assis - Analista Textual
 
 **Status**: ✅ **100% Operacional**
-**Arquivo**: `src/agents/machado.py` (622 linhas)
+**Arquivo**: `src/agents/machado.py` (683 linhas)
 **Testes**: ✅ `test_machado.py`
 **Última Validação**: 09/10/2025
 
@@ -279,7 +279,7 @@ print(analysis.suspicious_patterns)  # Red flags detectados
 ## 7. 🎯 Oxóssi - Caçador de Fraudes
 
 **Status**: ✅ **100% Operacional** (Descoberta da análise de 13/10!)
-**Arquivo**: `src/agents/oxossi.py` (1.057 linhas)
+**Arquivo**: `src/agents/oxossi.py` (1,698 linhas)
 **Testes**: ✅ `test_oxossi.py` disponível
 **Última Validação**: 13/10/2025 19:56
 
@@ -330,7 +330,7 @@ for fraud in fraud_check.detected_frauds:
 ## 8. 🎨 Abaporu - Master Orquestrador
 
 **Status**: ⚠️ **70% Funcional**
-**Arquivo**: `src/agents/abaporu.py` (710 linhas)
+**Arquivo**: `src/agents/abaporu.py` (1,252 linhas)
 **Testes**: ⚠️ Parciais
 **Gap**: Coordenação multi-agente usa placeholders
 
@@ -353,7 +353,7 @@ Implementar coordenação real de Zumbi + Anita + Tiradentes em pipeline
 ## 9. 🧠 Nanã - Sistema de Memória
 
 **Status**: ⚠️ **65% Funcional**
-**Arquivo**: `src/agents/nana.py` (685 linhas)
+**Arquivo**: `src/agents/nana.py` (1,004 linhas)
 **Testes**: ⚠️ Mínimos
 **Gap**: Sem persistência real (PostgreSQL/Redis)
 
@@ -376,7 +376,7 @@ Integrar Supabase para memória episódica persistente
 ## 10. ⚖️ Dandara dos Palmares - Social Justice 🆕
 
 **Status**: ✅ **100% Operacional**
-**Arquivo**: `src/agents/dandara.py` (703 linhas)
+**Arquivo**: `src/agents/dandara.py` (788 linhas)
 **Testes**: ⏳ Em desenvolvimento
 **Última Validação**: 13/10/2025 15:30
 
@@ -504,7 +504,7 @@ print(result["trends"]["convergence_rate"])       # 2.5% ao ano
 ## 13. 🏗️ Oscar Niemeyer - Arquiteto de Dados
 
 **Status**: ✅ **100% Operacional**
-**Arquivo**: `src/agents/oscar_niemeyer.py` (1.224 linhas)
+**Arquivo**: `src/agents/oscar_niemeyer.py` (1,228 linhas)
 **Testes**: ⏳ Em desenvolvimento
 **Última Validação**: 13/10/2025
 
@@ -563,7 +563,7 @@ metadata = await oscar.generate_visualization_metadata(
 ## 14. 💬 Carlos Drummond - Comunicação
 
 **Status**: ✅ **100% Operacional**
-**Arquivo**: `src/agents/drummond.py` (968 linhas)
+**Arquivo**: `src/agents/drummond.py` (1,707 linhas)
 **Testes**: ⏳ Em desenvolvimento
 **Última Validação**: 13/10/2025
 
@@ -576,7 +576,7 @@ metadata = await oscar.generate_visualization_metadata(
 ## 15. 🔮 Ceuci - Data Engineering & ETL
 
 **Status**: ✅ **100% Operacional**
-**Arquivo**: `src/agents/ceuci.py` (1.494 linhas)
+**Arquivo**: `src/agents/ceuci.py` (1,725 linhas)
 **Testes**: ⏳ Em desenvolvimento
 **Última Validação**: 13/10/2025
 
@@ -590,7 +590,7 @@ metadata = await oscar.generate_visualization_metadata(
 ## 16. 🏥 Obaluaiê - Health Analytics
 
 **Status**: ✅ **100% Operacional**
-**Arquivo**: `src/agents/obaluaie.py` (907 linhas)
+**Arquivo**: `src/agents/obaluaie.py` (857 linhas)
 **Testes**: ⏳ Em desenvolvimento
 **Última Validação**: 13/10/2025
 
@@ -605,7 +605,7 @@ metadata = await oscar.generate_visualization_metadata(
 ## Deodoro da Fonseca - Base Agent Framework
 
 **Status**: ⚙️ **Framework Base Intencional**
-**Arquivo**: `src/agents/deodoro.py` (584 linhas)
+**Arquivo**: `src/agents/deodoro.py` (647 linhas)
 **Propósito**: Classe abstrata BaseAgent da qual todos os 16 agentes herdam
 
 ### Por Que Não É "Operacional"
@@ -620,6 +620,20 @@ metadata = await oscar.generate_visualization_metadata(
 
 ---
 
+
+
+## 📝 Agents Pending Documentation
+
+### Drummond Simple
+**Status**: ⚠️ **Documentation Pending**
+**File**: `src/agents/drummond_simple.py` (148 lines)
+**Tests**: Check `tests/unit/agents/test_drummond_simple.py`
+
+### Zumbi Wrapper
+**Status**: ⚠️ **Documentation Pending**
+**File**: `src/agents/zumbi_wrapper.py` (89 lines)
+**Tests**: Check `tests/unit/agents/test_zumbi_wrapper.py`
+
 ## 📊 Resumo Estatístico
 
 | Métrica | Valor |
@@ -627,7 +641,7 @@ metadata = await oscar.generate_visualization_metadata(
 | **Total de Agentes** | 18 (17 operacionais + 1 framework) |
 | **Tier 1 (Operacionais)** | 17 (94.4%) 🎉 |
 | **Framework Base** | 1 (5.6%) - Deodoro |
-| **Com Testes Completos** | 7 (39%) ⏳ |
+| **Com Testes Completos** | 35 (39%) ⏳ |
 | **Total Linhas de Código** | ~26.000 |
 | **Média por Agente Operacional** | ~1.530 linhas |
 | **Maior Agente** | Maria Quitéria (2.449 linhas) |
