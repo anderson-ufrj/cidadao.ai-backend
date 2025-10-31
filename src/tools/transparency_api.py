@@ -14,7 +14,7 @@ from urllib.parse import urljoin
 import httpx
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
-from pydantic import field_field_validator
+from pydantic import field_validator
 
 from src.core import get_logger, settings
 from src.core.exceptions import DataNotFoundError, TransparencyAPIError
