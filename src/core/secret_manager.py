@@ -9,7 +9,7 @@ from enum import Enum
 from typing import Any, Generic, Optional, TypeVar
 
 import structlog
-from pydantic import BaseModel, Field, SecretStr
+from pydantic import BaseModel, ConfigDict, Field, SecretStr
 
 from .vault_client import VaultClient, VaultConfig, VaultStatus, get_vault_client
 
@@ -49,11 +49,12 @@ class SecretResult(Generic[T]):
 class SecretSchema(BaseModel):
     """Base class for secret schemas with validation"""
 
-    class Config:
+    model_config = ConfigDict(
         # Don't expose secrets in string representation
-        hide_input_in_errors = True
+        hide_input_in_errors=True,
         # Allow arbitrary types for complex secrets
-        arbitrary_types_allowed = True
+        arbitrary_types_allowed=True,
+    )
 
     def dict_safe(self, **kwargs) -> dict[str, Any]:
         """Get dict representation with secrets masked"""

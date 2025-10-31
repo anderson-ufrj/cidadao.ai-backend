@@ -5,20 +5,9 @@ from enum import Enum
 from typing import Any, Optional
 
 from pydantic import BaseModel, EmailStr, Field
-from sqlalchemy import (
-    JSON,
-    Boolean,
-    Column,
-    DateTime,
-)
+from sqlalchemy import JSON, Boolean, Column, DateTime
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import (
-    ForeignKey,
-    Integer,
-    String,
-    Table,
-    Text,
-)
+from sqlalchemy import ForeignKey, Integer, String, Table, Text
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -126,36 +115,9 @@ class NotificationPreference(BaseModel):
     quiet_hours_end: Optional[str] = None
     timezone: str = "America/Sao_Paulo"
 
-    class Config:
-        json_schema_extra = {
-            "example": {
-                "user_id": "user123",
-                "enabled": True,
-                "frequency": "immediate",
-                "email_enabled": True,
-                "webhook_enabled": True,
-                "type_preferences": {
-                    "anomaly_detected": {
-                        "enabled": True,
-                        "channels": ["email", "webhook"],
-                        "min_severity": "medium",
-                    },
-                    "investigation_complete": {
-                        "enabled": True,
-                        "channels": ["email"],
-                        "frequency": "daily",
-                    },
-                },
-                "email_addresses": ["user@example.com"],
-                "webhook_urls": [
-                    {
-                        "url": "https://example.com/webhook",
-                        "secret": "webhook_secret",
-                        "events": ["anomaly_detected"],
-                    }
-                ],
-            }
-        }
+    model_config = ConfigDict(
+        json_schema_extra={"example": {"name": "My Preferences", "user_id": "user123"}}
+    )
 
 
 class NotificationHistoryDB(Base):

@@ -11,7 +11,7 @@ from datetime import datetime
 from typing import Any, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 
 from src.agents import MasterAgent, get_agent_pool
 from src.agents.parallel_processor import ParallelAgentProcessor, ParallelStrategy
@@ -32,7 +32,8 @@ class BatchOperation(BaseModel):
     priority: int = Field(default=5, ge=1, le=10)
     timeout: Optional[float] = Field(default=30.0, ge=1.0, le=300.0)
 
-    @validator("operation")
+    @field_validator("operation")
+    @classmethod
     def validate_operation(cls, v):
         allowed = ["chat", "investigate", "analyze", "search"]
         if v not in allowed:
