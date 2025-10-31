@@ -19,7 +19,7 @@ from functools import wraps
 from typing import Any, Optional
 
 import httpx
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from src.core import get_logger
 

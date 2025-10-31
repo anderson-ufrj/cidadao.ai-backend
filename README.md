@@ -77,7 +77,7 @@ Este é o **Backend API** do ecossistema Cidadão.AI, composto por **4 repositó
 | **Deployment** | ✅ Railway Production (since 07/10/2025) |
 | **Database** | ✅ PostgreSQL (Railway) - Fully operational |
 | **Cache** | ✅ Redis (Railway) - Fully operational |
-| **Agents** | **16 agents: 10 Tier 1 (62.5%), 5 Tier 2 (31.25%), 1 Tier 3 (6.25%)** |
+| **Agents** | **16 agents: 15 operational (93.75%), 1 partial (6.25%)** |
 | **Test Coverage (Agents)** | **76.29%** ✅ Nearly at 80% goal! (was 44% in old docs) |
 | **Total Tests** | **1,363 tests** across **98 test files** 🎉 |
 | **Test Pass Rate** | **97.4%** (761 passed, 20 failed) |

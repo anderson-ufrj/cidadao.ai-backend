@@ -20,7 +20,7 @@ from typing import Any, Optional, Union
 import aiosmtplib
 from email_validator import EmailNotValidError, validate_email
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from pydantic import BaseModel, EmailStr, Field, validator
+from pydantic import BaseModel, EmailStr, Field, field_field_validator
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from src.core.config import settings
@@ -36,7 +36,8 @@ class EmailAttachment(BaseModel):
     content: Union[bytes, str]
     content_type: str = "application/octet-stream"
 
-    @validator("content")
+    @field_validator("content")
+    @classmethod
     def validate_content(cls, v):
         """Ensure content is bytes."""
         if isinstance(v, str):
@@ -59,7 +60,8 @@ class EmailMessage(BaseModel):
     template: Optional[str] = None
     template_data: Optional[dict[str, Any]] = None
 
-    @validator("to", "cc", "bcc", pre=True)
+    @field_validator("to", "cc", "bcc", pre=True)
+    @classmethod
     def validate_emails(cls, v):
         """Validate email addresses."""
         if v is None:
@@ -76,7 +78,8 @@ class EmailMessage(BaseModel):
                 continue
         return validated
 
-    @validator("body", always=True)
+    @field_validator("body", always=True)
+    @classmethod
     def validate_body(cls, v, values):
         """Ensure at least one body type is provided."""
         if not v and not values.get("html_body") and not values.get("template"):
