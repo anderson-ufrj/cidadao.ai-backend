@@ -8,10 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
-from src.agents.nana import (
-    ContextMemoryAgent,
-    MemoryImportance,
-)
+from src.agents.nana import ContextMemoryAgent, MemoryImportance
 from src.services.agent_memory_integration import (
     AgentMemoryIntegration,
     MemoryIntegrationType,
@@ -53,9 +50,10 @@ def agent_context():
 def sample_message():
     """Create sample agent message."""
     return AgentMessage(
-        role="user",
-        content="Analyze contracts for anomalies",
-        data={"contracts": [{"id": "C001", "value": 100000}]},
+        sender="test",
+        recipient="zumbi",
+        action="analyze",
+        payload={"contracts": [{"id": "C001", "value": 100000}]},
     )
 
 
