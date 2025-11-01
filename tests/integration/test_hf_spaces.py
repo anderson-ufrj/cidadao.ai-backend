@@ -1,3 +1,5 @@
+import pytest
+
 #!/usr/bin/env python3
 """
 🔍 Teste de HuggingFace Spaces
@@ -9,6 +11,7 @@ import asyncio
 import httpx
 
 
+@pytest.mark.asyncio
 async def test_hf_spaces():
     """🔍 Testa diferentes endpoints dos HF Spaces"""
     print("🔍 VERIFICANDO HUGGINGFACE SPACES")

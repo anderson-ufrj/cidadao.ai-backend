@@ -1,3 +1,5 @@
+import pytest
+
 #!/usr/bin/env python3
 """
 🧪 Teste dos Endpoints da Models API
@@ -13,6 +15,7 @@ import httpx
 MODELS_URL = "https://neural-thinker-cidadao-ai-models.hf.space"
 
 
+@pytest.mark.asyncio
 async def test_endpoints():
     """🔍 Testa todos os endpoints da Models API"""
     print("🧪 TESTE DOS ENDPOINTS DA MODELS API")

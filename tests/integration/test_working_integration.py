@@ -1,3 +1,5 @@
+import pytest
+
 #!/usr/bin/env python3
 """
 Simple integration test for working Models API
@@ -8,6 +10,7 @@ import asyncio
 import httpx
 
 
+@pytest.mark.asyncio
 async def test_models_api_integration():
     """Test live Models API integration."""
 
