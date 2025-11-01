@@ -94,11 +94,11 @@ class DandaraAgent(BaseAgent):
 
         # Social justice analysis tools
         self._equity_metrics = {
-            "gini_coefficient": self._calculate_gini,
-            "atkinson_index": self._calculate_atkinson,
-            "theil_index": self._calculate_theil,
-            "palma_ratio": self._calculate_palma,
-            "quintile_ratio": self._calculate_quintile_ratio,
+            "gini_coefficient": "gini_coefficient",
+            "atkinson_index": "atkinson_index",
+            "theil_index": "theil_index",
+            "palma_ratio": "palma_ratio",
+            "quintile_ratio": "quintile_ratio",
         }
 
         # Data sources for social analysis (now using real APIs)
@@ -145,14 +145,69 @@ class DandaraAgent(BaseAgent):
             self.logger.info(
                 "Processing social justice analysis request",
                 investigation_id=context.investigation_id,
-                action=message.action,
+                action=getattr(message, "action", None),
+            )
+
+            # Handle different message content types
+            content = (
+                message.content
+                if hasattr(message, "content")
+                else message.payload if hasattr(message, "payload") else {}
             )
 
             # Parse request
-            if isinstance(message.payload, dict):
-                request = SocialJusticeRequest(**message.payload)
+            if isinstance(content, dict):
+                # Handle different request types
+                if "type" in content:
+                    # Handle specific analysis types
+                    analysis_type = content.get("type")
+                    data = content.get("data", {})
+
+                    if analysis_type == "social_equity_analysis":
+                        request = SocialJusticeRequest(
+                            query=data.get("region", "Brazil"),
+                            metrics_focus=data.get("metrics", []),
+                        )
+                    elif analysis_type == "demographic_analysis":
+                        request = SocialJusticeRequest(
+                            query="demographic_disparity",
+                            target_groups=list(data.get("groups", {}).keys()),
+                        )
+                    elif analysis_type == "education_inequality":
+                        request = SocialJusticeRequest(
+                            query="education_inequality",
+                            policy_areas=["education"],
+                            metrics_focus=data.get("metrics", []),
+                        )
+                    elif analysis_type == "health_access":
+                        request = SocialJusticeRequest(
+                            query="health_access_disparity",
+                            policy_areas=["health"],
+                            geographical_scope=data.get("municipalities", ["Brazil"])[
+                                0
+                            ],
+                        )
+                    elif analysis_type == "policy_evaluation":
+                        request = SocialJusticeRequest(
+                            query=f"policy_evaluation_{data.get('policy', 'unknown')}",
+                            policy_areas=[data.get("policy", "general")],
+                        )
+                    elif analysis_type == "vulnerability_mapping":
+                        request = SocialJusticeRequest(
+                            query="vulnerability_mapping",
+                            geographical_scope=data.get("region", "Brazil"),
+                            metrics_focus=data.get("indicators", []),
+                        )
+                    else:
+                        request = SocialJusticeRequest(query=str(content))
+                else:
+                    # Try to parse as SocialJusticeRequest
+                    try:
+                        request = SocialJusticeRequest(**content)
+                    except Exception:
+                        request = SocialJusticeRequest(query=str(content))
             else:
-                request = SocialJusticeRequest(query=str(message.payload))
+                request = SocialJusticeRequest(query=str(content))
 
             # Perform comprehensive social justice analysis
             analysis_result = await self._analyze_social_equity(request, context)
