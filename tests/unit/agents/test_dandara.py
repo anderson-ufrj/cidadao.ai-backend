@@ -54,6 +54,9 @@ class TestDandaraAgent:
     async def test_process_social_equity_analysis(self, dandara_agent):
         """Test social equity analysis processing."""
         message = AgentMessage(
+            sender="test",
+            recipient="Dandara",
+            action="analyze",
             content={
                 "type": "social_equity_analysis",
                 "data": {
@@ -61,15 +64,15 @@ class TestDandaraAgent:
                     "metrics": ["gini", "education_access", "health_access"],
                 },
             },
-            message_id="test-001",
         )
         context = AgentContext()
 
         response = await dandara_agent.process(message, context)
 
         assert response is not None
-        assert response.status in [AgentStatus.COMPLETED, AgentStatus.SUCCESS]
-        assert "analysis" in response.content or "error" in response.content
+        assert response.status == AgentStatus.COMPLETED
+        # Check if response has meaningful result
+        assert response.result is not None
 
     @pytest.mark.unit
     def test_equity_metrics_available(self, dandara_agent):
@@ -86,6 +89,9 @@ class TestDandaraAgent:
     async def test_analyze_demographic_disparity(self, dandara_agent):
         """Test demographic disparity analysis."""
         message = AgentMessage(
+            sender="test",
+            recipient="Dandara",
+            action="analyze",
             content={
                 "type": "demographic_analysis",
                 "data": {
@@ -103,20 +109,22 @@ class TestDandaraAgent:
                     }
                 },
             },
-            message_id="test-002",
         )
         context = AgentContext()
 
         response = await dandara_agent.process(message, context)
 
         assert response is not None
-        assert response.status in [AgentStatus.COMPLETED, AgentStatus.SUCCESS]
+        assert response.status == AgentStatus.COMPLETED
 
     @pytest.mark.unit
     @pytest.mark.asyncio
     async def test_education_inequality_analysis(self, dandara_agent):
         """Test education inequality analysis."""
         message = AgentMessage(
+            sender="test",
+            recipient="Dandara",
+            action="analyze",
             content={
                 "type": "education_inequality",
                 "data": {
@@ -124,20 +132,22 @@ class TestDandaraAgent:
                     "metrics": ["enrollment_rate", "completion_rate", "quality_index"],
                 },
             },
-            message_id="test-003",
         )
         context = AgentContext()
 
         response = await dandara_agent.process(message, context)
 
         assert response is not None
-        assert response.status in [AgentStatus.COMPLETED, AgentStatus.SUCCESS]
+        assert response.status == AgentStatus.COMPLETED
 
     @pytest.mark.unit
     @pytest.mark.asyncio
     async def test_health_access_disparity(self, dandara_agent):
         """Test health access disparity analysis."""
         message = AgentMessage(
+            sender="test",
+            recipient="Dandara",
+            action="analyze",
             content={
                 "type": "health_access",
                 "data": {
@@ -149,7 +159,6 @@ class TestDandaraAgent:
                     ],
                 },
             },
-            message_id="test-004",
         )
         context = AgentContext()
 
@@ -161,7 +170,7 @@ class TestDandaraAgent:
             response = await dandara_agent.process(message, context)
 
         assert response is not None
-        assert response.status in [AgentStatus.COMPLETED, AgentStatus.SUCCESS]
+        assert response.status == AgentStatus.COMPLETED
 
     @pytest.mark.unit
     def test_api_clients_configured(self, dandara_agent):
@@ -169,16 +178,21 @@ class TestDandaraAgent:
         assert dandara_agent.ibge_client is not None
         assert dandara_agent.datasus_client is not None
         assert dandara_agent.inep_client is not None
-        # Check that they have the expected methods
-        assert hasattr(dandara_agent.ibge_client, "get_states")
-        assert hasattr(dandara_agent.datasus_client, "get_health_data")
-        assert hasattr(dandara_agent.inep_client, "get_education_data")
+        # Check that they have the expected methods (use actual method names)
+        assert hasattr(dandara_agent.ibge_client, "get_states") or hasattr(
+            dandara_agent.ibge_client, "get_comprehensive_social_data"
+        )
+        assert hasattr(dandara_agent.datasus_client, "get_health_indicators")
+        assert hasattr(dandara_agent.inep_client, "get_education_indicators")
 
     @pytest.mark.unit
     @pytest.mark.asyncio
     async def test_policy_effectiveness_evaluation(self, dandara_agent):
         """Test policy effectiveness evaluation."""
         message = AgentMessage(
+            sender="test",
+            recipient="Dandara",
+            action="analyze",
             content={
                 "type": "policy_evaluation",
                 "data": {
@@ -187,20 +201,22 @@ class TestDandaraAgent:
                     "after_metrics": {"poverty_rate": 0.25, "gini": 0.50},
                 },
             },
-            message_id="test-005",
         )
         context = AgentContext()
 
         response = await dandara_agent.process(message, context)
 
         assert response is not None
-        assert response.status in [AgentStatus.COMPLETED, AgentStatus.SUCCESS]
+        assert response.status == AgentStatus.COMPLETED
 
     @pytest.mark.unit
     @pytest.mark.asyncio
     async def test_vulnerability_mapping(self, dandara_agent):
         """Test vulnerability mapping functionality."""
         message = AgentMessage(
+            sender="test",
+            recipient="Dandara",
+            action="analyze",
             content={
                 "type": "vulnerability_mapping",
                 "data": {
@@ -208,14 +224,13 @@ class TestDandaraAgent:
                     "indicators": ["poverty", "unemployment", "education_deficit"],
                 },
             },
-            message_id="test-006",
         )
         context = AgentContext()
 
         response = await dandara_agent.process(message, context)
 
         assert response is not None
-        assert response.status in [AgentStatus.COMPLETED, AgentStatus.SUCCESS]
+        assert response.status == AgentStatus.COMPLETED
 
     @pytest.mark.unit
     @pytest.mark.asyncio
