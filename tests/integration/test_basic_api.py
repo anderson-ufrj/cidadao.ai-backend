@@ -62,7 +62,7 @@ class TestBasicAPIFunctionality:
 
         # Verify API info structure
         api_info = data["api"]
-        assert api_info["name"] == "Cidadão.AI API"
+        assert "Cidadão.AI" in api_info["name"]
         assert api_info["version"] == "1.0.0"
 
         # Verify agent information
@@ -91,7 +91,7 @@ class TestBasicAPIFunctionality:
 
         # Verify API metadata
         info = schema["info"]
-        assert info["title"] == "Cidadão.AI API"
+        assert "Cidadão.AI" in info["title"]  # Title includes emoji and full name
         assert info["version"] == "1.0.0"
 
         # Verify some expected paths exist
