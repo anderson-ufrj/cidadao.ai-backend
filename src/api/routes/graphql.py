@@ -5,7 +5,7 @@ This module integrates Strawberry GraphQL with FastAPI,
 providing a modern GraphQL endpoint with subscriptions support.
 """
 
-from typing import Any
+from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket
 
@@ -36,7 +36,8 @@ logger = get_logger(__name__)
 
 # Context getter for GraphQL
 async def get_context(
-    request: Request, user=Depends(get_current_optional_user)
+    request: Request,
+    user: Optional[dict[str, Any]] = Depends(get_current_optional_user),
 ) -> dict[str, Any]:
     """
     Get GraphQL context with request info and user.
@@ -61,24 +62,23 @@ async def get_ws_context(
     }
 
 
-# Create router
-router = APIRouter(prefix="/graphql", tags=["GraphQL"])
-
+# Create GraphQL router if strawberry is available
 if STRAWBERRY_AVAILABLE:
     # Create GraphQL app with custom context
-    graphql_app = GraphQLRouter(
-        schema,
+    router = GraphQLRouter(
+        schema=schema,
         context_getter=get_context,
         subscription_protocols=[
             GRAPHQL_TRANSPORT_WS_PROTOCOL,
             GRAPHQL_WS_PROTOCOL,
         ],
+        prefix="/graphql",
+        tags=["GraphQL"],
     )
-
-    # Add GraphQL routes
-    router.include_router(graphql_app, prefix="")
 else:
-    # Add placeholder route when GraphQL is not available
+    # Create a regular router when GraphQL is not available
+    router = APIRouter(prefix="/graphql", tags=["GraphQL"])
+
     @router.get("/")
     async def graphql_not_available():
         raise HTTPException(
