@@ -1,3 +1,6 @@
+# TODO: Mock Portal da Transparência API responses for integration tests
+from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
 #!/usr/bin/env python3

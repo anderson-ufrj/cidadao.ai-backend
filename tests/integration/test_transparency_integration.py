@@ -1,3 +1,4 @@
+# TODO: Mock Portal da Transparência API responses for integration tests
 """
 Integration tests for Transparency APIs and Multi-Agent Integration.
 
