@@ -1,3 +1,5 @@
+import pytest
+
 #!/usr/bin/env python3
 """
 🧪 Teste de Comunicação Backend ↔ Models
@@ -21,6 +23,7 @@ MODELS_API_URL = "https://neural-thinker-cidadao-ai-models.hf.space"
 BACKEND_API_URL = "https://neural-thinker-cidadao-ai-backend.hf.space"
 
 
+@pytest.mark.asyncio
 async def test_models_api_direct():
     """🔍 TESTE 1: Acesso direto à API de Modelos"""
     print("=" * 60)
@@ -50,6 +53,7 @@ async def test_models_api_direct():
         return False
 
 
+@pytest.mark.asyncio
 async def test_models_health():
     """🏥 TESTE 2: Health check da API de Modelos"""
     print("\n" + "=" * 60)
@@ -75,6 +79,7 @@ async def test_models_health():
         return False
 
 
+@pytest.mark.asyncio
 async def test_backend_to_models():
     """🔄 TESTE 3: Backend chamando Models via Client"""
     print("\n" + "=" * 60)
@@ -111,6 +116,7 @@ async def test_backend_to_models():
         return False
 
 
+@pytest.mark.asyncio
 async def test_models_specific_endpoints():
     """🎯 TESTE 4: Endpoints específicos de modelos"""
     print("\n" + "=" * 60)
@@ -153,6 +159,7 @@ async def test_models_specific_endpoints():
     return results
 
 
+@pytest.mark.asyncio
 async def test_backend_api_integration():
     """🏛️ TESTE 5: Backend API usando Models internamente"""
     print("\n" + "=" * 60)

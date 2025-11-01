@@ -1,3 +1,5 @@
+import pytest
+
 #!/usr/bin/env python3
 """
 Script to test Portal da Transparência API integration
@@ -17,6 +19,7 @@ from src.tools.transparency_api import TransparencyAPIClient, TransparencyAPIFil
 from src.tools.transparency_models import parse_api_data
 
 
+@pytest.mark.asyncio
 async def test_api_connection():
     """Test basic API connection."""
     print("🔄 Testing API connection...")
@@ -56,6 +59,7 @@ async def test_api_connection():
             return False
 
 
+@pytest.mark.asyncio
 async def test_different_endpoints():
     """Test different API endpoints."""
     print("\n🔄 Testing different endpoints...")
@@ -113,6 +117,7 @@ async def test_different_endpoints():
         return results
 
 
+@pytest.mark.asyncio
 async def test_data_parsing():
     """Test data parsing with models."""
     print("\n🔄 Testing data parsing...")
@@ -152,6 +157,7 @@ async def test_data_parsing():
             return False
 
 
+@pytest.mark.asyncio
 async def test_filters():
     """Test different filter combinations."""
     print("\n🔄 Testing filters...")
@@ -188,6 +194,7 @@ async def test_filters():
                 print(f"   ⚠️ {test['name']}: {str(e)}")
 
 
+@pytest.mark.asyncio
 async def test_rate_limiting():
     """Test rate limiting behavior."""
     print("\n🔄 Testing rate limiting...")

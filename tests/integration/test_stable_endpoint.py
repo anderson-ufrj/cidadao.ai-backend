@@ -1,3 +1,5 @@
+import pytest
+
 #!/usr/bin/env python3
 """
 Test the new stable chat endpoint locally
@@ -9,6 +11,7 @@ from datetime import datetime
 import httpx
 
 
+@pytest.mark.asyncio
 async def test_stable_endpoint():
     """Test the stable chat endpoint"""
 

@@ -1,3 +1,5 @@
+import pytest
+
 #!/usr/bin/env python3
 """
 🧪 Teste Simples - Apenas Models API
@@ -13,6 +15,7 @@ import httpx
 MODELS_URL = "https://neural-thinker-cidadao-ai-models.hf.space"
 
 
+@pytest.mark.asyncio
 async def test_models_api():
     """🤖 Teste completo da Models API"""
     print("🤖 TESTE DA CIDADÃO.AI MODELS API")

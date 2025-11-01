@@ -1,3 +1,5 @@
+import pytest
+
 #!/usr/bin/env python3
 """
 Test script for Models API integration
@@ -21,6 +23,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+@pytest.mark.asyncio
 async def test_models_integration():
     """Test complete models integration."""
 
