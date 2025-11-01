@@ -1,3 +1,5 @@
+import pytest
+
 #!/usr/bin/env python3
 """
 Script de teste local para a API de Transparência
@@ -30,6 +32,7 @@ def print_status(message: str, status: str = "info"):
         print(f"{BLUE}ℹ️  {message}{RESET}")
 
 
+@pytest.mark.asyncio
 async def test_api_connection():
     """Testa conexão com a API"""
     print_status("Testando conexão com API do Portal da Transparência...", "info")
@@ -134,6 +137,7 @@ def check_env_vars():
     return bool(vars_status["TRANSPARENCY_API_KEY"])
 
 
+@pytest.mark.asyncio
 async def test_sample_query():
     """Faz uma consulta de exemplo"""
     print_status("Fazendo consulta de exemplo...", "info")
