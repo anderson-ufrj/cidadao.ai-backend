@@ -1,3 +1,5 @@
+import pytest
+
 #!/usr/bin/env python3
 """
 Test script to validate real API integration
@@ -12,6 +14,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
 
 
+@pytest.mark.asyncio
 async def test_real_api_integration():
     """Test the real API integration"""
     print("🧪 Testing Real API Integration")

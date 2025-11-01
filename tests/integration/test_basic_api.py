@@ -291,6 +291,7 @@ class TestAPIPerformance:
 class TestAsyncEndpoints:
     """Test async endpoint functionality."""
 
+    @pytest.mark.asyncio
     async def test_async_client_basic_functionality(self, async_client):
         """Test that async client works with basic endpoints."""
         response = await async_client.get("/")
@@ -301,6 +302,7 @@ class TestAsyncEndpoints:
         assert "message" in data
         assert "version" in data
 
+    @pytest.mark.asyncio
     async def test_async_health_check(self, async_client):
         """Test health check via async client."""
         response = await async_client.get("/health/")
@@ -311,6 +313,7 @@ class TestAsyncEndpoints:
         assert "status" in data
         assert "services" in data
 
+    @pytest.mark.asyncio
     async def test_async_api_info(self, async_client):
         """Test API info via async client."""
         response = await async_client.get("/api/v1/info")
