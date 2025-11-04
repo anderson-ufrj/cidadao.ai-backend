@@ -10,17 +10,29 @@ import uuid
 from datetime import datetime
 from typing import Any, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
 
 from src.agents import MasterAgent, get_agent_pool
 from src.agents.parallel_processor import ParallelAgentProcessor, ParallelStrategy
 from src.api.dependencies import get_current_user
 from src.core import get_logger
-from src.services.chat_service_with_cache import chat_service
 
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/batch")
+
+# Lazy import to avoid circular dependency
+chat_service = None
+
+
+def get_chat_service_lazy():
+    """Get chat service with lazy import to avoid circular dependency."""
+    global chat_service
+    if chat_service is None:
+        from src.services.chat_service_with_cache import chat_service as cs
+
+        chat_service = cs
+    return chat_service
 
 
 class BatchOperation(BaseModel):
@@ -220,11 +232,16 @@ async def _handle_chat_operation(data: dict[str, Any], user: Any) -> dict[str, A
     message = data.get("message", "")
     session_id = data.get("session_id", str(uuid.uuid4()))
 
+    # Get chat service with lazy import
+    cs = get_chat_service_lazy()
+    if cs is None:
+        raise HTTPException(status_code=503, detail="Chat service not available")
+
     # Get or create session
-    session = await chat_service.get_or_create_session(session_id, user_id=user.id)
+    session = await cs.get_or_create_session(session_id, user_id=user.id)
 
     # Process message
-    response = await chat_service.process_message(
+    response = await cs.process_message(
         session_id=session_id, message=message, user_id=user.id
     )
 

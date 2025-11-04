@@ -38,8 +38,12 @@ class LLMUsage:
 LLM_COSTS = {
     # Maritaca AI (Brazilian provider)
     "maritaca": {
-        "sabiazinho-3": {"input": 0.15, "output": 0.20},  # USD per 1M tokens
-        "sabia-3": {"input": 0.25, "output": 0.35},
+        "sabiazinho-3": {"input": 0.15, "output": 0.20},  # USD per 1M tokens (legacy)
+        "sabia-3": {"input": 0.25, "output": 0.35},  # Legacy model
+        "sabia-3.1": {
+            "input": 0.30,
+            "output": 0.40,
+        },  # Latest intelligent model (recommended)
         "sabia-3-medium": {"input": 0.50, "output": 0.75},
         "sabia-3-large": {"input": 1.00, "output": 1.50},
     },
