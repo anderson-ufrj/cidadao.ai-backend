@@ -722,8 +722,12 @@ class FallbackPipeline:
                 # Simulate zcard: returns sorted set size
                 # For rate limiting, this is critical - estimate based on cache
                 key = cmd[1]
-                if key in self.client._cache:
-                    results.append(1)
+                # Check if key exists in sorted sets cache
+                if (
+                    hasattr(self.client, "_sorted_sets")
+                    and key in self.client._sorted_sets
+                ):
+                    results.append(len(self.client._sorted_sets[key]))
                 else:
                     results.append(0)
             elif operation == "expire":
