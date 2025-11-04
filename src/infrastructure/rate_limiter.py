@@ -43,18 +43,18 @@ class RateLimitConfig:
     # Default limits by tier
     TIER_LIMITS = {
         RateLimitTier.FREE: {
-            "per_second": 1,
-            "per_minute": 10,
-            "per_hour": 100,
-            "per_day": 1000,
-            "burst": 5,
+            "per_second": 10,  # Increased from 1 to 10
+            "per_minute": 100,  # Increased from 10 to 100
+            "per_hour": 1000,  # Increased from 100 to 1000
+            "per_day": 10000,  # Increased from 1000 to 10000
+            "burst": 20,  # Increased from 5 to 20
         },
         RateLimitTier.BASIC: {
-            "per_second": 5,
-            "per_minute": 30,
-            "per_hour": 500,
-            "per_day": 5000,
-            "burst": 20,
+            "per_second": 20,  # Increased from 5 to 20
+            "per_minute": 200,  # Increased from 30 to 200
+            "per_hour": 2000,  # Increased from 500 to 2000
+            "per_day": 20000,  # Increased from 5000 to 20000
+            "burst": 50,  # Increased from 20 to 50
         },
         RateLimitTier.PRO: {
             "per_second": 10,
@@ -82,13 +82,35 @@ class RateLimitConfig:
     # Endpoint-specific limits (override tier limits)
     ENDPOINT_LIMITS = {
         "/api/v1/investigations/analyze": {
-            "per_minute": 5,
-            "per_hour": 20,
-            "cost": 10,  # Cost units
+            "per_minute": 10,  # Increased from 5
+            "per_hour": 50,  # Increased from 20
+            "cost": 10,
         },
-        "/api/v1/reports/generate": {"per_minute": 2, "per_hour": 10, "cost": 20},
-        "/api/v1/chat/message": {"per_minute": 30, "per_hour": 300, "cost": 1},
-        "/api/v1/export/*": {"per_minute": 5, "per_hour": 50, "cost": 5},
+        "/api/v1/reports/generate": {
+            "per_minute": 5,  # Increased from 2
+            "per_hour": 30,  # Increased from 10
+            "cost": 20,
+        },
+        "/api/v1/chat/message": {
+            "per_minute": 100,  # Increased from 30
+            "per_hour": 1000,  # Increased from 300
+            "cost": 1,
+        },
+        "/api/v1/chat/direct/*": {
+            "per_minute": 100,
+            "per_hour": 1000,
+            "cost": 1,
+        },
+        "/api/v1/export/*": {
+            "per_minute": 20,  # Increased from 5
+            "per_hour": 100,  # Increased from 50
+            "cost": 5,
+        },
+        "/health": {
+            "per_minute": 300,  # Very high limit for health checks
+            "per_hour": 3000,
+            "cost": 0,
+        },
     }
 
 

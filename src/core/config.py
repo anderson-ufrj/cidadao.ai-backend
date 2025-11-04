@@ -259,7 +259,8 @@ class Settings(BaseSettings):
 
     # IP Whitelist
     ip_whitelist_enabled: bool = Field(
-        default=True, description="Enable IP whitelist in production"
+        default=False,
+        description="Enable IP whitelist in production (disabled by default for public API)",
     )
     ip_whitelist_strict: bool = Field(
         default=False, description="Strict mode - reject if IP unknown"
