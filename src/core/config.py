@@ -206,7 +206,7 @@ class Settings(BaseSettings):
     )
     bcrypt_rounds: int = Field(default=12, description="Bcrypt rounds")
 
-    # CORS
+    # CORS - Can be overridden via ALLOWED_ORIGINS env var (comma-separated)
     cors_origins: list[str] = Field(
         default=[
             "http://localhost:3000",
@@ -224,6 +224,16 @@ class Settings(BaseSettings):
         ],
         description="CORS allowed origins",
     )
+
+    @field_validator("cors_origins", mode="before")
+    @classmethod
+    def parse_cors_origins(cls, v):
+        """Parse CORS origins from ALLOWED_ORIGINS env var if provided."""
+        if isinstance(v, str):
+            # If string (from ALLOWED_ORIGINS env var), split by comma
+            return [origin.strip() for origin in v.split(",") if origin.strip()]
+        return v
+
     cors_allow_credentials: bool = Field(default=True, description="Allow credentials")
     cors_allow_methods: list[str] = Field(
         default=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"],
