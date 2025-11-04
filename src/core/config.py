@@ -128,8 +128,8 @@ class Settings(BaseSettings):
         default="https://chat.maritaca.ai/api", description="Maritaca AI base URL"
     )
     maritaca_model: str = Field(
-        default="sabia-3",
-        description="Default Maritaca AI model (sabia-3 recommended for advanced tasks, sabiazinho-3 for speed)",
+        default="sabia-3.1",
+        description="Default Maritaca AI model (sabia-3.1 latest/recommended, sabia-3 legacy, sabiazinho-3 for speed)",
     )
 
     # Anthropic Claude Configuration
