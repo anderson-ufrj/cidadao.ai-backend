@@ -171,16 +171,16 @@ __all__ = [
     "OxossiAgent",
     "PredictiveAgent",
     "CommunicationAgent",
-    # Agent aliases (lazy)
-    "ZumbiAgent",
-    "AnitaAgent",
-    "TiradentesAgent",
-    "CeuciAgent",
-    "DrummondAgent",
-    "ObaluaieAgent",
-    "AbaporuAgent",
-    "AyrtonSennaAgent",
-    "NanaAgent",
+    # Agent aliases (lazy) - defined via __getattr__, type: ignore for linter
+    "ZumbiAgent",  # type: ignore[name-defined]
+    "AnitaAgent",  # type: ignore[name-defined]
+    "TiradentesAgent",  # type: ignore[name-defined]
+    "CeuciAgent",  # type: ignore[name-defined]
+    "DrummondAgent",  # type: ignore[name-defined]
+    "ObaluaieAgent",  # type: ignore[name-defined]
+    "AbaporuAgent",  # type: ignore[name-defined]
+    "AyrtonSennaAgent",  # type: ignore[name-defined]
+    "NanaAgent",  # type: ignore[name-defined]
     # Memory Agent (lazy)
     "ContextMemoryAgent",
     "MemoryEntry",
