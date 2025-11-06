@@ -14,11 +14,11 @@ import pytest
 from src.agents import (
     AgentContext,
     AgentMessage,
-    AnitaAgent,
+    AnalystAgent,
     BonifacioAgent,
+    InvestigatorAgent,
     MariaQuiteriaAgent,
-    TiradentesAgent,
-    ZumbiAgent,
+    ReporterAgent,
 )
 from src.infrastructure.agent_pool import AgentPool
 
@@ -31,9 +31,9 @@ class TestAgentPerformance:
     async def test_agent_response_times(self):
         """Test response times for all agents."""
         agents = [
-            ("zumbi", ZumbiAgent()),
-            ("anita", AnitaAgent()),
-            ("tiradentes", TiradentesAgent()),
+            ("zumbi", InvestigatorAgent()),
+            ("anita", AnalystAgent()),
+            ("tiradentes", ReporterAgent()),
             ("bonifacio", BonifacioAgent()),
             ("maria_quiteria", MariaQuiteriaAgent()),
         ]
@@ -102,7 +102,7 @@ class TestAgentPerformance:
     @pytest.mark.asyncio
     async def test_concurrent_agent_execution(self):
         """Test agent performance under concurrent load."""
-        agent = ZumbiAgent()
+        agent = InvestigatorAgent()
         context = AgentContext(
             investigation_id="concurrent-test",
             user_id="concurrent-tester",
@@ -201,7 +201,7 @@ class TestAgentPerformance:
         process = psutil.Process()
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
 
-        agents = [ZumbiAgent(), MariaQuiteriaAgent(), BonifacioAgent()]
+        agents = [InvestigatorAgent(), MariaQuiteriaAgent(), BonifacioAgent()]
 
         context = AgentContext(
             investigation_id="memory-test",
@@ -256,9 +256,9 @@ class TestAgentPerformance:
     async def test_agent_startup_times(self):
         """Test agent initialization and startup times."""
         agent_classes = [
-            ("zumbi", ZumbiAgent),
-            ("anita", AnitaAgent),
-            ("tiradentes", TiradentesAgent),
+            ("zumbi", InvestigatorAgent),
+            ("anita", AnalystAgent),
+            ("tiradentes", ReporterAgent),
             ("bonifacio", BonifacioAgent),
             ("maria_quiteria", MariaQuiteriaAgent),
         ]
@@ -296,7 +296,7 @@ class TestAgentPerformance:
     async def test_agent_throughput_limits(self):
         """Test maximum throughput for each agent."""
         agents = [
-            ("zumbi", ZumbiAgent()),
+            ("zumbi", InvestigatorAgent()),
             ("maria_quiteria", MariaQuiteriaAgent()),
             ("bonifacio", BonifacioAgent()),
         ]
@@ -363,7 +363,7 @@ class TestMultiAgentPerformance:
     async def test_multi_agent_pipeline_performance(self):
         """Test performance of multi-agent processing pipeline."""
         # Create pipeline
-        pipeline = [ZumbiAgent(), AnitaAgent(), TiradentesAgent()]
+        pipeline = [InvestigatorAgent(), AnalystAgent(), ReporterAgent()]
 
         context = AgentContext(
             investigation_id="pipeline-test",
@@ -423,7 +423,7 @@ class TestMultiAgentPerformance:
         direct_times = []
         orchestrated_times = []
 
-        agent = ZumbiAgent()
+        agent = InvestigatorAgent()
         context = AgentContext(
             investigation_id="overhead-test",
             user_id="overhead-tester",
