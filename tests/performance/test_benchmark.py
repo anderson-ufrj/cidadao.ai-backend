@@ -20,10 +20,10 @@ except ImportError:
         return func
 
 
-from src.agents.anita import AnitaAgent
+from src.agents.anita import AnalystAgent
 from src.agents.deodoro import AgentContext, AgentMessage
-from src.agents.tiradentes import TiradentesAgent
-from src.agents.zumbi import ZumbiAgent
+from src.agents.tiradentes import ReporterAgent
+from src.agents.zumbi import InvestigatorAgent
 
 
 @dataclass
@@ -146,13 +146,13 @@ class TestSystemBenchmarks:
         """Benchmark agent initialization times."""
 
         async def init_zumbi():
-            return ZumbiAgent()
+            return InvestigatorAgent()
 
         async def init_anita():
-            return AnitaAgent()
+            return AnalystAgent()
 
         async def init_tiradentes():
-            return TiradentesAgent()
+            return ReporterAgent()
 
         # Benchmark each agent
         zumbi_result = await benchmark.run("Zumbi Init", init_zumbi, iterations=20)
@@ -168,7 +168,7 @@ class TestSystemBenchmarks:
 
     async def test_anomaly_detection_benchmark(self, benchmark, sample_contracts):
         """Benchmark anomaly detection performance."""
-        agent = ZumbiAgent()
+        agent = InvestigatorAgent()
         message = AgentMessage(
             content={"contracts": sample_contracts},
             message_id="bench-001",
@@ -193,7 +193,7 @@ class TestSystemBenchmarks:
 
     async def test_statistical_analysis_benchmark(self, benchmark, sample_contracts):
         """Benchmark statistical analysis performance."""
-        agent = AnitaAgent()
+        agent = AnalystAgent()
         message = AgentMessage(
             content={"data": sample_contracts},
             message_id="bench-002",
@@ -218,7 +218,7 @@ class TestSystemBenchmarks:
 
     async def test_report_generation_benchmark(self, benchmark):
         """Benchmark report generation performance."""
-        agent = TiradentesAgent()
+        agent = ReporterAgent()
         message = AgentMessage(
             content={
                 "type": "summary",
@@ -250,9 +250,9 @@ class TestSystemBenchmarks:
 
         async def process_concurrent():
             agents = [
-                ZumbiAgent(),
-                AnitaAgent(),
-                TiradentesAgent(),
+                InvestigatorAgent(),
+                AnalystAgent(),
+                ReporterAgent(),
             ]
 
             messages = [
@@ -295,7 +295,7 @@ class TestMemoryBenchmarks:
 
         # Run many iterations
         for i in range(100):
-            agent = ZumbiAgent()
+            agent = InvestigatorAgent()
             # Force garbage collection
             del agent
             if i % 10 == 0:
@@ -319,7 +319,7 @@ class TestMemoryBenchmarks:
         initial_memory = psutil.Process().memory_info().rss / 1024 / 1024
 
         # Process large dataset
-        agent = ZumbiAgent()
+        agent = InvestigatorAgent()
         # Simulate processing
         del large_data
         del agent
