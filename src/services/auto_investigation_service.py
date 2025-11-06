@@ -10,8 +10,8 @@ and automatically triggers investigations when suspicious patterns are detected.
 """
 
 import asyncio
-from datetime import datetime, timedelta
-from typing import Any, Optional
+from datetime import UTC, datetime, timedelta
+from typing import Any
 
 from src.agents import AgentContext, InvestigatorAgent
 from src.config.system_users import SYSTEM_AUTO_MONITOR_USER_ID
@@ -33,7 +33,7 @@ class AutoInvestigationService:
     - Learns from discovered patterns (unsupervised)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize auto-investigation service."""
         self.transparency_api = TransparencyAPIClient()
         self.investigator = None
@@ -41,6 +41,9 @@ class AutoInvestigationService:
         # Thresholds for auto-triggering investigations
         self.value_threshold = 100000.0  # R$ 100k+
         self.daily_contract_limit = 500  # Max contracts to analyze per day
+        self.suspicion_score_threshold = (
+            3  # Minimum suspicion score to trigger investigation
+        )
 
     async def _get_investigator(self) -> InvestigatorAgent:
         """Lazy load investigator agent."""
@@ -49,7 +52,7 @@ class AutoInvestigationService:
         return self.investigator
 
     async def monitor_new_contracts(
-        self, lookback_hours: int = 24, organization_codes: Optional[list[str]] = None
+        self, lookback_hours: int = 24, organization_codes: list[str] | None = None
     ) -> dict[str, Any]:
         """
         Monitor and investigate new contracts from the last N hours.
@@ -67,11 +70,11 @@ class AutoInvestigationService:
             org_count=len(organization_codes) if organization_codes else "all",
         )
 
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
 
         try:
             # Build date filter
-            end_date = datetime.utcnow()
+            end_date = datetime.now(UTC)
             start_date = end_date - timedelta(hours=lookback_hours)
 
             # Fetch recent contracts
@@ -99,7 +102,7 @@ class AutoInvestigationService:
             # Investigate suspicious contracts
             investigations = await self._investigate_batch(suspicious_contracts)
 
-            duration = (datetime.utcnow() - start_time).total_seconds()
+            duration = (datetime.now(UTC) - start_time).total_seconds()
 
             result = {
                 "monitoring_type": "new_contracts",
@@ -111,7 +114,7 @@ class AutoInvestigationService:
                     len(inv.get("anomalies", [])) for inv in investigations
                 ),
                 "duration_seconds": duration,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
             logger.info("auto_monitoring_completed", **result)
@@ -143,11 +146,11 @@ class AutoInvestigationService:
             batch_size=batch_size,
         )
 
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
 
         try:
             # Build date range
-            end_date = datetime.utcnow()
+            end_date = datetime.now(UTC)
             start_date = end_date - timedelta(days=months_back * 30)
 
             total_analyzed = 0
@@ -198,7 +201,7 @@ class AutoInvestigationService:
                 # Rate limiting
                 await asyncio.sleep(1)
 
-            duration = (datetime.utcnow() - start_time).total_seconds()
+            duration = (datetime.now(UTC) - start_time).total_seconds()
 
             result = {
                 "monitoring_type": "historical_reanalysis",
@@ -207,7 +210,7 @@ class AutoInvestigationService:
                 "investigations_created": total_investigations,
                 "anomalies_detected": total_anomalies,
                 "duration_seconds": duration,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
             logger.info("historical_reanalysis_completed", **result)
@@ -221,7 +224,7 @@ class AutoInvestigationService:
         self,
         start_date: datetime,
         end_date: datetime,
-        organization_codes: Optional[list[str]] = None,
+        organization_codes: list[str] | None = None,
         limit: int = 500,
     ) -> list[dict[str, Any]]:
         """Fetch contracts from Portal da Transparência."""
@@ -241,11 +244,10 @@ class AutoInvestigationService:
                     )
                     all_contracts.extend(contracts)
                 return all_contracts
-            else:
-                # Fetch general contracts (may be limited by API)
-                return await self.transparency_api.get_contracts(
-                    filters=filters, limit=limit
-                )
+            # Fetch general contracts (may be limited by API)
+            return await self.transparency_api.get_contracts(
+                filters=filters, limit=limit
+            )
 
         except Exception as e:
             logger.warning(
@@ -271,7 +273,7 @@ class AutoInvestigationService:
 
             # Check 1: High value
             valor = contract.get("valorInicial") or contract.get("valorGlobal") or 0
-            if isinstance(valor, (int, float)) and valor > self.value_threshold:
+            if isinstance(valor, int | float) and valor > self.value_threshold:
                 suspicion_score += 2
                 reasons.append(f"high_value:{valor}")
 
@@ -293,7 +295,7 @@ class AutoInvestigationService:
             # Check 5: Known problematic supplier
             # (would check against watchlist - placeholder)
 
-            if suspicion_score >= 3:
+            if suspicion_score >= self.suspicion_score_threshold:
                 contract["_suspicion_score"] = suspicion_score
                 contract["_suspicion_reasons"] = reasons
                 suspicious.append(contract)
