@@ -264,6 +264,7 @@ markers = [
     "unit: marks tests as unit tests",
     "e2e: marks tests as end-to-end tests",
     "load: marks tests as load tests (performance/stress testing)",
+    "benchmark: marks tests as benchmark tests (performance measurement)",
 ]
 
 [tool.coverage.run]
