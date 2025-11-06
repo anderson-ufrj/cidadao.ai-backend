@@ -9,7 +9,7 @@ License: Proprietary - All rights reserved
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -118,7 +118,7 @@ class BaseAgent(ABC):
         self._message_history: list[AgentMessage] = []
         self._response_history: list[AgentResponse] = []
         self._metadata: dict[str, Any] = {}
-        self._start_time = datetime.utcnow()
+        self._start_time = datetime.now(UTC)
 
         self.logger.info(
             "agent_initialized",
