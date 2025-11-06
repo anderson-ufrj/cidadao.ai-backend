@@ -119,6 +119,7 @@ class TestCircuitBreaker:
         assert breaker.stats.failed_requests == 0
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_successful_async_call(self, circuit):
         """Test successful async function call."""
         result = await circuit.call(async_success_function, 100)
@@ -130,6 +131,7 @@ class TestCircuitBreaker:
         assert circuit.stats.failed_requests == 0
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_successful_sync_call(self, circuit):
         """Test successful sync function call."""
         result = await circuit.call(sync_success_function, 100)
@@ -141,6 +143,7 @@ class TestCircuitBreaker:
         assert circuit.stats.failed_requests == 0
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_failed_call(self, circuit):
         """Test failed function call."""
         with pytest.raises(MockException):
@@ -153,6 +156,7 @@ class TestCircuitBreaker:
         assert circuit.stats.current_consecutive_failures == 1
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_circuit_opens_after_threshold(self, circuit):
         """Test circuit opens after failure threshold."""
         # Fail 3 times to reach threshold
@@ -166,6 +170,7 @@ class TestCircuitBreaker:
         assert circuit.stats.state_changes == 1
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_open_circuit_rejects_calls(self, circuit):
         """Test open circuit rejects calls."""
         # Open the circuit
@@ -184,6 +189,7 @@ class TestCircuitBreaker:
         assert circuit.stats.total_requests == 4  # 3 failures + 1 rejected
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_half_open_transition(self, circuit):
         """Test transition to half-open state."""
         # Open the circuit
@@ -204,6 +210,7 @@ class TestCircuitBreaker:
         assert circuit.stats.current_consecutive_successes == 1
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_half_open_to_closed(self, circuit):
         """Test successful recovery from half-open to closed."""
         # Open the circuit
@@ -220,9 +227,10 @@ class TestCircuitBreaker:
 
         await circuit.call(async_success_function)
         assert circuit.state == CircuitState.CLOSED
-        assert circuit.stats.state_changes == 2  # CLOSED->OPEN->CLOSED
+        assert circuit.stats.state_changes == 3  # CLOSED->OPEN->HALF_OPEN->CLOSED
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_half_open_to_open(self, circuit):
         """Test failure in half-open state reopens circuit."""
         # Open the circuit
@@ -244,6 +252,7 @@ class TestCircuitBreaker:
         assert circuit.state == CircuitState.OPEN
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_timeout_handling(self, circuit):
         """Test request timeout handling."""
         with pytest.raises(CircuitBreakerTimeoutException) as exc_info:
@@ -254,6 +263,7 @@ class TestCircuitBreaker:
         assert circuit.state == CircuitState.CLOSED  # One failure, not at threshold
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_unexpected_exception_passthrough(self, circuit):
         """Test unexpected exceptions pass through."""
 
@@ -269,6 +279,7 @@ class TestCircuitBreaker:
         assert circuit.stats.total_requests == 1
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_reset_circuit(self, circuit):
         """Test manual circuit reset."""
         # Open the circuit
@@ -286,6 +297,7 @@ class TestCircuitBreaker:
         assert circuit.stats.current_consecutive_successes == 0
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_force_open(self, circuit):
         """Test forcing circuit to open state."""
         await circuit.force_open()
@@ -308,6 +320,7 @@ class TestCircuitBreaker:
         assert stats["stats"]["success_rate"] == 0
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_concurrent_calls(self, circuit):
         """Test concurrent calls through circuit breaker."""
         # Run multiple concurrent successful calls
@@ -370,6 +383,7 @@ class TestCircuitBreakerManager:
         assert breaker.config.failure_threshold == 10
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_call_service(self):
         """Test calling service through manager."""
         manager = CircuitBreakerManager()
@@ -395,6 +409,7 @@ class TestCircuitBreakerManager:
         assert stats["service1"]["name"] == "service1"
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_reset_all(self):
         """Test resetting all circuit breakers."""
         manager = CircuitBreakerManager()
@@ -412,6 +427,7 @@ class TestCircuitBreakerManager:
             assert breaker.state == CircuitState.CLOSED
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_get_health_status(self):
         """Test getting health status of all services."""
         manager = CircuitBreakerManager()
@@ -439,6 +455,7 @@ class TestCircuitBreakerDecorator:
     """Test circuit breaker decorator."""
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_decorator_basic(self):
         """Test basic decorator usage."""
 
@@ -455,6 +472,7 @@ class TestCircuitBreakerDecorator:
         assert "decorated_service" in stats
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_decorator_with_config(self):
         """Test decorator with custom config."""
         config = CircuitBreakerConfig(failure_threshold=2)
@@ -497,6 +515,7 @@ class TestCircuitBreakerEdgeCases:
     """Test edge cases and error scenarios."""
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_multiple_concurrent_failures(self, circuit):
         """Test handling multiple concurrent failures."""
         # Create concurrent failing calls
@@ -512,6 +531,7 @@ class TestCircuitBreakerEdgeCases:
         assert circuit.stats.failed_requests >= 3  # At least threshold
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_race_condition_state_change(self, circuit):
         """Test race condition during state change."""
         # Bring circuit to edge of opening (2 failures, threshold is 3)
@@ -531,6 +551,7 @@ class TestCircuitBreakerEdgeCases:
         assert circuit.stats.total_requests == 4
 
     @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_very_short_recovery_timeout(self):
         """Test very short recovery timeout."""
         config = CircuitBreakerConfig(
