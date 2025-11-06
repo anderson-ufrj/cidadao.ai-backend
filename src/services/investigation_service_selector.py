@@ -82,5 +82,31 @@ def get_investigation_service() -> "InvestigationService":
     return investigation_service
 
 
-# Global service instance - automatically selected
-investigation_service = get_investigation_service()
+# Lazy-loaded global service instance
+_investigation_service_cache: "InvestigationService | None" = None
+
+
+def _get_cached_investigation_service() -> "InvestigationService":
+    """Get investigation service with lazy initialization and caching."""
+    global _investigation_service_cache  # noqa: PLW0603
+    if _investigation_service_cache is None:
+        _investigation_service_cache = get_investigation_service()
+    return _investigation_service_cache
+
+
+# Create a proxy object that delegates to the cached service
+class _InvestigationServiceProxy:
+    """Proxy that lazy-loads the investigation service on first attribute access."""
+
+    def __getattr__(self, name: str):  # noqa: ANN204
+        """Delegate all attribute access to the cached service."""
+        service = _get_cached_investigation_service()
+        return getattr(service, name)
+
+    def __repr__(self) -> str:
+        """String representation."""
+        return f"<InvestigationServiceProxy(loaded={_investigation_service_cache is not None})>"
+
+
+# Global service instance - lazy-loaded on first access
+investigation_service = _InvestigationServiceProxy()
