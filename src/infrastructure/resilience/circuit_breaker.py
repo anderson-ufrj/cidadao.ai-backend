@@ -9,7 +9,7 @@ import asyncio
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Optional
 
@@ -201,7 +201,7 @@ class CircuitBreaker:
             self.stats.successful_requests += 1
             self.stats.current_consecutive_failures = 0
             self.stats.current_consecutive_successes += 1
-            self.stats.last_success_time = datetime.utcnow()
+            self.stats.last_success_time = datetime.now(UTC)
 
             if self.state == CircuitState.HALF_OPEN:
                 if (
@@ -222,16 +222,22 @@ class CircuitBreaker:
             self.stats.failed_requests += 1
             self.stats.current_consecutive_successes = 0
             self.stats.current_consecutive_failures += 1
-            self.stats.last_failure_time = datetime.utcnow()
+            self.stats.last_failure_time = datetime.now(UTC)
             self._last_failure_time = time.time()
 
-            # Check if we should open the circuit
-            if (
-                self.state in [CircuitState.CLOSED, CircuitState.HALF_OPEN]
+            # In HALF_OPEN state, any failure reopens the circuit immediately
+            if self.state == CircuitState.HALF_OPEN:
+                self.state = CircuitState.OPEN
+                self.stats.state_changes += 1
+                logger.warning(
+                    f"Circuit breaker '{self.name}' reopened from HALF_OPEN after failure"
+                )
+            # In CLOSED state, check if we reached the failure threshold
+            elif (
+                self.state == CircuitState.CLOSED
                 and self.stats.current_consecutive_failures
                 >= self.config.failure_threshold
             ):
-
                 self.state = CircuitState.OPEN
                 self.stats.state_changes += 1
 
