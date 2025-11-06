@@ -4,6 +4,7 @@ from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
+import pytest_asyncio
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config import settings
@@ -16,7 +17,7 @@ def ip_whitelist_service():
     return IPWhitelistService()
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def mock_db_session():
     """Create mock database session."""
     session = AsyncMock(spec=AsyncSession)
@@ -29,6 +30,7 @@ async def mock_db_session():
 class TestIPWhitelistService:
     """Test IP whitelist service."""
 
+    @pytest.mark.asyncio
     async def test_add_single_ip(self, ip_whitelist_service, mock_db_session):
         """Test adding a single IP address."""
         # Mock query result
@@ -55,6 +57,7 @@ class TestIPWhitelistService:
         mock_db_session.add.assert_called_once()
         mock_db_session.commit.assert_called_once()
 
+    @pytest.mark.asyncio
     async def test_add_cidr_range(self, ip_whitelist_service, mock_db_session):
         """Test adding a CIDR range."""
         # Mock query result
@@ -76,6 +79,7 @@ class TestIPWhitelistService:
         assert entry.cidr_prefix == 24
         assert entry.active is True
 
+    @pytest.mark.asyncio
     async def test_add_duplicate_ip_fails(self, ip_whitelist_service, mock_db_session):
         """Test adding duplicate IP fails."""
         # Mock existing entry
@@ -90,6 +94,7 @@ class TestIPWhitelistService:
                 created_by="admin@test.com",
             )
 
+    @pytest.mark.asyncio
     async def test_add_invalid_ip_fails(self, ip_whitelist_service, mock_db_session):
         """Test adding invalid IP fails."""
         with pytest.raises(ValueError, match="Invalid IP address format"):
@@ -99,6 +104,7 @@ class TestIPWhitelistService:
                 created_by="admin@test.com",
             )
 
+    @pytest.mark.asyncio
     async def test_check_ip_exact_match(self, ip_whitelist_service, mock_db_session):
         """Test checking IP with exact match."""
         # Mock whitelist entries
@@ -130,6 +136,7 @@ class TestIPWhitelistService:
         )
         assert result is True
 
+    @pytest.mark.asyncio
     async def test_check_ip_cidr_match(self, ip_whitelist_service, mock_db_session):
         """Test checking IP within CIDR range."""
         # Mock whitelist entries
@@ -162,6 +169,7 @@ class TestIPWhitelistService:
         )
         assert result is False
 
+    @pytest.mark.asyncio
     async def test_check_ip_expired_entry(self, ip_whitelist_service, mock_db_session):
         """Test expired entries are ignored."""
         # Mock expired entry
@@ -189,6 +197,7 @@ class TestIPWhitelistService:
         )
         assert result is False
 
+    @pytest.mark.asyncio
     async def test_remove_ip(self, ip_whitelist_service, mock_db_session):
         """Test removing IP from whitelist."""
         # Mock delete result
@@ -206,6 +215,7 @@ class TestIPWhitelistService:
         assert result is True
         mock_db_session.commit.assert_called_once()
 
+    @pytest.mark.asyncio
     async def test_update_ip(self, ip_whitelist_service, mock_db_session):
         """Test updating whitelist entry."""
         # Mock existing entry
@@ -253,6 +263,7 @@ class TestIPWhitelistService:
             assert any("76." in ip for ip in defaults)  # Vercel
             assert any("34." in ip for ip in defaults)  # Google Cloud
 
+    @pytest.mark.asyncio
     async def test_cleanup_expired(self, ip_whitelist_service, mock_db_session):
         """Test cleaning up expired entries."""
         # Mock delete result
