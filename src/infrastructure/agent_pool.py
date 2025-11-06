@@ -6,19 +6,17 @@ with code expecting AgentPool to be in src.infrastructure.agent_pool.
 """
 
 from src.infrastructure.distributed_agent_pool import (
-    AgentHealth,
     AgentInstance,
-    AgentPool,
-    AgentPoolConfig,
-    AgentType,
-    LoadBalancer,
+    AgentPoolManager,
+    PoolConfig,
 )
+
+# Backward compatibility aliases
+AgentPool = AgentPoolManager
+AgentPoolConfig = PoolConfig
 
 __all__ = [
     "AgentPool",
     "AgentPoolConfig",
-    "AgentType",
     "AgentInstance",
-    "AgentHealth",
-    "LoadBalancer",
 ]
