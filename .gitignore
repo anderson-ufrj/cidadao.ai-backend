@@ -25,6 +25,8 @@ add-ons/
 # Virtual environments
 venv/
 venv_new/
+.venv/
+env/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
