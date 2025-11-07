@@ -1092,3 +1092,52 @@ class TestAnitaHelperMethods:
 
         # Should handle missing data gracefully
         assert isinstance(result, list)
+
+
+class TestSpectralSignificance:
+    """Test spectral significance assessment for coverage boost."""
+
+    @pytest.mark.unit
+    def test_assess_high_significance(self, anita_agent):
+        """Test high significance assessment - Line 1439."""
+        coherence = 0.9  # > 0.8
+
+        result = anita_agent._assess_spectral_significance(coherence)
+
+        assert result == "high"
+
+    @pytest.mark.unit
+    def test_assess_medium_significance(self, anita_agent):
+        """Test medium significance assessment - Line 1441."""
+        coherence = 0.7  # > 0.6 but < 0.8
+
+        result = anita_agent._assess_spectral_significance(coherence)
+
+        assert result == "medium"
+
+    @pytest.mark.unit
+    def test_assess_low_significance(self, anita_agent):
+        """Test low significance assessment - Line 1443."""
+        coherence = 0.5  # <= 0.6
+
+        result = anita_agent._assess_spectral_significance(coherence)
+
+        assert result == "low"
+
+    @pytest.mark.unit
+    def test_assess_boundary_high(self, anita_agent):
+        """Test boundary case for high significance."""
+        coherence = 0.81  # Just above 0.8
+
+        result = anita_agent._assess_spectral_significance(coherence)
+
+        assert result == "high"
+
+    @pytest.mark.unit
+    def test_assess_boundary_medium(self, anita_agent):
+        """Test boundary case for medium significance."""
+        coherence = 0.61  # Just above 0.6
+
+        result = anita_agent._assess_spectral_significance(coherence)
+
+        assert result == "medium"
