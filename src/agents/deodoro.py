@@ -182,7 +182,7 @@ class BaseAgent(ABC):
             context=context.to_dict(),
         )
 
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
         retries = 0
         last_error = None
 
@@ -211,7 +211,7 @@ class BaseAgent(ABC):
 
                 # Calculate processing time
                 processing_time = (
-                    datetime.utcnow() - start_time
+                    datetime.now(UTC) - start_time
                 ).total_seconds() * 1000
                 response.processing_time_ms = processing_time
 
@@ -282,7 +282,7 @@ class BaseAgent(ABC):
         BusinessMetrics.record_agent_task(
             agent_name=self.name,
             task_type=action,
-            duration_seconds=(datetime.utcnow() - start_time).total_seconds(),
+            duration_seconds=(datetime.now(UTC) - start_time).total_seconds(),
             status="failed",
         )
 
@@ -425,7 +425,7 @@ class BaseAgent(ABC):
         Returns:
             Dictionary with health information
         """
-        uptime = (datetime.utcnow() - self._start_time).total_seconds()
+        uptime = (datetime.now(UTC) - self._start_time).total_seconds()
         return {
             "status": "healthy" if self.status != AgentStatus.ERROR else "unhealthy",
             "name": self.name,
