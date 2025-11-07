@@ -2,8 +2,8 @@
 
 **Autor**: Anderson Henrique da Silva
 **Localização**: Minas Gerais, Brasil
-**Última Atualização**: 2025-10-30 13:05:00 -03:00
-**Versão**: 3.1.0 - Production on Railway (76% Test Coverage, 1,363 Tests)
+**Última Atualização**: 2025-11-07 11:45:00 -03:00
+**Versão**: 3.2.0 - Production on Railway (76.29% Test Coverage, 1,514 Tests)
 
 > **Multi-Agent AI System** for Brazilian Government Transparency Analysis
 
@@ -13,7 +13,7 @@
 [![Celery](https://img.shields.io/badge/Celery-5.3+-green?logo=celery&logoColor=white)](https://docs.celeryq.dev)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Democratizing access to public contract data through 16 autonomous AI agents with Brazilian cultural identities.**
+**Democratizing access to public contract data through 17 specialized AI agents with Brazilian cultural identities.**
 
 ---
 
@@ -70,28 +70,28 @@ Este é o **Backend API** do ecossistema Cidadão.AI, composto por **4 repositó
 ✅ **Natural Language API** - Chat with agents in Portuguese
 ✅ **Comprehensive Test Suite** - **1,363 tests, 76% coverage, 97.4% pass rate** 🎯
 
-### Current Status (Verified 2025-10-30)
+### Current Status (Verified 2025-11-07)
 
 | Aspect | Status |
 |--------|--------|
 | **Deployment** | ✅ Railway Production (since 07/10/2025) |
 | **Database** | ✅ PostgreSQL (Railway) - Fully operational |
 | **Cache** | ✅ Redis (Railway) - Fully operational |
-| **Agents** | **16 agents: 15 operational (93.75%), 1 partial (6.25%)** |
-| **Test Coverage (Agents)** | **76.29%** ✅ Nearly at 80% goal! (was 44% in old docs) |
-| **Total Tests** | **1,363 tests** across **98 test files** 🎉 |
-| **Test Pass Rate** | **97.4%** (761 passed, 20 failed) |
-| **All Agents Tested** | **16/16 (100%)** - Every agent has comprehensive tests |
+| **Agents** | **17 agents total: 16 operational (100%) + 1 base framework** |
+| **Test Coverage (Agents)** | **76.29%** ✅ Nearly at 80% goal! |
+| **Total Tests** | **1,514 tests** across **98 test files** 🎉 |
+| **Test Pass Rate** | **97.4%** (761 passed in agent tests, 20 failed) |
+| **All Agents Tested** | **17/17 (100%)** - Every agent has comprehensive tests |
 | **API Uptime** | 99.9% |
 | **Production URL** | https://cidadao-api-production.up.railway.app/ |
 
-> **✅ Coverage Update (30/10/2025)**: Real test coverage is **76.29%** with 1,363 tests - much better than previously documented! See [coverage report](docs/project/reports/2025-10/COVERAGE_REALITY_DISCOVERY_2025_10_30.md) for details.
+> **✅ Status Update (07/11/2025)**: Sistema estável com **17 agentes** (16 funcionais + Deodoro base), **1.514 testes** totais, e **76.29% de cobertura**. Ver [status atual](docs/project/STATUS_ATUAL_2025_11.md) para detalhes completos.
 
 ---
 
-## 🤖 Sistema Multi-Agente (16 Agentes)
+## 🤖 Sistema Multi-Agente (17 Agentes)
 
-O coração do Cidadão.AI é um sistema de **16 agentes autônomos**, cada um com identidade cultural brasileira e especialização única:
+O coração do Cidadão.AI é um sistema de **17 agentes especializados** (16 agentes funcionais + 1 framework base), cada um com identidade cultural brasileira e especialização única:
 
 ### 🎯 Camada de Orquestração
 
@@ -377,8 +377,8 @@ Analista narrativo que extrai histórias e contexto de dados.
 - Context building
 - Narrative arc identification
 
-#### 🏗️ Deodoro - Base Architecture
-**Status**: ✅ 100% Operacional (Framework) | **Código**: `src/agents/deodoro.py` (478 linhas) | [**Docs**](docs/agents/deodoro.md)
+#### 🏗️ Deodoro da Fonseca - Base Architecture
+**Status**: ✅ 100% Operacional (Framework) | **Código**: `src/agents/deodoro.py` (647 linhas) | [**Docs**](docs/agents/deodoro.md)
 
 Arquitetura base que define a estrutura fundamental para todos os 17 agentes do sistema.
 
@@ -1138,9 +1138,10 @@ All agents are named after Brazilian historical figures and Afro-Brazilian cultu
 
 ---
 
-**Last Updated**: October 29, 2025 10:30:00 -03:00
-**Version**: 3.0.0 - Production on Railway
-**Agent System**: 10/16 Tier 1 operational (62.5%)
+**Last Updated**: November 07, 2025 11:45:00 -03:00
+**Version**: 3.2.0 - Production on Railway
+**Agent System**: 17 agents (16 functional + 1 base framework) - 100% operational
+**Test Coverage**: 76.29% (1,514 tests total)
 **Production URL**: https://cidadao-api-production.up.railway.app/
 **Uptime**: 99.9% since 07/10/2025
-**Documentation**: Professionally organized (v4.0)
+**Documentation**: Ver [STATUS_ATUAL_2025_11.md](docs/project/STATUS_ATUAL_2025_11.md) para métricas detalhadas
