@@ -19,7 +19,7 @@ from src.infrastructure.resilience.circuit_breaker import (
 )
 
 
-class MockException(Exception):
+class MockExceptionError(Exception):
     """Mock exception for testing."""
 
     pass
@@ -34,7 +34,7 @@ async def async_success_function(value: int = 42) -> int:
 async def async_failure_function():
     """Async function that always fails."""
     await asyncio.sleep(0.01)
-    raise MockException("Intentional failure")
+    raise MockExceptionError("Intentional failure")
 
 
 def sync_success_function(value: int = 42) -> int:
@@ -44,7 +44,7 @@ def sync_success_function(value: int = 42) -> int:
 
 def sync_failure_function():
     """Sync function that always fails."""
-    raise MockException("Intentional failure")
+    raise MockExceptionError("Intentional failure")
 
 
 async def async_slow_function(delay: float = 2.0) -> str:
@@ -61,7 +61,7 @@ def circuit_config():
         recovery_timeout=1.0,  # Short for tests
         success_threshold=2,
         timeout=0.5,  # Short timeout for tests
-        expected_exception=MockException,
+        expected_exception=MockExceptionError,
     )
 
 
@@ -146,7 +146,7 @@ class TestCircuitBreaker:
     @pytest.mark.asyncio
     async def test_failed_call(self, circuit):
         """Test failed function call."""
-        with pytest.raises(MockException):
+        with pytest.raises(MockExceptionError):
             await circuit.call(async_failure_function)
 
         assert circuit.state == CircuitState.CLOSED  # Not open yet
@@ -161,7 +161,7 @@ class TestCircuitBreaker:
         """Test circuit opens after failure threshold."""
         # Fail 3 times to reach threshold
         for _ in range(3):
-            with pytest.raises(MockException):
+            with pytest.raises(MockExceptionError):
                 await circuit.call(async_failure_function)
 
         assert circuit.state == CircuitState.OPEN
@@ -175,7 +175,7 @@ class TestCircuitBreaker:
         """Test open circuit rejects calls."""
         # Open the circuit
         for _ in range(3):
-            with pytest.raises(MockException):
+            with pytest.raises(MockExceptionError):
                 await circuit.call(async_failure_function)
 
         assert circuit.state == CircuitState.OPEN
@@ -194,7 +194,7 @@ class TestCircuitBreaker:
         """Test transition to half-open state."""
         # Open the circuit
         for _ in range(3):
-            with pytest.raises(MockException):
+            with pytest.raises(MockExceptionError):
                 await circuit.call(async_failure_function)
 
         assert circuit.state == CircuitState.OPEN
@@ -215,7 +215,7 @@ class TestCircuitBreaker:
         """Test successful recovery from half-open to closed."""
         # Open the circuit
         for _ in range(3):
-            with pytest.raises(MockException):
+            with pytest.raises(MockExceptionError):
                 await circuit.call(async_failure_function)
 
         # Wait for recovery
@@ -235,7 +235,7 @@ class TestCircuitBreaker:
         """Test failure in half-open state reopens circuit."""
         # Open the circuit
         for _ in range(3):
-            with pytest.raises(MockException):
+            with pytest.raises(MockExceptionError):
                 await circuit.call(async_failure_function)
 
         # Wait for recovery
@@ -246,7 +246,7 @@ class TestCircuitBreaker:
         assert circuit.state == CircuitState.HALF_OPEN
 
         # Failed call reopens circuit
-        with pytest.raises(MockException):
+        with pytest.raises(MockExceptionError):
             await circuit.call(async_failure_function)
 
         assert circuit.state == CircuitState.OPEN
@@ -284,7 +284,7 @@ class TestCircuitBreaker:
         """Test manual circuit reset."""
         # Open the circuit
         for _ in range(3):
-            with pytest.raises(MockException):
+            with pytest.raises(MockExceptionError):
                 await circuit.call(async_failure_function)
 
         assert circuit.state == CircuitState.OPEN
@@ -433,7 +433,7 @@ class TestCircuitBreakerManager:
         manager = CircuitBreakerManager()
 
         # Create breakers in different states
-        breaker1 = manager.get_circuit_breaker("healthy_service")
+        _ = manager.get_circuit_breaker("healthy_service")
 
         breaker2 = manager.get_circuit_breaker("degraded_service")
         breaker2.state = CircuitState.HALF_OPEN
@@ -479,11 +479,11 @@ class TestCircuitBreakerDecorator:
 
         @circuit_breaker("custom_service", config)
         async def failing_function():
-            raise MockException("Fail")
+            raise MockExceptionError("Fail")
 
         # Fail twice to open circuit
         for _ in range(2):
-            with pytest.raises(MockException):
+            with pytest.raises(MockExceptionError):
                 await failing_function()
 
         # Check circuit is open
@@ -526,7 +526,7 @@ class TestCircuitBreakerEdgeCases:
         # All should fail
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        assert all(isinstance(r, MockException) for r in results)
+        assert all(isinstance(r, MockExceptionError) for r in results)
         assert circuit.state == CircuitState.OPEN
         assert circuit.stats.failed_requests >= 3  # At least threshold
 
@@ -536,11 +536,11 @@ class TestCircuitBreakerEdgeCases:
         """Test race condition during state change."""
         # Bring circuit to edge of opening (2 failures, threshold is 3)
         for _ in range(2):
-            with pytest.raises(MockException):
+            with pytest.raises(MockExceptionError):
                 await circuit.call(async_failure_function)
 
         # Concurrent calls - one fails, one succeeds
-        results = await asyncio.gather(
+        _ = await asyncio.gather(
             circuit.call(async_failure_function),
             circuit.call(async_success_function),
             return_exceptions=True,
@@ -562,7 +562,7 @@ class TestCircuitBreakerEdgeCases:
         breaker = CircuitBreaker("fast_recovery", config)
 
         # Open circuit
-        with pytest.raises(MockException):
+        with pytest.raises(MockExceptionError):
             await breaker.call(async_failure_function)
 
         assert breaker.state == CircuitState.OPEN
