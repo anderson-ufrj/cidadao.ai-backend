@@ -14,7 +14,6 @@ from typing import Any, Optional
 
 from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
 from src.core import get_logger
-from src.core.exceptions import AgentExecutionError
 
 
 class CorruptionSeverity(Enum):
@@ -428,36 +427,6 @@ class CorruptionDetectorAgent(BaseAgent):
 
         return 0.0
 
-    async def process_message(
-        self, message: AgentMessage, context: AgentContext
-    ) -> AgentResponse:
-        """Processa mensagens e coordena detecção de corrupção."""
-        try:
-            if message.content.get("action") == "detect_corruption":
-                data = message.content.get("data", [])
-                result = await self.detect_corruption_patterns(data, context)
-
-                return AgentResponse(
-                    agent_name=self.name,
-                    content={
-                        "corruption_alert": result,
-                        "status": "analysis_complete",
-                        "recommendations": self._generate_recommendations(result),
-                    },
-                    confidence=result.confidence_score,
-                    metadata={"detection_type": "systematic", "model_version": "1.0"},
-                )
-
-            return AgentResponse(
-                agent_name=self.name,
-                content={"error": "Unknown action"},
-                confidence=0.0,
-            )
-
-        except Exception as e:
-            self.logger.error(f"Error in corruption detection: {str(e)}")
-            raise AgentExecutionError(f"Corruption detection failed: {str(e)}")
-
     async def _apply_benford_law(self, data: list[dict]) -> float:
         """Apply Benford's Law analysis to detect manipulation."""
         # Simplified implementation - in production would use full Benford analysis
@@ -579,9 +548,9 @@ class CorruptionDetectorAgent(BaseAgent):
 
             # Extract data from message
             data = (
-                message.data
-                if isinstance(message.data, dict)
-                else {"query": str(message.data)}
+                message.payload
+                if isinstance(message.payload, dict)
+                else {"query": str(message.payload)}
             )
 
             # Determine analysis type
