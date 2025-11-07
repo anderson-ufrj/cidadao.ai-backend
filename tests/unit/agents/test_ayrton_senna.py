@@ -545,3 +545,57 @@ class TestProcessMethod:
         response = await semantic_router.process(message, context)
 
         assert response.status == AgentStatus.ERROR
+
+
+class TestRoutingPromptCreation:
+    """Test routing prompt creation for coverage boost."""
+
+    @pytest.mark.unit
+    def test_create_routing_prompt_with_agents(self, semantic_router):
+        """Test prompt creation with agent capabilities - Lines 585-612."""
+        query = "Quero investigar contratos suspeitos"
+
+        # Set up agent capabilities
+        semantic_router.agent_capabilities = {
+            "InvestigatorAgent": ["investigate", "analyze_anomalies"],
+            "AnalystAgent": ["analyze_statistics", "correlate_data"],
+        }
+
+        prompt = semantic_router._create_routing_prompt(query)
+
+        # Verify prompt structure
+        assert query in prompt
+        assert "InvestigatorAgent" in prompt
+        assert "AnalystAgent" in prompt
+        assert "investigate" in prompt
+        assert "analyze_anomalies" in prompt
+        assert "JSON" in prompt
+
+    @pytest.mark.unit
+    def test_create_routing_prompt_empty_agents(self, semantic_router):
+        """Test prompt creation with no agent capabilities - Line 594."""
+        query = "Analise isso"
+
+        # Empty agent capabilities
+        semantic_router.agent_capabilities = {}
+
+        prompt = semantic_router._create_routing_prompt(query)
+
+        # Should use fallback
+        assert "MasterAgent" in prompt
+        assert "investigate" in prompt
+        assert query in prompt
+
+    @pytest.mark.unit
+    def test_create_routing_prompt_format(self, semantic_router):
+        """Test that prompt has expected JSON format request."""
+        query = "test query"
+        semantic_router.agent_capabilities = {"TestAgent": ["test"]}
+
+        prompt = semantic_router._create_routing_prompt(query)
+
+        # Verify JSON structure request
+        assert "target_agent" in prompt
+        assert "action" in prompt
+        assert "confidence" in prompt
+        assert "reasoning" in prompt
