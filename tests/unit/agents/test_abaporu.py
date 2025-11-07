@@ -700,3 +700,127 @@ class TestAbaporuEdgeCases:
         assert isinstance(plan, InvestigationPlan)
         assert len(plan.steps) > 0
         assert "Zumbi" in plan.required_agents  # Keyword "anomalies" triggers Zumbi
+
+
+class TestReflectionQualityAssessment:
+    """Test reflection quality assessment for coverage boost."""
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_reflect_invalid_result_type(self, master_agent, agent_context):
+        """Test reflection with invalid result type - Line 712."""
+        # Pass a non-InvestigationResult object
+        invalid_result = {"some": "dict"}
+
+        reflection = await master_agent.reflect(invalid_result, agent_context)
+
+        assert reflection["quality_score"] == 0.0
+        assert "Invalid result type" in reflection["issues"]
+        assert "Fix result format" in reflection["suggestions"]
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_reflect_no_findings(self, master_agent, agent_context):
+        """Test reflection with no findings - Lines 723-724."""
+        from src.agents.abaporu import InvestigationResult
+
+        result = InvestigationResult(
+            investigation_id="test-001",
+            query="test query",
+            findings=[],  # Empty findings
+            confidence_score=0.9,
+            explanation="Good explanation with more than fifty characters here",
+            sources=["source1", "source2"],
+            agents_involved=["Zumbi"],
+        )
+
+        reflection = await master_agent.reflect(result, agent_context)
+
+        assert "No findings generated" in reflection["issues"]
+        assert "Review investigation strategy" in reflection["suggestions"]
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_reflect_low_confidence(self, master_agent, agent_context):
+        """Test reflection with low confidence score - Lines 728-729."""
+        from src.agents.abaporu import InvestigationResult
+
+        result = InvestigationResult(
+            investigation_id="test-002",
+            query="test query",
+            findings=[{"finding": "test"}],
+            confidence_score=0.3,  # < 0.5
+            explanation="Good explanation with more than fifty characters here",
+            sources=["source1", "source2"],
+            agents_involved=["Zumbi"],
+        )
+
+        reflection = await master_agent.reflect(result, agent_context)
+
+        assert "Low confidence score" in reflection["issues"]
+        assert any("Gather more data" in s for s in reflection["suggestions"])
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_reflect_poor_explanation(self, master_agent, agent_context):
+        """Test reflection with poor explanation - Lines 732-734."""
+        from src.agents.abaporu import InvestigationResult
+
+        result = InvestigationResult(
+            investigation_id="test-003",
+            query="test query",
+            findings=[{"finding": "test"}],
+            confidence_score=0.9,
+            explanation="Short",  # < 50 chars
+            sources=["source1", "source2"],
+            agents_involved=["Zumbi"],
+        )
+
+        reflection = await master_agent.reflect(result, agent_context)
+
+        assert "Poor explanation quality" in reflection["issues"]
+        assert any("detailed explanation" in s for s in reflection["suggestions"])
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_reflect_limited_sources(self, master_agent, agent_context):
+        """Test reflection with limited sources - Line 737."""
+        from src.agents.abaporu import InvestigationResult
+
+        result = InvestigationResult(
+            investigation_id="test-004",
+            query="test query",
+            findings=[{"finding": "test"}],
+            confidence_score=0.9,
+            explanation="Good explanation with more than fifty characters here",
+            sources=["source1"],  # Only 1 source < 2
+            agents_involved=["Zumbi"],
+        )
+
+        reflection = await master_agent.reflect(result, agent_context)
+
+        assert "Limited source diversity" in reflection["issues"]
+        assert "Include more data sources" in reflection["suggestions"]
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
+    async def test_reflect_perfect_result(self, master_agent, agent_context):
+        """Test reflection with perfect result - no issues."""
+        from src.agents.abaporu import InvestigationResult
+
+        result = InvestigationResult(
+            investigation_id="test-005",
+            query="test query",
+            findings=[{"finding": "test1"}, {"finding": "test2"}],
+            confidence_score=0.95,
+            explanation="Excellent and detailed explanation with more than fifty characters to ensure quality assessment",
+            sources=["source1", "source2", "source3"],
+            agents_involved=["Zumbi", "Anita"],
+        )
+
+        reflection = await master_agent.reflect(result, agent_context)
+
+        # Should have high quality score with no or few issues
+        assert reflection["quality_score"] > 0.5
+        assert isinstance(reflection["issues"], list)
+        assert isinstance(reflection["suggestions"], list)
