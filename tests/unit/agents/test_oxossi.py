@@ -1382,3 +1382,40 @@ class TestOxossiComplexScenarios:
         assert response.status == AgentStatus.COMPLETED
         assert response.result["patterns_detected"] >= 0
         assert response.processing_time_ms < 30000  # Should complete in <30 seconds
+
+
+class TestCoverageBoostNov2025:
+    """Additional tests to boost coverage to 90%+ - Nov 2025."""
+
+    @pytest.mark.unit
+    def test_check_bid_similarity_less_than_two_bids(self, agent):
+        """Test bid similarity with insufficient bids (line 1133)."""
+        # Single bid - should return False
+        result = agent._check_bid_similarity([100000.0])
+        assert result is False
+
+        # Empty list
+        result = agent._check_bid_similarity([])
+        assert result is False
+
+    @pytest.mark.unit
+    def test_check_bid_similarity_similar_bids(self, agent):
+        """Test bid similarity with suspiciously similar bids (line 1146)."""
+        # Very similar bids (within 1% of each other)
+        similar_bids = [100000.0, 100500.0, 100200.0]
+        result = agent._check_bid_similarity(similar_bids)
+        assert result is True
+
+    @pytest.mark.unit
+    def test_check_bid_similarity_different_bids(self, agent):
+        """Test bid similarity with sufficiently different bids."""
+        # Significantly different bids
+        different_bids = [100000.0, 150000.0, 200000.0]
+        result = agent._check_bid_similarity(different_bids)
+        assert result is False
+
+    @pytest.mark.unit
+    def test_calculate_overall_confidence_empty_patterns(self, agent):
+        """Test confidence calculation with no patterns (line 1309)."""
+        result = agent._calculate_overall_confidence([])
+        assert result == 0.0
