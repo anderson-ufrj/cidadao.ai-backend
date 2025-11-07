@@ -328,6 +328,35 @@ class TestConversationMemory:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
+    async def test_store_conversation_missing_message(self, nana_agent, sample_context):
+        """Test storing conversation with missing message field - Line 524."""
+        # Test without message
+        message = AgentMessage(
+            sender="test",
+            recipient="nana",
+            action="store_conversation",
+            payload={
+                "conversation_id": "conv_001"
+                # Missing "message" field (empty string counts as missing)
+            },
+        )
+
+        response = await nana_agent.process(message, sample_context)
+        assert response.status == AgentStatus.ERROR
+
+        # Test with empty message
+        message2 = AgentMessage(
+            sender="test",
+            recipient="nana",
+            action="store_conversation",
+            payload={"conversation_id": "conv_001", "message": ""},  # Empty message
+        )
+
+        response2 = await nana_agent.process(message2, sample_context)
+        assert response2.status == AgentStatus.ERROR
+
+    @pytest.mark.unit
+    @pytest.mark.asyncio
     async def test_get_conversation_context(
         self, nana_agent, sample_context, mock_redis_client
     ):
@@ -689,6 +718,85 @@ class TestCalculateImportance:
         from src.core import MemoryImportance
 
         assert importance == MemoryImportance.LOW
+
+    @pytest.mark.unit
+    def test_calculate_importance_medium(self, nana_agent):
+        """Test importance calculation for MEDIUM level - Line 929."""
+        from unittest.mock import Mock
+
+        result = Mock()
+        result.confidence_score = 0.5  # > 0.4 but not high enough for HIGH
+        result.findings = []  # No findings, so won't reach HIGH
+
+        importance = nana_agent._calculate_importance(result)
+
+        from src.core import MemoryImportance
+
+        assert importance == MemoryImportance.MEDIUM
+
+    @pytest.mark.unit
+    def test_calculate_importance_high_boundary(self, nana_agent):
+        """Test importance calculation for HIGH level - Line 927."""
+        from unittest.mock import Mock
+
+        result = Mock()
+        result.confidence_score = 0.7  # > 0.6
+        result.findings = [{"anomaly": "test1"}, {"anomaly": "test2"}]  # > 1
+
+        importance = nana_agent._calculate_importance(result)
+
+        from src.core import MemoryImportance
+
+        assert importance == MemoryImportance.HIGH
+
+
+class TestExtractTags:
+    """Test tag extraction for coverage boost."""
+
+    @pytest.mark.unit
+    def test_extract_tags_multiple_matches(self, nana_agent):
+        """Test extracting multiple tags from text - Lines 933-950."""
+        text = "Análise de contrato emergencial suspeito com anomalia no valor"
+
+        tags = nana_agent._extract_tags(text)
+
+        assert "contrato" in tags
+        assert "emergencial" in tags
+        assert "suspeito" in tags
+        assert "anomalia" in tags
+        assert "valor" in tags
+        assert len(tags) >= 5
+
+    @pytest.mark.unit
+    def test_extract_tags_case_insensitive(self, nana_agent):
+        """Test tag extraction is case insensitive."""
+        text = "LICITAÇÃO com ANOMALIA no PREÇO do FORNECEDOR"
+
+        tags = nana_agent._extract_tags(text)
+
+        assert "licitação" in tags
+        assert "anomalia" in tags
+        assert "preço" in tags
+        assert "fornecedor" in tags
+
+    @pytest.mark.unit
+    def test_extract_tags_no_matches(self, nana_agent):
+        """Test tag extraction with no keyword matches."""
+        text = "This is a random text without any Portuguese keywords"
+
+        tags = nana_agent._extract_tags(text)
+
+        assert tags == []
+
+    @pytest.mark.unit
+    def test_extract_tags_partial_matches(self, nana_agent):
+        """Test tag extraction with partial word matches."""
+        text = "Ministério da Saúde e prefeitura municipal"
+
+        tags = nana_agent._extract_tags(text)
+
+        assert "ministério" in tags
+        assert "prefeitura" in tags
 
 
 class TestShutdown:

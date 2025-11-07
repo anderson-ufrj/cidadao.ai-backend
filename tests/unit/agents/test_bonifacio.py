@@ -1669,3 +1669,279 @@ class TestPolicyFrameworksDirect:
 
         # Verify causal pathways
         assert "pathway_1_direct_service" in result["causal_pathways"]
+
+
+class TestExternalFactorsInfluence:
+    """Test external factors influence estimation for coverage boost."""
+
+    @pytest.mark.unit
+    def test_estimate_low_influence(self, bonifacio_agent):
+        """Test estimation when sustainability is high - Line 1274-1278."""
+        from unittest.mock import Mock
+
+        evaluation = Mock()
+        evaluation.sustainability_score = 80  # >= 75
+
+        result = bonifacio_agent._estimate_external_factors_influence(evaluation)
+
+        assert result == "low"
+
+    @pytest.mark.unit
+    def test_estimate_moderate_influence(self, bonifacio_agent):
+        """Test estimation for moderate sustainability - Line 1275-1276."""
+        from unittest.mock import Mock
+
+        evaluation = Mock()
+        evaluation.sustainability_score = 65  # >= 60 but < 75
+
+        result = bonifacio_agent._estimate_external_factors_influence(evaluation)
+
+        assert result == "moderate"
+
+    @pytest.mark.unit
+    def test_estimate_high_influence(self, bonifacio_agent):
+        """Test estimation for low sustainability - Line 1277-1278."""
+        from unittest.mock import Mock
+
+        evaluation = Mock()
+        evaluation.sustainability_score = 45  # < 60
+
+        result = bonifacio_agent._estimate_external_factors_influence(evaluation)
+
+        assert result == "high"
+
+
+class TestCalculateCostPerOutcome:
+    """Test cost per outcome calculation for coverage boost."""
+
+    @pytest.mark.unit
+    def test_calculate_cost_per_outcome_basic(self, bonifacio_agent):
+        """Test cost per outcome calculation - Lines 1703-1715."""
+        from unittest.mock import Mock
+
+        indicator1 = Mock()
+        indicator1.name = "literacy_rate"
+        indicator1.baseline_value = 70.0
+        indicator1.current_value = 85.0  # improvement = 15
+
+        indicator2 = Mock()
+        indicator2.name = "graduation_rate"
+        indicator2.baseline_value = 50.0
+        indicator2.current_value = 60.0  # improvement = 10
+
+        total_cost = 1_000_000.0
+        indicators = [indicator1, indicator2]
+
+        result = bonifacio_agent._calculate_cost_per_outcome(total_cost, indicators)
+
+        assert "literacy_rate" in result
+        assert "graduation_rate" in result
+        assert result["literacy_rate"] == round(1_000_000 / 15, 2)
+        assert result["graduation_rate"] == round(1_000_000 / 10, 2)
+
+    @pytest.mark.unit
+    def test_calculate_cost_per_outcome_zero_improvement(self, bonifacio_agent):
+        """Test cost calculation when improvement is zero or negative."""
+        from unittest.mock import Mock
+
+        indicator = Mock()
+        indicator.name = "test_metric"
+        indicator.baseline_value = 100.0
+        indicator.current_value = 90.0  # negative improvement
+
+        result = bonifacio_agent._calculate_cost_per_outcome(500_000, [indicator])
+
+        assert "test_metric" in result
+        # Should use max(0.01, improvement) to avoid division issues
+        assert result["test_metric"] == round(500_000 / 0.01, 2)
+
+
+class TestClassifyCostLevel:
+    """Test cost level classification for coverage boost."""
+
+    @pytest.mark.unit
+    def test_classify_very_low_cost(self, bonifacio_agent):
+        """Test classification as very low cost."""
+        # benchmark["low"] for education = 3000
+        cost_per_beneficiary = 2500  # < 3000
+        result = bonifacio_agent._classify_cost_level(cost_per_beneficiary, "education")
+        assert result == "Very Low Cost"
+
+    @pytest.mark.unit
+    def test_classify_low_cost(self, bonifacio_agent):
+        """Test classification as low cost - Line 1695."""
+        # benchmark["low"] for education = 3000, 1.5 * 3000 = 4500
+        cost_per_beneficiary = 4000  # between 3000 and 4500
+        result = bonifacio_agent._classify_cost_level(cost_per_beneficiary, "education")
+        assert result == "Low Cost"
+
+    @pytest.mark.unit
+    def test_classify_moderate_cost(self, bonifacio_agent):
+        """Test classification as moderate cost - Line 1697."""
+        # benchmark["high"] for education = 10000
+        cost_per_beneficiary = 7000  # between 4500 and 10000
+        result = bonifacio_agent._classify_cost_level(cost_per_beneficiary, "education")
+        assert result == "Moderate Cost"
+
+    @pytest.mark.unit
+    def test_classify_high_cost(self, bonifacio_agent):
+        """Test classification as high cost - Line 1699."""
+        # benchmark["high"] for education = 10000, 1.5 * 10000 = 15000
+        cost_per_beneficiary = 12000  # between 10000 and 15000
+        result = bonifacio_agent._classify_cost_level(cost_per_beneficiary, "education")
+        assert result == "High Cost"
+
+    @pytest.mark.unit
+    def test_classify_very_high_cost(self, bonifacio_agent):
+        """Test classification as very high cost."""
+        cost_per_beneficiary = 20000  # > 15000
+        result = bonifacio_agent._classify_cost_level(cost_per_beneficiary, "education")
+        assert result == "Very High Cost"
+
+
+class TestIdentifyImplementationRisks:
+    """Test implementation risk identification for coverage boost."""
+
+    @pytest.mark.unit
+    def test_identify_risks_budget_deviation(self, bonifacio_agent):
+        """Test risk identification for budget deviation - Line 1463."""
+        from unittest.mock import Mock
+
+        evaluation = Mock()
+        evaluation.investment = {"deviation_percentage": 20}  # > 15
+        evaluation.beneficiaries = {"coverage_rate": 85}  # OK
+        evaluation.indicators = []  # No deteriorating
+        evaluation.sustainability_score = 70  # OK
+
+        risks = bonifacio_agent._identify_implementation_risks(evaluation)
+
+        assert "Budget execution volatility - deviation exceeds 15%" in risks
+
+    @pytest.mark.unit
+    def test_identify_risks_low_coverage(self, bonifacio_agent):
+        """Test risk identification for low coverage - Line 1466."""
+        from unittest.mock import Mock
+
+        evaluation = Mock()
+        evaluation.investment = {"deviation_percentage": 5}  # OK
+        evaluation.beneficiaries = {"coverage_rate": 60}  # < 75
+        evaluation.indicators = []
+        evaluation.sustainability_score = 70
+
+        risks = bonifacio_agent._identify_implementation_risks(evaluation)
+
+        assert any("Low coverage rate" in risk for risk in risks)
+
+    @pytest.mark.unit
+    def test_identify_risks_performance_decline(self, bonifacio_agent):
+        """Test risk identification for performance decline - Line 1474."""
+        from unittest.mock import Mock
+
+        evaluation = Mock()
+        evaluation.investment = {"deviation_percentage": 5}
+        evaluation.beneficiaries = {"coverage_rate": 85}
+        # Create mock indicators with deteriorating trend
+        ind1 = Mock()
+        ind1.trend = "deteriorating"
+        ind2 = Mock()
+        ind2.trend = "improving"
+        evaluation.indicators = [ind1, ind2]
+        evaluation.sustainability_score = 70
+
+        risks = bonifacio_agent._identify_implementation_risks(evaluation)
+
+        assert any("Performance decline" in risk for risk in risks)
+
+    @pytest.mark.unit
+    def test_identify_risks_low_sustainability(self, bonifacio_agent):
+        """Test risk identification for low sustainability - Line 1477."""
+        from unittest.mock import Mock
+
+        evaluation = Mock()
+        evaluation.investment = {"deviation_percentage": 5}
+        evaluation.beneficiaries = {"coverage_rate": 85}
+        evaluation.indicators = []
+        evaluation.sustainability_score = 50  # < 65
+
+        risks = bonifacio_agent._identify_implementation_risks(evaluation)
+
+        assert "Institutional capacity concerns - sustainability score low" in risks
+
+    @pytest.mark.unit
+    def test_identify_risks_none(self, bonifacio_agent):
+        """Test risk identification when no risks found."""
+        from unittest.mock import Mock
+
+        evaluation = Mock()
+        evaluation.investment = {"deviation_percentage": 5}
+        evaluation.beneficiaries = {"coverage_rate": 85}
+        evaluation.indicators = []
+        evaluation.sustainability_score = 70
+
+        risks = bonifacio_agent._identify_implementation_risks(evaluation)
+
+        assert risks == ["No major implementation risks identified"]
+
+
+class TestProposeRiskMitigation:
+    """Test risk mitigation proposals for coverage boost."""
+
+    @pytest.mark.unit
+    def test_propose_mitigation_low_sustainability(self, bonifacio_agent):
+        """Test mitigation for low sustainability - Line 1521."""
+        from unittest.mock import Mock
+
+        evaluation = Mock()
+        evaluation.sustainability_score = 60  # < 70
+        evaluation.beneficiaries = {"coverage_rate": 85}
+        evaluation.investment = {"deviation_percentage": 5}
+        evaluation.roi_social = 1.5
+
+        strategies = bonifacio_agent._propose_risk_mitigation(evaluation)
+
+        assert any("institutional capacity" in s for s in strategies)
+
+    @pytest.mark.unit
+    def test_propose_mitigation_low_coverage(self, bonifacio_agent):
+        """Test mitigation for low coverage - Line 1526."""
+        from unittest.mock import Mock
+
+        evaluation = Mock()
+        evaluation.sustainability_score = 75
+        evaluation.beneficiaries = {"coverage_rate": 70}  # < 80
+        evaluation.investment = {"deviation_percentage": 5}
+        evaluation.roi_social = 1.5
+
+        strategies = bonifacio_agent._propose_risk_mitigation(evaluation)
+
+        assert any("Expand outreach" in s for s in strategies)
+
+    @pytest.mark.unit
+    def test_propose_mitigation_budget_deviation(self, bonifacio_agent):
+        """Test mitigation for budget deviation - Line 1531."""
+        from unittest.mock import Mock
+
+        evaluation = Mock()
+        evaluation.sustainability_score = 75
+        evaluation.beneficiaries = {"coverage_rate": 85}
+        evaluation.investment = {"deviation_percentage": 15}  # > 10
+        evaluation.roi_social = 1.5
+
+        strategies = bonifacio_agent._propose_risk_mitigation(evaluation)
+
+        assert any("budget monitoring" in s for s in strategies)
+
+    @pytest.mark.unit
+    def test_propose_mitigation_low_roi(self, bonifacio_agent):
+        """Test mitigation for low ROI - Line 1536."""
+        from unittest.mock import Mock
+
+        evaluation = Mock()
+        evaluation.sustainability_score = 75
+        evaluation.beneficiaries = {"coverage_rate": 85}
+        evaluation.investment = {"deviation_percentage": 5}
+        evaluation.roi_social = 0.8  # < 1.0
+
+        strategies = bonifacio_agent._propose_risk_mitigation(evaluation)
+
+        assert any("social return" in s for s in strategies)
