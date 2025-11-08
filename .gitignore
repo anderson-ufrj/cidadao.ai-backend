@@ -19,6 +19,11 @@ cidadao_ai.db
 *.sqlite
 *.sqlite3
 
+# Session and work files in root (should be in docs/)
+/SESSAO_*.md
+/PROXIMAS_*.md
+/profile_*.py
+
 # Add-ons - separate repositories
 add-ons/
 
