@@ -44,6 +44,88 @@
 
 ---
 
+## 🏗️ Agent Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "Base Framework"
+        Deodoro[🎖️ Deodoro<br/>ReflectiveAgent]
+    end
+
+    subgraph "Tier 1: Fully Operational (10 agents)"
+        subgraph "Investigation & Analysis"
+            Zumbi[🧟 Zumbi<br/>Anomaly Detection]
+            Anita[📊 Anita<br/>Statistical Analysis]
+            Oxossi[🏹 Oxóssi<br/>Fraud Hunter]
+        end
+
+        subgraph "Reporting & Communication"
+            Tiradentes[📝 Tiradentes<br/>Report Generator]
+            Machado[✍️ Machado<br/>Narrative Builder]
+            Drummond[💬 Drummond<br/>Communications]
+        end
+
+        subgraph "Regional & Legal"
+            Lampiao[🌵 Lampião<br/>Regional Analyst]
+            Maria[⚔️ Maria Quitéria<br/>Security]
+            Bonifacio[⚖️ Bonifácio<br/>Legal Compliance]
+        end
+
+        subgraph "Coordination"
+            Senna[🏎️ Ayrton Senna<br/>Agent Router]
+        end
+    end
+
+    subgraph "Tier 2: Near-Complete (5 agents)"
+        Abaporu[🎨 Abaporu<br/>Master Orchestrator<br/>95%]
+        Nana[🌊 Nanã<br/>Memory Manager<br/>90%]
+        Ceuci[🤖 Céuci<br/>ML Analytics<br/>90%]
+        Obaluaie[🩺 Obaluaiê<br/>Corruption Patterns<br/>85%]
+        Oscar[🏛️ Oscar Niemeyer<br/>Visualization<br/>85%]
+    end
+
+    subgraph "Tier 3: Framework (1 agent)"
+        Dandara[🗡️ Dandara<br/>Social Justice<br/>30%]
+    end
+
+    Deodoro -.inherits.-> Zumbi
+    Deodoro -.inherits.-> Anita
+    Deodoro -.inherits.-> Oxossi
+    Deodoro -.inherits.-> Tiradentes
+    Deodoro -.inherits.-> Machado
+    Deodoro -.inherits.-> Drummond
+    Deodoro -.inherits.-> Lampiao
+    Deodoro -.inherits.-> Maria
+    Deodoro -.inherits.-> Bonifacio
+    Deodoro -.inherits.-> Senna
+    Deodoro -.inherits.-> Abaporu
+    Deodoro -.inherits.-> Nana
+    Deodoro -.inherits.-> Ceuci
+    Deodoro -.inherits.-> Obaluaie
+    Deodoro -.inherits.-> Oscar
+    Deodoro -.inherits.-> Dandara
+
+    style Deodoro fill:#e1f5ff,stroke:#333,stroke-width:3px
+    style Zumbi fill:#c3f0c3,stroke:#333,stroke-width:2px
+    style Anita fill:#c3f0c3,stroke:#333,stroke-width:2px
+    style Oxossi fill:#c3f0c3,stroke:#333,stroke-width:2px
+    style Tiradentes fill:#c3f0c3,stroke:#333,stroke-width:2px
+    style Machado fill:#c3f0c3,stroke:#333,stroke-width:2px
+    style Drummond fill:#c3f0c3,stroke:#333,stroke-width:2px
+    style Lampiao fill:#c3f0c3,stroke:#333,stroke-width:2px
+    style Maria fill:#c3f0c3,stroke:#333,stroke-width:2px
+    style Bonifacio fill:#c3f0c3,stroke:#333,stroke-width:2px
+    style Senna fill:#c3f0c3,stroke:#333,stroke-width:2px
+    style Abaporu fill:#fff4c3,stroke:#333,stroke-width:2px
+    style Nana fill:#fff4c3,stroke:#333,stroke-width:2px
+    style Ceuci fill:#fff4c3,stroke:#333,stroke-width:2px
+    style Obaluaie fill:#fff4c3,stroke:#333,stroke-width:2px
+    style Oscar fill:#fff4c3,stroke:#333,stroke-width:2px
+    style Dandara fill:#ffc3c3,stroke:#333,stroke-width:2px
+```
+
+---
+
 ## 📊 Agent Statistics
 
 | Tier | Count | Status | Total Lines |

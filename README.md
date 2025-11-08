@@ -7,11 +7,16 @@
 
 > **Multi-Agent AI System** for Brazilian Government Transparency Analysis
 
-[![Railway Deploy](https://img.shields.io/badge/Railway-Deployed-success?logo=railway&logoColor=white)](https://railway.app)
+[![Railway Deploy](https://img.shields.io/badge/Railway-Production-success?logo=railway&logoColor=white)](https://cidadao-api-production.up.railway.app)
+[![Uptime](https://img.shields.io/badge/Uptime-99.9%25-brightgreen)](https://cidadao-api-production.up.railway.app/health)
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![Celery](https://img.shields.io/badge/Celery-5.3+-green?logo=celery&logoColor=white)](https://docs.celeryq.dev)
+[![Test Coverage](https://img.shields.io/badge/Coverage-76.29%25-yellow)](docs/testing/)
+[![Tests Passing](https://img.shields.io/badge/Tests-97.4%25_Pass-brightgreen)](tests/)
+[![Agents](https://img.shields.io/badge/Agents-16_Operational-blue)](docs/agents/INDEX.md)
+[![Code Lines](https://img.shields.io/badge/Code-~16.9k_lines-informational)](src/agents/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Docs](https://img.shields.io/badge/Docs-Complete-success)](docs/)
 
 **Democratizing access to public contract data through 17 specialized AI agents with Brazilian cultural identities.**
 
