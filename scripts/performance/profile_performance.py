@@ -14,8 +14,8 @@ import pstats
 import time
 from datetime import datetime
 
-os.environ["JWT_SECRET_KEY"] = "test"
-os.environ["SECRET_KEY"] = "test"
+os.environ["JWT_SECRET_KEY"] = "test"  # noqa: S105
+os.environ["SECRET_KEY"] = "test"  # noqa: S105
 
 
 async def profile_agent_initialization():
@@ -36,7 +36,7 @@ async def profile_agent_initialization():
 
     for agent_name, agent_class in agents_to_test:
         start = time.time()
-        agent = agent_class()
+        _ = agent_class()  # Initialize but don't need to keep reference
         end = time.time()
         elapsed = (end - start) * 1000  # ms
 
@@ -69,7 +69,7 @@ async def profile_agent_pool():
 
         # Test agent retrieval
         start = time.time()
-        agent = await pool.get_agent("zumbi")
+        _ = await pool.get_agent("zumbi")
         end = time.time()
 
         get_time = (end - start) * 1000
@@ -77,7 +77,7 @@ async def profile_agent_pool():
 
         # Test cached retrieval
         start = time.time()
-        agent = await pool.get_agent("zumbi")
+        _ = await pool.get_agent("zumbi")
         end = time.time()
 
         cached_time = (end - start) * 1000
@@ -108,7 +108,7 @@ async def profile_imports():
     for name, import_stmt in import_tests:
         start = time.time()
         try:
-            exec(import_stmt)
+            exec(import_stmt)  # noqa: S102
             end = time.time()
             elapsed = (end - start) * 1000
             print(f"  {name}: {elapsed:.2f}ms")
@@ -134,7 +134,7 @@ async def profile_database_operations():
 
         # Test simple query
         start = time.time()
-        result = session.execute("SELECT 1")
+        _ = session.execute("SELECT 1")
         end = time.time()
         query_time = (end - start) * 1000
         print(f"  Simple query (SELECT 1): {query_time:.2f}ms")
