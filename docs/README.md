@@ -2,7 +2,7 @@
 
 **Author**: Anderson Henrique da Silva
 **Location**: Minas Gerais, Brasil
-**Last Updated**: 2025-10-31
+**Last Updated**: 2025-11-08
 
 ## 🚀 Quick Start
 
@@ -145,7 +145,33 @@ cidadao.ai-backend/
 - [Common Issues](troubleshooting/common-issues.md)
 - [Railway Issues](deployment/railway/README.md#troubleshooting)
 
+## 📁 Documentation Structure
+
+```
+docs/
+├── agents/           # Agent documentation (16 agents)
+├── api/              # API reference and integration guides
+├── architecture/     # System architecture and design
+├── deployment/       # Deployment guides (Railway, Docker)
+├── development/      # Developer guides and standards
+├── planning/         # Product roadmap and planning
+├── project/          # Project status and reports
+│   ├── reports/      # Sprint reports by date
+│   └── sessions/     # Development session logs
+├── release/          # Release notes
+├── technical/        # Technical deep-dives
+├── testing/          # Test strategy and coverage
+└── archive/          # Historical documentation
+```
+
 ## 📝 Recent Updates
+
+### 2025-11-08
+- ✅ Repository reorganization - files moved to proper directories
+- ✅ Cleaned up root directory (session files → docs/project/sessions/)
+- ✅ Performance files moved to dedicated folders
+- ✅ Updated .gitignore for better organization
+- ✅ Documentation structure clarified
 
 ### 2025-10-31
 - ✅ Documentation cleanup - removed 823MB node_modules
@@ -153,11 +179,6 @@ cidadao.ai-backend/
 - ✅ Created validation scripts
 - ✅ Archived old session files
 - ✅ Consolidated test reports
-
-### 2025-10-30
-- Voice integration completed
-- Railway deployment optimized
-- Health endpoint enhanced
 
 ## 📮 Contact
 
