@@ -31,6 +31,32 @@ This project follows the **Contributor Covenant** code of conduct. We expect all
 
 ---
 
+## 🗺️ Contribution Flow Diagram
+
+```mermaid
+graph LR
+    A[Fork Repository] --> B[Clone Locally]
+    B --> C[Create Branch]
+    C --> D[Make Changes]
+    D --> E{Run Tests}
+    E -->|Pass| F[Commit]
+    E -->|Fail| D
+    F --> G[Push to Fork]
+    G --> H[Create PR]
+    H --> I{CI/CD Checks}
+    I -->|Pass| J[Code Review]
+    I -->|Fail| D
+    J -->|Approved| K[Merge!]
+    J -->|Changes Requested| D
+
+    style A fill:#e1f5ff
+    style K fill:#c3f0c3
+    style E fill:#fff4c3
+    style I fill:#fff4c3
+```
+
+---
+
 ## Getting Started
 
 ### Prerequisites
@@ -337,6 +363,28 @@ We follow **Conventional Commits** specification.
 
 ### Types
 
+```mermaid
+graph TD
+    Commit[Commit Type]
+
+    Commit --> Feat[feat: New Feature<br/>New functionality added]
+    Commit --> Fix[fix: Bug Fix<br/>Resolves an issue]
+    Commit --> Docs[docs: Documentation<br/>README, comments, guides]
+    Commit --> Refactor[refactor: Refactoring<br/>Code improvement, no new features]
+    Commit --> Test[test: Tests<br/>Add/update test cases]
+    Commit --> Perf[perf: Performance<br/>Speed/efficiency improvements]
+    Commit --> Chore[chore: Maintenance<br/>Dependencies, build, config]
+
+    style Feat fill:#c3f0c3
+    style Fix fill:#ffc3c3
+    style Docs fill:#c3e5ff
+    style Refactor fill:#fff4c3
+    style Test fill:#e5c3ff
+    style Perf fill:#ffcc99
+    style Chore fill:#e0e0e0
+```
+
+**Type Reference:**
 - `feat`: New feature
 - `fix`: Bug fix
 - `docs`: Documentation changes

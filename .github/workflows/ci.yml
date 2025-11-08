@@ -139,10 +139,32 @@ jobs:
         run: |
           pytest tests/unit/agents/test_${{ matrix.agent }}*.py -v --cov=src.agents.${{ matrix.agent }} --cov-report=term-missing || true
 
+  docs-validation:
+    name: Documentation Validation
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Validate documentation links
+        run: |
+          python scripts/validate_doc_links.py --verbose
+
+      - name: Check documentation indexes
+        run: |
+          python scripts/generate_doc_index.py --all
+          git diff --exit-code docs/*/INDEX.md || echo "⚠️ Indexes may need updating"
+
   deployment-ready:
     name: Deployment Ready Check
     runs-on: ubuntu-latest
-    needs: [test, security, docker, agent-tests]
+    needs: [test, security, docker, agent-tests, docs-validation]
     if: github.ref == 'refs/heads/main'
 
     steps:
@@ -151,3 +173,4 @@ jobs:
           echo "✅ All checks passed - Ready for deployment"
           echo "🚀 Railway will auto-deploy on push to main"
           echo "📊 Coverage reports available in artifacts"
+          echo "📚 Documentation validated"
