@@ -52,6 +52,79 @@
 
 ---
 
+## 🏗️ API Architecture Diagram
+
+```mermaid
+graph TB
+    Client[🌐 Client Applications]
+
+    subgraph "API Layer"
+        REST[REST API<br/>266+ endpoints]
+        WS[WebSocket API<br/>70% complete]
+        GQL[GraphQL API<br/>95% complete]
+        SSE[SSE Streaming<br/>Chat API]
+    end
+
+    subgraph "Core Services"
+        Agents[🤖 Agent System<br/>16 agents]
+        Investigation[🔍 Investigation Service]
+        Orchestration[🎭 Orchestration]
+        Auth[🔐 Authentication]
+    end
+
+    subgraph "Data Sources"
+        subgraph "Government APIs"
+            PNCP[PNCP<br/>Procurement]
+            Portal[Portal Transparência<br/>22% working]
+            IBGE[IBGE<br/>Demographics]
+            DataSUS[DataSUS<br/>Healthcare]
+            INEP[INEP<br/>Education]
+            TCE[State TCEs<br/>6 states]
+        end
+
+        DB[(PostgreSQL<br/>Database)]
+        Cache[(Redis<br/>Cache)]
+    end
+
+    Client --> REST
+    Client --> WS
+    Client --> GQL
+    Client --> SSE
+
+    REST --> Auth
+    WS --> Auth
+    GQL --> Auth
+    SSE --> Auth
+
+    Auth --> Agents
+    Auth --> Investigation
+    Auth --> Orchestration
+
+    Agents --> DB
+    Agents --> Cache
+
+    Investigation --> Agents
+    Investigation --> DB
+
+    Orchestration --> PNCP
+    Orchestration --> Portal
+    Orchestration --> IBGE
+    Orchestration --> DataSUS
+    Orchestration --> INEP
+    Orchestration --> TCE
+
+    style Client fill:#e1f5ff,stroke:#333,stroke-width:2px
+    style REST fill:#c3f0c3,stroke:#333,stroke-width:2px
+    style WS fill:#fff4c3,stroke:#333,stroke-width:2px
+    style GQL fill:#fff4c3,stroke:#333,stroke-width:2px
+    style SSE fill:#c3f0c3,stroke:#333,stroke-width:2px
+    style Agents fill:#e1f5ff,stroke:#333,stroke-width:2px
+    style DB fill:#ffc3c3,stroke:#333,stroke-width:2px
+    style Cache fill:#ffc3c3,stroke:#333,stroke-width:2px
+```
+
+---
+
 ## 🔌 API Categories
 
 ### Investigation APIs
