@@ -11,6 +11,17 @@ from src.core.config import settings
 from src.services.ip_whitelist_service import IPWhitelist, IPWhitelistService
 
 
+# Mock cache_service.delete_pattern globally
+@pytest.fixture(autouse=True)
+def mock_cache_service():
+    """Mock cache service to avoid AttributeError on delete_pattern."""
+    with patch("src.services.ip_whitelist_service.cache_service") as mock:
+        mock.delete_pattern = AsyncMock()
+        mock.get = AsyncMock(return_value=None)
+        mock.set = AsyncMock()
+        yield mock
+
+
 @pytest.fixture
 def ip_whitelist_service():
     """Create IP whitelist service instance."""
@@ -22,7 +33,13 @@ async def mock_db_session():
     """Create mock database session."""
     session = AsyncMock(spec=AsyncSession)
     session.commit = AsyncMock()
-    session.execute = AsyncMock()
+
+    # Create proper mock for execute result
+    # NOTE: scalar_one_or_none() is synchronous, not async!
+    execute_result = Mock()
+    execute_result.scalar_one_or_none = Mock(return_value=None)
+    session.execute = AsyncMock(return_value=execute_result)
+
     session.add = Mock()
     return session
 
@@ -33,8 +50,10 @@ class TestIPWhitelistService:
     @pytest.mark.asyncio
     async def test_add_single_ip(self, ip_whitelist_service, mock_db_session):
         """Test adding a single IP address."""
-        # Mock query result
-        mock_db_session.execute.return_value.scalar_one_or_none.return_value = None
+        # Mock query result (already set in fixture, but ensure None for no existing entry)
+        execute_result = Mock()
+        execute_result.scalar_one_or_none = Mock(return_value=None)
+        mock_db_session.execute = AsyncMock(return_value=execute_result)
 
         # Add IP
         entry = await ip_whitelist_service.add_ip(
@@ -61,7 +80,9 @@ class TestIPWhitelistService:
     async def test_add_cidr_range(self, ip_whitelist_service, mock_db_session):
         """Test adding a CIDR range."""
         # Mock query result
-        mock_db_session.execute.return_value.scalar_one_or_none.return_value = None
+        execute_result = Mock()
+        execute_result.scalar_one_or_none = Mock(return_value=None)
+        mock_db_session.execute = AsyncMock(return_value=execute_result)
 
         # Add CIDR
         entry = await ip_whitelist_service.add_ip(
@@ -84,7 +105,9 @@ class TestIPWhitelistService:
         """Test adding duplicate IP fails."""
         # Mock existing entry
         existing = Mock(spec=IPWhitelist)
-        mock_db_session.execute.return_value.scalar_one_or_none.return_value = existing
+        execute_result = Mock()
+        execute_result.scalar_one_or_none = Mock(return_value=existing)
+        mock_db_session.execute = AsyncMock(return_value=execute_result)
 
         # Try to add duplicate
         with pytest.raises(ValueError, match="already whitelisted"):
@@ -121,9 +144,12 @@ class TestIPWhitelistService:
             ),
         ]
 
-        mock_db_session.execute.return_value.scalars.return_value.all.return_value = (
-            entries
-        )
+        # Setup proper async mock chain
+        scalars_result = AsyncMock()
+        scalars_result.all = AsyncMock(return_value=entries)
+        execute_result = AsyncMock()
+        execute_result.scalars = Mock(return_value=scalars_result)
+        mock_db_session.execute = AsyncMock(return_value=execute_result)
 
         # Force cache reload
         ip_whitelist_service._last_cache_update = None
@@ -150,9 +176,12 @@ class TestIPWhitelistService:
             )
         ]
 
-        mock_db_session.execute.return_value.scalars.return_value.all.return_value = (
-            entries
-        )
+        # Setup proper async mock chain
+        scalars_result = AsyncMock()
+        scalars_result.all = AsyncMock(return_value=entries)
+        execute_result = AsyncMock()
+        execute_result.scalars = Mock(return_value=scalars_result)
+        mock_db_session.execute = AsyncMock(return_value=execute_result)
 
         # Force cache reload
         ip_whitelist_service._last_cache_update = None
@@ -182,9 +211,12 @@ class TestIPWhitelistService:
             )
         ]
 
-        mock_db_session.execute.return_value.scalars.return_value.all.return_value = (
-            entries
-        )
+        # Setup proper async mock chain
+        scalars_result = AsyncMock()
+        scalars_result.all = AsyncMock(return_value=entries)
+        execute_result = AsyncMock()
+        execute_result.scalars = Mock(return_value=scalars_result)
+        mock_db_session.execute = AsyncMock(return_value=execute_result)
 
         # Force cache reload
         ip_whitelist_service._last_cache_update = None
