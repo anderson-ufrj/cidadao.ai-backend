@@ -16,4 +16,12 @@ Created: 2025-10-09 14:17:30 -03 (Minas Gerais, Brazil)
 License: Proprietary - All rights reserved
 """
 
+from .ckan_client import CKANClient
+from .rondonia_cge_client import RondoniaCGEClient
+
+__all__ = [
+    "CKANClient",
+    "RondoniaCGEClient",
+]
+
 __version__ = "1.0.0"
