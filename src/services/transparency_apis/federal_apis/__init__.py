@@ -17,7 +17,6 @@ License: Proprietary - All rights reserved
 """
 
 from .datasus_client import DataSUSClient
-from .siconfi_client import SICONFIClient
 
 # Exceptions
 from .exceptions import (
@@ -46,6 +45,7 @@ from .retry import (
     retry_with_backoff,
     should_retry_exception,
 )
+from .siconfi_client import SICONFIClient
 
 __all__ = [
     # Clients
