@@ -4,19 +4,17 @@ TCE Ceará API Client
 API client for Ceará State Audit Court (Tribunal de Contas do Estado).
 TCE-CE provides fiscal data for Ceará state and municipalities.
 
-API Base: https://api.tce.ce.gov.br/sim/1_0/
-Formats: XML, JSON, CSV, HTML
-Schema: https://api.tce.ce.gov.br/sim/1_0/<metodo>.<formato>?<params>
+API Base: https://api-dados-abertos.tce.ce.gov.br
+Formats: JSON
+Endpoints:
+- /municipios: Municipalities list
+- /receitas: Revenue data
+- /despesas: Expense data
+- /contratos: Contracts
+- /licitacoes: Bidding processes
 
-Available methods:
-- municipios: Municipalities list
-- negociantes: Suppliers/contractors
-- contratos: Contracts
-- licitacoes: Bidding processes
-
-Performance notes:
-- Large full listings may have performance restrictions
-- Use filters when possible
+Updated: 2025-11-14 - Switched to new open data API
+Previous API (https://api.tce.ce.gov.br/sim/1_0/) is deprecated
 
 Author: Anderson Henrique da Silva
 Created: 2025-10-09 14:27:00 -03 (Minas Gerais, Brazil)
@@ -40,10 +38,10 @@ class TCECearaClient(TransparencyAPIClient):
 
     def __init__(self):
         super().__init__(
-            base_url="https://api.tce.ce.gov.br/sim/1_0",
+            base_url="https://api-dados-abertos.tce.ce.gov.br",
             name="TCE-CE",
             rate_limit_per_minute=60,
-            timeout=90.0,  # Increased timeout for slow API response times
+            timeout=30.0,  # New API is faster
         )
 
     async def test_connection(self) -> bool:
@@ -55,9 +53,11 @@ class TCECearaClient(TransparencyAPIClient):
         """
         try:
             # Try to fetch municipalities list (small dataset)
-            result = await self._tce_request("municipios", "json", limit=1)
+            result = await self._make_request(
+                method="GET", endpoint="/municipios", params=None
+            )
 
-            is_success = result is not None
+            is_success = result is not None and isinstance(result, dict)
 
             if is_success:
                 self.logger.info("TCE-CE connection successful")
@@ -78,7 +78,12 @@ class TCECearaClient(TransparencyAPIClient):
             List of municipality dictionaries with IBGE codes
         """
         try:
-            raw_data = await self._tce_request("municipios", "json")
+            response = await self._make_request(
+                method="GET", endpoint="/municipios", params=None
+            )
+
+            # New API returns {"data": [...]}
+            raw_data = response.get("data", []) if isinstance(response, dict) else []
 
             municipalities = self._normalize_municipalities(raw_data)
 
@@ -116,11 +121,22 @@ class TCECearaClient(TransparencyAPIClient):
         if municipality_code:
             params["municipio"] = municipality_code
 
+        if start_date:
+            params["data_inicio"] = start_date
+
+        if end_date:
+            params["data_fim"] = end_date
+
         # Add custom params
         params.update(kwargs)
 
         try:
-            raw_data = await self._tce_request("contratos", "json", **params)
+            response = await self._make_request(
+                method="GET", endpoint="/contratos", params=params if params else None
+            )
+
+            # New API returns {"data": [...]}
+            raw_data = response.get("data", []) if isinstance(response, dict) else []
 
             contracts = self._normalize_contracts(raw_data)
 
@@ -136,7 +152,7 @@ class TCECearaClient(TransparencyAPIClient):
         self, municipality_code: Optional[str] = None, **kwargs: Any
     ) -> list[dict[str, Any]]:
         """
-        Get suppliers/contractors (negociantes) from TCE-CE.
+        Get suppliers/contractors from TCE-CE.
 
         Args:
             municipality_code: IBGE municipality code
@@ -153,7 +169,14 @@ class TCECearaClient(TransparencyAPIClient):
         params.update(kwargs)
 
         try:
-            raw_data = await self._tce_request("negociantes", "json", **params)
+            response = await self._make_request(
+                method="GET",
+                endpoint="/fornecedores",
+                params=params if params else None,
+            )
+
+            # New API returns {"data": [...]}
+            raw_data = response.get("data", []) if isinstance(response, dict) else []
 
             suppliers = self._normalize_suppliers(raw_data)
 
@@ -186,7 +209,14 @@ class TCECearaClient(TransparencyAPIClient):
         params.update(kwargs)
 
         try:
-            raw_data = await self._tce_request("licitacoes", "json", **params)
+            response = await self._make_request(
+                method="GET",
+                endpoint="/licitacoes",
+                params=params if params else None,
+            )
+
+            # New API returns {"data": [...]}
+            raw_data = response.get("data", []) if isinstance(response, dict) else []
 
             biddings = self._normalize_bidding_processes(raw_data)
 
@@ -197,29 +227,6 @@ class TCECearaClient(TransparencyAPIClient):
         except Exception as e:
             self.logger.error(f"Failed to fetch bidding processes: {str(e)}")
             return []
-
-    async def _tce_request(
-        self, method: str, format: str = "json", **params: Any
-    ) -> Any:
-        """
-        Make request to TCE-CE API.
-
-        TCE-CE uses schema:
-        /sim/1_0/<method>.<format>?<params>
-
-        Args:
-            method: Method name (municipios, contratos, etc.)
-            format: Response format (json, xml, csv, html)
-            **params: Query parameters
-
-        Returns:
-            Raw API response
-        """
-        endpoint = f"/{method}.{format}"
-
-        return await self._make_request(
-            method="GET", endpoint=endpoint, params=params if params else None
-        )
 
     def _normalize_municipalities(self, raw_data: Any) -> list[dict[str, Any]]:
         """Normalize municipality data."""
@@ -232,11 +239,15 @@ class TCECearaClient(TransparencyAPIClient):
             if not isinstance(item, dict):
                 continue
 
+            # New API uses different field names
             normalized.append(
                 {
                     "source": "TCE-CE",
-                    "municipality_code": item.get("codigoIBGE") or item.get("codigo"),
-                    "municipality_name": item.get("nome"),
+                    "municipality_code": item.get("codigo_municipio")
+                    or item.get("geoibgeId")
+                    or item.get("codigoIBGE")
+                    or item.get("codigo"),
+                    "municipality_name": item.get("nome_municipio") or item.get("nome"),
                     "state": "CE",
                     "raw_data": item,
                 }
