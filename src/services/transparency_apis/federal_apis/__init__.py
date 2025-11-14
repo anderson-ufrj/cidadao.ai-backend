@@ -16,6 +16,9 @@ Created: 2025-10-12
 License: Proprietary - All rights reserved
 """
 
+# Clients
+from .bcb_client import BancoCentralClient
+from .compras_gov_client import ComprasGovClient
 from .datasus_client import DataSUSClient
 
 # Exceptions
@@ -34,6 +37,8 @@ from .exceptions import (
 )
 from .ibge_client import IBGEClient
 from .inep_client import INEPClient
+from .minha_receita_client import MinhaReceitaClient
+from .pncp_client import PNCPClient
 
 # Retry utilities
 from .retry import (
@@ -47,12 +52,20 @@ from .retry import (
 )
 from .siconfi_client import SICONFIClient
 
+# Alias for common names
+BCBClient = BancoCentralClient
+
 __all__ = [
     # Clients
     "IBGEClient",
     "DataSUSClient",
     "INEPClient",
     "SICONFIClient",
+    "PNCPClient",
+    "BancoCentralClient",
+    "BCBClient",  # Alias
+    "ComprasGovClient",
+    "MinhaReceitaClient",
     # Exceptions
     "FederalAPIError",
     "NetworkError",

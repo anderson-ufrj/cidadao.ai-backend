@@ -19,7 +19,7 @@ from functools import wraps
 from typing import Any, Optional
 
 import httpx
-from pydantic import BaseModel, ConfigDict, field_validator
+from pydantic import BaseModel, field_validator
 
 from src.core import get_logger
 
@@ -146,6 +146,7 @@ class IBGEClient:
         Args:
             timeout: Request timeout in seconds
         """
+        self.base_url = self.BASE_URL
         self.timeout = timeout
         self.client = httpx.AsyncClient(
             timeout=httpx.Timeout(timeout),

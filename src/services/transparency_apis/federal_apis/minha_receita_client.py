@@ -100,7 +100,9 @@ class CNPJData(BaseModel):
     cnpj: str
     razao_social: str = Field(alias="razao_social")
     nome_fantasia: Optional[str] = Field(default=None, alias="nome_fantasia")
-    situacao_cadastral: int = Field(alias="situacao_cadastral")  # Changed from str to int
+    situacao_cadastral: int = Field(
+        alias="situacao_cadastral"
+    )  # Changed from str to int
     data_situacao_cadastral: Optional[str] = Field(
         default=None, alias="data_situacao_cadastral"
     )
@@ -159,6 +161,7 @@ class MinhaReceitaClient:
         Args:
             timeout: Request timeout in seconds
         """
+        self.base_url = self.BASE_URL
         self.timeout = timeout
         self.client = httpx.AsyncClient(
             timeout=httpx.Timeout(timeout),
