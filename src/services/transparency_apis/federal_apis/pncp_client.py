@@ -19,7 +19,7 @@ from functools import wraps
 from typing import Any, Optional
 
 import httpx
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 from src.core import get_logger
 
@@ -374,9 +374,9 @@ class PNCPClient:
     @cache_with_ttl(ttl_seconds=3600)  # 1 hour cache
     async def search_contracts(
         self,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
-        modality_code: Optional[int] = None,
+        start_date: str,
+        end_date: str,
+        modality_code: int = 6,  # Default to "pregao_eletronico" (most common)
         state: Optional[str] = None,
         page_size: int = 50,
         page: int = 1,
@@ -385,11 +385,11 @@ class PNCPClient:
         Search for contract publications.
 
         Args:
-            start_date: Start date (YYYY-MM-DD or dd/MM/yyyy)
-            end_date: End date (YYYY-MM-DD or dd/MM/yyyy)
-            modality_code: Procurement modality code (use MODALITIES dict)
+            start_date: Start date (yyyyMMdd) - REQUIRED
+            end_date: End date (yyyyMMdd) - REQUIRED
+            modality_code: Procurement modality code (use MODALITIES dict). Default: 6 (pregão eletrônico)
             state: State abbreviation (UF) - e.g., "SP", "RJ"
-            page_size: Results per page (max 500)
+            page_size: Results per page (min: 10, max: 500)
             page: Page number
 
         Returns:
@@ -399,12 +399,20 @@ class PNCPClient:
             >>> async with PNCPClient() as client:
             >>>     # Search electronic bidding in São Paulo
             >>>     contracts = await client.search_contracts(
-            >>>         start_date="01/01/2024",
-            >>>         end_date="31/01/2024",
+            >>>         start_date="20240101",
+            >>>         end_date="20240131",
             >>>         modality_code=client.MODALITIES["pregao_eletronico"],
             >>>         state="SP"
             >>>     )
         """
+        # Validate page_size (API requires >= 10)
+        if page_size < 10:
+            self.logger.warning(f"page_size {page_size} < 10, adjusting to 10")
+            page_size = 10
+        elif page_size > 500:
+            self.logger.warning(f"page_size {page_size} > 500, adjusting to 500")
+            page_size = 500
+
         self.logger.info(
             f"Searching contracts: dates={start_date} to {end_date}, "
             f"modality={modality_code}, state={state}"
@@ -412,21 +420,22 @@ class PNCPClient:
 
         url = f"{self.BASE_URL}/contratacoes/publicacao"
 
-        params = {"tamanhoPagina": page_size, "pagina": page}
+        params = {
+            "dataInicial": start_date,
+            "dataFinal": end_date,
+            "codigoModalidadeContratacao": modality_code,
+            "tamanhoPagina": page_size,
+            "pagina": page,
+        }
 
-        if start_date:
-            params["dataInicial"] = start_date
-        if end_date:
-            params["dataFinal"] = end_date
-        if modality_code:
-            params["codigoModalidadeContratacao"] = modality_code
         if state:
             params["uf"] = state.upper()
 
         data = await self._make_request(url, params=params)
 
-        # PNCP returns paginated results
-        items = data if isinstance(data, list) else data.get("items", [])
+        # PNCP returns paginated results with structure:
+        # {"data": [...], "totalRegistros": N, "totalPaginas": N, ...}
+        items = data.get("data", []) if isinstance(data, dict) else data
 
         FederalAPIMetrics.record_data_fetched(
             api_name="PNCP", data_type="contracts", record_count=len(items)
@@ -477,7 +486,8 @@ class PNCPClient:
 
         data = await self._make_request(url, params=params)
 
-        items = data if isinstance(data, list) else data.get("items", [])
+        # PNCP returns paginated results with "data" field
+        items = data.get("data", []) if isinstance(data, dict) else data
 
         FederalAPIMetrics.record_data_fetched(
             api_name="PNCP", data_type="annual_plan", record_count=len(items)
@@ -536,7 +546,8 @@ class PNCPClient:
 
         data = await self._make_request(url, params=params)
 
-        items = data if isinstance(data, list) else data.get("items", [])
+        # PNCP returns paginated results with "data" field
+        items = data.get("data", []) if isinstance(data, dict) else data
 
         FederalAPIMetrics.record_data_fetched(
             api_name="PNCP", data_type="price_registration", record_count=len(items)
