@@ -9,17 +9,20 @@
 
 ## 📋 Visão Geral
 
-Este documento rastreia o progresso de implementação de todas as melhorias planejadas no roadmap oficial 2025-2026. Atualizações semanais obrigatórias.
+Este documento rastreia o progresso de implementação do **projeto de TCC** Cidadão.AI. Atualizações semanais obrigatórias.
 
+**Natureza**: Trabalho de Conclusão de Curso (TCC)
 **Status Geral**: 🚀 Iniciando Fase 1
 
-| Fase | Status | Progresso | Período | Investimento |
-|------|--------|-----------|---------|--------------|
-| **Fase 1** | 🟡 Iniciando | 0% | Nov-Dez 2025 | R$ 80.000 |
-| **Fase 2** | ⏳ Planejado | 0% | Jan-Mar 2026 | R$ 150.000 |
-| **Fase 3** | ⏳ Planejado | 0% | Abr 2026 | R$ 50.000 |
-| **Fase 4** | ⏳ Planejado | 0% | Mai-Jun 2026 | R$ 80.000 |
-| **Fase 5** | ⏳ Planejado | 0% | Jul-Set 2026 | R$ 120.000 |
+| Fase | Status | Progresso | Período | Foco |
+|------|--------|-----------|---------|------|
+| **Fase 1** | 🟡 Iniciando | 0% | Nov-Dez 2025 | Performance & Validação Técnica |
+| **Fase 2** | ⏳ Planejado | 0% | Jan-Mar 2026 | ML & Analytics |
+| **Fase 3** | ⏳ Planejado | 0% | Abr 2026 | Segurança & Auditoria |
+| **Fase 4** | ⏳ Planejado | 0% | Mai-Jun 2026 | Interface & UX |
+| **Fase 5** | ⏳ Planejado | 0% | Jul-Set 2026 | TCC & Publicações |
+
+**Roadmap Acadêmico**: `docs/project/ROADMAP_TCC_2025.md`
 
 ---
 
