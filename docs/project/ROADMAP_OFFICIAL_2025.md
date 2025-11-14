@@ -15,27 +15,23 @@ Este documento substitui todos os roadmaps anteriores e estabelece o plano ofici
 - ✅ Análise técnica profunda do sistema atual
 - ✅ Identificação de 44 TODOs/FIXMEs no código
 - ✅ Benchmarking com sistemas similares globais
-- ✅ Feedback de usuários e stakeholders
-- ✅ Viabilidade técnica e econômica (ROI calculado)
+- ✅ Pesquisa acadêmica em transparência e IA
+- ✅ Viabilidade técnica e científica
 
 ---
 
 ## 🎯 Visão Geral
 
 ### Objetivo Principal
-Transformar o Cidadão.AI de um sistema MVP nacional em uma **plataforma global líder em detecção e prevenção de corrupção** usando inteligência artificial e análise de dados.
+Desenvolver o Cidadão.AI como um **projeto de TCC/pesquisa acadêmica** que demonstre o uso de inteligência artificial multi-agente na detecção e prevenção de corrupção em contratos públicos brasileiros.
 
-### Metas para 2026
-- 🌍 **Expansão**: 5 países (Brasil + 4 internacionais)
-- 💰 **Revenue**: R$ 173M/ano (modelo SaaS)
-- 👥 **Impacto**: 600M+ pessoas
-- 🔍 **Detecção**: R$ 500M+/ano em anomalias
-- ⚖️ **Processos**: 10.000+ denúncias geradas
-
-### Investimento Total
-- **R$ 480.000** ao longo de 11 meses
-- Retorno esperado: **R$ 173M/ano** (ano 3)
-- **ROI**: 36,000% em 3 anos
+### Metas Acadêmicas para 2026
+- 🎓 **Pesquisa**: Publicação de artigos científicos sobre multi-agent systems
+- 🌍 **Expansão**: Testar em múltiplos estados brasileiros
+- 👥 **Impacto Social**: Demonstrar viabilidade técnica da solução
+- 🔍 **Detecção**: Validar algoritmos com dados reais
+- 📊 **Métricas**: >90% precisão na detecção de anomalias
+- ⚖️ **Validação**: Casos de uso documentados e analisados
 
 ---
 
@@ -43,7 +39,7 @@ Transformar o Cidadão.AI de um sistema MVP nacional em uma **plataforma global 
 
 ### FASE 1: Performance & Escalabilidade
 **Duração**: 2 meses (Nov 2025 - Dez 2025)
-**Investimento**: R$ 80.000
+**Foco**: Otimização técnica e escalabilidade
 **Status**: 🟡 Iniciando
 
 #### Entregas
