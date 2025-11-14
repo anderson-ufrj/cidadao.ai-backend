@@ -428,6 +428,7 @@ class SICONFIClient(TransparencyAPIClient):
         year: int,
         sphere: Optional[str] = None,
         state: Optional[str] = None,
+        limit: Optional[int] = None,
     ) -> list[EntityInfo]:
         """
         Get list of entities (municipalities/states) with available data.
@@ -436,6 +437,7 @@ class SICONFIClient(TransparencyAPIClient):
             year: Fiscal year
             sphere: Government sphere ('M'=Municipal, 'E'=State, None=All)
             state: State code (e.g., 'SP', 'RJ', None=All)
+            limit: Maximum number of entities to return (optional)
 
         Returns:
             List of entities with available data
@@ -456,6 +458,10 @@ class SICONFIClient(TransparencyAPIClient):
                 items = data.get("items", [])
             else:
                 items = data if isinstance(data, list) else []
+
+            # Apply limit if specified
+            if limit is not None:
+                items = items[:limit]
 
             return [EntityInfo(**item) for item in items]
 

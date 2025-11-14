@@ -19,7 +19,7 @@ from functools import wraps
 from typing import Any, Optional
 
 import httpx
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 from src.core import get_logger
 
@@ -135,6 +135,7 @@ class DataSUSClient:
         Args:
             timeout: Request timeout in seconds
         """
+        self.base_url = self.OPENDATASUS_URL
         self.timeout = timeout
         self.client = httpx.AsyncClient(
             timeout=httpx.Timeout(timeout),
