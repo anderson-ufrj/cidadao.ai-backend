@@ -1,0 +1,454 @@
+================================================================================
+API ENDPOINT ANALYSIS REPORT
+================================================================================
+
+SUMMARY
+--------------------------------------------------------------------------------
+Total route files: 38
+Total endpoint definitions: 288
+Unique endpoints: 279
+Duplicate definitions: 9
+
+DUPLICATE ENDPOINTS (CRITICAL)
+--------------------------------------------------------------------------------
+
+GET /
+  - reports.py (prefix: '')
+  - analysis.py (prefix: '')
+  - agents.py (prefix: '')
+  - investigations.py (prefix: '')
+  - health.py (prefix: '')
+
+WEBSOCKET /ws/investigations/{investigation_id}
+  - websocket_chat.py (prefix: '')
+  - websocket.py (prefix: '')
+
+POST /start
+  - analysis.py (prefix: '')
+  - investigations.py (prefix: '')
+
+GET /status
+  - agents.py (prefix: '')
+  - health.py (prefix: '')
+
+GET /health
+  - transparency.py (prefix: '')
+  - voice.py (prefix: '')
+  - agent_metrics.py (prefix: '')
+
+SIMILAR/REDUNDANT ROUTE FILES
+--------------------------------------------------------------------------------
+auth.py ↔ auth_db.py: 100.0% similar
+
+PATTERN INCONSISTENCIES
+--------------------------------------------------------------------------------
+
+Verbs in paths (should use HTTP methods):
+  - GET /api/v1/monitoring/slo/error-budget
+  - GET /api/v1/network/entities/search
+  - GET /list-all-investigations
+  - GET /tasks/list/scheduled
+  - GET /webhooks/list
+  - POST /agents/find-by-capability
+  - POST /api/v1/cqrs/contracts/search
+  - POST /api/v1/cqrs/investigations/search
+  - POST /api/v1/federal/datasus/search
+  - POST /api/v1/federal/inep/search-institutions
+
+Missing API version prefix:
+  - DELETE /api-keys/{api_key_id}
+  - DELETE /history/{session_id}
+  - DELETE /webhooks/unregister
+  - DELETE /{investigation_id}
+  - DELETE /{report_id}
+  - GET /
+  - GET /agent-voices
+  - GET /agents
+  - GET /agents/discover
+  - GET /agents/summary
+
+ENDPOINTS BY FILE
+--------------------------------------------------------------------------------
+
+agent_metrics.py (6 endpoints)
+  GET      /agents/summary
+  GET      /agents/{agent_name}/stats
+  GET      /health
+  GET      /prometheus
+  POST     /agents/{agent_name}/reset
+  POST     /reset
+
+agents.py (18 endpoints)
+  GET      /
+  GET      /status
+  POST     /abaporu
+  POST     /anita
+  POST     /ayrton-senna
+  POST     /bonifacio
+  POST     /ceuci
+  POST     /dandara
+  POST     /drummond
+  POST     /lampiao
+  POST     /machado
+  POST     /maria-quiteria
+  POST     /nana
+  POST     /obaluaie
+  POST     /oscar
+  POST     /oxossi
+  POST     /tiradentes
+  POST     /zumbi
+
+analysis.py (7 endpoints)
+  GET      /
+  GET      /correlations
+  GET      /patterns
+  GET      /trends
+  GET      /{analysis_id}/results
+  GET      /{analysis_id}/status
+  POST     /start
+
+api_keys.py (8 endpoints)
+  Router prefix: /api-keys
+  DELETE   /api-keys/{api_key_id}
+  GET      /api-keys/client/{client_id}
+  GET      /api-keys/{api_key_id}
+  GET      /api-keys/{api_key_id}/usage
+  POST     /api-keys/cleanup-expired
+  POST     /api-keys/rotate-all
+  POST     /api-keys/{api_key_id}/rotate
+  PUT      /api-keys/{api_key_id}/rate-limits
+
+audit.py (10 endpoints)
+  Router prefix: /api/v1/audit
+  GET      /api/v1/audit/dashboard
+  GET      /api/v1/audit/event-types
+  GET      /api/v1/audit/events
+  GET      /api/v1/audit/events/{event_id}
+  GET      /api/v1/audit/export
+  GET      /api/v1/audit/integrity
+  GET      /api/v1/audit/severity-levels
+  GET      /api/v1/audit/statistics
+  POST     /api/v1/audit/events/query
+  POST     /api/v1/audit/test-event
+
+auth.py (9 endpoints)
+  Router prefix: /api/v1/auth
+  GET      /api/v1/auth/me
+  GET      /api/v1/auth/users
+  POST     /api/v1/auth/change-password
+  POST     /api/v1/auth/login
+  POST     /api/v1/auth/logout
+  POST     /api/v1/auth/refresh
+  POST     /api/v1/auth/register
+  POST     /api/v1/auth/users/{user_id}/deactivate
+  POST     /api/v1/auth/verify
+
+auth_db.py (9 endpoints)
+  Router prefix: /auth
+  GET      /auth/me
+  GET      /auth/users
+  POST     /auth/change-password
+  POST     /auth/login
+  POST     /auth/logout
+  POST     /auth/refresh
+  POST     /auth/register
+  POST     /auth/users/{user_id}/deactivate
+  POST     /auth/verify
+
+batch.py (3 endpoints)
+  Router prefix: /api/v1/batch
+  GET      /api/v1/batch/status/{batch_id}
+  POST     /api/v1/batch/process
+  POST     /api/v1/batch/validate
+
+chaos.py (7 endpoints)
+  Router prefix: /api/v1/chaos
+  GET      /api/v1/chaos/status
+  POST     /api/v1/chaos/experiments/cpu-pressure
+  POST     /api/v1/chaos/experiments/memory-pressure
+  POST     /api/v1/chaos/inject/errors
+  POST     /api/v1/chaos/inject/latency
+  POST     /api/v1/chaos/stop-all
+  POST     /api/v1/chaos/stop/{experiment_type}
+
+chat.py (15 endpoints)
+  DELETE   /history/{session_id}
+  GET      /agents
+  GET      /cache/stats
+  GET      /debug/drummond-status
+  GET      /debug/portal-status
+  GET      /direct/maritaca/health
+  GET      /direct/maritaca/models
+  GET      /history/{session_id}
+  GET      /history/{session_id}/paginated
+  GET      /suggestions
+  GET      /test-portal/{query}
+  POST     /direct/maritaca
+  POST     /direct/maritaca/stream
+  POST     /message
+  POST     /stream
+
+cqrs.py (12 endpoints)
+  Router prefix: /api/v1/cqrs
+  DELETE   /api/v1/cqrs/investigations/{investigation_id}
+  GET      /api/v1/cqrs/agents/performance
+  GET      /api/v1/cqrs/health
+  GET      /api/v1/cqrs/investigations/stats
+  GET      /api/v1/cqrs/investigations/{investigation_id}
+  GET      /api/v1/cqrs/stats/commands
+  GET      /api/v1/cqrs/stats/queries
+  POST     /api/v1/cqrs/agents/execute
+  POST     /api/v1/cqrs/contracts/search
+  POST     /api/v1/cqrs/investigations
+  POST     /api/v1/cqrs/investigations/search
+  PUT      /api/v1/cqrs/investigations/{investigation_id}
+
+debug.py (10 endpoints)
+  GET      /check-constraints
+  GET      /database-config
+  GET      /drummond-status
+  GET      /investigation/{investigation_id}/logs
+  GET      /list-all-investigations
+  GET      /llm-config
+  GET      /module-info/{module_path}
+  POST     /add-investigation-columns
+  POST     /fix-database
+  POST     /run-migration
+
+export.py (7 endpoints)
+  POST     /anomalies/export
+  POST     /bulk
+  POST     /contracts/export
+  POST     /investigations/{investigation_id}/download
+  POST     /regional-analysis/export
+  POST     /time-series/export
+  POST     /visualization/export
+
+federal_apis.py (7 endpoints)
+  Router prefix: /api/v1/federal
+  GET      /api/v1/federal/ibge/states
+  POST     /api/v1/federal/datasus/indicators
+  POST     /api/v1/federal/datasus/search
+  POST     /api/v1/federal/ibge/municipalities
+  POST     /api/v1/federal/ibge/population
+  POST     /api/v1/federal/inep/indicators
+  POST     /api/v1/federal/inep/search-institutions
+
+geographic.py (5 endpoints)
+  Router prefix: /api/v1/geo
+  GET      /api/v1/geo/boundaries/{region_type}
+  GET      /api/v1/geo/coordinates/{region_id}
+  GET      /api/v1/geo/data/{metric}
+  GET      /api/v1/geo/regions
+  GET      /api/v1/geo/regions/{region_id}
+
+graphql.py (4 endpoints)
+  Router prefix: /graphql
+  GET      /graphql
+  GET      /graphql/examples
+  GET      /graphql/health
+  GET      /graphql/playground
+
+health.py (7 endpoints)
+  GET      /
+  GET      /detailed
+  GET      /live
+  GET      /metrics
+  GET      /metrics/json
+  GET      /ready
+  GET      /status
+
+investigations.py (10 endpoints)
+  DELETE   /{investigation_id}
+  GET      /
+  GET      /public/health
+  GET      /public/results/{investigation_id}
+  GET      /public/status/{investigation_id}
+  GET      /stream/{investigation_id}
+  GET      /{investigation_id}/results
+  GET      /{investigation_id}/status
+  POST     /public/create
+  POST     /start
+
+llm_costs.py (7 endpoints)
+  Router prefix: /api/v1/llm-costs
+  GET      /api/v1/llm-costs/by-agent
+  GET      /api/v1/llm-costs/by-provider
+  GET      /api/v1/llm-costs/daily
+  GET      /api/v1/llm-costs/monthly
+  GET      /api/v1/llm-costs/summary
+  GET      /api/v1/llm-costs/user/{user_id}/daily
+  POST     /api/v1/llm-costs/cleanup
+
+ml_pipeline.py (13 endpoints)
+  Router prefix: /api/v1/ml
+  GET      /api/v1/ml/ab-test/active
+  GET      /api/v1/ml/ab-test/{test_name}/allocate
+  GET      /api/v1/ml/ab-test/{test_name}/status
+  GET      /api/v1/ml/models
+  GET      /api/v1/ml/models/{model_id}/metrics
+  GET      /api/v1/ml/models/{model_id}/versions
+  POST     /api/v1/ml/ab-test/create
+  POST     /api/v1/ml/ab-test/{test_name}/promote-winner
+  POST     /api/v1/ml/ab-test/{test_name}/record
+  POST     /api/v1/ml/ab-test/{test_name}/start
+  POST     /api/v1/ml/ab-test/{test_name}/stop
+  POST     /api/v1/ml/models/promote
+  POST     /api/v1/ml/train
+
+monitoring.py (12 endpoints)
+  Router prefix: /api/v1/monitoring
+  GET      /api/v1/monitoring/alerts/violations
+  GET      /api/v1/monitoring/dashboard/summary
+  GET      /api/v1/monitoring/health
+  GET      /api/v1/monitoring/health/dependencies/{dependency_name}
+  GET      /api/v1/monitoring/health/detailed
+  GET      /api/v1/monitoring/slo
+  GET      /api/v1/monitoring/slo/error-budget
+  GET      /api/v1/monitoring/slo/{slo_name}
+  POST     /api/v1/monitoring/health/check
+  POST     /api/v1/monitoring/slo
+  POST     /api/v1/monitoring/slo/metric
+  POST     /api/v1/monitoring/test/api-performance
+
+network.py (11 endpoints)
+  Router prefix: /api/v1/network
+  GET      /api/v1/network/entities/search
+  GET      /api/v1/network/entities/{entity_id}
+  GET      /api/v1/network/entities/{entity_id}/investigations
+  GET      /api/v1/network/entities/{entity_id}/network
+  GET      /api/v1/network/export/cytoscape/{entity_id}
+  GET      /api/v1/network/export/d3/{entity_id}
+  GET      /api/v1/network/relationships/{relationship_id}
+  GET      /api/v1/network/statistics
+  GET      /api/v1/network/suspicious-networks
+  GET      /api/v1/network/suspicious-networks/{network_id}
+  POST     /api/v1/network/suspicious-networks/{network_id}/review
+
+notifications.py (11 endpoints)
+  Router prefix: /api/v1/notifications
+  DELETE   /api/v1/notifications/webhooks
+  DELETE   /api/v1/notifications/{notification_id}
+  GET      /api/v1/notifications/preferences
+  GET      /api/v1/notifications/unread-count
+  GET      /api/v1/notifications/webhooks
+  POST     /api/v1/notifications/mark-all-read
+  POST     /api/v1/notifications/test
+  POST     /api/v1/notifications/webhooks
+  POST     /api/v1/notifications/webhooks/test
+  POST     /api/v1/notifications/{notification_id}/read
+  PUT      /api/v1/notifications/preferences
+
+oauth.py (9 endpoints)
+  Router prefix: /api/v1/auth/oauth
+  DELETE   /api/v1/auth/oauth/users/{user_id}/reject
+  GET      /api/v1/auth/oauth/config
+  GET      /api/v1/auth/oauth/pending-users
+  GET      /api/v1/auth/oauth/providers
+  GET      /api/v1/auth/oauth/{provider}/authorize
+  GET      /api/v1/auth/oauth/{provider}/callback
+  GET      /api/v1/auth/oauth/{provider}/login
+  POST     /api/v1/auth/oauth/users/{user_id}/approve
+  PUT      /api/v1/auth/oauth/config
+
+observability.py (9 endpoints)
+  Router prefix: /api/v1/observability
+  GET      /api/v1/observability/correlation/current
+  GET      /api/v1/observability/debug/context
+  GET      /api/v1/observability/health/detailed
+  GET      /api/v1/observability/metrics
+  GET      /api/v1/observability/metrics/json
+  GET      /api/v1/observability/performance/summary
+  GET      /api/v1/observability/requests/active
+  GET      /api/v1/observability/tracing/status
+  POST     /api/v1/observability/tracing/sample-trace
+
+orchestration.py (7 endpoints)
+  GET      /agents/discover
+  GET      /orchestrator/stats
+  GET      /workflows
+  POST     /agents/find-by-capability
+  POST     /workflows/conditional
+  POST     /workflows/execute
+  POST     /workflows/patterns/{pattern}
+
+reports.py (7 endpoints)
+  DELETE   /{report_id}
+  GET      /
+  GET      /templates
+  GET      /{report_id}
+  GET      /{report_id}/download
+  GET      /{report_id}/status
+  POST     /generate
+
+resilience.py (8 endpoints)
+  Router prefix: /api/v1/resilience
+  GET      /api/v1/resilience/bulkheads
+  GET      /api/v1/resilience/bulkheads/{resource_type}
+  GET      /api/v1/resilience/circuit-breakers
+  GET      /api/v1/resilience/circuit-breakers/{service_name}
+  GET      /api/v1/resilience/health
+  GET      /api/v1/resilience/metrics
+  POST     /api/v1/resilience/circuit-breakers/reset-all
+  POST     /api/v1/resilience/circuit-breakers/{service_name}/reset
+
+tasks.py (7 endpoints)
+  Router prefix: /tasks
+  GET      /tasks/health/auto-investigation
+  GET      /tasks/health/katana
+  GET      /tasks/list/scheduled
+  GET      /tasks/status/{task_id}
+  POST     /tasks/trigger/auto-monitor-contracts
+  POST     /tasks/trigger/katana-monitor
+  POST     /tasks/trigger/priority-orgs
+
+transparency.py (6 endpoints)
+  GET      /apis
+  GET      /contracts
+  GET      /expenses
+  GET      /health
+  GET      /suppliers
+  POST     /analyze-anomalies
+
+transparency_coverage.py (3 endpoints)
+  Router prefix: /transparency
+  GET      /transparency/coverage/map
+  GET      /transparency/coverage/state/{state_code}
+  GET      /transparency/coverage/stats
+
+visualization.py (5 endpoints)
+  Router prefix: /api/v1/visualization
+  GET      /api/v1/visualization/dashboard-summary
+  GET      /api/v1/visualization/supported-charts
+  POST     /api/v1/visualization/chart-data
+  POST     /api/v1/visualization/regional-map
+  POST     /api/v1/visualization/time-series
+
+voice.py (7 endpoints)
+  GET      /agent-voices
+  GET      /health
+  GET      /voices
+  POST     /conversation
+  POST     /conversation/stream
+  POST     /speak
+  POST     /transcribe
+
+webhooks.py (7 endpoints)
+  Router prefix: /webhooks
+  DELETE   /webhooks/unregister
+  GET      /webhooks/history
+  GET      /webhooks/list
+  POST     /webhooks/incoming/generic/{webhook_id}
+  POST     /webhooks/incoming/github
+  POST     /webhooks/register
+  POST     /webhooks/test
+
+websocket.py (3 endpoints)
+  WEBSOCKET /ws
+  WEBSOCKET /ws/analysis/{analysis_id}
+  WEBSOCKET /ws/investigations/{investigation_id}
+
+websocket_chat.py (2 endpoints)
+  WEBSOCKET /ws/chat/{session_id}
+  WEBSOCKET /ws/investigations/{investigation_id}
+
