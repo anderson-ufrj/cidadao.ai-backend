@@ -303,10 +303,10 @@ class BancoCentralClient:
 
         if last_n:
             url = (
-                f"{self.SGS_BASE_URL}/{series_code}/dados/ultimos/{last_n}?formato=json"
+                f"{self.SGS_BASE_URL}.{series_code}/dados/ultimos/{last_n}?formato=json"
             )
         else:
-            url = f"{self.SGS_BASE_URL}/{series_code}/dados?formato=json"
+            url = f"{self.SGS_BASE_URL}.{series_code}/dados?formato=json"
             if start_date:
                 url += f"&dataInicial={start_date}"
             if end_date:
@@ -431,10 +431,10 @@ class BancoCentralClient:
 
         if last_n:
             url = (
-                f"{self.SGS_BASE_URL}/{series_code}/dados/ultimos/{last_n}?formato=json"
+                f"{self.SGS_BASE_URL}.{series_code}/dados/ultimos/{last_n}?formato=json"
             )
         else:
-            url = f"{self.SGS_BASE_URL}/{series_code}/dados?formato=json"
+            url = f"{self.SGS_BASE_URL}.{series_code}/dados?formato=json"
             if start_date:
                 url += f"&dataInicial={start_date}"
             if end_date:
