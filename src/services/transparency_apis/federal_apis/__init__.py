@@ -5,6 +5,7 @@ This module provides clients for federal government data sources:
 - IBGE (Brazilian Institute of Geography and Statistics)
 - DataSUS (Health Ministry data)
 - INEP (Education data)
+- SICONFI (Tesouro Nacional - fiscal and accounting data)
 
 Plus common utilities:
 - Custom exceptions for error handling
@@ -16,6 +17,7 @@ License: Proprietary - All rights reserved
 """
 
 from .datasus_client import DataSUSClient
+from .siconfi_client import SICONFIClient
 
 # Exceptions
 from .exceptions import (
@@ -50,6 +52,7 @@ __all__ = [
     "IBGEClient",
     "DataSUSClient",
     "INEPClient",
+    "SICONFIClient",
     # Exceptions
     "FederalAPIError",
     "NetworkError",
