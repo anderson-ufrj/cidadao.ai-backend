@@ -19,7 +19,7 @@ from functools import wraps
 from typing import Any, Optional
 
 import httpx
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel
 
 from src.core import get_logger
 
@@ -137,6 +137,7 @@ class BancoCentralClient:
         Args:
             timeout: Request timeout in seconds
         """
+        self.base_url = self.SGS_BASE_URL  # Primary API
         self.timeout = timeout
         self.client = httpx.AsyncClient(
             timeout=httpx.Timeout(timeout),

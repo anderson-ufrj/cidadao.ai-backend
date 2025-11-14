@@ -239,6 +239,7 @@ class ComprasGovClient:
         Args:
             timeout: Request timeout in seconds
         """
+        self.base_url = self.BASE_URL
         self.timeout = timeout
         self.client = httpx.AsyncClient(
             timeout=httpx.Timeout(timeout),

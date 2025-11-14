@@ -24,6 +24,9 @@ from .tce_pe import TCEPernambucoClient
 from .tce_rj import TCERioDeJaneiroClient
 from .tce_sp import TCESaoPauloClient
 
+# Alias for shorter names
+TCERioClient = TCERioDeJaneiroClient
+
 __version__ = "1.0.0"
 
 __all__ = [
@@ -32,5 +35,6 @@ __all__ = [
     "TCEMinasGeraisClient",
     "TCEPernambucoClient",
     "TCERioDeJaneiroClient",
+    "TCERioClient",  # Alias
     "TCESaoPauloClient",
 ]
