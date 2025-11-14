@@ -33,12 +33,10 @@ class IBGEMunicipalitiesRequest(BaseModel):
 class IBGEPopulationRequest(BaseModel):
     """Request model for IBGE population data."""
 
-    state_code: str | None = Field(
-        None, description="State code (2 digits)", example="33"
+    location_id: str | None = Field(
+        None, description="Location ID (state or municipality code)", example="3304557"
     )
-    municipality_code: str | None = Field(
-        None, description="Municipality code", example="3304557"
-    )
+    year: int | None = Field(None, description="Year for population data", example=2023)
 
 
 class DataSUSSearchRequest(BaseModel):
@@ -121,13 +119,13 @@ async def get_ibge_population(request: IBGEPopulationRequest) -> dict[str, Any]:
     try:
         async with IBGEClient() as client:
             population = await client.get_population(
-                state_code=request.state_code,
-                municipality_code=request.municipality_code,
+                location_id=request.location_id,
+                year=request.year,
             )
             return {
                 "success": True,
-                "state_code": request.state_code,
-                "municipality_code": request.municipality_code,
+                "location_id": request.location_id,
+                "year": request.year,
                 "data": population,
             }
     except Exception as e:
