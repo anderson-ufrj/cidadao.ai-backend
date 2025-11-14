@@ -50,7 +50,7 @@ class CKANClient(TransparencyAPIClient):
     def __init__(
         self,
         base_url: str,
-        state_code: str,
+        state_code: Optional[str] = None,
         api_token: Optional[str] = None,
         timeout: float = 30.0,
     ):
@@ -59,10 +59,28 @@ class CKANClient(TransparencyAPIClient):
 
         Args:
             base_url: Base URL of the CKAN portal (e.g., https://dadosabertos.sp.gov.br)
-            state_code: Two-letter state code (e.g., "SP", "RJ")
+            state_code: Two-letter state code (e.g., "SP", "RJ"). If not provided, derived from URL.
             api_token: Optional API token for authenticated requests
             timeout: Request timeout in seconds (default: 30.0)
         """
+        # Auto-detect state code from URL if not provided
+        if state_code is None:
+            # Try to extract state code from domain (e.g., dadosabertos.sp.gov.br -> SP)
+            if ".sp." in base_url or "saopaulo" in base_url.lower():
+                state_code = "SP"
+            elif ".rj." in base_url or "riodejaneiro" in base_url.lower():
+                state_code = "RJ"
+            elif ".mg." in base_url or "minasgerais" in base_url.lower():
+                state_code = "MG"
+            elif ".rs." in base_url or "riograndedosul" in base_url.lower():
+                state_code = "RS"
+            elif ".df." in base_url or "distritofederal" in base_url.lower():
+                state_code = "DF"
+            elif "dados.gov.br" in base_url:
+                state_code = "BR"  # Federal portal
+            else:
+                state_code = "UNKNOWN"  # Generic CKAN
+
         super().__init__(
             base_url=base_url,
             name=f"CKAN-{state_code}",

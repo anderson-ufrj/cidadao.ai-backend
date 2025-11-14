@@ -213,3 +213,16 @@ class TransparencyAPIClient(ABC):
 
             # Add current timestamp
             self._request_timestamps.append(now)
+
+    async def close(self) -> None:
+        """Clean up resources (httpx clients are created per-request, so nothing to do)."""
+        pass
+
+    async def __aenter__(self):
+        """Async context manager entry."""
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """Async context manager exit."""
+        await self.close()
+        return False
