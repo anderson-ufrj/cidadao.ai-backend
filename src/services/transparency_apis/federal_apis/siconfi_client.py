@@ -26,12 +26,11 @@ License: Proprietary - All rights reserved
 from datetime import datetime
 from typing import Any, Optional
 
-import httpx
 from pydantic import BaseModel, Field
 
 from ..base import TransparencyAPIClient
-from .retry import retry_with_backoff
 from .exceptions import FederalAPIError
+from .retry import retry_with_backoff
 
 
 class RREOData(BaseModel):
@@ -39,14 +38,24 @@ class RREOData(BaseModel):
 
     exercicio: int = Field(alias="an_exercicio", description="Fiscal year")
     periodo: int = Field(alias="nr_periodo", description="Period number (1-6)")
-    cod_ibge: Optional[Any] = Field(default=None, alias="cod_ibge", description="IBGE municipality code")
+    cod_ibge: Optional[Any] = Field(
+        default=None, alias="cod_ibge", description="IBGE municipality code"
+    )
     ente: str = Field(alias="ente", description="Entity name (state/municipality)")
     uf: str = Field(alias="uf", description="State code")
-    populacao: Optional[int] = Field(default=None, alias="populacao", description="Population")
+    populacao: Optional[int] = Field(
+        default=None, alias="populacao", description="Population"
+    )
     anexo: str = Field(alias="anexo", description="Report annex")
-    conta: Optional[str] = Field(default=None, alias="conta", description="Account code")
-    descricao_conta: Optional[str] = Field(default=None, alias="descricao_conta", description="Account description")
-    valor: Optional[float] = Field(default=None, alias="valor", description="Value in BRL")
+    conta: Optional[str] = Field(
+        default=None, alias="conta", description="Account code"
+    )
+    descricao_conta: Optional[str] = Field(
+        default=None, alias="descricao_conta", description="Account description"
+    )
+    valor: Optional[float] = Field(
+        default=None, alias="valor", description="Value in BRL"
+    )
 
     class Config:
         populate_by_name = True
@@ -57,13 +66,23 @@ class RGFData(BaseModel):
 
     exercicio: int = Field(alias="an_exercicio", description="Fiscal year")
     periodo: int = Field(alias="nr_periodo", description="Period number")
-    cod_ibge: Optional[Any] = Field(default=None, alias="cod_ibge", description="IBGE municipality code")
+    cod_ibge: Optional[Any] = Field(
+        default=None, alias="cod_ibge", description="IBGE municipality code"
+    )
     ente: Optional[str] = Field(default=None, alias="ente", description="Entity name")
     uf: Optional[str] = Field(default=None, alias="uf", description="State code")
-    anexo: Optional[str] = Field(default=None, alias="anexo", description="Report annex")
-    conta: Optional[str] = Field(default=None, alias="conta", description="Account code")
-    descricao_conta: Optional[str] = Field(default=None, alias="descricao_conta", description="Account description")
-    valor: Optional[float] = Field(default=None, alias="valor", description="Value in BRL")
+    anexo: Optional[str] = Field(
+        default=None, alias="anexo", description="Report annex"
+    )
+    conta: Optional[str] = Field(
+        default=None, alias="conta", description="Account code"
+    )
+    descricao_conta: Optional[str] = Field(
+        default=None, alias="descricao_conta", description="Account description"
+    )
+    valor: Optional[float] = Field(
+        default=None, alias="valor", description="Value in BRL"
+    )
 
     class Config:
         populate_by_name = True
@@ -73,13 +92,23 @@ class DCAData(BaseModel):
     """DCA - Declaração de Contas Anuais."""
 
     exercicio: int = Field(alias="an_exercicio", description="Fiscal year")
-    cod_ibge: Optional[Any] = Field(default=None, alias="cod_ibge", description="IBGE municipality code")
+    cod_ibge: Optional[Any] = Field(
+        default=None, alias="cod_ibge", description="IBGE municipality code"
+    )
     ente: Optional[str] = Field(default=None, alias="ente", description="Entity name")
     uf: Optional[str] = Field(default=None, alias="uf", description="State code")
-    anexo: Optional[str] = Field(default=None, alias="anexo", description="Report annex")
-    conta: Optional[str] = Field(default=None, alias="conta", description="Account code")
-    descricao_conta: Optional[str] = Field(default=None, alias="descricao_conta", description="Account description")
-    valor: Optional[float] = Field(default=None, alias="valor", description="Value in BRL")
+    anexo: Optional[str] = Field(
+        default=None, alias="anexo", description="Report annex"
+    )
+    conta: Optional[str] = Field(
+        default=None, alias="conta", description="Account code"
+    )
+    descricao_conta: Optional[str] = Field(
+        default=None, alias="descricao_conta", description="Account description"
+    )
+    valor: Optional[float] = Field(
+        default=None, alias="valor", description="Value in BRL"
+    )
 
     class Config:
         populate_by_name = True
@@ -91,15 +120,29 @@ class MSCData(BaseModel):
 
     exercicio: int = Field(alias="an_exercicio", description="Fiscal year")
     mes: int = Field(alias="me_referencia", description="Reference month")
-    cod_ibge: Optional[Any] = Field(default=None, alias="cod_ibge", description="IBGE municipality code")
+    cod_ibge: Optional[Any] = Field(
+        default=None, alias="cod_ibge", description="IBGE municipality code"
+    )
     ente: Optional[str] = Field(default=None, alias="ente", description="Entity name")
     uf: Optional[str] = Field(default=None, alias="uf", description="State code")
-    conta_contabil: Optional[str] = Field(default=None, alias="conta_contabil", description="Accounting account")
-    descricao_conta: Optional[str] = Field(default=None, alias="descricao_conta", description="Account description")
-    saldo_inicial: Optional[float] = Field(default=None, alias="saldo_inicial", description="Initial balance")
-    debito: Optional[float] = Field(default=None, alias="debito", description="Debit amount")
-    credito: Optional[float] = Field(default=None, alias="credito", description="Credit amount")
-    saldo_final: Optional[float] = Field(default=None, alias="saldo_final", description="Final balance")
+    conta_contabil: Optional[str] = Field(
+        default=None, alias="conta_contabil", description="Accounting account"
+    )
+    descricao_conta: Optional[str] = Field(
+        default=None, alias="descricao_conta", description="Account description"
+    )
+    saldo_inicial: Optional[float] = Field(
+        default=None, alias="saldo_inicial", description="Initial balance"
+    )
+    debito: Optional[float] = Field(
+        default=None, alias="debito", description="Debit amount"
+    )
+    credito: Optional[float] = Field(
+        default=None, alias="credito", description="Credit amount"
+    )
+    saldo_final: Optional[float] = Field(
+        default=None, alias="saldo_final", description="Final balance"
+    )
 
     class Config:
         populate_by_name = True
@@ -113,7 +156,9 @@ class EntityInfo(BaseModel):
     capital: Optional[str] = Field(default=None, description="Capital name")
     regiao: Optional[str] = Field(default=None, description="Region")
     uf: Optional[str] = Field(default=None, description="State code")
-    esfera: Optional[str] = Field(default=None, description="Government sphere (M=Municipal, E=State)")
+    esfera: Optional[str] = Field(
+        default=None, description="Government sphere (M=Municipal, E=State)"
+    )
     exercicio: Optional[int] = Field(default=None, description="Fiscal year")
     populacao: Optional[int] = Field(default=None, description="Population")
 
@@ -436,8 +481,12 @@ class SICONFIClient(TransparencyAPIClient):
         """
         try:
             # Get latest period data
-            rreo = await self.get_rreo(year=year, period=6, entity_code=entity_code, limit=100)
-            rgf = await self.get_rgf(year=year, period=3, entity_code=entity_code, limit=100)
+            rreo = await self.get_rreo(
+                year=year, period=6, entity_code=entity_code, limit=100
+            )
+            rgf = await self.get_rgf(
+                year=year, period=3, entity_code=entity_code, limit=100
+            )
             dca = await self.get_dca(year=year, entity_code=entity_code, limit=100)
 
             return {
