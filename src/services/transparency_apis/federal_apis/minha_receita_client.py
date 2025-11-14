@@ -100,19 +100,22 @@ class CNPJData(BaseModel):
     cnpj: str
     razao_social: str = Field(alias="razao_social")
     nome_fantasia: Optional[str] = Field(default=None, alias="nome_fantasia")
-    situacao_cadastral: str = Field(alias="situacao_cadastral")
+    situacao_cadastral: int = Field(alias="situacao_cadastral")  # Changed from str to int
     data_situacao_cadastral: Optional[str] = Field(
         default=None, alias="data_situacao_cadastral"
     )
-    atividade_principal: Optional[dict[str, Any]] = Field(
+    descricao_situacao_cadastral: Optional[str] = Field(
+        default=None, alias="descricao_situacao_cadastral"
+    )
+    atividade_principal: Optional[Any] = Field(
         default=None, alias="atividade_principal"
-    )
-    atividades_secundarias: Optional[list[dict[str, Any]]] = Field(
+    )  # Can be dict or None
+    atividades_secundarias: Optional[Any] = Field(
         default=None, alias="atividades_secundarias"
-    )
-    natureza_juridica: Optional[dict[str, Any]] = Field(
+    )  # Can be list or None
+    natureza_juridica: Optional[str] = Field(
         default=None, alias="natureza_juridica"
-    )
+    )  # Changed from dict to str
     logradouro: Optional[str] = None
     numero: Optional[str] = None
     complemento: Optional[str] = None
