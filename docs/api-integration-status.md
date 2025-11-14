@@ -15,9 +15,9 @@ This document tracks the operational status of all Brazilian government API inte
 | **IBGE** | ✅ Operational | 3/3 | 100% | All endpoints working |
 | **DataSUS** | ⚠️ Partial | 1/5 | 20% | Search works, most endpoints return 403/404 |
 | **INEP** | ❌ Not Working | 0/2 | 0% | API returns empty responses |
-| **BCB** | 🔍 Not Tested | - | - | Pending validation |
-| **Compras.gov** | 🔍 Not Tested | - | - | Pending validation |
-| **Minha Receita** | 🔍 Not Tested | - | - | Pending validation |
+| **BCB** | ❌ Not Working | 0/3 | 0% | API returns 404 errors, method signatures mismatch |
+| **Compras.gov** | ❌ Not Working | 0/2 | 0% | Missing expected methods in client |
+| **Minha Receita** | ⚠️ Partial | 0/1 | 0% | Pydantic validation error in response parsing |
 
 ## Detailed Status
 
@@ -221,14 +221,92 @@ asyncio.run(test())
 "
 ```
 
+### ❌ BCB (Banco Central do Brasil)
+
+**Status**: Not Operational
+**Base URL**: `https://api.bcb.gov.br`
+**Authentication**: None required
+
+#### Issues Found
+
+1. **get_selic**
+   - **Error**: 404 Not Found
+   - **Reason**: URL format or endpoint changed
+   - **Test**: Attempted to fetch SELIC rates for last 30 days
+
+2. **get_exchange_rates**
+   - **Error**: Method signature mismatch
+   - **Issue**: Client expects different parameters than documented
+   - **Status**: ❌ Not working
+
+3. **get_indicator**
+   - **Error**: Method signature mismatch
+   - **Issue**: Parameters `series_code` not recognized
+   - **Status**: ❌ Not working
+
+#### Recommendations
+
+- BCB API may have changed endpoints
+- Verify current API documentation at https://dadosabertos.bcb.gov.br/
+- Review client implementation against latest API specs
+- Consider using BCB's SGS (Sistema Gerenciador de Séries Temporais) API directly
+
+### ❌ Compras.gov
+
+**Status**: Not Operational
+**Base URL**: TBD
+**Authentication**: TBD
+
+#### Issues Found
+
+1. **search_items**
+   - **Error**: Method not found in client
+   - **Issue**: `'ComprasGovClient' object has no attribute 'search_items'`
+   - **Status**: ❌ Not implemented
+
+2. **get_contract**
+   - **Error**: Method not found in client
+   - **Issue**: `'ComprasGovClient' object has no attribute 'get_contract'`
+   - **Status**: ❌ Not implemented
+
+#### Recommendations
+
+- Review client implementation - appears to be incomplete
+- Verify available methods with `dir(ComprasGovClient())`
+- May need complete reimplementation based on current API specs
+- Consider deprecating if not actively used
+
+### ⚠️ Minha Receita
+
+**Status**: Partially Implemented
+**Base URL**: `https://minhareceita.org`
+**Authentication**: None required
+
+#### Issues Found
+
+1. **get_cnpj**
+   - **Error**: Pydantic validation error
+   - **Details**: `situacao_cadastral - Input should be a valid string`
+   - **Reason**: API response format changed or client model outdated
+   - **Test**: Attempted CNPJ lookup for "00.000.000/0001-91" (Banco do Brasil)
+
+#### Recommendations
+
+- Update Pydantic models to match current API response format
+- API may return different field types than expected
+- Relatively easy fix - just update model definitions
+- Test with multiple CNPJs to verify format consistency
+
 ## Next Steps
 
-1. ✅ PNCP and IBGE are production-ready
-2. 🔧 Investigate INEP API requirements
-3. 🔧 Document DataSUS limitations
-4. 🔍 Test remaining clients (BCB, Compras.gov, Minha Receita)
-5. 📝 Update unit tests to reflect new signatures
-6. 📚 Create integration examples for documentation
+1. ✅ PNCP and IBGE are production-ready (2/7 APIs = 29%)
+2. 🔧 Fix Minha Receita Pydantic models (quick win)
+3. 🔧 Investigate BCB API changes and update client
+4. 🔧 Complete Compras.gov client implementation
+5. 🔧 Investigate INEP API requirements (may need API key)
+6. 🔧 Document DataSUS access restrictions
+7. 📝 Update unit tests to reflect working APIs only
+8. 📚 Create integration examples for PNCP and IBGE
 
 ## Related Documentation
 
