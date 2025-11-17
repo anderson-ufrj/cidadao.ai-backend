@@ -87,9 +87,10 @@ except Exception as e:
 
 # Services are already initialized
 # Use NEW IntentClassifier with keyword detection (367x faster)
+# Initialize in keyword-only mode to avoid LLM dependencies
 try:
-    intent_classifier = IntentClassifier()
-    logger.info("IntentClassifier initialized successfully")
+    intent_classifier = IntentClassifier(keyword_only=True)
+    logger.info("IntentClassifier initialized successfully (keyword-only mode)")
 except Exception as e:
     logger.error(f"Failed to initialize IntentClassifier: {e}")
     intent_classifier = None
