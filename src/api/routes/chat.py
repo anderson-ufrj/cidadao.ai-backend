@@ -30,6 +30,9 @@ from src.services.maritaca_direct_service import (
     get_maritaca_service,
 )
 
+# Initialize logger BEFORE using it
+logger = get_logger(__name__)
+
 # Import Orchestrator for full multi-API investigations
 try:
     from src.services.orchestration.orchestrator import InvestigationOrchestrator
