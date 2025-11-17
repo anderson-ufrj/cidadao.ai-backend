@@ -30,6 +30,18 @@ from src.services.maritaca_direct_service import (
     get_maritaca_service,
 )
 
+# Import Orchestrator for full multi-API investigations
+try:
+    from src.services.orchestration.orchestrator import InvestigationOrchestrator
+
+    orchestrator = InvestigationOrchestrator()
+    ORCHESTRATOR_AVAILABLE = True
+    logger.info("InvestigationOrchestrator loaded successfully")
+except Exception as e:
+    logger.warning(f"InvestigationOrchestrator not available: {e}")
+    orchestrator = None
+    ORCHESTRATOR_AVAILABLE = False
+
 
 # Import models for the simple fallback agent
 class DataSourceType:
@@ -251,25 +263,73 @@ async def send_message(
         should_fetch_data = any(keyword in message_lower for keyword in data_keywords)
 
         # If user is asking for data and intent suggests investigation/analysis
+        # Try to use full Orchestrator (30+ APIs, multi-agent analysis)
         if should_fetch_data and intent.type in [
             IntentType.INVESTIGATE,
             IntentType.ANALYZE,
             IntentType.UNKNOWN,
         ]:
-            try:
-                logger.info(
-                    f"Fetching real data from Portal da Transparência for query: {request.message}"
-                )
-                portal_result = await chat_data_integration.process_user_query(
-                    request.message, request.context
-                )
-                if portal_result and portal_result.get("data"):
-                    portal_data = portal_result
+            # Prefer Orchestrator for comprehensive analysis
+            if ORCHESTRATOR_AVAILABLE:
+                try:
                     logger.info(
-                        f"Found {portal_result.get('data', {}).get('total', 0)} records from Portal da Transparência"
+                        f"Using InvestigationOrchestrator for comprehensive analysis: {request.message}"
                     )
-            except Exception as e:
-                logger.warning(f"Portal da Transparência integration failed: {e}")
+
+                    # Run full investigation (30+ APIs, multi-agent)
+                    investigation_result = await orchestrator.investigate(
+                        query=request.message,
+                        user_id=current_user.id if current_user else "anonymous",
+                        session_id=session_id,
+                    )
+
+                    # Store investigation result in portal_data for agent processing
+                    portal_data = {
+                        "investigation_id": investigation_result.investigation_id,
+                        "intent": investigation_result.intent.value,
+                        "data": {
+                            "type": "investigation",
+                            "entities_found": investigation_result.entities_found,
+                            "stage_results": investigation_result.stage_results,
+                            "total_duration": investigation_result.total_duration_seconds,
+                        },
+                        "metadata": investigation_result.metadata,
+                        "confidence": investigation_result.confidence_score,
+                    }
+
+                    logger.info(
+                        f"Orchestrator completed: {len(investigation_result.entities_found)} entities found, "
+                        f"{len(investigation_result.stage_results)} stages executed"
+                    )
+                except Exception as e:
+                    logger.error(
+                        f"Orchestrator failed, falling back to simple integration: {e}"
+                    )
+                    # Fall back to simple integration
+                    try:
+                        portal_result = await chat_data_integration.process_user_query(
+                            request.message, request.context
+                        )
+                        if portal_result and portal_result.get("data"):
+                            portal_data = portal_result
+                    except Exception as e2:
+                        logger.warning(f"Simple integration also failed: {e2}")
+            else:
+                # Orchestrator not available, use simple integration
+                try:
+                    logger.info(
+                        f"Fetching data from Portal da Transparência (Orchestrator not available): {request.message}"
+                    )
+                    portal_result = await chat_data_integration.process_user_query(
+                        request.message, request.context
+                    )
+                    if portal_result and portal_result.get("data"):
+                        portal_data = portal_result
+                        logger.info(
+                            f"Found {portal_result.get('data', {}).get('total', 0)} records from Portal da Transparência"
+                        )
+                except Exception as e:
+                    logger.warning(f"Portal da Transparência integration failed: {e}")
 
         # Determine target agent based on intent (uses _get_agent_for_intent mapping)
         target_agent = intent.suggested_agent
