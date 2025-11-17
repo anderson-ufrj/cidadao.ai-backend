@@ -1,0 +1,308 @@
+{
+  "analysis_date": "2025-11-17",
+  "investigator": "Claude Code (Forensic Analysis Mode)",
+  "total_markdown_files": 353,
+  "health_score": {
+    "overall": 67,
+    "accuracy": 70,
+    "completeness": 80,
+    "organization": 75,
+    "freshness": 60,
+    "clarity": 70
+  },
+  "critical_findings": {
+    "count": 12,
+    "severity": "high",
+    "issues": [
+      {
+        "id": 1,
+        "title": "Agent Count Terminology Inconsistency",
+        "severity": "medium",
+        "claimed": "17 agents (sometimes 16+1)",
+        "reality": "17 agents confirmed (16 functional + 1 base)",
+        "action": "Standardize terminology"
+      },
+      {
+        "id": 2,
+        "title": "Test Coverage Discrepancy",
+        "severity": "critical",
+        "claimed": "76.29% coverage, 1514 tests, 98 test files",
+        "reality": "135 test files found (vs 98 claimed), coverage unverified",
+        "action": "Run actual coverage report and update docs"
+      },
+      {
+        "id": 3,
+        "title": "Roadmap Chaos",
+        "severity": "critical",
+        "issue": "3 active roadmaps competing",
+        "files": [
+          "ROADMAP_OFFICIAL_2025.md (approved)",
+          "ROADMAP_TCC_2025.md (unclear status)",
+          "ROADMAP_TCC_DEZ_2025.md (unclear status)"
+        ],
+        "action": "Archive or reconcile non-official roadmaps"
+      },
+      {
+        "id": 4,
+        "title": "Status Report Proliferation",
+        "severity": "medium",
+        "issue": "5 status files, only 1 current",
+        "files": [
+          "STATUS_ATUAL_2025_11_14.md (current)",
+          "STATUS_ATUAL_2025_11.md (older)",
+          "current/CURRENT_STATUS_2025_10.md (outdated)",
+          "current/CURRENT_STATUS.md (undated)",
+          "current/QUICK_STATUS.md (undated)"
+        ],
+        "action": "Archive all but most recent"
+      },
+      {
+        "id": 5,
+        "title": "LLM Provider Configuration Mismatch",
+        "severity": "low",
+        "claimed": "sabia-3.1 is default model",
+        "reality": "sabiazinho-3 running in production",
+        "action": "Clarify documentation"
+      }
+    ]
+  },
+  "outdated_files": {
+    "count": 8,
+    "files": [
+      {
+        "path": "docs/project/current/CURRENT_STATUS_2025_10.md",
+        "date": "2025-10",
+        "age_days": 30,
+        "action": "archive"
+      },
+      {
+        "path": "docs/project/current/CURRENT_STATUS.md",
+        "date": "unknown",
+        "age_days": null,
+        "action": "archive"
+      },
+      {
+        "path": "docs/project/current/QUICK_STATUS.md",
+        "date": "unknown",
+        "age_days": null,
+        "action": "archive"
+      },
+      {
+        "path": "docs/project/STATUS_ATUAL_2025_11.md",
+        "date": "2025-11",
+        "age_days": 14,
+        "action": "archive"
+      },
+      {
+        "path": "docs/agents/INVENTORY.md",
+        "date": "2025-10-13",
+        "age_days": 35,
+        "action": "update with tier classifications"
+      },
+      {
+        "path": "docs/agents/AGENT_INVENTORY_2025_10_24.md",
+        "date": "2025-10-24",
+        "age_days": 24,
+        "action": "archive (duplicate)"
+      }
+    ]
+  },
+  "duplicate_documentation": {
+    "count": 15,
+    "categories": [
+      {
+        "category": "Agent Inventories",
+        "files": [
+          "docs/agents/INVENTORY.md",
+          "docs/agents/AGENT_INVENTORY_2025_10_24.md"
+        ],
+        "action": "Keep INVENTORY.md, archive the other"
+      },
+      {
+        "category": "Status Reports",
+        "files": [
+          "docs/project/STATUS_ATUAL_2025_11_14.md",
+          "docs/project/STATUS_ATUAL_2025_11.md",
+          "docs/project/current/CURRENT_STATUS_2025_10.md",
+          "docs/project/current/CURRENT_STATUS.md",
+          "docs/project/current/QUICK_STATUS.md"
+        ],
+        "action": "Keep only Nov 14 version"
+      },
+      {
+        "category": "Roadmaps",
+        "files": [
+          "docs/project/ROADMAP_OFFICIAL_2025.md",
+          "docs/project/ROADMAP_TCC_2025.md",
+          "docs/project/ROADMAP_TCC_DEZ_2025.md"
+        ],
+        "action": "Keep official, archive others"
+      },
+      {
+        "category": "README files",
+        "count": 15,
+        "note": "Most are appropriate (one per directory)"
+      }
+    ]
+  },
+  "missing_documentation": {
+    "count": 5,
+    "critical_files": [
+      {
+        "file": "CONTRIBUTING.md",
+        "location": "root",
+        "priority": "high",
+        "reason": "Large project needs contribution guidelines"
+      },
+      {
+        "file": "ARCHITECTURE_OVERVIEW.md",
+        "location": "root",
+        "priority": "high",
+        "reason": "High-level overview for newcomers"
+      },
+      {
+        "file": "TESTING.md",
+        "location": "root",
+        "priority": "high",
+        "reason": "Complex testing setup needs documentation"
+      },
+      {
+        "file": "API_CHANGELOG.md",
+        "location": "docs/api/",
+        "priority": "medium",
+        "reason": "Track breaking changes"
+      },
+      {
+        "file": "SECURITY.md",
+        "location": "root",
+        "priority": "high",
+        "reason": "Vulnerability reporting process"
+      }
+    ]
+  },
+  "accurate_documentation": {
+    "count": 280,
+    "examples": [
+      "STATUS_ATUAL_2025_11_14.md",
+      "ROADMAP_OFFICIAL_2025.md",
+      "CLAUDE.md",
+      "docs/agents/ (all 17 agent files)",
+      "docs/archive/ (well-organized)",
+      "docs/architecture/multi-agent-architecture.md"
+    ]
+  },
+  "action_plan": {
+    "week_1_critical": [
+      {
+        "task": "Archive conflicting roadmaps",
+        "files": ["ROADMAP_TCC_2025.md", "ROADMAP_TCC_DEZ_2025.md"],
+        "estimated_time": "30 min"
+      },
+      {
+        "task": "Clean up status files",
+        "files": ["docs/project/current/*", "STATUS_ATUAL_2025_11.md"],
+        "estimated_time": "20 min"
+      },
+      {
+        "task": "Fix test coverage claims",
+        "action": "Run pytest --cov and update STATUS_ATUAL_2025_11_14.md",
+        "estimated_time": "10 min"
+      },
+      {
+        "task": "Standardize agent count terminology",
+        "action": "Decide on '16+1' or '17 total' and update all docs",
+        "estimated_time": "10 min"
+      }
+    ],
+    "week_2_high_priority": [
+      {
+        "task": "Update INVENTORY.md",
+        "action": "Add tier classifications to match Nov 14 status",
+        "estimated_time": "30 min"
+      },
+      {
+        "task": "Fix LLM provider docs",
+        "action": "Clarify which model is default vs in-use",
+        "estimated_time": "15 min"
+      },
+      {
+        "task": "Create missing core docs",
+        "files": [
+          "CONTRIBUTING.md",
+          "ARCHITECTURE_OVERVIEW.md",
+          "TESTING.md",
+          "API_CHANGELOG.md",
+          "SECURITY.md"
+        ],
+        "estimated_time": "2 hours"
+      }
+    ],
+    "week_3_cleanup": [
+      {
+        "task": "Consolidate duplicates",
+        "action": "Merge duplicate agent inventories, archive older status files",
+        "estimated_time": "1 hour"
+      },
+      {
+        "task": "Add documentation dates",
+        "action": "Add creation/update dates to undated files",
+        "estimated_time": "30 min"
+      },
+      {
+        "task": "Create documentation index",
+        "action": "Create DOCUMENTATION_INDEX.md navigation hub",
+        "estimated_time": "1 hour"
+      }
+    ]
+  },
+  "verification_commands": [
+    {
+      "purpose": "Count actual agents",
+      "command": "ls -1 src/agents/*.py | grep -E '(zumbi|anita|oxossi|lampiao|senna|tiradentes|niemeyer|machado|bonifacio|maria_quiteria|nana|drummond|ceuci|obaluaie|dandara|deodoro|abaporu).py$' | wc -l"
+    },
+    {
+      "purpose": "Count test files",
+      "command": "find tests -name 'test_*.py' | wc -l"
+    },
+    {
+      "purpose": "Get actual test coverage",
+      "command": "JWT_SECRET_KEY=test SECRET_KEY=test pytest --cov=src --cov-report=term-missing --cov-report=html -v"
+    },
+    {
+      "purpose": "Count documentation files",
+      "command": "find docs -name '*.md' | wc -l"
+    },
+    {
+      "purpose": "Find files without dates",
+      "command": "grep -L 'Last Updated\\|Date\\|data\\|Data:' docs/**/*.md | head -20"
+    },
+    {
+      "purpose": "Find duplicate content",
+      "command": "find docs -name '*.md' -exec basename {} \\; | sort | uniq -c | sort -rn | head -20"
+    }
+  ],
+  "files_to_archive": [
+    "docs/project/current/*",
+    "docs/project/ROADMAP_TCC_2025.md",
+    "docs/project/ROADMAP_TCC_DEZ_2025.md",
+    "docs/agents/AGENT_INVENTORY_2025_10_24.md",
+    "docs/project/STATUS_ATUAL_2025_11.md"
+  ],
+  "recommended_archive_location": "docs/archive/2025-11-documentation-cleanup/",
+  "final_verdict": {
+    "accuracy_percentage": 67,
+    "status": "usable but confusing",
+    "strengths": [
+      "Comprehensive agent documentation",
+      "Good archival practices",
+      "Detailed architecture docs"
+    ],
+    "weaknesses": [
+      "Multiple sources of truth",
+      "Outdated information not archived",
+      "Missing core documentation"
+    ],
+    "urgency": "high",
+    "recommendation": "Clean up critical discrepancies within 1 week"
+  }
+}
