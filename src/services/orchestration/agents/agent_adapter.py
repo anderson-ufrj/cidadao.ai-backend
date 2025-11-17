@@ -120,6 +120,8 @@ class InvestigationAgentAdapter(AgentAdapter):
 
         # Create agent message
         message = AgentMessage(
+            sender="orchestrator",
+            recipient="investigator_agent",
             message_id=str(uuid.uuid4()),
             action="investigate",
             payload=request.model_dump(),
