@@ -83,8 +83,15 @@ class IntentClassifier:
         re.compile(r"valor.*?R\$\s*[\d.,]+", re.IGNORECASE),
     ]
 
-    def __init__(self, llm_client: LLMClient | None = None) -> None:
-        self.llm = llm_client or LLMClient()
+    def __init__(
+        self, llm_client: LLMClient | None = None, keyword_only: bool = False
+    ) -> None:
+        # Allow keyword-only mode to avoid LLMClient dependency issues
+        if keyword_only:
+            self.llm = None
+        else:
+            self.llm = llm_client or LLMClient()
+        self.keyword_only = keyword_only
         self.logger = get_logger(__name__)
 
     async def classify(self, query: str) -> dict[str, Any]:
@@ -110,7 +117,19 @@ class IntentClassifier:
             )
             return keyword_result
 
-        # Fallback to LLM classification for complex queries
+        # Fallback to LLM classification for complex queries (if LLM available)
+        if self.keyword_only or self.llm is None:
+            # Keyword-only mode: return GENERAL_QUERY for ambiguous queries
+            self.logger.info(
+                "[KEYWORD-ONLY] No clear pattern, defaulting to GENERAL_QUERY"
+            )
+            return {
+                "intent": InvestigationIntent.GENERAL_QUERY,
+                "confidence": 0.6,
+                "reasoning": "No keyword pattern match (keyword-only mode)",
+                "method": "keyword-fallback",
+            }
+
         self.logger.info("[LLM] Using LLM classification for complex query")
         prompt = self._build_classification_prompt(query)
 
