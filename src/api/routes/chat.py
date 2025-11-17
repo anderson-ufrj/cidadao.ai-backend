@@ -87,7 +87,12 @@ except Exception as e:
 
 # Services are already initialized
 # Use NEW IntentClassifier with keyword detection (367x faster)
-intent_classifier = IntentClassifier()
+try:
+    intent_classifier = IntentClassifier()
+    logger.info("IntentClassifier initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize IntentClassifier: {e}")
+    intent_classifier = None
 
 # Agent name to import path mapping
 AGENT_MAP = {
@@ -244,6 +249,9 @@ async def send_message(
 
         # Detect intent from message using NEW keyword-based classifier
         try:
+            if intent_classifier is None:
+                raise Exception("IntentClassifier not available")
+
             intent_result = await intent_classifier.classify(request.message)
             detected_intent = intent_result["intent"]
             confidence = intent_result["confidence"]
@@ -930,6 +938,9 @@ async def stream_message(request: ChatRequest):
             await asyncio.sleep(0.5)
 
             try:
+                if intent_classifier is None:
+                    raise Exception("IntentClassifier not available")
+
                 intent_result = await intent_classifier.classify(request.message)
                 detected_intent = intent_result["intent"]
                 confidence = intent_result["confidence"]
