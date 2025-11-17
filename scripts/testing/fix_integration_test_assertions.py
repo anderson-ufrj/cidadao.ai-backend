@@ -3,14 +3,12 @@
 Script to fix integration test assertions based on actual API responses.
 """
 
-import os
-import re
 from pathlib import Path
 
 
 def fix_test_basic_api(file_path):
     """Fix test_basic_api.py assertions."""
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
 
     # Fix OpenAPI title assertion
@@ -34,7 +32,7 @@ def fix_test_basic_api(file_path):
 
 def fix_cache_integration_tests(file_path):
     """Fix cache service integration tests."""
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
 
     # These tests likely need mock Redis or in-memory cache
@@ -77,7 +75,7 @@ def cache_service():
 
 def fix_transparency_tests(file_path):
     """Fix transparency API tests - add mocks for external APIs."""
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
 
     # Add mock imports if not present

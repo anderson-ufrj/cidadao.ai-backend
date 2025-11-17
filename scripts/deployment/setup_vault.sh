@@ -57,7 +57,7 @@ set_secret() {
     local key="$2"
     local value="$3"
     local description="$4"
-    
+
     echo -e "${YELLOW}📝 Setting ${description}...${NC}"
     vault kv put -address="$VAULT_ADDR" "${SECRET_PATH}/${path}" "${key}=${value}"
 }
@@ -148,7 +148,7 @@ echo -e "${GREEN}🎉 Vault setup completed successfully!${NC}"
 echo
 echo -e "${BLUE}📋 Summary:${NC}"
 echo -e "${GREEN}✅ Application secrets configured${NC}"
-echo -e "${GREEN}✅ JWT secrets configured${NC}" 
+echo -e "${GREEN}✅ JWT secrets configured${NC}"
 echo -e "${GREEN}✅ Database secrets configured${NC}"
 echo -e "${GREEN}✅ Redis secrets configured${NC}"
 echo -e "${GREEN}✅ Infrastructure secrets configured${NC}"
