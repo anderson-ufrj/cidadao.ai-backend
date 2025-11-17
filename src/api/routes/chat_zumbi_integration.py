@@ -56,6 +56,30 @@ async def run_zumbi_investigation(
         Investigation results
     """
     try:
+        # EXTRACT ENTITIES FROM QUERY
+        from src.services.chat_data_integration import ChatDataIntegration
+
+        chat_integration = ChatDataIntegration()
+        entities = await chat_integration._extract_entities(query)
+
+        logger.info(f"🔍 Extracted entities from query: {entities}")
+
+        # Build date_range from entities
+        date_range = None
+        if entities.get("ano"):
+            # If year specified, use full year range
+            year = entities["ano"]
+            date_range = (f"01/01/{year}", f"31/12/{year}")
+        elif entities.get("data_inicial") and entities.get("data_final"):
+            date_range = (entities["data_inicial"], entities["data_final"])
+
+        # Get value threshold
+        value_threshold = entities.get("valor") if entities.get("valor") else None
+
+        logger.info(
+            f"📊 Investigation parameters: date_range={date_range}, value_threshold={value_threshold}"
+        )
+
         # CREATE AND SAVE INVESTIGATION TO DATABASE
         from src.db.simple_session import get_db_session
         from src.models.investigation import Investigation
@@ -72,6 +96,9 @@ async def run_zumbi_investigation(
                 filters={
                     "organization_codes": organization_codes,
                     "enable_open_data": enable_open_data,
+                    "value_threshold": value_threshold,
+                    "date_range": date_range,
+                    "entities": entities,  # Save all extracted entities
                 },
                 anomaly_types=[
                     "price_anomaly",
@@ -89,10 +116,12 @@ async def run_zumbi_investigation(
         # Get agent instance
         agent = await get_zumbi_agent()
 
-        # Create investigation request
+        # Create investigation request WITH EXTRACTED PARAMETERS
         investigation_request = InvestigationRequest(
             query=query,
             organization_codes=organization_codes,
+            date_range=date_range,  # ✅ ADD extracted date range
+            value_threshold=value_threshold,  # ✅ ADD extracted value threshold
             max_records=50,
             enable_open_data_enrichment=enable_open_data,
             anomaly_types=[
