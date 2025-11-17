@@ -62,13 +62,17 @@ async def test_2_portal_api_params():
         "valor_minimo": 1000000,  # R$ 1 milhão
     }
 
-    print(f"\n📤 Parâmetros que deveriam ser enviados:")
+    print("\n📤 Parâmetros que deveriam ser enviados:")
     for key, value in params.items():
         print(f"  {key}: {value}")
 
     # Verificar se service tem método correto
-    print(f"\n🔍 Métodos disponíveis no service:")
-    methods = [m for m in dir(service) if not m.startswith("_") and callable(getattr(service, m))]
+    print("\n🔍 Métodos disponíveis no service:")
+    methods = [
+        m
+        for m in dir(service)
+        if not m.startswith("_") and callable(getattr(service, m))
+    ]
     for method in methods[:10]:
         print(f"  - {method}")
 
@@ -100,6 +104,7 @@ async def test_3_orchestrator_investigation():
         except Exception as e:
             print(f"  ❌ Erro na extração: {e}")
             import traceback
+
             traceback.print_exc()
 
         # Testar classificação de intent
@@ -107,12 +112,15 @@ async def test_3_orchestrator_investigation():
         try:
             intent = await orchestrator.intent_classifier.classify(query)
             print(f"  ✅ Intent: {intent}")
-            if hasattr(intent, 'type'):
+            if hasattr(intent, "type"):
                 print(f"    Type: {intent.type}")
-                print(f"    Confidence: {intent.confidence if hasattr(intent, 'confidence') else 'N/A'}")
+                print(
+                    f"    Confidence: {intent.confidence if hasattr(intent, 'confidence') else 'N/A'}"
+                )
         except Exception as e:
             print(f"  ❌ Erro na classificação: {e}")
             import traceback
+
             traceback.print_exc()
 
         # Testar criação de plano
@@ -134,13 +142,11 @@ async def test_3_orchestrator_investigation():
                 "codigo_uf": "31",
                 "valor": 1000000.0,
                 "ano": 2024,
-                "categoria": "saúde"
+                "categoria": "saúde",
             }
 
             plan = await orchestrator.execution_planner.create_plan(
-                query=query,
-                intent=mock_intent,
-                entities=mock_entities
+                query=query, intent=mock_intent, entities=mock_entities
             )
             print(f"  ✅ Plano criado: {len(plan.stages)} estágios")
             for i, stage in enumerate(plan.stages, 1):
@@ -150,6 +156,7 @@ async def test_3_orchestrator_investigation():
         except Exception as e:
             print(f"  ❌ Erro no planejamento: {e}")
             import traceback
+
             traceback.print_exc()
 
         return True
@@ -160,6 +167,7 @@ async def test_3_orchestrator_investigation():
     except Exception as e:
         print(f"❌ Erro inesperado: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -187,10 +195,10 @@ async def test_4_zumbi_integration():
             organization_codes=None,
             enable_open_data=True,
             session_id="test-investigation-001",
-            user_id="test-user"
+            user_id="test-user",
         )
 
-        print(f"\n📊 Resultado da investigação:")
+        print("\n📊 Resultado da investigação:")
         print(f"  Status: {result.get('status', 'N/A')}")
         print(f"  Registros analisados: {result.get('records_analyzed', 0)}")
         print(f"  Anomalias detectadas: {result.get('anomalies_found', 0)}")
@@ -198,8 +206,7 @@ async def test_4_zumbi_integration():
 
         # Verificar se há dados reais
         has_real_data = (
-            result.get('records_analyzed', 0) > 0 and
-            result.get('total_value', 0) > 0
+            result.get("records_analyzed", 0) > 0 and result.get("total_value", 0) > 0
         )
 
         if has_real_data:
@@ -216,6 +223,7 @@ async def test_4_zumbi_integration():
     except Exception as e:
         print(f"❌ Erro ao testar Zumbi: {e}")
         import traceback
+
         traceback.print_exc()
         return False
 
@@ -227,20 +235,25 @@ async def test_5_check_api_key():
     print("=" * 80)
 
     import os
+
     from src.core.config import get_settings
 
     settings = get_settings()
 
     # Verificar variável de ambiente
     env_key = os.getenv("TRANSPARENCY_API_KEY")
-    print(f"\n🔑 TRANSPARENCY_API_KEY no ambiente: {'✅ Configurada' if env_key else '❌ Não configurada'}")
+    print(
+        f"\n🔑 TRANSPARENCY_API_KEY no ambiente: {'✅ Configurada' if env_key else '❌ Não configurada'}"
+    )
     if env_key:
         print(f"   Tamanho da key: {len(env_key)} caracteres")
         print(f"   Preview: {env_key[:8]}...{env_key[-4:]}")
 
     # Verificar settings
-    settings_key = getattr(settings, 'TRANSPARENCY_API_KEY', None)
-    print(f"\n🔑 Settings.TRANSPARENCY_API_KEY: {'✅ Configurada' if settings_key else '❌ Não configurada'}")
+    settings_key = getattr(settings, "TRANSPARENCY_API_KEY", None)
+    print(
+        f"\n🔑 Settings.TRANSPARENCY_API_KEY: {'✅ Configurada' if settings_key else '❌ Não configurada'}"
+    )
     if settings_key:
         print(f"   Tamanho da key: {len(settings_key)} caracteres")
 
@@ -263,6 +276,7 @@ async def main():
     except Exception as e:
         print(f"\n❌ Erro no teste 1: {e}")
         import traceback
+
         traceback.print_exc()
         results["Entity Extraction"] = False
         entities = {}
