@@ -8,6 +8,19 @@
 
 ---
 
+> **⚠️ ATENÇÃO - ÚNICO ROADMAP OFICIAL**
+>
+> Este é o **ÚNICO roadmap válido** do projeto Cidadão.AI.
+>
+> **Roadmaps arquivados**: `docs/archive/2025-11-documentation-cleanup/roadmaps/`
+>
+> Qualquer outro roadmap encontrado no repositório deve ser considerado **arquivado e inválido**.
+>
+> **Última atualização**: 17 de Novembro de 2025
+> **Próxima revisão**: 24 de Novembro de 2025
+
+---
+
 ## 📋 Sumário Executivo
 
 Este documento substitui todos os roadmaps anteriores e estabelece o plano oficial de desenvolvimento do Cidadão.AI para os próximos 14 meses. O roadmap foi construído baseado em:
