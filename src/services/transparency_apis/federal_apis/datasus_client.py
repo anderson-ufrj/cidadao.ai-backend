@@ -149,6 +149,21 @@ class DataSUSClient:
         """Close HTTP client."""
         await self.client.aclose()
 
+    async def test_connection(self) -> bool:
+        """
+        Test connection to DataSUS API.
+
+        Returns:
+            True if connection successful, False otherwise
+        """
+        try:
+            # Test with package_list endpoint (lightweight)
+            url = f"{self.base_url}/package_list"
+            result = await self._make_request(url, params={"limit": 1})
+            return result is not None
+        except Exception:
+            return False
+
     async def __aenter__(self):
         """Async context manager entry."""
         return self

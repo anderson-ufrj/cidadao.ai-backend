@@ -160,6 +160,19 @@ class IBGEClient:
         """Close HTTP client."""
         await self.client.aclose()
 
+    async def test_connection(self) -> bool:
+        """
+        Test connection to IBGE API.
+
+        Returns:
+            True if connection successful, False otherwise
+        """
+        try:
+            states = await self.get_states()
+            return len(states) > 0
+        except Exception:
+            return False
+
     async def __aenter__(self):
         """Async context manager entry."""
         return self
