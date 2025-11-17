@@ -143,14 +143,16 @@ class InvestigationOrchestrator:
                     # Add anomaly results to investigation
                     if anomaly_results and "result" in anomaly_results:
                         anomaly_data = anomaly_results["result"]
-                        result.metadata["anomaly_detection"] = {
+                        # Store anomalies directly in the anomalies field (not metadata)
+                        result.anomalies = anomaly_data.get("anomalies", [])
+                        # Add summary to context metadata
+                        result.context.metadata["anomaly_detection"] = {
                             "status": anomaly_results.get("status"),
-                            "anomalies_found": anomaly_data.get("anomalies", []),
                             "summary": anomaly_data.get("summary", {}),
                         }
                         self.logger.info(
                             f"Anomaly detection completed: "
-                            f"{len(anomaly_data.get('anomalies', []))} anomalies found"
+                            f"{len(result.anomalies)} anomalies found"
                         )
 
                 except Exception as e:
