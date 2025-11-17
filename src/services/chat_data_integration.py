@@ -5,7 +5,7 @@ Connects chat agents with Portal da Transparência data
 
 import re
 from datetime import date, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from src.core import get_logger
 from src.core.config import settings
@@ -38,7 +38,7 @@ class ChatDataIntegration:
             )
 
     async def process_user_query(
-        self, message: str, context: Optional[dict] = None
+        self, message: str, context: dict | None = None
     ) -> dict[str, Any]:
         """
         Process user query and fetch relevant data.
@@ -100,6 +100,102 @@ class ChatDataIntegration:
         """Extract entities from user message."""
         entities = {}
 
+        # Mapeamento de estados completos para siglas
+        STATES_MAP = {
+            "acre": "AC",
+            "alagoas": "AL",
+            "amapá": "AP",
+            "amapa": "AP",
+            "amazonas": "AM",
+            "bahia": "BA",
+            "ceará": "CE",
+            "ceara": "CE",
+            "distrito federal": "DF",
+            "brasília": "DF",
+            "brasilia": "DF",
+            "espírito santo": "ES",
+            "espirito santo": "ES",
+            "goiás": "GO",
+            "goias": "GO",
+            "maranhão": "MA",
+            "maranhao": "MA",
+            "mato grosso": "MT",
+            "mato grosso do sul": "MS",
+            "minas gerais": "MG",
+            "pará": "PA",
+            "para": "PA",
+            "paraíba": "PB",
+            "paraiba": "PB",
+            "paraná": "PR",
+            "parana": "PR",
+            "pernambuco": "PE",
+            "piauí": "PI",
+            "piaui": "PI",
+            "rio de janeiro": "RJ",
+            "rio grande do norte": "RN",
+            "rio grande do sul": "RS",
+            "rondônia": "RO",
+            "rondonia": "RO",
+            "roraima": "RR",
+            "santa catarina": "SC",
+            "são paulo": "SP",
+            "sao paulo": "SP",
+            "sergipe": "SE",
+            "tocantins": "TO",
+        }
+
+        # Mapeamento de siglas para códigos IBGE
+        IBGE_CODES = {
+            "AC": "12",
+            "AL": "27",
+            "AP": "16",
+            "AM": "13",
+            "BA": "29",
+            "CE": "23",
+            "DF": "53",
+            "ES": "32",
+            "GO": "52",
+            "MA": "21",
+            "MT": "51",
+            "MS": "50",
+            "MG": "31",
+            "PA": "15",
+            "PB": "25",
+            "PR": "41",
+            "PE": "26",
+            "PI": "22",
+            "RJ": "33",
+            "RN": "24",
+            "RS": "43",
+            "RO": "11",
+            "RR": "14",
+            "SC": "42",
+            "SP": "35",
+            "SE": "28",
+            "TO": "17",
+        }
+
+        # Extract state (nome completo ou sigla)
+        message_lower = message.lower()
+        for state_name, state_code in STATES_MAP.items():
+            if state_name in message_lower:
+                entities["estado"] = state_code
+                entities["codigo_uf"] = IBGE_CODES[state_code]
+                logger.info(
+                    f"Extracted state: {state_name} -> {state_code} (IBGE: {IBGE_CODES[state_code]})"
+                )
+                break
+
+        # Se não encontrou por nome, tentar sigla
+        if "estado" not in entities:
+            for sigla, codigo in IBGE_CODES.items():
+                pattern = rf"\b{sigla}\b"
+                if re.search(pattern, message, re.IGNORECASE):
+                    entities["estado"] = sigla
+                    entities["codigo_uf"] = codigo
+                    logger.info(f"Extracted state by code: {sigla} (IBGE: {codigo})")
+                    break
+
         # Extract CNPJ
         cnpj_match = re.search(r"\b\d{2}\.?\d{3}\.?\d{3}/?\d{4}-?\d{2}\b", message)
         if cnpj_match:
@@ -133,24 +229,51 @@ class ChatDataIntegration:
         if year_match and "data" not in entities:
             entities["ano"] = int(year_match.group(1))
 
-        # Extract monetary values
+        # Extract monetary values (melhorado: bilhão, milhão, mil)
         value_patterns = [
-            r"R\$\s*([\d.,]+)",
-            r"([\d.,]+)\s*reais",
-            r"([\d.,]+)\s*mil\s*reais",
+            (r"R\$\s*([\d.,]+)\s*bilh[ãõa]o", 1000000000),
+            (r"R\$\s*([\d.,]+)\s*bilh[ãõa]es", 1000000000),
+            (r"([\d.,]+)\s*bilh[ãõa]o", 1000000000),
+            (r"R\$\s*([\d.,]+)\s*milh[ãõa]o", 1000000),
+            (r"R\$\s*([\d.,]+)\s*milh[õõe]es", 1000000),
+            (r"([\d.,]+)\s*milh[ãõa]o", 1000000),
+            (r"R\$\s*([\d.,]+)\s*mil", 1000),
+            (r"([\d.,]+)\s*mil\s+reais", 1000),
+            (r"R\$\s*([\d.,]+)", 1),
+            (r"([\d.,]+)\s*reais", 1),
         ]
 
-        for pattern in value_patterns:
+        for pattern, multiplier in value_patterns:
             match = re.search(pattern, message, re.IGNORECASE)
             if match:
                 value_str = match.group(1).replace(".", "").replace(",", ".")
                 try:
-                    value = float(value_str)
-                    if "mil" in message.lower():
-                        value *= 1000
+                    value = float(value_str) * multiplier
                     entities["valor"] = value
+                    logger.info(f"Extracted value: {match.group(0)} -> R$ {value:,.2f}")
+                    break
                 except:
                     pass
+
+        # Extract category/area (saúde, educação, etc.)
+        category_keywords = {
+            "saúde": ["saúde", "saude", "hospital", "médico", "medicamento"],
+            "educação": ["educação", "educacao", "escola", "universidade", "ensino"],
+            "infraestrutura": [
+                "infraestrutura",
+                "obra",
+                "construção",
+                "estrada",
+                "rodovia",
+            ],
+            "segurança": ["segurança", "seguranca", "polícia", "policia"],
+            "cultura": ["cultura", "arte", "museu", "teatro"],
+        }
+
+        for category, keywords in category_keywords.items():
+            if any(keyword in message_lower for keyword in keywords):
+                entities["categoria"] = category
+                logger.info(f"Extracted category: {category}")
                 break
 
         # Extract agency/organization names
@@ -162,6 +285,7 @@ class ChatDataIntegration:
                 entities["orgao"] = match.group(1).strip()
                 break
 
+        logger.info(f"Total entities extracted: {len(entities)}")
         return entities
 
     def _determine_data_type(self, message: str) -> str:
