@@ -4,14 +4,12 @@ Script to fix integration tests by adding missing @pytest.mark.asyncio decorator
 and fixing other common issues.
 """
 
-import os
-import re
 from pathlib import Path
 
 
 def fix_async_tests(file_path):
     """Add @pytest.mark.asyncio decorator to async test functions."""
-    with open(file_path, "r") as f:
+    with open(file_path) as f:
         content = f.read()
 
     # Check if pytest is imported

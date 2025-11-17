@@ -117,9 +117,9 @@ def main():
         if full_path.exists():
             print(f"Migrating {file_path}...")
             if migrate_file(full_path):
-                print(f"  ✓ Migrated successfully")
+                print("  ✓ Migrated successfully")
             else:
-                print(f"  - No changes needed")
+                print("  - No changes needed")
         else:
             print(f"  ✗ File not found: {file_path}")
 
