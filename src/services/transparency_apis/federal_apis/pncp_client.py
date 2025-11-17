@@ -223,6 +223,20 @@ class PNCPClient:
         """Close HTTP client."""
         await self.client.aclose()
 
+    async def test_connection(self) -> bool:
+        """
+        Test connection to PNCP API.
+
+        Returns:
+            True if connection successful, False otherwise
+        """
+        try:
+            # Test with a lightweight search endpoint
+            result = await self.search_contracts(limit=1)
+            return result is not None
+        except Exception:
+            return False
+
     async def __aenter__(self):
         """Async context manager entry."""
         return self
