@@ -140,6 +140,16 @@ class PortalTransparenciaAdapter(TransparencyAPIClient):
 
             # Extract Portal-specific parameters
             orgao = kwargs.get("codigoOrgao") or kwargs.get("orgao")
+
+            # CRITICAL FIX: Portal API requires codigoOrgao parameter (returns 400 without it)
+            # Use Ministério da Saúde (36000) as default for general queries
+            if not orgao:
+                orgao = "36000"  # Ministério da Saúde - high volume of contracts
+                logger.info(
+                    "Using default orgao=36000 (Ministério da Saúde) for Portal API",
+                    extra={"reason": "codigoOrgao is required by Portal API"},
+                )
+
             cnpj_fornecedor = kwargs.get("cnpj_fornecedor")
             valor_minimo = kwargs.get("valor_minimo")
             valor_maximo = kwargs.get("valor_maximo")
