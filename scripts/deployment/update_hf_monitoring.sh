@@ -75,8 +75,8 @@ MONITORING_HTML_EMBEDDED = """<!DOCTYPE html>
             <p>Monitoramento em tempo real - HuggingFace Spaces</p>
         </header>
         <div class="links">
-            <a href="/">🏠 Home</a> | 
-            <a href="/docs">📚 API Docs</a> | 
+            <a href="/">🏠 Home</a> |
+            <a href="/docs">📚 API Docs</a> |
             <a href="/metrics">📊 Métricas Raw</a>
         </div>
         <div class="metrics-grid">

@@ -29,7 +29,8 @@ import subprocess
 result = subprocess.run(
     ["grep", "-r", "from src.api.auth import", "src/", "--include=*.py"],
     capture_output=True,
-    text=True, check=False,
+    text=True,
+    check=False,
 )
 in_memory_usages = (
     len(result.stdout.strip().split("\n")) if result.stdout.strip() else 0
@@ -38,7 +39,8 @@ in_memory_usages = (
 result = subprocess.run(
     ["grep", "-r", "from src.api.auth_db import", "src/", "--include=*.py"],
     capture_output=True,
-    text=True, check=False,
+    text=True,
+    check=False,
 )
 db_usages = len(result.stdout.strip().split("\n")) if result.stdout.strip() else 0
 
@@ -49,7 +51,10 @@ print()
 
 # Check which route is registered
 result = subprocess.run(
-    ["grep", "-n", "auth.router", "src/api/app.py"], capture_output=True, text=True, check=False
+    ["grep", "-n", "auth.router", "src/api/app.py"],
+    capture_output=True,
+    text=True,
+    check=False,
 )
 
 print("Registered in src/api/app.py:")
@@ -59,7 +64,10 @@ else:
     print("  ❌ auth.router NOT found")
 
 result = subprocess.run(
-    ["grep", "-n", "auth_db.router", "src/api/app.py"], capture_output=True, text=True, check=False
+    ["grep", "-n", "auth_db.router", "src/api/app.py"],
+    capture_output=True,
+    text=True,
+    check=False,
 )
 
 if "auth_db.router" in result.stdout:
