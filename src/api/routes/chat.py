@@ -98,7 +98,7 @@ except Exception as e:
 # Agent name to import path mapping
 AGENT_MAP = {
     "drummond": ("src.agents.drummond", "DrummondAgent"),
-    "zumbi": ("src.agents.zumbi", "ZumbiAgent"),
+    "zumbi": ("src.agents.zumbi", "InvestigatorAgent"),  # FIXED: zumbi.py exports InvestigatorAgent
     "abaporu": ("src.agents.abaporu", "AbaporuAgent"),
     "machado": ("src.agents.machado", "MachadoAgent"),
     "bonifacio": ("src.agents.bonifacio", "BonifacioAgent"),
