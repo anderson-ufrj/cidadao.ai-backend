@@ -243,36 +243,47 @@ async def send_message(
         )
 
         # Detect intent from message using NEW keyword-based classifier
-        intent_result = await intent_classifier.classify(request.message)
-        detected_intent = intent_result["intent"]
-        confidence = intent_result["confidence"]
-        method = intent_result.get("method", "unknown")
+        try:
+            intent_result = await intent_classifier.classify(request.message)
+            detected_intent = intent_result["intent"]
+            confidence = intent_result["confidence"]
+            method = intent_result.get("method", "unknown")
 
-        logger.info(
-            f"[{method.upper()}] Detected intent: {detected_intent.value} with confidence {confidence:.2f}"
-        )
+            logger.info(
+                f"[{method.upper()}] Detected intent: {detected_intent.value} with confidence {confidence:.2f}"
+            )
 
-        # Convert InvestigationIntent to old IntentType for compatibility
-        # Map investigation intents to IntentType.INVESTIGATE
-        if detected_intent in [
-            InvestigationIntent.CONTRACT_ANOMALY_DETECTION,
-            InvestigationIntent.SUPPLIER_INVESTIGATION,
-            InvestigationIntent.CORRUPTION_INDICATORS,
-            InvestigationIntent.BUDGET_ANALYSIS,
-            InvestigationIntent.HEALTH_BUDGET_ANALYSIS,
-            InvestigationIntent.EDUCATION_PERFORMANCE,
-        ]:
-            intent_type = IntentType.INVESTIGATE
-        else:
-            intent_type = IntentType.QUESTION
+            # Convert InvestigationIntent to old IntentType for compatibility
+            # Map investigation intents to IntentType.INVESTIGATE
+            if detected_intent in [
+                InvestigationIntent.CONTRACT_ANOMALY_DETECTION,
+                InvestigationIntent.SUPPLIER_INVESTIGATION,
+                InvestigationIntent.CORRUPTION_INDICATORS,
+                InvestigationIntent.BUDGET_ANALYSIS,
+                InvestigationIntent.HEALTH_BUDGET_ANALYSIS,
+                InvestigationIntent.EDUCATION_PERFORMANCE,
+            ]:
+                intent_type = IntentType.INVESTIGATE
+            else:
+                intent_type = IntentType.QUESTION
 
-        # Create compatible intent object
-        class Intent:
-            def __init__(self, type, confidence):
-                self.type = type
-                self.confidence = confidence
+            # Create compatible intent object
+            class Intent:
+                def __init__(self, type, confidence):
+                    self.type = type
+                    self.confidence = confidence
 
-        intent = Intent(intent_type, confidence)
+            intent = Intent(intent_type, confidence)
+        except Exception as e:
+            logger.error(f"Error in intent classification: {e}")
+
+            # Fallback to INVESTIGATE for safety
+            class Intent:
+                def __init__(self, type, confidence):
+                    self.type = type
+                    self.confidence = confidence
+
+            intent = Intent(IntentType.INVESTIGATE, 0.5)
 
         # Check if user is asking for specific government data
         portal_data = None
@@ -914,11 +925,44 @@ async def stream_message(request: ChatRequest):
             # Send initial event
             yield f"data: {json_utils.dumps({'type': 'start', 'timestamp': datetime.utcnow().isoformat()})}\n\n"
 
-            # Detect intent
+            # Detect intent using NEW keyword-based classifier
             yield f"data: {json_utils.dumps({'type': 'detecting', 'message': 'Analisando sua mensagem...'})}\n\n"
             await asyncio.sleep(0.5)
 
-            intent = await intent_detector.detect(request.message)
+            try:
+                intent_result = await intent_classifier.classify(request.message)
+                detected_intent = intent_result["intent"]
+                confidence = intent_result["confidence"]
+
+                # Convert to IntentType
+                if detected_intent in [
+                    InvestigationIntent.CONTRACT_ANOMALY_DETECTION,
+                    InvestigationIntent.SUPPLIER_INVESTIGATION,
+                    InvestigationIntent.CORRUPTION_INDICATORS,
+                    InvestigationIntent.BUDGET_ANALYSIS,
+                    InvestigationIntent.HEALTH_BUDGET_ANALYSIS,
+                    InvestigationIntent.EDUCATION_PERFORMANCE,
+                ]:
+                    intent_type = IntentType.INVESTIGATE
+                else:
+                    intent_type = IntentType.QUESTION
+
+                class Intent:
+                    def __init__(self, type, confidence):
+                        self.type = type
+                        self.confidence = confidence
+
+                intent = Intent(intent_type, confidence)
+            except Exception as e:
+                logger.error(f"Error in streaming intent classification: {e}")
+
+                class Intent:
+                    def __init__(self, type, confidence):
+                        self.type = type
+                        self.confidence = confidence
+
+                intent = Intent(IntentType.INVESTIGATE, 0.5)
+
             yield f"data: {json_utils.dumps({'type': 'intent', 'intent': intent.type.value, 'confidence': intent.confidence})}\n\n"
 
             # Select agent
