@@ -27,11 +27,11 @@ safe_commit() {
     local files="$1"
     local message="$2"
     local commit_num="$3"
-    
+
     echo -e "${YELLOW}📝 Commit $commit_num:${NC} $message"
     echo -e "${BLUE}Files:${NC} $files"
     echo ""
-    
+
     # Mostrar arquivos que serão adicionados
     echo -e "${GREEN}Files to be added:${NC}"
     for file in $files; do
@@ -43,11 +43,11 @@ safe_commit() {
         fi
     done
     echo ""
-    
+
     # Perguntar confirmação
     read -p "🤔 Proceed with this commit? (y/n/skip): " -n 1 -r
     echo ""
-    
+
     if [[ $REPLY =~ ^[Yy]$ ]]; then
         git add $files
         git commit -m "$message
@@ -65,34 +65,34 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
         echo ""
         exit 1
     fi
-    
+
     sleep 1
 }
 
 # Função para Day 1
 day_1() {
     show_header 1
-    
+
     echo -e "${GREEN}🏗️  DAY 1: INFRASTRUCTURE & FOUNDATION${NC}"
     echo -e "${GREEN}Focus: Testing infrastructure, documentation, and core foundation${NC}"
     echo ""
-    
+
     # Commits 1-6: Infrastructure
     safe_commit "scripts/run_tests.py" "feat(scripts): add comprehensive test runner with rich output and metrics" 1
     safe_commit "tests/README_TESTS.md" "docs(tests): add comprehensive testing strategy and guidelines" 2
     safe_commit "COVERAGE_REPORT.md" "docs: add detailed coverage analysis and improvement roadmap" 3
     safe_commit "PHASE1_COMPLETION_REPORT.md" "docs: add phase 1 completion status and achievements report" 4
-    
+
     # Verificar se conftest.py foi modificado (não sobrescrever)
     echo -e "${YELLOW}ℹ️  Note: conftest.py already exists, enhancing instead of replacing${NC}"
     safe_commit "tests/conftest.py" "feat(tests): enhance test fixtures with advanced mocking capabilities" 5
-    
+
     # Commit 6: Base agent foundation
     safe_commit "tests/unit/agents/test_deodoro.py" "feat(tests): add BaseAgent comprehensive test suite with messaging and context" 6
-    
+
     # Commits 7-12: Abaporu (MasterAgent) - Dividido em partes
     safe_commit "tests/unit/agents/test_abaporu.py" "feat(tests): add MasterAgent core functionality and initialization tests" 7
-    
+
     # Criar arquivo separado para testes de reflexão do Abaporu
     cat > tests/unit/agents/test_abaporu_reflection.py << 'EOF'
 """
@@ -110,32 +110,32 @@ class TestAbaporuReflection:
     async def test_self_reflection_mechanism(self):
         """Test self-reflection improves results."""
         agent = MasterAgent(reflection_threshold=0.8)
-        
+
         # Mock low-quality initial result
         initial_result = {"confidence": 0.6, "findings": ["basic finding"]}
-        
+
         # Test reflection process
         improved_result = await agent._reflect_on_results(
             initial_result, "Test investigation"
         )
-        
+
         assert improved_result["confidence"] > initial_result["confidence"]
         assert "reflection_applied" in improved_result.get("metadata", {})
-    
+
     @pytest.mark.unit
     async def test_quality_assessment_threshold(self):
         """Test quality assessment against thresholds."""
         agent = MasterAgent(reflection_threshold=0.8)
-        
+
         high_quality = {"confidence": 0.95, "completeness": 0.9}
         low_quality = {"confidence": 0.5, "completeness": 0.6}
-        
+
         assert not agent._needs_reflection(high_quality)
         assert agent._needs_reflection(low_quality)
 EOF
-    
+
     safe_commit "tests/unit/agents/test_abaporu_reflection.py" "feat(tests): add MasterAgent self-reflection and quality assessment tests" 8
-    
+
     # Criar arquivo para testes de orquestração
     cat > tests/unit/agents/test_abaporu_orchestration.py << 'EOF'
 """
@@ -154,37 +154,37 @@ class TestAbaporuOrchestration:
         """Test coordination between multiple agents."""
         agent = MasterAgent()
         context = AgentContext(investigation_id="orchestration-test")
-        
+
         # Mock multiple agents
         agent.agent_registry = {
             "investigator": AsyncMock(),
             "analyst": AsyncMock(),
             "reporter": AsyncMock()
         }
-        
+
         query = "Complex multi-agent investigation"
         result = await agent.process_investigation(query, context)
-        
+
         assert len(result.metadata.get("agents_used", [])) >= 2
         assert "investigator" in result.metadata.get("agents_used", [])
-    
+
     @pytest.mark.unit
     async def test_workflow_dependency_management(self):
         """Test proper handling of agent dependencies."""
         agent = MasterAgent()
-        
+
         # Test dependency resolution
         dependencies = agent._resolve_agent_dependencies([
             {"agent": "investigator", "depends_on": []},
             {"agent": "reporter", "depends_on": ["investigator"]}
         ])
-        
+
         assert len(dependencies) == 2
         assert dependencies[0]["agent"] == "investigator"  # No dependencies first
 EOF
-    
+
     safe_commit "tests/unit/agents/test_abaporu_orchestration.py" "feat(tests): add MasterAgent orchestration and coordination tests" 9
-    
+
     # Criar arquivo para testes de planejamento
     cat > tests/unit/agents/test_abaporu_planning.py << 'EOF'
 """
@@ -203,41 +203,41 @@ class TestAbaporuPlanning:
         """Test creation of comprehensive investigation plans."""
         agent = MasterAgent()
         context = AgentContext(investigation_id="planning-test")
-        
+
         query = "Investigate budget anomalies in education ministry"
         plan = await agent._create_investigation_plan(query, context)
-        
+
         assert isinstance(plan, InvestigationPlan)
         assert plan.objective == query
         assert len(plan.steps) > 0
         assert len(plan.required_agents) > 0
         assert plan.estimated_time > 0
-    
+
     @pytest.mark.unit
     async def test_adaptive_strategy_selection(self):
         """Test selection of appropriate strategies based on context."""
         agent = MasterAgent()
-        
+
         contexts = [
             {"complexity": "high", "urgency": "low"},
             {"complexity": "low", "urgency": "high"},
             {"complexity": "medium", "urgency": "medium"}
         ]
-        
+
         strategies = []
         for ctx in contexts:
             strategy = agent._select_strategy(ctx)
             strategies.append(strategy)
-        
+
         assert len(set(strategies)) > 1  # Different strategies for different contexts
 EOF
-    
+
     safe_commit "tests/unit/agents/test_abaporu_planning.py" "feat(tests): add MasterAgent planning and strategy selection tests" 10
-    
+
     # Commits 11-12: Completar Abaporu
     safe_commit "tests/unit/agents/test_tiradentes.py" "feat(tests): add Tiradentes investigation agent basic tests" 11
     safe_commit "tests/unit/agents/test_machado.py" "feat(tests): add Machado NLP agent comprehensive tests" 12
-    
+
     # Commits 13-18: Specialist agents
     safe_commit "tests/unit/agents/test_anita.py" "feat(tests): add Anita pattern analysis agent comprehensive tests" 13
     safe_commit "tests/unit/agents/test_bonifacio.py" "feat(tests): add Bonifácio policy analysis agent comprehensive tests" 14
@@ -245,7 +245,7 @@ EOF
     safe_commit "tests/unit/agents/test_ayrton_senna_complete.py" "feat(tests): add Ayrton Senna semantic router comprehensive tests" 16
     safe_commit "tests/unit/agents/test_niemeyer_complete.py" "feat(tests): add Niemeyer infrastructure agent comprehensive tests" 17
     safe_commit "tests/unit/agents/test_zumbi_complete.py" "feat(tests): add Zumbi resistance agent comprehensive tests" 18
-    
+
     echo -e "${GREEN}🎉 Day 1 completed! (18 commits)${NC}"
     echo -e "${YELLOW}📊 Progress: 18/54 commits (33.3%)${NC}"
     echo ""
@@ -254,25 +254,25 @@ EOF
 # Função para Day 2
 day_2() {
     show_header 2
-    
+
     echo -e "${GREEN}🎭 DAY 2: SOCIAL & CULTURAL AGENTS${NC}"
     echo -e "${GREEN}Focus: Social justice, cultural context, and community analysis${NC}"
     echo ""
-    
-    # Commits 19-24: Social agents  
+
+    # Commits 19-24: Social agents
     safe_commit "tests/unit/agents/test_ceuci.py" "feat(tests): add Ceuci cultural context agent tests" 19
     safe_commit "tests/unit/agents/test_maria_quiteria.py" "feat(tests): add Maria Quitéria security agent tests" 20
     safe_commit "tests/unit/agents/test_nana.py" "feat(tests): add Nana healthcare agent tests" 21
     safe_commit "tests/unit/agents/test_obaluaie.py" "feat(tests): add Obaluaiê healing agent tests" 22
     safe_commit "tests/unit/agents/test_drummond.py" "feat(tests): add Drummond communication agent tests" 23
     safe_commit "tests/unit/agents/test_lampiao.py" "feat(tests): add Lampião regional analysis agent tests" 24
-    
+
     # Commits 25-30: Versões básicas (cleanup)
     safe_commit "tests/unit/agents/test_dandara.py" "feat(tests): add Dandara basic social inclusion tests" 25
     safe_commit "tests/unit/agents/test_ayrton_senna.py" "feat(tests): add Ayrton Senna basic performance tests" 26
     safe_commit "tests/unit/agents/test_niemeyer.py" "feat(tests): add Niemeyer basic infrastructure tests" 27
     safe_commit "tests/unit/agents/test_zumbi.py" "feat(tests): add Zumbi basic resistance tests" 28
-    
+
     # Criar testes de integração entre agentes
     cat > tests/unit/agents/test_agent_integration.py << 'EOF'
 """
@@ -290,32 +290,32 @@ class TestAgentIntegration:
         """Test workflow involving multiple agents."""
         # Simulate investigation workflow:
         # Tiradentes -> Anita -> Machado -> Reporter
-        
+
         context = AgentContext(investigation_id="integration-workflow")
-        
+
         # Mock agents
         tiradentes = AsyncMock()
-        anita = AsyncMock() 
+        anita = AsyncMock()
         machado = AsyncMock()
-        
+
         # Configure mock responses
         tiradentes.process.return_value.result = {"anomalies": ["anomaly1"]}
         anita.process.return_value.result = {"patterns": ["pattern1"]}
         machado.process.return_value.result = {"report": "Generated report"}
-        
+
         # Test workflow coordination
         workflow_result = {
             "stage1": await tiradentes.process(AgentMessage(sender="test", recipient="tiradentes", action="detect"), context),
             "stage2": await anita.process(AgentMessage(sender="test", recipient="anita", action="analyze"), context),
             "stage3": await machado.process(AgentMessage(sender="test", recipient="machado", action="report"), context)
         }
-        
+
         assert len(workflow_result) == 3
         assert all(stage for stage in workflow_result.values())
 EOF
-    
+
     safe_commit "tests/unit/agents/test_agent_integration.py" "feat(tests): add multi-agent integration and workflow tests" 29
-    
+
     # Commits 31-36: Performance e concorrência
     cat > tests/unit/agents/test_agent_performance.py << 'EOF'
 """
@@ -335,27 +335,27 @@ class TestAgentPerformance:
         agents = [AsyncMock() for _ in range(5)]
         contexts = [AgentContext(investigation_id=f"perf-{i}") for i in range(5)]
         messages = [AgentMessage(sender="test", recipient=f"agent{i}", action="process") for i in range(5)]
-        
+
         # Configure mock responses
         for agent in agents:
             agent.process.return_value = AsyncMock()
             agent.process.return_value.status = AgentStatus.COMPLETED
-        
+
         # Execute concurrently
         start_time = asyncio.get_event_loop().time()
         results = await asyncio.gather(*[
-            agent.process(msg, ctx) 
+            agent.process(msg, ctx)
             for agent, msg, ctx in zip(agents, messages, contexts)
         ])
         end_time = asyncio.get_event_loop().time()
-        
+
         assert len(results) == 5
         assert all(r.status == AgentStatus.COMPLETED for r in results)
         assert end_time - start_time < 5.0  # Should complete within 5 seconds
 EOF
-    
+
     safe_commit "tests/unit/agents/test_agent_performance.py" "feat(tests): add agent performance and concurrency tests" 30
-    
+
     # Commits 31-36: Testes de error handling
     cat > tests/unit/agents/test_error_handling.py << 'EOF'
 """
@@ -374,32 +374,32 @@ class TestAgentErrorHandling:
         """Test agent behavior under timeout conditions."""
         agent = AsyncMock()
         agent.process.side_effect = asyncio.TimeoutError("Agent timeout")
-        
+
         context = AgentContext(investigation_id="timeout-test")
         message = AgentMessage(sender="test", recipient="agent", action="slow_process")
-        
+
         with pytest.raises(asyncio.TimeoutError):
             await agent.process(message, context)
-    
+
     @pytest.mark.unit
     async def test_agent_recovery_mechanisms(self):
         """Test agent recovery from failures."""
         agent = AsyncMock()
-        
+
         # First call fails, second succeeds
         agent.process.side_effect = [
             Exception("Temporary failure"),
             AsyncMock(status=AgentStatus.COMPLETED, result={"recovered": True})
         ]
-        
+
         # Test retry mechanism would be implemented here
         # This is a placeholder for the actual retry logic
         assert True  # Placeholder assertion
 EOF
-    
+
     safe_commit "tests/unit/agents/test_error_handling.py" "feat(tests): add comprehensive agent error handling tests" 31
     safe_commit "tests/unit/agents/test_base_agent.py" "feat(tests): enhance existing base agent tests with advanced scenarios" 32
-    
+
     # Commits 33-36: Documentação e finalização
     cat > tests/unit/agents/README.md << 'EOF'
 # Agent Tests Documentation
@@ -409,7 +409,7 @@ Comprehensive test suite for all 17 Cidadão.AI agents.
 
 ## Test Categories
 - **Unit Tests**: Individual agent functionality
-- **Integration Tests**: Multi-agent workflows  
+- **Integration Tests**: Multi-agent workflows
 - **Performance Tests**: Concurrency and load testing
 - **Error Handling**: Exception scenarios and recovery
 
@@ -433,9 +433,9 @@ Each agent has comprehensive tests covering:
 - Performance characteristics
 - Integration scenarios
 EOF
-    
+
     safe_commit "tests/unit/agents/README.md" "docs(tests): add comprehensive agent testing documentation" 33
-    
+
     # Criar arquivo de configuração pytest específico
     cat > tests/pytest.ini << 'EOF'
 [tool:pytest]
@@ -443,7 +443,7 @@ testpaths = tests
 python_files = test_*.py
 python_classes = Test*
 python_functions = test_*
-addopts = 
+addopts =
     -v
     --tb=short
     --strict-markers
@@ -453,11 +453,11 @@ markers =
     performance: Performance tests
     slow: Slow running tests
 EOF
-    
+
     safe_commit "tests/pytest.ini" "feat(tests): add pytest configuration for agent tests" 34
     safe_commit "requirements.txt" "feat(deps): update requirements with testing dependencies" 35
     safe_commit "pyproject.toml" "feat(config): update pyproject.toml with enhanced test configuration" 36
-    
+
     echo -e "${GREEN}🎉 Day 2 completed! (18 commits)${NC}"
     echo -e "${YELLOW}📊 Progress: 36/54 commits (66.7%)${NC}"
     echo ""
@@ -466,11 +466,11 @@ EOF
 # Função para Day 3
 day_3() {
     show_header 3
-    
+
     echo -e "${GREEN}🚀 DAY 3: FINALIZATION & OPTIMIZATION${NC}"
     echo -e "${GREEN}Focus: Final tests, optimization, and deployment preparation${NC}"
     echo ""
-    
+
     # Commits 37-42: Testes avançados
     cat > tests/unit/test_agent_factory.py << 'EOF'
 """
@@ -488,9 +488,9 @@ class TestAgentFactory:
         assert len(agents) >= 17
         assert "Abaporu" in [agent.name for agent in agents]
 EOF
-    
+
     safe_commit "tests/unit/test_agent_factory.py" "feat(tests): add agent factory and registration tests" 37
-    
+
     cat > tests/unit/test_agent_memory.py << 'EOF'
 """
 Tests for agent memory systems.
@@ -507,9 +507,9 @@ class TestAgentMemory:
         memory.store("test_key", "test_value")
         assert memory.retrieve("test_key") == "test_value"
 EOF
-    
+
     safe_commit "tests/unit/test_agent_memory.py" "feat(tests): add agent memory system tests" 38
-    
+
     cat > tests/unit/test_agent_coordination.py << 'EOF'
 """
 Tests for agent coordination and communication protocols.
@@ -526,9 +526,9 @@ class TestAgentCoordination:
         # Test implementation would go here
         assert orchestrator is not None
 EOF
-    
+
     safe_commit "tests/unit/test_agent_coordination.py" "feat(tests): add agent coordination protocol tests" 39
-    
+
     # Commits 40-45: Testes de core modules
     cat > tests/unit/core/test_config.py << 'EOF'
 """
@@ -546,9 +546,9 @@ class TestConfig:
         assert settings is not None
         assert hasattr(settings, 'app_name')
 EOF
-    
+
     safe_commit "tests/unit/core/test_config.py" "feat(tests): add core configuration tests" 40
-    
+
     cat > tests/unit/core/test_exceptions.py << 'EOF'
 """
 Tests for custom exception handling.
@@ -560,13 +560,13 @@ from src.core.exceptions import AgentExecutionError, CidadaoAIError
 class TestExceptions:
     @pytest.mark.unit
     def test_custom_exceptions(self):
-        """Test custom exception creation and handling."""  
+        """Test custom exception creation and handling."""
         with pytest.raises(AgentExecutionError):
             raise AgentExecutionError("Test error")
 EOF
-    
+
     safe_commit "tests/unit/core/test_exceptions.py" "feat(tests): add core exception handling tests" 41
-    
+
     cat > tests/unit/core/test_logging.py << 'EOF'
 """
 Tests for logging system.
@@ -583,9 +583,9 @@ class TestLogging:
         assert logger is not None
         assert logger.name == "test"
 EOF
-    
+
     safe_commit "tests/unit/core/test_logging.py" "feat(tests): add core logging system tests" 42
-    
+
     # Commits 43-48: API tests básicos
     cat > tests/unit/api/test_health.py << 'EOF'
 """
@@ -606,9 +606,9 @@ class TestHealth:
         assert response.status_code == 200
         assert "status" in response.json()
 EOF
-    
+
     safe_commit "tests/unit/api/test_health.py" "feat(tests): add API health check tests" 43
-    
+
     cat > tests/unit/api/test_auth.py << 'EOF'
 """
 Tests for authentication endpoints.
@@ -627,9 +627,9 @@ class TestAuth:
         # Basic test to verify endpoint structure
         assert hasattr(app, 'routes')
 EOF
-    
+
     safe_commit "tests/unit/api/test_auth.py" "feat(tests): add API authentication tests" 44
-    
+
     # Commits 45-50: ML tests básicos
     cat > tests/unit/ml/test_models.py << 'EOF'
 """
@@ -646,9 +646,9 @@ class TestMLModels:
         # Placeholder test for ML models
         assert True  # Replace with actual model tests
 EOF
-    
+
     safe_commit "tests/unit/ml/test_models.py" "feat(tests): add ML model tests foundation" 45
-    
+
     cat > tests/unit/ml/test_pipeline.py << 'EOF'
 """
 Tests for ML data pipeline.
@@ -664,12 +664,12 @@ class TestMLPipeline:
         # Placeholder test for ML pipeline
         assert True  # Replace with actual pipeline tests
 EOF
-    
+
     safe_commit "tests/unit/ml/test_pipeline.py" "feat(tests): add ML pipeline tests foundation" 46
-    
+
     # Commits 47-54: Final touches
     safe_commit ".github/workflows/tests.yml" "ci: add GitHub Actions workflow for automated testing" 47
-    
+
     cat > tests/conftest_advanced.py << 'EOF'
 """
 Advanced test configuration and fixtures.
@@ -683,9 +683,9 @@ def advanced_test_setup():
     """Advanced test setup for complex scenarios."""
     return {"initialized": True}
 EOF
-    
+
     safe_commit "tests/conftest_advanced.py" "feat(tests): add advanced test configuration and fixtures" 48
-    
+
     # Create comprehensive test summary
     cat > TESTING_SUMMARY.md << 'EOF'
 # 🧪 Comprehensive Testing Summary
@@ -706,7 +706,7 @@ Complete test coverage implementation for Cidadão.AI backend system.
 
 ## Key Metrics
 - **Agent Module Coverage**: 80-85%
-- **Core Module Coverage**: 70%+  
+- **Core Module Coverage**: 70%+
 - **Overall Project Coverage**: 75%+
 
 ## Next Steps
@@ -715,16 +715,16 @@ Complete test coverage implementation for Cidadão.AI backend system.
 3. Load testing implementation
 4. Production deployment validation
 EOF
-    
+
     safe_commit "TESTING_SUMMARY.md" "docs: add comprehensive testing achievement summary" 49
-    
+
     # Final commits
     safe_commit "scripts/validate_tests.py" "feat(scripts): add test validation and quality assurance script" 50
     safe_commit "tests/benchmarks/performance_baseline.py" "feat(tests): add performance baseline and benchmarking tests" 51
     safe_commit "tests/load/load_test_scenarios.py" "feat(tests): add load testing scenarios for production readiness" 52
     safe_commit "deployment/test_deployment.yml" "feat(deploy): add test environment deployment configuration" 53
     safe_commit "README.md" "docs: update README with comprehensive testing information and achievements" 54
-    
+
     echo -e "${GREEN}🎉 Day 3 completed! (18 commits)${NC}"
     echo -e "${YELLOW}📊 Progress: 54/54 commits (100%)${NC}"
     echo -e "${GREEN}🚀 ALL 54 COMMITS COMPLETED!${NC}"
@@ -737,7 +737,7 @@ main() {
         "1"|"day1")
             day_1
             ;;
-        "2"|"day2") 
+        "2"|"day2")
             day_2
             ;;
         "3"|"day3")
@@ -745,7 +745,7 @@ main() {
             ;;
         "all")
             day_1
-            day_2  
+            day_2
             day_3
             ;;
         "menu"|*)
@@ -755,7 +755,7 @@ main() {
             echo ""
             echo "Options:"
             echo "  1, day1    Execute Day 1 (commits 1-18)  - Infrastructure & Foundation"
-            echo "  2, day2    Execute Day 2 (commits 19-36) - Social & Cultural Agents" 
+            echo "  2, day2    Execute Day 2 (commits 19-36) - Social & Cultural Agents"
             echo "  3, day3    Execute Day 3 (commits 37-54) - Finalization & Optimization"
             echo "  all        Execute all 3 days"
             echo "  menu       Show this menu (default)"
