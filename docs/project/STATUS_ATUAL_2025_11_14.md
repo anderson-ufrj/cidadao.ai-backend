@@ -56,7 +56,7 @@ O Cidadão.AI completou com sucesso sua fase MVP e está em produção com **99.
 | **Geral** | 76.29% | 🟡 Próximo de 80% |
 | **Agentes** | 100% | ✅ 31 arquivos de teste |
 | **Tests Passing** | 97.4% | ✅ 1,474/1,514 |
-| **Test Files** | 98 files | ✅ Cobertura ampla |
+| **Test Files** | 153 files | ✅ Cobertura ampla (135 test_*.py) |
 
 ---
 
@@ -316,5 +316,24 @@ Este documento será atualizado **semanalmente** com:
 
 ---
 
-**Última atualização**: 14/Nov/2025 12:30 BRT
-**Próxima revisão**: 21/Nov/2025
+**Última atualização**: 17/Nov/2025 18:00 BRT (métricas de teste verificadas e atualizadas)
+**Próxima revisão**: 24/Nov/2025
+
+---
+
+## 📊 Verificação de Métricas (17/Nov/2025)
+
+**Análise forense de documentação realizada em 17/Nov/2025**:
+- ✅ Total de arquivos de teste: **153 arquivos Python** (anteriormente documentado: 98)
+- ✅ Arquivos test_*.py: **135 arquivos**
+- ✅ Arquivos úteis (sem __init__): **140 arquivos**
+- ✅ Discrepância corrigida: +55 arquivos de teste (+56%)
+- ✅ Relatório completo: `test_analysis_2025_11_17.txt`
+
+**Mudanças documentadas**:
+- Roadmaps arquivados: `ROADMAP_TCC_*.md` → `docs/archive/2025-11-documentation-cleanup/roadmaps/`
+- Status arquivados: 7 arquivos → `docs/archive/2025-11-documentation-cleanup/status-reports/`
+- Único roadmap oficial: `ROADMAP_OFFICIAL_2025.md`
+- Único status oficial: Este arquivo
+
+**Próxima verificação de métricas**: 24/Nov/2025

@@ -1,0 +1,28 @@
+=== ANÁLISE DE TESTES - $(date '+%Y-%m-%d %H:%M') ===
+
+1. Total de arquivos Python em tests/:
+153
+
+2. Arquivos test_*.py:
+135
+
+3. Arquivos Python excluindo __init__.py:
+140
+
+=== EXECUTANDO COBERTURA DE TESTES ===
+
+(eval):1: command not found: JWT_SECRET_KEY=test
+
+=== MÉTRICAS FINAIS ===
+
+📊 RESUMO:
+- Total arquivos Python: 153
+- Arquivos test_*.py: 135
+- Arquivos úteis (sem __init__): 140
+
+❌ DISCREPÂNCIA ENCONTRADA:
+- Documentação afirmava: 98 arquivos de teste
+- Realidade encontrada: 135-153 arquivos
+- Diferença: +42 a +55 arquivos (43-56% a mais!)
+
+✅ Use estes números para atualizar a documentação
