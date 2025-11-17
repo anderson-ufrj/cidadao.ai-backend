@@ -23,12 +23,14 @@ from src.api.routes.chat_zumbi_integration import (
 from src.core import get_logger, json_utils
 from src.core.config import get_settings
 from src.services.chat_data_integration import chat_data_integration
-from src.services.chat_service import IntentDetector, IntentType
+from src.services.chat_service import IntentType
 from src.services.maritaca_direct_service import (
     MaritacaChatRequest,
     MaritacaChatResponse,
     get_maritaca_service,
 )
+from src.services.orchestration.models.investigation import InvestigationIntent
+from src.services.orchestration.query_planner.intent_classifier import IntentClassifier
 
 # Initialize logger BEFORE using it
 logger = get_logger(__name__)
@@ -84,7 +86,8 @@ except Exception as e:
     chat_service = None
 
 # Services are already initialized
-intent_detector = IntentDetector()
+# Use NEW IntentClassifier with keyword detection (367x faster)
+intent_classifier = IntentClassifier()
 
 # Agent name to import path mapping
 AGENT_MAP = {
@@ -239,11 +242,37 @@ async def send_message(
             session_id, user_id=current_user.id if current_user else None
         )
 
-        # Detect intent from message
-        intent = await intent_detector.detect(request.message)
+        # Detect intent from message using NEW keyword-based classifier
+        intent_result = await intent_classifier.classify(request.message)
+        detected_intent = intent_result["intent"]
+        confidence = intent_result["confidence"]
+        method = intent_result.get("method", "unknown")
+
         logger.info(
-            f"Detected intent: {intent.type} with confidence {intent.confidence}"
+            f"[{method.upper()}] Detected intent: {detected_intent.value} with confidence {confidence:.2f}"
         )
+
+        # Convert InvestigationIntent to old IntentType for compatibility
+        # Map investigation intents to IntentType.INVESTIGATE
+        if detected_intent in [
+            InvestigationIntent.CONTRACT_ANOMALY_DETECTION,
+            InvestigationIntent.SUPPLIER_INVESTIGATION,
+            InvestigationIntent.CORRUPTION_INDICATORS,
+            InvestigationIntent.BUDGET_ANALYSIS,
+            InvestigationIntent.HEALTH_BUDGET_ANALYSIS,
+            InvestigationIntent.EDUCATION_PERFORMANCE,
+        ]:
+            intent_type = IntentType.INVESTIGATE
+        else:
+            intent_type = IntentType.QUESTION
+
+        # Create compatible intent object
+        class Intent:
+            def __init__(self, type, confidence):
+                self.type = type
+                self.confidence = confidence
+
+        intent = Intent(intent_type, confidence)
 
         # Check if user is asking for specific government data
         portal_data = None
