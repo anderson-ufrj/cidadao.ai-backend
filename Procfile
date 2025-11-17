@@ -10,7 +10,8 @@
 # release: python -m alembic upgrade head
 
 # Main API server
-web: uvicorn src.api.app:app --host 0.0.0.0 --port $PORT
+# PYTHONDONTWRITEBYTECODE=1 prevents .pyc caching issues
+web: PYTHONDONTWRITEBYTECODE=1 uvicorn src.api.app:app --host 0.0.0.0 --port $PORT --reload
 
 # Celery worker for background tasks
 worker: celery -A src.infrastructure.queue.celery_app worker --loglevel=info --queues=critical,high,default,low,background --concurrency=4
