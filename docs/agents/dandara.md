@@ -1,5 +1,12 @@
+# ---
+
+**Author**: Anderson Henrique da Silva
+**Location**: Minas Gerais, Brazil
+**Created**: 2025-11-05
+**Last Updated**: 2025-11-18
+
 ---
-title: "Dandara dos Palmares - Social Justice Agent"
+
 sidebar_position: 13
 description: "Agente especializado em monitoramento de políticas de inclusão e equidade social"
 ---

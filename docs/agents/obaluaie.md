@@ -1,5 +1,12 @@
+# ---
+
+**Author**: Anderson Henrique da Silva
+**Location**: Minas Gerais, Brazil
+**Created**: 2025-11-03
+**Last Updated**: 2025-11-18
+
 ---
-title: "Obaluaiê - Corruption Detector Agent"
+
 sidebar_position: 16
 description: "Agente especializado em detecção avançada de corrupção sistêmica"
 ---

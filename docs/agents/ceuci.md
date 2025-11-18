@@ -1,5 +1,12 @@
+# ---
+
+**Author**: Anderson Henrique da Silva
+**Location**: Minas Gerais, Brazil
+**Created**: 2025-11-01
+**Last Updated**: 2025-11-18
+
 ---
-title: "Ceuci - Predictive Analysis Agent"
+
 sidebar_position: 15
 description: "Agente especializado em análise preditiva e modelagem de tendências"
 ---

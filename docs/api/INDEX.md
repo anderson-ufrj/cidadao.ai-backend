@@ -1,6 +1,9 @@
 # 🌐 API Documentation Index
 
-**Last Updated**: 2025-11-08
+**Author**: Anderson Henrique da Silva
+**Location**: Minas Gerais, Brazil
+**Created**: 2025-11-08
+**Last Updated**: 2025-11-18
 **Production URL**: https://cidadao-api-production.up.railway.app
 
 ---
