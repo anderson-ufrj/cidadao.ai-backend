@@ -1,5 +1,12 @@
 # Changelog
 
+**Author**: Anderson Henrique da Silva
+**Location**: Minas Gerais, Brazil
+**Created**: 2025-08-13
+**Last Updated**: 2025-11-18
+
+---
+
 All notable changes to the Cidadão.AI Backend project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),

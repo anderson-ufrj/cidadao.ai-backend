@@ -1,7 +1,9 @@
 # 📡 API Documentation - Cidadão.AI
 
-**Autor**: Anderson Henrique da Silva  
-**Última Atualização**: 2025-09-25 18:20:00 -03:00 (São Paulo, Brasil)
+**Author**: Anderson Henrique da Silva
+**Location**: Minas Gerais, Brazil
+**Created**: 2025-09-25
+**Last Updated**: 2025-11-18
 
 [English version below](#-api-documentation---cidadãoai-english)
 
@@ -383,7 +385,7 @@ ws.onmessage = (event) => {
 
 # 📡 API Documentation - Cidadão.AI (English)
 
-**Author**: Anderson Henrique da Silva  
+**Author**: Anderson Henrique da Silva
 **Last Updated**: 2025-09-25 18:20:00 -03:00 (São Paulo, Brazil)
 
 ## 🌐 Overview

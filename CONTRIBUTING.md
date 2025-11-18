@@ -1,5 +1,12 @@
 # Contributing to Cidadão.AI Backend
 
+**Author**: Anderson Henrique da Silva
+**Location**: Minas Gerais, Brazil
+**Created**: 2025-08-13
+**Last Updated**: 2025-11-18
+
+---
+
 Thank you for your interest in contributing to Cidadão.AI! This document provides guidelines and instructions for contributing to this project.
 
 ---

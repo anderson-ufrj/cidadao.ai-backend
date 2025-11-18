@@ -1,5 +1,12 @@
 # 🎯 Abaporu - O Mestre Orquestrador
 
+**Author**: Anderson Henrique da Silva
+**Location**: Minas Gerais, Brazil
+**Created**: 2025-10-15
+**Last Updated**: 2025-11-18
+
+---
+
 **Codinome**: Abaporu - Núcleo Central da IA
 **Arquivo**: `src/agents/abaporu.py`
 **Status**: ✅ **Tier 2 (70% → 95% Completo)** - Finalizado para Beta 1.0
