@@ -264,3 +264,166 @@ class TestObaluaieCorruptionDetection:
 
         assert "reflection" in reflected
         assert "quality_issues_found" in reflected["reflection"]
+
+    # ===== NEW TESTS TO BOOST COVERAGE 72.19% -> 76%+ =====
+
+    @pytest.mark.asyncio
+    async def test_detect_corruption_patterns_empty_data(
+        self, obaluaie_agent, agent_context
+    ):
+        """Test corruption detection with empty data (covers line 191-192)."""
+        await obaluaie_agent.initialize()
+
+        # Empty list triggers fallback to [{}]
+        result = await obaluaie_agent.detect_corruption_patterns([], agent_context)
+
+        assert result.alert_type == "systemic_corruption"
+        assert result.confidence_score >= 0.0
+        assert result.entities_involved == []
+
+    @pytest.mark.asyncio
+    async def test_suspicious_patterns_threshold_triggers(
+        self, obaluaie_agent, agent_context
+    ):
+        """Test suspicious patterns are added when thresholds exceeded (covers 218-232)."""
+        await obaluaie_agent.initialize()
+
+        # Data designed to exceed all thresholds
+        data = [
+            {"value": 5000, "supplier_name": "Company A"},  # Benford violation
+            {"value": 5500, "supplier_name": "Company A"},  # High concentration
+            {"value": 5200, "supplier_name": "Company A"},  # Nepotism (repeats)
+        ]
+
+        result = await obaluaie_agent.detect_corruption_patterns(data, agent_context)
+
+        # Should have multiple suspicious patterns
+        assert len(result.suspicious_patterns) >= 1
+        pattern_types = [p["pattern"] for p in result.suspicious_patterns]
+        assert any(
+            p in pattern_types
+            for p in ["benford_anomaly", "cartel_indicators", "nepotism_detected"]
+        )
+
+    @pytest.mark.asyncio
+    async def test_analyze_bidding_cartels_empty_data(self, obaluaie_agent):
+        """Test cartel analysis with empty bidding data (covers line 294)."""
+        result = await obaluaie_agent.analyze_bidding_cartels([])
+
+        assert result["cartel_detected"] is False
+        assert result["score"] == 0.0
+        assert result["affected_biddings"] == 0
+        assert result["patterns"] == []
+
+    @pytest.mark.asyncio
+    async def test_detect_money_laundering_empty_data(self, obaluaie_agent):
+        """Test money laundering detection with empty data (covers lines 345, 358)."""
+        result = await obaluaie_agent.detect_money_laundering([])
+
+        assert result["laundering_detected"] is False
+        assert result["risk_score"] == 0.0
+        # suspicious_transactions is a list in the result, not a count
+        assert (
+            result["suspicious_transactions"] == 0
+            or result["suspicious_transactions"] == []
+        )
+
+    @pytest.mark.asyncio
+    async def test_calculate_corruption_risk_score_empty_entity(self, obaluaie_agent):
+        """Test corruption risk with empty entity data (covers line 399)."""
+        risk_score = await obaluaie_agent.calculate_corruption_risk_score({})
+
+        assert risk_score == 0.0
+
+    @pytest.mark.asyncio
+    async def test_calculate_corruption_risk_score_high_irregularities(
+        self, obaluaie_agent
+    ):
+        """Test risk scoring with high irregularities (covers lines 407-421)."""
+        entity_data = {
+            "irregularities": 10,  # Very high
+            "contract_count": 60,  # Very high concentration
+            "political_connections": 8,  # Strong political ties
+            "transparency_score": 0.1,  # Very low transparency
+        }
+
+        risk_score = await obaluaie_agent.calculate_corruption_risk_score(entity_data)
+
+        # Should be very high risk
+        assert risk_score >= 0.7
+        assert risk_score <= 1.0
+
+    @pytest.mark.asyncio
+    async def test_process_with_all_analysis_types(self, obaluaie_agent, agent_context):
+        """Test process() method with different analysis types (covers 542-615)."""
+        await obaluaie_agent.initialize()
+
+        analysis_types = [
+            "benford_law",
+            "cartel_detection",
+            "nepotism_detection",
+            "financial_flow",
+            "general_corruption",  # Default case
+        ]
+
+        for analysis_type in analysis_types:
+            message = AgentMessage(
+                sender="test",
+                recipient="obaluaie",
+                action="detect_corruption",
+                payload={"analysis_type": analysis_type, "data": []},
+            )
+
+            response = await obaluaie_agent.process(message, agent_context)
+
+            assert response.agent_name == "obaluaie"
+            assert response.status.value == "completed"
+            assert "corruption_analysis" in response.result
+            assert response.metadata["analysis_type"] == analysis_type
+
+    @pytest.mark.asyncio
+    async def test_reflect_no_quality_issues(self, obaluaie_agent, agent_context):
+        """Test reflection when quality is acceptable (covers lines 772-778)."""
+        result = {
+            "corruption_analysis": {
+                "confidence": 0.85,  # High confidence
+                "severity": "high",  # Matches confidence
+                "patterns": ["pattern1", "pattern2", "pattern3"],  # Sufficient patterns
+            }
+        }
+
+        reflected = await obaluaie_agent.reflect(
+            "cartel_detection", result, agent_context
+        )
+
+        # Should return original result without reflection metadata
+        assert "reflection" not in reflected
+        assert reflected == result
+
+    @pytest.mark.asyncio
+    async def test_reflect_severity_confidence_mismatch(
+        self, obaluaie_agent, agent_context
+    ):
+        """Test reflection detects severity-confidence mismatch (covers 768-803)."""
+        result = {
+            "corruption_analysis": {
+                "confidence": 0.95,  # Very high confidence
+                "severity": "low",  # But low severity - MISMATCH!
+                "patterns": ["pattern1", "pattern2"],
+            }
+        }
+
+        reflected = await obaluaie_agent.reflect(
+            "cartel_detection", result, agent_context
+        )
+
+        assert "reflection" in reflected
+        assert (
+            "severity_confidence_mismatch"
+            in reflected["reflection"]["quality_issues_found"]
+        )
+        assert len(reflected["reflection"]["enhancements_suggested"]) > 0
+        assert any(
+            "severity" in str(enh).lower()
+            for enh in reflected["reflection"]["enhancements_suggested"]
+        )
