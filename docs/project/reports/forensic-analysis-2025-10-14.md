@@ -1,7 +1,7 @@
 # 📋 RELATÓRIO EXECUTIVO DE PERÍCIA TÉCNICA ANALÍTICA
 ## Sistema: Cidadão.AI Backend - Multi-Agent Transparency Platform
 
-**Analista**: Claude Code (Pericial Forensic Analysis)
+**Analista**: Anderson Henrique da Silva (Pericial Forensic Analysis)
 **Data da Análise**: 14 de outubro de 2025
 **Autor do Sistema**: Anderson Henrique da Silva
 **Localização**: Minas Gerais, Brasil
@@ -1001,7 +1001,7 @@ O **Cidadão.AI Backend** é um sistema **excepcionalmente bem arquitetado e imp
 
 ---
 
-**Relatório compilado por**: Claude Code (Forensic Analysis Tool)
+**Relatório compilado por**: Anderson Henrique da Silva
 **Data**: 14 de outubro de 2025
 **Método**: Análise pericial completa da codebase
 **Arquivos Analisados**: 200+ arquivos Python

@@ -3,7 +3,7 @@
 **Sprint**: ROADMAP_SPRINT_2025_11_19.md
 **Data**: 19 Nov 2025 (Dia 1 - Continuação)
 **Status**: 🟢 **EM ANDAMENTO** - Dia 1 parcialmente completo
-**Team**: Anderson Henrique + Claude Code
+**Team**: Anderson Henrique da Silva
 
 ---
 
@@ -507,5 +507,5 @@ Dia 3-5: 0-1 agentes (Dandara boost)
 
 **Criado em**: 2025-11-19
 **Última Atualização**: 2025-11-19 (continuação sessão)
-**Autor**: Claude Code (documentando trabalho de Anderson + Claude)
+**Autor**: Anderson Henrique da Silva
 **Próxima Revisão**: Fim do Dia 2 (20 Nov)

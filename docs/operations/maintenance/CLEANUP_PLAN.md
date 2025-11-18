@@ -224,4 +224,4 @@ Vou fazer step-by-step:
 ---
 
 *Gerado em: 2025-10-09*
-*Autor: Anderson Henrique (com Claude Code)*
+*Autor: Anderson Henrique da Silva*
