@@ -10,7 +10,7 @@ from uuid import uuid4
 import pytest
 
 from src.agents.abaporu import InvestigationPlan, InvestigationResult, MasterAgent
-from src.agents.deodoro import AgentContext, AgentMessage, AgentStatus
+from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, AgentStatus
 from src.core.exceptions import InvestigationError
 
 
@@ -864,3 +864,93 @@ class TestCoverageBoost:
 
         # Should complete without errors
         assert True  # Shutdown successful
+
+
+@pytest.mark.unit
+class TestIntegrationWorkflow:
+    """Integration tests that cover the complete investigation workflow (lines 293-398)."""
+
+    @pytest.mark.asyncio
+    async def test_process_investigation_complete_workflow(
+        self, master_agent, agent_context
+    ):
+        """Test complete investigation workflow from query to result (covers lines 293-398)."""
+        from unittest.mock import AsyncMock
+
+        await master_agent.initialize()
+
+        # Mock agent in registry (Zumbi is what the LLM returns in the plan)
+        mock_zumbi = AsyncMock()
+        mock_zumbi.process = AsyncMock(
+            return_value=AgentResponse(
+                agent_name="Zumbi",
+                status=AgentStatus.COMPLETED,
+                result={
+                    "findings": ["High spending in Q4"],
+                    "sources": ["budget_2024.csv"],
+                },
+                metadata={},
+            )
+        )
+        master_agent.agent_registry["Zumbi"] = mock_zumbi
+
+        # Create message to trigger investigation workflow
+        message = AgentMessage(
+            sender="test",
+            recipient="MasterAgent",
+            action="investigate",
+            payload={"query": "Investigate unusual spending patterns"},
+        )
+
+        # Execute investigation via process()
+        response = await master_agent.process(message, agent_context)
+
+        # Verify response
+        assert response.status == AgentStatus.COMPLETED
+        assert isinstance(response.result, InvestigationResult)
+        assert response.result.query == "Investigate unusual spending patterns"
+        assert response.result.investigation_id == agent_context.investigation_id
+        assert len(response.result.findings) >= 0
+        assert 0.0 <= response.result.confidence_score <= 1.0
+        assert response.result.processing_time_ms > 0
+        assert "plan" in response.result.metadata
+        assert "steps_executed" in response.result.metadata
+
+    @pytest.mark.asyncio
+    async def test_process_investigation_with_failed_step(
+        self, master_agent, agent_context
+    ):
+        """Test investigation with failed step handling (covers lines 355-361)."""
+        from unittest.mock import AsyncMock
+
+        await master_agent.initialize()
+
+        # Mock agent that fails (Zumbi is what the LLM returns in the plan)
+        mock_zumbi = AsyncMock()
+        mock_zumbi.process = AsyncMock(
+            return_value=AgentResponse(
+                agent_name="Zumbi",
+                status=AgentStatus.ERROR,
+                result={},
+                error="Agent processing failed",
+                metadata={},
+            )
+        )
+        master_agent.agent_registry["Zumbi"] = mock_zumbi
+
+        # Create message
+        message = AgentMessage(
+            sender="test",
+            recipient="MasterAgent",
+            action="investigate",
+            payload={"query": "Investigation with failing agent"},
+        )
+
+        # Execute investigation - should handle error gracefully
+        response = await master_agent.process(message, agent_context)
+
+        # Should still return result (with fewer findings)
+        assert response.status == AgentStatus.COMPLETED
+        assert isinstance(response.result, InvestigationResult)
+        # Findings may be empty due to failed step
+        assert isinstance(response.result.findings, list)
