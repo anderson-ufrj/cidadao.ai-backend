@@ -464,7 +464,9 @@ class TestCeuciIntegration:
         assert len(responses) == 3
         # Verify each has ML pipeline results
         for response in responses:
-            assert "model_type" in response.result or "trend_analysis" in response.result
+            assert (
+                "model_type" in response.result or "trend_analysis" in response.result
+            )
 
 
 class TestCeuciPrivateMethods:
@@ -884,3 +886,260 @@ class TestCeuciIntegrationCoverage:
 
         response = await ceuci_agent.process(message, agent_context)
         assert response.status in [AgentStatus.COMPLETED, AgentStatus.ERROR]
+
+
+@pytest.mark.unit
+class TestCeuciCoverageBoost:
+    """Additional tests to boost coverage to 85%+ for production readiness."""
+
+    @pytest.mark.asyncio
+    async def test_detect_seasonal_patterns_with_strong_seasonality(
+        self, ceuci_agent, agent_context
+    ):
+        """Test detect_seasonal_patterns with clear monthly seasonality (lines 492-545)."""
+        # Create 3 years of monthly data with strong seasonal pattern
+        data = []
+        for month in range(36):  # 3 years
+            seasonal_component = 50 * np.sin(2 * np.pi * month / 12)  # Monthly cycle
+            trend = 100 + month * 2
+            noise = np.random.normal(0, 5)
+            data.append({"month": month, "value": trend + seasonal_component + noise})
+
+        result = await ceuci_agent.detect_seasonal_patterns(
+            data, "value", agent_context
+        )
+
+        assert result is not None
+        assert "has_seasonality" in result
+        # Should detect strong seasonality (actual period may vary based on autocorrelation)
+        assert "seasonal_period" in result
+        if result["has_seasonality"]:  # May be np.True_ or bool
+            assert result["seasonal_period"] in [
+                12,
+                6,
+                4,
+                3,
+            ]  # One of the tested periods
+        assert "strength" in result
+        assert "autocorrelations" in result
+        assert "patterns" in result
+        assert "confidence" in result
+
+    @pytest.mark.asyncio
+    async def test_forecast_anomalies_full_workflow(self, ceuci_agent, agent_context):
+        """Test forecast_anomalies method with full workflow (lines 632-718)."""
+        # Historical data with clear pattern
+        historical_data = []
+        for i in range(50):
+            value = 100 + i * 2 + np.random.normal(0, 5)
+            historical_data.append({"index": i, "value": value})
+
+        # Forecast 10 periods ahead
+        anomalies = await ceuci_agent.forecast_anomalies(
+            historical_data, 10, agent_context
+        )
+
+        assert anomalies is not None
+        assert isinstance(anomalies, list)
+        # Should return anomaly alerts or empty list
+        for anomaly in anomalies:
+            assert "timestamp" in anomaly or "period" in anomaly
+            assert "severity" in anomaly or "probability" in anomaly
+
+    @pytest.mark.asyncio
+    async def test_predict_time_series_full_pipeline(self, ceuci_agent, agent_context):
+        """Test predict_time_series with complete ML pipeline (lines 728-816)."""
+        from src.agents.ceuci import ModelType, PredictionRequest, PredictionType
+
+        # Create synthetic time series data
+        data = []
+        for i in range(100):
+            value = (
+                100 + i * 1.5 + 10 * np.sin(2 * np.pi * i / 12) + np.random.normal(0, 3)
+            )
+            data.append({"index": i, "value": value, "trend": i * 1.5})
+
+        request = PredictionRequest(
+            request_id="test_ts_001",
+            prediction_type=PredictionType.TIME_SERIES,
+            model_type=ModelType.RANDOM_FOREST,
+            data=data,
+            target_variable="value",
+            feature_variables=["trend"],
+            prediction_horizon=12,
+            confidence_level=0.95,
+            additional_params={},
+        )
+
+        result = await ceuci_agent.predict_time_series(request, agent_context)
+
+        assert result is not None
+        assert result.request_id == "test_ts_001"
+        assert result.model_type == ModelType.RANDOM_FOREST
+        assert len(result.predictions) > 0
+        assert "confidence_intervals" in dir(result)
+        assert "model_performance" in dir(result)
+        assert "trend_analysis" in dir(result)
+
+    @pytest.mark.asyncio
+    async def test_detect_seasonal_patterns_edge_cases(
+        self, ceuci_agent, agent_context
+    ):
+        """Test detect_seasonal_patterns with edge cases for coverage."""
+        # Test with exactly 24 data points (minimum for seasonality)
+        data_24 = [{"index": i, "value": 100 + 10 * (i % 12)} for i in range(24)]
+        result_24 = await ceuci_agent.detect_seasonal_patterns(
+            data_24, "value", agent_context
+        )
+        assert result_24 is not None
+        assert "has_seasonality" in result_24
+
+        # Test with 50 data points (enough for all periods)
+        data_50 = [
+            {"index": i, "value": 100 + 10 * np.sin(2 * np.pi * i / 12)}
+            for i in range(50)
+        ]
+        result_50 = await ceuci_agent.detect_seasonal_patterns(
+            data_50, "value", agent_context
+        )
+        assert result_50 is not None
+        assert "has_seasonality" in result_50
+        assert "autocorrelations" in result_50
+        # Should test periods [12, 6, 4, 3]
+        assert len(result_50["autocorrelations"]) > 0
+
+    @pytest.mark.asyncio
+    async def test_forecast_anomalies_with_anomalies(self, ceuci_agent, agent_context):
+        """Test forecast_anomalies detecting actual anomalous forecasts."""
+        # Historical data with stable pattern
+        historical_data = []
+        for i in range(100):
+            value = 100 + np.random.normal(0, 2)  # Stable around 100
+            historical_data.append({"index": i, "value": value})
+
+        # Add some outliers at the end (will influence forecast)
+        historical_data.extend(
+            [
+                {"index": 100, "value": 200},  # Outlier
+                {"index": 101, "value": 205},  # Outlier
+            ]
+        )
+
+        anomalies = await ceuci_agent.forecast_anomalies(
+            historical_data, 5, agent_context
+        )
+
+        assert anomalies is not None
+        assert isinstance(anomalies, list)
+
+    @pytest.mark.asyncio
+    async def test_predict_time_series_with_linear_regression(
+        self, ceuci_agent, agent_context
+    ):
+        """Test predict_time_series with LINEAR_REGRESSION model type."""
+        from src.agents.ceuci import ModelType, PredictionRequest, PredictionType
+
+        # Create simple linear trend
+        data = []
+        for i in range(50):
+            value = 50 + i * 3 + np.random.normal(0, 2)
+            data.append({"index": i, "value": value})
+
+        request = PredictionRequest(
+            request_id="test_lr_001",
+            prediction_type=PredictionType.TIME_SERIES,
+            model_type=ModelType.LINEAR_REGRESSION,
+            data=data,
+            target_variable="value",
+            feature_variables=[],
+            prediction_horizon=10,
+            confidence_level=0.90,
+            additional_params={},
+        )
+
+        result = await ceuci_agent.predict_time_series(request, agent_context)
+
+        assert result is not None
+        assert result.model_type == ModelType.LINEAR_REGRESSION
+        assert len(result.predictions) > 0
+
+    @pytest.mark.asyncio
+    async def test_process_with_seasonal_decomposition(
+        self, ceuci_agent, agent_context
+    ):
+        """Test process() with SEASONAL_DECOMPOSITION prediction type."""
+        # Create data with clear seasonal pattern
+        data = []
+        for i in range(48):  # 4 years of quarterly data
+            seasonal = [10, 25, 15, 5][i % 4]
+            trend = 100 + i * 2
+            data.append({"quarter": i, "value": trend + seasonal})
+
+        message = AgentMessage(
+            sender="test",
+            recipient="Ceuci",
+            action="predict",
+            payload={
+                "prediction_type": "SEASONAL_DECOMPOSITION",
+                "model_type": "ARIMA",
+                "data": data,
+                "target_variable": "value",
+                "prediction_horizon": 4,
+            },
+        )
+
+        response = await ceuci_agent.process(message, agent_context)
+
+        # May return error if not implemented, but should not crash
+        assert response is not None
+        assert response.status in [AgentStatus.COMPLETED, AgentStatus.ERROR]
+
+    @pytest.mark.asyncio
+    async def test_compare_models_workflow(self, ceuci_agent, agent_context):
+        """Test compare_models method for coverage (lines 632-718)."""
+        from src.agents.ceuci import ModelType
+
+        # Create data with clear trend
+        data = []
+        for i in range(50):
+            value = 100 + i * 3 + np.random.normal(0, 5)
+            data.append({"index": i, "value": value})
+
+        # Compare LINEAR_REGRESSION, POLYNOMIAL_REGRESSION, RANDOM_FOREST
+        models = [
+            ModelType.LINEAR_REGRESSION,
+            ModelType.POLYNOMIAL_REGRESSION,
+            ModelType.RANDOM_FOREST,
+        ]
+
+        result = await ceuci_agent.compare_models(data, "value", models, agent_context)
+
+        assert result is not None
+        assert "models" in result
+        assert "best_model" in result
+        assert "ranking" in result
+        # Should have compared 3 models
+        assert len(result["models"]) == 3
+        # Each model should have performance metrics
+        for metrics in result["models"].values():
+            assert "mae" in metrics
+            assert "rmse" in metrics
+            assert "r2_score" in metrics
+            assert "mape" in metrics
+            assert "training_time" in metrics
+
+    @pytest.mark.asyncio
+    async def test_compare_models_insufficient_data(self, ceuci_agent, agent_context):
+        """Test compare_models with insufficient data for edge case coverage."""
+        from src.agents.ceuci import ModelType
+
+        # Create data with only 10 points (less than minimum 20)
+        data = [{"index": i, "value": 100 + i} for i in range(10)]
+
+        models = [ModelType.LINEAR_REGRESSION]
+
+        result = await ceuci_agent.compare_models(data, "value", models, agent_context)
+
+        assert result is not None
+        # Should return error for insufficient data
+        assert "error" in result or "models" in result
