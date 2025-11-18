@@ -447,7 +447,7 @@ async def test_decorator_with_invalid_input(agent, agent_context):
 ---
 
 **Documento criado**: Domingo, 26 de outubro de 2025, 23:00 -03
-**Autores**: Anderson H. Silva + Claude Code
+**Autores**: Anderson Henrique da Silva
 **Status**: ✅ **COMPLETO** - Sessões 7 & 8 documentadas
 **Próximo passo**: Atacar Bonifácio (legal compliance) ou Tiradentes (report generation)
 

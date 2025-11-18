@@ -467,7 +467,7 @@ alerts:
 
 ---
 
-**Author**: Claude Code (anderson-henrique)
+**Author**: Anderson Henrique da Silva
 **Last Updated**: 2025-11-04 18:00 UTC
 **Commit**: `7ac59c4`
 **Status**: ✅ Deployed (Auto-deploying to Railway)
