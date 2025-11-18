@@ -1,5 +1,12 @@
 # 🏹 Oxóssi - The Fraud Hunter
 
+**Author**: Anderson Henrique da Silva
+**Location**: Minas Gerais, Brazil
+**Created**: 2025-09-28
+**Last Updated**: 2025-11-18
+
+---
+
 **Autor**: Anderson Henrique da Silva
 **Localização**: Minas Gerais, Brasil
 **Data**: 2025-10-13 20:00:00 -03:00

@@ -1,6 +1,9 @@
 # Sistema Cidadão.AI - Roadmap de Melhorias 2025
 
-**Data**: 2025-11-14
+**Author**: Anderson Henrique da Silva
+**Location**: Minas Gerais, Brazil
+**Created**: 2025-11-14
+**Last Updated**: 2025-11-18
 **Versão Atual**: 1.0.0
 **Cobertura de Testes**: 76.29% (Target: 80%)
 **Status**: Produção (Railway, 99.9% uptime)

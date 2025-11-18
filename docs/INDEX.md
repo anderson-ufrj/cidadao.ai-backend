@@ -1,5 +1,8 @@
 # 📚 Documentation Index - Cidadão.AI Backend
 
+**Author**: Anderson Henrique da Silva
+**Location**: Minas Gerais, Brazil
+**Created**: 2025-09-15
 **Last Updated**: 2025-11-18
 **Version**: 1.0.0
 
