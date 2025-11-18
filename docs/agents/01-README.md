@@ -1,37 +1,40 @@
 # 🤖 Agentes - Cidadão.AI Backend
 
 **Autor**: Anderson Henrique da Silva
-**Última Atualização**: 2025-10-13 19:56:00 -03:00 (Minas Gerais, Brasil)
-**Versão**: 2.2.0 - Oxóssi Discovery & 94.4% Operational
+**Última Atualização**: 2025-11-18 (Auditoria Sistemática de Documentação)
+**Versão**: 2.3.0 - Documentation Audit & Accuracy Update
 
 ---
 
-## 📊 Status Geral (Atualizado 13/Out/2025 - 19:56h)
+## 📊 Status Geral (Atualizado 18/Nov/2025)
 
-**17 de 18 agentes totalmente operacionais (94.4%)** 🎉 | **1 framework base (5.6%)**
+**16 de 17 agentes totalmente operacionais (94.1%)** 🎉 | **1 framework base (5.9%)**
 
-> **MARCO HISTÓRICO**: Sprint de 13/10/2025 completou 56 TODOs em ~6 horas, promovendo 5 agentes de Tier 2 para Tier 1!
-> Agentes promovidos: Oscar Niemeyer, Ceuci, Maria Quitéria, Drummond, Obaluaiê
+> **AUDITORIA DE DOCUMENTAÇÃO** (18/11/2025): Contagem corrigida após análise sistemática do codebase
+> - **Agentes registrados no `__init__.py`**: 16 agentes funcionais
+> - **Framework base**: Deodoro (classe abstrata)
+> - **Arquivos no diretório**: 24 arquivos `.py` (incluindo utilitários e wrappers)
 >
-> **DESCOBERTA ADICIONAL** (15:30h): Dandara e Lampião já estavam 100% implementados!
-> - **Dandara**: 703 linhas, 5 algoritmos, APIs reais (IBGE, DataSUS, INEP)
-> - **Lampião**: 1.433 linhas, 8+ algoritmos, IBGE API com 27 estados
+> **Arquivos Auxiliares Identificados**:
+> - `drummond_simple.py`: Versão simplificada para cenários lightweight
+> - `zumbi_wrapper.py`: Wrapper com métricas adicionais
+> - `parallel_processor.py`: Processamento paralelo de agentes
+> - `metrics_wrapper.py`: Instrumentação de métricas Prometheus
+> - `agent_pool_interface.py`: Interface para pool de agentes
+> - `simple_agent_pool.py`: Implementação do pool (registrado no `__init__.py`)
 >
-> **DESCOBERTA FINAL** (19:56h): Oxóssi também estava 100% implementado!
-> - **Oxóssi**: 1.057 linhas, 7+ algoritmos de detecção de fraude
-> - Bid Rigging, Price Fixing, Phantom Vendors, Invoice Fraud, Money Laundering
->
-> Progresso real: 44% → **94.4%** (+50.4% de implementação descoberta)
+> Total de linhas: **25,247** (apenas agentes implementados)
 
 ---
 
 ## 🎯 Classificação por Implementação
 
-### 🟢 TIER 1: Totalmente Operacionais (17 agentes - 94.4%)
-Implementação completa com algoritmos de produção, 80%+ dos métodos funcionais, APIs reais integradas
+### 🟢 TIER 1: Totalmente Operacionais (16 agentes - 94.1%)
+Implementação completa com algoritmos de produção, 80%+ dos métodos funcionais, APIs reais integradas.
+Todos os agentes listados abaixo estão registrados em `src/agents/__init__.py` para lazy loading.
 
-### ⚙️ FRAMEWORK BASE: (1 agente - 5.6%)
-Classe base abstrata (BaseAgent) da qual todos os agentes herdam - intencional
+### ⚙️ FRAMEWORK BASE: (1 framework - 5.9%)
+Classe base abstrata (ReflectiveAgent, BaseAgent) da qual todos os agentes herdam - intencional
 
 ---
 
@@ -634,24 +637,25 @@ metadata = await oscar.generate_visualization_metadata(
 **File**: `src/agents/zumbi_wrapper.py` (89 lines)
 **Tests**: Check `tests/unit/agents/test_zumbi_wrapper.py`
 
-## 📊 Resumo Estatístico
+## 📊 Resumo Estatístico (Atualizado 18/Nov/2025)
 
-| Métrica | Valor |
-|---------|-------|
-| **Total de Agentes** | 18 (17 operacionais + 1 framework) |
-| **Tier 1 (Operacionais)** | 17 (94.4%) 🎉 |
-| **Framework Base** | 1 (5.6%) - Deodoro |
-| **Com Testes Completos** | 35 (39%) ⏳ |
-| **Total Linhas de Código** | ~26.000 |
-| **Média por Agente Operacional** | ~1.530 linhas |
-| **Maior Agente** | Maria Quitéria (2.449 linhas) |
-| **2º Maior** | Zumbi (2.181 linhas) |
-| **3º Maior** | Lampião (1.433 linhas) |
-| **4º Maior** | Oscar Niemeyer (1.224 linhas) |
-| **5º Maior** | Oxóssi (1.057 linhas) |
-| **TODOs Restantes** | 0 ✅ |
-| **Algoritmos Implementados** | 75+ |
-| **APIs Reais Integradas** | IBGE, DataSUS, INEP, Portal |
+| Métrica | Valor | Fonte |
+|---------|-------|-------|
+| **Total de Agentes** | 17 (16 operacionais + 1 framework) | `src/agents/__init__.py` |
+| **Tier 1 (Operacionais)** | 16 (94.1%) 🎉 | Lazy imports registrados |
+| **Framework Base** | 1 (5.9%) - Deodoro | `src/agents/deodoro.py` |
+| **Arquivos no Diretório** | 24 arquivos `.py` | `src/agents/*.py` |
+| **Total Linhas de Código** | 25,247 linhas | `wc -l src/agents/*.py` |
+| **Média por Agente** | ~1,578 linhas | 25247 / 16 |
+| **Maior Agente** | Maria Quitéria (2,594 linhas) | ✅ |
+| **2º Maior** | Bonifácio (2,131 linhas) | ✅ |
+| **3º Maior** | Tiradentes (1,934 linhas) | ✅ |
+| **4º Maior** | Ceuci (1,798 linhas) | ✅ |
+| **5º Maior** | Drummond (1,707 linhas) | ✅ |
+| **Zumbi** | 1,427 linhas | ⚠️ Corrigido |
+| **Algoritmos Implementados** | 75+ | Estimativa |
+| **APIs Reais Integradas** | IBGE, DataSUS, INEP, Portal, PNCP | Documentado |
+| **Rotas API** | 323 endpoints em 36 routers | `src/api/routes/` |
 
 ---
 
