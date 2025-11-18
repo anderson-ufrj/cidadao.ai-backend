@@ -271,7 +271,7 @@ JWT_SECRET_KEY=test SECRET_KEY=test make test
 ### Git Commit Guidelines (CRÍTICO)
 ```bash
 # ❌ NUNCA mencionar:
-# - Claude Code
+
 # - AI assistance
 # - LLM tools
 # - Generative AI

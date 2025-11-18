@@ -254,6 +254,6 @@ railway variables --set "DISABLE_ALL_MIDDLEWARE=true"
 
 ---
 
-**Author**: Claude Code (anderson-henrique)
+**Author**: Anderson Henrique da Silva
 **Last Updated**: 2025-11-04 17:30 UTC
 **Commit Reference**: `2935ba6`
