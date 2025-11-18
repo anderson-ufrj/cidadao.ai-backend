@@ -1,0 +1,60 @@
+name: Documentation Validation
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - 'README.md'
+      - 'CLAUDE.md'
+      - 'docs/**'
+      - 'src/agents/**'
+      - 'tests/**'
+      - 'scripts/validate_documentation.py'
+      - '.github/workflows/validate-documentation.yml'
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'README.md'
+      - 'CLAUDE.md'
+      - 'docs/**'
+      - 'src/agents/**'
+      - 'tests/**'
+      - 'scripts/validate_documentation.py'
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+    name: Validate Documentation vs Code
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pydantic-settings
+
+      - name: Run documentation validation
+        env:
+          JWT_SECRET_KEY: test
+          SECRET_KEY: test
+        run: |
+          python scripts/validate_documentation.py
+
+      - name: Upload validation results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-results
+          path: |
+            *.log
+            *.json
+          retention-days: 30
