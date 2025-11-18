@@ -90,6 +90,98 @@ class PredictionResult:
     timestamp: datetime
 
 
+class MessageToPredictionAdapter:
+    """
+    Adapter to convert between AgentMessage/AgentResponse and PredictionRequest/PredictionResult.
+
+    This adapter bridges the simplified API (process()) with the complete ML pipeline
+    (predict_time_series, analyze_trends, etc.), enabling unified access to full ML capabilities.
+    """
+
+    @staticmethod
+    def to_prediction_request(
+        message: AgentMessage, context: AgentContext
+    ) -> PredictionRequest:
+        """
+        Convert AgentMessage to PredictionRequest.
+
+        Args:
+            message: Incoming agent message
+            context: Agent execution context
+
+        Returns:
+            PredictionRequest for ML pipeline
+
+        Raises:
+            ValueError: If required fields are missing
+        """
+        payload = message.payload if isinstance(message.payload, dict) else {}
+
+        # Extract and validate prediction type
+        prediction_type_str = payload.get("prediction_type", "TIME_SERIES").upper()
+        try:
+            prediction_type = PredictionType[prediction_type_str]
+        except KeyError:
+            prediction_type = PredictionType.TIME_SERIES
+
+        # Extract and validate model type
+        model_type_str = payload.get("model_type", "ARIMA").upper()
+        try:
+            model_type = ModelType[model_type_str]
+        except KeyError:
+            model_type = ModelType.ARIMA
+
+        # Build PredictionRequest
+        return PredictionRequest(
+            request_id=context.investigation_id,
+            prediction_type=prediction_type,
+            model_type=model_type,
+            data=payload.get("data", []),
+            target_variable=payload.get("target_variable", "value"),
+            feature_variables=payload.get("feature_variables", []),
+            prediction_horizon=payload.get("prediction_horizon", 12),
+            confidence_level=payload.get("confidence_level", 0.95),
+            additional_params=payload.get("additional_params", {}),
+        )
+
+    @staticmethod
+    def to_agent_response(
+        result: PredictionResult, agent_name: str
+    ) -> AgentResponse:
+        """
+        Convert PredictionResult to AgentResponse.
+
+        Args:
+            result: ML pipeline result
+            agent_name: Name of the agent
+
+        Returns:
+            AgentResponse for message system
+        """
+        return AgentResponse(
+            agent_name=agent_name,
+            status=AgentStatus.COMPLETED,
+            result={
+                "predictions": result.predictions,
+                "confidence_intervals": result.confidence_intervals,
+                "model_performance": result.model_performance,
+                "feature_importance": result.feature_importance,
+                "trend_analysis": result.trend_analysis,
+                "seasonal_patterns": result.seasonal_patterns,
+                "anomaly_alerts": result.anomaly_alerts,
+                "model_type": result.model_type.value,
+                "request_id": result.request_id,
+                "timestamp": result.timestamp.isoformat(),
+            },
+            metadata={
+                "request_id": result.request_id,
+                "model_version": result.metadata.get("model_version", "1.0"),
+                "training_samples": result.metadata.get("training_samples", 0),
+                "prediction_type": result.metadata.get("prediction_type", "unknown"),
+            },
+        )
+
+
 class PredictiveAgent(BaseAgent):
     """
     Ceuci - Agente Preditivo
@@ -548,8 +640,8 @@ class PredictiveAgent(BaseAgent):
         X = np.arange(len(values)).reshape(-1, 1)
         y = values
 
-        # Time series cross-validation
-        tscv = TimeSeriesSplit(n_splits=min(5, len(values) // 10))
+        # Time series cross-validation (ensure minimum 2 splits for small datasets)
+        tscv = TimeSeriesSplit(n_splits=max(2, min(5, len(values) // 10)))
 
         model_comparison = {}
 
@@ -955,8 +1047,8 @@ class PredictiveAgent(BaseAgent):
         X = np.arange(len(data)).reshape(-1, 1)
         y = data[target_col].values
 
-        # Time series cross-validation
-        tscv = TimeSeriesSplit(n_splits=min(5, len(data) // 20))
+        # Time series cross-validation (ensure minimum 2 splits for small datasets)
+        tscv = TimeSeriesSplit(n_splits=max(2, min(5, len(data) // 20)))
         mae_scores = []
         rmse_scores = []
         mape_scores = []
@@ -1514,66 +1606,83 @@ class PredictiveAgent(BaseAgent):
         context: AgentContext,
     ) -> AgentResponse:
         """
-        Process predictive analysis request.
+        Process predictive analysis request using full ML pipeline.
+
+        This method now uses the complete ML pipeline (predict_time_series, analyze_trends, etc.)
+        instead of stub methods, providing real predictions with ARIMA, LSTM, and Prophet models.
 
         Args:
             message: Agent message containing prediction request
             context: Agent execution context
 
         Returns:
-            AgentResponse with prediction results
+            AgentResponse with ML-based prediction results
         """
         try:
             self.logger.info(
-                "Processing predictive analysis request",
+                "Processing predictive analysis request with full ML pipeline",
                 message_action=message.action,
                 context_id=context.investigation_id,
             )
 
-            # Extract data from message payload
-            data = (
-                message.payload
-                if isinstance(message.payload, dict)
-                else {"query": str(message.payload)}
-            )
+            # Convert message to prediction request
+            request = MessageToPredictionAdapter.to_prediction_request(message, context)
 
-            # Determine prediction type
-            prediction_type = data.get("prediction_type", "time_series")
-
-            # Perform prediction based on type
-            if prediction_type == "time_series":
-                result = await self._time_series_prediction(data, context)
-            elif prediction_type == "anomaly_forecast":
-                result = await self._anomaly_forecast(data, context)
-            elif prediction_type == "trend_analysis":
-                result = await self._trend_analysis(data, context)
+            # Route to appropriate ML method based on prediction type
+            if request.prediction_type == PredictionType.TIME_SERIES:
+                result = await self.predict_time_series(request, context)
+            elif request.prediction_type == PredictionType.ANOMALY_FORECAST:
+                # forecast_anomalies has different signature (historical_data, horizon, context)
+                anomalies = await self.forecast_anomalies(
+                    request.data, request.prediction_horizon, context
+                )
+                # Wrap in PredictionResult
+                result = PredictionResult(
+                    request_id=request.request_id,
+                    model_type=request.model_type,
+                    predictions=[],
+                    confidence_intervals=[],
+                    model_performance={},
+                    feature_importance={},
+                    trend_analysis={},
+                    seasonal_patterns={},
+                    anomaly_alerts=anomalies,
+                    metadata={"prediction_type": "anomaly_forecast"},
+                    timestamp=datetime.utcnow(),
+                )
+            elif request.prediction_type == PredictionType.TREND_ANALYSIS:
+                # analyze_trends returns dict, need to wrap in PredictionResult
+                trend_result = await self.analyze_trends(
+                    request.data, request.target_variable, context
+                )
+                # Create minimal PredictionResult from trend analysis
+                result = PredictionResult(
+                    request_id=request.request_id,
+                    model_type=request.model_type,
+                    predictions=[],
+                    confidence_intervals=[],
+                    model_performance={},
+                    feature_importance={},
+                    trend_analysis=trend_result,
+                    seasonal_patterns={},
+                    anomaly_alerts=[],
+                    metadata={"prediction_type": "trend_analysis"},
+                    timestamp=datetime.utcnow(),
+                )
             else:
-                result = {
-                    "prediction": "No specific prediction",
-                    "confidence": 0.5,
-                    "model_used": "default",
-                    "message": f"Prediction type '{prediction_type}' not specifically implemented",
-                }
+                raise ValueError(
+                    f"Unsupported prediction type: {request.prediction_type}"
+                )
 
-            return AgentResponse(
-                agent_name=self.name,
-                status=AgentStatus.COMPLETED,
-                result={
-                    "prediction_result": result,
-                    "agent": self.name,
-                    "timestamp": datetime.utcnow().isoformat(),
-                },
-                metadata={
-                    "prediction_type": prediction_type,
-                    "confidence": result.get("confidence", 0.5),
-                },
-            )
+            # Convert result to agent response
+            return MessageToPredictionAdapter.to_agent_response(result, self.name)
 
         except Exception as e:
             self.logger.error(
                 "Error processing predictive analysis",
                 error=str(e),
                 context_id=context.investigation_id,
+                exc_info=True,
             )
             return AgentResponse(
                 agent_name=self.name,
@@ -1581,42 +1690,6 @@ class PredictiveAgent(BaseAgent):
                 error=str(e),
                 metadata={"error_type": type(e).__name__},
             )
-
-    async def _time_series_prediction(
-        self, data: dict[str, Any], context: AgentContext
-    ) -> dict[str, Any]:
-        """Perform time series prediction using configured models."""
-        return {
-            "prediction": "Time series forecast",
-            "forecast_values": [],
-            "confidence": 0.75,
-            "model_used": "ARIMA",
-            "horizon": data.get("horizon", 12),
-        }
-
-    async def _anomaly_forecast(
-        self, data: dict[str, Any], context: AgentContext
-    ) -> dict[str, Any]:
-        """Forecast potential anomalies in future periods."""
-        return {
-            "prediction": "Anomaly forecast",
-            "anomaly_probability": 0.15,
-            "risk_level": "medium",
-            "confidence": 0.70,
-            "model_used": "Isolation Forest",
-        }
-
-    async def _trend_analysis(
-        self, data: dict[str, Any], context: AgentContext
-    ) -> dict[str, Any]:
-        """Analyze and predict trends in the data."""
-        return {
-            "prediction": "Trend analysis",
-            "trend_direction": "upward",
-            "trend_strength": 0.65,
-            "confidence": 0.80,
-            "model_used": "Linear Regression",
-        }
 
     async def shutdown(self) -> None:
         """
