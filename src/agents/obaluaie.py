@@ -12,7 +12,13 @@ from datetime import datetime
 from enum import Enum
 from typing import Any, Optional
 
-from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
+from src.agents.deodoro import (
+    AgentContext,
+    AgentMessage,
+    AgentResponse,
+    AgentStatus,
+    BaseAgent,
+)
 from src.core import get_logger
 
 
@@ -542,7 +548,7 @@ class CorruptionDetectorAgent(BaseAgent):
         try:
             self.logger.info(
                 "Processing corruption detection request",
-                message_type=message.type,
+                message_action=message.action,
                 context_id=context.investigation_id,
             )
 
@@ -591,9 +597,9 @@ class CorruptionDetectorAgent(BaseAgent):
                 )
 
             return AgentResponse(
-                success=True,
-                response_type="corruption_analysis",
-                data={
+                agent_name=self.name,
+                status=AgentStatus.COMPLETED,
+                result={
                     "corruption_analysis": result,
                     "alert": corruption_alert.__dict__ if corruption_alert else None,
                     "agent": self.name,
@@ -613,9 +619,10 @@ class CorruptionDetectorAgent(BaseAgent):
                 context_id=context.investigation_id,
             )
             return AgentResponse(
-                success=False,
-                response_type="error",
-                data={"error": str(e), "agent": self.name},
+                agent_name=self.name,
+                status=AgentStatus.ERROR,
+                result=None,
+                error=str(e),
                 metadata={"error_type": type(e).__name__},
             )
 
