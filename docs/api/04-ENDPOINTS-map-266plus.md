@@ -1,8 +1,8 @@
 # 🗺️ Mapa Completo de Endpoints da API Cidadão.AI
 
-**Autor**: Anderson Henrique da Silva  
-**Última atualização**: Outubro 2025  
-**Total de endpoints**: 529 endpoints  
+**Autor**: Anderson Henrique da Silva
+**Última atualização**: Outubro 2025
+**Total de endpoints**: 529 endpoints
 **Status**: 490 ativos, 39 inativos
 
 ## 📊 Resumo por Categoria
@@ -29,7 +29,7 @@
 ✅ GET  /health/                    - Health check básico
 ✅ GET  /health/detailed            - Health check detalhado
 ✅ GET  /health/live               - Kubernetes liveness probe
-✅ GET  /health/ready              - Kubernetes readiness probe  
+✅ GET  /health/ready              - Kubernetes readiness probe
 ✅ GET  /health/metrics            - Métricas Prometheus
 ✅ GET  /health/metrics/json       - Métricas em JSON
 ```
@@ -227,7 +227,7 @@ Agentes Específicos:
 ### Endpoints Bloqueados (78% retornam 403)
 ```
 ❌ Despesas
-❌ Fornecedores  
+❌ Fornecedores
 ❌ Emendas parlamentares
 ❌ Benefícios
 ❌ Dados de salários/remuneração
