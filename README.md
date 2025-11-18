@@ -13,7 +13,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![Test Coverage](https://img.shields.io/badge/Coverage-76.29%25-yellow)](docs/testing/)
 [![Tests Passing](https://img.shields.io/badge/Tests-97.4%25_Pass-brightgreen)](tests/)
-[![Agents](https://img.shields.io/badge/Agents-17_Operational-blue)](docs/agents/INDEX.md)
+[![Agents](https://img.shields.io/badge/Agents-16_Operational-blue)](docs/agents/INDEX.md)
 [![Code Lines](https://img.shields.io/badge/Code-~25.1k_lines-informational)](src/agents/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Docs](https://img.shields.io/badge/Docs-Complete-success)](docs/)
@@ -85,11 +85,11 @@ Este é o **Backend API** do ecossistema Cidadão.AI, composto por **4 repositó
 | **Deployment** | ✅ Railway Production (since 07/10/2025) |
 | **Database** | ✅ PostgreSQL (Railway) - Fully operational |
 | **Cache** | ✅ Redis (Railway) - Fully operational |
-| **Agents** | **18 agent files: 17 operational agents + 1 base framework** |
+| **Agents** | **17 agent files: 16 operational agents + 1 base framework** |
 | **Test Coverage (Agents)** | **76.29%** ✅ Nearly at 80% goal! |
-| **Total Tests** | **1,514 tests** across **135 test files** 🎉 |
+| **Total Tests** | **1,514 tests** across **136 test files** 🎉 |
 | **Test Pass Rate** | **97.4%** (1,474 passed, 40 failing) |
-| **All Agents Tested** | **17/17 (100%)** - Every agent has comprehensive tests |
+| **All Agents Tested** | **16/16 (100%)** - Every agent has comprehensive tests |
 | **Government APIs** | **13 APIs integrated** (8 Federal + 5 State) |
 | **REST Endpoints** | **300 endpoints** (176 GET, 109 POST, 6 PUT, 9 DELETE) across 49 route modules |
 | **API Uptime** | 99.9% |
@@ -991,7 +991,7 @@ cidadao.ai-backend/
 │       ├── conversational.py  # Chat history
 │       └── vector_store.py    # Embeddings (planned)
 │
-├── tests/                      # 135 test files, 1,514 tests, 76.29% coverage
+├── tests/                      # 136 test files, 1,514 tests, 76.29% coverage
 │   ├── unit/                   # 161 unit tests
 │   │   ├── agents/            # Agent tests
 │   │   ├── api/               # API tests
@@ -1256,7 +1256,7 @@ All agents are named after Brazilian historical figures and Afro-Brazilian cultu
 
 **Last Updated**: November 07, 2025 11:45:00 -03:00
 **Version**: 3.2.0 - Production on Railway
-**Agent System**: 17 agents (16 functional + 1 base framework) - 100% operational
+**Agent System**: 16 agents (16 functional + 1 base framework) - 100% operational
 **Test Coverage**: 76.29% (1,514 tests total)
 **Production URL**: https://cidadao-api-production.up.railway.app/
 **Uptime**: 99.9% since 07/10/2025
