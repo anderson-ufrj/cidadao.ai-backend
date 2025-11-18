@@ -1,9 +1,10 @@
 """
 Unit tests for Ceuci Agent - ML/Predictive Analysis specialist.
 Tests time series prediction, anomaly forecasting, and trend analysis capabilities.
-"""
 
-from unittest.mock import patch
+NOTE: After architecture unification (2025-11-18), tests now exercise the complete
+ML pipeline (ARIMA, LSTM, Prophet) instead of stub methods.
+"""
 
 import numpy as np
 import pandas as pd
@@ -112,28 +113,34 @@ class TestCeuciProcess:
 
     @pytest.mark.asyncio
     async def test_process_time_series_prediction(self, ceuci_agent, agent_context):
-        """Test processing time series prediction request."""
+        """Test processing time series prediction request with full ML pipeline."""
         message = AgentMessage(
             sender="test_agent",
             recipient="Ceuci",
             action="predict",
             payload={
                 "prediction_type": "time_series",
-                "horizon": 6,
+                "prediction_horizon": 6,
                 "data": [{"month": i, "value": 100 + i * 10} for i in range(12)],
+                "target_variable": "value",
             },
         )
 
         response = await ceuci_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
-        assert "prediction_result" in response.result
-        assert response.result["prediction_result"]["model_used"] == "ARIMA"
-        assert "confidence" in response.metadata
+        # Check new ML pipeline format
+        assert "predictions" in response.result
+        assert "model_type" in response.result
+        assert response.result["model_type"] == "arima"
+        assert "confidence_intervals" in response.result
+        assert "model_performance" in response.result
+        assert "trend_analysis" in response.result
+        assert len(response.result["predictions"]) == 6
 
     @pytest.mark.asyncio
     async def test_process_anomaly_forecast(self, ceuci_agent, agent_context):
-        """Test processing anomaly forecast request."""
+        """Test processing anomaly forecast request with full ML pipeline."""
         message = AgentMessage(
             sender="test_agent",
             recipient="Ceuci",
@@ -141,21 +148,22 @@ class TestCeuciProcess:
             payload={
                 "prediction_type": "anomaly_forecast",
                 "data": [{"value": 100 + i * 5} for i in range(20)],
+                "target_variable": "value",
             },
         )
 
         response = await ceuci_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
-        assert "prediction_result" in response.result
-        result = response.result["prediction_result"]
-        assert "anomaly_probability" in result
-        assert "risk_level" in result
-        assert result["model_used"] == "Isolation Forest"
+        # Check new ML pipeline format
+        assert "predictions" in response.result
+        assert "anomaly_alerts" in response.result
+        assert "model_type" in response.result
+        assert "model_performance" in response.result
 
     @pytest.mark.asyncio
     async def test_process_trend_analysis(self, ceuci_agent, agent_context):
-        """Test processing trend analysis request."""
+        """Test processing trend analysis request with full ML pipeline."""
         message = AgentMessage(
             sender="test_agent",
             recipient="Ceuci",
@@ -163,38 +171,44 @@ class TestCeuciProcess:
             payload={
                 "prediction_type": "trend_analysis",
                 "data": [{"month": i, "spending": 50000 + i * 5000} for i in range(12)],
+                "target_variable": "spending",
             },
         )
 
         response = await ceuci_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
-        result = response.result["prediction_result"]
-        assert "trend_direction" in result
-        assert "trend_strength" in result
-        assert result["model_used"] == "Linear Regression"
+        # Check new ML pipeline format - trend_analysis returns wrapped result
+        assert "trend_analysis" in response.result
+        result = response.result["trend_analysis"]
+        assert "direction" in result
+        assert "strength" in result
+        assert result["direction"] in ["upward", "downward", "stable"]
 
     @pytest.mark.asyncio
     async def test_process_unknown_prediction_type(self, ceuci_agent, agent_context):
-        """Test processing unknown prediction type."""
+        """Test processing unknown prediction type - falls back to TIME_SERIES."""
         message = AgentMessage(
             sender="test_agent",
             recipient="Ceuci",
             action="predict",
-            payload={"prediction_type": "unknown_type", "data": []},
+            payload={
+                "prediction_type": "unknown_type",
+                "data": [{"value": i * 10} for i in range(12)],
+                "target_variable": "value",
+            },
         )
 
         response = await ceuci_agent.process(message, agent_context)
 
+        # Unknown types fall back to TIME_SERIES (adapter resilience)
+        # Should complete successfully
         assert response.status == AgentStatus.COMPLETED
-        assert (
-            "not specifically implemented"
-            in response.result["prediction_result"]["message"]
-        )
+        assert "predictions" in response.result
 
     @pytest.mark.asyncio
     async def test_process_with_string_data(self, ceuci_agent, agent_context):
-        """Test processing with string data instead of dict."""
+        """Test processing with string data - should error on invalid payload."""
         message = AgentMessage(
             sender="test_agent",
             recipient="Ceuci",
@@ -204,74 +218,30 @@ class TestCeuciProcess:
 
         response = await ceuci_agent.process(message, agent_context)
 
-        # Should handle gracefully and return default prediction
-        assert response.status == AgentStatus.COMPLETED
+        # String payload causes error (needs dict with data field)
+        assert response.status == AgentStatus.ERROR
 
     @pytest.mark.asyncio
     async def test_process_error_handling(self, ceuci_agent, agent_context):
         """Test error handling in process method."""
-        # Create a message that will cause an error
+        # Create a message with invalid payload (None)
         message = AgentMessage(
             sender="test_agent", recipient="Ceuci", action="predict", payload=None
         )
 
-        with patch.object(
-            ceuci_agent, "_time_series_prediction", side_effect=Exception("Test error")
-        ):
-            response = await ceuci_agent.process(message, agent_context)
+        response = await ceuci_agent.process(message, agent_context)
 
+        # None payload causes error
         assert response.status == AgentStatus.ERROR
-        assert response.error == "Test error"
+        assert response.error is not None
 
 
 # ============================================================================
-# PREDICTION TESTS
+# PREDICTION TESTS - Now using full ML pipeline via process()
 # ============================================================================
-
-
-@pytest.mark.unit
-class TestCeuciPredictions:
-    """Test specific prediction methods."""
-
-    @pytest.mark.asyncio
-    async def test_time_series_prediction(self, ceuci_agent, agent_context):
-        """Test time series prediction method."""
-        data = {
-            "horizon": 12,
-            "data": [{"month": i, "value": 100 + i * 10} for i in range(24)],
-        }
-
-        result = await ceuci_agent._time_series_prediction(data, agent_context)
-
-        assert "prediction" in result
-        assert "forecast_values" in result
-        assert "confidence" in result
-        assert "model_used" in result
-        assert result["horizon"] == 12
-
-    @pytest.mark.asyncio
-    async def test_anomaly_forecast(self, ceuci_agent, agent_context):
-        """Test anomaly forecasting method."""
-        data = {"data": [{"value": 100 + i * 5} for i in range(30)]}
-
-        result = await ceuci_agent._anomaly_forecast(data, agent_context)
-
-        assert "anomaly_probability" in result
-        assert "risk_level" in result
-        assert "confidence" in result
-        assert result["model_used"] == "Isolation Forest"
-
-    @pytest.mark.asyncio
-    async def test_trend_analysis(self, ceuci_agent, agent_context):
-        """Test trend analysis method."""
-        data = {"data": [{"month": i, "value": 1000 + i * 100} for i in range(12)]}
-
-        result = await ceuci_agent._trend_analysis(data, agent_context)
-
-        assert "trend_direction" in result
-        assert "trend_strength" in result
-        assert "confidence" in result
-        assert result["model_used"] == "Linear Regression"
+# NOTE: Stub methods (_time_series_prediction, _anomaly_forecast, _trend_analysis)
+# were removed as part of the architecture unification. All prediction tests
+# now use the complete ML pipeline via process() method (see TestCeuciProcess above).
 
 
 # ============================================================================
@@ -446,27 +416,31 @@ class TestCeuciIntegration:
     async def test_complete_prediction_workflow(
         self, ceuci_agent, agent_context, sample_contracts_data
     ):
-        """Test complete prediction workflow."""
+        """Test complete prediction workflow with full ML pipeline."""
         message = AgentMessage(
             sender="abaporu",
             recipient="Ceuci",
             action="predict",
             payload={
                 "prediction_type": "time_series",
-                "horizon": 3,
+                "prediction_horizon": 3,
                 "data": sample_contracts_data,
+                "target_variable": "value",
             },
         )
 
         response = await ceuci_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
-        assert "prediction_result" in response.result
-        assert response.metadata["prediction_type"] == "time_series"
+        # Check new ML pipeline format
+        assert "predictions" in response.result
+        assert "model_type" in response.result
+        assert "confidence_intervals" in response.result
+        assert len(response.result["predictions"]) == 3
 
     @pytest.mark.asyncio
     async def test_multiple_sequential_predictions(self, ceuci_agent, agent_context):
-        """Test multiple sequential prediction requests."""
+        """Test multiple sequential prediction requests with full ML pipeline."""
         prediction_types = ["time_series", "anomaly_forecast", "trend_analysis"]
         responses = []
 
@@ -478,6 +452,8 @@ class TestCeuciIntegration:
                 payload={
                     "prediction_type": pred_type,
                     "data": [{"value": i * 10} for i in range(20)],
+                    "target_variable": "value",
+                    "prediction_horizon": 5,
                 },
             )
             response = await ceuci_agent.process(message, agent_context)
@@ -486,6 +462,9 @@ class TestCeuciIntegration:
         # All should succeed
         assert all(r.status == AgentStatus.COMPLETED for r in responses)
         assert len(responses) == 3
+        # Verify each has ML pipeline results
+        for response in responses:
+            assert "model_type" in response.result or "trend_analysis" in response.result
 
 
 class TestCeuciPrivateMethods:
@@ -518,20 +497,23 @@ class TestCeuciPrivateMethods:
 
     @pytest.mark.asyncio
     async def test_train_model_random_forest(self, ceuci_agent):
-        """Test model training with random forest."""
+        """Test model training with random forest via time_series prediction."""
         message = AgentMessage(
             sender="test",
             recipient="Ceuci",
             action="predict",
             payload={
-                "prediction_type": "regression",
+                "prediction_type": "time_series",
                 "model_type": "random_forest",
-                "data": [{"x": i, "y": i * 2 + np.random.normal()} for i in range(50)],
+                "data": [{"value": i * 2 + np.random.normal()} for i in range(50)],
+                "target_variable": "value",
+                "prediction_horizon": 5,
             },
         )
 
         response = await ceuci_agent.process(message, AgentContext())
         assert response.status == AgentStatus.COMPLETED
+        assert "predictions" in response.result
 
     @pytest.mark.asyncio
     async def test_generate_predictions(self, ceuci_agent):
