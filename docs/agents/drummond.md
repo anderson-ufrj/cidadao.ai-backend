@@ -2,12 +2,17 @@
 
 **Autor**: Anderson Henrique da Silva
 **Localização**: Minas Gerais, Brasil
-**Última Atualização**: 2025-10-27
+**Última Atualização**: 2025-11-18
+
+> **⚠️ Duas Versões Disponíveis**:
+> - **Full** (`drummond.py`): NLG completo, 10 canais, multi-canal orchestration
+> - **Simple** (`drummond_simple.py`): Leve para HuggingFace Spaces, respostas pré-definidas
 
 ---
 
 **Status**: ✅ **Tier 1 (91.54% Cobertura)** - Totalmente Operacional
-**Arquivo**: `src/agents/drummond.py`
+**Arquivo Principal**: `src/agents/drummond.py` (full version)
+**Arquivo Alternativo**: `src/agents/drummond_simple.py` (lightweight version)
 **Tamanho**: 1,707 linhas
 **Métodos Implementados**: 32
 **Testes**: ✅ 117 testes (`tests/unit/agents/test_drummond*.py`)
@@ -368,6 +373,101 @@ NOTIFICATION_CHANNELS=email,portal_web  # Canais habilitados
 
 ---
 
+## 🔀 Drummond Simple - Versão Lightweight
+
+### Objetivo
+
+`drummond_simple.py` foi criado para deploy em **HuggingFace Spaces** onde:
+- Imports complexos causam problemas
+- Memória limitada
+- Sem acesso a Maritaca API garantido
+- Necessidade de respostas rápidas
+
+### Diferenças vs. Versão Full
+
+| Feature | drummond.py (Full) | drummond_simple.py |
+|---------|-------------------|-------------------|
+| **NLG** | ✅ Template + Neural | ❌ Pre-defined only |
+| **Canais** | ✅ 10 notification channels | ❌ Chat only |
+| **Maritaca** | ✅ Required | ⚠️ Optional |
+| **Personalização** | ✅ User segmentation | ❌ Generic |
+| **A/B Testing** | ✅ Built-in | ❌ None |
+| **Scheduling** | ✅ Full support | ❌ None |
+| **Complexity** | 1,707 lines | 149 lines |
+| **Dependencies** | Many | Minimal |
+| **Memory** | ~200MB | ~50MB |
+
+### Implementação Simple
+
+```python
+from src.agents.drummond_simple import SimpleDrummondAgent
+
+# Inicializar
+agent = SimpleDrummondAgent()
+
+# Processar mensagem
+message = AgentMessage(
+    sender="user",
+    recipient="drummond",
+    action="chat",
+    payload={
+        "user_message": "Olá!",
+        "intent": {"type": "greeting"}
+    }
+)
+
+response = await agent.process(message, AgentContext())
+print(response.result["message"])
+# Output: "Olá! Sou o Cidadão.AI, inspirado no poeta..."
+```
+
+### Intents Suportados (Simple)
+
+1. **greeting** - Saudações iniciais
+2. **help** - Pedidos de ajuda
+3. **about_system** - Informações sobre o sistema
+4. **thanks** - Agradecimentos
+5. **goodbye** - Despedidas
+6. **default** - Fallback genérico
+
+### Quando Usar Cada Versão
+
+**Use `drummond.py` (Full)**:
+- ✅ Produção local/Docker
+- ✅ Necessita multi-canal
+- ✅ Maritaca API disponível
+- ✅ Personalização por usuário
+- ✅ A/B testing ativo
+
+**Use `drummond_simple.py`**:
+- ✅ HuggingFace Spaces
+- ✅ Ambientes com restrições
+- ✅ Prototipação rápida
+- ✅ Chat básico suficiente
+- ✅ Sem Maritaca API
+
+### Exemplo de Deploy (HF Spaces)
+
+```python
+# app.py (HuggingFace Spaces)
+from src.agents.drummond_simple import SimpleDrummondAgent
+
+drummond = SimpleDrummondAgent()
+
+@app.post("/chat")
+async def chat(user_message: str):
+    message = AgentMessage(
+        sender="user",
+        recipient="drummond",
+        action="chat",
+        payload={"user_message": user_message, "intent": {"type": "unknown"}}
+    )
+    response = await drummond.process(message, AgentContext())
+    return {"message": response.result["message"]}
+```
+
+---
+
 ## 📚 Referências
 
 - **Poeta inspirador**: Carlos Drummond de Andrade (1902-1987)
@@ -381,13 +481,15 @@ NOTIFICATION_CHANNELS=email,portal_web  # Canais habilitados
 
 Para melhorar este agente:
 
-1. **Resolver o import circular** (alta prioridade)
-2. **Adicionar templates** para novos tipos de comunicação
-3. **Integrar novos canais** (Teams, Mattermost)
-4. **Expandir testes** para cobrir edge cases
+1. **Resolver o import circular** (alta prioridade - drummond.py)
+2. **Adicionar templates** para novos tipos de comunicação (both versions)
+3. **Integrar novos canais** (drummond.py only)
+4. **Expandir testes** para cobrir edge cases (both versions)
+5. **Criar testes para drummond_simple.py** (pendente)
 
 ---
 
 **Autor**: Anderson Henrique da Silva
 **Manutenção**: Ativa
-**Versão**: 0.95 (Beta)
+**Versão Full**: 0.95 (Beta)
+**Versão Simple**: 1.0 (Stable)
