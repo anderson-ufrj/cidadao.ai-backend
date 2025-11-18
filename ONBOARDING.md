@@ -47,7 +47,7 @@ This is your **numbered guide** to getting started with Cidadão.AI Backend. Fol
 
 ---
 
-### 3️⃣ [docs/INDEX.md](docs/INDEX.md) - Documentation Navigator
+### 3️⃣ [docs/01-INDEX.md](docs/01-INDEX.md) - Documentation Navigator
 **Time**: 10 min | **Why**: Learn where everything is documented
 
 **You'll discover**:
@@ -64,7 +64,7 @@ This is your **numbered guide** to getting started with Cidadão.AI Backend. Fol
 
 **Perfect for**: Developers, architects, technical contributors
 
-### 4️⃣ [docs/architecture/multi-agent-architecture.md](docs/architecture/multi-agent-architecture.md) - System Design
+### 4️⃣ [docs/architecture/01-MULTI-AGENT-architecture.md](docs/architecture/01-MULTI-AGENT-architecture.md) - System Design
 **Time**: 30-45 min | **Why**: Understand how the multi-agent system works
 
 **You'll learn**:
@@ -85,7 +85,7 @@ This is your **numbered guide** to getting started with Cidadão.AI Backend. Fol
 
 ---
 
-### 5️⃣ [docs/agents/README.md](docs/agents/README.md) - Agent System Overview
+### 5️⃣ [docs/agents/01-README.md](docs/agents/01-README.md) - Agent System Overview
 **Time**: 20-30 min | **Why**: Learn about all 16 AI agents
 
 **You'll learn**:
@@ -103,7 +103,7 @@ This is your **numbered guide** to getting started with Cidadão.AI Backend. Fol
 
 ---
 
-### 6️⃣ [docs/agents/zumbi.md](docs/agents/zumbi.md) - Best Agent Example
+### 6️⃣ [docs/agents/03-ZUMBI-anomaly-detection-96pct.md](docs/agents/03-ZUMBI-anomaly-detection-96pct.md) - Best Agent Example
 **Time**: 20-30 min | **Why**: Study the most complete agent implementation
 
 **You'll learn**:
@@ -123,7 +123,7 @@ This is your **numbered guide** to getting started with Cidadão.AI Backend. Fol
 
 ---
 
-### 7️⃣ [docs/api/INDEX.md](docs/api/INDEX.md) - API Catalog
+### 7️⃣ [docs/api/01-INDEX-catalog.md](docs/api/01-INDEX-catalog.md) - API Catalog
 **Time**: 20-30 min | **Why**: Explore 266+ endpoints and integrations
 
 **You'll learn**:
@@ -167,7 +167,7 @@ This is your **numbered guide** to getting started with Cidadão.AI Backend. Fol
 
 ---
 
-### 9️⃣ [docs/deployment/railway/README.md](docs/deployment/railway/README.md) - Production Deployment
+### 9️⃣ [docs/deployment/railway/01-README-railway-guide.md](docs/deployment/railway/01-README-railway-guide.md) - Production Deployment
 **Time**: 20-30 min | **Why**: Understand production infrastructure
 
 **You'll learn**:
@@ -188,7 +188,7 @@ This is your **numbered guide** to getting started with Cidadão.AI Backend. Fol
 
 ---
 
-### 🔟 [docs/project/ROADMAP_OFFICIAL_2025.md](docs/project/ROADMAP_OFFICIAL_2025.md) - Future Plans
+### 🔟 [docs/project/01-ROADMAP-official-2025-2026.md](docs/project/01-ROADMAP-official-2025-2026.md) - Future Plans
 **Time**: 15-20 min | **Why**: Understand where the project is going
 
 **You'll learn**:
@@ -210,35 +210,35 @@ This is your **numbered guide** to getting started with Cidadão.AI Backend. Fol
 
 **Perfect for**: Deep dives, specialized topics
 
-### 1️⃣1️⃣ [docs/architecture/IMPROVEMENT_ROADMAP_2025.md](docs/architecture/IMPROVEMENT_ROADMAP_2025.md) - Technical Improvements
+### 1️⃣1️⃣ [docs/architecture/02-IMPROVEMENT-roadmap-2025.md](docs/architecture/02-IMPROVEMENT-roadmap-2025.md) - Technical Improvements
 **Time**: 20-30 min
 
 **Topics**: 15 planned technical features, optimization strategies, scaling approach
 
 ---
 
-### 1️⃣2️⃣ [docs/api/STREAMING_IMPLEMENTATION.md](docs/api/STREAMING_IMPLEMENTATION.md) - Real-Time Features
+### 1️⃣2️⃣ [docs/api/03-STREAMING-sse-websocket.md](docs/api/03-STREAMING-sse-websocket.md) - Real-Time Features
 **Time**: 20-30 min
 
 **Topics**: SSE implementation, WebSocket setup, real-time chat, event streaming
 
 ---
 
-### 1️⃣3️⃣ [docs/project/STATUS_ATUAL_2025_11_14.md](docs/project/STATUS_ATUAL_2025_11_14.md) - Current Status
+### 1️⃣3️⃣ [docs/project/02-STATUS-current-nov-2025.md](docs/project/02-STATUS-current-nov-2025.md) - Current Status
 **Time**: 15-20 min
 
 **Topics**: Detailed agent status, test coverage analysis, production metrics
 
 ---
 
-### 1️⃣4️⃣ [docs/reports/2025-11/PRODUCTION_READY_V1_0_2025_11_18.md](docs/reports/2025-11/PRODUCTION_READY_V1_0_2025_11_18.md) - V1.0 Validation
+### 1️⃣4️⃣ [docs/reports/2025-11/01-PRODUCTION-READY-v1.0.md](docs/reports/2025-11/01-PRODUCTION-READY-v1.0.md) - V1.0 Validation
 **Time**: 30-40 min
 
 **Topics**: Production readiness validation, must-have criteria (9/9 met), E2E test results
 
 ---
 
-### 1️⃣5️⃣ [docs/reports/2025-11/PERFORMANCE_REVIEW_2025_11_18.md](docs/reports/2025-11/PERFORMANCE_REVIEW_2025_11_18.md) - Performance Analysis
+### 1️⃣5️⃣ [docs/reports/2025-11/02-PERFORMANCE-REVIEW.md](docs/reports/2025-11/02-PERFORMANCE-REVIEW.md) - Performance Analysis
 **Time**: 20-30 min
 
 **Topics**: Response time benchmarks, lazy loading (367x improvement), caching strategy
@@ -320,7 +320,7 @@ This is your **numbered guide** to getting started with Cidadão.AI Backend. Fol
 ## 📚 Additional Resources
 
 ### Documentation
-- **Main Index**: [docs/INDEX.md](docs/INDEX.md)
+- **Main Index**: [docs/01-INDEX.md](docs/01-INDEX.md)
 - **Agent Docs**: [docs/agents/](docs/agents/)
 - **API Docs**: [docs/api/](docs/api/)
 - **Architecture**: [docs/architecture/](docs/architecture/)
@@ -342,7 +342,7 @@ This is your **numbered guide** to getting started with Cidadão.AI Backend. Fol
 ### Can't find what you need?
 
 1. **Search**: Use GitHub search or `grep -r "keyword" docs/`
-2. **Index**: Check [docs/INDEX.md](docs/INDEX.md) for comprehensive navigation
+2. **Index**: Check [docs/01-INDEX.md](docs/01-INDEX.md) for comprehensive navigation
 3. **README**: [README.md](README.md) for quick reference
 4. **Issues**: Open an issue if documentation is unclear
 
