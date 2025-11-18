@@ -1,5 +1,12 @@
 # 🚀 Cidadão.AI Backend - Quick Start Guide
 
+**Author**: Anderson Henrique da Silva
+**Location**: Minas Gerais, Brazil
+**Created**: 2025-08-13
+**Last Updated**: 2025-11-18
+
+---
+
 Get up and running with Cidadão.AI backend in **less than 5 minutes**!
 
 ---
