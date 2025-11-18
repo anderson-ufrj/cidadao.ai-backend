@@ -446,5 +446,5 @@ Para **atualizações** ou **correções**, contribua com o projeto Cidadão.AI.
 ---
 
 **Última atualização**: 23 de outubro de 2025
-**Compilado por**: Claude (Anthropic) para o projeto Cidadão.AI
+**Compiled by**: Anderson Henrique da Silva
 **Licença**: CC BY 4.0
