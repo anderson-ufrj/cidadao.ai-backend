@@ -30,7 +30,7 @@ The configuration system uses **Pydantic Settings** for **type-safe**, **environ
 class Settings(BaseSettings):
     """
     Enterprise-grade configuration management
-    
+
     Features:
     - Type-safe configuration with Pydantic
     - Environment variable integration
@@ -40,26 +40,26 @@ class Settings(BaseSettings):
     - Feature flags
     - Performance tuning parameters
     """
-    
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
     )
-    
+
     # Application Core
     app_name: str = Field(default="cidadao-ai", description="Application name")
     app_env: str = Field(default="development", description="Environment")
     app_version: str = Field(default="1.0.0", description="Version")
     debug: bool = Field(default=False, description="Debug mode")
     log_level: str = Field(default="INFO", description="Logging level")
-    
+
     # Server Configuration
     host: str = Field(default="0.0.0.0", description="Server host")
     port: int = Field(default=8000, description="Server port")
     workers: int = Field(default=1, description="Number of workers")
-    
+
     # Database Configuration (PostgreSQL)
     database_url: str = Field(
         default="postgresql://cidadao:cidadao123@localhost:5432/cidadao_ai",
@@ -68,7 +68,7 @@ class Settings(BaseSettings):
     database_pool_size: int = Field(default=10, description="DB pool size")
     database_pool_overflow: int = Field(default=20, description="DB pool overflow")
     database_pool_timeout: int = Field(default=30, description="DB pool timeout")
-    
+
     # Redis Configuration
     redis_url: str = Field(
         default="redis://localhost:6379/0",
@@ -82,31 +82,31 @@ class Settings(BaseSettings):
 ```python
     # LLM Configuration with Multiple Providers
     llm_provider: str = Field(
-        default="groq",
-        description="LLM provider (groq, together, huggingface)"
+        default="maritaca",
+        description="LLM provider (maritaca, anthropic, groq, together, huggingface)"
     )
     llm_model_name: str = Field(
-        default="mixtral-8x7b-32768",
-        description="LLM model name"
+        default="sabia-3.1",
+        description="LLM model name (maritaca: sabia-3.1, sabiazinho-3)"
     )
     llm_temperature: float = Field(default=0.7, description="LLM temperature")
     llm_max_tokens: int = Field(default=2048, description="Max tokens")
     llm_top_p: float = Field(default=0.9, description="Top-p sampling")
     llm_stream: bool = Field(default=True, description="Enable streaming")
-    
+
     # Provider-Specific API Keys
     groq_api_key: Optional[SecretStr] = Field(default=None, description="Groq API key")
     groq_api_base_url: str = Field(
         default="https://api.groq.com/openai/v1",
         description="Groq base URL"
     )
-    
+
     together_api_key: Optional[SecretStr] = Field(default=None, description="Together API key")
     together_api_base_url: str = Field(
         default="https://api.together.xyz/v1",
         description="Together base URL"
     )
-    
+
     huggingface_api_key: Optional[SecretStr] = Field(default=None, description="HuggingFace API key")
     huggingface_model_id: str = Field(
         default="mistralai/Mistral-7B-Instruct-v0.2",
@@ -130,7 +130,7 @@ class Settings(BaseSettings):
         default=Path("./vector_store/index.faiss"),
         description="Vector index path"
     )
-    
+
     # ChromaDB Configuration
     chroma_persist_directory: Path = Field(
         default=Path("./chroma_db"),
@@ -157,12 +157,12 @@ class Settings(BaseSettings):
     jwt_access_token_expire_minutes: int = Field(default=30, description="Access token expiry")
     jwt_refresh_token_expire_days: int = Field(default=7, description="Refresh token expiry")
     bcrypt_rounds: int = Field(default=12, description="Bcrypt rounds")
-    
+
     # CORS Configuration
     cors_origins: List[str] = Field(
         default=[
             "http://localhost:3000",
-            "http://localhost:8000", 
+            "http://localhost:8000",
             "https://cidadao-ai-frontend.vercel.app",
             "https://*.vercel.app",
             "https://neural-thinker-cidadao-ai-backend.hf.space"
@@ -175,7 +175,7 @@ class Settings(BaseSettings):
         description="Allowed methods"
     )
     cors_allow_headers: List[str] = Field(default=["*"], description="Allowed headers")
-    
+
     # Rate Limiting
     rate_limit_per_minute: int = Field(default=60, description="Rate limit per minute")
     rate_limit_per_hour: int = Field(default=1000, description="Rate limit per hour")
@@ -192,13 +192,13 @@ class Settings(BaseSettings):
     clustering_min_samples: int = Field(default=5, description="Min clustering samples")
     time_series_seasonality: str = Field(default="yearly", description="Seasonality")
     explainer_max_samples: int = Field(default=100, description="Max explainer samples")
-    
+
     # Feature Flags for Gradual Rollout
     enable_fine_tuning: bool = Field(default=False, description="Enable fine-tuning")
     enable_autonomous_crawling: bool = Field(default=False, description="Enable crawling")
     enable_advanced_visualizations: bool = Field(default=False, description="Advanced viz")
     enable_ethics_guard: bool = Field(default=True, description="Enable ethics guard")
-    
+
     # Development & Debugging
     enable_debug_toolbar: bool = Field(default=True, description="Debug toolbar")
     enable_sql_echo: bool = Field(default=False, description="SQL echo")
@@ -215,7 +215,7 @@ class Settings(BaseSettings):
         if v not in allowed:
             raise ValueError(f"app_env must be one of {allowed}")
         return v
-    
+
     @field_validator("log_level")
     @classmethod
     def validate_log_level(cls, v: str) -> str:
@@ -225,23 +225,23 @@ class Settings(BaseSettings):
         if v not in allowed:
             raise ValueError(f"log_level must be one of {allowed}")
         return v
-    
+
     @property
     def is_development(self) -> bool:
         """Check if in development mode."""
         return self.app_env == "development"
-    
+
     @property
     def is_production(self) -> bool:
         """Check if in production mode."""
         return self.app_env == "production"
-    
+
     def get_database_url(self, async_mode: bool = True) -> str:
         """Get database URL for async or sync mode."""
         if async_mode and self.database_url.startswith("postgresql://"):
             return self.database_url.replace("postgresql://", "postgresql+asyncpg://")
         return self.database_url
-    
+
     def dict_for_logging(self) -> Dict[str, Any]:
         """Get safe dict for logging (no secrets)."""
         data = self.model_dump()
@@ -274,7 +274,7 @@ def configure_logging(
 ) -> None:
     """
     Configure structured logging for production use
-    
+
     Features:
     - Structured JSON logging
     - Correlation ID tracking
@@ -282,7 +282,7 @@ def configure_logging(
     - Error context capture
     - Security event logging
     """
-    
+
     # Configure structlog
     structlog.configure(
         processors=[
@@ -308,20 +308,20 @@ def configure_logging(
 
 def add_correlation_id(logger: Any, method_name: str, event_dict: Dict[str, Any]) -> Dict[str, Any]:
     """Add correlation ID for request tracking"""
-    
+
     # Try to get correlation ID from context
     correlation_id = structlog.contextvars.get_contextvars().get("correlation_id")
     if correlation_id:
         event_dict["correlation_id"] = correlation_id
-    
+
     return event_dict
 
 def add_performance_metrics(logger: Any, method_name: str, event_dict: Dict[str, Any]) -> Dict[str, Any]:
     """Add performance metrics to log entries"""
-    
+
     # Add timestamp for performance analysis
     event_dict["timestamp"] = datetime.utcnow().isoformat()
-    
+
     # Add memory usage if available
     try:
         import psutil
@@ -330,7 +330,7 @@ def add_performance_metrics(logger: Any, method_name: str, event_dict: Dict[str,
         event_dict["cpu_percent"] = process.cpu_percent()
     except ImportError:
         pass
-    
+
     return event_dict
 
 def get_logger(name: str) -> structlog.BoundLogger:
@@ -371,7 +371,7 @@ with perf_logger.bind(operation="anomaly_detection"):
     start_time = time.time()
     # ... perform operation ...
     processing_time = time.time() - start_time
-    
+
     perf_logger.info(
         "anomaly_detection_completed",
         processing_time_ms=processing_time * 1000,
@@ -398,7 +398,7 @@ security_logger.warning(
 ```python
 class CidadaoAIError(Exception):
     """Base exception for all Cidadão.AI errors"""
-    
+
     def __init__(
         self,
         message: str,
@@ -412,7 +412,7 @@ class CidadaoAIError(Exception):
         self.details = details or {}
         self.cause = cause
         self.timestamp = datetime.utcnow()
-    
+
     def to_dict(self) -> Dict[str, Any]:
         """Convert exception to dictionary for API responses"""
         return {
@@ -552,7 +552,7 @@ def monitor_api_request(func):
     @wraps(func)
     async def wrapper(*args, **kwargs):
         start_time = time.time()
-        
+
         try:
             result = await func(*args, **kwargs)
             status = "success"
@@ -562,22 +562,22 @@ def monitor_api_request(func):
             raise
         finally:
             duration = time.time() - start_time
-            
+
             # Extract endpoint info
             endpoint = getattr(func, '__name__', 'unknown')
             method = kwargs.get('method', 'unknown')
-            
+
             API_REQUESTS_TOTAL.labels(
                 method=method,
                 endpoint=endpoint,
                 status=status
             ).inc()
-            
+
             API_REQUEST_DURATION.labels(
                 method=method,
                 endpoint=endpoint
             ).observe(duration)
-    
+
     return wrapper
 
 def monitor_agent_operation(agent_name: str, operation: str):
@@ -598,7 +598,7 @@ def monitor_agent_operation(agent_name: str, operation: str):
                     operation=operation,
                     status=status
                 ).inc()
-        
+
         return wrapper
     return decorator
 
@@ -659,11 +659,11 @@ class AuditContext:
 
 class AuditLogger:
     """Enterprise audit logging system"""
-    
+
     def __init__(self):
         self.logger = get_audit_logger()
         self._hash_chain = ""  # For integrity verification
-    
+
     async def log_event(
         self,
         event_type: AuditEventType,
@@ -677,7 +677,7 @@ class AuditLogger:
         context: Optional[AuditContext] = None
     ) -> str:
         """Log audit event with full context"""
-        
+
         event_data = {
             "event_type": event_type.value,
             "message": message,
@@ -689,7 +689,7 @@ class AuditLogger:
             "details": details or {},
             "timestamp": datetime.utcnow().isoformat()
         }
-        
+
         # Add context information
         if context:
             event_data["context"] = {
@@ -699,47 +699,47 @@ class AuditLogger:
                 "session_id": context.session_id,
                 "correlation_id": context.correlation_id
             }
-        
+
         # Generate integrity hash
         event_hash = self._generate_event_hash(event_data)
         event_data["event_hash"] = event_hash
         event_data["hash_chain"] = self._hash_chain
-        
+
         # Update hash chain for integrity
         self._hash_chain = hashlib.sha256(
             (self._hash_chain + event_hash).encode()
         ).hexdigest()
-        
+
         # Log the event
         self.logger.info("audit_event", **event_data)
-        
+
         return event_hash
-    
+
     def _generate_event_hash(self, event_data: Dict[str, Any]) -> str:
         """Generate cryptographic hash for event integrity"""
-        
+
         # Create canonical representation for hashing
         canonical_data = json.dumps(event_data, sort_keys=True, default=str)
         event_hash = hashlib.sha256(canonical_data.encode()).hexdigest()
-        
+
         return event_hash
-    
+
     async def verify_integrity(self, events: List[Dict[str, Any]]) -> bool:
         """Verify integrity of audit event chain"""
-        
+
         reconstructed_chain = ""
-        
+
         for event in events:
             event_hash = event.get("event_hash", "")
             expected_chain = event.get("hash_chain", "")
-            
+
             if reconstructed_chain != expected_chain:
                 return False
-            
+
             reconstructed_chain = hashlib.sha256(
                 (reconstructed_chain + event_hash).encode()
             ).hexdigest()
-        
+
         return True
 
 # Global audit logger instance
@@ -755,29 +755,29 @@ from enum import Enum
 # System-wide constants
 class SystemConstants:
     """Core system constants"""
-    
+
     # Application
     APP_NAME = "Cidadão.AI"
     APP_DESCRIPTION = "Plataforma de Transparência Pública com IA"
     API_VERSION = "v1"
-    
+
     # Timeouts (seconds)
     DEFAULT_REQUEST_TIMEOUT = 30
     DATABASE_QUERY_TIMEOUT = 60
     LLM_REQUEST_TIMEOUT = 120
     AGENT_EXECUTION_TIMEOUT = 300
-    
+
     # Limits
     MAX_CONCURRENT_INVESTIGATIONS = 10
     MAX_AGENT_RETRIES = 3
     MAX_FILE_SIZE_MB = 50
     MAX_RESULTS_PER_PAGE = 100
-    
+
     # Cache TTLs (seconds)
     CACHE_TTL_SHORT = 300      # 5 minutes
     CACHE_TTL_MEDIUM = 3600    # 1 hour
     CACHE_TTL_LONG = 86400     # 24 hours
-    
+
     # ML Constants
     ANOMALY_THRESHOLD_DEFAULT = 0.8
     CONFIDENCE_THRESHOLD_MIN = 0.6
@@ -897,17 +897,17 @@ from src.core.monitoring import monitor_api_request, record_anomaly_detection
 @monitor_api_request
 async def investigate_contracts(request: InvestigationRequest):
     """Monitored API endpoint"""
-    
+
     # Process investigation
     results = await process_investigation(request)
-    
+
     # Record detected anomalies
     for anomaly in results.get("anomalies", []):
         record_anomaly_detection(
             anomaly_type=anomaly["type"],
             severity=anomaly["severity"]
         )
-    
+
     return results
 ```
 

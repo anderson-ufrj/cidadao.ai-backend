@@ -89,11 +89,12 @@ class Settings(BaseSettings):
 
     # LLM Configuration
     llm_provider: str = Field(
-        default="groq",
-        description="LLM provider (groq, together, huggingface, maritaca)",
+        default="maritaca",
+        description="LLM provider (maritaca, anthropic, groq, together, huggingface)",
     )
     llm_model_name: str = Field(
-        default="mixtral-8x7b-32768", description="LLM model name"
+        default="sabia-3.1",
+        description="LLM model name (maritaca: sabia-3.1, sabiazinho-3; anthropic: claude-sonnet-4-20250514)",
     )
     llm_temperature: float = Field(default=0.7, description="LLM temperature")
     llm_max_tokens: int = Field(default=2048, description="Max tokens")
