@@ -270,10 +270,10 @@ test_output/
 
 # Exploratory test files created during investigation
 tests/exploratory/
-test_*.py
-teste_*.py
-analise_*.py
-buscar_*.py
+/test_*.py
+/teste_*.py
+/analise_*.py
+/buscar_*.py
 check_*.py
 servidor_dados.json
 doc_*.html
