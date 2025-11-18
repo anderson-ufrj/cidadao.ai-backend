@@ -1,5 +1,12 @@
 # 📊 Anita Garibaldi - A Analista de Padrões
 
+**Author**: Anderson Henrique da Silva
+**Location**: Minas Gerais, Brazil
+**Created**: 2025-09-25
+**Last Updated**: 2025-11-18
+
+---
+
 **Autor**: Anderson Henrique da Silva
 **Localização**: Minas Gerais, Brasil
 **Última Atualização**: 2025-10-13 15:15:18 -0300
