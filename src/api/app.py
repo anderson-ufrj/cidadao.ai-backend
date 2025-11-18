@@ -45,6 +45,7 @@ from src.api.routes import (
     orchestration,
     reports,
     resilience,
+    root,
     tasks,
     transparency,
     transparency_coverage,
@@ -368,6 +369,9 @@ if os.path.exists(static_path):
 
 # Include routers with security
 app.include_router(health.router, prefix="/health", tags=["Health Check"])
+
+# API root endpoint - Welcome message
+app.include_router(root.router, prefix="/api/v1", tags=["Root"])
 
 # Debug endpoints for troubleshooting
 app.include_router(debug.router, prefix="/api/v1/debug", tags=["Debug"])
