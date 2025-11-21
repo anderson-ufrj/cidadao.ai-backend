@@ -3,7 +3,7 @@ Complete unit tests for Nanã Agent - Context Memory and Knowledge Management sp
 Tests episodic memory, semantic memory, conversation tracking, and memory consolidation.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock
 
 import pytest
@@ -124,7 +124,7 @@ class TestEpisodicMemory:
                     "investigation_id": "test_inv_001",
                     "query": "Contratos de TI",
                     "result": {"total_contracts": 100, "anomalies": 5},
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
             },
         )
@@ -167,7 +167,7 @@ class TestEpisodicMemory:
                 "metadata": {
                     "investigation_id": "inv_001",
                     "query": "IT contracts",
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
                 "similarity": 0.95,
             }
@@ -548,7 +548,7 @@ class TestForgetMemories:
         old_memory = {
             "id": "old_mem_001",
             "investigation_id": "test_inv_001",
-            "timestamp": (datetime.utcnow() - timedelta(days=60)).isoformat(),
+            "timestamp": (datetime.now(UTC) - timedelta(days=60)).isoformat(),
             "content": {"query": "old investigation"},
             "importance": "MEDIUM",
         }
@@ -583,7 +583,7 @@ class TestForgetMemories:
         low_importance_memory = {
             "id": "low_mem_001",
             "investigation_id": "test_inv_002",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "content": {"query": "low priority"},
             "importance": "LOW",
         }
@@ -659,7 +659,7 @@ class TestMemoryConsolidationDirect:
             {
                 "id": f"mem_{i}",
                 "content": {"query": f"similar investigation {i}"},
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "importance": "MEDIUM",
             }
             for i in range(5)
