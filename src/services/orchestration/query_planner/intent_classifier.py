@@ -71,8 +71,53 @@ class IntentClassifier:
         "federal",
     ]
 
+    # Keywords for PUBLIC SERVANT SALARY queries
+    SALARY_KEYWORDS = [
+        "salário",
+        "salario",
+        "remuneração",
+        "remuneracao",
+        "ganha",
+        "ganho",
+        "vencimento",
+        "vencimentos",
+        "rendimento",
+        "rendimentos",
+        "quanto recebe",
+        "quanto ganha",
+    ]
+
+    # Keywords for PUBLIC SERVANT identification
+    PUBLIC_SERVANT_KEYWORDS = [
+        "servidor",
+        "servidora",
+        "funcionário",
+        "funcionária",
+        "professor",
+        "professora",
+        "médico",
+        "médica",
+        "enfermeiro",
+        "enfermeira",
+        "policial",
+        "juiz",
+        "juíza",
+        "promotor",
+        "promotora",
+        "delegado",
+        "delegada",
+        "procurador",
+        "procuradora",
+        "auditor",
+        "auditora",
+        "fiscal",
+    ]
+
     # CNPJ pattern
     CNPJ_PATTERN = re.compile(r"\d{2}\.?\d{3}\.?\d{3}/?000\d-?\d{2}")
+
+    # Minimum words for name-based salary query detection
+    MIN_WORDS_FOR_NAME_QUERY = 4
 
     # Monetary value patterns
     MONEY_PATTERNS = [
@@ -158,11 +203,14 @@ class IntentClassifier:
                 "method": "fallback",
             }
 
-    def _classify_by_keywords(self, query: str) -> dict[str, Any] | None:
+    def _classify_by_keywords(self, query: str) -> dict[str, Any] | None:  # noqa: PLR0911
         """
         Fast classification using keyword patterns.
 
         Returns None if no clear pattern match (defer to LLM).
+
+        Note: Multiple returns (7) are intentional for distinct query patterns.
+        Each return represents a specific detection pattern with different confidence levels.
         """
         query_lower = query.lower()
 
@@ -174,6 +222,37 @@ class IntentClassifier:
                 "reasoning": "CNPJ detected in query",
                 "method": "keyword",
             }
+
+        # Check for PUBLIC SERVANT SALARY queries
+        has_salary_keyword = any(kw in query_lower for kw in self.SALARY_KEYWORDS)
+        has_servant_keyword = any(
+            kw in query_lower for kw in self.PUBLIC_SERVANT_KEYWORDS
+        )
+
+        if has_salary_keyword and has_servant_keyword:
+            return {
+                "intent": InvestigationIntent.SUPPLIER_INVESTIGATION,
+                "confidence": 0.90,
+                "reasoning": "Public servant salary query detected (salary + role keywords)",
+                "method": "keyword",
+            }
+
+        # Also detect salary queries with person names (common pattern)
+        # e.g., "Quanto ganha [Nome Completo]?"
+        if has_salary_keyword and len(query.split()) >= self.MIN_WORDS_FOR_NAME_QUERY:
+            # Query has salary keyword and enough words to be a name query
+            # Check if it doesn't have contract/procurement keywords
+            has_contract_keywords = any(
+                word in query_lower
+                for word in ["contrato", "licitação", "pregão", "compra"]
+            )
+            if not has_contract_keywords:
+                return {
+                    "intent": InvestigationIntent.SUPPLIER_INVESTIGATION,
+                    "confidence": 0.85,
+                    "reasoning": "Salary query with person name detected",
+                    "method": "keyword",
+                }
 
         # Count investigation keywords
         keyword_count = sum(
