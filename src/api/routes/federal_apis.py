@@ -21,6 +21,112 @@ from src.services.transparency_apis.federal_apis.inep_client import INEPClient
 router = APIRouter(prefix="/api/v1/federal", tags=["Federal APIs"])
 
 
+# ==================== ROOT ENDPOINT ====================
+
+
+@router.get(
+    "/",
+    summary="List Available Federal API Endpoints",
+    description="Get information about available federal government API endpoints",
+)
+async def get_federal_api_info() -> dict[str, Any]:
+    """List all available federal API endpoints."""
+    return {
+        "success": True,
+        "total_endpoints": 12,
+        "endpoints": {
+            "IBGE": {
+                "description": "Brazilian Institute of Geography and Statistics",
+                "available": [
+                    {
+                        "method": "GET",
+                        "path": "/ibge/states",
+                        "description": "Get all Brazilian states",
+                    },
+                    {
+                        "method": "POST",
+                        "path": "/ibge/municipalities",
+                        "description": "Get municipalities by state",
+                    },
+                    {
+                        "method": "POST",
+                        "path": "/ibge/population",
+                        "description": "Get population data",
+                    },
+                    {
+                        "method": "POST",
+                        "path": "/ibge/economic",
+                        "description": "Get economic indicators",
+                    },
+                ],
+            },
+            "DataSUS": {
+                "description": "Brazilian Health System Data",
+                "available": [
+                    {
+                        "method": "POST",
+                        "path": "/datasus/search",
+                        "description": "Search health datasets",
+                    },
+                    {
+                        "method": "POST",
+                        "path": "/datasus/indicators",
+                        "description": "Get health indicators",
+                    },
+                    {
+                        "method": "POST",
+                        "path": "/datasus/establishment/{id}",
+                        "description": "Get health establishment info",
+                    },
+                ],
+            },
+            "INEP": {
+                "description": "National Institute for Educational Studies",
+                "available": [
+                    {
+                        "method": "POST",
+                        "path": "/inep/search",
+                        "description": "Search educational institutions",
+                    },
+                    {
+                        "method": "POST",
+                        "path": "/inep/indicators",
+                        "description": "Get education indicators",
+                    },
+                    {
+                        "method": "GET",
+                        "path": "/inep/institution/{id}",
+                        "description": "Get institution details",
+                    },
+                ],
+            },
+            "PNCP": {
+                "description": "National Public Procurement Portal",
+                "available": [
+                    {
+                        "method": "POST",
+                        "path": "/pncp/contracts",
+                        "description": "Search government contracts",
+                    },
+                ],
+            },
+            "Portal_da_Transparencia": {
+                "description": "Federal Transparency Portal",
+                "note": "Accessed via /api/v1/transparency/contracts endpoint",
+                "available": [
+                    {
+                        "method": "GET",
+                        "path": "/api/v1/transparency/contracts",
+                        "description": "Get federal contracts",
+                    },
+                ],
+            },
+        },
+        "documentation": "/docs#/Federal%20APIs",
+        "note": "All endpoints require proper authentication headers",
+    }
+
+
 # ==================== REQUEST MODELS ====================
 
 
