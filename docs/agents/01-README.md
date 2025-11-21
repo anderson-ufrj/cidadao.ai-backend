@@ -1,8 +1,25 @@
 # 🤖 Agentes - Cidadão.AI Backend
 
 **Autor**: Anderson Henrique da Silva
-**Última Atualização**: 2025-11-18 (Auditoria Sistemática de Documentação)
-**Versão**: 2.3.0 - Documentation Audit & Accuracy Update
+**Última Atualização**: 2025-11-21 (Python 3.13 Modernization Sprint)
+**Versão**: 2.4.0 - Python 3.13 Datetime Modernization & Coverage Audit
+
+---
+
+## 🆕 Recent Updates (2025-11-21)
+
+**📝 [See Full Changelog →](./00-CHANGELOG-2025-11-21.md)**
+
+### Modernization Sprint Highlights
+
+- ✅ **9 agents modernized** to Python 3.13 timezone-aware datetime standards
+- ✅ **90 deprecated datetime.utcnow() eliminated** (72 in code, 18 in tests)
+- ✅ **224 warnings reduced** across agent test suites
+- ✅ **3 agents promoted to Tier 1**: Obaluaiê (93.79%), Oscar Niemeyer (93.78%), Machado (94.19%)
+- ✅ **1 critical bug fixed**: Nanã timezone comparison error
+- ✅ **6 documentation corrections** for coverage accuracy
+
+**Agents Updated**: Abaporu, Obaluaiê, Drummond, Oscar Niemeyer, Machado, Bonifácio, Maria Quitéria, Dandara, Nanã
 
 ---
 
