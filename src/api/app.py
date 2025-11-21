@@ -311,32 +311,45 @@ app.add_middleware(
 )
 
 # Add IP whitelist middleware (only in production)
-# DISABLED: Temporarily disabled to allow frontend access
-# TODO: Re-enable after configuring Vercel IP ranges or implementing API key auth
-# if settings.is_production or settings.app_env == "staging":
-#     app.add_middleware(
-#         IPWhitelistMiddleware,
-#         enabled=True,
-#         excluded_paths=[
-#             "/health",
-#             "/healthz",
-#             "/ping",
-#             "/ready",
-#             "/docs",
-#             "/redoc",
-#             "/openapi.json",
-#             "/metrics",
-#             "/static",
-#             "/favicon.ico",
-#             "/_next",
-#             "/api/v1/auth/login",
-#             "/api/v1/auth/register",
-#             "/api/v1/auth/refresh",
-#             "/api/v1/public",
-#             "/api/v1/webhooks/incoming",
-#         ],
-#         strict_mode=False,  # Allow requests if IP can't be determined
-#     )
+# Enhanced with API key authentication as fallback
+if settings.is_production or settings.app_env == "staging":
+    from src.api.middleware.ip_whitelist import IPWhitelistMiddleware
+
+    # Configure Vercel and known service IP ranges
+    ALLOWED_IP_RANGES = [
+        # Vercel Edge Network
+        "76.76.21.0/24",
+        "76.223.126.0/24",
+        # Add Railway internal IPs if needed
+        # Add monitoring service IPs
+    ]
+
+    app.add_middleware(
+        IPWhitelistMiddleware,
+        enabled=True,
+        allowed_ip_ranges=ALLOWED_IP_RANGES,
+        excluded_paths=[
+            "/health",
+            "/healthz",
+            "/ping",
+            "/ready",
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/metrics",
+            "/static",
+            "/favicon.ico",
+            "/_next",
+            "/api/v1/auth/login",
+            "/api/v1/auth/register",
+            "/api/v1/auth/refresh",
+            "/api/v1/public",
+            "/api/v1/webhooks/incoming",
+        ],
+        # Allow requests with valid API keys even if IP not whitelisted
+        api_key_fallback=True,
+        strict_mode=False,  # Allow requests if IP can't be determined
+    )
 
 # Add rate limiting middleware
 app.add_middleware(RateLimitMiddleware, default_tier="free", strategy="sliding_window")
