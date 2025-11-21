@@ -7,7 +7,7 @@ Date: 2025-01-24
 License: Proprietary - All rights reserved
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
 
 from pydantic import BaseModel
@@ -301,7 +301,7 @@ class ContextMemoryAgent(BaseAgent):
             "semantic": semantic_context,
             "conversation": conversation_context,
             "query": query,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
     async def _store_episodic_memory(
@@ -319,7 +319,7 @@ class ContextMemoryAgent(BaseAgent):
             if "id" not in memory_entry:
                 investigation_id = memory_entry.get("investigation_id", "unknown")
                 memory_entry["id"] = (
-                    f"mem_{investigation_id}_{int(datetime.utcnow().timestamp())}"
+                    f"mem_{investigation_id}_{int(datetime.now(UTC).timestamp())}"
                 )
 
             # Store in Redis for fast access
@@ -430,7 +430,7 @@ class ContextMemoryAgent(BaseAgent):
                 content = {"description": content}
 
             memory_entry = SemanticMemory(
-                id=f"sem_{concept.lower().replace(' ', '_')}_{int(datetime.utcnow().timestamp())}",
+                id=f"sem_{concept.lower().replace(' ', '_')}_{int(datetime.now(UTC).timestamp())}",
                 concept=concept,
                 content=content,
                 relationships=payload.get("relationships", []),
@@ -638,7 +638,7 @@ class ContextMemoryAgent(BaseAgent):
             if strategy == "age":
                 # Remove memories older than specified days
                 max_age_days = payload.get("max_age_days", self.memory_decay_days)
-                cutoff_date = datetime.utcnow() - timedelta(days=max_age_days)
+                cutoff_date = datetime.now(UTC) - timedelta(days=max_age_days)
 
                 # Get all episodic memory keys
                 pattern = f"{self.episodic_key}:*"
@@ -648,9 +648,11 @@ class ContextMemoryAgent(BaseAgent):
                     memory_data = await self.redis_client.get(key)
                     if memory_data:
                         memory = json_utils.loads(memory_data)
-                        timestamp = datetime.fromisoformat(
-                            memory.get("timestamp", datetime.utcnow().isoformat())
-                        )
+                        timestamp_str = memory.get("timestamp", datetime.now(UTC).isoformat())
+                        timestamp = datetime.fromisoformat(timestamp_str)
+                        # Ensure timezone-aware for comparison
+                        if timestamp.tzinfo is None:
+                            timestamp = timestamp.replace(tzinfo=UTC)
 
                         if timestamp < cutoff_date:
                             await self.redis_client.delete(key)
@@ -912,7 +914,7 @@ class ContextMemoryAgent(BaseAgent):
         consolidated["metadata"]["consolidated_count"] = len(sorted_memories)
         consolidated["metadata"][
             "consolidation_timestamp"
-        ] = datetime.utcnow().isoformat()
+        ] = datetime.now(UTC).isoformat()
 
         return consolidated
 
