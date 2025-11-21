@@ -9,17 +9,18 @@
 
 **Autor**: Anderson Henrique da Silva
 **Localização**: Minas Gerais, Brasil
-**Última Atualização**: 2025-10-13 15:15:18 -0300
+**Última Atualização**: 2025-11-21
 
 ---
 
-**Status**: ⚠️ **95% Completo** (Beta - Pronto para uso com limitações conhecidas)
+**Status**: ⚠️ **Tier 3 - Low Coverage** (23.23% test coverage - needs extensive testing)
 **Arquivo**: `src/agents/maria_quiteria.py`
-**Tamanho**: 32KB
+**Tamanho**: 2,594 linhas (670 statements)
 **Métodos Implementados**: ~20
-**Testes**: ✅ Sim (`tests/unit/agents/test_maria_quiteria.py`)
+**Testes**: ⚠️ **13 testes** (`tests/unit/agents/test_maria_quiteria.py`)
+**Cobertura**: 23.23% (192/670 statements, 478 missing)
 **TODOs**: Poucos (métodos de auditoria avançada)
-**Última Atualização**: 2025-10-03 09:05:00 -03:00
+**Última Atualização**: 2025-11-21
 
 ---
 
