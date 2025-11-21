@@ -9,7 +9,7 @@ import time
 from collections import defaultdict, deque
 from collections.abc import Callable
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 import psutil
@@ -308,7 +308,7 @@ class HealthMonitor:
         return {
             "status": "healthy" if overall_healthy else "unhealthy",
             "checks": results,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
 

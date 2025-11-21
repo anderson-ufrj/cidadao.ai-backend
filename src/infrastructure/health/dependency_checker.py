@@ -9,7 +9,7 @@ import asyncio
 import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Optional, Union
 
@@ -575,7 +575,7 @@ class HealthCheckManager:
             dependencies_by_type[dep_type].append(result.to_dict())
 
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "overall_status": overall_status.value,
             "availability_percentage": availability * 100,
             "summary": {
@@ -613,7 +613,7 @@ class HealthCheckManager:
             return {"error": f"No history found for dependency: {dependency_name}"}
 
         history = self.check_history[dependency_name]
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
 
         # Filter recent history
         recent_history = [

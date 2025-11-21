@@ -5,7 +5,7 @@ VERSION: 2025-10-17 15:00:00 - Consolidated implementation
 
 import asyncio
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException
@@ -98,7 +98,10 @@ except Exception as e:
 # Agent name to import path mapping
 AGENT_MAP = {
     "drummond": ("src.agents.drummond", "DrummondAgent"),
-    "zumbi": ("src.agents.zumbi", "InvestigatorAgent"),  # FIXED: zumbi.py exports InvestigatorAgent
+    "zumbi": (
+        "src.agents.zumbi",
+        "InvestigatorAgent",
+    ),  # FIXED: zumbi.py exports InvestigatorAgent
     "abaporu": ("src.agents.abaporu", "AbaporuAgent"),
     "machado": ("src.agents.machado", "MachadoAgent"),
     "bonifacio": ("src.agents.bonifacio", "BonifacioAgent"),
@@ -238,7 +241,7 @@ async def send_message(
                 "response": "Desculpe, o serviço de chat está temporariamente indisponível.",
                 "session_id": request.session_id or str(uuid.uuid4()),
                 "message_id": str(uuid.uuid4()),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "intent": None,
             }
 
@@ -828,7 +831,7 @@ async def send_message(
                 )
 
         # Build comprehensive metadata
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
         processing_time = (
             response.metadata.get("processing_time", 0)
             if hasattr(response, "metadata")
@@ -932,7 +935,7 @@ async def stream_message(request: ChatRequest):
     async def generate():
         try:
             # Send initial event
-            yield f"data: {json_utils.dumps({'type': 'start', 'timestamp': datetime.utcnow().isoformat()})}\n\n"
+            yield f"data: {json_utils.dumps({'type': 'start', 'timestamp': datetime.now(UTC).isoformat()})}\n\n"
 
             # Detect intent using NEW keyword-based classifier
             yield f"data: {json_utils.dumps({'type': 'detecting', 'message': 'Analisando sua mensagem...'})}\n\n"

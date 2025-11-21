@@ -3,7 +3,7 @@ Expanded comprehensive tests for Drummond Communication Agent.
 Tests NLG, multi-channel communication, personalization, and conversation handling.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -332,7 +332,7 @@ class TestNotificationSystem:
                 target_id=sample_target.target_id,
                 channel=CommunicationChannel.EMAIL,
                 status="sent",
-                sent_at=datetime.utcnow(),
+                sent_at=datetime.now(UTC),
                 delivered_at=None,
                 read_at=None,
                 error_message=None,
@@ -462,14 +462,14 @@ class TestCommunicationEffectiveness:
                 "campaign_id": "test_campaign_002",
                 "channel": CommunicationChannel.EMAIL.value,
                 "status": "delivered",
-                "sent_at": datetime.utcnow(),
+                "sent_at": datetime.now(UTC),
             },
             {
                 "message_id": "msg_002",
                 "campaign_id": "test_campaign_002",
                 "channel": CommunicationChannel.WHATSAPP.value,
                 "status": "read",
-                "sent_at": datetime.utcnow(),
+                "sent_at": datetime.now(UTC),
             },
         ]
 
@@ -737,7 +737,7 @@ class TestIntegrationScenarios:
                 target_id=sample_target.target_id,
                 channel=CommunicationChannel.EMAIL,
                 status="sent",
-                sent_at=datetime.utcnow(),
+                sent_at=datetime.now(UTC),
                 delivered_at=None,
                 read_at=None,
                 error_message=None,

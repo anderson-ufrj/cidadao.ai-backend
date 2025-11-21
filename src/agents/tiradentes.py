@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Optional
 
@@ -222,7 +222,7 @@ class ReporterAgent(BaseAgent):
                 "content": formatted_report,
                 "metadata": {
                     "investigation_id": context.investigation_id,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "agent_name": self.name,
                     "target_audience": request.target_audience,
                     "language": request.language,
@@ -752,7 +752,7 @@ class ReporterAgent(BaseAgent):
         report_lines.append(
             f"# Relatório: {request.report_type.value.replace('_', ' ').title()}"
         )
-        report_lines.append(f"**Data:** {datetime.utcnow().strftime('%d/%m/%Y %H:%M')}")
+        report_lines.append(f"**Data:** {datetime.now(UTC).strftime('%d/%m/%Y %H:%M')}")
         report_lines.append(f"**ID da Investigação:** {context.investigation_id}")
         report_lines.append("")
 
@@ -817,7 +817,7 @@ class ReporterAgent(BaseAgent):
         html_parts.append(
             f"""
         <div class="metadata">
-            <strong>Data:</strong> {datetime.utcnow().strftime('%d/%m/%Y %H:%M')}<br>
+            <strong>Data:</strong> {datetime.now(UTC).strftime('%d/%m/%Y %H:%M')}<br>
             <strong>ID da Investigação:</strong> {context.investigation_id}<br>
             <strong>Público-alvo:</strong> {request.target_audience}
         </div>
@@ -861,7 +861,7 @@ class ReporterAgent(BaseAgent):
             "report_metadata": {
                 "type": request.report_type,
                 "format": request.format,
-                "generated_at": datetime.utcnow().isoformat(),
+                "generated_at": datetime.now(UTC).isoformat(),
                 "investigation_id": context.investigation_id,
                 "target_audience": request.target_audience,
                 "language": request.language,
@@ -1420,7 +1420,7 @@ class ReporterAgent(BaseAgent):
 
         ---
 
-        *Análise concluída em {datetime.utcnow().strftime('%d/%m/%Y %H:%M')} UTC*
+        *Análise concluída em {datetime.now(UTC).strftime('%d/%m/%Y %H:%M')} UTC*
         *Recomenda-se revisão periódica das conclusões e atualização baseada em novos dados*
         """
 
@@ -1919,7 +1919,7 @@ class ReporterAgent(BaseAgent):
             content=markdown_content,
             title=f"Relatório: {request.report_type.value.replace('_', ' ').title()}",
             metadata={
-                "generated_at": datetime.utcnow().isoformat(),
+                "generated_at": datetime.now(UTC).isoformat(),
                 "report_type": request.report_type.value,
                 "investigation_id": context.investigation_id,
                 "target_audience": request.target_audience,

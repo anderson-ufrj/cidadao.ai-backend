@@ -3,7 +3,7 @@ Portal da Transparência Integration Service - Improved Version
 Real-time data fetching from Brazilian government transparency portal with robust fallbacks.
 """
 
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any, Optional
 from urllib.parse import urlencode
 
@@ -218,7 +218,7 @@ class ImprovedPortalTransparenciaService:
                 "tamanho_pagina": size,
                 "orgao_consultado": orgao,
                 "orgao_nome": self.KNOWN_ORGAOS.get(orgao, "Unknown"),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "source": "portal_transparencia_api",
                 "api_status": "ok",
             }
@@ -314,7 +314,7 @@ class ImprovedPortalTransparenciaService:
             "tamanho_pagina": params.get("tamanhoPagina", 100),
             "orgao_consultado": orgao,
             "orgao_nome": orgao_nome,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "source": "demo_data",
             "api_status": "unavailable",
             "demo_mode": True,

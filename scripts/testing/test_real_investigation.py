@@ -4,7 +4,7 @@ Test a REAL investigation with Zumbi agent (anomaly detection).
 """
 
 import asyncio
-from datetime import datetime
+from datetime import UTC, datetime
 
 from dotenv import load_dotenv
 
@@ -40,7 +40,7 @@ async def run_real_investigation():
         status="processing",
         progress=0.1,
         current_phase="data_retrieval",
-        started_at=datetime.utcnow(),
+        started_at=datetime.now(UTC),
     )
 
     # 3. Executar análise com Zumbi/InvestigatorAgent (agente de detecção de anomalias)
@@ -197,7 +197,7 @@ RECOMENDAÇÕES:
             status="completed",
             progress=1.0,
             current_phase="completed",
-            completed_at=datetime.utcnow(),
+            completed_at=datetime.now(UTC),
             anomalies_found=len(anomalies),
             total_records_analyzed=len(test_data),
             confidence_score=sum(a["confidence"] for a in anomalies) / len(anomalies),
@@ -239,7 +239,7 @@ RECOMENDAÇÕES:
             investigation.id,
             status="failed",
             error_message=str(e),
-            completed_at=datetime.utcnow(),
+            completed_at=datetime.now(UTC),
         )
         raise
 

@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Optional
 
@@ -419,7 +419,7 @@ class PredictiveAgent(BaseAgent):
             seasonal_patterns=await self._detect_seasonal_patterns(processed_data),
             anomaly_alerts=await self._detect_future_anomalies(predictions),
             metadata={"model_version": "1.0", "training_samples": len(processed_data)},
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
 
     async def analyze_trends(
@@ -644,7 +644,7 @@ class PredictiveAgent(BaseAgent):
         model_comparison = {}
 
         for model_type in models:
-            start_time = datetime.utcnow()
+            start_time = datetime.now(UTC)
 
             mae_scores = []
             rmse_scores = []
@@ -684,7 +684,7 @@ class PredictiveAgent(BaseAgent):
                 rmse_scores.append(np.sqrt(mean_squared_error(y_test, y_pred)))
                 r2_scores.append(r2_score(y_test, y_pred))
 
-            training_time = (datetime.utcnow() - start_time).total_seconds()
+            training_time = (datetime.now(UTC) - start_time).total_seconds()
 
             # Calculate MAPE
             y_mean = np.mean(y)
@@ -1730,7 +1730,7 @@ class PredictiveAgent(BaseAgent):
                     seasonal_patterns={},
                     anomaly_alerts=anomalies,
                     metadata={"prediction_type": "anomaly_forecast"},
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(UTC),
                 )
             elif request.prediction_type == PredictionType.TREND_ANALYSIS:
                 # analyze_trends returns dict, need to wrap in PredictionResult
@@ -1749,7 +1749,7 @@ class PredictiveAgent(BaseAgent):
                     seasonal_patterns={},
                     anomaly_alerts=[],
                     metadata={"prediction_type": "trend_analysis"},
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(UTC),
                 )
             else:
                 raise ValueError(
@@ -1867,7 +1867,7 @@ class PredictiveAgent(BaseAgent):
         enhanced_result["reflection"] = {
             "quality_issues_found": quality_issues,
             "enhancements_suggested": enhancements,
-            "reflection_timestamp": datetime.utcnow().isoformat(),
+            "reflection_timestamp": datetime.now(UTC).isoformat(),
             "original_confidence": confidence,
         }
 

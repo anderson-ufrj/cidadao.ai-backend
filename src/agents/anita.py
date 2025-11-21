@@ -9,7 +9,7 @@ License: Proprietary - All rights reserved
 
 from collections import Counter, defaultdict
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 import numpy as np
@@ -234,7 +234,7 @@ class AnalystAgent(BaseAgent):
                 ),
                 "metadata": {
                     "investigation_id": context.investigation_id,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "agent_name": self.name,
                     "records_analyzed": len(analysis_data),
                     "patterns_found": len(patterns),
@@ -342,7 +342,7 @@ class AnalystAgent(BaseAgent):
                         contract["_year"] = year
 
                 # Add fetch timestamp for tracking
-                contract["_fetch_timestamp"] = datetime.utcnow().isoformat()
+                contract["_fetch_timestamp"] = datetime.now(UTC).isoformat()
 
                 # Preserve or add organization code
                 if not contract.get("_org_code"):

@@ -6,7 +6,7 @@ Date: 2025-01-24
 License: Proprietary - All rights reserved
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 from uuid import uuid4
 
@@ -148,7 +148,7 @@ async def generate_report(
         "analysis_ids": request.analysis_ids,
         "time_range": request.time_range,
         "user_id": current_user.get("user_id"),
-        "started_at": datetime.utcnow(),
+        "started_at": datetime.now(UTC),
         "progress": 0.0,
         "current_phase": "initializing",
         "content": "",
@@ -605,7 +605,7 @@ async def _generate_report(report_id: str, request: ReportRequest):
 
         # Mark as completed
         report["status"] = "completed"
-        report["completed_at"] = datetime.utcnow()
+        report["completed_at"] = datetime.now(UTC)
         report["progress"] = 1.0
         report["current_phase"] = "completed"
 
@@ -624,6 +624,6 @@ async def _generate_report(report_id: str, request: ReportRequest):
         )
 
         report["status"] = "failed"
-        report["completed_at"] = datetime.utcnow()
+        report["completed_at"] = datetime.now(UTC)
         report["current_phase"] = "failed"
         report["error_message"] = str(e)

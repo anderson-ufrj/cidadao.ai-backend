@@ -1,6 +1,6 @@
 """API root endpoint - Welcome and system information."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Request
@@ -22,7 +22,7 @@ async def root(request: Request) -> dict[str, Any]:
         "version": "1.0.0",
         "description": "Multi-agent AI system for Brazilian government transparency analysis",
         "status": "operational",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
         "documentation": {
             "swagger_ui": f"{str(request.base_url)}docs",
             "redoc": f"{str(request.base_url)}redoc",

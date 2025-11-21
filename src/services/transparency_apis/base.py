@@ -12,7 +12,7 @@ License: Proprietary - All rights reserved
 
 import asyncio
 from abc import ABC, abstractmethod
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
 
 import httpx
@@ -123,7 +123,7 @@ class TransparencyAPIClient(ABC):
         """
         # Check circuit breaker
         if self._circuit_open:
-            if datetime.utcnow() < self._circuit_open_until:
+            if datetime.now(UTC) < self._circuit_open_until:
                 raise Exception(f"Circuit breaker open for {self.name} API")
             else:
                 # Reset circuit breaker
@@ -179,7 +179,7 @@ class TransparencyAPIClient(ABC):
                     # Open circuit breaker if too many failures
                     if self._failure_count >= 5:
                         self._circuit_open = True
-                        self._circuit_open_until = datetime.utcnow() + timedelta(
+                        self._circuit_open_until = datetime.now(UTC) + timedelta(
                             minutes=5
                         )
                         self.logger.error(f"Circuit breaker opened for {self.name}")
@@ -189,7 +189,7 @@ class TransparencyAPIClient(ABC):
     async def _wait_for_rate_limit(self) -> None:
         """Wait if rate limit would be exceeded."""
         async with self._rate_limit_lock:
-            now = datetime.utcnow()
+            now = datetime.now(UTC)
 
             # Remove timestamps older than 1 minute
             self._request_timestamps = [

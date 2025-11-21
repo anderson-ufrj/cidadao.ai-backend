@@ -7,7 +7,7 @@ reducing network overhead and improving throughput.
 
 import asyncio
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
@@ -112,7 +112,7 @@ async def process_batch(
     Operations are executed in parallel when possible.
     """
     batch_id = str(uuid.uuid4())
-    start_time = datetime.utcnow()
+    start_time = datetime.now(UTC)
 
     logger.info(
         f"Processing batch {batch_id} with {len(request.operations)} operations "
@@ -162,7 +162,7 @@ async def process_batch(
                 results.append(result)
 
     # Calculate statistics
-    total_time = (datetime.utcnow() - start_time).total_seconds()
+    total_time = (datetime.now(UTC) - start_time).total_seconds()
     successful = sum(1 for r in results if r.success)
     failed = len(results) - successful
 
@@ -188,7 +188,7 @@ async def _process_single_operation(
     operation: BatchOperation, user: Any, semaphore_limit: int
 ) -> BatchOperationResult:
     """Process a single operation with error handling."""
-    start_time = datetime.utcnow()
+    start_time = datetime.now(UTC)
 
     try:
         # Route to appropriate handler
@@ -203,7 +203,7 @@ async def _process_single_operation(
         else:
             raise ValueError(f"Unknown operation: {operation.operation}")
 
-        execution_time = (datetime.utcnow() - start_time).total_seconds()
+        execution_time = (datetime.now(UTC) - start_time).total_seconds()
 
         return BatchOperationResult(
             id=operation.id,
@@ -216,7 +216,7 @@ async def _process_single_operation(
     except Exception as e:
         logger.error(f"Batch operation {operation.id} failed: {str(e)}")
 
-        execution_time = (datetime.utcnow() - start_time).total_seconds()
+        execution_time = (datetime.now(UTC) - start_time).total_seconds()
 
         return BatchOperationResult(
             id=operation.id,

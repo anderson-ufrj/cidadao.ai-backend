@@ -8,7 +8,7 @@ by combining multiple messages before sending.
 import asyncio
 import time
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from src.core import get_logger
@@ -246,7 +246,7 @@ class MessageBatcher:
             # Create batch message
             batch_data = {
                 "type": "batch",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "messages": [msg.message for msg in batch],
                 "count": len(batch),
             }
@@ -351,7 +351,7 @@ class WebSocketManager:
             {
                 "type": "connected",
                 "connection_id": connection_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
             priority=10,  # High priority
         )

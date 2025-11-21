@@ -22,7 +22,7 @@ Usage:
 
 import asyncio
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 
 from src.core import get_logger
 from src.models.investigation import Investigation
@@ -175,7 +175,7 @@ class E2EInvestigationTest:
 
             investigation.status = STATUS_COMPLETED
             investigation.total_records_analyzed = results["contracts_analyzed"]
-            investigation.completed_at = datetime.utcnow()
+            investigation.completed_at = datetime.now(UTC)
 
             processing_time = time.time() - test_start
             investigation.processing_time_ms = int(processing_time * 1000)
@@ -399,7 +399,7 @@ class E2EInvestigationTest:
             # 2. Start processing
             logger.info("  → Starting processing...")
             investigation.status = STATUS_IN_PROGRESS
-            investigation.started_at = datetime.utcnow()
+            investigation.started_at = datetime.now(UTC)
 
             assert investigation.status == STATUS_IN_PROGRESS
             assert investigation.started_at is not None
@@ -408,7 +408,7 @@ class E2EInvestigationTest:
             # 3. Complete investigation
             logger.info("  → Completing investigation...")
             investigation.status = STATUS_COMPLETED
-            investigation.completed_at = datetime.utcnow()
+            investigation.completed_at = datetime.now(UTC)
             investigation.total_records_analyzed = 10
             investigation.processing_time_ms = 5500
 

@@ -10,7 +10,7 @@ import time
 import traceback
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from functools import wraps
 from typing import Any, Optional
 
@@ -269,7 +269,7 @@ class APMHooks:
             error_type=type(error).__name__,
             message=str(error),
             stack_trace=traceback.format_exc(),
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             context=context or {},
             tags=tags or {},
         )
@@ -305,7 +305,7 @@ class APMHooks:
             metric_name=metric_name,
             value=value,
             unit=unit,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             tags=tags or {},
             dimensions=dimensions or {},
         )
@@ -337,7 +337,7 @@ class APMHooks:
 
         event = APMEvent(
             event_type=event_type,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             data=data,
             tags=tags or {},
             metrics=metrics or {},
@@ -367,7 +367,7 @@ class APMHooks:
             return_exceptions=True,
         )
 
-        self.stats["last_flush"] = datetime.utcnow().isoformat()
+        self.stats["last_flush"] = datetime.now(UTC).isoformat()
 
     async def _flush_events(self):
         """Flush event buffer."""

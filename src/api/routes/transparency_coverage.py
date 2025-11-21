@@ -10,7 +10,7 @@ Created: 2025-10-23
 
 import logging
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 
 import httpx
 from fastapi import APIRouter, HTTPException, Query
@@ -335,7 +335,7 @@ async def generate_coverage_map() -> dict:
     )
 
     return {
-        "last_update": datetime.utcnow().isoformat(),
+        "last_update": datetime.now(UTC).isoformat(),
         "summary": {
             "total_states": 27,
             "states_with_apis": len(APIS_TO_TEST),

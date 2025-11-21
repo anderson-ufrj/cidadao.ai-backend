@@ -4,7 +4,7 @@ Tests agent interactions, coordination, and complete workflows.
 """
 
 import asyncio
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import patch
 from uuid import uuid4
 
@@ -38,7 +38,7 @@ def investigation_context():
         metadata={
             "test_type": "integration",
             "agents": ["bonifacio", "maria_quiteria"],
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         },
     )
 
@@ -226,7 +226,7 @@ class TestBonifacioMariaQuiteriaIntegration:
         )
 
         # Execute agents in parallel
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
 
         policy_task = asyncio.create_task(
             bonifacio.process(policy_msg, investigation_context)
@@ -240,7 +240,7 @@ class TestBonifacioMariaQuiteriaIntegration:
             policy_task, security_task
         )
 
-        end_time = datetime.utcnow()
+        end_time = datetime.now(UTC)
         execution_time = (end_time - start_time).total_seconds()
 
         # Verify both completed successfully

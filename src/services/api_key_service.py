@@ -6,7 +6,7 @@ Date: 2025-01-25
 License: Proprietary - All rights reserved
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
 
 from sqlalchemy import and_, select
@@ -71,7 +71,7 @@ class APIKeyService:
         # Calculate expiration
         expires_at = None
         if expires_in_days:
-            expires_at = datetime.utcnow() + timedelta(days=expires_in_days)
+            expires_at = datetime.now(UTC) + timedelta(days=expires_in_days)
 
         # Create API key record
         api_key = APIKey(
@@ -168,7 +168,7 @@ class APIKeyService:
             raise AuthenticationError(f"Scope {scope} not allowed")
 
         # Update last used
-        api_key.last_used_at = datetime.utcnow()
+        api_key.last_used_at = datetime.now(UTC)
         api_key.total_requests += 1
         await self.db.commit()
 
@@ -216,13 +216,13 @@ class APIKeyService:
                 rotation_reason=reason,
                 initiated_by=initiated_by,
                 grace_period_hours=grace_period_hours,
-                old_key_expires_at=datetime.utcnow()
+                old_key_expires_at=datetime.now(UTC)
                 + timedelta(hours=grace_period_hours),
             )
 
             # Update API key
             api_key.key_hash = new_key_hash
-            api_key.last_rotated_at = datetime.utcnow()
+            api_key.last_rotated_at = datetime.now(UTC)
             api_key.status = old_status
 
             self.db.add(rotation)
@@ -317,7 +317,7 @@ class APIKeyService:
         api_key.metadata["revocation"] = {
             "reason": reason,
             "revoked_by": revoked_by,
-            "revoked_at": datetime.utcnow().isoformat(),
+            "revoked_at": datetime.now(UTC).isoformat(),
         }
 
         await self.db.commit()
@@ -415,7 +415,7 @@ class APIKeyService:
             select(APIKey).where(
                 and_(
                     APIKey.expires_at.isnot(None),
-                    APIKey.expires_at < datetime.utcnow(),
+                    APIKey.expires_at < datetime.now(UTC),
                     APIKey.status == APIKeyStatus.ACTIVE,
                 )
             )
@@ -468,7 +468,7 @@ class APIKeyService:
                     "key_name": api_key.name,
                     "grace_period_hours": grace_period_hours,
                     "old_key_expires_at": (
-                        datetime.utcnow() + timedelta(hours=grace_period_hours)
+                        datetime.now(UTC) + timedelta(hours=grace_period_hours)
                     ).isoformat(),
                 },
             )
@@ -488,7 +488,7 @@ class APIKeyService:
                     "client_name": api_key.client_name or "Client",
                     "key_name": api_key.name,
                     "reason": reason,
-                    "revoked_at": datetime.utcnow().isoformat(),
+                    "revoked_at": datetime.now(UTC).isoformat(),
                 },
             )
         except Exception as e:

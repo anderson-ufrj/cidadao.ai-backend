@@ -5,7 +5,7 @@ This endpoint ensures the chat always works, even if other services fail
 
 import os
 import random
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 import httpx
@@ -144,7 +144,7 @@ async def chat_emergency(request: ChatRequest) -> ChatResponse:
             metadata={
                 "model": "sabiazinho-3",
                 "backend": "maritaca_ai",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
         )
 
@@ -173,7 +173,7 @@ async def chat_emergency(request: ChatRequest) -> ChatResponse:
         metadata={
             "backend": "intelligent_fallback",
             "intent": intent,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         },
     )
 
@@ -188,5 +188,5 @@ async def emergency_health():
         "endpoint": "/api/v1/chat/emergency",
         "maritaca_configured": maritaca_available,
         "fallback_ready": True,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
