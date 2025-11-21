@@ -1,0 +1,448 @@
+{
+  "results": {
+    "timestamp": "2025-11-21T14:01:21.206157",
+    "base_url": "https://cidadao-api-production.up.railway.app",
+    "tests": {
+      "agents": [
+        {
+          "endpoint": "/api/v1/agents/zumbi",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 3,
+          "failures": 0,
+          "success_rate": 100.0,
+          "times": {
+            "min": 139.35327529907227,
+            "max": 567.5647258758545,
+            "avg": 282.3006312052409,
+            "median": 139.9838924407959,
+            "stdev": 247.04615398884164
+          },
+          "errors": []
+        },
+        {
+          "endpoint": "/api/v1/agents/anita",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 3,
+          "failures": 0,
+          "success_rate": 100.0,
+          "times": {
+            "min": 138.0019187927246,
+            "max": 141.0825252532959,
+            "avg": 139.30145899454752,
+            "median": 138.81993293762207,
+            "stdev": 1.5957551656980542
+          },
+          "errors": []
+        },
+        {
+          "endpoint": "/api/v1/agents/tiradentes",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 3,
+          "failures": 0,
+          "success_rate": 100.0,
+          "times": {
+            "min": 130.02848625183105,
+            "max": 134.25540924072266,
+            "avg": 132.46941566467285,
+            "median": 133.12435150146484,
+            "stdev": 2.1882470612892178
+          },
+          "errors": []
+        },
+        {
+          "endpoint": "/api/v1/agents/bonifacio",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 2,
+          "failures": 1,
+          "success_rate": 66.66666666666666,
+          "times": {
+            "min": 129.88662719726562,
+            "max": 140.86532592773438,
+            "avg": 135.19914944966635,
+            "median": 134.84549522399902,
+            "stdev": 5.497886861067468
+          },
+          "errors": [
+            "Status 429"
+          ]
+        },
+        {
+          "endpoint": "/api/v1/agents/maria-quiteria",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 0,
+          "failures": 3,
+          "success_rate": 0.0,
+          "times": {
+            "min": 127.98023223876953,
+            "max": 132.94267654418945,
+            "avg": 130.2663485209147,
+            "median": 129.87613677978516,
+            "stdev": 2.504129044854752
+          },
+          "errors": [
+            "Status 429",
+            "Status 429",
+            "Status 429"
+          ]
+        },
+        {
+          "endpoint": "/api/v1/agents/machado",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 0,
+          "failures": 3,
+          "success_rate": 0.0,
+          "times": {
+            "min": 128.23724746704102,
+            "max": 130.01155853271484,
+            "avg": 128.91666094462076,
+            "median": 128.50117683410645,
+            "stdev": 0.9573480161417568
+          },
+          "errors": [
+            "Status 429",
+            "Status 403",
+            "Status 403"
+          ]
+        },
+        {
+          "endpoint": "/api/v1/agents/dandara",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 0,
+          "failures": 3,
+          "success_rate": 0.0,
+          "times": {
+            "min": 129.0750503540039,
+            "max": 133.98027420043945,
+            "avg": 130.72760899861655,
+            "median": 129.12750244140625,
+            "stdev": 2.8170127780559504
+          },
+          "errors": [
+            "Status 403",
+            "Status 403",
+            "Status 403"
+          ]
+        },
+        {
+          "endpoint": "/api/v1/agents/lampiao",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 0,
+          "failures": 3,
+          "success_rate": 0.0,
+          "times": {
+            "min": 129.39190864562988,
+            "max": 137.6352310180664,
+            "avg": 132.1885585784912,
+            "median": 129.53853607177734,
+            "stdev": 4.71752640676718
+          },
+          "errors": [
+            "Status 403",
+            "Status 403",
+            "Status 403"
+          ]
+        },
+        {
+          "endpoint": "/api/v1/agents/oscar",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 0,
+          "failures": 3,
+          "success_rate": 0.0,
+          "times": {
+            "min": 128.4475326538086,
+            "max": 132.10630416870117,
+            "avg": 130.39533297220865,
+            "median": 130.6321620941162,
+            "stdev": 1.840847162119919
+          },
+          "errors": [
+            "Status 403",
+            "Status 403",
+            "Status 403"
+          ]
+        },
+        {
+          "endpoint": "/api/v1/agents/drummond",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 0,
+          "failures": 3,
+          "success_rate": 0.0,
+          "times": {
+            "min": 128.87883186340332,
+            "max": 156.0647487640381,
+            "avg": 138.1218433380127,
+            "median": 129.42194938659668,
+            "stdev": 15.541384607121351
+          },
+          "errors": [
+            "Status 403",
+            "Status 403",
+            "Status 403"
+          ]
+        },
+        {
+          "endpoint": "/api/v1/agents/obaluaie",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 0,
+          "failures": 3,
+          "success_rate": 0.0,
+          "times": {
+            "min": 129.69326972961426,
+            "max": 132.30419158935547,
+            "avg": 130.6177775065104,
+            "median": 129.85587120056152,
+            "stdev": 1.4627385800963009
+          },
+          "errors": [
+            "Status 403",
+            "Status 403",
+            "Status 403"
+          ]
+        },
+        {
+          "endpoint": "/api/v1/agents/oxossi",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 0,
+          "failures": 3,
+          "success_rate": 0.0,
+          "times": {
+            "min": 128.0496120452881,
+            "max": 130.67150115966797,
+            "avg": 129.17367617289224,
+            "median": 128.7999153137207,
+            "stdev": 1.3503142289528103
+          },
+          "errors": [
+            "Status 403",
+            "Status 403",
+            "Status 403"
+          ]
+        },
+        {
+          "endpoint": "/api/v1/agents/ceuci",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 0,
+          "failures": 3,
+          "success_rate": 0.0,
+          "times": {
+            "min": 128.5099983215332,
+            "max": 143.39494705200195,
+            "avg": 136.7515722910563,
+            "median": 138.3497714996338,
+            "stdev": 7.570079603933769
+          },
+          "errors": [
+            "Status 403",
+            "Status 403",
+            "Status 403"
+          ]
+        },
+        {
+          "endpoint": "/api/v1/agents/abaporu",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 0,
+          "failures": 3,
+          "success_rate": 0.0,
+          "times": {
+            "min": 128.96394729614258,
+            "max": 133.7428092956543,
+            "avg": 131.8054993947347,
+            "median": 132.70974159240723,
+            "stdev": 2.5144822462353984
+          },
+          "errors": [
+            "Status 403",
+            "Status 403",
+            "Status 403"
+          ]
+        },
+        {
+          "endpoint": "/api/v1/agents/ayrton-senna",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 0,
+          "failures": 3,
+          "success_rate": 0.0,
+          "times": {
+            "min": 128.67426872253418,
+            "max": 132.58790969848633,
+            "avg": 130.37792841593424,
+            "median": 129.87160682678223,
+            "stdev": 2.005347248207649
+          },
+          "errors": [
+            "Status 403",
+            "Status 403",
+            "Status 403"
+          ]
+        },
+        {
+          "endpoint": "/api/v1/agents/nana",
+          "method": "POST",
+          "iterations": 3,
+          "successes": 0,
+          "failures": 3,
+          "success_rate": 0.0,
+          "times": {
+            "min": 128.70025634765625,
+            "max": 130.26833534240723,
+            "avg": 129.74262237548828,
+            "median": 130.25927543640137,
+            "stdev": 0.9027268260431579
+          },
+          "errors": [
+            "Status 403",
+            "Status 403",
+            "Status 403"
+          ]
+        }
+      ],
+      "sse_streaming": [
+        {
+          "message": "Analise contratos suspeitos",
+          "success": false,
+          "is_sse": false,
+          "has_error": false,
+          "time_ms": 128.27062606811523,
+          "sample": "{\"detail\":\"Access denied\"}"
+        },
+        {
+          "message": "Quem s\u00e3o os maiores fornecedores?",
+          "success": false,
+          "is_sse": false,
+          "has_error": false,
+          "time_ms": 128.42345237731934,
+          "sample": "{\"detail\":\"Access denied\"}"
+        },
+        {
+          "message": "Detecte anomalias em licita\u00e7\u00f5es",
+          "success": false,
+          "is_sse": false,
+          "has_error": false,
+          "time_ms": 135.26034355163574,
+          "sample": "{\"detail\":\"Access denied\"}"
+        },
+        {
+          "message": "Gere um relat\u00f3rio de investiga\u00e7\u00e3o",
+          "success": false,
+          "is_sse": false,
+          "has_error": false,
+          "time_ms": 131.46114349365234,
+          "sample": "{\"detail\":\"Access denied\"}"
+        }
+      ],
+      "concurrent_load": {
+        "total_requests": 20,
+        "successes": 0,
+        "failures": 20,
+        "total_time_ms": 623.1784820556641,
+        "avg_time_ms": 566.668426990509,
+        "results": [
+          {
+            "index": 0,
+            "endpoint": "/health/",
+            "status": 403,
+            "time_ms": 134.25278663635254,
+            "success": false
+          },
+          {
+            "index": 1,
+            "endpoint": "/api/v1/",
+            "status": 403,
+            "time_ms": 622.7271556854248,
+            "success": false
+          },
+          {
+            "index": 2,
+            "endpoint": "/api/v1/agents/",
+            "status": 403,
+            "time_ms": 579.0762901306152,
+            "success": false
+          },
+          {
+            "index": 3,
+            "endpoint": "/api/v1/agents/zumbi",
+            "status": 403,
+            "time_ms": 622.2236156463623,
+            "success": false
+          },
+          {
+            "index": 4,
+            "endpoint": "/api/v1/federal/",
+            "status": 403,
+            "time_ms": 562.3195171356201,
+            "success": false
+          }
+        ]
+      },
+      "cors": {
+        "headers": {
+          "access-control-allow-origin": "http://localhost:3000",
+          "access-control-allow-methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS, HEAD",
+          "access-control-allow-headers": "Content-Type",
+          "access-control-allow-credentials": "true"
+        },
+        "allows_localhost": true,
+        "allows_post": true,
+        "allows_content_type": true,
+        "configured_correctly": true
+      },
+      "error_handling": [
+        {
+          "scenario": "Payload inv\u00e1lido",
+          "status": 403,
+          "has_error_message": true,
+          "response_sample": "{\"detail\":\"Access denied\"}"
+        },
+        {
+          "scenario": "Agente inexistente",
+          "status": 403,
+          "has_error_message": true,
+          "response_sample": "{\"detail\":\"Access denied\"}"
+        },
+        {
+          "scenario": "M\u00e9todo n\u00e3o permitido",
+          "status": 403,
+          "has_error_message": true,
+          "response_sample": "{\"detail\":\"Access denied\"}"
+        },
+        {
+          "scenario": "Query muito grande",
+          "status": 403,
+          "has_error_message": true,
+          "response_sample": "{\"detail\":\"Access denied\"}"
+        }
+      ],
+      "data_consistency": {
+        "responses": [],
+        "all_federal": true,
+        "consistent_sources": false
+      }
+    },
+    "summary": {}
+  },
+  "critical_checks": {
+    "sse_streaming": false,
+    "cors_configured": true,
+    "agents_working": false,
+    "performance_ok": false,
+    "error_handling": true,
+    "data_consistency": true
+  },
+  "readiness_percentage": 50.0,
+  "timestamp": "2025-11-21T14:01:30.230323"
+}
