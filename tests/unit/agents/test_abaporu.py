@@ -954,3 +954,97 @@ class TestIntegrationWorkflow:
         assert isinstance(response.result, InvestigationResult)
         # Findings may be empty due to failed step
         assert isinstance(response.result.findings, list)
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_execute_step_with_unregistered_agent(
+        self, master_agent, agent_context
+    ):
+        """Test _execute_step raises error for unregistered agent - Line 531."""
+        from src.core.exceptions import AgentExecutionError
+
+        step = {
+            "agent": "NonExistentAgent",
+            "action": "test_action",
+            "parameters": {},
+        }
+
+        with pytest.raises(AgentExecutionError) as exc_info:
+            await master_agent._execute_step(step, agent_context)
+
+        assert "NonExistentAgent" in str(exc_info.value)
+        assert "not registered" in str(exc_info.value)
+
+    @pytest.mark.asyncio
+    @pytest.mark.unit
+    async def test_investigate_with_parallel_execution(
+        self, master_agent, agent_context
+    ):
+        """Test investigation with parallel step execution - Lines 316-345."""
+        from unittest.mock import AsyncMock, patch
+
+        await master_agent.initialize()
+
+        # Create two agents that can run in parallel
+        mock_zumbi = AsyncMock()
+        mock_zumbi.process = AsyncMock(
+            return_value=AgentResponse(
+                agent_name="Zumbi",
+                status=AgentStatus.COMPLETED,
+                result={
+                    "findings": [{"desc": "zumbi_finding"}],
+                    "sources": ["contracts"],
+                },
+                metadata={},
+            )
+        )
+
+        mock_anita = AsyncMock()
+        mock_anita.process = AsyncMock(
+            return_value=AgentResponse(
+                agent_name="Anita",
+                status=AgentStatus.COMPLETED,
+                result={
+                    "findings": [{"desc": "anita_finding"}],
+                    "sources": ["budget"],
+                },
+                metadata={},
+            )
+        )
+
+        master_agent.agent_registry["Zumbi"] = mock_zumbi
+        master_agent.agent_registry["Anita"] = mock_anita
+
+        # Create message with query that triggers multiple agents
+        message = AgentMessage(
+            sender="test",
+            recipient="MasterAgent",
+            action="investigate",
+            payload={
+                "query": "Detect contract anomalies and analyze spending patterns"
+            },  # Triggers both Zumbi and Anita
+        )
+
+        # Mock parallel_processor to track parallel execution
+        with patch("src.agents.abaporu.parallel_processor") as mock_pp:
+            mock_pp.execute_parallel = AsyncMock(
+                return_value=[
+                    {
+                        "agent": "Zumbi",
+                        "status": "completed",
+                        "result": {"findings": [], "sources": []},
+                    },
+                    {
+                        "agent": "Anita",
+                        "status": "completed",
+                        "result": {"findings": [], "sources": []},
+                    },
+                ]
+            )
+            mock_pp.aggregate_results = lambda x: {"findings": [], "sources": []}
+
+            response = await master_agent.process(message, agent_context)
+
+            # Verify parallel execution was attempted
+            # (may not be called if plan doesn't group steps for parallel)
+            assert response.status == AgentStatus.COMPLETED

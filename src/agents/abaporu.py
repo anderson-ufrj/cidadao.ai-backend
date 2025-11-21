@@ -39,15 +39,15 @@ Example:
     >>> result = await master.process(message, context)
 """
 
-from datetime import datetime
-from typing import Any, Optional
+from datetime import UTC, datetime
+from typing import Any
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
 
 from src.core import AgentStatus, ReflectionType
 from src.core.exceptions import AgentExecutionError, InvestigationError
-from src.services.maritaca_client import MaritacaClient, MaritacaMessage, MaritacaModel
+from src.services.maritaca_client import MaritacaClient
 
 from .deodoro import AgentContext, AgentMessage, AgentResponse, ReflectiveAgent
 from .parallel_processor import ParallelStrategy, ParallelTask, parallel_processor
@@ -78,14 +78,14 @@ class InvestigationResult(BaseModel):
     )
     confidence_score: float = PydanticField(..., description="Confidence in results")
     sources: list[str] = PydanticField(..., description="Data sources used")
-    explanation: Optional[str] = PydanticField(
+    explanation: str | None = PydanticField(
         default=None, description="Explanation of findings"
     )
     metadata: dict[str, Any] = PydanticField(
         default_factory=dict, description="Additional metadata"
     )
-    timestamp: datetime = PydanticField(default_factory=datetime.utcnow)
-    processing_time_ms: Optional[float] = PydanticField(
+    timestamp: datetime = PydanticField(default_factory=lambda: datetime.now(UTC))
+    processing_time_ms: float | None = PydanticField(
         default=None, description="Processing time"
     )
 
@@ -291,7 +291,7 @@ class MasterAgent(ReflectiveAgent):
             raise InvestigationError("No query provided for investigation")
 
         investigation_id = context.investigation_id
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
 
         self.logger.info(
             "investigation_started",
@@ -367,7 +367,7 @@ class MasterAgent(ReflectiveAgent):
         confidence_score = self._calculate_confidence_score(findings, sources)
 
         # Step 5: Create result
-        processing_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+        processing_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
 
         result = InvestigationResult(
             investigation_id=investigation_id,
@@ -537,14 +537,6 @@ class MasterAgent(ReflectiveAgent):
             )
 
         agent = self.agent_registry[agent_name]
-
-        message = AgentMessage(
-            sender=self.name,
-            recipient=agent_name,
-            action=action,
-            payload=parameters,
-            context=context.to_dict(),
-        )
 
         return await agent.execute(action, parameters, context)
 
