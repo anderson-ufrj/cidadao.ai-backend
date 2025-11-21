@@ -1,0 +1,67 @@
+{
+  "total_todos": 459,
+  "by_category": {
+    "security": 3,
+    "auth": 4,
+    "api": 44,
+    "database": 6,
+    "performance": 3,
+    "testing": 18,
+    "documentation": 5,
+    "agent": 20,
+    "ml": 5,
+    "infrastructure": 6,
+    "feature": 30,
+    "refactor": 1,
+    "bug": 59,
+    "other": 255
+  },
+  "by_priority": {
+    "critical": 95,
+    "high": 193,
+    "medium": 157,
+    "low": 14
+  },
+  "critical_files": [
+    [
+      "docs/archive/2025-10-sessions/SESSION_5_MARIA_QUITERIA_2025_10_25.md",
+      21
+    ],
+    [
+      "docs/agents/16-CEUCI-etl-predictive-83pct.md",
+      15
+    ],
+    [
+      "docs/project/planning/SPRINT_PLAN_2025-10-13.md",
+      12
+    ],
+    [
+      "docs/archive/2025-10-sessions/SESSIONS_7_8_COVERAGE_SPRINT_2025_10_26.md",
+      11
+    ],
+    [
+      "docs/operations/troubleshooting/PRODUCTION_FIXES_2025_10_29.md",
+      10
+    ],
+    [
+      "docs/deployment/migration-hf-to-railway.md",
+      9
+    ],
+    [
+      "docs/agents/17-OBALUAIE-corruption-detection-81pct.md",
+      8
+    ],
+    [
+      "docs/project/reports/2025-11/SESSION_REPORT_2025_11_07.md",
+      8
+    ],
+    [
+      "docs/archive/2025-10-sessions/SESSION_5_FINAL_SUMMARY.md",
+      7
+    ],
+    [
+      "CONTRIBUTING.md",
+      7
+    ]
+  ]
+}
