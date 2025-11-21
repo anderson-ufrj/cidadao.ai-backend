@@ -1,6 +1,6 @@
 {
   "results": {
-    "timestamp": "2025-11-21T14:14:12.044016",
+    "timestamp": "2025-11-21T14:23:30.556696",
     "base_url": "https://cidadao-api-production.up.railway.app",
     "tests": {
       "agents": [
@@ -12,11 +12,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 314.8975372314453,
-            "max": 1329.0786743164062,
-            "avg": 727.1802425384521,
-            "median": 537.5645160675049,
-            "stdev": 533.0163576275731
+            "min": 151.0179042816162,
+            "max": 1058.3140850067139,
+            "avg": 456.4659595489502,
+            "median": 160.0658893585205,
+            "stdev": 521.2353989285992
           },
           "errors": []
         },
@@ -28,11 +28,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 309.48925018310547,
-            "max": 548.8379001617432,
-            "avg": 464.5342032114665,
-            "median": 535.2754592895508,
-            "stdev": 134.44399594358214
+            "min": 150.6798267364502,
+            "max": 162.3072624206543,
+            "avg": 156.2047799428304,
+            "median": 155.62725067138672,
+            "stdev": 5.83519238689749
           },
           "errors": []
         },
@@ -44,11 +44,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 132.13586807250977,
-            "max": 137.18032836914062,
-            "avg": 133.92949104309082,
-            "median": 132.47227668762207,
-            "stdev": 2.8203280269162714
+            "min": 131.59441947937012,
+            "max": 137.36724853515625,
+            "avg": 133.61668586730957,
+            "median": 131.88838958740234,
+            "stdev": 3.2514065956425724
           },
           "errors": []
         },
@@ -60,11 +60,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 133.1195831298828,
-            "max": 138.8683319091797,
-            "avg": 135.38551330566406,
-            "median": 134.1686248779297,
-            "stdev": 3.061476966438292
+            "min": 139.17136192321777,
+            "max": 151.92365646362305,
+            "avg": 143.60745747884116,
+            "median": 139.72735404968262,
+            "stdev": 7.207402859354982
           },
           "errors": []
         },
@@ -72,100 +72,81 @@
           "endpoint": "/api/v1/agents/maria-quiteria",
           "method": "POST",
           "iterations": 3,
-          "successes": 1,
-          "failures": 2,
-          "success_rate": 33.33333333333333,
+          "successes": 3,
+          "failures": 0,
+          "success_rate": 100.0,
           "times": {
-            "min": 128.43012809753418,
-            "max": 134.4614028930664,
-            "avg": 130.95776240030924,
-            "median": 129.98175621032715,
-            "stdev": 3.131854079769379
+            "min": 132.02428817749023,
+            "max": 140.90299606323242,
+            "avg": 136.15727424621582,
+            "median": 135.5445384979248,
+            "stdev": 4.4709559663466205
           },
-          "errors": [
-            "Status 429",
-            "Status 429"
-          ]
+          "errors": []
         },
         {
           "endpoint": "/api/v1/agents/machado",
           "method": "POST",
           "iterations": 3,
-          "successes": 0,
-          "failures": 3,
-          "success_rate": 0.0,
+          "successes": 3,
+          "failures": 0,
+          "success_rate": 100.0,
           "times": {
-            "min": 128.57341766357422,
-            "max": 138.48567008972168,
-            "avg": 132.75734583536783,
-            "median": 131.21294975280762,
-            "stdev": 5.13342541435902
+            "min": 131.18910789489746,
+            "max": 142.00329780578613,
+            "avg": 136.6449991861979,
+            "median": 136.74259185791016,
+            "stdev": 5.407755459002425
           },
-          "errors": [
-            "Status 429",
-            "Status 429",
-            "Status 429"
-          ]
+          "errors": []
         },
         {
           "endpoint": "/api/v1/agents/dandara",
           "method": "POST",
           "iterations": 3,
-          "successes": 0,
-          "failures": 3,
-          "success_rate": 0.0,
+          "successes": 3,
+          "failures": 0,
+          "success_rate": 100.0,
           "times": {
-            "min": 128.47399711608887,
-            "max": 134.7212791442871,
-            "avg": 130.68040211995444,
-            "median": 128.8459300994873,
-            "stdev": 3.504439881117913
+            "min": 696.3980197906494,
+            "max": 2915.208101272583,
+            "avg": 1448.2134183247883,
+            "median": 733.0341339111328,
+            "stdev": 1270.5867152864016
           },
-          "errors": [
-            "Status 403",
-            "Status 403",
-            "Status 403"
-          ]
+          "errors": []
         },
         {
           "endpoint": "/api/v1/agents/lampiao",
           "method": "POST",
           "iterations": 3,
-          "successes": 0,
-          "failures": 3,
-          "success_rate": 0.0,
+          "successes": 3,
+          "failures": 0,
+          "success_rate": 100.0,
           "times": {
-            "min": 128.60941886901855,
-            "max": 129.93955612182617,
-            "avg": 129.23455238342285,
-            "median": 129.15468215942383,
-            "stdev": 0.668655903539249
+            "min": 128.88789176940918,
+            "max": 138.49306106567383,
+            "avg": 135.12492179870605,
+            "median": 137.99381256103516,
+            "stdev": 5.407191503646715
           },
-          "errors": [
-            "Status 403",
-            "Status 403",
-            "Status 403"
-          ]
+          "errors": []
         },
         {
           "endpoint": "/api/v1/agents/oscar",
           "method": "POST",
           "iterations": 3,
-          "successes": 0,
-          "failures": 3,
-          "success_rate": 0.0,
+          "successes": 3,
+          "failures": 0,
+          "success_rate": 100.0,
           "times": {
-            "min": 129.0271282196045,
-            "max": 132.04050064086914,
-            "avg": 130.3273836771647,
-            "median": 129.9145221710205,
-            "stdev": 1.5485297235608166
+            "min": 129.92215156555176,
+            "max": 131.88862800598145,
+            "avg": 131.07657432556152,
+            "median": 131.41894340515137,
+            "stdev": 1.0269711961324188
           },
-          "errors": [
-            "Status 403",
-            "Status 403",
-            "Status 403"
-          ]
+          "errors": []
         },
         {
           "endpoint": "/api/v1/agents/drummond",
@@ -175,77 +156,65 @@
           "failures": 3,
           "success_rate": 0.0,
           "times": {
-            "min": 128.61132621765137,
-            "max": 130.0334930419922,
-            "avg": 129.1658878326416,
-            "median": 128.85284423828125,
-            "stdev": 0.7610104060007653
+            "min": 142.6236629486084,
+            "max": 144.57011222839355,
+            "avg": 143.80693435668945,
+            "median": 144.2270278930664,
+            "stdev": 1.0390019894943943
           },
           "errors": [
-            "Status 403",
-            "Status 403",
-            "Status 403"
+            "Status 500",
+            "Status 500",
+            "Status 500"
           ]
         },
         {
           "endpoint": "/api/v1/agents/obaluaie",
           "method": "POST",
           "iterations": 3,
-          "successes": 0,
-          "failures": 3,
-          "success_rate": 0.0,
+          "successes": 3,
+          "failures": 0,
+          "success_rate": 100.0,
           "times": {
-            "min": 129.01568412780762,
-            "max": 130.22398948669434,
-            "avg": 129.4980843861898,
-            "median": 129.25457954406738,
-            "stdev": 0.6398995360065362
+            "min": 132.4443817138672,
+            "max": 134.62066650390625,
+            "avg": 133.19198290506998,
+            "median": 132.51090049743652,
+            "stdev": 1.2377232349478167
           },
-          "errors": [
-            "Status 403",
-            "Status 403",
-            "Status 403"
-          ]
+          "errors": []
         },
         {
           "endpoint": "/api/v1/agents/oxossi",
           "method": "POST",
           "iterations": 3,
-          "successes": 0,
-          "failures": 3,
-          "success_rate": 0.0,
+          "successes": 3,
+          "failures": 0,
+          "success_rate": 100.0,
           "times": {
-            "min": 127.83980369567871,
-            "max": 135.80894470214844,
-            "avg": 131.38628005981445,
-            "median": 130.5100917816162,
-            "stdev": 4.056178191276652
+            "min": 131.9413185119629,
+            "max": 134.42373275756836,
+            "avg": 133.22321573893228,
+            "median": 133.30459594726562,
+            "stdev": 1.2432064090196466
           },
-          "errors": [
-            "Status 403",
-            "Status 403",
-            "Status 403"
-          ]
+          "errors": []
         },
         {
           "endpoint": "/api/v1/agents/ceuci",
           "method": "POST",
           "iterations": 3,
-          "successes": 0,
-          "failures": 3,
-          "success_rate": 0.0,
+          "successes": 3,
+          "failures": 0,
+          "success_rate": 100.0,
           "times": {
-            "min": 128.60941886901855,
-            "max": 130.476713180542,
-            "avg": 129.3647289276123,
-            "median": 129.00805473327637,
-            "stdev": 0.9834171912981996
+            "min": 133.64887237548828,
+            "max": 136.91163063049316,
+            "avg": 134.84978675842285,
+            "median": 133.9888572692871,
+            "stdev": 1.7936826772309182
           },
-          "errors": [
-            "Status 403",
-            "Status 403",
-            "Status 403"
-          ]
+          "errors": []
         },
         {
           "endpoint": "/api/v1/agents/abaporu",
@@ -255,16 +224,16 @@
           "failures": 3,
           "success_rate": 0.0,
           "times": {
-            "min": 128.65924835205078,
-            "max": 135.5888843536377,
-            "avg": 133.22091102600098,
-            "median": 135.41460037231445,
-            "stdev": 3.951476747966424
+            "min": 128.27086448669434,
+            "max": 134.70101356506348,
+            "avg": 131.97660446166992,
+            "median": 132.95793533325195,
+            "stdev": 3.3255017669748486
           },
           "errors": [
-            "Status 403",
-            "Status 403",
-            "Status 403"
+            "Status 500",
+            "Status 500",
+            "Status 500"
           ]
         },
         {
@@ -275,16 +244,16 @@
           "failures": 3,
           "success_rate": 0.0,
           "times": {
-            "min": 129.50611114501953,
-            "max": 133.6381435394287,
-            "avg": 130.97159067789713,
-            "median": 129.77051734924316,
-            "stdev": 2.313083609105962
+            "min": 132.49993324279785,
+            "max": 135.85209846496582,
+            "avg": 134.6595287322998,
+            "median": 135.62655448913574,
+            "stdev": 1.873661396828732
           },
           "errors": [
-            "Status 403",
-            "Status 403",
-            "Status 403"
+            "Status 500",
+            "Status 500",
+            "Status 500"
           ]
         },
         {
@@ -295,16 +264,16 @@
           "failures": 3,
           "success_rate": 0.0,
           "times": {
-            "min": 128.02529335021973,
-            "max": 135.7567310333252,
-            "avg": 131.7760149637858,
-            "median": 131.5460205078125,
-            "stdev": 3.8708468387769694
+            "min": 131.66022300720215,
+            "max": 137.15481758117676,
+            "avg": 135.30723253885904,
+            "median": 137.10665702819824,
+            "stdev": 3.1584946972747976
           },
           "errors": [
-            "Status 403",
-            "Status 403",
-            "Status 403"
+            "Status 500",
+            "Status 500",
+            "Status 500"
           ]
         }
       ],
@@ -312,77 +281,77 @@
         {
           "message": "Analise contratos suspeitos",
           "success": false,
-          "is_sse": false,
-          "has_error": false,
-          "time_ms": 128.87263298034668,
-          "sample": "{\"detail\":\"Access denied\"}"
+          "is_sse": true,
+          "has_error": true,
+          "time_ms": 632.638692855835,
+          "sample": "data: {\"type\":\"start\",\"timestamp\":\"2025-11-21T17:23:42.124319+00:00\"}\n\ndata: {\"type\":\"detecting\",\"message\":\"Analisando sua mensagem...\"}\n\ndata: {\"type\":\"error\",\"message\":\"type object 'IntentType' has "
         },
         {
           "message": "Quem s\u00e3o os maiores fornecedores?",
           "success": false,
-          "is_sse": false,
-          "has_error": false,
-          "time_ms": 129.81271743774414,
-          "sample": "{\"detail\":\"Access denied\"}"
+          "is_sse": true,
+          "has_error": true,
+          "time_ms": 649.2428779602051,
+          "sample": "data: {\"type\":\"start\",\"timestamp\":\"2025-11-21T17:23:42.759766+00:00\"}\n\ndata: {\"type\":\"detecting\",\"message\":\"Analisando sua mensagem...\"}\n\ndata: {\"type\":\"error\",\"message\":\"type object 'IntentType' has "
         },
         {
           "message": "Detecte anomalias em licita\u00e7\u00f5es",
           "success": false,
-          "is_sse": false,
-          "has_error": false,
-          "time_ms": 135.82158088684082,
-          "sample": "{\"detail\":\"Access denied\"}"
+          "is_sse": true,
+          "has_error": true,
+          "time_ms": 636.4843845367432,
+          "sample": "data: {\"type\":\"start\",\"timestamp\":\"2025-11-21T17:23:43.406230+00:00\"}\n\ndata: {\"type\":\"detecting\",\"message\":\"Analisando sua mensagem...\"}\n\ndata: {\"type\":\"error\",\"message\":\"type object 'IntentType' has "
         },
         {
           "message": "Gere um relat\u00f3rio de investiga\u00e7\u00e3o",
           "success": false,
-          "is_sse": false,
-          "has_error": false,
-          "time_ms": 127.94280052185059,
-          "sample": "{\"detail\":\"Access denied\"}"
+          "is_sse": true,
+          "has_error": true,
+          "time_ms": 639.5823955535889,
+          "sample": "data: {\"type\":\"start\",\"timestamp\":\"2025-11-21T17:23:44.046032+00:00\"}\n\ndata: {\"type\":\"detecting\",\"message\":\"Analisando sua mensagem...\"}\n\ndata: {\"type\":\"error\",\"message\":\"type object 'IntentType' has "
         }
       ],
       "concurrent_load": {
         "total_requests": 20,
-        "successes": 0,
-        "failures": 20,
-        "total_time_ms": 652.329683303833,
-        "avg_time_ms": 588.5423302650452,
+        "successes": 20,
+        "failures": 0,
+        "total_time_ms": 1204.9775123596191,
+        "avg_time_ms": 711.7855668067932,
         "results": [
           {
             "index": 0,
             "endpoint": "/health/",
-            "status": 403,
-            "time_ms": 130.89585304260254,
-            "success": false
+            "status": 200,
+            "time_ms": 134.63807106018066,
+            "success": true
           },
           {
             "index": 1,
             "endpoint": "/api/v1/",
-            "status": 403,
-            "time_ms": 642.1933174133301,
-            "success": false
+            "status": 200,
+            "time_ms": 653.8879871368408,
+            "success": true
           },
           {
             "index": 2,
             "endpoint": "/api/v1/agents/",
-            "status": 403,
-            "time_ms": 645.6475257873535,
-            "success": false
+            "status": 200,
+            "time_ms": 528.3927917480469,
+            "success": true
           },
           {
             "index": 3,
             "endpoint": "/api/v1/agents/zumbi",
-            "status": 403,
-            "time_ms": 641.6163444519043,
-            "success": false
+            "status": 200,
+            "time_ms": 1204.1823863983154,
+            "success": true
           },
           {
             "index": 4,
             "endpoint": "/api/v1/federal/",
-            "status": 403,
-            "time_ms": 532.6297283172607,
-            "success": false
+            "status": 200,
+            "time_ms": 662.2483730316162,
+            "success": true
           }
         ]
       },
@@ -401,33 +370,55 @@
       "error_handling": [
         {
           "scenario": "Payload inv\u00e1lido",
-          "status": 403,
+          "status": 422,
           "has_error_message": true,
-          "response_sample": "{\"detail\":\"Access denied\"}"
+          "response_sample": "{\"detail\":[{\"type\":\"missing\",\"loc\":[\"body\",\"query\"],\"msg\":\"Field required\",\"input\":{\"invalid\":\"payload\"}}]}"
         },
         {
           "scenario": "Agente inexistente",
-          "status": 403,
+          "status": 404,
           "has_error_message": true,
-          "response_sample": "{\"detail\":\"Access denied\"}"
+          "response_sample": "{\"detail\":\"Not Found\"}"
         },
         {
           "scenario": "M\u00e9todo n\u00e3o permitido",
-          "status": 403,
+          "status": 405,
           "has_error_message": true,
-          "response_sample": "{\"detail\":\"Access denied\"}"
+          "response_sample": "{\"detail\":\"Method Not Allowed\"}"
         },
         {
           "scenario": "Query muito grande",
-          "status": 403,
+          "status": 200,
           "has_error_message": true,
-          "response_sample": "{\"detail\":\"Access denied\"}"
+          "response_sample": "{\"agent\":\"anita_garibaldi\",\"result\":{\"analysis\":\"agent_name='Anita' status=<AgentStatus.COMPLETED: 'completed'> result={'status': 'completed', 'query': 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
         }
       ],
       "data_consistency": {
-        "responses": [],
+        "responses": [
+          {
+            "sources": [
+              "FEDERAL-portal"
+            ],
+            "total": 15,
+            "contracts_count": 15
+          },
+          {
+            "sources": [
+              "FEDERAL-portal"
+            ],
+            "total": 15,
+            "contracts_count": 15
+          },
+          {
+            "sources": [
+              "FEDERAL-portal"
+            ],
+            "total": 15,
+            "contracts_count": 15
+          }
+        ],
         "all_federal": true,
-        "consistent_sources": false
+        "consistent_sources": true
       }
     },
     "summary": {}
@@ -436,10 +427,10 @@
     "sse_streaming": false,
     "cors_configured": true,
     "agents_working": false,
-    "performance_ok": false,
+    "performance_ok": true,
     "error_handling": true,
     "data_consistency": true
   },
-  "readiness_percentage": 50.0,
-  "timestamp": "2025-11-21T14:14:23.369805"
+  "readiness_percentage": 66.66666666666666,
+  "timestamp": "2025-11-21T14:23:48.397118"
 }
