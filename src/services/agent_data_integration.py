@@ -121,6 +121,25 @@ class AgentDataIntegration:
                 "investigation_id": investigation_result.investigation_id,
                 "confidence": confidence,
                 "execution_time": investigation_result.total_duration_seconds,
+                # RASTREABILIDADE: Metadados completos de onde os dados vieram
+                "traceability": {
+                    "data_sources": investigation_result.data_sources_used,
+                    "apis_called": [
+                        stage.api_calls for stage in investigation_result.stage_results
+                    ],
+                    "stage_details": [
+                        {
+                            "stage_name": stage.stage_name,
+                            "status": stage.status,
+                            "duration_seconds": stage.duration_seconds,
+                            "apis": stage.api_calls,
+                            "errors": stage.errors,
+                        }
+                        for stage in investigation_result.stage_results
+                    ],
+                    "total_api_calls": len(investigation_result.data_sources_used),
+                    "timestamp": investigation_result.created_at.isoformat(),
+                },
             }
 
         except Exception as e:
