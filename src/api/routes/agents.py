@@ -1299,7 +1299,14 @@ async def process_abaporu_request(
         from src.services.simple_vector_store import SimpleVectorStore
 
         # Create dependencies for Abaporu (master orchestrator)
-        maritaca_client = MaritacaClient(api_key=settings.MARITACA_API_KEY)
+        api_key = (
+            settings.maritaca_api_key.get_secret_value()
+            if settings.maritaca_api_key
+            else None
+        )
+        maritaca_client = (
+            MaritacaClient(api_key=api_key) if api_key else MaritacaClient()
+        )
 
         # Create Nana as memory agent for Abaporu
         redis_client = await get_redis_client()
@@ -1405,7 +1412,12 @@ async def process_ayrton_senna_request(
         from src.services.maritaca_client import MaritacaClient
 
         # Create LLM service for Senna (semantic router) with API key
-        llm_service = MaritacaClient(api_key=settings.MARITACA_API_KEY)
+        api_key = (
+            settings.maritaca_api_key.get_secret_value()
+            if settings.maritaca_api_key
+            else None
+        )
+        llm_service = MaritacaClient(api_key=api_key) if api_key else MaritacaClient()
 
         ayrton_senna = AyrtonSennaAgent(llm_service=llm_service)
 
