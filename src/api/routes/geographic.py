@@ -3,7 +3,7 @@ API routes for geographic data endpoints.
 Provides Brazilian geographic data and boundaries for map visualizations.
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
@@ -476,7 +476,7 @@ async def get_geographic_data(
 
         # Create context
         context = AgentContext(
-            investigation_id=f"geo_data_{datetime.utcnow().timestamp()}",
+            investigation_id=f"geo_data_{datetime.now(UTC).timestamp()}",
             user_id=current_user["id"],
             session_id=current_user.get("session_id", "default"),
             metadata={
@@ -531,8 +531,8 @@ async def get_geographic_data(
             region_type=region_type,
             data_points=data_points,
             summary_statistics=regional_data.statistics,
-            timestamp=datetime.utcnow(),
-            cache_expires=datetime.utcnow() + timedelta(seconds=cache_ttl),
+            timestamp=datetime.now(UTC),
+            cache_expires=datetime.now(UTC) + timedelta(seconds=cache_ttl),
         )
 
     except Exception as e:

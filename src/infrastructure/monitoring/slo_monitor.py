@@ -10,7 +10,7 @@ import statistics
 from collections import defaultdict, deque
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Optional
 
@@ -314,7 +314,7 @@ class SLOMonitor:
             return
 
         metric = SLOMetric(
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             value=value,
             success=success,
             metadata=metadata or {},
@@ -364,7 +364,7 @@ class SLOMonitor:
     ):
         """Handle SLO violation."""
         slo_target = self.slo_targets[slo_name]
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         # Check if this is a new violation or continuation
         if slo_name in self.current_violations:
@@ -485,7 +485,7 @@ class SLOMonitor:
         if slo_name not in self.metrics:
             return []
 
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         window_minutes = self._get_time_window_minutes(time_window)
         cutoff_time = now - timedelta(minutes=window_minutes)
 
@@ -587,7 +587,7 @@ class SLOMonitor:
         )
 
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "overall_compliance_percentage": overall_compliance,
             "total_slos": total_slos,
             "compliant_slos": compliant_slos,
@@ -598,7 +598,7 @@ class SLOMonitor:
 
     def get_error_budget_report(self) -> dict[str, Any]:
         """Get error budget consumption report."""
-        report = {"timestamp": datetime.utcnow().isoformat(), "error_budgets": {}}
+        report = {"timestamp": datetime.now(UTC).isoformat(), "error_budgets": {}}
 
         for slo_name, slo_target in self.slo_targets.items():
             current_value = asyncio.run(self.calculate_current_slo(slo_name))

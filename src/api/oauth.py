@@ -9,7 +9,7 @@ License: Proprietary - All rights reserved
 import base64
 import hashlib
 import secrets
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Optional
 from urllib.parse import urlencode
 
@@ -74,7 +74,7 @@ class OAuthManager:
 
     def _cleanup_expired_states(self):
         """Clean up expired OAuth states."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         expired_states = [
             state_id
             for state_id, state in self.states.items()
@@ -116,7 +116,7 @@ class OAuthManager:
             nonce=nonce,
             code_verifier=code_verifier,
             code_challenge=code_challenge,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
             redirect_url=redirect_url,
         )
         self.states[state] = oauth_state
@@ -203,7 +203,7 @@ class OAuthManager:
             raise HTTPException(status_code=400, detail="OAuth provider mismatch")
 
         # Check state expiration
-        if datetime.utcnow() - oauth_state.created_at > timedelta(
+        if datetime.now(UTC) - oauth_state.created_at > timedelta(
             minutes=self.config.state_lifetime_minutes
         ):
             del self.states[state]
@@ -409,8 +409,8 @@ class OAuthManager:
 
         if existing_user:
             # Update last login
-            auth_manager.users_db[user_info.email]["last_login"] = datetime.utcnow()
-            existing_user.last_login = datetime.utcnow()
+            auth_manager.users_db[user_info.email]["last_login"] = datetime.now(UTC)
+            existing_user.last_login = datetime.now(UTC)
             return existing_user, False
 
         # Auto-register new user if enabled

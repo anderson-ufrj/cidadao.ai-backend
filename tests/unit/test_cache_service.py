@@ -1,7 +1,7 @@
 """Unit tests for cache service"""
 
 import zlib
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -180,7 +180,7 @@ class TestCacheService:
         """Test getting cached chat response"""
         cached_data = {
             "response": {"message": "Cached response"},
-            "cached_at": datetime.utcnow().isoformat(),
+            "cached_at": datetime.now(UTC).isoformat(),
             "hit_count": 5,
         }
         cache_service.redis.get.return_value = str(cached_data)

@@ -3,7 +3,7 @@ Complete unit tests for Dandara Agent - Social inclusion and equity analysis spe
 Tests diversity metrics, inclusion analysis, social impact assessment, and equity calculations.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -709,7 +709,7 @@ class TestEquityAnalysisResult:
                 "Implement anti-discrimination measures",
             ],
             evidence_sources=["IBGE", "PNAD", "DataSUS"],
-            analysis_timestamp=datetime.utcnow(),
+            analysis_timestamp=datetime.now(UTC),
             confidence_level=0.85,
         )
 
@@ -732,7 +732,7 @@ class TestEquityAnalysisResult:
             gaps_identified=[],
             recommendations=[],
             evidence_sources=[],
-            analysis_timestamp=datetime.utcnow(),
+            analysis_timestamp=datetime.now(UTC),
             confidence_level=0.9,
         )
 
@@ -745,7 +745,7 @@ class TestEquityAnalysisResult:
             gaps_identified=[],
             recommendations=[],
             evidence_sources=[],
-            analysis_timestamp=datetime.utcnow(),
+            analysis_timestamp=datetime.now(UTC),
             confidence_level=0.8,
         )
 

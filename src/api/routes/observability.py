@@ -5,7 +5,7 @@ This module provides endpoints for monitoring distributed tracing,
 metrics, correlation IDs, and overall system observability.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -62,7 +62,7 @@ async def get_metrics_json(current_user=Depends(get_current_user)):
         correlation_info = CorrelationContext.get_all_ids()
 
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "metrics_registry": registry_stats,
             "request_tracking": {
                 "stats": request_stats,
@@ -123,7 +123,7 @@ async def get_current_correlation(current_user=Depends(get_current_user)):
 
         return {
             "correlation_context": correlation_data,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "has_correlation_id": correlation_data.get("correlation_id") is not None,
             "has_request_id": correlation_data.get("request_id") is not None,
             "has_user_context": correlation_data.get("user_id") is not None,
@@ -171,7 +171,7 @@ async def get_active_requests(current_user=Depends(get_current_user)):
                     else 0
                 ),
             },
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
     except Exception as e:
         logger.error(f"Failed to get active requests: {e}")
@@ -202,7 +202,7 @@ async def get_performance_summary(
         # Calculate performance metrics
         performance_summary = {
             "time_window_minutes": time_window_minutes,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "request_metrics": {
                 "total_requests": request_stats["total_requests"],
                 "active_requests": request_stats["active_requests"],
@@ -315,7 +315,7 @@ async def get_detailed_health(current_user=Depends(get_current_user)):
         overall_healthy = metrics_healthy and tracing_healthy and tracking_healthy
 
         health_status = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "overall_health": "healthy" if overall_healthy else "degraded",
             "components": {
                 "metrics": {
@@ -394,7 +394,7 @@ async def create_sample_trace(
             attributes={
                 "test.user_id": current_user["sub"],
                 "test.duration_ms": duration_ms,
-                "test.timestamp": datetime.utcnow().isoformat(),
+                "test.timestamp": datetime.now(UTC).isoformat(),
             },
         ) as span:
             # Set user context
@@ -419,7 +419,7 @@ async def create_sample_trace(
                 "correlation_id": correlation_id,
                 "span_id": span_id,
                 "trace_context": CorrelationContext.get_all_ids(),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
     except Exception as e:
@@ -440,7 +440,7 @@ async def get_debug_context():
         import threading
 
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "correlation_context": CorrelationContext.get_all_ids(),
             "thread_info": {
                 "thread_id": threading.get_ident(),

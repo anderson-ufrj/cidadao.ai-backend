@@ -5,7 +5,7 @@ Handles JWT tokens, user management, and security
 
 import os
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
 
 import bcrypt
@@ -66,7 +66,7 @@ class AuthManager:
                 "password_hash": self._hash_password(admin_password),
                 "role": "admin",
                 "is_active": True,
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(UTC),
             }
 
         # Check for analyst user from environment
@@ -81,7 +81,7 @@ class AuthManager:
                 "password_hash": self._hash_password(analyst_password),
                 "role": "analyst",
                 "is_active": True,
-                "created_at": datetime.utcnow(),
+                "created_at": datetime.now(UTC),
             }
 
         return users_db
@@ -126,7 +126,7 @@ class AuthManager:
                             ),
                             "role": "admin",
                             "is_active": True,
-                            "created_at": datetime.utcnow(),
+                            "created_at": datetime.now(UTC),
                         }
 
                     # Analyst user
@@ -140,7 +140,7 @@ class AuthManager:
                             ),
                             "role": "analyst",
                             "is_active": True,
-                            "created_at": datetime.utcnow(),
+                            "created_at": datetime.now(UTC),
                         }
 
                 return instance
@@ -175,7 +175,7 @@ class AuthManager:
             return None
 
         # Update last login
-        self.users_db[email]["last_login"] = datetime.utcnow()
+        self.users_db[email]["last_login"] = datetime.now(UTC)
 
         return User(
             id=user_data["id"],
@@ -189,7 +189,7 @@ class AuthManager:
 
     def create_access_token(self, user: User) -> str:
         """Create JWT access token"""
-        expire = datetime.utcnow() + timedelta(minutes=self.access_token_expire_minutes)
+        expire = datetime.now(UTC) + timedelta(minutes=self.access_token_expire_minutes)
 
         payload = {
             "sub": user.id,
@@ -197,7 +197,7 @@ class AuthManager:
             "name": user.name,
             "role": user.role,
             "exp": expire,
-            "iat": datetime.utcnow(),
+            "iat": datetime.now(UTC),
             "type": "access",
         }
 
@@ -205,12 +205,12 @@ class AuthManager:
 
     def create_refresh_token(self, user: User) -> str:
         """Create JWT refresh token"""
-        expire = datetime.utcnow() + timedelta(days=self.refresh_token_expire_days)
+        expire = datetime.now(UTC) + timedelta(days=self.refresh_token_expire_days)
 
         payload = {
             "sub": user.id,
             "exp": expire,
-            "iat": datetime.utcnow(),
+            "iat": datetime.now(UTC),
             "type": "refresh",
         }
 
@@ -320,7 +320,7 @@ class AuthManager:
             "password_hash": password_hash,
             "role": role,
             "is_active": True,
-            "created_at": datetime.utcnow(),
+            "created_at": datetime.now(UTC),
         }
 
         self.users_db[email] = user_data

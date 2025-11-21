@@ -7,7 +7,7 @@ knowledge sharing and context preservation.
 
 import hashlib
 import json
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Optional
 
@@ -256,7 +256,7 @@ class AgentMemoryIntegration:
             cache_key = self._generate_cache_key(agent_id, query, tags)
             if cache_key in self.memory_cache:
                 cached = self.memory_cache[cache_key]
-                if datetime.utcnow() - cached["timestamp"] < timedelta(
+                if datetime.now(UTC) - cached["timestamp"] < timedelta(
                     seconds=self.cache_ttl
                 ):
                     return cached["memories"]
@@ -292,14 +292,14 @@ class AgentMemoryIntegration:
             # Cache results
             self.memory_cache[cache_key] = {
                 "memories": sorted_memories,
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC),
             }
 
             # Log access
             self.access_log.append(
                 {
                     "agent_id": agent_id,
-                    "timestamp": datetime.utcnow(),
+                    "timestamp": datetime.now(UTC),
                     "query": query,
                     "memories_retrieved": len(sorted_memories),
                     "tags": tags,
@@ -325,7 +325,7 @@ class AgentMemoryIntegration:
         try:
             # Create episodic memory
             memory_id = (
-                f"{agent_id}_{context.investigation_id}_{datetime.utcnow().timestamp()}"
+                f"{agent_id}_{context.investigation_id}_{datetime.now(UTC).timestamp()}"
             )
 
             episodic_memory = EpisodicMemory(
@@ -419,7 +419,7 @@ class AgentMemoryIntegration:
             # Store semantic memories
             for item in knowledge_items:
                 semantic_memory = SemanticMemory(
-                    id=f"semantic_{agent_id}_{item['concept']}_{datetime.utcnow().timestamp()}",
+                    id=f"semantic_{agent_id}_{item['concept']}_{datetime.now(UTC).timestamp()}",
                     content=item,
                     concept=item["concept"],
                     relationships=[agent_id] + tags,
@@ -659,7 +659,7 @@ class AgentMemoryIntegration:
                 all_tags.extend(tags)
 
         return SemanticMemory(
-            id=f"consolidated_{concept}_{datetime.utcnow().timestamp()}",
+            id=f"consolidated_{concept}_{datetime.now(UTC).timestamp()}",
             content={
                 "consolidated_from": len(memories),
                 "original_ids": [m.get("id") for m in memories],

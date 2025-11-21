@@ -3,7 +3,7 @@ Unit tests for Vault client functionality
 """
 
 import os
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
@@ -74,7 +74,7 @@ class TestSecretEntry:
 
     def test_secret_entry_creation(self):
         """Test secret entry creation"""
-        entry = SecretEntry(value="test-secret", created_at=datetime.utcnow(), ttl=300)
+        entry = SecretEntry(value="test-secret", created_at=datetime.now(UTC), ttl=300)
 
         assert entry.value == "test-secret"
         assert entry.access_count == 0
@@ -82,14 +82,14 @@ class TestSecretEntry:
 
     def test_secret_expiration(self):
         """Test secret expiration logic"""
-        old_time = datetime.utcnow() - timedelta(seconds=400)
+        old_time = datetime.now(UTC) - timedelta(seconds=400)
         entry = SecretEntry(value="test-secret", created_at=old_time, ttl=300)
 
         assert entry.is_expired
 
     def test_secret_touch(self):
         """Test access tracking"""
-        entry = SecretEntry(value="test-secret", created_at=datetime.utcnow(), ttl=300)
+        entry = SecretEntry(value="test-secret", created_at=datetime.now(UTC), ttl=300)
 
         initial_time = entry.last_accessed
         entry.touch()
@@ -238,7 +238,7 @@ class TestVaultClient:
 
         # Pre-populate cache
         client._cache["test-key"] = SecretEntry(
-            value="cached-value", created_at=datetime.utcnow(), ttl=300
+            value="cached-value", created_at=datetime.now(UTC), ttl=300
         )
 
         result = await client.get_secret("test-key")
@@ -288,7 +288,7 @@ class TestVaultClient:
         assert client._is_circuit_breaker_open()
 
         # Simulate timeout
-        client._circuit_breaker_last_failure = datetime.utcnow() - timedelta(
+        client._circuit_breaker_last_failure = datetime.now(UTC) - timedelta(
             seconds=vault_config.circuit_breaker_timeout + 10
         )
 
@@ -300,14 +300,14 @@ class TestVaultClient:
         client = VaultClient(vault_config)
 
         # Add expired entry
-        old_time = datetime.utcnow() - timedelta(seconds=400)
+        old_time = datetime.now(UTC) - timedelta(seconds=400)
         client._cache["expired-key"] = SecretEntry(
             value="expired-value", created_at=old_time, ttl=300
         )
 
         # Add fresh entry
         client._cache["fresh-key"] = SecretEntry(
-            value="fresh-value", created_at=datetime.utcnow(), ttl=300
+            value="fresh-value", created_at=datetime.now(UTC), ttl=300
         )
 
         await client._cleanup_cache()
@@ -343,7 +343,7 @@ class TestVaultClient:
 
         # Open circuit breaker
         client._circuit_breaker_open = True
-        client._circuit_breaker_last_failure = datetime.utcnow()
+        client._circuit_breaker_last_failure = datetime.now(UTC)
 
         with pytest.raises(VaultCircuitBreakerError):
             await client._fetch_from_vault("test-key")

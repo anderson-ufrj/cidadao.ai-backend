@@ -653,7 +653,7 @@ class TestProcessMessage:
     @pytest.mark.asyncio
     async def test_process_message_monitor_behavior(self, agent, context):
         """Test process_message with monitor_behavior action (lines 958-984)."""
-        from datetime import datetime
+        from datetime import UTC, datetime
 
         from src.agents.deodoro import AgentMessage
 
@@ -666,13 +666,13 @@ class TestProcessMessage:
                     {
                         "user_id": "user001",
                         "action": "login",
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                         "ip_address": "192.168.1.50",
                     },
                     {
                         "user_id": "user001",
                         "action": "file_access",
-                        "timestamp": datetime.utcnow().isoformat(),
+                        "timestamp": datetime.now(UTC).isoformat(),
                         "resource": "/sensitive/data.csv",
                     },
                 ],

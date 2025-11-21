@@ -5,7 +5,7 @@ More economical and culturally enriched responses
 
 import os
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from fastapi import APIRouter, HTTPException
@@ -138,7 +138,7 @@ async def optimized_chat(request: OptimizedChatRequest) -> OptimizedChatResponse
                     session_id=session_id,
                     agent_name=agent_name,
                     agent_id=agent_id,
-                    timestamp=datetime.utcnow().isoformat(),
+                    timestamp=datetime.now(UTC).isoformat(),
                     model_used="sabiazinho",
                     confidence=0.95,
                     metadata={
@@ -192,7 +192,7 @@ async def optimized_chat(request: OptimizedChatRequest) -> OptimizedChatResponse
             session_id=session_id,
             agent_name=agent_name,
             agent_id=agent_id,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             model_used="fallback_intelligent",
             confidence=0.8,
             metadata={
@@ -211,7 +211,7 @@ async def optimized_chat(request: OptimizedChatRequest) -> OptimizedChatResponse
             session_id=session_id,
             agent_name=agent_name,
             agent_id=agent_id,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             model_used="error_fallback",
             confidence=0.5,
             metadata={"error": str(e), "backend": "ultimate_fallback"},
@@ -226,7 +226,7 @@ async def optimized_status():
         "model": "sabiazinho",
         "api_key_configured": MARITACA_API_KEY is not None,
         "personas_available": ["drummond", "standard"],
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }
 
 
@@ -285,5 +285,5 @@ async def compare_models(request: OptimizedChatRequest) -> dict[str, Any]:
     return {
         "comparison": results,
         "recommendation": "Use 'sabiazinho' for cost efficiency, 'sabia-3' for complex queries",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }

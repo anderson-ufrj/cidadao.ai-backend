@@ -2,7 +2,6 @@
 Unit tests for GraphQL API endpoints.
 """
 
-import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -32,7 +31,7 @@ def mock_user():
 @pytest.fixture
 def mock_investigation():
     """Create mock investigation."""
-    from datetime import datetime
+    from datetime import UTC, datetime
 
     investigation = MagicMock()
     investigation.id = "inv-123"
@@ -40,7 +39,7 @@ def mock_investigation():
     investigation.query = "Test investigation query"
     investigation.status = "processing"
     investigation.confidence_score = 0.85
-    investigation.created_at = datetime.utcnow()
+    investigation.created_at = datetime.now(UTC)
     investigation.completed_at = None
     investigation.processing_time_ms = None
     return investigation

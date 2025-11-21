@@ -4,7 +4,7 @@ Security audit logging and monitoring endpoints
 """
 
 import io
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -314,7 +314,7 @@ async def get_audit_dashboard(current_user: User = Depends(get_current_user)):
     require_admin(current_user)
 
     # Get recent statistics
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     last_24h = now - timedelta(hours=24)
     last_7d = now - timedelta(days=7)
     last_30d = now - timedelta(days=30)

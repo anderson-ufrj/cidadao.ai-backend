@@ -6,7 +6,7 @@ than offset pagination for large datasets and real-time data.
 """
 
 import base64
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Generic, Optional, TypeVar
 
 from pydantic import BaseModel, Field
@@ -75,7 +75,7 @@ class PaginationHelper:
     def create_cursor(item: dict[str, Any], direction: str = "next") -> str:
         """Create cursor from an item."""
         cursor_info = CursorInfo(
-            timestamp=item.get("timestamp", datetime.utcnow()),
+            timestamp=item.get("timestamp", datetime.now(UTC)),
             id=str(item.get("id", "")),
             direction=direction,
         )

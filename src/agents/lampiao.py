@@ -11,7 +11,7 @@ import hashlib
 import json
 from collections import defaultdict
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from functools import wraps
 from typing import Any, Optional
@@ -453,7 +453,7 @@ class LampiaoAgent(BaseAgent):
         """Perform comprehensive regional analysis."""
 
         analysis_id = (
-            f"regional_{context.investigation_id}_{datetime.utcnow().timestamp()}"
+            f"regional_{context.investigation_id}_{datetime.now(UTC).timestamp()}"
         )
 
         # Analyze top 8 Brazilian states by GDP
@@ -565,7 +565,7 @@ class LampiaoAgent(BaseAgent):
                 "data_classification": "quantiles",
                 "interactive": True,
             },
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
 
     @cache_with_ttl(ttl_seconds=600)  # 10 minute cache for inequality analysis

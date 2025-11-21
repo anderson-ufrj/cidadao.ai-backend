@@ -6,7 +6,7 @@ without causing circular imports.
 """
 
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from src.agents.deodoro import AgentContext, AgentStatus
@@ -198,7 +198,7 @@ async def run_zumbi_investigation(
                     inv.anomalies_found = investigation_data["anomalies_found"]
                     inv.total_records_analyzed = investigation_data["records_analyzed"]
                     inv.results = investigation_data["anomalies"]
-                    inv.completed_at = datetime.utcnow()
+                    inv.completed_at = datetime.now(UTC)
                     inv.progress = 1.0
                     await db.commit()
                     logger.info(
@@ -220,7 +220,7 @@ async def run_zumbi_investigation(
                 inv = result_query.scalar_one_or_none()
                 if inv:
                     inv.status = "error"
-                    inv.completed_at = datetime.utcnow()
+                    inv.completed_at = datetime.now(UTC)
                     await db.commit()
                     logger.info(f"❌ Marked investigation {investigation.id} as error")
 
@@ -248,7 +248,7 @@ async def run_zumbi_investigation(
                     inv = result_query.scalar_one_or_none()
                     if inv:
                         inv.status = "error"
-                        inv.completed_at = datetime.utcnow()
+                        inv.completed_at = datetime.now(UTC)
                         await db.commit()
                         logger.info(
                             f"❌ Marked investigation {investigation.id} as error due to exception"

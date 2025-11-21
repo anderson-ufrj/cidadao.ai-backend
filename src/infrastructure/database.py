@@ -6,7 +6,7 @@ Suporte para PostgreSQL, Redis Cluster, e cache inteligente
 import asyncio
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Optional, Union
 
@@ -476,7 +476,7 @@ class DatabaseManager:
             "postgresql": {"status": "unknown", "latency_ms": None},
             "redis": {"status": "unknown", "latency_ms": None},
             "cache_metrics": self.metrics,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         # Test PostgreSQL

@@ -12,7 +12,7 @@ import time
 import zlib
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from functools import wraps
 from typing import Any
 
@@ -109,7 +109,7 @@ class MemoryCache:
 
         # Check expiry
         if key in self.expiry_times:
-            if datetime.utcnow() > self.expiry_times[key]:
+            if datetime.now(UTC) > self.expiry_times[key]:
                 self.delete(key)
                 return None
 
@@ -127,7 +127,7 @@ class MemoryCache:
         self.access_times[key] = time.time()
 
         if ttl:
-            self.expiry_times[key] = datetime.utcnow() + timedelta(seconds=ttl)
+            self.expiry_times[key] = datetime.now(UTC) + timedelta(seconds=ttl)
 
     def delete(self, key: str):
         """Delete item from memory cache."""
