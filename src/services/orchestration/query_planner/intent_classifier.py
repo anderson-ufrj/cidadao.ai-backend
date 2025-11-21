@@ -203,7 +203,7 @@ class IntentClassifier:
                 "method": "fallback",
             }
 
-    def _classify_by_keywords(self, query: str) -> dict[str, Any] | None:  # noqa: PLR0911
+    def _classify_by_keywords(self, query: str) -> dict[str, Any] | None:
         """
         Fast classification using keyword patterns.
 
@@ -212,6 +212,7 @@ class IntentClassifier:
         Note: Multiple returns (7) are intentional for distinct query patterns.
         Each return represents a specific detection pattern with different confidence levels.
         """
+        # ruff: noqa: PLR0911
         query_lower = query.lower()
 
         # Check for CNPJ (strong indicator of supplier investigation)
