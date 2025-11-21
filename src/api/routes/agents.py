@@ -1421,10 +1421,21 @@ async def process_ayrton_senna_request(
 
         ayrton_senna = AyrtonSennaAgent(llm_service=llm_service)
 
-        # Process request
-        result = await ayrton_senna.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage for Senna
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="ayrton_senna",
+            action="route",
+            payload={
+                "query": request.query,
+                "data": request.options.get("data", {}),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await ayrton_senna.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="ayrton_senna",
