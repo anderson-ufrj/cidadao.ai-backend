@@ -9,7 +9,7 @@ License: Proprietary - All rights reserved
 
 import asyncio
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 import numpy as np
@@ -222,7 +222,7 @@ class DandaraAgent(BaseAgent):
 
             response_data = {
                 "analysis_id": context.investigation_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "agent": "dandara",
                 "analysis_type": "social_justice",
                 "results": analysis_result,
@@ -355,7 +355,7 @@ class DandaraAgent(BaseAgent):
                     violations, gaps
                 ),
                 evidence_sources=self._data_sources,
-                analysis_timestamp=datetime.utcnow(),
+                analysis_timestamp=datetime.now(UTC),
                 confidence_level=0.92,  # Higher confidence with real data
             )
 
@@ -371,7 +371,7 @@ class DandaraAgent(BaseAgent):
                 gaps_identified=[],
                 recommendations=["Unable to fetch real data - API error"],
                 evidence_sources=["Fallback data"],
-                analysis_timestamp=datetime.utcnow(),
+                analysis_timestamp=datetime.now(UTC),
                 confidence_level=0.30,
             )
 

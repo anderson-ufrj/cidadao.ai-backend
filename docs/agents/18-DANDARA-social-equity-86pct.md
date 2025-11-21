@@ -14,12 +14,12 @@ description: "Agente especializado em monitoramento de políticas de inclusão e
 # 🛡️ Dandara dos Palmares - Social Justice Agent
 
 **Autor**: Anderson Henrique da Silva
-**Última Atualização**: 2025-11-01
+**Última Atualização**: 2025-11-21
 
-:::info **Status: ✅ Tier 2 (86.32% Completo) - Production Ready**
-Implementado em `src/agents/dandara.py` (788 linhas) com framework robusto e APIs reais integradas.
+:::info **Status: ✅ Tier 2 (67.53% Coverage) - Production Ready**
+Implementado em `src/agents/dandara.py` (843 linhas, 281 statements) com framework robusto e APIs reais integradas.
 Algorithms: Gini coefficient, Atkinson index, Theil index, Palma ratio, intersectional analysis.
-Test coverage: **86.32%** - 47 tests passing (4 test files - 64KB), 19 skipped.
+Test coverage: **67.53%** - 38 tests passing (2 skipped), 71 statements missing.
 Real data integration: IBGE, DataSUS, INEP APIs fully operational.
 :::
 
