@@ -8,9 +8,9 @@ License: Proprietary - All rights reserved
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from src.agents.deodoro import (
     AgentContext,
@@ -108,7 +108,7 @@ class CorruptionDetectorAgent(BaseAgent):
     - COAF: Comunicações de operações financeiras
     """
 
-    def __init__(self, config: Optional[dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(
             name="obaluaie",
             description="Obaluâiê - Detector avançado de corrupção sistêmica",
@@ -280,7 +280,7 @@ class CorruptionDetectorAgent(BaseAgent):
                 "nepotism_score": nepotism_score,
                 "transparency_score": transparency_score,
             },
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             investigation_priority=priority,
         )
 
@@ -592,7 +592,7 @@ class CorruptionDetectorAgent(BaseAgent):
                     financial_impact=result.get("financial_impact", 0.0),
                     evidence_links=result.get("evidence", []),
                     risk_assessment=result.get("risk", {}),
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(UTC),
                     investigation_priority=self._calculate_priority(result),
                 )
 
@@ -603,7 +603,7 @@ class CorruptionDetectorAgent(BaseAgent):
                     "corruption_analysis": result,
                     "alert": corruption_alert.__dict__ if corruption_alert else None,
                     "agent": self.name,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
                 metadata={
                     "analysis_type": analysis_type,
@@ -819,7 +819,7 @@ class CorruptionDetectorAgent(BaseAgent):
         enhanced_result["reflection"] = {
             "quality_issues_found": quality_issues,
             "enhancements_suggested": enhancements,
-            "reflection_timestamp": datetime.utcnow().isoformat(),
+            "reflection_timestamp": datetime.now(UTC).isoformat(),
             "original_confidence": confidence,
             "original_severity": severity,
         }
