@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 """
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Optional
 
@@ -477,7 +477,7 @@ class MariaQuiteriaAgent(BaseAgent):
                 },
             },
             "recommendations": recommendations[:7],  # Top 7 recommendations
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "analysis_confidence": round(analysis_confidence, 2),
         }
 
@@ -499,7 +499,7 @@ class MariaQuiteriaAgent(BaseAgent):
         6. Scoring de risco e priorização
         7. Geração de alertas e recomendações
         """
-        detection_id = f"ids_{datetime.utcnow().timestamp()}"
+        detection_id = f"ids_{datetime.now(UTC).timestamp()}"
         self.logger.info(f"Starting intrusion detection analysis: {detection_id}")
 
         # Análise de assinatura (signature-based)
@@ -529,7 +529,7 @@ class MariaQuiteriaAgent(BaseAgent):
                 correlated_events
             ),
             confidence_score=confidence_score,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
 
     async def perform_security_audit(
@@ -540,8 +540,8 @@ class MariaQuiteriaAgent(BaseAgent):
         context: Optional[AgentContext] = None,
     ) -> SecurityAuditResult:
         """Realiza auditoria de segurança completa."""
-        audit_id = f"audit_{datetime.utcnow().timestamp()}"
-        start_time = datetime.utcnow()
+        audit_id = f"audit_{datetime.now(UTC).timestamp()}"
+        start_time = datetime.now(UTC)
 
         self.logger.info(
             f"Starting security audit: {audit_id} for {len(systems)} systems"
@@ -569,7 +569,7 @@ class MariaQuiteriaAgent(BaseAgent):
             vulnerabilities, compliance_status
         )
 
-        end_time = datetime.utcnow()
+        end_time = datetime.now(UTC)
 
         return SecurityAuditResult(
             audit_id=audit_id,
@@ -581,7 +581,7 @@ class MariaQuiteriaAgent(BaseAgent):
             compliance_status=compliance_status,
             security_score=security_score,
             recommendations=recommendations,
-            next_audit_date=datetime.utcnow()
+            next_audit_date=datetime.now(UTC)
             + timedelta(hours=self.security_config["audit_frequency_hours"]),
             metadata={
                 "frameworks_checked": len(frameworks),
@@ -613,7 +613,7 @@ class MariaQuiteriaAgent(BaseAgent):
             # Collect baseline data points
             user_baselines[user_id]["access_times"].append(
                 datetime.fromisoformat(
-                    activity.get("timestamp", datetime.utcnow().isoformat())
+                    activity.get("timestamp", datetime.now(UTC).isoformat())
                 ).hour
             )
             user_baselines[user_id]["resources_accessed"].append(
@@ -636,13 +636,13 @@ class MariaQuiteriaAgent(BaseAgent):
 
             if risk_score > self.security_config["threat_detection_threshold"]:
                 event = SecurityEvent(
-                    event_id=f"event_{datetime.utcnow().timestamp()}",
+                    event_id=f"event_{datetime.now(UTC).timestamp()}",
                     event_type=SecurityEventType.SUSPICIOUS_BEHAVIOR,
                     threat_level=self._determine_threat_level(risk_score),
                     source_ip=activity.get("source_ip", "unknown"),
                     user_id=activity.get("user_id"),
                     resource_accessed=activity.get("resource", "unknown"),
-                    timestamp=datetime.utcnow(),
+                    timestamp=datetime.now(UTC),
                     description="Suspicious user behavior detected",
                     evidence=[activity],
                     risk_score=risk_score,
@@ -682,9 +682,9 @@ class MariaQuiteriaAgent(BaseAgent):
                 if signature_data:
                     # Validate signature timestamp (must be within last 90 days)
                     sig_timestamp = datetime.fromisoformat(
-                        signature_data.get("timestamp", datetime.utcnow().isoformat())
+                        signature_data.get("timestamp", datetime.now(UTC).isoformat())
                     )
-                    signature_valid = (datetime.utcnow() - sig_timestamp).days < 90
+                    signature_valid = (datetime.now(UTC) - sig_timestamp).days < 90
             except Exception as e:
                 self.logger.warning(f"Signature validation error for {source}: {e}")
                 signature_valid = False
@@ -695,7 +695,7 @@ class MariaQuiteriaAgent(BaseAgent):
 
             # Timestamp verification
             last_modified = self.security_baselines.get(
-                f"{source}_modified", datetime.utcnow()
+                f"{source}_modified", datetime.now(UTC)
             )
             timestamp_valid = isinstance(last_modified, datetime)
 
@@ -714,7 +714,7 @@ class MariaQuiteriaAgent(BaseAgent):
 
             integrity_report[source] = {
                 "status": integrity_status,
-                "last_check": datetime.utcnow().isoformat(),
+                "last_check": datetime.now(UTC).isoformat(),
                 "hash_match": hash_match,
                 "signature_valid": signature_valid,
                 "checksums": {
@@ -863,7 +863,7 @@ class MariaQuiteriaAgent(BaseAgent):
             "short_term": f"Close {len(gaps)} identified gaps within 90 days",
             "medium_term": "Achieve 95% compliance within 180 days",
             "long_term": "Maintain ongoing compliance with quarterly reviews",
-            "next_assessment": (datetime.utcnow() + timedelta(days=90)).isoformat(),
+            "next_assessment": (datetime.now(UTC) + timedelta(days=90)).isoformat(),
         }
 
         self.logger.info(
@@ -884,7 +884,7 @@ class MariaQuiteriaAgent(BaseAgent):
             "critical_findings": critical_issues,
             "recommendations": recommendations[:10],  # Top 10 recommendations
             "remediation_timeline": timeline,
-            "report_date": datetime.utcnow().isoformat(),
+            "report_date": datetime.now(UTC).isoformat(),
             "next_assessment": timeline["next_assessment"],
         }
 
@@ -1182,7 +1182,7 @@ class MariaQuiteriaAgent(BaseAgent):
 
             # Time-based anomalies (access during unusual hours)
             event_hour = datetime.fromisoformat(
-                event.get("timestamp", datetime.utcnow().isoformat())
+                event.get("timestamp", datetime.now(UTC).isoformat())
             ).hour
             if event_hour < 6 or event_hour > 22:  # Outside business hours
                 unusual_patterns.append("unusual_time_access")
@@ -1229,7 +1229,7 @@ class MariaQuiteriaAgent(BaseAgent):
         sorted_events = sorted(
             all_events,
             key=lambda x: x.get("event", {}).get(
-                "timestamp", datetime.utcnow().isoformat()
+                "timestamp", datetime.now(UTC).isoformat()
             ),
         )
 
@@ -1245,12 +1245,12 @@ class MariaQuiteriaAgent(BaseAgent):
 
             # Get timestamps
             current_time = datetime.fromisoformat(
-                event.get("event", {}).get("timestamp", datetime.utcnow().isoformat())
+                event.get("event", {}).get("timestamp", datetime.now(UTC).isoformat())
             )
             chain_start_time = datetime.fromisoformat(
                 current_chain[0]
                 .get("event", {})
-                .get("timestamp", datetime.utcnow().isoformat())
+                .get("timestamp", datetime.now(UTC).isoformat())
             )
 
             time_diff = (current_time - chain_start_time).total_seconds()
@@ -1583,7 +1583,7 @@ class MariaQuiteriaAgent(BaseAgent):
             timeline.append(
                 {
                     "sequence": i + 1,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "action": "suspicious_activity_detected",
                     "details": event,
                 }
@@ -1685,7 +1685,7 @@ class MariaQuiteriaAgent(BaseAgent):
                 if random.random() < 0.6:
                     vuln_copy = vuln.copy()
                     vuln_copy["system"] = system
-                    vuln_copy["detected_date"] = datetime.utcnow().isoformat()
+                    vuln_copy["detected_date"] = datetime.now(UTC).isoformat()
 
                     # Add exploitation details
                     vuln_copy["exploitability"] = self._calculate_exploitability(
@@ -1845,7 +1845,7 @@ class MariaQuiteriaAgent(BaseAgent):
 
         # Variable 1: Time of Access (0.0 - 0.25)
         # Higher risk for access during unusual hours
-        timestamp = activity.get("timestamp", datetime.utcnow().isoformat())
+        timestamp = activity.get("timestamp", datetime.now(UTC).isoformat())
         access_hour = datetime.fromisoformat(timestamp).hour
 
         if 0 <= access_hour < 6:  # Late night
@@ -2043,7 +2043,7 @@ class MariaQuiteriaAgent(BaseAgent):
                     "threat_level": "high",
                 },
             },
-            "last_update": datetime.utcnow().isoformat(),
+            "last_update": datetime.now(UTC).isoformat(),
             "feed_sources": [
                 "internal_honeypot",
                 "community_feeds",
@@ -2069,19 +2069,19 @@ class MariaQuiteriaAgent(BaseAgent):
             "application_hash": "098f6bcd4621d373cade4e832627b4f6",
             # Digital signatures
             "web_server_signature": {
-                "timestamp": (datetime.utcnow() - timedelta(days=30)).isoformat(),
+                "timestamp": (datetime.now(UTC) - timedelta(days=30)).isoformat(),
                 "algorithm": "RSA-2048",
                 "valid": True,
             },
             "database_signature": {
-                "timestamp": (datetime.utcnow() - timedelta(days=45)).isoformat(),
+                "timestamp": (datetime.now(UTC) - timedelta(days=45)).isoformat(),
                 "algorithm": "RSA-2048",
                 "valid": True,
             },
             # Modification timestamps
-            "web_server_modified": datetime.utcnow() - timedelta(days=30),
-            "database_modified": datetime.utcnow() - timedelta(days=45),
-            "application_modified": datetime.utcnow() - timedelta(days=15),
+            "web_server_modified": datetime.now(UTC) - timedelta(days=30),
+            "database_modified": datetime.now(UTC) - timedelta(days=45),
+            "application_modified": datetime.now(UTC) - timedelta(days=15),
             # Network baselines
             "baseline_traffic_patterns": {
                 "avg_requests_per_minute": 150,
@@ -2134,7 +2134,7 @@ class MariaQuiteriaAgent(BaseAgent):
                 "key_length_min": 2048,
             },
             # Baseline last updated
-            "baselines_established": datetime.utcnow().isoformat(),
+            "baselines_established": datetime.now(UTC).isoformat(),
             "baseline_version": "1.0",
         }
 
