@@ -40,10 +40,10 @@ O backend do Cidadão.AI passou por melhorias significativas e correções crít
 
 ## 🚨 Problemas Identificados
 
-### 1. **Deploy não Aplicado no Railway**
-- O código foi alterado mas o Railway ainda não aplicou as mudanças
-- IPWhitelistMiddleware continua bloqueando requisições com "Access denied"
-- Necessário aguardar o deploy completo ou reiniciar o serviço
+### 1. **Múltiplos Middlewares de Segurança Bloqueando**
+- IPWhitelistMiddleware estava bloqueando IPs externos (já desabilitado)
+- SecurityMiddleware também tem IP blocklist própria (agora desabilitado)
+- Ambos precisam ser reconfigurados para permitir acesso durante desenvolvimento
 
 ### 2. **Rate Limiting Agressivo**
 - Alguns agentes retornam 429 (Too Many Requests)
@@ -57,18 +57,18 @@ O backend do Cidadão.AI passou por melhorias significativas e correções crít
 
 ### Imediatas (Para Resolver Bloqueios)
 
-1. **Verificar Deploy no Railway**
-```bash
-# No painel do Railway:
-# 1. Verificar se o deploy está completo
-# 2. Se necessário, fazer redeploy manual
-# 3. Ou reiniciar o serviço
+1. **✅ RESOLVIDO: Middlewares de Segurança Desabilitados**
+```python
+# Em src/api/app.py:
+# - IPWhitelistMiddleware: DESABILITADO (linha 353-357)
+# - SecurityMiddleware: DESABILITADO (linha 256)
+# Ambos precisam ser reconfigurados antes de reabilitar
 ```
 
-2. **Desabilitar Temporariamente SecurityMiddleware**
-```python
-# Em src/api/app.py, localizar e comentar:
-# app.add_middleware(SecurityMiddleware, ...)
+2. **Próximo Deploy no Railway**
+```bash
+# Aguardar novo deploy (~6 minutos) para aplicar mudanças
+# Após deploy, todos os endpoints devem estar acessíveis
 ```
 
 3. **Configurar Rate Limiting Mais Permissivo**
