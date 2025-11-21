@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 """
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any
 
@@ -463,10 +463,10 @@ class OscarNiemeyerAgent(BaseAgent):
                 "series": [{"name": m, "field": m} for m in metrics],
             },
             "metadata": {
-                "generated_at": datetime.utcnow().isoformat(),
+                "generated_at": datetime.now(UTC).isoformat(),
                 "cache_key": f"agg_{context.investigation_id}",
                 "expires_at": (
-                    datetime.utcnow()
+                    datetime.now(UTC)
                     + timedelta(seconds=self.config["cache_ttl_seconds"])
                 ).isoformat(),
             },
@@ -498,7 +498,7 @@ class OscarNiemeyerAgent(BaseAgent):
         # Determine number of points based on granularity
         num_points = 30 if granularity == TimeGranularity.DAY else 12
 
-        end = datetime.utcnow()
+        end = datetime.now(UTC)
         if granularity == TimeGranularity.DAY:
             time_points = [end - timedelta(days=i) for i in range(num_points, 0, -1)]
         else:
@@ -685,7 +685,7 @@ class OscarNiemeyerAgent(BaseAgent):
             )
 
         return VisualizationMetadata(
-            visualization_id=f"viz_{data_type}_{datetime.utcnow().timestamp()}",
+            visualization_id=f"viz_{data_type}_{datetime.now(UTC).timestamp()}",
             title=f"{data_type.replace('_', ' ').title()} Analysis",
             subtitle=f"By {', '.join(dimensions)}" if dimensions else None,
             visualization_type=viz_type,
@@ -701,7 +701,7 @@ class OscarNiemeyerAgent(BaseAgent):
                 "tooltip": {"enabled": True},
             },
             data_url=f"/api/v1/data/{data_type}/aggregated",
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
 
     async def create_export_format(
