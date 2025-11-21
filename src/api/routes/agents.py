@@ -1291,8 +1291,23 @@ async def process_abaporu_request(
             },
         )
 
-        # Initialize Abaporu agent
-        abaporu = AbaporuAgent()
+        # Initialize Abaporu agent with required dependencies
+        from src.agents import NanaAgent
+        from src.core.cache import get_redis_client
+        from src.infrastructure.vector_store import VectorStore
+        from src.services.maritaca_client import MaritacaClient
+
+        # Create dependencies for Abaporu (master orchestrator)
+        maritaca_client = MaritacaClient()
+
+        # Create Nana as memory agent for Abaporu
+        redis_client = await get_redis_client()
+        vector_store = VectorStore()
+        memory_agent = NanaAgent(redis_client=redis_client, vector_store=vector_store)
+
+        abaporu = AbaporuAgent(
+            maritaca_client=maritaca_client, memory_agent=memory_agent
+        )
 
         # Create proper AgentMessage
         agent_message = AgentMessage(
@@ -1383,8 +1398,13 @@ async def process_ayrton_senna_request(
             },
         )
 
-        # Initialize Ayrton Senna agent
-        ayrton_senna = AyrtonSennaAgent()
+        # Initialize Ayrton Senna agent with required dependencies
+        from src.services.maritaca_client import MaritacaClient
+
+        # Create LLM service for Senna (semantic router)
+        llm_service = MaritacaClient()
+
+        ayrton_senna = AyrtonSennaAgent(llm_service=llm_service)
 
         # Process request
         result = await ayrton_senna.process(
@@ -1468,8 +1488,15 @@ async def process_nana_request(
             },
         )
 
-        # Initialize Nana agent
-        nana = NanaAgent()
+        # Initialize Nana agent with required dependencies
+        from src.core.cache import get_redis_client
+        from src.infrastructure.vector_store import VectorStore
+
+        # Create dependencies for Nana (memory agent)
+        redis_client = await get_redis_client()
+        vector_store = VectorStore()
+
+        nana = NanaAgent(redis_client=redis_client, vector_store=vector_store)
 
         # Create proper AgentMessage
         agent_message = AgentMessage(
