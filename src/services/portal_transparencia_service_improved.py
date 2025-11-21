@@ -29,37 +29,159 @@ class ImprovedPortalTransparenciaService:
     BASE_URL = "https://api.portaldatransparencia.gov.br/api-de-dados"
 
     # API Endpoints and their requirements
+    # Complete list from Portal da Transparência Swagger UI
     ENDPOINTS = {
-        "contratos": {
-            "path": "/contratos",
-            "required_params": ["codigoOrgao"],
-            "max_page_size": 500,
-            "default_orgao": "36000",  # Ministério da Saúde
-        },
-        "licitacoes": {
-            "path": "/licitacoes",
-            "required_params": ["codigoOrgao"],
-            "max_page_size": 500,
-            "max_date_range_days": 30,  # API requires max 1 month
-            "default_orgao": "36000",
-        },
-        "despesas": {
-            "path": "/despesas",
-            "required_params": ["codigoOrgao", "mesAno"],
-            "max_page_size": 500,
-            "default_orgao": "36000",
-        },
+        # ========== SERVIDORES (Public Servants) ==========
         "servidores": {
             "path": "/servidores",
-            "required_params": [
-                "codigoOrgaoLotacao|codigoOrgaoExercicio|cpf"
-            ],  # At least one
+            "required_params": ["pagina"],
+            "required_one_of": ["codigoOrgaoLotacao", "codigoOrgaoExercicio", "cpf"],
+            "optional_params": ["nome"],
             "max_page_size": 500,
+            "default_orgao_lotacao": "36000",  # Ministério da Saúde
+            "description": "Lista servidores públicos federais (requer código SIAPE ou CPF)",
         },
+        "servidores_remuneracao": {
+            "path": "/servidores/{cpf}/remuneracao",
+            "required_params": ["cpf", "mesAno"],
+            "max_page_size": 500,
+            "description": "Remuneração de servidor por CPF e mês/ano (MM/YYYY)",
+        },
+        "servidores_detalhes": {
+            "path": "/servidores/{cpf}",
+            "required_params": ["cpf"],
+            "max_page_size": 500,
+            "description": "Dados completos de um servidor por CPF",
+        },
+        # ========== CONTRATOS (Contracts) ==========
+        "contratos": {
+            "path": "/contratos",
+            "required_params": ["codigoOrgao", "pagina"],
+            "optional_params": ["dataInicial", "dataFinal"],
+            "max_page_size": 500,
+            "default_orgao": "36000",
+            "description": "Contratos do governo federal",
+        },
+        # ========== LICITAÇÕES (Bids) ==========
+        "licitacoes": {
+            "path": "/licitacoes",
+            "required_params": ["codigoOrgao", "dataInicial", "dataFinal", "pagina"],
+            "max_page_size": 500,
+            "max_date_range_days": 30,
+            "default_orgao": "36000",
+            "description": "Licitações públicas (requer período de até 30 dias)",
+        },
+        # ========== DESPESAS (Expenses) ==========
+        "despesas_documentos": {
+            "path": "/despesas/documentos",
+            "required_params": ["codigoOrgao", "ano", "dataEmissao", "fase", "pagina"],
+            "max_page_size": 500,
+            "default_orgao": "36000",
+            "default_fase": "3",  # Fase 3: Pagamento
+            "description": "Despesas por documento (requer data de emissão e fase)",
+        },
+        "despesas_por_orgao": {
+            "path": "/despesas/por-orgao",
+            "required_params": ["ano", "pagina"],
+            "required_one_of": ["codigoOrgao", "codigoUnidadeGestora", "mes"],
+            "max_page_size": 500,
+            "default_orgao": "36000",
+            "description": "Despesas agrupadas por órgão (requer ano + (órgão OU UG OU mês))",
+        },
+        # ========== FORNECEDORES (Suppliers) ==========
         "fornecedores": {
             "path": "/fornecedores",
-            "required_params": [],
+            "required_params": ["pagina"],
+            "optional_params": ["cpfCnpj"],
             "max_page_size": 500,
+            "description": "Fornecedores do governo",
+        },
+        # ========== CONVÊNIOS (Agreements) ==========
+        "convenios": {
+            "path": "/convenios",
+            "required_params": ["pagina"],
+            "required_one_of": ["uf", "municipio", "codigoOrgao", "numeroConvenio"],
+            "optional_params": ["dataInicial", "dataFinal"],
+            "max_page_size": 500,
+            "max_date_range_days": 30,
+            "default_uf": "MG",  # Minas Gerais
+            "description": "Convênios federais (requer UF, município, órgão ou número)",
+        },
+        # ========== CARTÕES DE PAGAMENTO (Payment Cards) ==========
+        "cartoes": {
+            "path": "/cartoes",
+            "required_params": ["mesAno", "pagina"],
+            "required_one_of": ["codigoOrgao", "cpf", "cnpjFavorecido"],
+            "max_page_size": 500,
+            "max_month_range": 12,
+            "default_orgao": "36000",
+            "description": "Gastos com cartões corporativos (requer órgão, CPF ou CNPJ favorecido)",
+        },
+        # ========== VIAGENS (Travel) ==========
+        "viagens": {
+            "path": "/viagens",
+            "required_params": [
+                "dataIdaDe",
+                "dataIdaAte",
+                "dataRetornoDe",
+                "dataRetornoAte",
+                "pagina",
+            ],
+            "optional_params": ["cpf"],
+            "max_page_size": 500,
+            "description": "Viagens a serviço (requer períodos de ida E retorno)",
+        },
+        # ========== EMENDAS PARLAMENTARES (Parliamentary Amendments) ==========
+        "emendas": {
+            "path": "/emendas",
+            "required_params": ["ano", "pagina"],
+            "optional_params": ["autor"],
+            "max_page_size": 500,
+            "description": "Emendas parlamentares",
+        },
+        # ========== AUXÍLIO EMERGENCIAL (Emergency Aid) ==========
+        "auxilio_emergencial": {
+            "path": "/auxilio-emergencial",
+            "required_params": ["mesAno", "pagina"],
+            "optional_params": ["cpf"],
+            "max_page_size": 500,
+            "description": "Beneficiários do auxílio emergencial (formato MM/YYYY)",
+        },
+        # ========== BOLSA FAMÍLIA (Family Allowance) ==========
+        "bolsa_familia": {
+            "path": "/bolsa-familia-por-municipio",
+            "required_params": ["mesAno", "codigoIbge", "pagina"],
+            "max_page_size": 500,
+            "description": "Bolsa Família por município (formato MM/YYYY)",
+        },
+        # ========== BPC (Continuous Cash Benefit) ==========
+        "bpc": {
+            "path": "/bpc-por-municipio",
+            "required_params": ["mesAno", "codigoIbge", "pagina"],
+            "max_page_size": 500,
+            "description": "BPC por município (formato MM/YYYY)",
+        },
+        # ========== SANÇÕES (Sanctions) ==========
+        "ceis": {
+            "path": "/ceis",
+            "required_params": ["pagina"],
+            "optional_params": ["cnpj"],
+            "max_page_size": 500,
+            "description": "Cadastro de Empresas Inidôneas e Suspensas",
+        },
+        "cnep": {
+            "path": "/cnep",
+            "required_params": ["pagina"],
+            "optional_params": ["cnpj"],
+            "max_page_size": 500,
+            "description": "Cadastro Nacional de Empresas Punidas",
+        },
+        # ========== SEGURO DEFESO (Fishing Close Season Insurance) ==========
+        "seguro_defeso": {
+            "path": "/seguro-defeso",
+            "required_params": ["mesAno", "pagina"],
+            "max_page_size": 500,
+            "description": "Seguro defeso de pescadores (formato MM/YYYY)",
         },
     }
 
@@ -328,6 +450,262 @@ class ImprovedPortalTransparenciaService:
         result["warning"] = warning
         result["fallback_reason"] = warning
         return result
+
+    async def search_servidor_remuneracao(
+        self,
+        cpf: Optional[str] = None,
+        nome: Optional[str] = None,
+        mes_ano: Optional[str] = None,
+        page: int = 1,
+        size: int = 100,
+    ) -> dict[str, Any]:
+        """
+        Search public servant salary by CPF or name.
+
+        CRITICAL: This is the endpoint needed for salary queries like
+        "Quanto ganha a professora Aracele Garcia de Oliveira Fassbinder?"
+
+        Args:
+            cpf: CPF do servidor (11 digits, optional if nome provided)
+            nome: Nome do servidor (optional if cpf provided)
+            mes_ano: Mês/Ano no formato MM/YYYY (optional, defaults to last month)
+            page: Página (default 1)
+            size: Tamanho da página (max 500)
+
+        Returns:
+            Dict with servidor salary data and traceability metadata
+        """
+        if not cpf and not nome:
+            raise ValueError("Either cpf or nome must be provided")
+
+        # Default to last month if not specified
+        if not mes_ano:
+            today = datetime.now(UTC)
+            last_month = today - timedelta(days=30)
+            mes_ano = last_month.strftime("%m/%Y")
+            logger.info(f"Using default mes_ano: {mes_ano}")
+
+        # STEP 1: If only nome provided, first search for servidor to get CPF
+        if not cpf and nome:
+            logger.info(f"Searching servidor by name: {nome}")
+            servidor_search_result = await self._search_servidor_by_name(
+                nome, page, size
+            )
+
+            if not servidor_search_result.get("servidores"):
+                logger.warning(f"No servidor found with name: {nome}")
+                return {
+                    "servidor": None,
+                    "remuneracao": None,
+                    "error": f"Servidor não encontrado: {nome}",
+                    "mes_ano": mes_ano,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "source": "portal_transparencia_api",
+                    "traceability": {
+                        "query": {"nome": nome, "mes_ano": mes_ano},
+                        "steps": ["search_by_name"],
+                        "apis_called": ["/servidores"],
+                        "result": "not_found",
+                    },
+                }
+
+            # Get first matching servidor
+            servidor = servidor_search_result["servidores"][0]
+            cpf = servidor.get("cpf")
+            logger.info(f"Found servidor: {servidor.get('nome')} (CPF: {cpf})")
+
+        # STEP 2: Now fetch remuneracao with CPF
+        endpoint_info = self.ENDPOINTS["servidores_remuneracao"]
+        path = endpoint_info["path"].replace("{cpf}", cpf)
+
+        params = {
+            "mesAno": mes_ano,
+            "pagina": page,
+            "tamanhoPagina": min(size, endpoint_info["max_page_size"]),
+        }
+
+        # Try cache if available
+        cache_key = f"remuneracao:{cpf}:{mes_ano}"
+        if self.cache:
+            try:
+                cached = await self.cache.get(cache_key)
+                if cached:
+                    logger.info(f"Returning cached salary data for CPF {cpf}")
+                    return cached
+            except Exception as e:
+                logger.warning(f"Cache read failed: {e}")
+
+        # Check for API key
+        if not self.api_key:
+            logger.warning("No API key - cannot fetch real salary data")
+            return {
+                "servidor": None,
+                "remuneracao": None,
+                "error": "API key not configured",
+                "mes_ano": mes_ano,
+                "timestamp": datetime.now(UTC).isoformat(),
+                "source": "demo_data",
+                "demo_mode": True,
+            }
+
+        try:
+            # Make API request
+            logger.info(f"Fetching salary data: {path} with params {params}")
+            response = await self.client.get(path, params=params)
+
+            if response.status_code == 403:
+                logger.error(f"API key rejected (403 Forbidden) for endpoint {path}")
+                return {
+                    "servidor": None,
+                    "remuneracao": None,
+                    "error": "Invalid API key or unauthorized endpoint",
+                    "mes_ano": mes_ano,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "source": "portal_transparencia_api",
+                    "api_status": "forbidden",
+                }
+
+            if response.status_code == 404:
+                logger.warning(f"No salary data found for CPF {cpf} in {mes_ano}")
+                return {
+                    "servidor": None,
+                    "remuneracao": None,
+                    "error": f"Nenhuma remuneração encontrada para o período {mes_ano}",
+                    "cpf": cpf,
+                    "mes_ano": mes_ano,
+                    "timestamp": datetime.now(UTC).isoformat(),
+                    "source": "portal_transparencia_api",
+                    "api_status": "not_found",
+                }
+
+            response.raise_for_status()
+            data = response.json()
+
+            # Handle different response formats
+            if isinstance(data, list):
+                remuneracao_list = data
+            else:
+                remuneracao_list = data.get("resultado", [data])
+
+            result = {
+                "servidor": {
+                    "cpf": cpf,
+                    "nome": (
+                        nome or servidor.get("nome") if "servidor" in locals() else None
+                    ),
+                },
+                "remuneracao": remuneracao_list,
+                "mes_ano": mes_ano,
+                "pagina": page,
+                "tamanho_pagina": size,
+                "timestamp": datetime.now(UTC).isoformat(),
+                "source": "portal_transparencia_api",
+                "api_status": "ok",
+                "traceability": {
+                    "query": {"cpf": cpf, "nome": nome, "mes_ano": mes_ano},
+                    "steps": (
+                        ["search_by_name", "fetch_remuneracao"]
+                        if nome
+                        else ["fetch_remuneracao"]
+                    ),
+                    "apis_called": ["/servidores", path] if nome else [path],
+                    "result": "success",
+                    "total_records": len(remuneracao_list),
+                },
+            }
+
+            # Try to cache if available
+            if self.cache:
+                try:
+                    await self.cache.set(cache_key, result, ttl=86400)  # 24h cache
+                except Exception as e:
+                    logger.warning(f"Cache write failed: {e}")
+
+            logger.info(
+                f"Successfully fetched salary data for CPF {cpf}: {len(remuneracao_list)} records"
+            )
+
+            return result
+
+        except httpx.HTTPStatusError as e:
+            error_detail = self._parse_error_response(e.response)
+            logger.error(
+                f"API error {e.response.status_code}: {error_detail}",
+                extra={"status_code": e.response.status_code, "detail": error_detail},
+            )
+
+            return {
+                "servidor": None,
+                "remuneracao": None,
+                "error": f"API Error {e.response.status_code}: {error_detail}",
+                "cpf": cpf,
+                "mes_ano": mes_ano,
+                "timestamp": datetime.now(UTC).isoformat(),
+                "source": "portal_transparencia_api",
+                "api_status": "error",
+            }
+
+        except Exception as e:
+            logger.error(f"Unexpected error fetching salary: {e}")
+            return {
+                "servidor": None,
+                "remuneracao": None,
+                "error": str(e),
+                "cpf": cpf,
+                "mes_ano": mes_ano,
+                "timestamp": datetime.now(UTC).isoformat(),
+                "source": "portal_transparencia_api",
+                "api_status": "error",
+            }
+
+    async def _search_servidor_by_name(
+        self, nome: str, page: int = 1, size: int = 100
+    ) -> dict[str, Any]:
+        """
+        Internal method to search servidor by name.
+
+        This is used as a helper for salary queries when only name is provided.
+        """
+        endpoint_info = self.ENDPOINTS["servidores"]
+
+        params = {
+            "nome": nome,
+            "pagina": page,
+            "tamanhoPagina": min(size, endpoint_info["max_page_size"]),
+        }
+
+        logger.info(f"Searching servidor by name: {nome}")
+
+        try:
+            response = await self.client.get(endpoint_info["path"], params=params)
+
+            if response.status_code == 403:
+                logger.error("API key rejected for servidor search")
+                return {"servidores": [], "error": "Invalid API key"}
+
+            response.raise_for_status()
+            data = response.json()
+
+            # Handle different response formats
+            if isinstance(data, list):
+                servidores = data
+            else:
+                servidores = data.get("resultado", [])
+
+            logger.info(f"Found {len(servidores)} servidores matching '{nome}'")
+
+            return {
+                "servidores": servidores,
+                "total": len(servidores),
+                "pagina": page,
+                "tamanho_pagina": size,
+                "timestamp": datetime.now(UTC).isoformat(),
+                "source": "portal_transparencia_api",
+            }
+
+        except Exception as e:
+            logger.error(f"Error searching servidor by name: {e}")
+            return {"servidores": [], "error": str(e)}
 
     async def test_connection(self) -> dict[str, Any]:
         """
