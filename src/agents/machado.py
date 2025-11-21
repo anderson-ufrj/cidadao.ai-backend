@@ -9,7 +9,7 @@ License: Proprietary - All rights reserved
 import hashlib
 import re
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Optional
 
@@ -213,7 +213,7 @@ class MachadoAgent(BaseAgent):
 
             response_data = {
                 "document_id": analysis_result.document_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "agent": "machado",
                 "analysis_type": "textual_analysis",
                 "document_type": analysis_result.document_type.value,
@@ -329,7 +329,7 @@ class MachadoAgent(BaseAgent):
             readability_grade=readability,
             suspicious_patterns=suspicious,
             checksum=checksum,
-            analysis_timestamp=datetime.utcnow(),
+            analysis_timestamp=datetime.now(UTC),
         )
 
     async def _classify_document_type(self, text: str) -> DocumentType:
