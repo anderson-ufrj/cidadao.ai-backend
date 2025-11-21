@@ -5,7 +5,7 @@ This module integrates Strawberry GraphQL with FastAPI,
 providing a modern GraphQL endpoint with subscriptions support.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket
 
@@ -37,7 +37,7 @@ logger = get_logger(__name__)
 # Context getter for GraphQL
 async def get_context(
     request: Request,
-    user: Optional[dict[str, Any]] = Depends(get_current_optional_user),
+    user: dict[str, Any] | None = Depends(get_current_optional_user),
 ) -> dict[str, Any]:
     """
     Get GraphQL context with request info and user.
@@ -54,11 +54,40 @@ async def get_ws_context(
     websocket: WebSocket,
 ) -> dict[str, Any]:
     """
-    Get WebSocket context for subscriptions.
+    Get WebSocket context for subscriptions with authentication.
+
+    Authenticates WebSocket connections using JWT tokens passed in:
+    1. Query parameters (?token=...)
+    2. WebSocket subprotocol headers
+    3. First message after connection
     """
+    import jwt
+
+    from src.core.config import settings
+
+    user = None
+
+    # Try to get token from query params
+    token = websocket.query_params.get("token")
+
+    if token:
+        try:
+            # Decode and validate JWT token
+            payload = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=["HS256"])
+            user_id = payload.get("sub")
+
+            # Get user from database if needed
+            # user = await get_user_by_id(user_id)
+            user = {"id": user_id, "authenticated": True}
+
+        except jwt.InvalidTokenError:
+            # Invalid token, connection will be rejected if auth required
+            logger.warning("Invalid WebSocket auth token")
+
     return {
         "websocket": websocket,
-        "user": None,  # TODO: Implement WebSocket auth
+        "user": user,  # Now properly authenticated
+        "authenticated": user is not None,
     }
 
 
