@@ -1294,15 +1294,17 @@ async def process_abaporu_request(
         # Initialize Abaporu agent with required dependencies
         from src.agents import NanaAgent
         from src.core.cache import get_redis_client
+        from src.core.config import settings
         from src.services.maritaca_client import MaritacaClient
-        from src.services.vector_store_service import VectorStoreService
+        from src.services.simple_vector_store import SimpleVectorStore
 
         # Create dependencies for Abaporu (master orchestrator)
-        maritaca_client = MaritacaClient()
+        maritaca_client = MaritacaClient(api_key=settings.MARITACA_API_KEY)
 
         # Create Nana as memory agent for Abaporu
         redis_client = await get_redis_client()
-        vector_store = VectorStoreService()
+        vector_store = SimpleVectorStore()
+        await vector_store.initialize()
         memory_agent = NanaAgent(redis_client=redis_client, vector_store=vector_store)
 
         abaporu = AbaporuAgent(
@@ -1399,10 +1401,11 @@ async def process_ayrton_senna_request(
         )
 
         # Initialize Ayrton Senna agent with required dependencies
+        from src.core.config import settings
         from src.services.maritaca_client import MaritacaClient
 
-        # Create LLM service for Senna (semantic router)
-        llm_service = MaritacaClient()
+        # Create LLM service for Senna (semantic router) with API key
+        llm_service = MaritacaClient(api_key=settings.MARITACA_API_KEY)
 
         ayrton_senna = AyrtonSennaAgent(llm_service=llm_service)
 
@@ -1490,11 +1493,12 @@ async def process_nana_request(
 
         # Initialize Nana agent with required dependencies
         from src.core.cache import get_redis_client
-        from src.services.vector_store_service import VectorStoreService
+        from src.services.simple_vector_store import SimpleVectorStore
 
         # Create dependencies for Nana (memory agent)
         redis_client = await get_redis_client()
-        vector_store = VectorStoreService()
+        vector_store = SimpleVectorStore()
+        await vector_store.initialize()
 
         nana = NanaAgent(redis_client=redis_client, vector_store=vector_store)
 
