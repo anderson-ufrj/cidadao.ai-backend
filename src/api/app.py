@@ -250,7 +250,10 @@ async def custom_swagger_ui_html() -> HTMLResponse:
 
 
 # Add security middleware (order matters!)
-app.add_middleware(SecurityMiddleware)
+# TEMPORARILY DISABLED FOR FRONTEND INTEGRATION
+# The SecurityMiddleware has its own IP blocklist that blocks external access
+# TODO: Configure proper IP whitelist for production after frontend integration
+# app.add_middleware(SecurityMiddleware)  # RE-ENABLE AFTER CONFIGURING WHITELIST
 app.add_middleware(LoggingMiddleware)
 
 # Add compression middleware for mobile optimization
