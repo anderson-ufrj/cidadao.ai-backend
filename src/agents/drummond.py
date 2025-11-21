@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 """
 
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Optional
 
@@ -361,7 +361,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         )
 
         results = []
-        message_id = f"msg_{datetime.utcnow().timestamp()}"
+        message_id = f"msg_{datetime.now(UTC).timestamp()}"
 
         for target_id in targets:
             target = self.communication_targets.get(target_id)
@@ -396,7 +396,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
                             target_id=target_id,
                             channel=channel,
                             status="failed",
-                            sent_at=datetime.utcnow(),
+                            sent_at=datetime.now(UTC),
                             delivered_at=None,
                             read_at=None,
                             error_message=str(e),
@@ -421,7 +421,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         )
 
         # Implement bulk sending with audience segmentation and timing optimization
-        campaign_id = f"bulk_{datetime.utcnow().timestamp()}"
+        campaign_id = f"bulk_{datetime.now(UTC).timestamp()}"
         scheduled_messages = 0
 
         # Segment optimization
@@ -450,7 +450,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
             "scheduled_messages": scheduled_messages,
             "total_targets": total_targets,
             "optimal_send_time": f"{optimal_hour:02d}:00",
-            "estimated_delivery": datetime.utcnow() + timedelta(seconds=estimated_time),
+            "estimated_delivery": datetime.now(UTC) + timedelta(seconds=estimated_time),
             "throttling_config": {
                 "batch_size": batch_size,
                 "rate_limit_per_minute": rate_limit,
@@ -1113,7 +1113,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
             "description": content.get("description", "Notificação importante"),
             "severity": content.get("severity", "média"),
             "amount": content.get("amount", "0,00"),
-            "date": content.get("date", datetime.utcnow().strftime("%d/%m/%Y")),
+            "date": content.get("date", datetime.now(UTC).strftime("%d/%m/%Y")),
             "recipient_name": target.name,
         }
 
@@ -1192,7 +1192,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
             f"Sending message {message_id} to {target.target_id} via {channel.value}"
         )
 
-        sent_at = datetime.utcnow()
+        sent_at = datetime.now(UTC)
         status = "sent"
         error_message = None
         delivered_at = None
@@ -1208,7 +1208,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
                     html_body=content.get("html_body"),
                     priority=priority,
                 )
-                delivered_at = datetime.utcnow() + timedelta(
+                delivered_at = datetime.now(UTC) + timedelta(
                     seconds=5
                 )  # Typical delivery
 
@@ -1219,7 +1219,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
                     message=content["body"],
                     priority=priority,
                 )
-                delivered_at = datetime.utcnow() + timedelta(seconds=2)
+                delivered_at = datetime.now(UTC) + timedelta(seconds=2)
 
             elif channel == CommunicationChannel.WHATSAPP:
                 # WhatsApp: Business API
@@ -1228,7 +1228,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
                     message=content["body"],
                     priority=priority,
                 )
-                delivered_at = datetime.utcnow() + timedelta(seconds=3)
+                delivered_at = datetime.now(UTC) + timedelta(seconds=3)
 
             elif channel == CommunicationChannel.TELEGRAM:
                 # Telegram: Bot API
@@ -1237,7 +1237,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
                     message=content["body"],
                     priority=priority,
                 )
-                delivered_at = datetime.utcnow() + timedelta(seconds=1)
+                delivered_at = datetime.now(UTC) + timedelta(seconds=1)
 
             elif channel == CommunicationChannel.PUSH_NOTIFICATION:
                 # Push: Firebase/APNs
@@ -1247,7 +1247,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
                     body=content["body"],
                     priority=priority,
                 )
-                delivered_at = datetime.utcnow() + timedelta(seconds=1)
+                delivered_at = datetime.now(UTC) + timedelta(seconds=1)
 
             elif channel == CommunicationChannel.WEBHOOK:
                 # Webhook: HTTP POST
@@ -1260,7 +1260,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
                         "priority": priority.value,
                     },
                 )
-                delivered_at = datetime.utcnow()
+                delivered_at = datetime.now(UTC)
 
             elif channel == CommunicationChannel.SLACK:
                 # Slack: Webhook or API
@@ -1269,7 +1269,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
                     message=content["body"],
                     priority=priority,
                 )
-                delivered_at = datetime.utcnow() + timedelta(seconds=1)
+                delivered_at = datetime.now(UTC) + timedelta(seconds=1)
 
             elif channel == CommunicationChannel.DISCORD:
                 # Discord: Webhook
@@ -1278,7 +1278,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
                     message=content["body"],
                     priority=priority,
                 )
-                delivered_at = datetime.utcnow() + timedelta(seconds=1)
+                delivered_at = datetime.now(UTC) + timedelta(seconds=1)
 
             else:
                 # Fallback for unsupported channels
