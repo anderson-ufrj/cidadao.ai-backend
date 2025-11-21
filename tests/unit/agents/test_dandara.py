@@ -3,6 +3,7 @@ Unit tests for Dandara Agent - Social inclusion and equity analysis specialist.
 Tests diversity metrics, inclusion analysis, and social impact assessment.
 """
 
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -532,8 +533,9 @@ class TestDandaraAuxiliaryMethods:
     def test_generate_audit_hash(self, dandara_agent):
         """Test audit hash generation."""
         # Method signature: (analysis: EquityAnalysisResult, request: SocialJusticeRequest) -> str
-        from src.agents.dandara import EquityAnalysisResult, SocialJusticeRequest
         from datetime import datetime
+
+        from src.agents.dandara import EquityAnalysisResult, SocialJusticeRequest
 
         analysis = EquityAnalysisResult(
             analysis_type="social_equity",
@@ -544,7 +546,7 @@ class TestDandaraAuxiliaryMethods:
             gaps_identified=[],
             recommendations=[],
             evidence_sources=[],
-            analysis_timestamp=datetime.utcnow(),
+            analysis_timestamp=datetime.now(UTC),
             confidence_level=0.85,
         )
         request = SocialJusticeRequest(query="Test equity analysis")
