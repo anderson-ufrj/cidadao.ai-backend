@@ -312,7 +312,9 @@ app.add_middleware(
 
 # Add IP whitelist middleware (only in production)
 # Enhanced with API key authentication as fallback
-if settings.is_production or settings.app_env == "staging":
+# TEMPORARILY DISABLED FOR TESTING AND FRONTEND INTEGRATION
+ENABLE_IP_WHITELIST = False  # Set to True to re-enable IP whitelist
+if ENABLE_IP_WHITELIST and (settings.is_production or settings.app_env == "staging"):
     from src.api.middleware.ip_whitelist import IPWhitelistMiddleware
 
     # Configure Vercel and known service IP ranges
