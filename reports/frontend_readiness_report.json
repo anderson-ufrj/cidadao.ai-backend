@@ -1,6 +1,6 @@
 {
   "results": {
-    "timestamp": "2025-11-21T14:36:50.184105",
+    "timestamp": "2025-11-21T15:00:50.171430",
     "base_url": "https://cidadao-api-production.up.railway.app",
     "tests": {
       "agents": [
@@ -12,11 +12,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 137.61568069458008,
-            "max": 610.4483604431152,
-            "avg": 296.1726983388265,
-            "median": 140.45405387878418,
-            "stdev": 272.17440719858286
+            "min": 138.58747482299805,
+            "max": 642.4827575683594,
+            "avg": 310.14132499694824,
+            "median": 149.3537425994873,
+            "stdev": 287.8664603304319
           },
           "errors": []
         },
@@ -28,11 +28,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 137.50219345092773,
-            "max": 143.19109916687012,
-            "avg": 139.83440399169922,
-            "median": 138.8099193572998,
-            "stdev": 2.9796121619786113
+            "min": 140.66195487976074,
+            "max": 144.86122131347656,
+            "avg": 142.38548278808594,
+            "median": 141.6332721710205,
+            "stdev": 2.1983687713057973
           },
           "errors": []
         },
@@ -44,11 +44,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 128.87883186340332,
-            "max": 136.14535331726074,
-            "avg": 132.2777271270752,
-            "median": 131.80899620056152,
-            "stdev": 3.655867205047979
+            "min": 131.38294219970703,
+            "max": 133.5921287536621,
+            "avg": 132.5665314992269,
+            "median": 132.72452354431152,
+            "stdev": 1.1130352295756398
           },
           "errors": []
         },
@@ -60,11 +60,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 131.26492500305176,
-            "max": 131.90174102783203,
-            "avg": 131.58369064331055,
-            "median": 131.58440589904785,
-            "stdev": 0.31840861490750333
+            "min": 133.10527801513672,
+            "max": 133.5606575012207,
+            "avg": 133.4080696105957,
+            "median": 133.5582733154297,
+            "stdev": 0.2622279233718626
           },
           "errors": []
         },
@@ -76,11 +76,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 130.67340850830078,
-            "max": 134.6912384033203,
-            "avg": 132.6916217803955,
-            "median": 132.71021842956543,
-            "stdev": 2.008979502844274
+            "min": 132.03692436218262,
+            "max": 136.89374923706055,
+            "avg": 133.87648264567056,
+            "median": 132.69877433776855,
+            "stdev": 2.633901025130658
           },
           "errors": []
         },
@@ -92,11 +92,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 130.03134727478027,
-            "max": 132.27295875549316,
-            "avg": 130.86819648742676,
-            "median": 130.30028343200684,
-            "stdev": 1.223968723662191
+            "min": 132.79461860656738,
+            "max": 142.93670654296875,
+            "avg": 139.24034436543783,
+            "median": 141.98970794677734,
+            "stdev": 5.602208225710785
           },
           "errors": []
         },
@@ -108,11 +108,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 695.0027942657471,
-            "max": 12957.056522369385,
-            "avg": 4816.08788172404,
-            "median": 796.2043285369873,
-            "stdev": 7050.467235837133
+            "min": 1824.5315551757812,
+            "max": 2865.9658432006836,
+            "avg": 2173.6435890197754,
+            "median": 1830.4333686828613,
+            "stdev": 599.5759214447063
           },
           "errors": []
         },
@@ -124,11 +124,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 131.2999725341797,
-            "max": 137.20130920410156,
-            "avg": 133.85613759358725,
-            "median": 133.06713104248047,
-            "stdev": 3.0287525693275446
+            "min": 135.28847694396973,
+            "max": 139.27316665649414,
+            "avg": 137.16793060302734,
+            "median": 136.94214820861816,
+            "stdev": 2.001916904742385
           },
           "errors": []
         },
@@ -140,11 +140,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 130.2187442779541,
-            "max": 132.71760940551758,
-            "avg": 131.24187787373862,
-            "median": 130.78927993774414,
-            "stdev": 1.3094714201493844
+            "min": 132.92694091796875,
+            "max": 139.9381160736084,
+            "avg": 136.28602027893066,
+            "median": 135.99300384521484,
+            "stdev": 3.5147600541979127
           },
           "errors": []
         },
@@ -156,11 +156,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 140.1500701904297,
-            "max": 140.90228080749512,
-            "avg": 140.5648390452067,
-            "median": 140.6421661376953,
-            "stdev": 0.3820206964695038
+            "min": 144.06061172485352,
+            "max": 148.12803268432617,
+            "avg": 146.3316281636556,
+            "median": 146.8062400817871,
+            "stdev": 2.0748302749896723
           },
           "errors": []
         },
@@ -172,11 +172,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 129.66394424438477,
-            "max": 133.37278366088867,
-            "avg": 131.76409403483072,
-            "median": 132.25555419921875,
-            "stdev": 1.9026356125749577
+            "min": 134.3669891357422,
+            "max": 142.0135498046875,
+            "avg": 137.1901035308838,
+            "median": 135.18977165222168,
+            "stdev": 4.1974359119061315
           },
           "errors": []
         },
@@ -188,11 +188,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 130.44214248657227,
-            "max": 135.5724334716797,
-            "avg": 132.31277465820312,
-            "median": 130.92374801635742,
-            "stdev": 2.8331991911594363
+            "min": 129.41622734069824,
+            "max": 132.26699829101562,
+            "avg": 130.66792488098145,
+            "median": 130.32054901123047,
+            "stdev": 1.4567862742891642
           },
           "errors": []
         },
@@ -204,11 +204,11 @@
           "failures": 0,
           "success_rate": 100.0,
           "times": {
-            "min": 131.9417953491211,
-            "max": 132.1110725402832,
-            "avg": 132.04193115234375,
-            "median": 132.07292556762695,
-            "stdev": 0.08879291748779332
+            "min": 131.78205490112305,
+            "max": 133.90779495239258,
+            "avg": 133.09001922607422,
+            "median": 133.58020782470703,
+            "stdev": 1.1445113970883154
           },
           "errors": []
         },
@@ -220,11 +220,11 @@
           "failures": 3,
           "success_rate": 0.0,
           "times": {
-            "min": 130.01394271850586,
-            "max": 131.15668296813965,
-            "avg": 130.39541244506836,
-            "median": 130.01561164855957,
-            "stdev": 0.6592801402323648
+            "min": 130.2316188812256,
+            "max": 138.67926597595215,
+            "avg": 134.64109102884927,
+            "median": 135.01238822937012,
+            "stdev": 4.2360455105671955
           },
           "errors": [
             "Status 500",
@@ -240,11 +240,11 @@
           "failures": 3,
           "success_rate": 0.0,
           "times": {
-            "min": 129.19855117797852,
-            "max": 134.71341133117676,
-            "avg": 131.87265396118164,
-            "median": 131.70599937438965,
-            "stdev": 2.7612046176999527
+            "min": 130.72586059570312,
+            "max": 133.7108612060547,
+            "avg": 131.8661371866862,
+            "median": 131.16168975830078,
+            "stdev": 1.6123714818455828
           },
           "errors": [
             "Status 500",
@@ -260,11 +260,11 @@
           "failures": 3,
           "success_rate": 0.0,
           "times": {
-            "min": 129.3478012084961,
-            "max": 131.38198852539062,
-            "avg": 130.14141718546549,
-            "median": 129.69446182250977,
-            "stdev": 1.0882583941370765
+            "min": 130.89275360107422,
+            "max": 133.15606117248535,
+            "avg": 131.99631373087564,
+            "median": 131.94012641906738,
+            "stdev": 1.1326994531683678
           },
           "errors": [
             "Status 500",
@@ -279,74 +279,74 @@
           "success": false,
           "is_sse": true,
           "has_error": true,
-          "time_ms": 631.0486793518066,
-          "sample": "data: {\"type\":\"start\",\"timestamp\":\"2025-11-21T17:37:11.203859+00:00\"}\n\ndata: {\"type\":\"detecting\",\"message\":\"Analisando sua mensagem...\"}\n\ndata: {\"type\":\"error\",\"message\":\"type object 'IntentType' has "
+          "time_ms": 632.1511268615723,
+          "sample": "data: {\"type\":\"start\",\"timestamp\":\"2025-11-21T18:01:03.416959+00:00\"}\n\ndata: {\"type\":\"detecting\",\"message\":\"Analisando sua mensagem...\"}\n\ndata: {\"type\":\"error\",\"message\":\"type object 'IntentType' has "
         },
         {
           "message": "Quem s\u00e3o os maiores fornecedores?",
           "success": false,
           "is_sse": true,
           "has_error": true,
-          "time_ms": 631.3252449035645,
-          "sample": "data: {\"type\":\"start\",\"timestamp\":\"2025-11-21T17:37:11.836814+00:00\"}\n\ndata: {\"type\":\"detecting\",\"message\":\"Analisando sua mensagem...\"}\n\ndata: {\"type\":\"error\",\"message\":\"type object 'IntentType' has "
+          "time_ms": 637.7706527709961,
+          "sample": "data: {\"type\":\"start\",\"timestamp\":\"2025-11-21T18:01:04.054815+00:00\"}\n\ndata: {\"type\":\"detecting\",\"message\":\"Analisando sua mensagem...\"}\n\ndata: {\"type\":\"error\",\"message\":\"type object 'IntentType' has "
         },
         {
           "message": "Detecte anomalias em licita\u00e7\u00f5es",
           "success": false,
           "is_sse": true,
           "has_error": true,
-          "time_ms": 629.2381286621094,
-          "sample": "data: {\"type\":\"start\",\"timestamp\":\"2025-11-21T17:37:12.465260+00:00\"}\n\ndata: {\"type\":\"detecting\",\"message\":\"Analisando sua mensagem...\"}\n\ndata: {\"type\":\"error\",\"message\":\"type object 'IntentType' has "
+          "time_ms": 633.378267288208,
+          "sample": "data: {\"type\":\"start\",\"timestamp\":\"2025-11-21T18:01:04.688152+00:00\"}\n\ndata: {\"type\":\"detecting\",\"message\":\"Analisando sua mensagem...\"}\n\ndata: {\"type\":\"error\",\"message\":\"type object 'IntentType' has "
         },
         {
           "message": "Gere um relat\u00f3rio de investiga\u00e7\u00e3o",
           "success": false,
           "is_sse": true,
           "has_error": true,
-          "time_ms": 630.0995349884033,
-          "sample": "data: {\"type\":\"start\",\"timestamp\":\"2025-11-21T17:37:13.095103+00:00\"}\n\ndata: {\"type\":\"detecting\",\"message\":\"Analisando sua mensagem...\"}\n\ndata: {\"type\":\"error\",\"message\":\"type object 'IntentType' has "
+          "time_ms": 630.9380531311035,
+          "sample": "data: {\"type\":\"start\",\"timestamp\":\"2025-11-21T18:01:05.321068+00:00\"}\n\ndata: {\"type\":\"detecting\",\"message\":\"Analisando sua mensagem...\"}\n\ndata: {\"type\":\"error\",\"message\":\"type object 'IntentType' has "
         }
       ],
       "concurrent_load": {
         "total_requests": 20,
         "successes": 20,
         "failures": 0,
-        "total_time_ms": 681.7145347595215,
-        "avg_time_ms": 611.1071944236755,
+        "total_time_ms": 687.90602684021,
+        "avg_time_ms": 610.3163242340088,
         "results": [
           {
             "index": 0,
             "endpoint": "/health/",
             "status": 200,
-            "time_ms": 130.25903701782227,
+            "time_ms": 127.87771224975586,
             "success": true
           },
           {
             "index": 1,
             "endpoint": "/api/v1/",
             "status": 200,
-            "time_ms": 639.4646167755127,
+            "time_ms": 627.4154186248779,
             "success": true
           },
           {
             "index": 2,
             "endpoint": "/api/v1/agents/",
             "status": 200,
-            "time_ms": 657.9878330230713,
+            "time_ms": 646.5470790863037,
             "success": true
           },
           {
             "index": 3,
             "endpoint": "/api/v1/agents/zumbi",
             "status": 200,
-            "time_ms": 681.3056468963623,
+            "time_ms": 687.1051788330078,
             "success": true
           },
           {
             "index": 4,
             "endpoint": "/api/v1/federal/",
             "status": 200,
-            "time_ms": 518.5794830322266,
+            "time_ms": 635.3042125701904,
             "success": true
           }
         ]
@@ -428,5 +428,5 @@
     "data_consistency": true
   },
   "readiness_percentage": 83.33333333333334,
-  "timestamp": "2025-11-21T14:37:15.541141"
+  "timestamp": "2025-11-21T15:01:07.772640"
 }
