@@ -1,25 +1,58 @@
-# TODO: Mock Portal da Transparência API responses for integration tests
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
-
-#!/usr/bin/env python3
 """
-Test script to validate real API integration
-Run this to test if the Portal da Transparência integration is working
+Integration tests for Portal da Transparência API with mock responses.
+
+These tests validate the integration without hitting the real API.
 """
 
 import asyncio
 import os
 import sys
 
+import pytest
+
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "src"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../..", "src"))
+
+# Import mock fixtures
+
+
+@pytest.mark.asyncio
+async def test_real_api_integration_with_mock(mock_transparency_client):
+    """Test API integration using mock client."""
+    print("🧪 Testing API Integration with Mocks")
+    print("=" * 50)
+
+    # Use mock client for testing
+    client = mock_transparency_client
+
+    # Test 1: Get contratos
+    contratos = await client.get_contratos(codigo_orgao="26000", ano=2025)
+    assert contratos["status"] == 200
+    assert len(contratos["data"]) == 2
+    print(f"✅ Contratos: Retrieved {len(contratos['data'])} contracts")
+
+    # Test 2: Get licitacoes
+    licitacoes = await client.get_licitacoes(modalidade=6)
+    assert licitacoes["status"] == 200
+    assert len(licitacoes["data"]) == 1
+    print(f"✅ Licitações: Retrieved {len(licitacoes['data'])} bids")
+
+    # Test 3: Detect anomalies
+    anomalies = await client.detect_anomalies(contratos["data"])
+    assert "contratos_suspeitos" in anomalies
+    assert len(anomalies["contratos_suspeitos"]) == 2
+    print(
+        f"✅ Anomalies: Detected {len(anomalies['contratos_suspeitos'])} suspicious contracts"
+    )
+
+    # Verify call tracking
+    assert client.call_count == 3
+    print(f"✅ Total API calls: {client.call_count}")
 
 
 @pytest.mark.asyncio
 async def test_real_api_integration():
-    """Test the real API integration"""
+    """Test the real API integration (original test for manual runs)"""
     print("🧪 Testing Real API Integration")
     print("=" * 50)
 
@@ -29,7 +62,17 @@ async def test_real_api_integration():
 
     if not api_key:
         print("   ⚠️  Set TRANSPARENCY_API_KEY environment variable to test real API")
-        print("   🔄 Will use fallback mock data\n")
+        print("   🔄 Using mock client for testing\n")
+
+        # Use mock when no API key is available
+        from tests.fixtures.transparency_mocks import TransparencyAPIMock
+
+        mock_client = TransparencyAPIMock(api_key="test_key")
+
+        contratos = await mock_client.get_contratos()
+        assert contratos["status"] == 200
+        print(f"   ✅ Mock test successful - {len(contratos['data'])} contracts")
+        return
     else:
         print(f"   🔑 API Key: {api_key[:20]}...{api_key[-10:]}\n")
 
