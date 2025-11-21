@@ -14,6 +14,7 @@ from pydantic import BaseModel, Field
 from src.agents import (
     AbaporuAgent,
     AgentContext,
+    AgentMessage,
     AnitaAgent,
     AyrtonSennaAgent,
     BonifacioAgent,
@@ -108,10 +109,24 @@ async def process_zumbi_request(
         # Initialize Zumbi agent
         zumbi = ZumbiAgent()
 
-        # Process request
-        result = await zumbi.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="zumbi",
+            action="investigate",
+            payload={
+                "query": request.query,
+                "data_source": request.options.get("data_source", "contracts"),
+                "anomaly_types": request.options.get(
+                    "anomaly_types", ["price", "vendor"]
+                ),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await zumbi.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="zumbi_dos_palmares",
@@ -179,10 +194,21 @@ async def process_anita_request(
         # Initialize Anita agent
         anita = AnitaAgent()
 
-        # Process request
-        result = await anita.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="anita",
+            action="analyze",
+            payload={
+                "query": request.query,
+                "data": request.options.get("data", {}),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await anita.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="anita_garibaldi",
@@ -250,10 +276,21 @@ async def process_tiradentes_request(
         # Initialize Tiradentes agent
         tiradentes = TiradentesAgent()
 
-        # Process request
-        result = await tiradentes.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="tiradentes",
+            action="analyze",
+            payload={
+                "query": request.query,
+                "data": request.options.get("data", {}),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await tiradentes.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="tiradentes",
@@ -316,10 +353,21 @@ async def process_bonifacio_request(
         # Initialize Bonifacio agent
         bonifacio = BonifacioAgent()
 
-        # Process request
-        result = await bonifacio.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="bonifacio",
+            action="analyze",
+            payload={
+                "query": request.query,
+                "data": request.options.get("data", {}),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await bonifacio.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="jose_bonifacio",
@@ -475,10 +523,21 @@ async def process_machado_request(
         # Initialize Machado agent
         machado = MachadoAgent()
 
-        # Process request
-        result = await machado.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="machado",
+            action="analyze",
+            payload={
+                "query": request.query,
+                "data": request.options.get("data", {}),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await machado.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="machado_de_assis",
@@ -571,10 +630,21 @@ async def process_dandara_request(
         # Initialize Dandara agent
         dandara = DandaraAgent()
 
-        # Process request
-        result = await dandara.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="dandara",
+            action="analyze",
+            payload={
+                "query": request.query,
+                "data": request.options.get("data", {}),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await dandara.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="dandara_dos_palmares",
@@ -667,10 +737,21 @@ async def process_lampiao_request(
         # Initialize Lampiao agent
         lampiao = LampiaoAgent()
 
-        # Process request
-        result = await lampiao.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="lampiao",
+            action="analyze",
+            payload={
+                "query": request.query,
+                "data": request.options.get("data", {}),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await lampiao.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="lampiao",
@@ -759,10 +840,21 @@ async def process_oscar_request(
         # Initialize Oscar agent
         oscar = OscarNiemeyerAgent()
 
-        # Process request
-        result = await oscar.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="oscar",
+            action="analyze",
+            payload={
+                "query": request.query,
+                "data": request.options.get("data", {}),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await oscar.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="oscar_niemeyer",
@@ -848,10 +940,21 @@ async def process_drummond_request(
         # Initialize Drummond agent
         drummond = DrummondAgent()
 
-        # Process request
-        result = await drummond.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="drummond",
+            action="analyze",
+            payload={
+                "query": request.query,
+                "data": request.options.get("data", {}),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await drummond.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="drummond",
@@ -921,10 +1024,21 @@ async def process_obaluaie_request(
         # Initialize Obaluaie agent
         obaluaie = ObaluaieAgent()
 
-        # Process request
-        result = await obaluaie.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="obaluaie",
+            action="investigate",
+            payload={
+                "query": request.query,
+                "data": request.options.get("data", {}),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await obaluaie.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="obaluaie",
@@ -1000,10 +1114,21 @@ async def process_oxossi_request(
         # Initialize Oxossi agent
         oxossi = OxossiAgent()
 
-        # Process request
-        result = await oxossi.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="oxossi",
+            action="analyze",
+            payload={
+                "query": request.query,
+                "data": request.options.get("data", {}),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await oxossi.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="oxossi",
@@ -1079,10 +1204,21 @@ async def process_ceuci_request(
         # Initialize Ceuci agent
         ceuci = CeuciAgent()
 
-        # Process request
-        result = await ceuci.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="ceuci",
+            action="analyze",
+            payload={
+                "query": request.query,
+                "data": request.options.get("data", {}),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await ceuci.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="ceuci",
@@ -1158,10 +1294,21 @@ async def process_abaporu_request(
         # Initialize Abaporu agent
         abaporu = AbaporuAgent()
 
-        # Process request
-        result = await abaporu.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="abaporu",
+            action="analyze",
+            payload={
+                "query": request.query,
+                "data": request.options.get("data", {}),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await abaporu.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="abaporu",
@@ -1324,10 +1471,21 @@ async def process_nana_request(
         # Initialize Nana agent
         nana = NanaAgent()
 
-        # Process request
-        result = await nana.process(
-            message=request.query, context=context, **request.options
+        # Create proper AgentMessage
+        agent_message = AgentMessage(
+            sender="api",
+            recipient="nana",
+            action="analyze",
+            payload={
+                "query": request.query,
+                "data": request.options.get("data", {}),
+                **request.options,
+            },
+            context=request.context,
         )
+
+        # Process request with proper message object
+        result = await nana.process(message=agent_message, context=context)
 
         return AgentResponse(
             agent="nana",
