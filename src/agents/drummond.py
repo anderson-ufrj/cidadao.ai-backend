@@ -1062,8 +1062,9 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
 
             return AgentResponse(
                 agent_name=self.name,
-                content={"error": "Unknown communication action"},
-                confidence=0.0,
+                status=AgentStatus.COMPLETED,
+                result={"error": "Unknown communication action"},
+                metadata={"confidence": 0.0},
             )
 
         except Exception as e:
