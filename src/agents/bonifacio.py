@@ -9,7 +9,7 @@ License: Proprietary - All rights reserved
 import hashlib
 import statistics
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Optional
 
@@ -244,7 +244,7 @@ class BonifacioAgent(BaseAgent):
 
             response_data = {
                 "policy_id": evaluation.policy_id,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "agent": "bonifacio",
                 "analysis_type": "policy_effectiveness",
                 "policy_evaluation": {
@@ -339,7 +339,7 @@ class BonifacioAgent(BaseAgent):
             period_start = datetime.strptime(request.analysis_period[0], "%Y-%m-%d")
             period_end = datetime.strptime(request.analysis_period[1], "%Y-%m-%d")
         else:
-            period_end = datetime.utcnow()
+            period_end = datetime.now(UTC)
             period_start = period_end - timedelta(days=365)  # Last year
 
         # Generate financial data
@@ -643,7 +643,7 @@ class BonifacioAgent(BaseAgent):
                         else "index" if "index" in indicator_name else "percentage"
                     ),
                     data_source=data_source,
-                    last_update=datetime.utcnow() - timedelta(days=days_since_update),
+                    last_update=datetime.now(UTC) - timedelta(days=days_since_update),
                     statistical_significance=significance,
                     trend=trend,
                 )
@@ -939,7 +939,7 @@ class BonifacioAgent(BaseAgent):
     ) -> str:
         """Generate SHA-256 hash for evidence verification."""
 
-        evidence_data = f"{policy_id}{investment['executed']}{beneficiaries['reached_population']}{len(indicators)}{datetime.utcnow().date()}"
+        evidence_data = f"{policy_id}{investment['executed']}{beneficiaries['reached_population']}{len(indicators)}{datetime.now(UTC).date()}"
         return hashlib.sha256(evidence_data.encode()).hexdigest()
 
     def _calculate_percentile(

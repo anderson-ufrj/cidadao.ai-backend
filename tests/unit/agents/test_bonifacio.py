@@ -3,7 +3,7 @@ Unit tests for Bonifácio Agent - Public policy analysis specialist.
 Tests policy effectiveness, impact assessment, and governance analysis capabilities.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
@@ -359,7 +359,7 @@ class TestPolicyIndicator:
             target_value=0.75,
             unit="percentage",
             data_source="National Education Survey",
-            last_update=datetime.utcnow(),
+            last_update=datetime.now(UTC),
             statistical_significance=0.95,
             trend="improving",
         )
