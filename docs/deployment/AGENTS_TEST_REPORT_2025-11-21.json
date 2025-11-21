@@ -1,0 +1,188 @@
+{
+  "test_date": "2025-11-21T16:54:21.700081",
+  "target_url": "https://cidadao-api-production.up.railway.app",
+  "summary": {
+    "total": 16,
+    "successful": 16,
+    "failed": 0,
+    "success_rate": 100.0
+  },
+  "results": [
+    {
+      "agent": "zumbi",
+      "status_code": 200,
+      "response_time": 1.07,
+      "timestamp": "2025-11-21T16:54:02.937330",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 1.07s",
+      "has_result": true,
+      "message": "Anomaly detection completed successfully"
+    },
+    {
+      "agent": "anita",
+      "status_code": 200,
+      "response_time": 0.98,
+      "timestamp": "2025-11-21T16:54:04.418346",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 0.98s",
+      "has_result": true,
+      "message": "Pattern analysis completed successfully"
+    },
+    {
+      "agent": "tiradentes",
+      "status_code": 200,
+      "response_time": 0.52,
+      "timestamp": "2025-11-21T16:54:05.443942",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 0.52s",
+      "has_result": true,
+      "message": "Report generation completed successfully"
+    },
+    {
+      "agent": "bonifacio",
+      "status_code": 200,
+      "response_time": 0.54,
+      "timestamp": "2025-11-21T16:54:06.488156",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 0.54s",
+      "has_result": true,
+      "message": "Legal and compliance analysis completed successfully"
+    },
+    {
+      "agent": "maria-quiteria",
+      "status_code": 200,
+      "response_time": 0.52,
+      "timestamp": "2025-11-21T16:54:07.512998",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 0.52s",
+      "has_result": true,
+      "message": "Security audit completed successfully"
+    },
+    {
+      "agent": "machado",
+      "status_code": 200,
+      "response_time": 0.54,
+      "timestamp": "2025-11-21T16:54:08.554078",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 0.54s",
+      "has_result": true,
+      "message": "Textual analysis completed successfully"
+    },
+    {
+      "agent": "dandara",
+      "status_code": 200,
+      "response_time": 3.23,
+      "timestamp": "2025-11-21T16:54:12.287528",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 3.23s",
+      "has_result": true,
+      "message": "Social equity analysis completed successfully"
+    },
+    {
+      "agent": "lampiao",
+      "status_code": 200,
+      "response_time": 0.47,
+      "timestamp": "2025-11-21T16:54:13.257348",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 0.47s",
+      "has_result": true,
+      "message": "Regional analysis completed successfully"
+    },
+    {
+      "agent": "oscar",
+      "status_code": 200,
+      "response_time": 0.43,
+      "timestamp": "2025-11-21T16:54:14.192720",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 0.43s",
+      "has_result": true,
+      "message": "Data aggregation and visualization completed successfully"
+    },
+    {
+      "agent": "drummond",
+      "status_code": 200,
+      "response_time": 0.58,
+      "timestamp": "2025-11-21T16:54:15.271015",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 0.58s",
+      "has_result": true,
+      "message": "Communication processing completed successfully"
+    },
+    {
+      "agent": "obaluaie",
+      "status_code": 200,
+      "response_time": 0.54,
+      "timestamp": "2025-11-21T16:54:16.308932",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 0.54s",
+      "has_result": true,
+      "message": "Corruption detection completed successfully"
+    },
+    {
+      "agent": "oxossi",
+      "status_code": 200,
+      "response_time": 0.53,
+      "timestamp": "2025-11-21T16:54:17.344391",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 0.53s",
+      "has_result": true,
+      "message": "Data hunting completed successfully"
+    },
+    {
+      "agent": "ceuci",
+      "status_code": 200,
+      "response_time": 0.43,
+      "timestamp": "2025-11-21T16:54:18.279760",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 0.43s",
+      "has_result": true,
+      "message": "ETL and prediction completed successfully"
+    },
+    {
+      "agent": "abaporu",
+      "status_code": 200,
+      "response_time": 0.54,
+      "timestamp": "2025-11-21T16:54:19.320761",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 0.54s",
+      "has_result": true,
+      "message": "Multi-agent orchestration completed successfully"
+    },
+    {
+      "agent": "ayrton-senna",
+      "status_code": 200,
+      "response_time": 0.43,
+      "timestamp": "2025-11-21T16:54:20.250341",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 0.43s",
+      "has_result": true,
+      "message": "Semantic routing completed successfully"
+    },
+    {
+      "agent": "nana",
+      "status_code": 200,
+      "response_time": 0.45,
+      "timestamp": "2025-11-21T16:54:21.199212",
+      "success": true,
+      "status": "\u2705 OK",
+      "details": "Response in 0.45s",
+      "has_result": true,
+      "message": "Memory processing completed successfully"
+    }
+  ]
+}

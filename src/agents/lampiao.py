@@ -403,6 +403,31 @@ class LampiaoAgent(BaseAgent):
             action = message.action
             payload = message.payload
 
+            # NEW: Check if we need to fetch real IBGE data
+            if isinstance(payload, dict) and "query" in payload:
+                self.logger.info("Lampião detected text query, fetching IBGE data...")
+                from src.services.agent_data_integration import agent_data_integration
+
+                enriched_data = (
+                    await agent_data_integration.enrich_query_with_real_data(
+                        query=payload["query"],
+                        agent_name="lampiao",
+                        user_id=context.user_id,
+                        session_id=context.session_id,
+                    )
+                )
+
+                if enriched_data.get("has_real_data"):
+                    self.logger.info(
+                        "Lampião enriched query with real data from IBGE/APIs"
+                    )
+                    # Merge real data into payload
+                    payload.update(enriched_data.get("real_data", {}))
+                    payload["_enrichment"] = {
+                        "intent": enriched_data.get("intent"),
+                        "entities": enriched_data.get("entities"),
+                    }
+
             # Route to appropriate function
             if action == "inequality_analysis":
                 result = await self.analyze_regional_inequality(
