@@ -13,7 +13,7 @@ from datetime import date, datetime
 from typing import Any, Optional
 
 from src.core import get_logger
-from src.services.portal_transparencia_service import portal_transparencia
+from src.services.portal_transparencia_service_improved import portal_transparencia
 from src.utils.date_range_defaults import DateRangeDefaults
 
 from ..base import TransparencyAPIClient

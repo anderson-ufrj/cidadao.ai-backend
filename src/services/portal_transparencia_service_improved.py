@@ -391,3 +391,7 @@ def get_improved_portal_service(cache_service=None):
     if improved_portal_service is None:
         improved_portal_service = ImprovedPortalTransparenciaService(cache_service)
     return improved_portal_service
+
+
+# Create the default instance for backward compatibility
+portal_transparencia = get_improved_portal_service()
