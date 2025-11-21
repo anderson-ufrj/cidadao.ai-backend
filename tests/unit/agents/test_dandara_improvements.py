@@ -24,7 +24,7 @@ def dandara_agent():
 @pytest.fixture
 def sample_analysis_result():
     """Create sample analysis result for testing."""
-    from datetime import datetime
+    from datetime import UTC, datetime
 
     return EquityAnalysisResult(
         analysis_type="comprehensive_social_equity_real_data",
@@ -83,7 +83,7 @@ def sample_analysis_result():
             "DataSUS (real data)",
             "INEP (real data)",
         ],
-        analysis_timestamp=datetime.utcnow(),
+        analysis_timestamp=datetime.now(UTC),
         confidence_level=0.92,
     )
 

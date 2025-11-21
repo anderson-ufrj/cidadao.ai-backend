@@ -7,7 +7,7 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 import pytest
@@ -163,7 +163,7 @@ class TestAgentContext:
 
     def test_context_with_params(self):
         """Test context creation with parameters."""
-        timestamp = datetime.utcnow()
+        timestamp = datetime.now(UTC)
         metadata = {"key": "value"}
         memory = {"memory_key": "memory_value"}
 
@@ -549,9 +549,9 @@ class TestAsyncBehavior:
         """Test internal wait method."""
         agent = MockAgent()
 
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
         await agent._wait(0.1)  # Wait 100ms
-        end_time = datetime.utcnow()
+        end_time = datetime.now(UTC)
 
         elapsed = (end_time - start_time).total_seconds()
         assert elapsed >= 0.1  # Should wait at least 100ms
@@ -578,12 +578,12 @@ class TestErrorHandling:
         agent = MockAgent(max_retries=2)
         agent.should_fail = True
 
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
 
         # This will succeed on 3rd try (after 2 retries)
         response = await agent.execute("test_action", {}, agent_context)
 
-        end_time = datetime.utcnow()
+        end_time = datetime.now(UTC)
         elapsed = (end_time - start_time).total_seconds()
 
         # Should have waited for retries (2^1 + 2^2 = 6 seconds minimum)

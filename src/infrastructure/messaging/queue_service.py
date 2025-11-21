@@ -9,7 +9,7 @@ import asyncio
 import time
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Optional
 
@@ -80,7 +80,7 @@ class Task:
             payload=payload,
             priority=priority,
             status=TaskStatus.PENDING,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
             scheduled_at=scheduled_at,
             max_retries=max_retries,
             metadata=metadata or {},
@@ -234,7 +234,7 @@ class QueueService:
             Task ID
         """
         # Create task
-        scheduled_at = datetime.utcnow() + delay if delay else None
+        scheduled_at = datetime.now(UTC) + delay if delay else None
 
         task = Task.create(
             queue=queue,
@@ -327,7 +327,7 @@ class QueueService:
 
         # Update task status
         task.status = TaskStatus.CANCELLED
-        task.completed_at = datetime.utcnow()
+        task.completed_at = datetime.now(UTC)
 
         await self._update_task(task)
 
@@ -421,7 +421,7 @@ class QueueService:
 
     async def _process_delayed_tasks(self, queues: list[str]):
         """Move delayed tasks that are ready to main queues."""
-        now = datetime.utcnow().timestamp()
+        now = datetime.now(UTC).timestamp()
 
         for queue in queues:
             queue_name = self._get_queue_name(queue)
@@ -463,7 +463,7 @@ class QueueService:
 
     async def _process_task(self, task: Task):
         """Process a single task."""
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
 
         try:
             # Update task status
@@ -482,7 +482,7 @@ class QueueService:
 
             # Update task with result
             task.status = TaskStatus.COMPLETED
-            task.completed_at = datetime.utcnow()
+            task.completed_at = datetime.now(UTC)
             task.result = result
 
             await self._update_task(task)
@@ -500,13 +500,13 @@ class QueueService:
 
             # Update task with error
             task.error = str(e)
-            task.completed_at = datetime.utcnow()
+            task.completed_at = datetime.now(UTC)
 
             # Check if we should retry
             if task.retry_count < task.max_retries:
                 # Schedule retry with exponential backoff
                 delay_seconds = 2**task.retry_count
-                retry_at = datetime.utcnow() + timedelta(seconds=delay_seconds)
+                retry_at = datetime.now(UTC) + timedelta(seconds=delay_seconds)
 
                 task.status = TaskStatus.RETRY
                 task.retry_count += 1
@@ -557,7 +557,7 @@ class QueueService:
             f"task:{task.id}",
             mapping={
                 "data": dumps(task.to_dict()),
-                "updated_at": datetime.utcnow().isoformat(),
+                "updated_at": datetime.now(UTC).isoformat(),
             },
         )
 

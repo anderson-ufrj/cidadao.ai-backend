@@ -10,7 +10,7 @@ Created: 2025-10-23
 
 import logging
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
 
 from celery import shared_task
@@ -134,7 +134,7 @@ def update_transparency_coverage(self):
 
             # Create main snapshot entry
             main_snapshot = TransparencyCoverageSnapshot(
-                snapshot_date=datetime.utcnow(),
+                snapshot_date=datetime.now(UTC),
                 coverage_data=coverage_data,
                 summary_stats=coverage_data["summary"],
                 state_code=None,  # Main snapshot
@@ -148,7 +148,7 @@ def update_transparency_coverage(self):
             # Create per-state entries for faster queries
             for state_code, state_info in coverage_data["states"].items():
                 state_snapshot = TransparencyCoverageSnapshot(
-                    snapshot_date=datetime.utcnow(),
+                    snapshot_date=datetime.now(UTC),
                     coverage_data={"state": state_info},
                     summary_stats={
                         "overall_status": state_info["overall_status"],
@@ -172,7 +172,7 @@ def update_transparency_coverage(self):
 
             return {
                 "status": "success",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "summary": coverage_data["summary"],
             }
 
@@ -251,7 +251,7 @@ def transform_to_map_format(health_report: dict) -> dict:
     issues = extract_known_issues(states_map, health_report)
 
     return {
-        "last_update": datetime.utcnow().isoformat(),
+        "last_update": datetime.now(UTC).isoformat(),
         "states": states_map,
         "summary": summary,
         "issues": issues,
@@ -297,7 +297,7 @@ def extract_api_detail(health_report: dict, api_key: str) -> Optional[dict]:
                 "type": detect_api_type(api_key),
                 "status": status_map.get(category, "unknown"),
                 "response_time_ms": detail.get("response_time_ms"),
-                "last_check": detail.get("last_check", datetime.utcnow().isoformat()),
+                "last_check": detail.get("last_check", datetime.now(UTC).isoformat()),
                 "error": detail.get("error"),
                 "error_details": detail.get("error_details", {}),
                 "coverage": detail.get("coverage", []),

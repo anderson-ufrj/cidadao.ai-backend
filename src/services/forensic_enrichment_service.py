@@ -9,7 +9,7 @@ This service enriches investigation results with detailed evidence, documentatio
 legal references, and actionable intelligence.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 from uuid import uuid4
 
@@ -690,7 +690,7 @@ Metodologia aplicada:
     def _parse_date(self, date_str: Optional[str]) -> datetime:
         """Parse date string to datetime."""
         if not date_str:
-            return datetime.utcnow()
+            return datetime.now(UTC)
 
         # Try different formats
         for fmt in ["%d/%m/%Y", "%Y-%m-%d", "%d-%m-%Y"]:
@@ -699,7 +699,7 @@ Metodologia aplicada:
             except (ValueError, TypeError):
                 continue
 
-        return datetime.utcnow()
+        return datetime.now(UTC)
 
 
 # Global service instance

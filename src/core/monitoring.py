@@ -7,7 +7,7 @@ import asyncio
 import time
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
 
 import psutil
@@ -212,27 +212,27 @@ class PerformanceMetrics:
                 cpu_percent = psutil.cpu_percent(interval=1)
                 SYSTEM_CPU_USAGE.set(cpu_percent)
                 self.metrics_history["cpu"].append(
-                    {"timestamp": datetime.utcnow(), "value": cpu_percent}
+                    {"timestamp": datetime.now(UTC), "value": cpu_percent}
                 )
 
                 # Memory usage
                 memory = psutil.virtual_memory()
                 SYSTEM_MEMORY_USAGE.set(memory.percent)
                 self.metrics_history["memory"].append(
-                    {"timestamp": datetime.utcnow(), "value": memory.percent}
+                    {"timestamp": datetime.now(UTC), "value": memory.percent}
                 )
 
                 # Disk usage
                 disk = psutil.disk_usage("/")
                 self.metrics_history["disk"].append(
-                    {"timestamp": datetime.utcnow(), "value": disk.percent}
+                    {"timestamp": datetime.now(UTC), "value": disk.percent}
                 )
 
                 # Network I/O
                 net_io = psutil.net_io_counters()
                 self.metrics_history["network"].append(
                     {
-                        "timestamp": datetime.utcnow(),
+                        "timestamp": datetime.now(UTC),
                         "bytes_sent": net_io.bytes_sent,
                         "bytes_recv": net_io.bytes_recv,
                     }
@@ -275,7 +275,7 @@ class PerformanceMetrics:
         if metric_type not in self.metrics_history:
             return []
 
-        cutoff_time = datetime.utcnow() - timedelta(minutes=duration_minutes)
+        cutoff_time = datetime.now(UTC) - timedelta(minutes=duration_minutes)
         return [
             metric
             for metric in self.metrics_history[metric_type]
@@ -406,7 +406,7 @@ class HealthMonitor:
         self._check_results = {
             "status": overall_status,
             "checks": results,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         return self._check_results

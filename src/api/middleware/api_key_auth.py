@@ -6,7 +6,7 @@ Date: 2025-01-25
 License: Proprietary - All rights reserved
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
 
 from fastapi import HTTPException, Request, status
@@ -179,7 +179,7 @@ class RateLimitMiddleware:
             # Update error count if API key is present
             if api_key and isinstance(api_key, APIKey):
                 api_key.total_errors += 1
-                api_key.last_error_at = datetime.utcnow()
+                api_key.last_error_at = datetime.now(UTC)
             raise
 
 

@@ -10,7 +10,7 @@ import asyncio
 from abc import ABC, abstractmethod
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Optional, Union
 
@@ -187,7 +187,7 @@ class BaseLLMProvider(ABC):
 
         for attempt in range(self.max_retries + 1):
             try:
-                start_time = datetime.utcnow()
+                start_time = datetime.now(UTC)
 
                 self.logger.info(
                     "llm_request_started",
@@ -204,7 +204,7 @@ class BaseLLMProvider(ABC):
                 )
 
                 if response.status_code == 200:
-                    response_time = (datetime.utcnow() - start_time).total_seconds()
+                    response_time = (datetime.now(UTC) - start_time).total_seconds()
 
                     self.logger.info(
                         "llm_request_success",
@@ -416,10 +416,10 @@ class GroqProvider(BaseLLMProvider):
     async def complete(self, request: LLMRequest) -> LLMResponse:
         """Complete text generation using Groq."""
         data = self._prepare_request_data(request)
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
 
         response_data = await self._make_request("/chat/completions", data)
-        response_time = (datetime.utcnow() - start_time).total_seconds()
+        response_time = (datetime.now(UTC) - start_time).total_seconds()
 
         return self._parse_response(response_data, response_time)
 
@@ -472,7 +472,7 @@ class GroqProvider(BaseLLMProvider):
                 "response_id": response_data.get("id"),
             },
             response_time=response_time,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
 
 
@@ -499,10 +499,10 @@ class TogetherProvider(BaseLLMProvider):
     async def complete(self, request: LLMRequest) -> LLMResponse:
         """Complete text generation using Together AI."""
         data = self._prepare_request_data(request)
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
 
         response_data = await self._make_request("/chat/completions", data)
-        response_time = (datetime.utcnow() - start_time).total_seconds()
+        response_time = (datetime.now(UTC) - start_time).total_seconds()
 
         return self._parse_response(response_data, response_time)
 
@@ -555,7 +555,7 @@ class TogetherProvider(BaseLLMProvider):
                 "response_id": response_data.get("id"),
             },
             response_time=response_time,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
 
 
@@ -590,13 +590,13 @@ class HuggingFaceProvider(BaseLLMProvider):
     async def complete(self, request: LLMRequest) -> LLMResponse:
         """Complete text generation using Hugging Face."""
         data = self._prepare_request_data(request)
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
 
         model = request.model or self.default_model
         endpoint = f"/models/{model}"
 
         response_data = await self._make_request(endpoint, data)
-        response_time = (datetime.utcnow() - start_time).total_seconds()
+        response_time = (datetime.now(UTC) - start_time).total_seconds()
 
         return self._parse_response(response_data, response_time, model)
 
@@ -655,7 +655,7 @@ class HuggingFaceProvider(BaseLLMProvider):
                 "model_status": "loaded",
             },
             response_time=response_time,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         )
 
 

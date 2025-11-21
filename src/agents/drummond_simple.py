@@ -4,7 +4,7 @@ This version avoids complex imports and focuses on core functionality.
 """
 
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 
 import numpy as np
 
@@ -130,7 +130,7 @@ class SimpleDrummondAgent(BaseAgent):
                     "confidence": 0.95,
                 },
                 metadata={
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "maritaca_enabled": self.has_maritaca,
                 },
             )

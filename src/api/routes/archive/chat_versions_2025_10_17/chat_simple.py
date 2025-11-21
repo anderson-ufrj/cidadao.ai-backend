@@ -5,7 +5,7 @@ Focused on making the chat work with minimal dependencies
 
 import os
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException
@@ -98,7 +98,7 @@ async def simple_chat(request: SimpleChatRequest) -> SimpleChatResponse:
                 return SimpleChatResponse(
                     message=response.content,
                     session_id=session_id,
-                    timestamp=datetime.utcnow().isoformat(),
+                    timestamp=datetime.now(UTC).isoformat(),
                     model_used=response.model,
                 )
 
@@ -129,7 +129,7 @@ async def simple_chat(request: SimpleChatRequest) -> SimpleChatResponse:
         return SimpleChatResponse(
             message=response,
             session_id=session_id,
-            timestamp=datetime.utcnow().isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             model_used="fallback",
         )
 
@@ -147,5 +147,5 @@ async def chat_status():
     return {
         "maritaca_available": maritaca_client is not None,
         "api_key_configured": MARITACA_API_KEY is not None,
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(UTC).isoformat(),
     }

@@ -6,7 +6,7 @@ Date: 2025-01-24
 License: Proprietary - All rights reserved
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Optional
 
 import jwt
@@ -99,7 +99,7 @@ class AuthenticationMiddleware:
 
             # Check expiration
             exp = payload.get("exp")
-            if exp and datetime.utcnow().timestamp() > exp:
+            if exp and datetime.now(UTC).timestamp() > exp:
                 raise HTTPException(status_code=401, detail="Token has expired")
 
             # Store user info in request state
@@ -136,9 +136,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     to_encode = data.copy()
 
     if expires_delta:
-        expire = datetime.utcnow() + expires_delta
+        expire = datetime.now(UTC) + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(
+        expire = datetime.now(UTC) + timedelta(
             minutes=settings.jwt_access_token_expire_minutes
         )
 

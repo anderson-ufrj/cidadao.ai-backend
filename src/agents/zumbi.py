@@ -9,7 +9,7 @@ License: Proprietary - All rights reserved
 
 import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 import numpy as np
@@ -198,7 +198,7 @@ class InvestigatorAgent(BaseAgent):
             else:
                 raise AgentExecutionError(
                     f"Unsupported action: {message.action}",
-                    details={"agent_id": self.name}
+                    details={"agent_id": self.name},
                 )
 
             # Fetch data for investigation
@@ -256,7 +256,7 @@ class InvestigatorAgent(BaseAgent):
                 "summary": summary,
                 "metadata": {
                     "investigation_id": context.investigation_id,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                     "agent_name": self.name,
                     "records_analyzed": len(contracts_data),
                     "anomalies_detected": len(anomalies),
@@ -336,7 +336,9 @@ class InvestigatorAgent(BaseAgent):
             Summary text describing findings
         """
         if not results:
-            return "Nenhuma anomalia significativa foi detectada nos contratos analisados."
+            return (
+                "Nenhuma anomalia significativa foi detectada nos contratos analisados."
+            )
 
         # Count by severity
         high_severity = len([r for r in results if r.severity > 0.7])

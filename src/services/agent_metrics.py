@@ -8,7 +8,7 @@ import statistics
 import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
 
 from prometheus_client import (
@@ -107,7 +107,7 @@ class AgentMetricsService:
     def __init__(self):
         self.logger = logger
         self._agent_metrics: dict[str, AgentMetrics] = {}
-        self._start_time = datetime.utcnow()
+        self._start_time = datetime.now(UTC)
         self._lock = asyncio.Lock()
 
     def _get_or_create_metrics(self, agent_name: str) -> AgentMetrics:
@@ -144,13 +144,13 @@ class AgentMetricsService:
             metrics.total_requests += 1
             if success:
                 metrics.successful_requests += 1
-                metrics.last_success_time = datetime.utcnow()
+                metrics.last_success_time = datetime.now(UTC)
                 status = "success"
             else:
                 metrics.failed_requests += 1
-                metrics.last_failure_time = datetime.utcnow()
+                metrics.last_failure_time = datetime.now(UTC)
                 metrics.last_error = error
-                metrics.error_times.append(datetime.utcnow())
+                metrics.error_times.append(datetime.now(UTC))
                 status = "failure"
 
             # Update duration metrics
@@ -191,7 +191,7 @@ class AgentMetricsService:
 
     def _calculate_error_rate(self, metrics: AgentMetrics) -> float:
         """Calculate error rate for the last 5 minutes."""
-        cutoff_time = datetime.utcnow() - timedelta(minutes=5)
+        cutoff_time = datetime.now(UTC) - timedelta(minutes=5)
         recent_errors = sum(1 for t in metrics.error_times if t > cutoff_time)
 
         # Calculate total requests in the same period
@@ -307,7 +307,7 @@ class AgentMetricsService:
                     m.failed_requests for m in self._agent_metrics.values()
                 ),
                 "uptime_seconds": (
-                    datetime.utcnow() - self._start_time
+                    datetime.now(UTC) - self._start_time
                 ).total_seconds(),
                 "agents": {},
             }
@@ -356,7 +356,7 @@ class AgentMetricsService:
                     )
             else:
                 self._agent_metrics.clear()
-                self._start_time = datetime.utcnow()
+                self._start_time = datetime.now(UTC)
 
 
 # Global metrics service instance

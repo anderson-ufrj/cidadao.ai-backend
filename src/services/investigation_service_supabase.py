@@ -6,7 +6,7 @@ providing persistent storage shared with the frontend.
 """
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from src.agents import get_agent_pool
@@ -100,7 +100,7 @@ class InvestigationServiceSupabase:
         await supabase.update_investigation(
             investigation_id,
             status="processing",
-            started_at=datetime.utcnow(),
+            started_at=datetime.now(UTC),
             progress=0.1,
             current_phase="initializing",
         )

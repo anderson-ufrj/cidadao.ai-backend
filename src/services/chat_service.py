@@ -5,7 +5,7 @@ Chat service for managing conversations and intent detection
 import re
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -494,15 +494,15 @@ class ChatService:
         """Get existing session or create new one"""
         if session_id in self.sessions:
             session = self.sessions[session_id]
-            session.last_activity = datetime.utcnow()
+            session.last_activity = datetime.now(UTC)
             return session
 
         # Create new session
         session = ChatSession(
             id=session_id,
             user_id=user_id,
-            created_at=datetime.utcnow(),
-            last_activity=datetime.utcnow(),
+            created_at=datetime.now(UTC),
+            last_activity=datetime.now(UTC),
             context={},
         )
 
@@ -520,7 +520,7 @@ class ChatService:
         message = {
             "role": role,
             "content": content,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "agent_id": agent_id,
         }
 
@@ -528,7 +528,7 @@ class ChatService:
 
         # Update session activity
         if session_id in self.sessions:
-            self.sessions[session_id].last_activity = datetime.utcnow()
+            self.sessions[session_id].last_activity = datetime.now(UTC)
 
     async def get_session_messages(
         self, session_id: str, limit: int = 50
@@ -556,7 +556,7 @@ class ChatService:
         """Update session with current investigation"""
         if session_id in self.sessions:
             self.sessions[session_id].current_investigation_id = investigation_id
-            self.sessions[session_id].last_activity = datetime.utcnow()
+            self.sessions[session_id].last_activity = datetime.now(UTC)
 
     def _ensure_agents_initialized(self) -> None:
         """Initialize agents on first use (lazy loading)"""

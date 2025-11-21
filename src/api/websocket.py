@@ -5,7 +5,7 @@ Handles investigation streaming, analysis updates, and notifications
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import UTC, datetime
 
 from fastapi import WebSocket
 from pydantic import BaseModel
@@ -23,7 +23,7 @@ class WebSocketMessage(BaseModel):
 
     def __init__(self, **data):
         if "timestamp" not in data:
-            data["timestamp"] = datetime.utcnow()
+            data["timestamp"] = datetime.now(UTC)
         super().__init__(**data)
 
 
@@ -56,8 +56,8 @@ class ConnectionManager:
         self.connection_metadata[websocket] = {
             "user_id": user_id,
             "connection_type": connection_type,
-            "connected_at": datetime.utcnow(),
-            "last_ping": datetime.utcnow(),
+            "connected_at": datetime.now(UTC),
+            "last_ping": datetime.now(UTC),
         }
 
         # Add to user connections
@@ -263,7 +263,7 @@ class ConnectionManager:
     async def ping_all_connections(self):
         """Send ping to all connections to keep them alive"""
         ping_message = WebSocketMessage(
-            type="ping", data={"timestamp": datetime.utcnow().isoformat()}
+            type="ping", data={"timestamp": datetime.now(UTC).isoformat()}
         )
 
         disconnected = set()
@@ -271,7 +271,7 @@ class ConnectionManager:
         for websocket in list(self.connection_metadata.keys()):
             try:
                 await websocket.send_text(ping_message.json())
-                self.connection_metadata[websocket]["last_ping"] = datetime.utcnow()
+                self.connection_metadata[websocket]["last_ping"] = datetime.now(UTC)
             except Exception:
                 disconnected.add(websocket)
 
@@ -322,7 +322,7 @@ class WebSocketHandler:
                 if websocket in self.connection_manager.connection_metadata:
                     self.connection_manager.connection_metadata[websocket][
                         "last_ping"
-                    ] = datetime.utcnow()
+                    ] = datetime.now(UTC)
 
             else:
                 logger.warning(f"Unknown WebSocket message type: {message_type}")

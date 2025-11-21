@@ -2,7 +2,7 @@
 Test suite for Maritaca AI client.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -214,7 +214,7 @@ class TestMaritacaClient:
                 usage={"total_tokens": 10},
                 metadata={},
                 response_time=0.5,
-                timestamp=datetime.utcnow(),
+                timestamp=datetime.now(UTC),
             )
 
             health = await maritaca_client.health_check()

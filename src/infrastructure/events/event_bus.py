@@ -8,7 +8,7 @@ components and enabling async processing.
 import asyncio
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Optional
 
@@ -70,7 +70,7 @@ class Event:
         return cls(
             id=str(uuid.uuid4()),
             type=event_type,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             data=data,
             metadata=metadata or {},
         )
@@ -385,7 +385,7 @@ class EventBus:
                         for handler, error in errors
                     ]
                 ),
-                "failed_at": datetime.utcnow().isoformat(),
+                "failed_at": datetime.now(UTC).isoformat(),
             },
             maxlen=1000,  # Keep last 1k failed events
         )
