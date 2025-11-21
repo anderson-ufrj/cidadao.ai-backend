@@ -1,0 +1,172 @@
+{
+  "test_date": "2025-11-21T16:59:17.950053",
+  "target_url": "https://cidadao-api-production.up.railway.app",
+  "summary": {
+    "total_tests": 8,
+    "successful": 6,
+    "with_real_data_indicators": 0
+  },
+  "results": [
+    {
+      "test": "Servidora espec\u00edfica (CPF fict\u00edcio para teste)",
+      "query": "Quanto ganha a servidora Maria da Silva no munic\u00edpio de S\u00e3o Paulo?",
+      "agent": "oxossi",
+      "status_code": 200,
+      "timestamp": "2025-11-21T16:59:09.578949",
+      "success": true,
+      "response": {
+        "agent": "oxossi",
+        "result": {
+          "discovery": "agent_name='oxossi' status=<AgentStatus.COMPLETED: 'completed'> result={'fraud_analysis': {'summary': 'No fraud patterns detected', 'risk_level': 'LOW', 'patterns': [], 'recommendations': ['Continue routine monitoring']}, 'patterns_detected': 0, 'high_risk_entities': [], 'total_estimated_impact': 0, 'processing_time': 0.000171} error=None metadata={'agent': 'oxossi', 'analysis_timestamp': '2025-11-21T19:59:09.517234', 'confidence_score': 0.0} timestamp=datetime.datetime(2025, 11, 21, 19, 59, 9, 517259) processing_time_ms=0.171"
+        },
+        "metadata": {
+          "processing_time": 0,
+          "sources_queried": 0,
+          "records_found": 0
+        },
+        "success": true,
+        "message": "Data hunting completed successfully"
+      },
+      "data_indicators": {
+        "has_api_call": false,
+        "has_real_values": false,
+        "has_dates": true,
+        "has_amounts": false
+      },
+      "likely_real_data": false
+    },
+    {
+      "test": "Contratos Muzambinho via SICONFI",
+      "query": "Qual foi o \u00faltimo contrato registrado no munic\u00edpio de Muzambinho?",
+      "agent": "oxossi",
+      "status_code": 200,
+      "timestamp": "2025-11-21T16:59:11.110799",
+      "success": true,
+      "response": {
+        "agent": "oxossi",
+        "result": {
+          "discovery": "agent_name='oxossi' status=<AgentStatus.COMPLETED: 'completed'> result={'fraud_analysis': {'summary': 'No fraud patterns detected', 'risk_level': 'LOW', 'patterns': [], 'recommendations': ['Continue routine monitoring']}, 'patterns_detected': 0, 'high_risk_entities': [], 'total_estimated_impact': 0, 'processing_time': 9.4e-05} error=None metadata={'agent': 'oxossi', 'analysis_timestamp': '2025-11-21T19:59:11.049446', 'confidence_score': 0.0} timestamp=datetime.datetime(2025, 11, 21, 19, 59, 11, 49459) processing_time_ms=0.094"
+        },
+        "metadata": {
+          "processing_time": 0,
+          "sources_queried": 0,
+          "records_found": 0
+        },
+        "success": true,
+        "message": "Data hunting completed successfully"
+      },
+      "data_indicators": {
+        "has_api_call": false,
+        "has_real_values": false,
+        "has_dates": true,
+        "has_amounts": false
+      },
+      "likely_real_data": false
+    },
+    {
+      "test": "Dados IBGE - Popula\u00e7\u00e3o",
+      "query": "Qual a popula\u00e7\u00e3o do munic\u00edpio de Muzambinho segundo o IBGE?",
+      "agent": "lampiao",
+      "status_code": 200,
+      "timestamp": "2025-11-21T16:59:12.643672",
+      "success": true,
+      "response": {
+        "agent": "lampiao",
+        "result": {
+          "analysis": "agent_name='LampiaoAgent' status=<AgentStatus.COMPLETED: 'completed'> result=RegionalAnalysisResult(analysis_id='regional_bbe07f04-c1d7-4b3f-a3a9-d462e9de3f71_1763755152.581249', analysis_type=<AnalysisType.DISTRIBUTION: 'distribution'>, regions_analyzed=8, metrics=[RegionalMetric(region_id='SP', region_name='S\u00e3o Paulo', region_type=<RegionType.STATE: 'state'>, metric_name='contract_value', value=8500.0, normalized_value=0.85, rank=1, percentile=100.0, metadata={'population': 0}), RegionalMetric(region_id='RJ', region_name='Rio de Janeiro', region_type=<RegionType.STATE: 'state'>, metric_name='contract_value', value=6200.0, normalized_value=0.62, rank=2, percentile=87.5, metadata={'population': 0}), RegionalMetric(region_id='MG', region_name='Minas Gerais', region_type=<RegionType.STATE: 'state'>, metric_name='contract_value', value=5100.0, normalized_value=0.51, rank=3, percentile=75.0, metadata={'population': 0}), RegionalMetric(region_id='PR', region_name='Paran\u00e1', region_type=<RegionType.STATE: 'state'>, metric_name='contract_value', value=4500.0, normalized_value=0.45, rank=4, percentile=62.5, metadata={'population': 0}), RegionalMetric(region_id='RS', region_name='Rio Grande do Sul', region_type=<RegionType.STATE: 'state'>, metric_name='contract_value', value=4200.0, normalized_value=0.42, rank=5, percentile=50.0, metadata={'population': 0}), RegionalMetric(region_id='BA', region_name='Bahia', region_type=<RegionType.STATE: 'state'>, metric_name='contract_value', value=3800.0, normalized_value=0.38, rank=6, percentile=37.5, metadata={'population': 0}), RegionalMetric(region_id='PE', region_name='Pernambuco', region_type=<RegionType.STATE: 'state'>, metric_name='contract_value', value=2900.0, normalized_value=0.29, rank=7, percentile=25.0, metadata={'population': 0}), RegionalMetric(region_id='CE', region_name='Cear\u00e1', region_type=<RegionType.STATE: 'state'>, metric_name='contract_value', value=2400.0, normalized_value=0.24, rank=8, percentile=12.5, metadata={'population': 0})], statistics={'mean': np.float64(4700.0), 'median': np.float64(4350.0), 'std_dev': np.float64(1819.3405398660252), 'min': np.float64(2400.0), 'max': np.float64(8500.0), 'range': np.float64(6100.0), 'cv': np.float64(0.38709373188638835)}, inequalities={'gini': np.float64(0.21077127659574457), 'theil': np.float64(0.07130419887116521), 'williamson': 0.0}, clusters=[{'cluster_id': 'high_value_southeast', 'regions': ['SP', 'RJ', 'MG'], 'characteristics': {'avg_value': np.float64(6600.0), 'concentration': 0.65}, 'evidence': 'Southeast industrial-financial hub (established pattern since 1960s)'}, {'cluster_id': 'medium_value_south_northeast', 'regions': ['RS', 'PR', 'BA'], 'characteristics': {'avg_value': np.float64(4166.666666666667), 'concentration': 0.25}, 'evidence': 'Diversified regional economies (agriculture, industry, services)'}], recommendations=['Develop regional innovation systems', 'Strengthen local productive arrangements', 'Improve transportation infrastructure between regions'], visualizations={'map_type': 'choropleth', 'color_scheme': 'sequential', 'data_classification': 'quantiles', 'interactive': True}, timestamp=datetime.datetime(2025, 11, 21, 19, 59, 12, 582074, tzinfo=datetime.timezone.utc)) error=None metadata={'action': 'analyze'} timestamp=datetime.datetime(2025, 11, 21, 19, 59, 12, 582109) processing_time_ms=None"
+        },
+        "metadata": {
+          "processing_time": 0,
+          "gini_index": 0,
+          "theil_index": 0,
+          "moran_i": 0,
+          "hotspots_detected": 0
+        },
+        "success": true,
+        "message": "Regional analysis completed successfully"
+      },
+      "data_indicators": {
+        "has_api_call": false,
+        "has_real_values": false,
+        "has_dates": true,
+        "has_amounts": false
+      },
+      "likely_real_data": false
+    },
+    {
+      "test": "Licita\u00e7\u00f5es PNCP",
+      "query": "Busque licita\u00e7\u00f5es recentes no PNCP do munic\u00edpio de Muzambinho",
+      "agent": "oxossi",
+      "status_code": 200,
+      "timestamp": "2025-11-21T16:59:14.170536",
+      "success": true,
+      "response": {
+        "agent": "oxossi",
+        "result": {
+          "discovery": "agent_name='oxossi' status=<AgentStatus.COMPLETED: 'completed'> result={'fraud_analysis': {'summary': 'No fraud patterns detected', 'risk_level': 'LOW', 'patterns': [], 'recommendations': ['Continue routine monitoring']}, 'patterns_detected': 0, 'high_risk_entities': [], 'total_estimated_impact': 0, 'processing_time': 0.000131} error=None metadata={'agent': 'oxossi', 'analysis_timestamp': '2025-11-21T19:59:14.109527', 'confidence_score': 0.0} timestamp=datetime.datetime(2025, 11, 21, 19, 59, 14, 109553) processing_time_ms=0.131"
+        },
+        "metadata": {
+          "processing_time": 0,
+          "sources_queried": 0,
+          "records_found": 0
+        },
+        "success": true,
+        "message": "Data hunting completed successfully"
+      },
+      "data_indicators": {
+        "has_api_call": false,
+        "has_real_values": false,
+        "has_dates": true,
+        "has_amounts": false
+      },
+      "likely_real_data": false
+    },
+    {
+      "test": "Portal da Transpar\u00eancia - Contratos",
+      "query": "Busque contratos no Portal da Transpar\u00eancia de Muzambinho",
+      "agent": "oxossi",
+      "status_code": 200,
+      "timestamp": "2025-11-21T16:59:15.705485",
+      "success": true,
+      "response": {
+        "agent": "oxossi",
+        "result": {
+          "discovery": "agent_name='oxossi' status=<AgentStatus.COMPLETED: 'completed'> result={'fraud_analysis': {'summary': 'No fraud patterns detected', 'risk_level': 'LOW', 'patterns': [], 'recommendations': ['Continue routine monitoring']}, 'patterns_detected': 0, 'high_risk_entities': [], 'total_estimated_impact': 0, 'processing_time': 9.4e-05} error=None metadata={'agent': 'oxossi', 'analysis_timestamp': '2025-11-21T19:59:15.638318', 'confidence_score': 0.0} timestamp=datetime.datetime(2025, 11, 21, 19, 59, 15, 638336) processing_time_ms=0.094"
+        },
+        "metadata": {
+          "processing_time": 0,
+          "sources_queried": 0,
+          "records_found": 0
+        },
+        "success": true,
+        "message": "Data hunting completed successfully"
+      },
+      "data_indicators": {
+        "has_api_call": false,
+        "has_real_values": false,
+        "has_dates": true,
+        "has_amounts": false
+      },
+      "likely_real_data": false
+    },
+    {
+      "test": "IBGE - Estados",
+      "endpoint": "/api/v1/federal/ibge/states",
+      "success": true,
+      "status_code": 200,
+      "has_data": true
+    },
+    {
+      "test": "IBGE - Munic\u00edpios de MG",
+      "endpoint": "/api/v1/federal/ibge/cities?state=MG",
+      "success": false,
+      "status_code": 404
+    },
+    {
+      "test": "PNCP - Contratos (primeiros 5)",
+      "endpoint": "/api/v1/federal/pncp/contracts?limit=5",
+      "success": false,
+      "status_code": 404
+    }
+  ]
+}
