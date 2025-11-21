@@ -327,7 +327,6 @@ if settings.is_production or settings.app_env == "staging":
     app.add_middleware(
         IPWhitelistMiddleware,
         enabled=True,
-        allowed_ip_ranges=ALLOWED_IP_RANGES,
         excluded_paths=[
             "/health",
             "/healthz",
@@ -346,8 +345,6 @@ if settings.is_production or settings.app_env == "staging":
             "/api/v1/public",
             "/api/v1/webhooks/incoming",
         ],
-        # Allow requests with valid API keys even if IP not whitelisted
-        api_key_fallback=True,
         strict_mode=False,  # Allow requests if IP can't be determined
     )
 
