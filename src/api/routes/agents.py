@@ -30,7 +30,6 @@ from src.agents import (
     TiradentesAgent,
     ZumbiAgent,
 )
-from src.api.auth import User
 from src.api.middleware.authentication import get_current_user
 from src.core import get_logger
 from src.infrastructure.observability.metrics import count_calls, track_time
@@ -77,7 +76,7 @@ class AgentResponse(BaseModel):
 async def process_zumbi_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -93,7 +92,11 @@ async def process_zumbi_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -144,7 +147,7 @@ async def process_zumbi_request(
 async def process_anita_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -160,7 +163,11 @@ async def process_anita_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -211,7 +218,7 @@ async def process_anita_request(
 async def process_tiradentes_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -227,7 +234,11 @@ async def process_tiradentes_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -272,7 +283,7 @@ async def process_tiradentes_request(
 async def process_bonifacio_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -289,7 +300,11 @@ async def process_bonifacio_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -345,7 +360,7 @@ async def process_bonifacio_request(
 async def process_maria_quiteria_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -363,7 +378,11 @@ async def process_maria_quiteria_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -419,7 +438,7 @@ async def process_maria_quiteria_request(
 async def process_machado_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -440,7 +459,11 @@ async def process_machado_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -506,7 +529,7 @@ async def process_machado_request(
 async def process_dandara_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -532,7 +555,11 @@ async def process_dandara_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -603,7 +630,7 @@ async def process_dandara_request(
 async def process_lampiao_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -624,7 +651,11 @@ async def process_lampiao_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -690,7 +721,7 @@ async def process_lampiao_request(
 async def process_oscar_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -712,7 +743,11 @@ async def process_oscar_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -778,7 +813,7 @@ async def process_oscar_request(
 async def process_drummond_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -797,7 +832,11 @@ async def process_drummond_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -848,7 +887,7 @@ async def process_drummond_request(
 async def process_obaluaie_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -866,7 +905,11 @@ async def process_obaluaie_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -922,7 +965,7 @@ async def process_obaluaie_request(
 async def process_oxossi_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -941,7 +984,11 @@ async def process_oxossi_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -997,7 +1044,7 @@ async def process_oxossi_request(
 async def process_ceuci_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -1016,7 +1063,11 @@ async def process_ceuci_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -1072,7 +1123,7 @@ async def process_ceuci_request(
 async def process_abaporu_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -1091,7 +1142,11 @@ async def process_abaporu_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -1149,7 +1204,7 @@ async def process_abaporu_request(
 async def process_ayrton_senna_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -1168,7 +1223,11 @@ async def process_ayrton_senna_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -1230,7 +1289,7 @@ async def process_ayrton_senna_request(
 async def process_nana_request(
     request: AgentRequest,
     background_tasks: BackgroundTasks,
-    current_user: User = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     rate_limit_tier: RateLimitTier = Depends(get_rate_limit_tier),
 ):
     """
@@ -1249,7 +1308,11 @@ async def process_nana_request(
     try:
         # Create agent context
         context = AgentContext(
-            user_id=current_user.id if current_user else "anonymous",
+            user_id=(
+                current_user.get("user_id", "anonymous")
+                if current_user
+                else "anonymous"
+            ),
             session_id=str(request.context.get("session_id", "default")),
             metadata={
                 "rate_limit_tier": rate_limit_tier.value,
@@ -1300,7 +1363,7 @@ async def process_nana_request(
 
 
 @router.get("/status")
-async def get_agents_status(current_user: User = Depends(get_current_user)):
+async def get_agents_status(current_user: dict = Depends(get_current_user)):
     """Get status of all available agents."""
     agents = {
         "zumbi_dos_palmares": {
