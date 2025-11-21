@@ -142,6 +142,23 @@ class InvestigationStatus(BaseModel):
 _active_investigations: dict[str, dict[str, Any]] = {}
 
 
+@router.post("/", response_model=dict[str, str])
+@count_calls("cidadao_ai_investigation_requests_total", labels={"operation": "create"})
+@track_time("cidadao_ai_investigation_create_duration_seconds")
+async def create_investigation(
+    request: InvestigationRequest,
+    background_tasks: BackgroundTasks,
+    current_user: dict[str, Any] = Depends(get_current_user),
+):
+    """
+    Create a new investigation for anomaly detection.
+
+    This is an alias for /start endpoint to support both POST /investigations
+    and POST /investigations/start patterns.
+    """
+    return await start_investigation(request, background_tasks, current_user)
+
+
 @router.post("/start", response_model=dict[str, str])
 @count_calls("cidadao_ai_investigation_requests_total", labels={"operation": "start"})
 @track_time("cidadao_ai_investigation_start_duration_seconds")
