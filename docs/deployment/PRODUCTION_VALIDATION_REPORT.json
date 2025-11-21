@@ -1,0 +1,151 @@
+{
+  "test_date": "2025-11-21T16:46:44.605296",
+  "target_url": "https://cidadao-api-production.up.railway.app",
+  "summary": {
+    "total": 10,
+    "passed": 3,
+    "warnings": 1,
+    "failed": 6,
+    "success_rate": 30.0
+  },
+  "tests": [
+    {
+      "name": "Health Check",
+      "status": "FAIL",
+      "details": "HTTP 307",
+      "response_time": 0.6205675601959229,
+      "timestamp": "2025-11-21T16:46:28.416714"
+    },
+    {
+      "name": "API Root",
+      "status": "PASS",
+      "details": "",
+      "response_time": 0.5201606750488281,
+      "timestamp": "2025-11-21T16:46:28.937003"
+    },
+    {
+      "name": "API Documentation",
+      "status": "PASS",
+      "details": "",
+      "response_time": 0.5854671001434326,
+      "timestamp": "2025-11-21T16:46:29.522612"
+    },
+    {
+      "name": "Metrics Endpoint",
+      "status": "FAIL",
+      "details": "",
+      "response_time": 10.402718544006348,
+      "timestamp": "2025-11-21T16:46:39.925405"
+    },
+    {
+      "name": "Agents List",
+      "status": "FAIL",
+      "details": "HTTP 307",
+      "response_time": 0.5477719306945801,
+      "timestamp": "2025-11-21T16:46:40.473202"
+    },
+    {
+      "name": "Chat Endpoint",
+      "status": "FAIL",
+      "details": "HTTP 404",
+      "response_time": 0.5732872486114502,
+      "timestamp": "2025-11-21T16:46:41.046593"
+    },
+    {
+      "name": "Investigations List",
+      "status": "FAIL",
+      "details": "HTTP 307",
+      "response_time": 0.5181581974029541,
+      "timestamp": "2025-11-21T16:46:41.564844"
+    },
+    {
+      "name": "Federal APIs (PNCP)",
+      "status": "FAIL",
+      "details": "PNCP endpoint not found",
+      "response_time": 0.6209714412689209,
+      "timestamp": "2025-11-21T16:46:42.185903"
+    },
+    {
+      "name": "Orchestration",
+      "status": "WARN",
+      "details": "HTTP 404",
+      "response_time": 0.5625355243682861,
+      "timestamp": "2025-11-21T16:46:42.748526"
+    },
+    {
+      "name": "Average Response Time",
+      "status": "PASS",
+      "details": "Avg: 0.619s",
+      "response_time": 0.618775208791097,
+      "timestamp": "2025-11-21T16:46:44.605195"
+    }
+  ],
+  "health_data": null,
+  "api_info": {
+    "message": "\ud83c\udde7\ud83c\uddf7 Welcome to Cidad\u00e3o.AI API",
+    "version": "1.0.0",
+    "description": "Multi-agent AI system for Brazilian government transparency analysis",
+    "status": "operational",
+    "timestamp": "2025-11-21T19:46:28.871405+00:00",
+    "documentation": {
+      "swagger_ui": "http://cidadao-api-production.up.railway.app/docs",
+      "redoc": "http://cidadao-api-production.up.railway.app/redoc",
+      "openapi_json": "http://cidadao-api-production.up.railway.app/openapi.json"
+    },
+    "endpoints": {
+      "health": "/health",
+      "metrics": "/health/metrics",
+      "agents": "/api/v1/agents",
+      "chat": "/api/v1/chat",
+      "investigations": "/api/v1/investigations",
+      "federal_apis": "/api/v1/federal",
+      "orchestration": "/api/v1/orchestration"
+    },
+    "features": {
+      "multi_agent_system": "16 specialized AI agents with Brazilian identities",
+      "government_apis": "30+ federal and state transparency APIs integrated",
+      "real_time_chat": "Server-Sent Events (SSE) streaming responses",
+      "investigation_engine": "Automated anomaly detection and pattern analysis",
+      "federal_data": "IBGE, PNCP, Portal da Transpar\u00eancia, and more"
+    },
+    "agents": {
+      "available": 16,
+      "tier_1": [
+        "Zumbi dos Palmares (Anomaly Detection)",
+        "Anita Garibaldi (Pattern Analysis)",
+        "Ox\u00f3ssi (Data Hunting)",
+        "Lampi\u00e3o (Regional Analysis)",
+        "Ayrton Senna (Semantic Routing)"
+      ],
+      "tier_2": [
+        "Tiradentes (Report Generation)",
+        "Oscar Niemeyer (Data Aggregation)",
+        "Machado de Assis (Textual Analysis)",
+        "Jos\u00e9 Bonif\u00e1cio (Legal Analysis)",
+        "Maria Quit\u00e9ria (Security Auditing)"
+      ],
+      "tier_3": [
+        "Abaporu (Master Agent)",
+        "Nan\u00e3 (Memory)",
+        "Dandara (Social Equity)"
+      ]
+    },
+    "quick_start": {
+      "1_view_agents": "GET /api/v1/agents - List all available agents",
+      "2_chat": "POST /api/v1/chat - Chat with an agent (SSE streaming)",
+      "3_investigate": "POST /api/v1/investigations - Create investigation",
+      "4_federal_data": "GET /api/v1/federal/ibge/states - Example federal API"
+    },
+    "support": {
+      "github": "https://github.com/anderson-ufrj/cidadao.ai-backend",
+      "documentation": "See /docs for interactive API documentation",
+      "issues": "https://github.com/anderson-ufrj/cidadao.ai-backend/issues"
+    },
+    "production": {
+      "environment": "production",
+      "railway": "https://cidadao-api-production.up.railway.app",
+      "uptime_since": "2025-10-07",
+      "uptime_percentage": "99.9%"
+    }
+  }
+}

@@ -22,7 +22,6 @@ from src.agents.deodoro import (
     BaseAgent,
 )
 from src.core import get_logger
-from src.core.exceptions import AgentExecutionError
 
 logger = get_logger(__name__)
 
@@ -184,8 +183,54 @@ class OxossiAgent(BaseAgent):
 
             # Extract data for analysis
             data = message.payload
-            if not data:
-                raise AgentExecutionError("No data provided for fraud detection")
+
+            # NEW: Check if we need to fetch real data from government APIs
+            if "query" in data and isinstance(data["query"], str):
+                logger.info(
+                    "Oxóssi detected text query, fetching real government data..."
+                )
+                from src.services.agent_data_integration import agent_data_integration
+
+                enriched_data = (
+                    await agent_data_integration.enrich_query_with_real_data(
+                        query=data["query"],
+                        agent_name="oxossi",
+                        user_id=context.user_id,
+                        session_id=context.session_id,
+                    )
+                )
+
+                if enriched_data.get("has_real_data"):
+                    logger.info(
+                        f"Oxóssi enriched query with real data: "
+                        f"{len(enriched_data.get('real_data', {}))} items"
+                    )
+                    # Merge real data into payload
+                    data.update(enriched_data.get("real_data", {}))
+                    data["_enrichment"] = {
+                        "intent": enriched_data.get("intent"),
+                        "entities": enriched_data.get("entities"),
+                        "investigation_id": enriched_data.get("investigation_id"),
+                    }
+                else:
+                    logger.warning(
+                        "Oxóssi could not fetch real data, "
+                        "proceeding with provided data only"
+                    )
+
+            if not data or (len(data) == 1 and "query" in data):
+                # If still no data after enrichment, return informative message
+                logger.warning("Oxóssi has no data to analyze after enrichment")
+                return AgentResponse(
+                    agent_name=self.name,
+                    status=AgentStatus.COMPLETED,
+                    result={
+                        "message": "Oxóssi needs specific data to analyze. Try providing contract data, vendor information, or a more specific query about government contracts.",
+                        "query_received": data.get("query", ""),
+                        "suggestion": "Example: 'Busque contratos do município de Muzambinho' or provide contract data directly",
+                    },
+                    metadata={"agent": self.name},
+                )
 
             # Determine analysis type
             if "contracts" in data:
