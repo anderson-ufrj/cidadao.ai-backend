@@ -478,14 +478,10 @@ class TransparencyDataCollector:
             # Get APIs for specific state
             api_keys.extend([f"{state}-tce", f"{state}-state", f"{state}-ckan"])
         else:
-            # Return all available APIs (excluding federal portal since already added)
-            api_keys.extend(
-                [
-                    key
-                    for key in registry.list_available_apis()
-                    if key != "FEDERAL-portal"
-                ]
-            )
+            # For federal queries (no state specified), ONLY use federal APIs
+            # Don't include state-specific APIs to avoid mixing federal and state data
+            # This prevents São Paulo data from appearing in federal queries
+            pass  # Only federal portal already added
 
         return api_keys
 

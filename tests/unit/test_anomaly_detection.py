@@ -1,6 +1,5 @@
 """Unit tests for anomaly detection components."""
 
-
 import numpy as np
 import pandas as pd
 import pytest
