@@ -1294,15 +1294,15 @@ async def process_abaporu_request(
         # Initialize Abaporu agent with required dependencies
         from src.agents import NanaAgent
         from src.core.cache import get_redis_client
-        from src.infrastructure.vector_store import VectorStore
         from src.services.maritaca_client import MaritacaClient
+        from src.services.vector_store_service import VectorStoreService
 
         # Create dependencies for Abaporu (master orchestrator)
         maritaca_client = MaritacaClient()
 
         # Create Nana as memory agent for Abaporu
         redis_client = await get_redis_client()
-        vector_store = VectorStore()
+        vector_store = VectorStoreService()
         memory_agent = NanaAgent(redis_client=redis_client, vector_store=vector_store)
 
         abaporu = AbaporuAgent(
@@ -1490,11 +1490,11 @@ async def process_nana_request(
 
         # Initialize Nana agent with required dependencies
         from src.core.cache import get_redis_client
-        from src.infrastructure.vector_store import VectorStore
+        from src.services.vector_store_service import VectorStoreService
 
         # Create dependencies for Nana (memory agent)
         redis_client = await get_redis_client()
-        vector_store = VectorStore()
+        vector_store = VectorStoreService()
 
         nana = NanaAgent(redis_client=redis_client, vector_store=vector_store)
 
