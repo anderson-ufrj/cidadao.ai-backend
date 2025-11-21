@@ -12,7 +12,7 @@ License: Proprietary - All rights reserved
 
 import hashlib
 import json
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Optional
 
@@ -56,13 +56,13 @@ class CacheEntry:
             ttl: Time to live in seconds
         """
         self.data = data
-        self.created_at = datetime.utcnow()
+        self.created_at = datetime.now(UTC)
         self.expires_at = self.created_at + timedelta(seconds=ttl)
         self.hits = 0
 
     def is_expired(self) -> bool:
         """Check if entry has expired."""
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(UTC) > self.expires_at
 
     def get_data(self) -> Any:
         """Get cached data and increment hit counter."""

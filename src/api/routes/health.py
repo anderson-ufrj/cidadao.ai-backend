@@ -7,7 +7,7 @@ License: Proprietary - All rights reserved
 """
 
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException
@@ -56,7 +56,7 @@ async def health_check() -> HealthStatus:
     WARNING: This endpoint checks external dependencies and may be slow.
     Do NOT use this for Railway health checks - use /health instead.
     """
-    current_time = datetime.utcnow()
+    current_time = datetime.now(UTC)
     uptime = time.time() - _start_time
 
     # Check all critical services
@@ -107,7 +107,7 @@ async def detailed_health_check() -> dict[str, Any]:
 
     Returns detailed information about all system components.
     """
-    current_time = datetime.utcnow()
+    current_time = datetime.now(UTC)
     uptime = time.time() - _start_time
 
     # Collect detailed system information
@@ -187,7 +187,7 @@ async def simple_health() -> dict[str, Any]:
 
     Use this endpoint in Railway dashboard for health check configuration.
     """
-    return {"status": "ok", "timestamp": datetime.utcnow()}
+    return {"status": "ok", "timestamp": datetime.now(UTC)}
 
 
 @router.get("/live")
@@ -198,7 +198,7 @@ async def liveness_probe() -> dict[str, Any]:
     Simple endpoint to check if the application is running.
     Identical to / but follows Kubernetes naming convention.
     """
-    return {"status": "alive", "timestamp": datetime.utcnow()}
+    return {"status": "alive", "timestamp": datetime.now(UTC)}
 
 
 @router.get("/metrics")
@@ -254,7 +254,7 @@ async def readiness_probe() -> dict[str, Any]:
         transparency_status = await _check_transparency_api()
 
         if transparency_status["status"] == "healthy":
-            return {"status": "ready", "timestamp": datetime.utcnow()}
+            return {"status": "ready", "timestamp": datetime.now(UTC)}
 
         # Don't fail the readiness check if transparency API is down
         # The service can still function without it
@@ -265,7 +265,7 @@ async def readiness_probe() -> dict[str, Any]:
         return {
             "status": "ready",
             "degraded": True,
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(UTC),
             "note": "External API degraded but service is functional",
         }
 
@@ -280,7 +280,7 @@ async def readiness_probe() -> dict[str, Any]:
         return {
             "status": "ready",
             "degraded": True,
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(UTC),
             "error": str(e),
             "note": "Service is functional despite external API issues",
         }
@@ -300,7 +300,7 @@ async def _check_transparency_api() -> dict[str, Any]:
         return {
             "status": "healthy",
             "response_time": response_time,
-            "last_checked": datetime.utcnow(),
+            "last_checked": datetime.now(UTC),
             "endpoint": "Portal da Transparência API",
         }
 
@@ -316,7 +316,7 @@ async def _check_transparency_api() -> dict[str, Any]:
         return {
             "status": "unhealthy",
             "response_time": response_time,
-            "last_checked": datetime.utcnow(),
+            "last_checked": datetime.now(UTC),
             "error_message": str(e),
             "endpoint": "Portal da Transparência API",
         }
@@ -330,7 +330,7 @@ async def _check_database() -> dict[str, Any]:
     return {
         "status": "healthy",
         "response_time": 0.001,
-        "last_checked": datetime.utcnow(),
+        "last_checked": datetime.now(UTC),
         "note": "Database check not implemented yet",
     }
 
@@ -343,7 +343,7 @@ async def _check_redis() -> dict[str, Any]:
     return {
         "status": "healthy",
         "response_time": 0.001,
-        "last_checked": datetime.utcnow(),
+        "last_checked": datetime.now(UTC),
         "note": "Redis check not implemented yet",
     }
 

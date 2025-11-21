@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 
 import asyncio
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
 
 from src.core import get_logger
@@ -259,7 +259,7 @@ class LLMCostTracker:
 
     async def get_daily_cost(self) -> float:
         """Get total cost for the current day."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
         async with self._lock:
@@ -273,7 +273,7 @@ class LLMCostTracker:
 
     async def get_monthly_cost(self) -> float:
         """Get total cost for the current month."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
         async with self._lock:
@@ -287,7 +287,7 @@ class LLMCostTracker:
 
     async def get_user_daily_cost(self, user_id: str) -> float:
         """Get daily cost for a specific user."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
         start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
         async with self._lock:
@@ -301,7 +301,7 @@ class LLMCostTracker:
 
     async def get_cost_by_agent(self, hours: int = 24) -> dict[str, float]:
         """Get cost breakdown by agent for the last N hours."""
-        cutoff = datetime.utcnow() - timedelta(hours=hours)
+        cutoff = datetime.now(UTC) - timedelta(hours=hours)
 
         cost_by_agent: dict[str, float] = {}
 
@@ -317,7 +317,7 @@ class LLMCostTracker:
 
     async def get_cost_by_provider(self, hours: int = 24) -> dict[str, float]:
         """Get cost breakdown by provider for the last N hours."""
-        cutoff = datetime.utcnow() - timedelta(hours=hours)
+        cutoff = datetime.now(UTC) - timedelta(hours=hours)
 
         cost_by_provider: dict[str, float] = {}
 
@@ -356,7 +356,7 @@ class LLMCostTracker:
 
     async def cleanup_old_records(self, days: int = 30):
         """Remove usage records older than N days."""
-        cutoff = datetime.utcnow() - timedelta(days=days)
+        cutoff = datetime.now(UTC) - timedelta(days=days)
 
         async with self._lock:
             original_count = len(self._usage_history)

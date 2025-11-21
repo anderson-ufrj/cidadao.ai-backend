@@ -5,7 +5,7 @@ Sistema completo de treinamento, versionamento e deployment de modelos
 
 import asyncio
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
 from typing import Any, Optional
@@ -534,7 +534,7 @@ class MLPipelineManager:
             patience_counter = 0
             global_step = 0
 
-            training_run.started_at = datetime.utcnow()
+            training_run.started_at = datetime.now(UTC)
 
             # Training loop
             for epoch in range(self.config.num_epochs):
@@ -678,7 +678,7 @@ class MLPipelineManager:
             final_metrics = await self._validate_model(model, val_loader, model_type)
             training_run.metrics = final_metrics
             training_run.status = TrainingStatus.COMPLETED
-            training_run.completed_at = datetime.utcnow()
+            training_run.completed_at = datetime.now(UTC)
 
             # Save final model
             final_model_path = Path(self.config.models_dir) / f"{run_id}_final.pt"
@@ -705,7 +705,7 @@ class MLPipelineManager:
         except Exception as e:
             training_run.status = TrainingStatus.FAILED
             training_run.error_message = str(e)
-            training_run.completed_at = datetime.utcnow()
+            training_run.completed_at = datetime.now(UTC)
             logger.error(f"❌ Treinamento {run_id} falhou: {e}")
             raise
 

@@ -2,10 +2,11 @@
 Wrapper methods for InvestigatorAgent (Zumbi) to provide backward compatibility
 """
 
-from typing import Any, Optional
-from datetime import datetime
-from src.agents.deodoro import AgentMessage, AgentContext
-from src.agents.zumbi import AnomalyResult, InvestigationRequest
+from datetime import UTC, datetime
+from typing import Optional
+
+from src.agents.deodoro import AgentContext, AgentMessage
+from src.agents.zumbi import AnomalyResult
 
 
 async def investigate_anomalies_wrapper(
@@ -30,7 +31,7 @@ async def investigate_anomalies_wrapper(
         "confidence_threshold": 0.7,
         "enable_explainability": True,
         "enable_open_data_enrichment": False,  # Set to False for faster processing
-        "max_results": 100
+        "max_results": 100,
     }
 
     # Create agent message
@@ -40,14 +41,13 @@ async def investigate_anomalies_wrapper(
         action="investigate",
         payload=payload,
         context=context.to_dict() if context else {},
-        requires_response=True
+        requires_response=True,
     )
 
     # If no context provided, create one
     if context is None:
         context = AgentContext(
-            investigation_id=f"inv_{datetime.utcnow().isoformat()}",
-            user_id="system"
+            investigation_id=f"inv_{datetime.now(UTC).isoformat()}", user_id="system"
         )
 
     # Call the process method
@@ -62,7 +62,9 @@ async def investigate_anomalies_wrapper(
         for anomaly_dict in anomalies_data:
             if isinstance(anomaly_dict, dict):
                 anomaly = AnomalyResult(
-                    anomaly_type=anomaly_dict.get("type", anomaly_dict.get("anomaly_type", "unknown")),
+                    anomaly_type=anomaly_dict.get(
+                        "type", anomaly_dict.get("anomaly_type", "unknown")
+                    ),
                     severity=anomaly_dict.get("severity", 0.5),
                     confidence=anomaly_dict.get("confidence", 0.5),
                     description=anomaly_dict.get("description", ""),
@@ -71,7 +73,7 @@ async def investigate_anomalies_wrapper(
                     financial_impact=anomaly_dict.get("financial_impact"),
                     recommendations=anomaly_dict.get("recommendations", []),
                     evidence=anomaly_dict.get("evidence", {}),
-                    metadata=anomaly_dict.get("metadata", {})
+                    metadata=anomaly_dict.get("metadata", {}),
                 )
                 anomalies.append(anomaly)
             elif isinstance(anomaly_dict, AnomalyResult):
@@ -86,4 +88,5 @@ async def investigate_anomalies_wrapper(
 def patch_investigator_agent():
     """Add the wrapper method to InvestigatorAgent class"""
     from src.agents.zumbi import InvestigatorAgent
+
     InvestigatorAgent.investigate_anomalies = investigate_anomalies_wrapper

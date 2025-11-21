@@ -8,7 +8,7 @@ the robustness of the Cidadão.AI system.
 import asyncio
 import random
 import time
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -87,7 +87,7 @@ async def get_chaos_status(current_user=Depends(get_current_user)):
         Current chaos configuration and statistics
     """
     # Clean up expired experiments
-    now = datetime.utcnow()
+    now = datetime.now(UTC)
     for experiment_type, config in chaos_config.items():
         if config.get("expires_at") and now > config["expires_at"]:
             config["enabled"] = False
@@ -119,7 +119,7 @@ async def inject_latency(
         Confirmation of latency injection activation
     """
     try:
-        expires_at = datetime.utcnow() + timedelta(seconds=request.duration_seconds)
+        expires_at = datetime.now(UTC) + timedelta(seconds=request.duration_seconds)
 
         chaos_config["latency_injection"].update(
             {
@@ -175,7 +175,7 @@ async def inject_errors(
         Confirmation of error injection activation
     """
     try:
-        expires_at = datetime.utcnow() + timedelta(seconds=request.duration_seconds)
+        expires_at = datetime.now(UTC) + timedelta(seconds=request.duration_seconds)
 
         chaos_config["error_injection"].update(
             {
@@ -235,7 +235,7 @@ async def create_memory_pressure(
         Memory pressure experiment status
     """
     try:
-        expires_at = datetime.utcnow() + timedelta(seconds=duration_seconds)
+        expires_at = datetime.now(UTC) + timedelta(seconds=duration_seconds)
 
         chaos_config["memory_pressure"].update(
             {"enabled": True, "intensity": intensity, "expires_at": expires_at}
@@ -289,7 +289,7 @@ async def create_cpu_pressure(
         CPU pressure experiment status
     """
     try:
-        expires_at = datetime.utcnow() + timedelta(seconds=duration_seconds)
+        expires_at = datetime.now(UTC) + timedelta(seconds=duration_seconds)
 
         chaos_config["cpu_pressure"].update(
             {"enabled": True, "intensity": intensity, "expires_at": expires_at}
@@ -356,7 +356,7 @@ async def stop_experiment(experiment_type: str, current_user=Depends(get_current
         return {
             "message": f"Experiment '{experiment_type}' stopped",
             "experiment_type": experiment_type,
-            "stopped_at": datetime.utcnow().isoformat(),
+            "stopped_at": datetime.now(UTC).isoformat(),
         }
 
     except HTTPException:
@@ -392,7 +392,7 @@ async def stop_all_experiments(current_user=Depends(get_current_user)):
         return {
             "message": f"Stopped {len(stopped_experiments)} experiments",
             "stopped_experiments": stopped_experiments,
-            "stopped_at": datetime.utcnow().isoformat(),
+            "stopped_at": datetime.now(UTC).isoformat(),
         }
 
     except Exception as e:
@@ -408,7 +408,7 @@ async def apply_chaos_latency():
     if not config.get("enabled", False):
         return
 
-    if config.get("expires_at") and datetime.utcnow() > config["expires_at"]:
+    if config.get("expires_at") and datetime.now(UTC) > config["expires_at"]:
         config["enabled"] = False
         return
 
@@ -427,7 +427,7 @@ def apply_chaos_errors():
     if not config.get("enabled", False):
         return
 
-    if config.get("expires_at") and datetime.utcnow() > config["expires_at"]:
+    if config.get("expires_at") and datetime.now(UTC) > config["expires_at"]:
         config["enabled"] = False
         return
 

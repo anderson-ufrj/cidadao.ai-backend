@@ -9,7 +9,7 @@ License: Proprietary - All rights reserved
 import asyncio
 from collections.abc import AsyncGenerator
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Optional, Union
 
@@ -166,7 +166,7 @@ class MaritacaClient:
         """
         if self._circuit_breaker_opened_at:
             elapsed = (
-                datetime.utcnow() - self._circuit_breaker_opened_at
+                datetime.now(UTC) - self._circuit_breaker_opened_at
             ).total_seconds()
             if elapsed >= self._circuit_breaker_timeout:
                 # Reset circuit breaker
@@ -181,7 +181,7 @@ class MaritacaClient:
         """Record a failure for circuit breaker."""
         self._circuit_breaker_failures += 1
         if self._circuit_breaker_failures >= self._circuit_breaker_threshold:
-            self._circuit_breaker_opened_at = datetime.utcnow()
+            self._circuit_breaker_opened_at = datetime.now(UTC)
             self.logger.warning(
                 "circuit_breaker_opened",
                 failures=self._circuit_breaker_failures,
@@ -289,13 +289,13 @@ class MaritacaClient:
 
         for attempt in range(self.max_retries + 1):
             try:
-                start_time = datetime.utcnow()
+                start_time = datetime.now(UTC)
 
                 response = await self.client.post(
                     f"{self.base_url}{endpoint}", json=data, headers=self._get_headers()
                 )
 
-                response_time = (datetime.utcnow() - start_time).total_seconds()
+                response_time = (datetime.now(UTC) - start_time).total_seconds()
 
                 if response.status_code == 200:
                     self._record_success()
@@ -324,7 +324,7 @@ class MaritacaClient:
                             "object": response_data.get("object"),
                         },
                         response_time=response_time,
-                        timestamp=datetime.utcnow(),
+                        timestamp=datetime.now(UTC),
                         finish_reason=choice.get("finish_reason"),
                     )
 
@@ -580,7 +580,7 @@ class MaritacaClient:
                 "circuit_breaker": (
                     "closed" if not self._check_circuit_breaker() else "open"
                 ),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
         except Exception as e:
@@ -592,7 +592,7 @@ class MaritacaClient:
                     "closed" if not self._check_circuit_breaker() else "open"
                 ),
                 "error": str(e),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
 

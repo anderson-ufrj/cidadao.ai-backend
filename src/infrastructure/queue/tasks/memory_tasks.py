@@ -6,7 +6,7 @@ Date: 2025-10-20
 License: Proprietary - All rights reserved
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from celery.utils.log import get_task_logger
@@ -47,7 +47,7 @@ async def memory_decay_task(decay_days: int = 30) -> dict[str, Any]:
         )
 
         # Calculate cutoff date
-        cutoff_date = datetime.utcnow() - timedelta(days=decay_days)
+        cutoff_date = datetime.now(UTC) - timedelta(days=decay_days)
 
         # Get all memories from vector store
         vector_store = memory_agent.vector_store
@@ -78,7 +78,7 @@ async def memory_decay_task(decay_days: int = 30) -> dict[str, Any]:
             # Check if memory is old enough for decay
             if memory_timestamp < cutoff_date:
                 # Calculate decay factor based on age
-                age_days = (datetime.utcnow() - memory_timestamp).days
+                age_days = (datetime.now(UTC) - memory_timestamp).days
                 decay_factor = max(
                     0.1, 1.0 - (age_days - decay_days) / (decay_days * 2)
                 )
@@ -95,7 +95,7 @@ async def memory_decay_task(decay_days: int = 30) -> dict[str, Any]:
                 else:
                     # Update metadata with decay factor
                     metadata["decay_factor"] = decay_factor
-                    metadata["last_decay_update"] = datetime.utcnow().isoformat()
+                    metadata["last_decay_update"] = datetime.now(UTC).isoformat()
 
                     # Re-add document with updated metadata
                     await vector_store.add_documents(
@@ -117,7 +117,7 @@ async def memory_decay_task(decay_days: int = 30) -> dict[str, Any]:
 
         result = {
             "status": "completed",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "total_memories": len(all_memories),
             "decayed_count": decayed_count,
             "deleted_count": deleted_count,
@@ -187,7 +187,7 @@ async def memory_consolidation_task(
 
         result = {
             "status": response.status.value,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "consolidated_count": (
                 response.result.get("consolidated_count", 0) if response.result else 0
             ),
@@ -259,7 +259,7 @@ async def memory_cleanup_task() -> dict[str, Any]:
 
         result = {
             "status": "completed",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "total_memories": len(all_memories),
             "cleaned_count": cleaned_count,
         }
@@ -312,7 +312,7 @@ async def memory_health_check() -> dict[str, Any]:
 
         result = {
             "status": "healthy" if redis_healthy else "degraded",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "vector_store": {
                 "status": "healthy",
                 "document_count": vector_count,
@@ -335,6 +335,6 @@ async def memory_health_check() -> dict[str, Any]:
         logger.error("memory_health_check_failed", error=str(e), exc_info=True)
         return {
             "status": "unhealthy",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "error": str(e),
         }

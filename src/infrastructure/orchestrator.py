@@ -7,7 +7,7 @@ import asyncio
 import signal
 from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Optional
 
@@ -115,7 +115,7 @@ class CidadaoAIOrchestrator:
     def __init__(self, config: OrchestratorConfig):
         self.config = config
         self.status = SystemStatus.INITIALIZING
-        self.start_time = datetime.utcnow()
+        self.start_time = datetime.now(UTC)
 
         # Component managers
         self.components: dict[str, Any] = {}
@@ -174,7 +174,7 @@ class CidadaoAIOrchestrator:
                 self.status = SystemStatus.HEALTHY
                 self._running = True
 
-                uptime = (datetime.utcnow() - self.start_time).total_seconds()
+                uptime = (datetime.now(UTC) - self.start_time).total_seconds()
                 logger.info(f"✅ Sistema inicializado com sucesso em {uptime:.1f}s")
 
                 return True
@@ -290,7 +290,7 @@ class CidadaoAIOrchestrator:
 
         logger.info(f"🔄 Inicializando {name}...")
 
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
 
         try:
             # Initialize with retries
@@ -301,7 +301,7 @@ class CidadaoAIOrchestrator:
                     self.components[name] = component
                     self.component_health[name].status = ComponentStatus.READY
 
-                    uptime = (datetime.utcnow() - start_time).total_seconds()
+                    uptime = (datetime.now(UTC) - start_time).total_seconds()
                     self.component_health[name].uptime_seconds = uptime
                     self.component_health[name].health_score = 1.0
 
@@ -403,7 +403,7 @@ class CidadaoAIOrchestrator:
             try:
                 health_score = await self._check_component_health(name, component)
                 self.component_health[name].health_score = health_score
-                self.component_health[name].last_check = datetime.utcnow()
+                self.component_health[name].last_check = datetime.now(UTC)
 
                 # Update status based on health score
                 if health_score >= 0.8:
@@ -522,7 +522,7 @@ class CidadaoAIOrchestrator:
     async def get_system_health(self) -> dict[str, Any]:
         """Obter saúde completa do sistema"""
 
-        uptime = (datetime.utcnow() - self.start_time).total_seconds()
+        uptime = (datetime.now(UTC) - self.start_time).total_seconds()
 
         health = {
             "system": {

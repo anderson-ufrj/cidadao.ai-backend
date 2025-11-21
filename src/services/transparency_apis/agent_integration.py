@@ -10,7 +10,7 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from .cache import get_cache
@@ -206,7 +206,7 @@ class TransparencyDataCollector:
             "sources": sources_used,
             "errors": errors,
             "metadata": {
-                "collected_at": datetime.utcnow().isoformat(),
+                "collected_at": datetime.now(UTC).isoformat(),
                 "collection_mode": "parallel",
                 "api_timeout": api_timeout,
                 "global_timeout": global_timeout,
@@ -299,7 +299,7 @@ class TransparencyDataCollector:
             "sources": sources_used,
             "errors": errors,
             "metadata": {
-                "collected_at": datetime.utcnow().isoformat(),
+                "collected_at": datetime.now(UTC).isoformat(),
                 "filters": {
                     "state": state,
                     "municipality_code": municipality_code,
@@ -379,7 +379,7 @@ class TransparencyDataCollector:
             "sources": sources_used,
             "errors": errors,
             "metadata": {
-                "collected_at": datetime.utcnow().isoformat(),
+                "collected_at": datetime.now(UTC).isoformat(),
                 "filters": {"state": state, "municipality_code": municipality_code},
             },
         }
@@ -442,7 +442,7 @@ class TransparencyDataCollector:
                 "duplicate_count": len(duplicates),
             },
             "metadata": {
-                "analyzed_at": datetime.utcnow().isoformat(),
+                "analyzed_at": datetime.now(UTC).isoformat(),
                 "analysis_version": "1.0.0",
             },
         }

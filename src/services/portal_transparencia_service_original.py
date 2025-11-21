@@ -4,7 +4,7 @@ Real-time data fetching from Brazilian government transparency portal
 """
 
 import asyncio
-from datetime import date, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from typing import Any, Optional
 from urllib.parse import urlencode
 
@@ -196,7 +196,7 @@ class PortalTransparenciaService:
                 "total": total,
                 "pagina": page,
                 "tamanho_pagina": size,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
             # Cache for 1 hour
@@ -257,7 +257,7 @@ class PortalTransparenciaService:
                 "total": data.get("quantidadeTotal", 0),
                 "pagina": page,
                 "tamanho_pagina": size,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         except Exception as e:
             logger.error(f"Error fetching biddings: {e}")
@@ -294,7 +294,7 @@ class PortalTransparenciaService:
                 "total": data.get("quantidadeTotal", 0),
                 "pagina": page,
                 "tamanho_pagina": size,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         except Exception as e:
             logger.error(f"Error fetching expenses: {e}")
@@ -336,7 +336,7 @@ class PortalTransparenciaService:
                     "total": len(data),
                     "pagina": page,
                     "tamanho_pagina": size,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
             else:
                 return {
@@ -344,7 +344,7 @@ class PortalTransparenciaService:
                     "total": data.get("quantidadeTotal", 0),
                     "pagina": page,
                     "tamanho_pagina": size,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
         except Exception as e:
             logger.error(f"Error fetching servants: {e}")
@@ -371,7 +371,7 @@ class PortalTransparenciaService:
                 "fornecedor": supplier_info,
                 "contratos_recentes": contracts.get("contratos", []),
                 "total_contratos": contracts.get("total", 0),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
             # Cache for 24 hours
@@ -582,7 +582,7 @@ class PortalTransparenciaService:
             "total": len(demo_contracts),
             "pagina": params.get("pagina", 1),
             "tamanho_pagina": params.get("tamanhoPagina", 100),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "demo_mode": True,
         }
 

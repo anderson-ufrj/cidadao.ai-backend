@@ -9,7 +9,7 @@ import weakref
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Optional
 
@@ -112,7 +112,7 @@ class EventBus:
 
     async def emit(self, event_name: str, data: Any = None):
         """Emit an event to all registered handlers."""
-        event = {"name": event_name, "data": data, "timestamp": datetime.utcnow()}
+        event = {"name": event_name, "data": data, "timestamp": datetime.now(UTC)}
 
         # Call sync handlers
         for handler in self._handlers.get(event_name, []):
@@ -380,7 +380,7 @@ class AgentOrchestrator:
         if circuit_breaker.state == CircuitState.OPEN:
             # Check if recovery timeout has passed
             if (
-                datetime.utcnow() - circuit_breaker.last_failure_time
+                datetime.now(UTC) - circuit_breaker.last_failure_time
             ).seconds > circuit_breaker.recovery_timeout:
                 circuit_breaker.state = CircuitState.HALF_OPEN
                 circuit_breaker.success_count = 0
@@ -402,7 +402,7 @@ class AgentOrchestrator:
         except Exception:
             # Update failure count
             circuit_breaker.failure_count += 1
-            circuit_breaker.last_failure_time = datetime.utcnow()
+            circuit_breaker.last_failure_time = datetime.now(UTC)
 
             if circuit_breaker.failure_count >= circuit_breaker.failure_threshold:
                 circuit_breaker.state = CircuitState.OPEN
@@ -563,7 +563,7 @@ class AgentOrchestrator:
 
         if circuit_breaker.state == CircuitState.OPEN:
             if (
-                datetime.utcnow() - circuit_breaker.last_failure_time
+                datetime.now(UTC) - circuit_breaker.last_failure_time
             ).seconds < circuit_breaker.recovery_timeout:
                 raise OrchestrationError(f"Circuit breaker open for {agent_name}")
             else:
@@ -582,7 +582,7 @@ class AgentOrchestrator:
 
         except Exception:
             circuit_breaker.failure_count += 1
-            circuit_breaker.last_failure_time = datetime.utcnow()
+            circuit_breaker.last_failure_time = datetime.now(UTC)
 
             if circuit_breaker.failure_count >= circuit_breaker.failure_threshold:
                 circuit_breaker.state = CircuitState.OPEN
@@ -597,7 +597,7 @@ class AgentOrchestrator:
     ) -> dict[str, Any]:
         """Start a saga transaction."""
         saga_state = {
-            "saga_id": f"saga_{datetime.utcnow().timestamp()}",
+            "saga_id": f"saga_{datetime.now(UTC).timestamp()}",
             "name": saga_definition["name"],
             "current_step": 0,
             "completed_steps": [],

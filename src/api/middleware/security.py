@@ -12,7 +12,7 @@ import ipaddress
 import re
 import time
 from collections import defaultdict, deque
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Optional
 
 from fastapi import Request, status
@@ -162,7 +162,7 @@ class IPBlockList:
             return False
 
         if ip in self.blocked_ips:
-            if datetime.utcnow() - self.blocked_ips[ip] < timedelta(
+            if datetime.now(UTC) - self.blocked_ips[ip] < timedelta(
                 minutes=SecurityConfig.BLOCK_DURATION_MINUTES
             ):
                 return True
@@ -177,7 +177,7 @@ class IPBlockList:
         if self.is_whitelisted(ip):
             return
 
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         # Clean old attempts (older than 1 hour)
         self.failed_attempts[ip] = [
@@ -198,7 +198,7 @@ class IPBlockList:
         if ip not in self.failed_attempts:
             return 0
 
-        cutoff = datetime.utcnow() - timedelta(minutes=window_minutes)
+        cutoff = datetime.now(UTC) - timedelta(minutes=window_minutes)
         return sum(1 for attempt in self.failed_attempts[ip] if attempt > cutoff)
 
 
@@ -210,11 +210,11 @@ class RateLimiter:
         self.burst_tokens: dict[str, int] = defaultdict(
             lambda: SecurityConfig.RATE_LIMIT_BURST_SIZE
         )
-        self.last_refill: dict[str, datetime] = defaultdict(lambda: datetime.utcnow())
+        self.last_refill: dict[str, datetime] = defaultdict(lambda: datetime.now(UTC))
 
     def is_allowed(self, identifier: str) -> tuple[bool, dict[str, any]]:
         """Check if request is allowed for identifier."""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         # Refill burst tokens (token bucket algorithm)
         time_since_refill = (now - self.last_refill[identifier]).total_seconds()

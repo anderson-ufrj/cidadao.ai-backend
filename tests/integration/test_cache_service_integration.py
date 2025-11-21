@@ -2,7 +2,7 @@
 
 import asyncio
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 
 import pytest
 
@@ -100,7 +100,7 @@ class TestCacheServiceIntegration:
         session_id = "test_session_123"
         initial_state = {
             "user_id": "user_456",
-            "started_at": datetime.utcnow().isoformat(),
+            "started_at": datetime.now(UTC).isoformat(),
             "context": {"intent": "help"},
         }
 

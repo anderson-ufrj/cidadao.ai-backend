@@ -6,7 +6,7 @@ Date: 2025-01-24
 License: Proprietary - All rights reserved
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
 from uuid import uuid4
 
@@ -155,7 +155,7 @@ async def start_analysis(
         "time_range": request.time_range,
         "filters": request.filters,
         "user_id": current_user.get("user_id"),
-        "started_at": datetime.utcnow(),
+        "started_at": datetime.now(UTC),
         "progress": 0.0,
         "current_phase": "initializing",
         "results": {},
@@ -196,7 +196,7 @@ async def get_spending_trends(
     Returns trend analysis for specified data source and time period.
     """
     # Calculate time range based on period
-    end_date = datetime.utcnow()
+    end_date = datetime.now(UTC)
     period_map = {
         "3months": timedelta(days=90),
         "6months": timedelta(days=180),
@@ -596,7 +596,7 @@ async def _run_analysis(analysis_id: str, request: AnalysisRequest):
 
         # Mark as completed
         analysis["status"] = "completed"
-        analysis["completed_at"] = datetime.utcnow()
+        analysis["completed_at"] = datetime.now(UTC)
         analysis["progress"] = 1.0
         analysis["current_phase"] = "completed"
 
@@ -615,6 +615,6 @@ async def _run_analysis(analysis_id: str, request: AnalysisRequest):
         )
 
         analysis["status"] = "failed"
-        analysis["completed_at"] = datetime.utcnow()
+        analysis["completed_at"] = datetime.now(UTC)
         analysis["current_phase"] = "failed"
         analysis["error"] = str(e)

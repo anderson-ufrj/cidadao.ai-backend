@@ -7,7 +7,7 @@ like HuggingFace Spaces that block direct database connections.
 """
 
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from pydantic import BaseModel, Field
@@ -152,8 +152,8 @@ class SupabaseServiceRest:
             "filters": filters or {},
             "anomaly_types": anomaly_types or [],
             "progress": 0.0,
-            "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat(),
+            "created_at": datetime.now(UTC).isoformat(),
+            "updated_at": datetime.now(UTC).isoformat(),
         }
 
         result = client.table("investigations").insert(data).execute()
@@ -207,7 +207,7 @@ class SupabaseServiceRest:
         client = self._ensure_client()
 
         # Always update updated_at
-        updates["updated_at"] = datetime.utcnow().isoformat()
+        updates["updated_at"] = datetime.now(UTC).isoformat()
 
         result = (
             client.table("investigations")
@@ -289,7 +289,7 @@ class SupabaseServiceRest:
             confidence_score=confidence_score,
             total_records_analyzed=total_records,
             anomalies_found=anomalies_found,
-            completed_at=datetime.utcnow().isoformat(),
+            completed_at=datetime.now(UTC).isoformat(),
         )
 
     async def fail_investigation(
@@ -312,7 +312,7 @@ class SupabaseServiceRest:
             status="failed",
             current_phase="failed",
             error_message=error_message,
-            completed_at=datetime.utcnow().isoformat(),
+            completed_at=datetime.now(UTC).isoformat(),
         )
 
     async def list_user_investigations(
@@ -369,7 +369,7 @@ class SupabaseServiceRest:
             .update(
                 {
                     "status": "cancelled",
-                    "completed_at": datetime.utcnow().isoformat(),
+                    "completed_at": datetime.now(UTC).isoformat(),
                 }
             )
             .eq("id", investigation_id)

@@ -7,7 +7,7 @@ allowing investigations to be stored centrally for frontend consumption.
 
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from asyncpg import Pool, create_pool
@@ -167,8 +167,8 @@ class SupabaseService:
                 json.dumps(filters or {}),
                 json.dumps(anomaly_types or []),
                 0.0,
-                datetime.utcnow(),
-                datetime.utcnow(),
+                datetime.now(UTC),
+                datetime.now(UTC),
             )
 
             logger.info(f"Created investigation {row['id']} in Supabase")
@@ -227,7 +227,7 @@ class SupabaseService:
 
         # Always update updated_at
         set_clauses.append(f"updated_at = ${param_index}")
-        values.append(datetime.utcnow())
+        values.append(datetime.now(UTC))
         param_index += 1
 
         # Add investigation_id as last parameter
@@ -316,7 +316,7 @@ class SupabaseService:
             confidence_score=confidence_score,
             total_records_analyzed=total_records,
             anomalies_found=anomalies_found,
-            completed_at=datetime.utcnow(),
+            completed_at=datetime.now(UTC),
         )
 
     async def fail_investigation(
@@ -339,7 +339,7 @@ class SupabaseService:
             status="failed",
             current_phase="failed",
             error_message=error_message,
-            completed_at=datetime.utcnow(),
+            completed_at=datetime.now(UTC),
         )
 
     async def list_user_investigations(
@@ -404,7 +404,7 @@ class SupabaseService:
                 SET status = 'cancelled', completed_at = $1
                 WHERE id = $2 AND user_id = $3
                 """,
-                datetime.utcnow(),
+                datetime.now(UTC),
                 investigation_id,
                 user_id,
             )

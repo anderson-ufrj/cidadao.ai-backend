@@ -5,7 +5,7 @@ This module provides a service layer for investigation operations,
 abstracting the database and agent interactions.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from sqlalchemy import select
@@ -107,7 +107,7 @@ class InvestigationService:
     async def _execute_investigation(self, investigation: Investigation):
         """Execute investigation using agents."""
         try:
-            start_time = datetime.utcnow()
+            start_time = datetime.now(UTC)
             investigation.status = "processing"
 
             # Get agent pool
@@ -129,7 +129,7 @@ class InvestigationService:
             # Update investigation
             investigation.status = "completed"
             investigation.confidence_score = result.confidence_score
-            investigation.completed_at = datetime.utcnow()
+            investigation.completed_at = datetime.now(UTC)
             investigation.processing_time_ms = (
                 investigation.completed_at - start_time
             ).total_seconds() * 1000
@@ -139,7 +139,7 @@ class InvestigationService:
         except Exception as e:
             logger.error(f"Investigation {investigation.id} failed: {e}")
             investigation.status = "failed"
-            investigation.completed_at = datetime.utcnow()
+            investigation.completed_at = datetime.now(UTC)
 
     async def get_by_id(self, investigation_id: str) -> Optional[Investigation]:
         """Get investigation by ID from database."""
@@ -191,7 +191,7 @@ class InvestigationService:
                 )
 
             investigation.status = "cancelled"
-            investigation.completed_at = datetime.utcnow()
+            investigation.completed_at = datetime.now(UTC)
 
             await db.commit()
             await db.refresh(investigation)

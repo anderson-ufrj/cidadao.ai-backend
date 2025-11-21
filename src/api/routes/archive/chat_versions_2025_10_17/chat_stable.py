@@ -4,7 +4,7 @@ Ensures 100% availability with Maritaca AI integration
 """
 
 import os
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 import httpx
@@ -372,7 +372,7 @@ async def chat_stable(request: ChatRequest) -> ChatResponse:
             "processing_time": 0,
             "agent_used": result["agent_used"],
             "model": result["model"],
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "stable_version": True,
         }
 
@@ -408,7 +408,7 @@ async def chat_stable(request: ChatRequest) -> ChatResponse:
             metadata={
                 "error": str(e),
                 "fallback": "ultimate",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
         )
 

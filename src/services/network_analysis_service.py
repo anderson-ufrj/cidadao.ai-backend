@@ -10,7 +10,7 @@ This service builds and analyzes entity relationship graphs from investigation d
 
 import re
 import unicodedata
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from sqlalchemy import and_, or_, select
@@ -93,7 +93,7 @@ class NetworkAnalysisService:
 
         if existing_entity:
             # Update existing entity
-            existing_entity.last_detected = datetime.utcnow()
+            existing_entity.last_detected = datetime.now(UTC)
             existing_entity.total_investigations += 1
 
             # Update statistics
@@ -140,8 +140,8 @@ class NetworkAnalysisService:
                 total_investigations=1,
                 total_contracts=1 if contract_value else 0,
                 total_contract_value=contract_value or 0.0,
-                first_detected=datetime.utcnow(),
-                last_detected=datetime.utcnow(),
+                first_detected=datetime.now(UTC),
+                last_detected=datetime.now(UTC),
             )
             self.db.add(entity)
             await self.db.flush()  # Get ID
@@ -154,7 +154,7 @@ class NetworkAnalysisService:
             contract_id=contract_id,
             contract_value=contract_value,
             evidence_data=self._entity_to_dict(legal_entity),
-            detected_at=datetime.utcnow(),
+            detected_at=datetime.now(UTC),
         )
         self.db.add(reference)
 
@@ -207,7 +207,7 @@ class NetworkAnalysisService:
 
         if existing_rel:
             # Update existing relationship
-            existing_rel.last_detected = datetime.utcnow()
+            existing_rel.last_detected = datetime.now(UTC)
             existing_rel.detection_count += 1
             existing_rel.strength = min(
                 1.0, existing_rel.strength + 0.1
@@ -230,8 +230,8 @@ class NetworkAnalysisService:
                 relationship_type=relationship_type,
                 strength=strength,
                 confidence=1.0,
-                first_detected=datetime.utcnow(),
-                last_detected=datetime.utcnow(),
+                first_detected=datetime.now(UTC),
+                last_detected=datetime.now(UTC),
                 detection_count=1,
                 investigation_ids=[investigation_id],
                 evidence=evidence or {},
@@ -329,7 +329,7 @@ class NetworkAnalysisService:
             "nodes_created": len(created_nodes),
             "relationships_created": len(created_relationships),
             "suspicious_networks_detected": len(suspicious_networks),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }
 
         logger.info("graph_built", **stats)

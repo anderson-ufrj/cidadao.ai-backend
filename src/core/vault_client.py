@@ -6,7 +6,7 @@ Production-grade secret management with fallback strategies
 import asyncio
 import os
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Optional
 
@@ -74,11 +74,11 @@ class SecretEntry:
     @property
     def is_expired(self) -> bool:
         """Check if secret is expired"""
-        return datetime.utcnow() > self.created_at + timedelta(seconds=self.ttl)
+        return datetime.now(UTC) > self.created_at + timedelta(seconds=self.ttl)
 
     def touch(self):
         """Update access statistics"""
-        self.last_accessed = datetime.utcnow()
+        self.last_accessed = datetime.now(UTC)
         self.access_count += 1
 
 
@@ -267,7 +267,7 @@ class VaultClient:
 
             # Set expiration
             if auth_data.get("lease_duration"):
-                self._auth_expires = datetime.utcnow() + timedelta(
+                self._auth_expires = datetime.now(UTC) + timedelta(
                     seconds=auth_data["lease_duration"]
                 )
 
@@ -298,7 +298,7 @@ class VaultClient:
                 else:
                     self._status = VaultStatus.DEGRADED
 
-                self._last_health_check = datetime.utcnow()
+                self._last_health_check = datetime.now(UTC)
                 return is_healthy
 
         except Exception as e:
@@ -313,11 +313,10 @@ class VaultClient:
             return False
 
         # Check if timeout has passed
-        if (
-            self._circuit_breaker_last_failure
-            and datetime.utcnow()
-            > self._circuit_breaker_last_failure
-            + timedelta(seconds=self.config.circuit_breaker_timeout)
+        if self._circuit_breaker_last_failure and datetime.now(
+            UTC
+        ) > self._circuit_breaker_last_failure + timedelta(
+            seconds=self.config.circuit_breaker_timeout
         ):
 
             self._circuit_breaker_open = False
@@ -329,7 +328,7 @@ class VaultClient:
     def _record_failure(self):
         """Record a failure for circuit breaker"""
         self._circuit_breaker_failures += 1
-        self._circuit_breaker_last_failure = datetime.utcnow()
+        self._circuit_breaker_last_failure = datetime.now(UTC)
 
         if self._circuit_breaker_failures >= self.config.circuit_breaker_threshold:
             self._circuit_breaker_open = True
@@ -382,7 +381,7 @@ class VaultClient:
                     # Cache the value
                     self._cache[cache_key] = SecretEntry(
                         value=value,
-                        created_at=datetime.utcnow(),
+                        created_at=datetime.now(UTC),
                         ttl=self.config.cache_ttl,
                     )
 
@@ -429,7 +428,7 @@ class VaultClient:
             raise VaultClientError("Client not authenticated")
 
         # Check token expiration
-        if self._auth_expires and datetime.utcnow() > self._auth_expires:
+        if self._auth_expires and datetime.now(UTC) > self._auth_expires:
             await self._authenticate()
 
         # Build URL based on KV version
@@ -480,7 +479,7 @@ class VaultClient:
 
     async def _cleanup_cache(self):
         """Cleanup expired entries and enforce size limits"""
-        now = datetime.utcnow()
+        now = datetime.now(UTC)
 
         # Remove expired entries
         expired_keys = [key for key, entry in self._cache.items() if entry.is_expired]

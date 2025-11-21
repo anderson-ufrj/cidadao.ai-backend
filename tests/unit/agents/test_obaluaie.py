@@ -217,7 +217,7 @@ class TestObaluaieCorruptionDetection:
     @pytest.mark.asyncio
     async def test_generate_recommendations(self, obaluaie_agent):
         """Test recommendation generation for critical corruption."""
-        from datetime import datetime
+        from datetime import UTC, datetime
 
         from src.agents.obaluaie import CorruptionAlertResult
 
@@ -230,7 +230,7 @@ class TestObaluaieCorruptionDetection:
             financial_impact=5000000.0,
             evidence_links=["network_graph.png"],
             risk_assessment={"priority": "critical"},
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
             investigation_priority=9,
         )
 

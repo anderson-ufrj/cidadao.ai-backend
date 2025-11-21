@@ -9,7 +9,7 @@ import uuid
 from collections.abc import Callable
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any, Optional
 
@@ -355,7 +355,7 @@ class AgentPoolManager:
     async def _execute_task(self, task: AgentTask, worker_name: str):
         """Executar tarefa"""
 
-        task.started_at = datetime.utcnow()
+        task.started_at = datetime.now(UTC)
         self.active_tasks[task.id] = task
 
         logger.debug(f"🔄 Executando tarefa {task.id} no worker {worker_name}")
@@ -375,7 +375,7 @@ class AgentPoolManager:
             # Mark agent as busy
             agent_instance.status = AgentStatus.BUSY
             agent_instance.current_task_id = task.id
-            agent_instance.last_activity = datetime.utcnow()
+            agent_instance.last_activity = datetime.now(UTC)
 
             # Execute based on mode
             start_time = time.time()
@@ -393,7 +393,7 @@ class AgentPoolManager:
 
             # Update task
             task.result = result
-            task.completed_at = datetime.utcnow()
+            task.completed_at = datetime.now(UTC)
 
             # Update agent statistics
             agent_instance.total_tasks += 1
@@ -413,7 +413,7 @@ class AgentPoolManager:
         except Exception as e:
             # Handle task error
             task.error = str(e)
-            task.completed_at = datetime.utcnow()
+            task.completed_at = datetime.now(UTC)
 
             if agent_instance:
                 agent_instance.failed_tasks += 1
@@ -441,7 +441,7 @@ class AgentPoolManager:
             if agent_instance:
                 agent_instance.status = AgentStatus.IDLE
                 agent_instance.current_task_id = None
-                agent_instance.last_activity = datetime.utcnow()
+                agent_instance.last_activity = datetime.now(UTC)
 
             # Move task to completed
             if task.id in self.active_tasks:
@@ -537,7 +537,7 @@ class AgentPoolManager:
         for i, agent in enumerate(self.agent_pools[agent_type]):
             if agent.status == AgentStatus.IDLE:
                 # Check if idle for long enough
-                idle_time = (datetime.utcnow() - agent.last_activity).total_seconds()
+                idle_time = (datetime.now(UTC) - agent.last_activity).total_seconds()
                 if idle_time > self.config.agent_idle_timeout:
                     self.agent_pools[agent_type].pop(i)
                     logger.info(
@@ -586,7 +586,7 @@ class AgentPoolManager:
                 # Check if agent is stuck
                 if agent.status == AgentStatus.BUSY:
                     time_since_activity = (
-                        datetime.utcnow() - agent.last_activity
+                        datetime.now(UTC) - agent.last_activity
                     ).total_seconds()
                     if time_since_activity > self.config.task_timeout_default:
                         logger.warning(f"⚠️ Agente {agent.id} possivelmente travado")

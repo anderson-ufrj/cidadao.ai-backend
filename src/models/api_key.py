@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 
 import hashlib
 import secrets
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 
 from sqlalchemy import JSON, Column, DateTime, ForeignKey, Index, Integer, String, Text
@@ -127,7 +127,7 @@ class APIKey(BaseModel):
         if self.status != APIKeyStatus.ACTIVE:
             return False
 
-        if self.expires_at and self.expires_at < datetime.utcnow():
+        if self.expires_at and self.expires_at < datetime.now(UTC):
             return False
 
         return True
@@ -145,7 +145,7 @@ class APIKey(BaseModel):
             last_rotation = self.last_rotated_at
 
         rotation_due = last_rotation + timedelta(days=self.rotation_period_days)
-        return datetime.utcnow() >= rotation_due
+        return datetime.now(UTC) >= rotation_due
 
     def get_rate_limits(self) -> dict:
         """Get rate limits based on tier or custom settings."""

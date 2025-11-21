@@ -7,7 +7,7 @@ import asyncio
 import time
 from collections.abc import Callable
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from functools import wraps
 from typing import Any, Optional
@@ -742,7 +742,7 @@ class ObservabilityManager:
                 name: health.dict() for name, health in self.health_checks.items()
             },
             "active_alerts": len(self.active_alerts),
-            "last_check": datetime.utcnow().isoformat(),
+            "last_check": datetime.now(UTC).isoformat(),
             "uptime_seconds": time.time() - getattr(self, "_start_time", time.time()),
         }
 
