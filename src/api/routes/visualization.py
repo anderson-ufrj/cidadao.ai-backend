@@ -3,7 +3,7 @@ API routes for data visualization endpoints.
 Provides aggregated and formatted data optimized for frontend consumption.
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Optional, Union
 
@@ -137,7 +137,7 @@ async def get_chart_data(
 
         # Create agent context
         context = AgentContext(
-            investigation_id=f"viz_{datetime.utcnow().timestamp()}",
+            investigation_id=f"viz_{datetime.now(UTC).timestamp()}",
             user_id=current_user["id"],
             session_id=current_user.get("session_id", "default"),
             metadata={
@@ -195,8 +195,8 @@ async def get_chart_data(
                 "dataset_type": request.dataset_type.value,
                 "record_count": request.limit,
             },
-            cache_timestamp=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(seconds=cache_ttl),
+            cache_timestamp=datetime.now(UTC),
+            expires_at=datetime.now(UTC) + timedelta(seconds=cache_ttl),
         )
 
     except Exception as e:
@@ -240,7 +240,7 @@ async def get_regional_map_data(
 
         # Create agent context
         context = AgentContext(
-            investigation_id=f"regional_{datetime.utcnow().timestamp()}",
+            investigation_id=f"regional_{datetime.now(UTC).timestamp()}",
             user_id=current_user["id"],
             session_id=current_user.get("session_id", "default"),
             metadata={"request_type": "regional_map", "metric": request.metric},
@@ -317,8 +317,8 @@ async def get_regional_map_data(
                 "metric": request.metric,
                 "normalized": request.normalize,
             },
-            cache_timestamp=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(hours=4),
+            cache_timestamp=datetime.now(UTC),
+            expires_at=datetime.now(UTC) + timedelta(hours=4),
         )
 
     except Exception as e:
@@ -362,7 +362,7 @@ async def get_time_series_data(
 
         # Create agent context
         context = AgentContext(
-            investigation_id=f"ts_{datetime.utcnow().timestamp()}",
+            investigation_id=f"ts_{datetime.now(UTC).timestamp()}",
             user_id=current_user["id"],
             session_id=current_user.get("session_id", "default"),
             metadata={"request_type": "time_series", "metric": request.metric},
@@ -399,7 +399,7 @@ async def get_time_series_data(
             last_time = (
                 time_series_data.time_points[-1]
                 if time_series_data.time_points
-                else datetime.utcnow()
+                else datetime.now(UTC)
             )
 
             for i in range(7):  # 7 periods forecast
@@ -445,8 +445,8 @@ async def get_time_series_data(
                 "data_points": len(chart_data),
                 "has_forecast": request.include_forecast,
             },
-            cache_timestamp=datetime.utcnow(),
-            expires_at=datetime.utcnow() + timedelta(hours=1),
+            cache_timestamp=datetime.now(UTC),
+            expires_at=datetime.now(UTC) + timedelta(hours=1),
         )
 
     except Exception as e:
@@ -484,7 +484,7 @@ async def get_dashboard_summary(
         # For now, returning a structured summary
 
         return {
-            "summary_id": f"dashboard_{datetime.utcnow().timestamp()}",
+            "summary_id": f"dashboard_{datetime.now(UTC).timestamp()}",
             "time_range": time_range,
             "key_metrics": [
                 {
@@ -546,11 +546,11 @@ async def get_dashboard_summary(
                     "type": "anomaly",
                     "severity": "high",
                     "message": "Padrão incomum detectado em contratos de TI",
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 },
             ],
-            "cache_timestamp": datetime.utcnow(),
-            "expires_at": datetime.utcnow() + timedelta(minutes=15),
+            "cache_timestamp": datetime.now(UTC),
+            "expires_at": datetime.now(UTC) + timedelta(minutes=15),
         }
 
     except Exception as e:

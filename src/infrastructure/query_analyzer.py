@@ -5,7 +5,7 @@ This module provides tools to analyze slow queries and suggest optimizations.
 """
 
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from sqlalchemy import text
@@ -388,7 +388,7 @@ async def analyze_database_performance():
                 table_stats.append(stats)
 
             report = {
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC),
                 "slow_queries": [
                     {
                         "query": (

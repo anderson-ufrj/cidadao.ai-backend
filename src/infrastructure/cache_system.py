@@ -10,7 +10,7 @@ import pickle
 import threading
 import time
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Optional, Union
 
@@ -727,7 +727,7 @@ class AdvancedCacheManager:
         """Atualizar estatísticas de acesso"""
         if key in self.l1_entries:
             entry = self.l1_entries[key]
-            entry.last_accessed = datetime.utcnow()
+            entry.last_accessed = datetime.now(UTC)
             entry.access_count += 1
             entry.hit_count += 1
 
@@ -754,7 +754,7 @@ class AdvancedCacheManager:
                 await asyncio.sleep(300)  # Run every 5 minutes
 
                 # Clean up expired entries from tracking
-                now = datetime.utcnow()
+                now = datetime.now(UTC)
                 expired_keys = []
 
                 for key, entry in self.l1_entries.items():

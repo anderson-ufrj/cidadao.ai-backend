@@ -10,7 +10,7 @@ and trigger investigations on suspicious patterns.
 """
 
 import asyncio
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 
 from celery.utils.log import get_task_logger
@@ -167,7 +167,7 @@ def auto_investigation_health_check() -> dict[str, Any]:
         # Check system components
         health = {
             "status": "healthy",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "components": {
                 "transparency_api": "checking",
                 "investigation_service": "checking",
@@ -192,10 +192,10 @@ def auto_investigation_health_check() -> dict[str, Any]:
                 api = TransparencyAPIClient()
                 filters = TransparencyAPIFilter(
                     codigo_orgao="36000",  # Ministério da Saúde (test org)
-                    data_inicio=(datetime.utcnow() - timedelta(days=1)).strftime(
+                    data_inicio=(datetime.now(UTC) - timedelta(days=1)).strftime(
                         "%d/%m/%Y"
                     ),
-                    data_fim=datetime.utcnow().strftime("%d/%m/%Y"),
+                    data_fim=datetime.now(UTC).strftime("%d/%m/%Y"),
                 )
 
                 contracts = loop.run_until_complete(api.get_contracts(filters=filters))
@@ -245,5 +245,5 @@ def auto_investigation_health_check() -> dict[str, Any]:
         return {
             "status": "unhealthy",
             "error": str(e),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }

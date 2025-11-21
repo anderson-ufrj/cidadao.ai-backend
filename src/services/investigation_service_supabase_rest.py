@@ -95,12 +95,12 @@ class InvestigationServiceSupabaseRest:
             raise ValueError(f"Investigation {investigation_id} not found")
 
         # Update to processing status
-        from datetime import datetime
+        from datetime import UTC, datetime
 
         await supabase.update_investigation(
             investigation_id,
             status="processing",
-            started_at=datetime.utcnow().isoformat(),
+            started_at=datetime.now(UTC).isoformat(),
             progress=0.1,
             current_phase="initializing",
         )

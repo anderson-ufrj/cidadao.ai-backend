@@ -11,7 +11,7 @@ This service provides:
 import asyncio
 import hashlib
 import zlib  # For compression
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from functools import wraps
 from typing import Any, Optional
@@ -279,7 +279,7 @@ class CacheService:
         # Store response with metadata
         cache_data = {
             "response": response,
-            "cached_at": datetime.utcnow().isoformat(),
+            "cached_at": datetime.now(UTC).isoformat(),
             "hit_count": 0,
         }
 
@@ -307,7 +307,7 @@ class CacheService:
     async def save_session_state(self, session_id: str, state: dict[str, Any]) -> bool:
         """Save session state to cache."""
         key = self._generate_key("session", session_id)
-        state["last_updated"] = datetime.utcnow().isoformat()
+        state["last_updated"] = datetime.now(UTC).isoformat()
         return await self.set(key, state, self.TTL_SESSION, compress=True)
 
     async def get_session_state(self, session_id: str) -> Optional[dict[str, Any]]:
@@ -368,7 +368,7 @@ class CacheService:
         cache_data = {
             "results": results,
             "count": len(results),
-            "cached_at": datetime.utcnow().isoformat(),
+            "cached_at": datetime.now(UTC).isoformat(),
         }
 
         return await self.set(key, cache_data, self.TTL_SEARCH_RESULTS)

@@ -7,7 +7,7 @@ Date: 2025-10-22
 Target: Increase coverage from 23.23% to 80%+
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -54,21 +54,21 @@ class TestIntrusionDetection:
                 "dst_ip": "10.0.0.50",
                 "dst_port": 22,
                 "packets": 1000,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
             {
                 "src_ip": "192.168.1.100",
                 "dst_ip": "10.0.0.51",
                 "dst_port": 22,
                 "packets": 950,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
             {
                 "src_ip": "10.0.0.100",
                 "dst_ip": "10.0.0.50",
                 "dst_port": 80,
                 "packets": 100,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             },
         ]
 
@@ -93,7 +93,7 @@ class TestIntrusionDetection:
                 "dst_ip": "10.0.0.50",
                 "dst_port": 443,
                 "packets": 50,
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         ]
 
@@ -195,14 +195,14 @@ class TestUserBehaviorMonitoring:
         user_activities = [
             {
                 "user_id": "user123",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "action_type": "read",
                 "resource": "/api/documents/public",
                 "source_ip": "10.0.0.100",
             },
             {
                 "user_id": "user123",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "action_type": "read",
                 "resource": "/api/profile",
                 "source_ip": "10.0.0.100",
@@ -232,7 +232,7 @@ class TestUserBehaviorMonitoring:
             user_activities.append(
                 {
                     "user_id": "suspicious_user",
-                    "timestamp": (datetime.utcnow() - timedelta(minutes=i)).isoformat(),
+                    "timestamp": (datetime.now(UTC) - timedelta(minutes=i)).isoformat(),
                     "action_type": "failed_access",
                     "resource": "/admin/sensitive_data",
                     "source_ip": "192.168.1.200",
@@ -259,21 +259,21 @@ class TestUserBehaviorMonitoring:
         user_activities = [
             {
                 "user_id": "user_a",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "action_type": "read",
                 "resource": "/api/data",
                 "source_ip": "10.0.0.10",
             },
             {
                 "user_id": "user_b",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "action_type": "write",
                 "resource": "/api/data",
                 "source_ip": "10.0.0.20",
             },
             {
                 "user_id": "user_c",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "action_type": "delete",
                 "resource": "/api/data",
                 "source_ip": "10.0.0.30",

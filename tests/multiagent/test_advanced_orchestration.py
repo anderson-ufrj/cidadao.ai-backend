@@ -4,7 +4,7 @@ Tests complex coordination patterns, failure handling, and performance.
 """
 
 import asyncio
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock
 from uuid import uuid4
 
@@ -40,7 +40,7 @@ def orchestration_context():
         session_id=str(uuid4()),
         metadata={
             "test_type": "orchestration",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         },
     )
 
@@ -327,7 +327,7 @@ class TestAdvancedOrchestration:
                     metadata={},
                 )
 
-                start_time = datetime.utcnow()
+                start_time = datetime.now(UTC)
                 try:
                     response = await agent.process(message, orchestration_context)
                     if response.success:
@@ -335,7 +335,7 @@ class TestAdvancedOrchestration:
                 except Exception:  # noqa: S110
                     pass  # Expected failures in performance monitoring
 
-                elapsed = (datetime.utcnow() - start_time).total_seconds()
+                elapsed = (datetime.now(UTC) - start_time).total_seconds()
                 stats["response_times"].append(elapsed)
 
             stats["success_rate"] = success_count / stats["total_requests"]

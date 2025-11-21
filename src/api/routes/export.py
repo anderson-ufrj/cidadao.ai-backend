@@ -6,7 +6,7 @@ Date: 2025-01-25
 License: Proprietary - All rights reserved
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 from uuid import uuid4
 
@@ -968,7 +968,7 @@ async def export_time_series_data(
             last_time = (
                 time_series_data.time_points[-1]
                 if time_series_data.time_points
-                else datetime.utcnow()
+                else datetime.now(UTC)
             )
 
             forecast_labels = []

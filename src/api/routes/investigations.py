@@ -7,7 +7,7 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Optional
 from uuid import uuid4
 
@@ -200,7 +200,7 @@ async def start_investigation(
         "filters": request.filters,
         "anomaly_types": request.anomaly_types,
         "user_id": user_id,  # Use the same user_id as database
-        "started_at": datetime.utcnow(),
+        "started_at": datetime.now(UTC),
         "progress": 0.0,
         "current_phase": "initializing",
         "records_processed": 0,
@@ -269,7 +269,7 @@ async def stream_investigation_results(
                     "current_phase": current_investigation["current_phase"],
                     "records_processed": current_investigation["records_processed"],
                     "anomalies_detected": current_investigation["anomalies_detected"],
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
                 yield f"data: {json_utils.dumps(update_data)}\n\n"
                 last_update = current_investigation["progress"]
@@ -283,7 +283,7 @@ async def stream_investigation_results(
                     "type": "anomaly",
                     "investigation_id": investigation_id,
                     "result": result,
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
                 yield f"data: {json_utils.dumps(result_data)}\n\n"
 
@@ -299,7 +299,7 @@ async def stream_investigation_results(
                     "investigation_id": investigation_id,
                     "status": current_investigation["status"],
                     "total_anomalies": len(current_investigation["results"]),
-                    "timestamp": datetime.utcnow().isoformat(),
+                    "timestamp": datetime.now(UTC).isoformat(),
                 }
                 yield f"data: {json_utils.dumps(completion_data)}\n\n"
                 break
@@ -456,7 +456,7 @@ async def cancel_investigation(
 
     # Mark as cancelled
     investigation["status"] = "cancelled"
-    investigation["completed_at"] = datetime.utcnow()
+    investigation["completed_at"] = datetime.now(UTC)
 
     logger.info(
         "investigation_cancelled",
@@ -474,7 +474,7 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
     This function runs the actual anomaly detection using InvestigatorAgent.
     """
     investigation = _active_investigations[investigation_id]
-    start_time = datetime.utcnow()
+    start_time = datetime.now(UTC)
 
     try:
         # Update status
@@ -618,7 +618,7 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
 
         # Mark as completed
         investigation["status"] = "completed"
-        investigation["completed_at"] = datetime.utcnow()
+        investigation["completed_at"] = datetime.now(UTC)
         investigation["progress"] = 1.0
         investigation["current_phase"] = "completed"
 
@@ -651,7 +651,7 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
             )
 
         # Calculate duration
-        duration = (datetime.utcnow() - start_time).total_seconds()
+        duration = (datetime.now(UTC) - start_time).total_seconds()
 
         logger.info(
             "investigation_completed",
@@ -685,7 +685,7 @@ async def _run_investigation(investigation_id: str, request: InvestigationReques
         )
 
         investigation["status"] = "failed"
-        investigation["completed_at"] = datetime.utcnow()
+        investigation["completed_at"] = datetime.now(UTC)
         investigation["current_phase"] = "failed"
         investigation["error"] = str(e)
 
@@ -803,7 +803,7 @@ async def create_public_investigation(
             "user_id": SYSTEM_AUTO_MONITOR_USER_ID,
             "system_created": True,
             "system_name": request.system_name,
-            "started_at": datetime.utcnow(),
+            "started_at": datetime.now(UTC),
             "progress": 0.0,
             "current_phase": "initializing",
             "records_processed": 0,
@@ -1005,7 +1005,7 @@ async def public_health_check():
 
         return {
             "status": "healthy" if test_success else "degraded",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "system_user_configured": bool(SYSTEM_AUTO_MONITOR_USER_ID),
             "investigation_service_available": test_success,
             "active_investigations": len(_active_investigations),
@@ -1015,5 +1015,5 @@ async def public_health_check():
         return {
             "status": "unhealthy",
             "error": str(e),
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
         }

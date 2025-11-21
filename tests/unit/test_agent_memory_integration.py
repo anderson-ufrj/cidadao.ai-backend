@@ -2,7 +2,7 @@
 Unit tests for Agent Memory Integration Service
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -240,21 +240,21 @@ class TestAgentMemoryIntegration:
         memory_integration.access_log = [
             {
                 "agent_id": "zumbi",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC),
                 "query": "test1",
                 "memories_retrieved": 5,
                 "tags": ["anomaly"],
             },
             {
                 "agent_id": "zumbi",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC),
                 "query": "test2",
                 "memories_retrieved": 3,
                 "tags": ["anomaly"],
             },
             {
                 "agent_id": "oxossi",
-                "timestamp": datetime.utcnow(),
+                "timestamp": datetime.now(UTC),
                 "query": "test3",
                 "memories_retrieved": 7,
                 "tags": ["fraud"],

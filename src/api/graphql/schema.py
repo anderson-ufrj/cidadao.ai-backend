@@ -5,7 +5,7 @@ This module defines the GraphQL schema with types, queries, mutations,
 and subscriptions for efficient data fetching.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Optional
 
 import strawberry
@@ -291,7 +291,7 @@ class Query:
                         agent_data["avg_usage"] * agent_data["total"] * 0.05
                     ),
                     avg_response_time_ms=500.0,  # Placeholder
-                    last_active=datetime.utcnow(),
+                    last_active=datetime.now(UTC),
                 )
             )
 
@@ -356,7 +356,7 @@ class Mutation:
             role="assistant",
             content=response.message,
             agent_name=response.agent_name,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
         )
 
     @strawberry.mutation
@@ -376,7 +376,7 @@ class Mutation:
             status="cancelled",
             confidence_score=investigation.confidence_score,
             created_at=investigation.created_at,
-            completed_at=datetime.utcnow(),
+            completed_at=datetime.now(UTC),
             processing_time_ms=investigation.processing_time_ms,
         )
 
@@ -438,7 +438,7 @@ class Subscription:
                         agent_data["avg_usage"] * agent_data["total"] * 0.05
                     ),
                     avg_response_time_ms=500.0,
-                    last_active=datetime.utcnow(),
+                    last_active=datetime.now(UTC),
                 )
 
 
@@ -447,10 +447,10 @@ class PerformanceExtension(Extension):
     """Track GraphQL query performance."""
 
     async def on_request_start(self):
-        self.start_time = datetime.utcnow()
+        self.start_time = datetime.now(UTC)
 
     async def on_request_end(self):
-        duration = (datetime.utcnow() - self.start_time).total_seconds() * 1000
+        duration = (datetime.now(UTC) - self.start_time).total_seconds() * 1000
         logger.info(f"GraphQL request completed in {duration:.2f}ms")
 
 

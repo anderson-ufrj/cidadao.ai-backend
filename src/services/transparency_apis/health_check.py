@@ -10,7 +10,7 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 from typing import Any, Optional
 
@@ -52,7 +52,7 @@ class HealthCheckResult:
         self.status = status
         self.response_time = response_time
         self.error = error
-        self.checked_at = datetime.utcnow()
+        self.checked_at = datetime.now(UTC)
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
@@ -111,10 +111,10 @@ class HealthMonitor:
             )
 
         # Perform health check
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
         try:
             is_healthy = await client.test_connection()
-            end_time = datetime.utcnow()
+            end_time = datetime.now(UTC)
             response_time = (end_time - start_time).total_seconds()
 
             # Cache result
@@ -127,7 +127,7 @@ class HealthMonitor:
             )
 
         except Exception as e:
-            end_time = datetime.utcnow()
+            end_time = datetime.now(UTC)
             response_time = (end_time - start_time).total_seconds()
 
             result = HealthCheckResult(
@@ -283,7 +283,7 @@ class HealthMonitor:
                 "details": api_details,
             },
             "metadata": {
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
                 "total_apis": total_apis,
                 "healthy_count": len(healthy_apis),
                 "degraded_count": len(degraded_apis),
@@ -305,7 +305,7 @@ class HealthMonitor:
         Returns:
             History dictionary
         """
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
 
         if api_key:
             history = self._history.get(api_key, [])

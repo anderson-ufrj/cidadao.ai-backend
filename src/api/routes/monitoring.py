@@ -5,7 +5,7 @@ This module provides comprehensive monitoring capabilities including
 dependency health checks, SLO compliance, and alerting.
 """
 
-from datetime import datetime, timedelta
+from datetime import UTC, datetime, timedelta
 from typing import Any, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -66,7 +66,7 @@ async def get_health_status():
         # Basic response for load balancers
         return {
             "status": overall_status.value,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "healthy": overall_status == HealthStatus.HEALTHY,
         }
 
@@ -74,7 +74,7 @@ async def get_health_status():
         logger.error(f"Health check failed: {e}")
         return {
             "status": "unhealthy",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "healthy": False,
             "error": "Health check system failure",
         }
@@ -199,7 +199,7 @@ async def trigger_health_check(
             return {
                 "dependency_name": dependency_name,
                 "result": result.to_dict(),
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
         else:
             # Check all dependencies
@@ -209,7 +209,7 @@ async def trigger_health_check(
             return {
                 "overall_status": overall_status.value,
                 "results": {name: result.to_dict() for name, result in results.items()},
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(UTC).isoformat(),
             }
 
     except HTTPException:
@@ -341,7 +341,7 @@ async def record_slo_metric(
 
         return {
             "message": f"Metric recorded for SLO '{request.slo_name}'",
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "value": request.value,
             "success": request.success,
         }
@@ -389,7 +389,7 @@ async def get_slo_violations(
         List of SLO violations with details
     """
     try:
-        cutoff_time = datetime.utcnow() - timedelta(hours=hours)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=hours)
         all_violations = []
 
         for slo_name, violations in slo_monitor.violations.items():
@@ -538,7 +538,7 @@ async def get_monitoring_dashboard_summary(current_user=Depends(get_current_user
 
         # Get recent violations
         recent_violations = []
-        cutoff_time = datetime.utcnow() - timedelta(hours=1)
+        cutoff_time = datetime.now(UTC) - timedelta(hours=1)
 
         for slo_name, violations in slo_monitor.violations.items():
             for violation in violations:
@@ -566,7 +566,7 @@ async def get_monitoring_dashboard_summary(current_user=Depends(get_current_user
         )
 
         return {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "system_health": {
                 "overall_status": overall_health.value,
                 "dependency_health_score": dependency_health_score,

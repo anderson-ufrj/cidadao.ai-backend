@@ -7,7 +7,7 @@ optimized separately from write operations.
 
 import uuid
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Generic, Optional, TypeVar
 
 from pydantic import BaseModel, Field
@@ -146,7 +146,7 @@ class GetInvestigationByIdHandler(
         self, query: GetInvestigationByIdQuery
     ) -> QueryResult[dict[str, Any]]:
         """Get investigation by ID."""
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
 
         try:
             # Check cache if enabled
@@ -160,7 +160,7 @@ class GetInvestigationByIdHandler(
 
                 if cached_result is not None:
                     execution_time = (
-                        datetime.utcnow() - start_time
+                        datetime.now(UTC) - start_time
                     ).total_seconds() * 1000
 
                     return QueryResult(
@@ -174,7 +174,7 @@ class GetInvestigationByIdHandler(
             # Fetch from database
             result = await self._fetch_investigation(query)
 
-            execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+            execution_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
 
             return QueryResult(
                 success=True,
@@ -190,7 +190,7 @@ class GetInvestigationByIdHandler(
                 success=False,
                 query_id=query.query_id,
                 error=str(e),
-                execution_time_ms=(datetime.utcnow() - start_time).total_seconds()
+                execution_time_ms=(datetime.now(UTC) - start_time).total_seconds()
                 * 1000,
             )
 
@@ -223,13 +223,13 @@ class SearchInvestigationsHandler(
         self, query: SearchInvestigationsQuery
     ) -> QueryResult[list[dict[str, Any]]]:
         """Search investigations."""
-        start_time = datetime.utcnow()
+        start_time = datetime.now(UTC)
 
         try:
             # Build query based on filters
             results = await self._search_investigations(query)
 
-            execution_time = (datetime.utcnow() - start_time).total_seconds() * 1000
+            execution_time = (datetime.now(UTC) - start_time).total_seconds() * 1000
 
             return QueryResult(
                 success=True,
@@ -249,7 +249,7 @@ class SearchInvestigationsHandler(
                 success=False,
                 query_id=query.query_id,
                 error=str(e),
-                execution_time_ms=(datetime.utcnow() - start_time).total_seconds()
+                execution_time_ms=(datetime.now(UTC) - start_time).total_seconds()
                 * 1000,
             )
 
@@ -264,7 +264,7 @@ class SearchInvestigationsHandler(
                 "id": f"inv-{i}",
                 "query": f"Investigation {i}",
                 "status": "completed",
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(UTC).isoformat(),
             }
             for i in range(min(query.limit, 5))
         ]
@@ -425,7 +425,7 @@ class PerformanceMiddleware(QueryMiddleware):
     async def before_execute(self, query: Query) -> Query:
         """Mark query start time."""
         query.metadata = query.metadata or {}
-        query.metadata["start_time"] = datetime.utcnow()
+        query.metadata["start_time"] = datetime.now(UTC)
         return query
 
     async def after_execute(self, query: Query, result: QueryResult) -> QueryResult:
