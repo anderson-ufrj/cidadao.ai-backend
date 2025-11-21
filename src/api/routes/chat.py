@@ -284,6 +284,20 @@ async def send_message(
                 def __init__(self, type, confidence):
                     self.type = type
                     self.confidence = confidence
+                    # Map intent type to suggested agent
+                    self.suggested_agent = self._get_suggested_agent(type)
+
+                def _get_suggested_agent(self, intent_type):
+                    """Map intent type to suggested agent"""
+                    agent_mapping = {
+                        IntentType.INVESTIGATE: "zumbi",
+                        IntentType.QUESTION: "anita",
+                        IntentType.REPORT: "tiradentes",
+                        IntentType.DATA: "oxossi",
+                        IntentType.SEARCH: "oxossi",
+                        IntentType.HELP: "drummond",
+                    }
+                    return agent_mapping.get(intent_type, "zumbi")
 
             intent = Intent(intent_type, confidence)
         except Exception as e:
@@ -294,6 +308,20 @@ async def send_message(
                 def __init__(self, type, confidence):
                     self.type = type
                     self.confidence = confidence
+                    # Map intent type to suggested agent
+                    self.suggested_agent = self._get_suggested_agent(type)
+
+                def _get_suggested_agent(self, intent_type):
+                    """Map intent type to suggested agent"""
+                    agent_mapping = {
+                        IntentType.INVESTIGATE: "zumbi",
+                        IntentType.QUESTION: "anita",
+                        IntentType.REPORT: "tiradentes",
+                        IntentType.DATA: "oxossi",
+                        IntentType.SEARCH: "oxossi",
+                        IntentType.HELP: "drummond",
+                    }
+                    return agent_mapping.get(intent_type, "zumbi")
 
             intent = Intent(IntentType.INVESTIGATE, 0.5)
 
@@ -966,6 +994,20 @@ async def stream_message(request: ChatRequest):
                     def __init__(self, type, confidence):
                         self.type = type
                         self.confidence = confidence
+                        # Map intent type to suggested agent
+                        self.suggested_agent = self._get_suggested_agent(type)
+
+                    def _get_suggested_agent(self, intent_type):
+                        """Map intent type to suggested agent"""
+                        agent_mapping = {
+                            IntentType.INVESTIGATE: "zumbi",
+                            IntentType.QUESTION: "anita",
+                            IntentType.REPORT: "tiradentes",
+                            IntentType.DATA: "oxossi",
+                            IntentType.SEARCH: "oxossi",
+                            IntentType.HELP: "drummond",
+                        }
+                        return agent_mapping.get(intent_type, "zumbi")
 
                 intent = Intent(intent_type, confidence)
             except Exception as e:
@@ -975,6 +1017,20 @@ async def stream_message(request: ChatRequest):
                     def __init__(self, type, confidence):
                         self.type = type
                         self.confidence = confidence
+                        # Map intent type to suggested agent
+                        self.suggested_agent = self._get_suggested_agent(type)
+
+                    def _get_suggested_agent(self, intent_type):
+                        """Map intent type to suggested agent"""
+                        agent_mapping = {
+                            IntentType.INVESTIGATE: "zumbi",
+                            IntentType.QUESTION: "anita",
+                            IntentType.REPORT: "tiradentes",
+                            IntentType.DATA: "oxossi",
+                            IntentType.SEARCH: "oxossi",
+                            IntentType.HELP: "drummond",
+                        }
+                        return agent_mapping.get(intent_type, "zumbi")
 
                 intent = Intent(IntentType.INVESTIGATE, 0.5)
 
