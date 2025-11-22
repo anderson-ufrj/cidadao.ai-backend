@@ -416,3 +416,41 @@ ROADMAP_MELHORIAS_2025.md
 local-archive/
 # Note: docs/archive/ is versioned, *-archive/ pattern removed to allow it
 coverage_output.txt
+
+# Test report files (temporary test output)
+failing_tests_report.txt
+test_report*.txt
+*_report.txt
+
+# Python cache and compiled files
+*.pyc
+**/__pycache__/
+
+# Editor temporary files
+*.swp
+*.swo
+*~
+.*.swp
+.*.swo
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Coverage reports
+.coverage
+htmlcov/
+coverage.xml
+*.cover
+
+# IDE-specific files (comprehensive)
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
