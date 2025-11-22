@@ -354,7 +354,7 @@ class TestOxossiAgent:
 
     @pytest.mark.asyncio
     async def test_error_handling(self, agent, agent_context):
-        """Test error handling for invalid data."""
+        """Test graceful handling of empty data."""
         # No data provided
         message = AgentMessage(
             sender="test",
@@ -365,8 +365,10 @@ class TestOxossiAgent:
 
         response = await agent.process(message, agent_context)
 
-        assert response.status == AgentStatus.ERROR
-        assert response.error is not None
+        # Agent returns COMPLETED with informative message instead of ERROR
+        assert response.status == AgentStatus.COMPLETED
+        assert response.result["message"] is not None
+        assert "suggestion" in response.result
 
     @pytest.mark.asyncio
     async def test_hunt_specific_fraud_type(
