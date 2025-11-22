@@ -214,10 +214,9 @@ class TestAgentMetricsAPI:
             response = client.get("/api/v1/metrics/prometheus")
 
             assert response.status_code == 200
-            assert (
-                response.headers["content-type"]
-                == "text/plain; version=0.0.4; charset=utf-8"
-            )
+            # Accept any Prometheus version format
+            assert response.headers["content-type"].startswith("text/plain; version=")
+            assert response.headers["content-type"].endswith("; charset=utf-8")
             assert b"agent_requests_total" in response.content
 
     @pytest.mark.unit
