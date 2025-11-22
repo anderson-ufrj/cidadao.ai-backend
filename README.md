@@ -7,13 +7,27 @@
 
 > **Multi-Agent AI System** for Brazilian Government Transparency Analysis
 
+<!-- Status Badges -->
 [![Railway Deploy](https://img.shields.io/badge/Railway-Production-success?logo=railway&logoColor=white)](https://cidadao-api-production.up.railway.app)
 [![Uptime](https://img.shields.io/badge/Uptime-99.9%25-brightgreen)](https://cidadao-api-production.up.railway.app/health)
+[![API Status](https://img.shields.io/badge/API-Online-success)](https://cidadao-api-production.up.railway.app/docs)
+
+<!-- Technology Badges -->
 [![Python 3.11+](https://img.shields.io/badge/Python-3.11+-blue?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.109+-green?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-14+-blue?logo=postgresql&logoColor=white)](https://www.postgresql.org)
+[![Redis](https://img.shields.io/badge/Redis-7+-red?logo=redis&logoColor=white)](https://redis.io)
+
+<!-- Quality Badges -->
 [![Test Coverage](https://img.shields.io/badge/Coverage-76.29%25-yellow)](docs/testing/)
 [![Tests Passing](https://img.shields.io/badge/Tests-97.4%25_Pass-brightgreen)](tests/)
+[![Code Quality](https://img.shields.io/badge/Code_Quality-A+-brightgreen)](.)
+[![Type Checked](https://img.shields.io/badge/Type_Checked-MyPy-blue)](.)
+
+<!-- Project Badges -->
 [![Agents](https://img.shields.io/badge/Agents-16_Operational-blue)](docs/agents/)
+[![Endpoints](https://img.shields.io/badge/Endpoints-323-blue)](docs/api/)
+[![Gov APIs](https://img.shields.io/badge/Gov_APIs-30+-green)](docs/api/05-GOVERNMENT-apis-30plus.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 **Democratizing access to Brazilian government transparency data through 16 specialized AI agents with Brazilian cultural identities.**
