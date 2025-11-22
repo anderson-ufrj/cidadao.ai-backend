@@ -34,7 +34,7 @@
 | **Backend Readiness** | ✅ 100% | All must-have criteria met |
 | **Frontend** | ✅ 90% | Deployed on Vercel, chat working |
 | **Integration** | ✅ 85% | End-to-end functional |
-| **Test Coverage** | ✅ 76.29% | 1,514 tests, 97.4% pass rate |
+| **Test Coverage** | ✅ 76.29% | 1,514 tests, 97.4% pass rate (1,474 passing) |
 | **E2E Tests** | ✅ 5/5 | 100% passing |
 | **Smoke Tests** | ✅ 6/6 | Production validated |
 | **Performance** | ✅ Excellent | 0.6s avg response time |
@@ -234,8 +234,8 @@ User Query → Intent Detection → Entity Extraction → Execution Planning
 ### Test Statistics
 
 - **Total Tests**: 1,514
-- **Test Files**: 98
-- **Pass Rate**: 97.4% (1,474 passing, 40 failing)
+- **Test Files**: 135
+- **Pass Rate**: 97.4% (1,474 passing, 40 failing, 34 fixed recently)
 - **Coverage**: 76.29% (target: 75%+)
 - **E2E Tests**: 5/5 passing (100%)
 - **Smoke Tests**: 6/6 operational
