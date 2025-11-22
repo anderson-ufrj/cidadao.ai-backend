@@ -8,6 +8,8 @@
 > **Multi-Agent AI System** for Brazilian Government Transparency Analysis
 
 <!-- Status Badges -->
+[![CI/CD Pipeline](https://github.com/anderson-ufrj/cidadao.ai-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/anderson-ufrj/cidadao.ai-backend/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/anderson-ufrj/cidadao.ai-backend/branch/main/graph/badge.svg)](https://codecov.io/gh/anderson-ufrj/cidadao.ai-backend)
 [![Railway Deploy](https://img.shields.io/badge/Railway-Production-success?logo=railway&logoColor=white)](https://cidadao-api-production.up.railway.app)
 [![Uptime](https://img.shields.io/badge/Uptime-99.9%25-brightgreen)](https://cidadao-api-production.up.railway.app/health)
 [![API Status](https://img.shields.io/badge/API-Online-success)](https://cidadao-api-production.up.railway.app/docs)
@@ -19,10 +21,10 @@
 [![Redis](https://img.shields.io/badge/Redis-7+-red?logo=redis&logoColor=white)](https://redis.io)
 
 <!-- Quality Badges -->
-[![Test Coverage](https://img.shields.io/badge/Coverage-76.29%25-yellow)](docs/testing/)
-[![Tests Passing](https://img.shields.io/badge/Tests-97.4%25_Pass-brightgreen)](tests/)
 [![Code Quality](https://img.shields.io/badge/Code_Quality-A+-brightgreen)](.)
 [![Type Checked](https://img.shields.io/badge/Type_Checked-MyPy-blue)](.)
+[![Security](https://img.shields.io/badge/Security-Bandit-yellow)](.)
+[![Pre-commit](https://img.shields.io/badge/Pre--commit-Enabled-brightgreen)](https://github.com/pre-commit/pre-commit)
 
 <!-- Project Badges -->
 [![Agents](https://img.shields.io/badge/Agents-16_Operational-blue)](docs/agents/)
