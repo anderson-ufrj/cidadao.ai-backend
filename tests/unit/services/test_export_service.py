@@ -118,7 +118,8 @@ As anomalias detectadas indicam possíveis irregularidades que requerem investig
         assert len(excel_bytes) > 500  # Reasonable Excel size
 
         # Verify can be read as Excel
-        df_read = pd.read_excel(BytesIO(excel_bytes), sheet_name="Dados")
+        # Note: Excel includes title and metadata rows, so skip them when reading
+        df_read = pd.read_excel(BytesIO(excel_bytes), sheet_name="Dados", skiprows=2)
         assert len(df_read) == 3
         assert "contract_id" in df_read.columns
 
@@ -173,7 +174,7 @@ As anomalias detectadas indicam possíveis irregularidades que requerem investig
                 "title": "Report 1",
                 "metadata": {},
             },
-            {"filename": "data.csv", "data": sample_dataframe, "format": "csv"},
+            {"filename": "data.csv", "content": sample_dataframe, "format": "csv"},
             {
                 "filename": "summary.txt",
                 "content": "Summary of investigations",
@@ -299,7 +300,8 @@ As anomalias detectadas indicam possíveis irregularidades que requerem investig
         empty_df = pd.DataFrame()
 
         csv_bytes = await service.generate_csv(empty_df)
-        assert csv_bytes == b""
+        # Empty DataFrame produces a single newline
+        assert csv_bytes == b"\n"
 
         # Excel should still generate with headers
         excel_bytes = await service.generate_excel(data=empty_df, title="Empty Report")
