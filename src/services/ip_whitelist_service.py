@@ -129,6 +129,7 @@ class IPWhitelistService:
             is_cidr=is_cidr,
             cidr_prefix=cidr_prefix,
             meta_info=meta_info or {},
+            active=True,  # Explicitly set default for testing
         )
 
         session.add(entry)
