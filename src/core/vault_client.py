@@ -68,7 +68,7 @@ class SecretEntry:
     value: Any
     created_at: datetime
     ttl: int
-    last_accessed: datetime = field(default_factory=datetime.utcnow)
+    last_accessed: datetime = field(default_factory=lambda: datetime.now(UTC))
     access_count: int = field(default=0)
 
     @property
