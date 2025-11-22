@@ -2,11 +2,10 @@
 Unit tests for WebSocket endpoints and connection management.
 """
 
-import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from fastapi import WebSocket, WebSocketDisconnect
+from fastapi import WebSocket
 from fastapi.testclient import TestClient
 
 from src.api.app import app
@@ -262,7 +261,7 @@ class TestWebSocketEndpoints:
                 # Should fail authentication
                 pass
 
-    @patch("src.api.routes.websocket.verify_token")
+    @patch("src.api.routes.auth.verify_token")
     def test_websocket_connection_with_valid_token(
         self, mock_verify_token, test_client
     ):
@@ -283,7 +282,7 @@ class TestWebSocketEndpoints:
             # WebSocket testing with TestClient can be flaky
             pass
 
-    @patch("src.api.routes.websocket.verify_token")
+    @patch("src.api.routes.auth.verify_token")
     def test_investigation_websocket(self, mock_verify_token, test_client):
         """Test investigation-specific WebSocket endpoint."""
         mock_verify_token.return_value = {"sub": "user123"}
