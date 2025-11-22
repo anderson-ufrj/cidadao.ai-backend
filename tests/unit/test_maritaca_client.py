@@ -75,18 +75,18 @@ class TestMaritacaClient:
         # Default initialization
         client = MaritacaClient(api_key=mock_api_key)
         assert client.api_key == mock_api_key
-        assert client.default_model == MaritacaModel.SABIAZINHO_3
+        assert client.default_model == MaritacaModel.SABIA_3_1
         assert client.timeout == 60
         assert client.max_retries == 3
 
         # Custom initialization
         custom_client = MaritacaClient(
             api_key=mock_api_key,
-            model=MaritacaModel.SABIA_3_LARGE,
+            model=MaritacaModel.SABIA_3,
             timeout=30,
             max_retries=5,
         )
-        assert custom_client.default_model == MaritacaModel.SABIA_3_LARGE
+        assert custom_client.default_model == MaritacaModel.SABIA_3
         assert custom_client.timeout == 30
         assert custom_client.max_retries == 5
 
@@ -191,7 +191,7 @@ class TestMaritacaClient:
         with patch.object(maritaca_client.client, "post") as mock_post:
             mock_post.side_effect = Exception("Connection failed")
 
-            for i in range(maritaca_client._circuit_breaker_threshold):
+            for _ in range(maritaca_client._circuit_breaker_threshold):
                 with pytest.raises(LLMError):
                     await maritaca_client.chat_completion(messages=sample_messages)
 
@@ -238,12 +238,12 @@ class TestMaritacaClient:
     def test_factory_function(self, mock_api_key):
         """Test factory function for client creation."""
         client = create_maritaca_client(
-            api_key=mock_api_key, model=MaritacaModel.SABIA_3_MEDIUM, timeout=45
+            api_key=mock_api_key, model=MaritacaModel.SABIAZINHO_3, timeout=45
         )
 
         assert isinstance(client, MaritacaClient)
         assert client.api_key == mock_api_key
-        assert client.default_model == MaritacaModel.SABIA_3_MEDIUM
+        assert client.default_model == MaritacaModel.SABIAZINHO_3
         assert client.timeout == 45
 
 
