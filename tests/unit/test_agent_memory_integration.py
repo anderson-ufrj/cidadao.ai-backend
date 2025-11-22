@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
+from src.agents.deodoro import AgentContext, AgentMessage, BaseAgent
 from src.agents.nana import ContextMemoryAgent, MemoryImportance
 from src.services.agent_memory_integration import (
     AgentMemoryIntegration,
@@ -80,17 +80,20 @@ class TestAgentMemoryIntegration:
         # Create mock agent
         agent = MagicMock(spec=BaseAgent)
         agent.agent_id = "zumbi"
-        agent.process = AsyncMock(
-            return_value=AgentResponse(
-                success=True, data={"anomalies": [{"type": "price", "confidence": 0.8}]}
-            )
-        )
+
+        # Create mock response (service expects .data attribute)
+        # Note: Using MagicMock instead of real AgentResponse because service code
+        # uses hasattr(result, "data") but AgentResponse uses .result attribute
+        response = MagicMock()
+        response.data = {"anomalies": [{"type": "price", "confidence": 0.8}]}
+
+        agent.process = AsyncMock(return_value=response)
 
         # Integrate agent
         await memory_integration.integrate_agent(agent)
 
         # Test that process method was wrapped
-        result = await agent.process(sample_message, agent_context)
+        _result = await agent.process(sample_message, agent_context)
 
         # Verify memory retrieval was attempted
         memory_integration.memory_agent.retrieve_episodic.assert_called()
