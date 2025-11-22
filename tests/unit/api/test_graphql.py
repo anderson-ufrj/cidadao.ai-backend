@@ -106,11 +106,16 @@ class TestGraphQLQueries:
             headers={"Authorization": "Bearer fake-token"},
         )
 
-        if response.status_code == 200:
-            data = response.json()
-            if "data" in data and data["data"]:
-                assert data["data"]["me"]["email"] == "test@example.com"
-                assert data["data"]["me"]["name"] == "Test User"
+        # GraphQL always returns 200, even for errors
+        assert response.status_code == 200
+        data = response.json()
+        assert "data" in data
+
+        # In development/test mode, auth may be bypassed and return None
+        # Test passes if either we get user data or None (development mode)
+        if data["data"] and data["data"]["me"]:
+            assert data["data"]["me"]["email"] == "test@example.com"
+            assert data["data"]["me"]["name"] == "Test User"
 
     @pytest.mark.unit
     @patch("src.services.investigation_service_selector.investigation_service")
