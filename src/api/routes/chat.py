@@ -37,13 +37,22 @@ logger = get_logger(__name__)
 
 # Import DSPy Agent Service for personality-based responses
 try:
-    from src.services.dspy_agents import get_dspy_agent_service
+    from src.services.dspy_agents import DSPY_IMPORT_ERROR, get_dspy_agent_service
 
     dspy_service = get_dspy_agent_service()
-    DSPY_AVAILABLE = True
-    logger.info("DSPy Agent Service loaded successfully")
+    # Check if DSPy is actually available and configured
+    DSPY_AVAILABLE = dspy_service.is_available() if dspy_service else False
+    if DSPY_AVAILABLE:
+        logger.info("DSPy Agent Service loaded successfully with full LLM support")
+    else:
+        logger.warning(
+            f"DSPy Agent Service loaded but not fully available: {DSPY_IMPORT_ERROR}"
+        )
 except Exception as e:
+    import traceback
+
     logger.warning(f"DSPy Agent Service not available: {e}")
+    logger.warning(f"DSPy import traceback: {traceback.format_exc()}")
     dspy_service = None
     DSPY_AVAILABLE = False
 
@@ -1079,8 +1088,8 @@ async def stream_message(request: ChatRequest):
                 yield f"data: {json_utils.dumps({'type': 'error', 'message': 'Serviço temporariamente indisponível', 'fallback_endpoint': '/api/v1/chat/message'})}\n\n"
                 return
 
-            agent_id = getattr(agent, 'agent_id', 'drummond')
-            agent_name = getattr(agent, 'name', 'Sistema')
+            agent_id = getattr(agent, "agent_id", "drummond")
+            agent_name = getattr(agent, "name", "Sistema")
 
             yield f"data: {json_utils.dumps({'type': 'agent_selected', 'agent_id': agent_id, 'agent_name': agent_name})}\n\n"
             await asyncio.sleep(0.2)
@@ -1094,7 +1103,7 @@ async def stream_message(request: ChatRequest):
                     agent_id=agent_id,
                     message=request.message,
                     intent_type=intent.type.value,
-                    context=""
+                    context="",
                 ):
                     if chunk_data.get("type") == "chunk":
                         yield f"data: {json_utils.dumps(chunk_data)}\n\n"

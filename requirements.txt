@@ -63,6 +63,10 @@ shap>=0.43.0
 mlflow>=2.9.0
 unidecode==1.3.7
 
+# DSPy for declarative LLM programming with agent personalities
+dspy-ai>=2.5.0
+litellm>=1.30.0
+
 # Google Cloud Voice APIs (Added 2025-10-30)
 google-cloud-texttospeech>=2.33.0
 google-cloud-speech>=2.34.0
