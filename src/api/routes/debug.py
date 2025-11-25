@@ -810,3 +810,217 @@ async def database_config() -> dict[str, Any]:
         result["connection_test"] = "❌ Connection failed"
 
     return result
+
+
+@router.get("/infrastructure-status")
+async def infrastructure_status() -> dict[str, Any]:
+    """
+    Check infrastructure status (Redis, Celery, Database).
+
+    Returns comprehensive status of all backend services.
+    """
+    result = {
+        "status": "checking",
+        "redis": {},
+        "celery": {},
+        "database": {},
+        "environment": {},
+    }
+
+    # Check environment
+    result["environment"] = {
+        "REDIS_URL_configured": bool(os.getenv("REDIS_URL")),
+        "DATABASE_URL_configured": bool(os.getenv("DATABASE_URL")),
+        "CELERY_BROKER_URL": os.getenv("CELERY_BROKER_URL", "Not set"),
+    }
+
+    # Check Redis
+    try:
+        import redis.asyncio as aioredis
+
+        from src.core import settings
+
+        redis_url = settings.redis_url
+        result["redis"]["url_preview"] = (
+            f"{redis_url[:20]}..." if len(redis_url) > 20 else redis_url
+        )
+
+        client = aioredis.from_url(redis_url, decode_responses=True)
+        ping_result = await client.ping()
+        await client.close()
+
+        result["redis"]["status"] = "✅ Connected" if ping_result else "❌ No response"
+        result["redis"]["ping"] = ping_result
+
+    except Exception as e:
+        result["redis"]["status"] = "❌ Failed"
+        result["redis"]["error"] = str(e)
+        result["redis"]["type"] = type(e).__name__
+
+    # Check Celery
+    try:
+        from src.infrastructure.queue.celery_app import celery_app
+
+        # Try to inspect workers
+        inspect = celery_app.control.inspect()
+        active_workers = inspect.active()
+        registered_tasks = inspect.registered()
+
+        result["celery"]["broker_url"] = (
+            f"{celery_app.conf.broker_url[:30]}..."
+            if celery_app.conf.broker_url
+            else "Not configured"
+        )
+
+        if active_workers:
+            result["celery"]["status"] = "✅ Workers running"
+            result["celery"]["workers"] = list(active_workers.keys())
+            result["celery"]["active_tasks"] = sum(
+                len(tasks) for tasks in active_workers.values()
+            )
+        else:
+            result["celery"]["status"] = "⚠️ No workers detected"
+            result["celery"]["workers"] = []
+            result["celery"][
+                "note"
+            ] = "Celery workers are not running. Background tasks will not execute."
+
+        if registered_tasks:
+            result["celery"]["registered_tasks_count"] = sum(
+                len(tasks) for tasks in registered_tasks.values()
+            )
+
+    except Exception as e:
+        result["celery"]["status"] = "❌ Failed to connect"
+        result["celery"]["error"] = str(e)
+        result["celery"]["type"] = type(e).__name__
+        result["celery"][
+            "note"
+        ] = "Celery broker (Redis) may not be configured or accessible."
+
+    # Check Database (quick test)
+    try:
+        from sqlalchemy import text
+
+        from src.db.simple_session import _get_engine
+
+        engine = _get_engine()
+        async with engine.begin() as conn:
+            check_result = await conn.execute(text("SELECT 1"))
+            check_result.fetchone()
+
+        result["database"]["status"] = "✅ Connected"
+
+        # Quick investigation count
+        async with engine.begin() as conn:
+            count_result = await conn.execute(
+                text("SELECT COUNT(*) FROM investigations")
+            )
+            row = count_result.fetchone()
+            result["database"]["investigations_count"] = row[0] if row else 0
+
+            # Count stuck investigations
+            stuck_result = await conn.execute(
+                text(
+                    "SELECT COUNT(*) FROM investigations WHERE status = 'running' AND created_at < NOW() - INTERVAL '1 hour'"
+                )
+            )
+            stuck_row = stuck_result.fetchone()
+            result["database"]["stuck_investigations"] = (
+                stuck_row[0] if stuck_row else 0
+            )
+
+    except Exception as e:
+        result["database"]["status"] = "❌ Failed"
+        result["database"]["error"] = str(e)
+
+    # Overall status
+    all_ok = all(
+        "✅" in str(result.get(k, {}).get("status", ""))
+        for k in ["redis", "celery", "database"]
+    )
+
+    result["status"] = "✅ All systems operational" if all_ok else "⚠️ Issues detected"
+
+    return result
+
+
+@router.post("/fix-stuck-investigations")
+async def fix_stuck_investigations() -> dict[str, Any]:
+    """
+    Fix stuck investigations by marking old 'running' ones as 'failed'.
+
+    This is safe to run - only affects investigations stuck for >1 hour.
+    """
+    result = {
+        "status": "started",
+        "fixed_count": 0,
+        "fixed_ids": [],
+        "errors": [],
+    }
+
+    try:
+        from sqlalchemy import text
+
+        from src.db.simple_session import _get_engine
+
+        engine = _get_engine()
+
+        async with engine.begin() as conn:
+            # First, get stuck investigations
+            stuck_result = await conn.execute(
+                text(
+                    """
+                    SELECT id, query, created_at
+                    FROM investigations
+                    WHERE status = 'running'
+                    AND created_at < NOW() - INTERVAL '1 hour'
+                    """
+                )
+            )
+            stuck_rows = stuck_result.fetchall()
+
+            for row in stuck_rows:
+                result["fixed_ids"].append(
+                    {
+                        "id": row[0],
+                        "query": row[1][:50] if row[1] else "",
+                        "created_at": str(row[2]),
+                    }
+                )
+
+            # Update stuck investigations
+            update_result = await conn.execute(
+                text(
+                    """
+                    UPDATE investigations
+                    SET status = 'failed',
+                        error_message = 'Investigation timed out (stuck in running state for >1 hour)',
+                        completed_at = NOW()
+                    WHERE status = 'running'
+                    AND created_at < NOW() - INTERVAL '1 hour'
+                    RETURNING id
+                    """
+                )
+            )
+
+            result["fixed_count"] = update_result.rowcount
+
+        result["status"] = "completed"
+        result["message"] = (
+            f"Fixed {result['fixed_count']} stuck investigations"
+            if result["fixed_count"] > 0
+            else "No stuck investigations found"
+        )
+
+    except Exception as e:
+        result["status"] = "error"
+        result["errors"].append(
+            {
+                "error": str(e),
+                "type": type(e).__name__,
+                "traceback": traceback.format_exc(),
+            }
+        )
+
+    return result
