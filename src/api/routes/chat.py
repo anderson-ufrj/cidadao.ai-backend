@@ -223,7 +223,7 @@ class ChatRequest(BaseModel):
     context: Optional[dict[str, Any]] = None
     agent_id: Optional[str] = Field(
         None,
-        description="Force a specific agent (zumbi, anita, drummond, tiradentes, oxossi, dandara, machado, abaporu). If not provided, agent is auto-selected based on intent."
+        description="Force a specific agent (zumbi, anita, drummond, tiradentes, oxossi, dandara, machado, abaporu). If not provided, agent is auto-selected based on intent.",
     )
 
 
@@ -1089,6 +1089,14 @@ async def stream_message(request: ChatRequest):
                 "dandara": "Dandara dos Palmares",
                 "machado": "Machado de Assis",
                 "abaporu": "Abaporu",
+                "bonifacio": "José Bonifácio",
+                "maria_quiteria": "Maria Quitéria",
+                "lampiao": "Lampião",
+                "nana": "Nanã",
+                "ceuci": "Ceuci",
+                "obaluaie": "Obaluaiê",
+                "niemeyer": "Oscar Niemeyer",
+                "senna": "Ayrton Senna",
             }
 
             if request.agent_id and request.agent_id.lower() in valid_agents:
