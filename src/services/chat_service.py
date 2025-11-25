@@ -576,18 +576,21 @@ class ChatService:
                 AnalystAgent,
                 CommunicationAgent,
                 InvestigatorAgent,
-                MasterAgent,
                 ReporterAgent,
             )
 
-            # Create agent instances
+            # Create agent instances (MasterAgent requires special initialization)
+            # For chat service, we use the simpler agents that don't require
+            # external dependencies like maritaca_client
             agents = {
-                "abaporu": MasterAgent(),
                 "zumbi": InvestigatorAgent(),
                 "anita": AnalystAgent(),
                 "tiradentes": ReporterAgent(),
                 "drummond": CommunicationAgent(),
             }
+
+            # Use Drummond as the default/fallback agent (abaporu role)
+            agents["abaporu"] = agents["drummond"]
 
             # Add agent_id attribute to each agent
             for agent_id, agent in agents.items():
@@ -595,9 +598,12 @@ class ChatService:
 
             self.agents = agents
             self._agents_initialized = True
+            logger.info(f"Chat service agents initialized: {list(agents.keys())}")
 
         except Exception as e:
             logger.error(f"Failed to initialize agents: {type(e).__name__}: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
             # Create empty agents dict to prevent errors
             self.agents = {}
             self._agents_initialized = True
