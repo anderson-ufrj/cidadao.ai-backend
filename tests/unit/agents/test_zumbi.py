@@ -1184,11 +1184,13 @@ class TestZumbiErrorHandling:
                 query="test", date_range=("01/01/2024", "31/12/2024"), max_records=10
             )
 
-            # Should return empty list, not crash
+            # Should return demo contracts as fallback, not crash
             contracts = await zumbi_agent._fetch_investigation_data(request, context)
 
-            # Verify empty list returned
-            assert contracts == []
+            # Verify demo data returned as fallback
+            assert len(contracts) > 0
+            assert all(c.get("_demo") is True for c in contracts)
+            assert all("_demo_reason" in c for c in contracts)
 
             # Verify collector was called
             mock_collector.collect_contracts.assert_called_once()
@@ -1219,11 +1221,13 @@ class TestZumbiErrorHandling:
             context = AgentContext(investigation_id="test-all-errors")
             request = InvestigationRequest(query="test", max_records=10)
 
-            # Should handle gracefully
+            # Should handle gracefully and return demo contracts as fallback
             contracts = await zumbi_agent._fetch_investigation_data(request, context)
 
-            # Verify empty list returned
-            assert contracts == []
+            # Verify demo data returned as fallback when all sources fail
+            assert len(contracts) > 0
+            assert all(c.get("_demo") is True for c in contracts)
+            assert all("_demo_reason" in c for c in contracts)
 
             # Verify collector was called
             mock_collector.collect_contracts.assert_called_once()
