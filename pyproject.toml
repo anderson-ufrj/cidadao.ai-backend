@@ -50,6 +50,7 @@ dependencies = [
     "torch>=2.1.0",
     "faiss-cpu>=1.7.4",
     "chromadb>=0.4.22",
+    "dspy-ai>=2.5.0",  # DSPy for declarative LLM programming
 
     # ML/Data Science
     "scikit-learn>=1.3.2",

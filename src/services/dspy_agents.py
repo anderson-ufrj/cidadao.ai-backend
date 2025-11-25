@@ -1,0 +1,412 @@
+"""
+DSPy-based Agent Personalities for Cidadão.AI
+
+This module implements declarative LLM programming using DSPy framework,
+enabling agents to respond with their unique Brazilian cultural personalities.
+
+References:
+- DSPy Documentation: https://dspy.ai/
+- GitHub: https://github.com/stanfordnlp/dspy
+"""
+
+from typing import Any, Optional
+from enum import Enum
+
+import dspy
+
+from src.core import get_logger
+from src.core.config import get_settings
+
+logger = get_logger(__name__)
+settings = get_settings()
+
+
+# =============================================================================
+# Agent Personality Definitions
+# =============================================================================
+
+class AgentPersonality(Enum):
+    """Brazilian cultural agent personalities"""
+
+    ZUMBI = "zumbi"
+    ANITA = "anita"
+    TIRADENTES = "tiradentes"
+    DRUMMOND = "drummond"
+    DANDARA = "dandara"
+    MACHADO = "machado"
+    OXOSSI = "oxossi"
+    ABAPORU = "abaporu"
+
+
+AGENT_SYSTEM_PROMPTS = {
+    AgentPersonality.ZUMBI: """Você é Zumbi dos Palmares, o Investigador do Cidadão.AI.
+Sua personalidade: Corajoso, determinado, incansável na busca pela verdade.
+Especialidade: Detecção de anomalias, fraudes e irregularidades em dados governamentais.
+Tom: Direto, assertivo, comprometido com a transparência.
+História: Assim como liderei o Quilombo dos Palmares contra a opressão, hoje lidero investigações contra a corrupção.
+Sempre responda em português brasileiro, com determinação e foco na justiça.""",
+
+    AgentPersonality.ANITA: """Você é Anita Garibaldi, a Analista do Cidadão.AI.
+Sua personalidade: Estrategista brilhante, apaixonada, analítica mas humana.
+Especialidade: Análise de padrões, tendências e correlações em dados públicos.
+Tom: Inteligente, caloroso, didático ao explicar análises complexas.
+História: Como a "Heroína dos Dois Mundos" que lutou por liberdade, hoje analiso dados para libertar o cidadão da desinformação.
+Sempre responda em português brasileiro, com clareza e empatia.""",
+
+    AgentPersonality.TIRADENTES: """Você é Tiradentes, o Relator do Cidadão.AI.
+Sua personalidade: Idealista, eloquente, comprometido com a verdade.
+Especialidade: Geração de relatórios claros e acessíveis sobre dados governamentais.
+Tom: Formal mas acessível, patriótico, educativo.
+História: Assim como dei minha vida pela Inconfidência Mineira, dedico-me a informar o cidadão sobre seus direitos.
+Sempre responda em português brasileiro, com clareza e propósito cívico.""",
+
+    AgentPersonality.DRUMMOND: """Você é Carlos Drummond de Andrade, o Comunicador do Cidadão.AI.
+Sua personalidade: Poético, reflexivo, profundamente humano e acessível.
+Especialidade: Comunicação clara, tradução de dados técnicos em linguagem cidadã.
+Tom: Poético quando apropriado, sempre acessível, com toques de humor mineiro.
+História: Como poeta do cotidiano brasileiro, transformo números em histórias que o povo entende.
+Frases características: "E agora, José?" quando há problemas, "No meio do caminho tinha uma pedra" para obstáculos.
+Sempre responda em português brasileiro, com a alma de Itabira.""",
+
+    AgentPersonality.DANDARA: """Você é Dandara dos Palmares, a Guardiã da Justiça Social do Cidadão.AI.
+Sua personalidade: Guerreira, protetora, defensora da equidade.
+Especialidade: Análise de equidade social, inclusão e impacto de políticas públicas.
+Tom: Forte, empático, focado em justiça social.
+História: Como guerreira de Palmares que lutou ao lado de Zumbi, hoje luto por equidade nos dados públicos.
+Sempre responda em português brasileiro, com foco na justiça social.""",
+
+    AgentPersonality.MACHADO: """Você é Machado de Assis, o Analista Textual do Cidadão.AI.
+Sua personalidade: Perspicaz, irônico, genial observador da natureza humana.
+Especialidade: Análise de documentos, contratos e textos oficiais.
+Tom: Sofisticado, com ironia fina, observações perspicazes sobre a burocracia.
+História: Como o maior escritor brasileiro, leio nas entrelinhas dos documentos oficiais.
+Frases características: Use ironia refinada ao apontar contradições nos documentos.
+Sempre responda em português brasileiro, com a elegância de um bruxo do Cosme Velho.""",
+
+    AgentPersonality.OXOSSI: """Você é Oxóssi, o Caçador de Dados do Cidadão.AI.
+Sua personalidade: Perspicaz, paciente, certeiro como uma flecha.
+Especialidade: Busca e recuperação de dados em múltiplas fontes governamentais.
+Tom: Calmo, focado, preciso nas informações.
+História: Como o Orixá da caça e das florestas, rastreio dados escondidos nas selvas da burocracia.
+Sempre responda em português brasileiro, com a precisão de um caçador.""",
+
+    AgentPersonality.ABAPORU: """Você é Abaporu, o Orquestrador Master do Cidadão.AI.
+Sua personalidade: Visionário, integrador, síntese da cultura brasileira.
+Especialidade: Coordenação de investigações complexas usando múltiplos agentes.
+Tom: Reflexivo, artístico, conectando diferentes perspectivas.
+História: Como a obra-prima de Tarsila do Amaral que simboliza o Brasil, integro todas as vozes dos agentes.
+Sempre responda em português brasileiro, com visão holística.""",
+}
+
+
+# =============================================================================
+# DSPy Signatures
+# =============================================================================
+
+class AgentChat(dspy.Signature):
+    """
+    Agent responds to user message with their unique personality.
+    The response should be helpful, informative, and reflect the agent's character.
+    """
+
+    system_prompt: str = dspy.InputField(
+        desc="The agent's personality and role description"
+    )
+    user_message: str = dspy.InputField(
+        desc="The user's message or question"
+    )
+    conversation_context: str = dspy.InputField(
+        desc="Previous conversation context if any",
+        default=""
+    )
+    intent_type: str = dspy.InputField(
+        desc="The detected intent type (investigate, analyze, report, question, etc.)"
+    )
+
+    response: str = dspy.OutputField(
+        desc="The agent's response in Portuguese, reflecting their personality"
+    )
+
+
+class InvestigationAnalysis(dspy.Signature):
+    """
+    Agent analyzes data for investigation purposes.
+    """
+
+    system_prompt: str = dspy.InputField(
+        desc="The agent's personality and role"
+    )
+    data_description: str = dspy.InputField(
+        desc="Description of the data being analyzed"
+    )
+    analysis_type: str = dspy.InputField(
+        desc="Type of analysis requested (anomaly, pattern, correlation, etc.)"
+    )
+
+    findings: str = dspy.OutputField(
+        desc="Key findings from the analysis"
+    )
+    recommendations: str = dspy.OutputField(
+        desc="Recommendations based on the analysis"
+    )
+    confidence: float = dspy.OutputField(
+        desc="Confidence level of the analysis (0.0 to 1.0)"
+    )
+
+
+# =============================================================================
+# DSPy Agent Module
+# =============================================================================
+
+class DSPyAgentChat(dspy.Module):
+    """
+    DSPy module for agent chat responses with personality.
+    Uses Chain of Thought for more natural, reasoned responses.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.chat = dspy.ChainOfThought(AgentChat)
+
+    def forward(
+        self,
+        agent_personality: AgentPersonality,
+        user_message: str,
+        intent_type: str = "question",
+        conversation_context: str = ""
+    ) -> dspy.Prediction:
+        """
+        Generate agent response with personality.
+
+        Args:
+            agent_personality: The agent's personality enum
+            user_message: User's message
+            intent_type: Detected intent type
+            conversation_context: Previous conversation context
+
+        Returns:
+            DSPy Prediction with response
+        """
+        system_prompt = AGENT_SYSTEM_PROMPTS.get(
+            agent_personality,
+            AGENT_SYSTEM_PROMPTS[AgentPersonality.DRUMMOND]  # Default to Drummond
+        )
+
+        return self.chat(
+            system_prompt=system_prompt,
+            user_message=user_message,
+            intent_type=intent_type,
+            conversation_context=conversation_context
+        )
+
+
+# =============================================================================
+# DSPy Service
+# =============================================================================
+
+class DSPyAgentService:
+    """
+    Service for managing DSPy-based agent interactions.
+    Configures LLM and provides high-level API for chat.
+    """
+
+    _instance: Optional["DSPyAgentService"] = None
+    _initialized: bool = False
+
+    def __new__(cls) -> "DSPyAgentService":
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    def __init__(self):
+        if self._initialized:
+            return
+
+        self._configure_llm()
+        self.chat_module = DSPyAgentChat()
+        self._initialized = True
+        logger.info("DSPy Agent Service initialized")
+
+    def _configure_llm(self) -> None:
+        """Configure DSPy with Maritaca LLM via OpenAI-compatible API"""
+
+        # Get API key from settings (it's a SecretStr)
+        api_key_secret = settings.maritaca_api_key
+        api_key = api_key_secret.get_secret_value() if api_key_secret else None
+
+        if not api_key:
+            logger.warning("MARITACA_API_KEY not found, DSPy will use fallback")
+            # Configure with a mock for testing
+            self.lm = None
+            return
+
+        try:
+            # Maritaca uses OpenAI-compatible API
+            # Use openai/ prefix for LiteLLM to recognize it as OpenAI-compatible
+            self.lm = dspy.LM(
+                model="openai/sabia-3",
+                api_key=api_key,
+                api_base="https://chat.maritaca.ai/api",
+                temperature=0.7,
+                max_tokens=1024,
+            )
+            dspy.configure(lm=self.lm)
+            logger.info("DSPy configured with Maritaca LLM (sabia-3)")
+
+        except Exception as e:
+            logger.error(f"Failed to configure DSPy with Maritaca: {e}")
+            self.lm = None
+
+    async def chat(
+        self,
+        agent_id: str,
+        message: str,
+        intent_type: str = "question",
+        context: str = ""
+    ) -> dict[str, Any]:
+        """
+        Generate agent response using DSPy.
+
+        Args:
+            agent_id: Agent identifier (zumbi, anita, etc.)
+            message: User message
+            intent_type: Detected intent
+            context: Conversation context
+
+        Returns:
+            Dict with response and metadata
+        """
+        # Map agent_id to personality
+        try:
+            personality = AgentPersonality(agent_id.lower())
+        except ValueError:
+            personality = AgentPersonality.DRUMMOND  # Default
+
+        if self.lm is None:
+            # Fallback response without LLM
+            return self._fallback_response(personality, message, intent_type)
+
+        try:
+            result = self.chat_module(
+                agent_personality=personality,
+                user_message=message,
+                intent_type=intent_type,
+                conversation_context=context
+            )
+
+            return {
+                "response": result.response,
+                "agent_id": agent_id,
+                "agent_name": self._get_agent_name(personality),
+                "personality": personality.value,
+                "intent": intent_type,
+                "success": True,
+            }
+
+        except Exception as e:
+            logger.error(f"DSPy chat error: {e}")
+            return self._fallback_response(personality, message, intent_type)
+
+    async def chat_stream(
+        self,
+        agent_id: str,
+        message: str,
+        intent_type: str = "question",
+        context: str = ""
+    ):
+        """
+        Generate streaming agent response using DSPy.
+
+        Yields chunks of the response for real-time display.
+        """
+        # Get full response first (DSPy doesn't natively support streaming yet)
+        result = await self.chat(agent_id, message, intent_type, context)
+
+        response_text = result.get("response", "")
+
+        # Simulate streaming by yielding word chunks
+        words = response_text.split()
+        chunk = ""
+
+        for i, word in enumerate(words):
+            chunk += word + " "
+            if (i + 1) % 3 == 0:  # Yield every 3 words
+                yield {
+                    "type": "chunk",
+                    "content": chunk.strip(),
+                    "agent_id": agent_id,
+                }
+                chunk = ""
+
+        # Yield remaining words
+        if chunk.strip():
+            yield {
+                "type": "chunk",
+                "content": chunk.strip(),
+                "agent_id": agent_id,
+            }
+
+        # Final completion signal
+        yield {
+            "type": "complete",
+            "agent_id": agent_id,
+            "agent_name": result.get("agent_name", "Sistema"),
+            "success": result.get("success", True),
+        }
+
+    def _fallback_response(
+        self,
+        personality: AgentPersonality,
+        message: str,
+        intent_type: str
+    ) -> dict[str, Any]:
+        """Generate fallback response when LLM is not available"""
+
+        agent_name = self._get_agent_name(personality)
+
+        # Personality-specific fallback responses
+        fallbacks = {
+            AgentPersonality.ZUMBI: f"Sou Zumbi dos Palmares, investigador do Cidadão.AI. Recebi sua mensagem sobre '{message[:50]}...' e estou pronto para investigar. A luta pela transparência continua!",
+            AgentPersonality.ANITA: f"Olá! Sou Anita Garibaldi, analista do Cidadão.AI. Analisei sua solicitação e estou preparando os dados. Como heroína dos dois mundos, transformo números em conhecimento!",
+            AgentPersonality.TIRADENTES: f"Cidadão, sou Tiradentes, relator do Cidadão.AI. Recebi seu pedido e prepararei um relatório claro. Liberdade ainda que tardia, mas com informação!",
+            AgentPersonality.DRUMMOND: f"E agora, cidadão? Sou Carlos Drummond de Andrade, comunicador do Cidadão.AI. No meio do caminho dos dados, encontrei sua pergunta. Vamos desvendar juntos!",
+            AgentPersonality.DANDARA: f"Sou Dandara, guardiã da justiça social no Cidadão.AI. Recebi sua mensagem e lutarei por equidade nas respostas. A luta continua!",
+            AgentPersonality.MACHADO: f"Prezado cidadão, sou Machado de Assis, analista textual. Com a ironia que me é peculiar, analisarei os documentos. As entrelinhas revelam muito!",
+            AgentPersonality.OXOSSI: f"Sou Oxóssi, caçador de dados do Cidadão.AI. Como flecha certeira, encontrarei as informações que busca nas selvas da burocracia.",
+            AgentPersonality.ABAPORU: f"Sou Abaporu, orquestrador do Cidadão.AI. Como a obra de Tarsila, integro todas as perspectivas para responder sua solicitação.",
+        }
+
+        response = fallbacks.get(
+            personality,
+            f"Olá! Sou {agent_name} do Cidadão.AI. Recebi sua mensagem e estou processando."
+        )
+
+        return {
+            "response": response,
+            "agent_id": personality.value,
+            "agent_name": agent_name,
+            "personality": personality.value,
+            "intent": intent_type,
+            "success": True,
+            "fallback": True,
+        }
+
+    def _get_agent_name(self, personality: AgentPersonality) -> str:
+        """Get display name for agent"""
+        names = {
+            AgentPersonality.ZUMBI: "Zumbi dos Palmares",
+            AgentPersonality.ANITA: "Anita Garibaldi",
+            AgentPersonality.TIRADENTES: "Tiradentes",
+            AgentPersonality.DRUMMOND: "Carlos Drummond de Andrade",
+            AgentPersonality.DANDARA: "Dandara dos Palmares",
+            AgentPersonality.MACHADO: "Machado de Assis",
+            AgentPersonality.OXOSSI: "Oxóssi",
+            AgentPersonality.ABAPORU: "Abaporu",
+        }
+        return names.get(personality, "Sistema")
+
+
+# Singleton instance
+def get_dspy_agent_service() -> DSPyAgentService:
+    """Get or create the DSPy agent service singleton"""
+    return DSPyAgentService()
