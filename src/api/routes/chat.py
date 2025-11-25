@@ -291,13 +291,22 @@ async def send_message(
                     """Map intent type to suggested agent"""
                     agent_mapping = {
                         IntentType.INVESTIGATE: "zumbi",
-                        IntentType.QUESTION: "anita",
+                        IntentType.QUESTION: "drummond",
                         IntentType.REPORT: "tiradentes",
                         IntentType.DATA: "oxossi",
                         IntentType.SEARCH: "oxossi",
                         IntentType.HELP: "drummond",
+                        IntentType.GREETING: "drummond",
+                        IntentType.HELP_REQUEST: "drummond",
+                        IntentType.ABOUT_SYSTEM: "drummond",
+                        IntentType.THANKS: "drummond",
+                        IntentType.GOODBYE: "drummond",
+                        IntentType.CONVERSATION: "drummond",
+                        IntentType.SMALLTALK: "drummond",
+                        IntentType.ANALYZE: "anita",
+                        IntentType.UNKNOWN: "drummond",
                     }
-                    return agent_mapping.get(intent_type, "zumbi")
+                    return agent_mapping.get(intent_type, "drummond")
 
             intent = Intent(intent_type, confidence)
         except Exception as e:
@@ -315,13 +324,22 @@ async def send_message(
                     """Map intent type to suggested agent"""
                     agent_mapping = {
                         IntentType.INVESTIGATE: "zumbi",
-                        IntentType.QUESTION: "anita",
+                        IntentType.QUESTION: "drummond",
                         IntentType.REPORT: "tiradentes",
                         IntentType.DATA: "oxossi",
                         IntentType.SEARCH: "oxossi",
                         IntentType.HELP: "drummond",
+                        IntentType.GREETING: "drummond",
+                        IntentType.HELP_REQUEST: "drummond",
+                        IntentType.ABOUT_SYSTEM: "drummond",
+                        IntentType.THANKS: "drummond",
+                        IntentType.GOODBYE: "drummond",
+                        IntentType.CONVERSATION: "drummond",
+                        IntentType.SMALLTALK: "drummond",
+                        IntentType.ANALYZE: "anita",
+                        IntentType.UNKNOWN: "drummond",
                     }
-                    return agent_mapping.get(intent_type, "zumbi")
+                    return agent_mapping.get(intent_type, "drummond")
 
             intent = Intent(IntentType.INVESTIGATE, 0.5)
 
