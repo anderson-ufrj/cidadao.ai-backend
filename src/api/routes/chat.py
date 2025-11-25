@@ -221,6 +221,10 @@ class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=1000)
     session_id: Optional[str] = None
     context: Optional[dict[str, Any]] = None
+    agent_id: Optional[str] = Field(
+        None,
+        description="Force a specific agent (zumbi, anita, drummond, tiradentes, oxossi, dandara, machado, abaporu). If not provided, agent is auto-selected based on intent."
+    )
 
 
 class ChatResponse(BaseModel):
@@ -1075,21 +1079,39 @@ async def stream_message(request: ChatRequest):
 
             yield f"data: {json_utils.dumps({'type': 'intent', 'intent': intent.type.value, 'confidence': intent.confidence})}\n\n"
 
-            # Select agent
-            agent = (
-                await chat_service.get_agent_for_intent(intent)
-                if chat_service
-                else None
-            )
+            # Check if agent_id was explicitly provided in request
+            valid_agents = {
+                "zumbi": "Zumbi dos Palmares",
+                "anita": "Anita Garibaldi",
+                "drummond": "Carlos Drummond de Andrade",
+                "tiradentes": "Tiradentes",
+                "oxossi": "Oxóssi",
+                "dandara": "Dandara dos Palmares",
+                "machado": "Machado de Assis",
+                "abaporu": "Abaporu",
+            }
 
-            # Check if agent was successfully retrieved
-            if not agent:
-                logger.warning(f"No agent available for intent: {intent.type}")
-                yield f"data: {json_utils.dumps({'type': 'error', 'message': 'Serviço temporariamente indisponível', 'fallback_endpoint': '/api/v1/chat/message'})}\n\n"
-                return
+            if request.agent_id and request.agent_id.lower() in valid_agents:
+                # Use explicitly requested agent
+                agent_id = request.agent_id.lower()
+                agent_name = valid_agents[agent_id]
+                logger.info(f"Using explicitly requested agent: {agent_id}")
+            else:
+                # Auto-select agent based on intent
+                agent = (
+                    await chat_service.get_agent_for_intent(intent)
+                    if chat_service
+                    else None
+                )
 
-            agent_id = getattr(agent, "agent_id", "drummond")
-            agent_name = getattr(agent, "name", "Sistema")
+                # Check if agent was successfully retrieved
+                if not agent:
+                    logger.warning(f"No agent available for intent: {intent.type}")
+                    yield f"data: {json_utils.dumps({'type': 'error', 'message': 'Serviço temporariamente indisponível', 'fallback_endpoint': '/api/v1/chat/message'})}\n\n"
+                    return
+
+                agent_id = getattr(agent, "agent_id", "drummond")
+                agent_name = getattr(agent, "name", "Sistema")
 
             yield f"data: {json_utils.dumps({'type': 'agent_selected', 'agent_id': agent_id, 'agent_name': agent_name})}\n\n"
             await asyncio.sleep(0.2)
