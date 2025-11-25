@@ -69,6 +69,10 @@ class IntentType(Enum):
     HELP = "help"  # Legacy, keeping for backward compatibility
     UNKNOWN = "unknown"
 
+    # Data-related intents (used by chat routing)
+    DATA = "data"  # Generic data request
+    SEARCH = "search"  # Search/query data
+
 
 @dataclass
 class Intent:
@@ -472,6 +476,9 @@ class IntentDetector:
             IntentType.QUESTION: "drummond",  # Carlos handles general questions
             IntentType.HELP: "drummond",  # Legacy help -> Carlos
             IntentType.UNKNOWN: "drummond",  # Unknown -> Carlos first
+            # Data-related routing
+            IntentType.DATA: "oxossi",  # Oxóssi hunts for data
+            IntentType.SEARCH: "oxossi",  # Oxóssi searches for data
         }
         return mapping.get(intent_type, "abaporu")
 
