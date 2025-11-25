@@ -11,6 +11,7 @@ Created: 2025-10-23
 import logging
 import os
 from datetime import UTC, datetime
+from urllib.parse import urlparse
 
 import httpx
 from fastapi import APIRouter, HTTPException, Query
@@ -305,14 +306,14 @@ async def generate_coverage_map() -> dict:
             if health["status"] in ["operational", "restricted", "partial"]:
                 working_apis += 1
 
+            # Extract base URL properly using urlparse
+            parsed = urlparse(api_def["url"])
+            base_url = f"{parsed.scheme}://{parsed.netloc}"
+
             state_apis.append(
                 {
                     "name": api_def["name"],
-                    "url": (
-                        api_def["url"].split("/api")[0]
-                        if "/api" in api_def["url"]
-                        else api_def["url"]
-                    ),
+                    "url": base_url,
                     "endpoints": api_def["endpoints"],
                     "status": health["status"],
                     "response_time_ms": health.get("response_time_ms"),
