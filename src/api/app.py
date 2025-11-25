@@ -22,7 +22,6 @@ from src.api.middleware.compression import CompressionMiddleware
 from src.api.middleware.logging_middleware import LoggingMiddleware
 from src.api.middleware.metrics_middleware import MetricsMiddleware, setup_http_metrics
 from src.api.middleware.rate_limit import RateLimitMiddleware
-from src.api.middleware.security import SecurityMiddleware
 from src.api.routes import (
     agent_metrics,
     agents,
@@ -31,6 +30,7 @@ from src.api.routes import (
     auth,
     batch,
     chat,
+    chat_investigative,
     cqrs,
     debug,
     federal_apis,
@@ -410,6 +410,11 @@ from src.api.routes import export
 app.include_router(export.router, prefix="/api/v1/export", tags=["Export"])
 
 app.include_router(chat.router, prefix="/api/v1/chat", tags=["Chat"])
+
+# Chat Investigative - Real-time contract search with streaming
+app.include_router(
+    chat_investigative.router, prefix="/api/v1/chat", tags=["Chat Investigativo"]
+)
 
 app.include_router(websocket_chat.router, prefix="/api/v1", tags=["WebSocket"])
 
