@@ -251,6 +251,19 @@ celery_app.conf.beat_schedule = {
         "schedule": timedelta(hours=1),  # Every hour
         "options": {"queue": "high"},
     },
+    # Stuck Investigation Cleanup (prevents database pollution)
+    "cleanup-stuck-investigations-15m": {
+        "task": "tasks.cleanup_stuck_investigations",
+        "schedule": timedelta(minutes=15),  # Every 15 minutes
+        "args": (1,),  # 1 hour threshold
+        "options": {"queue": "high"},
+    },
+    # Investigation Metrics Report (daily analytics)
+    "investigation-metrics-daily": {
+        "task": "tasks.investigation_metrics_report",
+        "schedule": timedelta(hours=24),  # Daily
+        "options": {"queue": "low"},
+    },
     # Katana Scan Integration
     "katana-monitor-dispensas-6h": {
         "task": "tasks.monitor_katana_dispensas",
