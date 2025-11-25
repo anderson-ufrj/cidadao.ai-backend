@@ -35,6 +35,18 @@ from src.services.orchestration.query_planner.intent_classifier import IntentCla
 # Initialize logger BEFORE using it
 logger = get_logger(__name__)
 
+# Import DSPy Agent Service for personality-based responses
+try:
+    from src.services.dspy_agents import get_dspy_agent_service
+
+    dspy_service = get_dspy_agent_service()
+    DSPY_AVAILABLE = True
+    logger.info("DSPy Agent Service loaded successfully")
+except Exception as e:
+    logger.warning(f"DSPy Agent Service not available: {e}")
+    dspy_service = None
+    DSPY_AVAILABLE = False
+
 # Import Orchestrator for full multi-API investigations
 try:
     from src.services.orchestration.orchestrator import InvestigationOrchestrator
@@ -1067,28 +1079,47 @@ async def stream_message(request: ChatRequest):
                 yield f"data: {json_utils.dumps({'type': 'error', 'message': 'Serviço temporariamente indisponível', 'fallback_endpoint': '/api/v1/chat/message'})}\n\n"
                 return
 
-            yield f"data: {json_utils.dumps({'type': 'agent_selected', 'agent_id': getattr(agent, 'agent_id', 'unknown'), 'agent_name': getattr(agent, 'name', 'Sistema')})}\n\n"
-            await asyncio.sleep(0.3)
+            agent_id = getattr(agent, 'agent_id', 'drummond')
+            agent_name = getattr(agent, 'name', 'Sistema')
 
-            # Process message in chunks (simulate typing)
-            agent_name = getattr(agent, "name", "Sistema")
-            response_text = f"Olá! Sou {agent_name} e vou ajudá-lo com sua solicitação sobre {intent.type.value}."
+            yield f"data: {json_utils.dumps({'type': 'agent_selected', 'agent_id': agent_id, 'agent_name': agent_name})}\n\n"
+            await asyncio.sleep(0.2)
 
-            # Send response in chunks
-            words = response_text.split()
-            chunk = ""
-            for i, word in enumerate(words):
-                chunk += word + " "
-                if i % 3 == 0:  # Send every 3 words
+            # Use DSPy for personality-based responses if available
+            if DSPY_AVAILABLE and dspy_service:
+                yield f"data: {json_utils.dumps({'type': 'thinking', 'message': f'{agent_name} está pensando...'})}\n\n"
+
+                # Stream response from DSPy agent
+                async for chunk_data in dspy_service.chat_stream(
+                    agent_id=agent_id,
+                    message=request.message,
+                    intent_type=intent.type.value,
+                    context=""
+                ):
+                    if chunk_data.get("type") == "chunk":
+                        yield f"data: {json_utils.dumps(chunk_data)}\n\n"
+                        await asyncio.sleep(0.05)
+                    elif chunk_data.get("type") == "complete":
+                        yield f"data: {json_utils.dumps({'type': 'complete', 'agent_id': agent_id, 'agent_name': agent_name, 'suggested_actions': ['start_investigation', 'learn_more']})}\n\n"
+            else:
+                # Fallback to static response if DSPy not available
+                response_text = f"Olá! Sou {agent_name} e vou ajudá-lo com sua solicitação sobre {intent.type.value}."
+
+                # Send response in chunks
+                words = response_text.split()
+                chunk = ""
+                for i, word in enumerate(words):
+                    chunk += word + " "
+                    if i % 3 == 0:  # Send every 3 words
+                        yield f"data: {json_utils.dumps({'type': 'chunk', 'content': chunk.strip()})}\n\n"
+                        chunk = ""
+                        await asyncio.sleep(0.1)
+
+                if chunk:  # Send remaining words
                     yield f"data: {json_utils.dumps({'type': 'chunk', 'content': chunk.strip()})}\n\n"
-                    chunk = ""
-                    await asyncio.sleep(0.1)
 
-            if chunk:  # Send remaining words
-                yield f"data: {json_utils.dumps({'type': 'chunk', 'content': chunk.strip()})}\n\n"
-
-            # Send completion
-            yield f"data: {json_utils.dumps({'type': 'complete', 'suggested_actions': ['start_investigation', 'learn_more']})}\n\n"
+                # Send completion
+                yield f"data: {json_utils.dumps({'type': 'complete', 'suggested_actions': ['start_investigation', 'learn_more']})}\n\n"
 
         except Exception as e:
             logger.error(f"Stream error: {str(e)}", exc_info=True)
