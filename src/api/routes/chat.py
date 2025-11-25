@@ -32,6 +32,16 @@ from src.services.maritaca_direct_service import (
 from src.services.orchestration.models.investigation import InvestigationIntent
 from src.services.orchestration.query_planner.intent_classifier import IntentClassifier
 
+# Import investigative service for real-time contract search
+try:
+    from src.services.chat_investigative_service import get_investigative_service
+
+    investigative_service = get_investigative_service()
+    INVESTIGATIVE_SERVICE_AVAILABLE = True
+except Exception:
+    investigative_service = None
+    INVESTIGATIVE_SERVICE_AVAILABLE = False
+
 # Initialize logger BEFORE using it
 logger = get_logger(__name__)
 
@@ -249,6 +259,72 @@ class QuickAction(BaseModel):
     label: str
     icon: str
     action: str
+
+
+# Contract search detection keywords
+CONTRACT_SEARCH_KEYWORDS = [
+    "contrato",
+    "contratos",
+    "buscar contrato",
+    "pesquisar contrato",
+    "mostrar contrato",
+    "listar contrato",
+    "encontrar contrato",
+    "ver contrato",
+    "ministério",
+    "ministerio",
+    "órgão",
+    "orgao",
+    "saúde",
+    "saude",
+    "educação",
+    "educacao",
+    "defesa",
+    "justiça",
+    "justica",
+    "fazenda",
+    "infraestrutura",
+    "meio ambiente",
+]
+
+
+def _is_contract_search_query(message: str, intent_type: IntentType) -> bool:
+    """
+    Detect if the user query is asking to search/list contracts.
+
+    Args:
+        message: User message
+        intent_type: Detected intent type
+
+    Returns:
+        True if this is a contract search query
+    """
+    message_lower = message.lower()
+
+    # Check if it's an investigation intent AND mentions contracts/organizations
+    if intent_type == IntentType.INVESTIGATE:
+        for keyword in CONTRACT_SEARCH_KEYWORDS:
+            if keyword in message_lower:
+                return True
+
+    # Explicit contract search patterns
+    explicit_patterns = [
+        "buscar contrato",
+        "pesquisar contrato",
+        "listar contrato",
+        "mostrar contrato",
+        "encontrar contrato",
+        "contratos do",
+        "contratos da",
+        "contratos de",
+        "investigar contrato",
+    ]
+
+    for pattern in explicit_patterns:
+        if pattern in message_lower:
+            return True
+
+    return False
 
 
 @router.post("/message", response_model=ChatResponse)
@@ -1124,8 +1200,48 @@ async def stream_message(request: ChatRequest):
             yield f"data: {json_utils.dumps({'type': 'agent_selected', 'agent_id': agent_id, 'agent_name': agent_name})}\n\n"
             await asyncio.sleep(0.2)
 
+            # Check if this is a contract search query that should use real data
+            is_contract_search = _is_contract_search_query(request.message, intent.type)
+
+            # If contract search intent and investigative service available, use real data
+            if (
+                is_contract_search
+                and INVESTIGATIVE_SERVICE_AVAILABLE
+                and investigative_service
+            ):
+                yield f"data: {json_utils.dumps({'type': 'thinking', 'message': f'{agent_name} está buscando contratos reais...'})}\n\n"
+
+                # Stream real contract search
+                contracts_found = []
+                async for event in investigative_service.search_contracts_streaming(
+                    message=request.message,
+                    max_results=5,
+                ):
+                    # Forward search events
+                    if event["type"] in ["thinking", "searching", "found"]:
+                        yield f"data: {json_utils.dumps(event)}\n\n"
+                    elif event["type"] == "contract":
+                        contracts_found.append(event["data"])
+                        yield f"data: {json_utils.dumps(event)}\n\n"
+                    elif event["type"] == "complete":
+                        yield f"data: {json_utils.dumps(event)}\n\n"
+
+                # Generate agent summary if contracts found
+                if contracts_found:
+                    total_value = sum(c.get("valor", 0) for c in contracts_found)
+                    summary = (
+                        f"Encontrei {len(contracts_found)} contratos "
+                        f"totalizando R$ {total_value:,.2f}. "
+                        f"Você pode baixar os dados completos nos formatos JSON, CSV ou TXT."
+                    )
+                    yield f"data: {json_utils.dumps({'type': 'chunk', 'content': summary})}\n\n"
+                    yield f"data: {json_utils.dumps({'type': 'complete', 'agent_id': agent_id, 'agent_name': agent_name, 'contracts': contracts_found, 'download_available': True, 'suggested_actions': ['download_json', 'download_csv', 'analyze_anomalies']})}\n\n"
+                else:
+                    yield f"data: {json_utils.dumps({'type': 'chunk', 'content': 'Não encontrei contratos com esses critérios. Tente refinar sua busca.'})}\n\n"
+                    yield f"data: {json_utils.dumps({'type': 'complete', 'agent_id': agent_id, 'agent_name': agent_name, 'suggested_actions': ['try_again', 'change_filters']})}\n\n"
+
             # Use DSPy for personality-based responses if available
-            if DSPY_AVAILABLE and dspy_service:
+            elif DSPY_AVAILABLE and dspy_service:
                 yield f"data: {json_utils.dumps({'type': 'thinking', 'message': f'{agent_name} está pensando...'})}\n\n"
 
                 # Stream response from DSPy agent
