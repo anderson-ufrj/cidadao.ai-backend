@@ -504,6 +504,11 @@ app.include_router(federal_apis.router, tags=["Federal APIs"])
 # Network Graph Analysis endpoints
 app.include_router(network.router, tags=["Network Analysis"])
 
+# Agent Dashboard endpoints
+from src.api.routes import dashboard
+
+app.include_router(dashboard.router, prefix="/api/v1", tags=["Agent Dashboard"])
+
 
 # Global exception handler
 @app.exception_handler(CidadaoAIError)
