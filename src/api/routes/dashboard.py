@@ -93,29 +93,6 @@ async def get_health_matrix() -> AgentHealthMatrix:
 
 
 @router.get(
-    "/{agent_name}",
-    response_model=AgentDetailedMetrics,
-    summary="Get Agent Details",
-    description="Returns detailed metrics for a specific agent.",
-)
-async def get_agent_detail(agent_name: str) -> AgentDetailedMetrics:
-    """Get detailed metrics for a specific agent."""
-    service = get_dashboard_service()
-    result = await service.get_agent_detail(agent_name)
-
-    if result is None:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Agent '{agent_name}' not found. Valid agents: zumbi, anita, "
-            "tiradentes, ayrton_senna, bonifacio, maria_quiteria, machado, "
-            "oxossi, lampiao, oscar_niemeyer, abaporu, nana, drummond, "
-            "ceuci, obaluaie, dandara",
-        )
-
-    return result
-
-
-@router.get(
     "/stream",
     summary="Stream Metrics (SSE)",
     description="Server-Sent Events stream of dashboard metrics. "
@@ -160,3 +137,26 @@ async def stream_dashboard_metrics(
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@router.get(
+    "/{agent_name}",
+    response_model=AgentDetailedMetrics,
+    summary="Get Agent Details",
+    description="Returns detailed metrics for a specific agent.",
+)
+async def get_agent_detail(agent_name: str) -> AgentDetailedMetrics:
+    """Get detailed metrics for a specific agent."""
+    service = get_dashboard_service()
+    result = await service.get_agent_detail(agent_name)
+
+    if result is None:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Agent '{agent_name}' not found. Valid agents: zumbi, anita, "
+            "tiradentes, ayrton_senna, bonifacio, maria_quiteria, machado, "
+            "oxossi, lampiao, oscar_niemeyer, abaporu, nana, drummond, "
+            "ceuci, obaluaie, dandara",
+        )
+
+    return result
