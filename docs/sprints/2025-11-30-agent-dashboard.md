@@ -1,9 +1,22 @@
 # Sprint: Dashboard de Métricas dos Agentes
 
 **Data**: 2025-11-30
-**Duração Estimada**: 4-6 horas
+**Duração Estimada**: 5-7 horas
 **Autor**: Anderson Henrique da Silva
 **Status**: Em Planejamento
+
+---
+
+## Resumo das Fases
+
+| Fase | Descrição | Tempo | Entregável |
+|------|-----------|-------|------------|
+| 1 | Dashboard Service | 1.5h | `agent_dashboard_service.py` |
+| 2 | API Routes | 1h | `dashboard.py` (5 endpoints) |
+| 3 | SSE Streaming | 1h | Real-time updates |
+| 4 | Testes | 1.5h | Unit + Integration |
+| 5 | Mini Dashboard HTML | 1h | `dashboard_view.py` |
+| 6 | Documentação | 30min | OpenAPI + links |
 
 ---
 
@@ -40,10 +53,11 @@ Criar um **Dashboard Unificado de Métricas dos Agentes** que consolide informa�
 ### ✅ Incluído (MVP - Hoje)
 
 1. **Dashboard Service** - Serviço que agrega métricas de todos os agentes
-2. **Endpoint Unificado** - `/api/v1/dashboard/agents` com visão consolidada
-3. **Leaderboard de Agentes** - Ranking por performance/atividade
-4. **Status de Saúde** - Visão geral da saúde de cada agente
-5. **Métricas em Tempo Real** - SSE endpoint para atualizações live
+2. **API REST Completa** - `/api/v1/dashboard/agents/*` para consumo futuro pelo frontend
+3. **Mini Dashboard HTML** - `/dashboard/agents` página visual embutida no backend
+4. **Leaderboard de Agentes** - Ranking por performance/atividade
+5. **Status de Saúde** - Visão geral da saúde de cada agente
+6. **Métricas em Tempo Real** - SSE endpoint para atualizações live + auto-refresh no HTML
 
 ### ❌ Fora do Escopo (Próximos Sprints)
 
@@ -207,11 +221,59 @@ async def stream_agent_metrics(request: Request):
 - `test_sse_stream_connection`
 - `test_agent_detail_endpoint`
 
-### Fase 5: Documentação (30min)
+### Fase 5: Mini Dashboard HTML (1h)
+
+**Arquivo**: `src/api/routes/dashboard_view.py`
+
+Página HTML embutida com:
+- Cards de resumo (total agentes, healthy, degraded)
+- Tabela com todos os agentes e suas métricas
+- Gráfico de barras com response time por agente
+- Status indicators (verde/amarelo/vermelho)
+- Auto-refresh a cada 10 segundos via JavaScript
+
+**Tecnologias**:
+- HTML5 + CSS3 (Tailwind via CDN)
+- JavaScript vanilla (fetch API)
+- Chart.js via CDN para gráficos
+- Sem dependências extras no backend
+
+**Rotas**:
+```
+GET /dashboard/agents      → Página HTML completa
+GET /dashboard/agents/embed → Versão para iframe (sem header)
+```
+
+**Preview do Layout**:
+```
+┌─────────────────────────────────────────────────────────────┐
+│  🏛️ Cidadão.AI - Agent Metrics Dashboard                   │
+│  Last updated: 10:30:45 | Auto-refresh: ON                  │
+├─────────────────────────────────────────────────────────────┤
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐       │
+│  │    16    │ │    14    │ │    2     │ │   97.9%  │       │
+│  │  Agents  │ │ Healthy  │ │ Degraded │ │ Success  │       │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────┘       │
+├─────────────────────────────────────────────────────────────┤
+│  📊 Response Time by Agent                                  │
+│  [========== Bar Chart ==========]                          │
+├─────────────────────────────────────────────────────────────┤
+│  🏆 Agent Leaderboard                                       │
+│  ┌─────┬────────────────┬──────────┬─────────┬───────────┐ │
+│  │ #   │ Agent          │ Requests │ Avg RT  │ Status    │ │
+│  ├─────┼────────────────┼──────────┼─────────┼───────────┤ │
+│  │ 1   │ 🔍 Zumbi       │ 3,420    │ 623ms   │ 🟢 Healthy│ │
+│  │ 2   │ 📊 Anita       │ 2,891    │ 712ms   │ 🟢 Healthy│ │
+│  │ ... │ ...            │ ...      │ ...     │ ...       │ │
+│  └─────┴────────────────┴──────────┴─────────┴───────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Fase 6: Documentação (30min)
 
 - Atualizar CLAUDE.md com novos endpoints
 - Documentar no OpenAPI (FastAPI automático)
-- Criar exemplo de uso no README da feature
+- Adicionar link do dashboard na página inicial da API
 
 ---
 
@@ -222,12 +284,13 @@ src/
 ├── services/
 │   └── dashboard/
 │       ├── __init__.py
-│       └── agent_dashboard_service.py    # NOVO
+│       └── agent_dashboard_service.py    # NOVO - Serviço agregador
 ├── schemas/
-│   └── dashboard.py                       # NOVO
+│   └── dashboard.py                       # NOVO - Modelos Pydantic
 ├── api/
 │   └── routes/
-│       └── dashboard.py                   # NOVO
+│       ├── dashboard.py                   # NOVO - API REST endpoints
+│       └── dashboard_view.py              # NOVO - Mini dashboard HTML
 tests/
 ├── unit/
 │   └── services/
@@ -372,12 +435,23 @@ AGENT_IDENTITIES = {
 
 ## Checklist de Entrega
 
-### Código
+### Código - Backend
 
+- [ ] `src/services/dashboard/__init__.py`
 - [ ] `src/services/dashboard/agent_dashboard_service.py`
 - [ ] `src/schemas/dashboard.py`
-- [ ] `src/api/routes/dashboard.py`
-- [ ] Registro do router em `src/api/app.py`
+- [ ] `src/api/routes/dashboard.py` (API REST)
+- [ ] `src/api/routes/dashboard_view.py` (Mini Dashboard HTML)
+- [ ] Registro dos routers em `src/api/app.py`
+
+### Mini Dashboard HTML
+
+- [ ] Página principal `/dashboard/agents`
+- [ ] Cards de métricas (total, healthy, degraded, success rate)
+- [ ] Tabela com leaderboard dos agentes
+- [ ] Gráfico de barras (response time)
+- [ ] Auto-refresh a cada 10 segundos
+- [ ] Versão embed para iframe
 
 ### Testes
 
@@ -395,8 +469,8 @@ AGENT_IDENTITIES = {
 ### Documentação
 
 - [ ] Endpoints documentados no OpenAPI
-- [ ] CLAUDE.md atualizado (se necessário)
-- [ ] Commit message seguindo padrão
+- [ ] Link do dashboard na página inicial da API
+- [ ] Commit messages seguindo padrão
 
 ---
 
