@@ -505,9 +505,10 @@ app.include_router(federal_apis.router, tags=["Federal APIs"])
 app.include_router(network.router, tags=["Network Analysis"])
 
 # Agent Dashboard endpoints
-from src.api.routes import dashboard
+from src.api.routes import dashboard, dashboard_view
 
 app.include_router(dashboard.router, prefix="/api/v1", tags=["Agent Dashboard"])
+app.include_router(dashboard_view.router, tags=["Dashboard View"])
 
 
 # Global exception handler
