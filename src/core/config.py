@@ -146,6 +146,10 @@ class Settings(BaseSettings):
     )
 
     # Google Cloud Speech API Configuration (Voice Integration)
+    voice_enabled: bool = Field(
+        default=False,
+        description="Enable voice features (TTS/STT). Disabled by default to avoid Google Cloud costs.",
+    )
     google_credentials_path: str | None = Field(
         default=None,
         description="Path to Google Cloud service account JSON file for Speech API",
