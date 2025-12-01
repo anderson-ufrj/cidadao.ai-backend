@@ -22,6 +22,7 @@ from src.api.routes.chat_zumbi_integration import (
 )
 from src.core import get_logger, json_utils
 from src.core.config import get_settings
+from src.services.agent_routing import resolve_agent_id
 from src.services.chat_data_integration import chat_data_integration
 from src.services.chat_service import IntentType
 from src.services.maritaca_direct_service import (
@@ -1088,114 +1089,57 @@ async def stream_message(request: ChatRequest):
             yield f"data: {json_utils.dumps({'type': 'detecting', 'message': 'Analisando sua mensagem...'})}\n\n"
             await asyncio.sleep(0.5)
 
+            # Detect intent using keyword-based classifier
+            intent_type_str = "unknown"
+            confidence = 0.5
+
             try:
-                if intent_classifier is None:
-                    raise Exception("IntentClassifier not available")
+                if intent_classifier is not None:
+                    intent_result = await intent_classifier.classify(request.message)
+                    detected_intent = intent_result["intent"]
+                    confidence = intent_result["confidence"]
 
-                intent_result = await intent_classifier.classify(request.message)
-                detected_intent = intent_result["intent"]
-                confidence = intent_result["confidence"]
-
-                # Convert to IntentType
-                if detected_intent in [
-                    InvestigationIntent.CONTRACT_ANOMALY_DETECTION,
-                    InvestigationIntent.SUPPLIER_INVESTIGATION,
-                    InvestigationIntent.CORRUPTION_INDICATORS,
-                    InvestigationIntent.BUDGET_ANALYSIS,
-                    InvestigationIntent.HEALTH_BUDGET_ANALYSIS,
-                    InvestigationIntent.EDUCATION_PERFORMANCE,
-                ]:
-                    intent_type = IntentType.INVESTIGATE
-                else:
-                    intent_type = IntentType.QUESTION
-
-                class Intent:
-                    def __init__(self, type, confidence):
-                        self.type = type
-                        self.confidence = confidence
-                        # Map intent type to suggested agent
-                        self.suggested_agent = self._get_suggested_agent(type)
-
-                    def _get_suggested_agent(self, intent_type):
-                        """Map intent type to suggested agent"""
-                        agent_mapping = {
-                            IntentType.INVESTIGATE: "zumbi",
-                            IntentType.QUESTION: "anita",
-                            IntentType.REPORT: "tiradentes",
-                            IntentType.DATA: "oxossi",
-                            IntentType.SEARCH: "oxossi",
-                            IntentType.HELP: "drummond",
-                        }
-                        return agent_mapping.get(intent_type, "zumbi")
-
-                intent = Intent(intent_type, confidence)
+                    # Convert InvestigationIntent to string for routing
+                    if detected_intent in [
+                        InvestigationIntent.CONTRACT_ANOMALY_DETECTION,
+                        InvestigationIntent.SUPPLIER_INVESTIGATION,
+                        InvestigationIntent.CORRUPTION_INDICATORS,
+                        InvestigationIntent.BUDGET_ANALYSIS,
+                        InvestigationIntent.HEALTH_BUDGET_ANALYSIS,
+                        InvestigationIntent.EDUCATION_PERFORMANCE,
+                    ]:
+                        intent_type_str = "investigate"
+                    else:
+                        intent_type_str = (
+                            detected_intent.value
+                            if hasattr(detected_intent, "value")
+                            else str(detected_intent)
+                        )
             except Exception as e:
                 logger.error(f"Error in streaming intent classification: {e}")
 
-                class Intent:
-                    def __init__(self, type, confidence):
-                        self.type = type
-                        self.confidence = confidence
-                        # Map intent type to suggested agent
-                        self.suggested_agent = self._get_suggested_agent(type)
+            # Create simple intent object for compatibility
+            class Intent:
+                def __init__(self, type_str: str, conf: float):
+                    self.type = (
+                        IntentType(type_str)
+                        if type_str in [e.value for e in IntentType]
+                        else IntentType.UNKNOWN
+                    )
+                    self.confidence = conf
 
-                    def _get_suggested_agent(self, intent_type):
-                        """Map intent type to suggested agent"""
-                        agent_mapping = {
-                            IntentType.INVESTIGATE: "zumbi",
-                            IntentType.QUESTION: "anita",
-                            IntentType.REPORT: "tiradentes",
-                            IntentType.DATA: "oxossi",
-                            IntentType.SEARCH: "oxossi",
-                            IntentType.HELP: "drummond",
-                        }
-                        return agent_mapping.get(intent_type, "zumbi")
-
-                intent = Intent(IntentType.INVESTIGATE, 0.5)
+            intent = Intent(intent_type_str, confidence)
 
             yield f"data: {json_utils.dumps({'type': 'intent', 'intent': intent.type.value, 'confidence': intent.confidence})}\n\n"
 
-            # Check if agent_id was explicitly provided in request
-            valid_agents = {
-                "zumbi": "Zumbi dos Palmares",
-                "anita": "Anita Garibaldi",
-                "drummond": "Carlos Drummond de Andrade",
-                "tiradentes": "Tiradentes",
-                "oxossi": "Oxóssi",
-                "dandara": "Dandara dos Palmares",
-                "machado": "Machado de Assis",
-                "abaporu": "Abaporu",
-                "bonifacio": "José Bonifácio",
-                "maria_quiteria": "Maria Quitéria",
-                "lampiao": "Lampião",
-                "nana": "Nanã",
-                "ceuci": "Ceuci",
-                "obaluaie": "Obaluaiê",
-                "niemeyer": "Oscar Niemeyer",
-                "senna": "Ayrton Senna",
-            }
+            # Use centralized agent routing (single source of truth)
+            agent_id, agent_name = resolve_agent_id(
+                requested_agent_id=request.agent_id,
+                intent_type=intent.type.value,
+                intent_confidence=intent.confidence,
+            )
 
-            if request.agent_id and request.agent_id.lower() in valid_agents:
-                # Use explicitly requested agent
-                agent_id = request.agent_id.lower()
-                agent_name = valid_agents[agent_id]
-                logger.info(f"Using explicitly requested agent: {agent_id}")
-            else:
-                # Auto-select agent based on intent
-                agent = (
-                    await chat_service.get_agent_for_intent(intent)
-                    if chat_service
-                    else None
-                )
-
-                # Check if agent was successfully retrieved
-                if not agent:
-                    logger.warning(f"No agent available for intent: {intent.type}")
-                    yield f"data: {json_utils.dumps({'type': 'error', 'message': 'Serviço temporariamente indisponível', 'fallback_endpoint': '/api/v1/chat/message'})}\n\n"
-                    return
-
-                agent_id = getattr(agent, "agent_id", "drummond")
-                agent_name = getattr(agent, "name", "Sistema")
+            logger.info(f"Stream routing: intent={intent.type.value}, agent={agent_id}")
 
             yield f"data: {json_utils.dumps({'type': 'agent_selected', 'agent_id': agent_id, 'agent_name': agent_name})}\n\n"
             await asyncio.sleep(0.2)
