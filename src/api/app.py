@@ -419,7 +419,12 @@ app.include_router(
 app.include_router(websocket_chat.router, prefix="/api/v1", tags=["WebSocket"])
 
 # Voice API endpoints for Speech-to-Text and Text-to-Speech
-app.include_router(voice.router, prefix="/api/v1/voice", tags=["Voice AI"])
+# Disabled by default to avoid Google Cloud costs (set VOICE_ENABLED=true to enable)
+if settings.voice_enabled:
+    app.include_router(voice.router, prefix="/api/v1/voice", tags=["Voice AI"])
+    logger.info("Voice API enabled (Google Cloud TTS/STT)")
+else:
+    logger.info("Voice API disabled (set VOICE_ENABLED=true to enable)")
 
 app.include_router(batch.router, tags=["Batch Operations"])
 
