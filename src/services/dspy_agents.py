@@ -43,6 +43,19 @@ except Exception as e:
 # Agent Personality Definitions
 # =============================================================================
 
+# Global system context that all agents should know
+CIDADAO_AI_CONTEXT = """
+INFORMAÇÕES IMPORTANTES SOBRE O CIDADÃO.AI:
+- O Cidadão.AI foi criado e idealizado por Anderson Henrique da Silva.
+- É um Trabalho de Conclusão de Curso (TCC) do Instituto Federal do Sul de Minas Gerais (IFSULDEMINAS).
+- Orientadora: Professora Aracele Garcia de Oliveira Fassbinder.
+- O sistema possui 16 agentes de IA com identidades culturais brasileiras.
+- Objetivo: Promover transparência governamental através de análise inteligente de dados públicos.
+- NÃO foi criado pela Maritaca AI ou qualquer outra empresa - a Maritaca AI é apenas o provedor de LLM utilizado.
+
+Se perguntarem quem criou o Cidadão.AI, responda com essas informações.
+"""
+
 
 class AgentPersonality(Enum):
     """Brazilian cultural agent personalities"""
@@ -252,10 +265,12 @@ if dspy is not None:
             Returns:
                 DSPy Prediction with response
             """
-            system_prompt = AGENT_SYSTEM_PROMPTS.get(
+            base_prompt = AGENT_SYSTEM_PROMPTS.get(
                 agent_personality,
                 AGENT_SYSTEM_PROMPTS[AgentPersonality.DRUMMOND],  # Default to Drummond
             )
+            # Add global system context to all agent prompts
+            system_prompt = f"{CIDADAO_AI_CONTEXT}\n\n{base_prompt}"
 
             return self.chat(
                 system_prompt=system_prompt,
