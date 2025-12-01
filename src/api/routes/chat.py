@@ -574,7 +574,19 @@ async def send_message(
                 elif intent.type == IntentType.HELP_REQUEST:
                     message = "Posso ajudar você a investigar contratos, analisar gastos públicos e detectar anomalias. Experimente perguntar 'quero investigar contratos da saúde'!"
                 elif intent.type == IntentType.ABOUT_SYSTEM:
-                    message = "O Cidadão.AI é um sistema multi-agente para análise de transparência governamental. Temos agentes especializados em investigação, análise e geração de relatórios."
+                    message = (
+                        "O Cidadão.AI é um sistema multi-agente de inteligência artificial "
+                        "para análise de transparência governamental brasileira.\n\n"
+                        "**Criador e Idealizador:** Anderson Henrique da Silva\n\n"
+                        "**Contexto Acadêmico:** Este projeto é um Trabalho de Conclusão de Curso (TCC) "
+                        "desenvolvido no Instituto Federal do Sul de Minas Gerais (IFSULDEMINAS), "
+                        "sob orientação da Professora Aracele Garcia de Oliveira Fassbinder.\n\n"
+                        "**O que fazemos:** Temos 16 agentes especializados com identidades culturais brasileiras "
+                        "(Zumbi, Anita Garibaldi, Tiradentes, Drummond, entre outros) que trabalham juntos para "
+                        "investigar contratos públicos, detectar anomalias, analisar gastos e promover a "
+                        "transparência governamental.\n\n"
+                        "Como posso ajudá-lo hoje?"
+                    )
                 elif intent.type == IntentType.THANKS:
                     message = "De nada! Estou sempre aqui para ajudar com a transparência pública."
                 elif intent.type == IntentType.GOODBYE:
