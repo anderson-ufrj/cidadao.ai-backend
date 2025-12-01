@@ -4,12 +4,15 @@ Real-time contract search with streaming during agent conversations.
 
 Author: Anderson H. Silva
 Date: 2025-11-25
+Updated: 2025-12-01 - Added date filters and pagination for varied results
 """
 
 import asyncio
 import csv
 import io
 import json
+import re
+import secrets
 from collections.abc import AsyncGenerator
 from datetime import UTC, date, datetime, timedelta
 from typing import Any
@@ -20,6 +23,9 @@ from src.core import get_logger
 from src.core.config import settings
 
 logger = get_logger(__name__)
+
+# Default search period (last N years)
+DEFAULT_SEARCH_YEARS = 2
 
 # HTTP Status Codes
 HTTP_OK = 200
@@ -126,11 +132,42 @@ class ChatInvestigativeService:
         # Default to Saúde (most requested)
         return self.ORGAOS["saude"]
 
-    async def search_contracts_streaming(
+    def _extract_year_from_message(self, message: str) -> int | None:
+        """Extract year from user message if mentioned."""
+        # Look for 4-digit years (2020-2030 range)
+        years = re.findall(r"\b(202[0-9]|203[0-0])\b", message)
+        if years:
+            return int(years[0])
+        return None
+
+    def _build_date_range(self, message: str) -> tuple[str, str]:
+        """
+        Build date range for contract search.
+
+        Returns dates in DD/MM/YYYY format required by the API.
+        """
+        # Check if user mentioned a specific year
+        mentioned_year = self._extract_year_from_message(message)
+
+        if mentioned_year:
+            # Search the entire mentioned year
+            start_date = f"01/01/{mentioned_year}"
+            end_date = f"31/12/{mentioned_year}"
+        else:
+            # Default: last 2 years from today
+            today = date.today()
+            start = today - timedelta(days=DEFAULT_SEARCH_YEARS * 365)
+            start_date = start.strftime("%d/%m/%Y")
+            end_date = today.strftime("%d/%m/%Y")
+
+        return start_date, end_date
+
+    async def search_contracts_streaming(  # noqa: C901
         self,
         message: str,
         orgao_code: str | None = None,
         max_results: int = 10,
+        page: int | None = None,
     ) -> AsyncGenerator[dict[str, Any], None]:
         """
         Search contracts with streaming progress updates.
@@ -147,6 +184,7 @@ class ChatInvestigativeService:
             message: User's search query
             orgao_code: Optional organization code (auto-detected if not provided)
             max_results: Maximum number of contracts to return
+            page: Optional page number (random 1-5 if not provided for variety)
 
         Yields:
             Dict events with type and data
@@ -156,6 +194,13 @@ class ChatInvestigativeService:
             orgao_code = self._detect_orgao_from_message(message)
 
         orgao_name = self.ORGAO_NAMES.get(orgao_code, "Órgão Federal")
+
+        # Build date range based on message
+        data_inicial, data_final = self._build_date_range(message)
+
+        # Use random page for variety if not specified (not cryptographic, just for variation)
+        if page is None:
+            page = secrets.randbelow(3) + 1  # Random page 1-3
 
         # Phase 1: Thinking
         yield {
@@ -169,9 +214,11 @@ class ChatInvestigativeService:
         # Phase 2: Searching
         yield {
             "type": "searching",
-            "message": f"📡 Consultando Portal da Transparência (órgão: {orgao_code})...",
+            "message": f"📡 Consultando Portal da Transparência (órgão: {orgao_code}, período: {data_inicial} a {data_final})...",
             "orgao": orgao_code,
             "orgao_nome": orgao_name,
+            "periodo": {"inicio": data_inicial, "fim": data_final},
+            "pagina": page,
             "timestamp": datetime.now(UTC).isoformat(),
         }
 
@@ -189,12 +236,16 @@ class ChatInvestigativeService:
             return
 
         try:
-            # Build query parameters
+            # Build query parameters with date filters
             params = {
                 "codigoOrgao": orgao_code,
-                "pagina": 1,
+                "dataInicial": data_inicial,
+                "dataFinal": data_final,
+                "pagina": page,
                 "tamanhoPagina": max_results,
             }
+
+            logger.info(f"Searching contracts with params: {params}")
 
             # Make API request
             response = await self.client.get("/contratos", params=params)
@@ -233,11 +284,22 @@ class ChatInvestigativeService:
                 else data.get("quantidadeTotal", len(contracts))
             )
 
+            # Extract year range for display
+            year_start = data_inicial.split("/")[-1]
+            year_end = data_final.split("/")[-1]
+            period_display = (
+                f"{year_start}"
+                if year_start == year_end
+                else f"{year_start}-{year_end}"
+            )
+
             yield {
                 "type": "found",
-                "message": f"✅ Encontrados {total} contratos!",
+                "message": f"✅ Encontrados {total} contratos ({period_display}, página {page})!",
                 "total": total,
                 "showing": min(len(contracts), max_results),
+                "periodo": {"inicio": data_inicial, "fim": data_final},
+                "pagina": page,
                 "timestamp": datetime.now(UTC).isoformat(),
             }
             await asyncio.sleep(0.2)
@@ -257,10 +319,12 @@ class ChatInvestigativeService:
             # Phase 4: Complete
             yield {
                 "type": "complete",
-                "message": f"🎯 Pesquisa concluída: {len(contracts[:max_results])} contratos do {orgao_name}",
+                "message": f"🎯 Pesquisa concluída: {len(contracts[:max_results])} contratos do {orgao_name} ({period_display})",
                 "total_contracts": len(contracts[:max_results]),
                 "orgao": orgao_code,
                 "orgao_nome": orgao_name,
+                "periodo": {"inicio": data_inicial, "fim": data_final},
+                "pagina": page,
                 "download_available": True,
                 "timestamp": datetime.now(UTC).isoformat(),
             }
