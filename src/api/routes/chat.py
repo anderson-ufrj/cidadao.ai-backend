@@ -353,97 +353,71 @@ async def send_message(
             session_id, user_id=current_user.id if current_user else None
         )
 
-        # Detect intent from message using NEW keyword-based classifier
+        # Detect intent from message using keyword-based classifier
+        intent_type_str = "unknown"
+        confidence = 0.5
+
         try:
-            if intent_classifier is None:
-                raise Exception("IntentClassifier not available")
+            if intent_classifier is not None:
+                intent_result = await intent_classifier.classify(request.message)
+                detected_intent = intent_result["intent"]
+                confidence = intent_result["confidence"]
+                method = intent_result.get("method", "unknown")
 
-            intent_result = await intent_classifier.classify(request.message)
-            detected_intent = intent_result["intent"]
-            confidence = intent_result["confidence"]
-            method = intent_result.get("method", "unknown")
+                logger.info(
+                    f"[{method.upper()}] Detected intent: {detected_intent.value} with confidence {confidence:.2f}"
+                )
 
-            logger.info(
-                f"[{method.upper()}] Detected intent: {detected_intent.value} with confidence {confidence:.2f}"
-            )
-
-            # Convert InvestigationIntent to old IntentType for compatibility
-            # Map investigation intents to IntentType.INVESTIGATE
-            if detected_intent in [
-                InvestigationIntent.CONTRACT_ANOMALY_DETECTION,
-                InvestigationIntent.SUPPLIER_INVESTIGATION,
-                InvestigationIntent.CORRUPTION_INDICATORS,
-                InvestigationIntent.BUDGET_ANALYSIS,
-                InvestigationIntent.HEALTH_BUDGET_ANALYSIS,
-                InvestigationIntent.EDUCATION_PERFORMANCE,
-            ]:
-                intent_type = IntentType.INVESTIGATE
-            else:
-                intent_type = IntentType.QUESTION
-
-            # Create compatible intent object
-            class Intent:
-                def __init__(self, type, confidence):
-                    self.type = type
-                    self.confidence = confidence
-                    # Map intent type to suggested agent
-                    self.suggested_agent = self._get_suggested_agent(type)
-
-                def _get_suggested_agent(self, intent_type):
-                    """Map intent type to suggested agent"""
-                    agent_mapping = {
-                        IntentType.INVESTIGATE: "zumbi",
-                        IntentType.QUESTION: "drummond",
-                        IntentType.REPORT: "tiradentes",
-                        IntentType.DATA: "oxossi",
-                        IntentType.SEARCH: "oxossi",
-                        IntentType.HELP: "drummond",
-                        IntentType.GREETING: "drummond",
-                        IntentType.HELP_REQUEST: "drummond",
-                        IntentType.ABOUT_SYSTEM: "drummond",
-                        IntentType.THANKS: "drummond",
-                        IntentType.GOODBYE: "drummond",
-                        IntentType.CONVERSATION: "drummond",
-                        IntentType.SMALLTALK: "drummond",
-                        IntentType.ANALYZE: "anita",
-                        IntentType.UNKNOWN: "drummond",
-                    }
-                    return agent_mapping.get(intent_type, "drummond")
-
-            intent = Intent(intent_type, confidence)
+                # Convert InvestigationIntent to string for routing
+                if detected_intent in [
+                    InvestigationIntent.CONTRACT_ANOMALY_DETECTION,
+                    InvestigationIntent.SUPPLIER_INVESTIGATION,
+                    InvestigationIntent.CORRUPTION_INDICATORS,
+                    InvestigationIntent.BUDGET_ANALYSIS,
+                    InvestigationIntent.HEALTH_BUDGET_ANALYSIS,
+                    InvestigationIntent.EDUCATION_PERFORMANCE,
+                ]:
+                    intent_type_str = "investigate"
+                else:
+                    intent_type_str = (
+                        detected_intent.value
+                        if hasattr(detected_intent, "value")
+                        else str(detected_intent)
+                    )
         except Exception as e:
             logger.error(f"Error in intent classification: {e}")
 
-            # Fallback to INVESTIGATE for safety
-            class Intent:
-                def __init__(self, type, confidence):
-                    self.type = type
-                    self.confidence = confidence
-                    # Map intent type to suggested agent
-                    self.suggested_agent = self._get_suggested_agent(type)
+        # Create simple intent object for compatibility
+        class Intent:
+            def __init__(self, type_str: str, conf: float, agent_id: str):
+                self.type = (
+                    IntentType(type_str)
+                    if type_str in [e.value for e in IntentType]
+                    else IntentType.UNKNOWN
+                )
+                self.confidence = conf
+                self.suggested_agent = agent_id
+                self.entities: dict[str, Any] = {}
 
-                def _get_suggested_agent(self, intent_type):
-                    """Map intent type to suggested agent"""
-                    agent_mapping = {
-                        IntentType.INVESTIGATE: "zumbi",
-                        IntentType.QUESTION: "drummond",
-                        IntentType.REPORT: "tiradentes",
-                        IntentType.DATA: "oxossi",
-                        IntentType.SEARCH: "oxossi",
-                        IntentType.HELP: "drummond",
-                        IntentType.GREETING: "drummond",
-                        IntentType.HELP_REQUEST: "drummond",
-                        IntentType.ABOUT_SYSTEM: "drummond",
-                        IntentType.THANKS: "drummond",
-                        IntentType.GOODBYE: "drummond",
-                        IntentType.CONVERSATION: "drummond",
-                        IntentType.SMALLTALK: "drummond",
-                        IntentType.ANALYZE: "anita",
-                        IntentType.UNKNOWN: "drummond",
-                    }
-                    return agent_mapping.get(intent_type, "drummond")
+            def dict(self) -> dict[str, Any]:
+                return {
+                    "type": self.type.value,
+                    "confidence": self.confidence,
+                    "suggested_agent": self.suggested_agent,
+                }
 
-            intent = Intent(IntentType.INVESTIGATE, 0.5)
+        # Use centralized agent routing (single source of truth)
+        # This respects user's agent_id choice or uses Abaporu as default
+        target_agent, _target_agent_name = resolve_agent_id(
+            requested_agent_id=request.agent_id,
+            intent_type=intent_type_str,
+            intent_confidence=confidence,
+        )
+
+        intent = Intent(intent_type_str, confidence, target_agent)
+        logger.info(
+            f"Message routing: intent={intent.type.value}, agent={target_agent}"
+        )
 
         # Check if user is asking for specific government data
         portal_data = None
@@ -533,12 +507,6 @@ async def send_message(
                         )
                 except Exception as e:
                     logger.warning(f"Portal da Transparência integration failed: {e}")
-
-        # Determine target agent based on intent (uses _get_agent_for_intent mapping)
-        target_agent = intent.suggested_agent
-        logger.info(
-            f"Routing {intent.type.value} → {target_agent} (confidence: {intent.confidence})"
-        )
 
         # Create agent message with Portal data if available
         payload_data = {
