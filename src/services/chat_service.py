@@ -11,6 +11,7 @@ from typing import Any
 
 from src.agents import BaseAgent
 from src.core import get_logger
+from src.services.agent_routing import get_agent_for_intent as centralized_get_agent
 from src.services.cache_service import cache_service
 from src.utils.organization_mapping import get_organization_mapper
 
@@ -444,43 +445,18 @@ class IntentDetector:
         return values
 
     def _get_agent_for_intent(self, intent_type: IntentType) -> str:
-        """Get the best agent for handling this intent
+        """Get the best agent for handling this intent.
+
+        Uses centralized agent routing from agent_routing module
+        for consistent behavior across all endpoints.
 
         Routing strategy:
         - Conversational intents -> Drummond (conversational AI)
         - Task-specific intents -> Specialized agents
         - Unknown intents -> Abaporu (master orchestrator)
         """
-        mapping = {
-            # Task-specific routing
-            IntentType.INVESTIGATE: "abaporu",  # Master for investigations
-            IntentType.ANALYZE: "anita",  # Analyst for patterns
-            IntentType.REPORT: "tiradentes",  # Reporter for documents
-            IntentType.STATUS: "abaporu",  # Master for status
-            # Specialized agent routing
-            IntentType.TEXT_ANALYSIS: "machado",  # Machado de Assis for textual analysis
-            IntentType.LEGAL_COMPLIANCE: "bonifacio",  # José Bonifácio for legal compliance
-            IntentType.SECURITY_AUDIT: "maria_quiteria",  # Maria Quitéria for security
-            IntentType.VISUALIZATION: "oscar_niemeyer",  # Oscar Niemeyer for graphs
-            IntentType.STATISTICAL: "anita",  # Anita Garibaldi for statistics
-            IntentType.FRAUD_DETECTION: "oxossi",  # Oxóssi for fraud detection
-            # Conversational routing to Drummond
-            IntentType.GREETING: "drummond",  # Carlos handles greetings
-            IntentType.CONVERSATION: "drummond",  # Carlos handles conversation
-            IntentType.HELP_REQUEST: "drummond",  # Carlos provides help
-            IntentType.ABOUT_SYSTEM: "drummond",  # Carlos explains system
-            IntentType.SMALLTALK: "drummond",  # Carlos handles small talk
-            IntentType.THANKS: "drummond",  # Carlos receives thanks
-            IntentType.GOODBYE: "drummond",  # Carlos handles farewells
-            # General routing
-            IntentType.QUESTION: "drummond",  # Carlos handles general questions
-            IntentType.HELP: "drummond",  # Legacy help -> Carlos
-            IntentType.UNKNOWN: "drummond",  # Unknown -> Carlos first
-            # Data-related routing
-            IntentType.DATA: "oxossi",  # Oxóssi hunts for data
-            IntentType.SEARCH: "oxossi",  # Oxóssi searches for data
-        }
-        return mapping.get(intent_type, "abaporu")
+        # Use centralized routing function (single source of truth)
+        return centralized_get_agent(intent_type.value)
 
 
 class ChatService:
@@ -603,6 +579,7 @@ class ChatService:
         except Exception as e:
             logger.error(f"Failed to initialize agents: {type(e).__name__}: {e}")
             import traceback
+
             logger.error(traceback.format_exc())
             # Create empty agents dict to prevent errors
             self.agents = {}
