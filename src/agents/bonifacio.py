@@ -11,7 +11,7 @@ import statistics
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
@@ -80,22 +80,22 @@ class PolicyAnalysisRequest(BaseModel):
     """Request for public policy analysis."""
 
     policy_name: str = PydanticField(description="Name or description of the policy")
-    policy_area: Optional[str] = PydanticField(
+    policy_area: str | None = PydanticField(
         default=None, description="Policy area (health, education, security, etc)"
     )
-    geographical_scope: Optional[str] = PydanticField(
+    geographical_scope: str | None = PydanticField(
         default=None, description="Geographic scope (municipal, state, federal)"
     )
-    analysis_period: Optional[tuple[str, str]] = PydanticField(
+    analysis_period: tuple[str, str] | None = PydanticField(
         default=None, description="Analysis period (start, end)"
     )
-    budget_data: Optional[dict[str, float]] = PydanticField(
+    budget_data: dict[str, float] | None = PydanticField(
         default=None, description="Budget information"
     )
-    target_indicators: Optional[list[str]] = PydanticField(
+    target_indicators: list[str] | None = PydanticField(
         default=None, description="Specific indicators to analyze"
     )
-    comparison_policies: Optional[list[str]] = PydanticField(
+    comparison_policies: list[str] | None = PydanticField(
         default=None, description="Other policies to compare with"
     )
     benchmarking_scope: str = PydanticField(
@@ -440,7 +440,7 @@ class BonifacioAgent(BaseAgent):
         }
 
     def _estimate_beneficiaries_count(
-        self, policy_area: Optional[str], geographical_scope: Optional[str]
+        self, policy_area: str | None, geographical_scope: str | None
     ) -> int:
         """Estimate number of beneficiaries based on policy area and scope."""
         area = policy_area or "social"
@@ -810,14 +810,13 @@ class BonifacioAgent(BaseAgent):
 
         if overall_effectiveness >= 0.8 and social_roi >= 2.0:
             return ImpactLevel.VERY_HIGH
-        elif overall_effectiveness >= 0.7 and social_roi >= 1.0:
+        if overall_effectiveness >= 0.7 and social_roi >= 1.0:
             return ImpactLevel.HIGH
-        elif overall_effectiveness >= 0.5 and social_roi >= 0.5:
+        if overall_effectiveness >= 0.5 and social_roi >= 0.5:
             return ImpactLevel.MEDIUM
-        elif overall_effectiveness >= 0.3 and social_roi >= 0.0:
+        if overall_effectiveness >= 0.3 and social_roi >= 0.0:
             return ImpactLevel.LOW
-        else:
-            return ImpactLevel.VERY_LOW
+        return ImpactLevel.VERY_LOW
 
     async def _generate_strategic_recommendations(
         self,
@@ -965,29 +964,27 @@ class BonifacioAgent(BaseAgent):
             percentile = 85 + int((excess / range_size) * 14)
             return min(99, percentile)
 
-        elif value >= average:
+        if value >= average:
             # Between average and excellent: 50-85 percentile
             # Linear interpolation
             progress = (value - average) / (excellent - average)
             percentile = 50 + int(progress * 35)
             return percentile
 
-        elif value >= poor:
+        if value >= poor:
             # Between poor and average: 15-50 percentile
             # Linear interpolation
             progress = (value - poor) / (average - poor)
             percentile = 15 + int(progress * 35)
             return percentile
 
-        else:
-            # Below poor: 10-15 percentile
-            # Scale from 0 to poor = 10 to 15
-            if poor > 0:
-                ratio = value / poor
-                percentile = 10 + int(ratio * 5)
-                return max(10, percentile)
-            else:
-                return 10
+        # Below poor: 10-15 percentile
+        # Scale from 0 to poor = 10 to 15
+        if poor > 0:
+            ratio = value / poor
+            percentile = 10 + int(ratio * 5)
+            return max(10, percentile)
+        return 10
 
     # Framework application methods
     async def _apply_logic_model_framework(self, request, evaluation):
@@ -1272,10 +1269,9 @@ class BonifacioAgent(BaseAgent):
         # Based on policy sustainability and indicator volatility
         if evaluation.sustainability_score >= 75:
             return "low"  # Strong institutional capacity buffers external shocks
-        elif evaluation.sustainability_score >= 60:
+        if evaluation.sustainability_score >= 60:
             return "moderate"
-        else:
-            return "high"  # Weak institutions vulnerable to external factors
+        return "high"  # Weak institutions vulnerable to external factors
 
     async def _apply_theory_of_change_framework(self, request, evaluation):
         """
@@ -1575,10 +1571,9 @@ class BonifacioAgent(BaseAgent):
 
         if improving / total >= 0.75:
             return "Strong - Most pathways functioning well"
-        elif improving / total >= 0.50:
+        if improving / total >= 0.50:
             return "Moderate - Some pathways need strengthening"
-        else:
-            return "Weak - Significant pathway dysfunction detected"
+        return "Weak - Significant pathway dysfunction detected"
 
     async def _apply_cost_effectiveness_framework(self, request, evaluation):
         """
@@ -1691,14 +1686,13 @@ class BonifacioAgent(BaseAgent):
 
         if cost_per_beneficiary < benchmark["low"]:
             return "Very Low Cost"
-        elif cost_per_beneficiary < benchmark["low"] * 1.5:
+        if cost_per_beneficiary < benchmark["low"] * 1.5:
             return "Low Cost"
-        elif cost_per_beneficiary < benchmark["high"]:
+        if cost_per_beneficiary < benchmark["high"]:
             return "Moderate Cost"
-        elif cost_per_beneficiary < benchmark["high"] * 1.5:
+        if cost_per_beneficiary < benchmark["high"] * 1.5:
             return "High Cost"
-        else:
-            return "Very High Cost"
+        return "Very High Cost"
 
     def _calculate_cost_per_outcome(
         self, total_cost: float, indicators: list[PolicyIndicator]
@@ -1727,8 +1721,7 @@ class BonifacioAgent(BaseAgent):
 
         if incremental_effect > 0:
             return round(incremental_cost / incremental_effect, 2)
-        else:
-            return float("inf")
+        return float("inf")
 
     def _calculate_marginal_cost(
         self, total_cost: float, indicators: list[PolicyIndicator]
@@ -1740,23 +1733,21 @@ class BonifacioAgent(BaseAgent):
 
         if total_improvement > 0:
             return round(total_cost / total_improvement, 2)
-        else:
-            return 0.0
+        return 0.0
 
     def _classify_roi(self, roi: float) -> str:
         """Classify social ROI level."""
         if roi >= 3.0:
             return "Excellent - Very high social return"
-        elif roi >= 2.0:
+        if roi >= 2.0:
             return "Very Good - High social return"
-        elif roi >= 1.0:
+        if roi >= 1.0:
             return "Good - Positive social return"
-        elif roi >= 0.0:
+        if roi >= 0.0:
             return "Moderate - Break-even or slight return"
-        elif roi >= -0.5:
+        if roi >= -0.5:
             return "Poor - Negative return"
-        else:
-            return "Very Poor - Significant loss"
+        return "Very Poor - Significant loss"
 
     def _calculate_cost_percentile(
         self, cost_per_beneficiary: float, policy_area: str
@@ -1796,14 +1787,13 @@ class BonifacioAgent(BaseAgent):
 
         if value_score >= 0.80:
             return "Excellent Value"
-        elif value_score >= 0.70:
+        if value_score >= 0.70:
             return "Very Good Value"
-        elif value_score >= 0.60:
+        if value_score >= 0.60:
             return "Good Value"
-        elif value_score >= 0.50:
+        if value_score >= 0.50:
             return "Fair Value"
-        else:
-            return "Poor Value"
+        return "Poor Value"
 
     def _identify_cost_reduction_opportunities(
         self, evaluation: PolicyEvaluation
@@ -1888,10 +1878,9 @@ class BonifacioAgent(BaseAgent):
         """Analyze sensitivity of outcomes to cost changes."""
         if evaluation.effectiveness_score["cost_effectiveness"] > 0.8:
             return "Low sensitivity - Outcomes robust to cost variations"
-        elif evaluation.effectiveness_score["cost_effectiveness"] > 0.6:
+        if evaluation.effectiveness_score["cost_effectiveness"] > 0.6:
             return "Moderate sensitivity - Some outcome impact from cost changes"
-        else:
-            return "High sensitivity - Outcomes highly dependent on cost levels"
+        return "High sensitivity - Outcomes highly dependent on cost levels"
 
     def _analyze_outcome_sensitivity(self, evaluation: PolicyEvaluation) -> str:
         """Analyze stability of outcomes."""
@@ -1902,10 +1891,9 @@ class BonifacioAgent(BaseAgent):
 
         if stable / total >= 0.85:
             return "Low sensitivity - Outcomes stable and resilient"
-        elif stable / total >= 0.65:
+        if stable / total >= 0.65:
             return "Moderate sensitivity - Some outcome volatility"
-        else:
-            return "High sensitivity - Outcomes vulnerable to disruption"
+        return "High sensitivity - Outcomes vulnerable to disruption"
 
     def _calculate_roi_cost_sensitivity(
         self, evaluation: PolicyEvaluation

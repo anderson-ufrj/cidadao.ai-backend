@@ -6,7 +6,6 @@ during application startup.
 """
 
 import asyncio
-from typing import Optional
 
 from src.agents.nana import ContextMemoryAgent
 from src.core import get_logger
@@ -17,7 +16,7 @@ from src.services.agent_memory_integration import initialize_memory_integration
 logger = get_logger(__name__)
 
 
-async def initialize_memory_system() -> Optional[ContextMemoryAgent]:
+async def initialize_memory_system() -> ContextMemoryAgent | None:
     """
     Initialize the complete memory system.
 

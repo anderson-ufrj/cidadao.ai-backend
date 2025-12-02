@@ -41,8 +41,7 @@ class ConnectionStats:
         """Record new connection creation."""
         self.connections_created += 1
         self.active_connections += 1
-        if self.active_connections > self.peak_connections:
-            self.peak_connections = self.active_connections
+        self.peak_connections = max(self.peak_connections, self.active_connections)
 
     def record_connection_closed(self):
         """Record connection closure."""

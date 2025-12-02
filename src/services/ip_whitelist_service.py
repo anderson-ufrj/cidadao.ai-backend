@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 
 import ipaddress
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import JSON, Boolean, Column, DateTime, Integer, String, delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -60,9 +60,8 @@ class IPWhitelist(BaseModel):
                 # CIDR range check
                 network = ipaddress.ip_network(f"{self.ip_address}/{self.cidr_prefix}")
                 return ipaddress.ip_address(ip) in network
-            else:
-                # Exact match
-                return self.ip_address == ip
+            # Exact match
+            return self.ip_address == ip
         except ValueError:
             logger.error(f"Invalid IP address format: {ip}")
             return False
@@ -75,20 +74,20 @@ class IPWhitelistService:
         """Initialize IP whitelist service."""
         self._cache_key_prefix = "ip_whitelist"
         self._cache_ttl = 300  # 5 minutes
-        self._whitelist_cache: Optional[set[str]] = None
-        self._cidr_cache: Optional[list[tuple]] = None
-        self._last_cache_update: Optional[datetime] = None
+        self._whitelist_cache: set[str] | None = None
+        self._cidr_cache: list[tuple] | None = None
+        self._last_cache_update: datetime | None = None
 
     async def add_ip(
         self,
         session: AsyncSession,
         ip_address: str,
         created_by: str,
-        description: Optional[str] = None,
+        description: str | None = None,
         environment: str = "production",
-        expires_at: Optional[datetime] = None,
+        expires_at: datetime | None = None,
         is_cidr: bool = False,
-        meta_info: Optional[dict[str, Any]] = None,
+        meta_info: dict[str, Any] | None = None,
     ) -> IPWhitelist:
         """Add IP address or CIDR range to whitelist."""
         try:
@@ -226,11 +225,11 @@ class IPWhitelistService:
         session: AsyncSession,
         ip_address: str,
         environment: str = "production",
-        active: Optional[bool] = None,
-        description: Optional[str] = None,
-        expires_at: Optional[datetime] = None,
-        meta_info: Optional[dict[str, Any]] = None,
-    ) -> Optional[IPWhitelist]:
+        active: bool | None = None,
+        description: str | None = None,
+        expires_at: datetime | None = None,
+        meta_info: dict[str, Any] | None = None,
+    ) -> IPWhitelist | None:
         """Update whitelist entry."""
         result = await session.execute(
             select(IPWhitelist).where(
@@ -265,7 +264,7 @@ class IPWhitelistService:
         return entry
 
     async def cleanup_expired(
-        self, session: AsyncSession, environment: Optional[str] = None
+        self, session: AsyncSession, environment: str | None = None
     ) -> int:
         """Remove expired whitelist entries."""
         query = delete(IPWhitelist).where(IPWhitelist.expires_at < datetime.now(UTC))

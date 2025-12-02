@@ -8,7 +8,7 @@ used in anomaly detection, fraud detection, and pattern recognition.
 import json
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import joblib
 import mlflow
@@ -81,9 +81,9 @@ class MLTrainingPipeline:
         model_type: str,
         algorithm: str,
         X_train: np.ndarray,
-        y_train: Optional[np.ndarray] = None,
-        hyperparameters: Optional[dict[str, Any]] = None,
-        metadata: Optional[dict[str, Any]] = None,
+        y_train: np.ndarray | None = None,
+        hyperparameters: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Train a model with the specified algorithm.
@@ -188,7 +188,7 @@ class MLTrainingPipeline:
             return {"success": False, "error": str(e), "model_id": None}
 
     async def _create_model(
-        self, algorithm: str, hyperparameters: Optional[dict[str, Any]] = None
+        self, algorithm: str, hyperparameters: dict[str, Any] | None = None
     ) -> Any:
         """Create a model instance with hyperparameters."""
         if algorithm not in self.algorithms:
@@ -219,7 +219,7 @@ class MLTrainingPipeline:
         self,
         y_true: np.ndarray,
         y_pred: np.ndarray,
-        y_proba: Optional[np.ndarray] = None,
+        y_proba: np.ndarray | None = None,
     ) -> dict[str, float]:
         """Calculate comprehensive metrics for model evaluation."""
         metrics = {
@@ -241,7 +241,7 @@ class MLTrainingPipeline:
         model_type: str,
         algorithm: str,
         metrics: dict[str, Any],
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """Save trained model to disk."""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -301,7 +301,7 @@ class MLTrainingPipeline:
         return {"model_id": model_id, "version": version["version"]}
 
     async def load_model(
-        self, model_id: str, version: Optional[int] = None
+        self, model_id: str, version: int | None = None
     ) -> tuple[Any, dict[str, Any]]:
         """
         Load a model from the registry.
@@ -399,7 +399,7 @@ class MLTrainingPipeline:
             return False
 
     async def get_model_metrics(
-        self, model_id: str, version: Optional[int] = None
+        self, model_id: str, version: int | None = None
     ) -> dict[str, Any]:
         """Get metrics for a specific model version."""
         _, metadata = await self.load_model(model_id, version)
@@ -407,9 +407,9 @@ class MLTrainingPipeline:
 
     async def compare_models(
         self,
-        model_ids: list[tuple[str, Optional[int]]],
+        model_ids: list[tuple[str, int | None]],
         test_data: np.ndarray,
-        test_labels: Optional[np.ndarray] = None,
+        test_labels: np.ndarray | None = None,
     ) -> dict[str, Any]:
         """
         Compare multiple models on the same test data.

@@ -8,13 +8,12 @@ License: Proprietary - All rights reserved
 
 import asyncio
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urljoin
 
 import httpx
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from pydantic import Field as PydanticField
-from pydantic import field_validator
 
 from src.core import get_logger, settings
 from src.core.exceptions import DataNotFoundError, TransparencyAPIError
@@ -67,31 +66,29 @@ class APIRateLimit:
 class TransparencyAPIFilter(BaseModel):
     """Filter parameters for API requests."""
 
-    ano: Optional[int] = PydanticField(default=None, description="Year")
-    mes: Optional[int] = PydanticField(default=None, ge=1, le=12, description="Month")
-    data_inicio: Optional[str] = PydanticField(
+    ano: int | None = PydanticField(default=None, description="Year")
+    mes: int | None = PydanticField(default=None, ge=1, le=12, description="Month")
+    data_inicio: str | None = PydanticField(
         default=None, description="Start date (DD/MM/YYYY)"
     )
-    data_fim: Optional[str] = PydanticField(
+    data_fim: str | None = PydanticField(
         default=None, description="End date (DD/MM/YYYY)"
     )
-    valor_inicial: Optional[float] = PydanticField(
+    valor_inicial: float | None = PydanticField(
         default=None, description="Minimum value"
     )
-    valor_final: Optional[float] = PydanticField(
-        default=None, description="Maximum value"
-    )
-    codigo_orgao: Optional[str] = PydanticField(
+    valor_final: float | None = PydanticField(default=None, description="Maximum value")
+    codigo_orgao: str | None = PydanticField(
         default=None,
         description="Organization code (required for contratos/licitacoes)",
     )
-    orgao: Optional[str] = PydanticField(
+    orgao: str | None = PydanticField(
         default=None, description="Organization code (legacy)"
     )
-    cnpj_contratado: Optional[str] = PydanticField(
+    cnpj_contratado: str | None = PydanticField(
         default=None, description="Contracted CNPJ"
     )
-    modalidade: Optional[Any] = PydanticField(
+    modalidade: Any | None = PydanticField(
         default=None, description="Bidding modality (int code or string name)"
     )
     pagina: int = PydanticField(default=1, ge=1, description="Page number")
@@ -142,8 +139,8 @@ class TransparencyAPIResponse(BaseModel):
     """Response from Transparency API."""
 
     data: list[dict[str, Any]] = PydanticField(default_factory=list)
-    links: Optional[dict[str, str]] = PydanticField(default=None)
-    meta: Optional[dict[str, Any]] = PydanticField(default=None)
+    links: dict[str, str] | None = PydanticField(default=None)
+    meta: dict[str, Any] | None = PydanticField(default=None)
     total_records: int = PydanticField(default=0)
     current_page: int = PydanticField(default=1)
     total_pages: int = PydanticField(default=1)
@@ -158,8 +155,8 @@ class TransparencyAPIClient:
 
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        base_url: Optional[str] = None,
+        api_key: str | None = None,
+        base_url: str | None = None,
         timeout: int = 30,
         max_retries: int = 3,
         rate_limit_per_minute: int = 90,
@@ -218,7 +215,7 @@ class TransparencyAPIClient:
     async def _make_request(
         self,
         endpoint: str,
-        params: Optional[dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Make an API request with retry logic.
@@ -266,7 +263,7 @@ class TransparencyAPIClient:
 
                     return data
 
-                elif response.status_code == 429:
+                if response.status_code == 429:
                     # Rate limit exceeded
                     retry_after = int(response.headers.get("Retry-After", 60))
 
@@ -286,40 +283,39 @@ class TransparencyAPIClient:
                         details={"retry_after": retry_after},
                     )
 
-                elif response.status_code == 404:
+                if response.status_code == 404:
                     raise DataNotFoundError(
                         f"Data not found for endpoint: {endpoint}",
                         details={"endpoint": endpoint, "params": params},
                     )
 
-                else:
-                    # Other HTTP errors
-                    error_msg = f"API request failed with status {response.status_code}"
+                # Other HTTP errors
+                error_msg = f"API request failed with status {response.status_code}"
 
-                    try:
-                        error_data = response.json()
-                        error_msg += f": {error_data}"
-                    except:
-                        error_msg += f": {response.text}"
+                try:
+                    error_data = response.json()
+                    error_msg += f": {error_data}"
+                except:
+                    error_msg += f": {response.text}"
 
-                    self.logger.error(
-                        "api_request_failed",
-                        url=url,
-                        status_code=response.status_code,
-                        error=error_msg,
-                        attempt=attempt + 1,
-                    )
+                self.logger.error(
+                    "api_request_failed",
+                    url=url,
+                    status_code=response.status_code,
+                    error=error_msg,
+                    attempt=attempt + 1,
+                )
 
-                    if attempt < self.max_retries:
-                        # Exponential backoff
-                        await asyncio.sleep(2**attempt)
-                        continue
+                if attempt < self.max_retries:
+                    # Exponential backoff
+                    await asyncio.sleep(2**attempt)
+                    continue
 
-                    raise TransparencyAPIError(
-                        error_msg,
-                        error_code=f"HTTP_{response.status_code}",
-                        details={"status_code": response.status_code},
-                    )
+                raise TransparencyAPIError(
+                    error_msg,
+                    error_code=f"HTTP_{response.status_code}",
+                    details={"status_code": response.status_code},
+                )
 
             except httpx.TimeoutException:
                 self.logger.error(
@@ -374,7 +370,7 @@ class TransparencyAPIClient:
                 total_pages=1,
             )
 
-        elif isinstance(data, dict):
+        if isinstance(data, dict):
             # Paginated response
             response_data = data.get("data", data.get("items", []))
             links = data.get("links", {})
@@ -389,18 +385,17 @@ class TransparencyAPIClient:
                 total_pages=meta.get("last_page", 1),
             )
 
-        else:
-            # Unexpected format
-            return TransparencyAPIResponse(
-                data=[],
-                total_records=0,
-            )
+        # Unexpected format
+        return TransparencyAPIResponse(
+            data=[],
+            total_records=0,
+        )
 
     # Specific endpoint methods
 
     async def get_contracts(
         self,
-        filters: Optional[TransparencyAPIFilter] = None,
+        filters: TransparencyAPIFilter | None = None,
     ) -> TransparencyAPIResponse:
         """
         Get government contracts.
@@ -417,7 +412,7 @@ class TransparencyAPIClient:
 
     async def get_expenses(
         self,
-        filters: Optional[TransparencyAPIFilter] = None,
+        filters: TransparencyAPIFilter | None = None,
     ) -> TransparencyAPIResponse:
         """
         Get government expenses.
@@ -434,7 +429,7 @@ class TransparencyAPIClient:
 
     async def get_agreements(
         self,
-        filters: Optional[TransparencyAPIFilter] = None,
+        filters: TransparencyAPIFilter | None = None,
     ) -> TransparencyAPIResponse:
         """
         Get government agreements (convênios).
@@ -451,7 +446,7 @@ class TransparencyAPIClient:
 
     async def get_biddings(
         self,
-        filters: Optional[TransparencyAPIFilter] = None,
+        filters: TransparencyAPIFilter | None = None,
     ) -> TransparencyAPIResponse:
         """
         Get government biddings (licitações).
@@ -468,7 +463,7 @@ class TransparencyAPIClient:
 
     async def get_servants(
         self,
-        filters: Optional[TransparencyAPIFilter] = None,
+        filters: TransparencyAPIFilter | None = None,
     ) -> TransparencyAPIResponse:
         """
         Get government servants.
@@ -486,8 +481,8 @@ class TransparencyAPIClient:
     async def search_data(
         self,
         endpoint: str,
-        filters: Optional[TransparencyAPIFilter] = None,
-        custom_params: Optional[dict[str, Any]] = None,
+        filters: TransparencyAPIFilter | None = None,
+        custom_params: dict[str, Any] | None = None,
     ) -> TransparencyAPIResponse:
         """
         Generic search method for any endpoint.
@@ -514,7 +509,7 @@ class TransparencyAPIClient:
     async def get_all_pages(
         self,
         endpoint: str,
-        filters: Optional[TransparencyAPIFilter] = None,
+        filters: TransparencyAPIFilter | None = None,
         max_pages: int = 10,
     ) -> list[dict[str, Any]]:
         """

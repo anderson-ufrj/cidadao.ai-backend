@@ -10,7 +10,7 @@ License: Proprietary - All rights reserved
 import asyncio
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from pydantic import BaseModel
@@ -43,19 +43,19 @@ class SocialJusticeRequest(BaseModel):
     """Request for social justice analysis."""
 
     query: str = PydanticField(min_length=1, description="Social equity analysis query")
-    target_groups: Optional[list[str]] = PydanticField(
+    target_groups: list[str] | None = PydanticField(
         default=None, description="Specific demographic groups to analyze"
     )
-    policy_areas: Optional[list[str]] = PydanticField(
+    policy_areas: list[str] | None = PydanticField(
         default=None, description="Policy areas (education, health, housing, etc)"
     )
-    geographical_scope: Optional[str] = PydanticField(
+    geographical_scope: str | None = PydanticField(
         default=None, description="Geographic scope (municipality, state, federal)"
     )
-    time_period: Optional[tuple[str, str]] = PydanticField(
+    time_period: tuple[str, str] | None = PydanticField(
         default=None, description="Analysis period (start, end)"
     )
-    metrics_focus: Optional[list[str]] = PydanticField(
+    metrics_focus: list[str] | None = PydanticField(
         default=None, description="Specific metrics to focus on"
     )
 
@@ -375,7 +375,7 @@ class DandaraAgent(BaseAgent):
                 confidence_level=0.30,
             )
 
-    def _extract_state_code(self, geographical_scope: str) -> Optional[str]:
+    def _extract_state_code(self, geographical_scope: str) -> str | None:
         """Extract state code from geographical scope."""
         # Map common state names/codes
         state_map = {
@@ -400,13 +400,13 @@ class DandaraAgent(BaseAgent):
 
         return None
 
-    def _extract_municipality_ids(self, geographical_scope: str) -> Optional[list[str]]:
+    def _extract_municipality_ids(self, geographical_scope: str) -> list[str] | None:
         """Extract municipality IDs from geographical scope."""
         # For now, return None - could be enhanced to parse specific municipalities
         return None
 
     async def _calculate_real_gini(
-        self, ibge_data: Optional[dict], request: SocialJusticeRequest
+        self, ibge_data: dict | None, request: SocialJusticeRequest
     ) -> float:
         """Calculate Gini coefficient from real IBGE data."""
         try:
@@ -437,9 +437,9 @@ class DandaraAgent(BaseAgent):
 
     async def _detect_equity_violations_real(
         self,
-        ibge_data: Optional[dict],
-        datasus_data: Optional[dict],
-        inep_data: Optional[dict],
+        ibge_data: dict | None,
+        datasus_data: dict | None,
+        inep_data: dict | None,
         request: SocialJusticeRequest,
         context: AgentContext,
     ) -> list[dict[str, Any]]:
@@ -519,9 +519,9 @@ class DandaraAgent(BaseAgent):
 
     async def _identify_inclusion_gaps_real(
         self,
-        ibge_data: Optional[dict],
-        datasus_data: Optional[dict],
-        inep_data: Optional[dict],
+        ibge_data: dict | None,
+        datasus_data: dict | None,
+        inep_data: dict | None,
         request: SocialJusticeRequest,
         context: AgentContext,
     ) -> list[dict[str, Any]]:
@@ -608,7 +608,7 @@ class DandaraAgent(BaseAgent):
         return gaps
 
     def _estimate_affected_population_real(
-        self, ibge_data: Optional[dict], request: SocialJusticeRequest
+        self, ibge_data: dict | None, request: SocialJusticeRequest
     ) -> int:
         """Estimate affected population size from real IBGE data."""
         try:
@@ -725,12 +725,11 @@ class DandaraAgent(BaseAgent):
         """Calculate recommendation priority based on equity metrics."""
         if equity_score < 40 or violations_count > 5:
             return "critical"
-        elif equity_score < 60 or violations_count > 2:
+        if equity_score < 60 or violations_count > 2:
             return "high"
-        elif equity_score < 75 or gaps_count > 3:
+        if equity_score < 75 or gaps_count > 3:
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     def _estimate_recommendation_impact(
         self, gaps: list[dict[str, Any]], recommendation_idx: int
@@ -765,12 +764,11 @@ class DandaraAgent(BaseAgent):
         # Higher violations = more aggressive target
         if violations_count > 5:
             return min(25, 100 - current_score)
-        elif violations_count > 2:
+        if violations_count > 2:
             return min(20, 100 - current_score)
-        elif current_score < 50:
+        if current_score < 50:
             return min(15, 100 - current_score)
-        else:
-            return min(10, 100 - current_score)
+        return min(10, 100 - current_score)
 
     def _generate_audit_hash(
         self, analysis: EquityAnalysisResult, request: SocialJusticeRequest
@@ -804,9 +802,8 @@ class DandaraAgent(BaseAgent):
         if epsilon == 1:
             geometric_mean = np.exp(np.mean(np.log(data)))
             return 1 - geometric_mean / mean_income
-        else:
-            weighted_sum = np.mean(np.power(data, 1 - epsilon))
-            return 1 - np.power(weighted_sum, 1 / (1 - epsilon)) / mean_income
+        weighted_sum = np.mean(np.power(data, 1 - epsilon))
+        return 1 - np.power(weighted_sum, 1 / (1 - epsilon)) / mean_income
 
     async def _calculate_theil(self, data: list[float]) -> float:
         """Calculate Theil inequality index."""

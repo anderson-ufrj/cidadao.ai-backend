@@ -11,7 +11,7 @@ import time
 import zlib
 from collections import defaultdict
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from src.core import get_logger
 
@@ -52,7 +52,7 @@ class CompressionProfile:
         algorithm: CompressionAlgorithm,
         level: int,
         min_size: int = 1024,
-        max_size: Optional[int] = None,
+        max_size: int | None = None,
     ):
         self.algorithm = algorithm
         self.level = level
@@ -118,7 +118,7 @@ class CompressionService:
         data: bytes,
         content_type: str,
         accept_encoding: str,
-        force_algorithm: Optional[CompressionAlgorithm] = None,
+        force_algorithm: CompressionAlgorithm | None = None,
     ) -> tuple[bytes, str, dict[str, Any]]:
         """
         Compress data using the best available algorithm.
@@ -284,22 +284,21 @@ class CompressionService:
         if algorithm == CompressionAlgorithm.GZIP:
             return gzip.compress(data, compresslevel=level), "gzip"
 
-        elif algorithm == CompressionAlgorithm.BROTLI:
+        if algorithm == CompressionAlgorithm.BROTLI:
             if not HAS_BROTLI:
                 raise RuntimeError("Brotli not available")
             return brotli.compress(data, quality=level), "br"
 
-        elif algorithm == CompressionAlgorithm.ZSTD:
+        if algorithm == CompressionAlgorithm.ZSTD:
             if not HAS_ZSTD:
                 raise RuntimeError("Zstandard not available")
             cctx = zstd.ZstdCompressor(level=level)
             return cctx.compress(data), "zstd"
 
-        elif algorithm == CompressionAlgorithm.DEFLATE:
+        if algorithm == CompressionAlgorithm.DEFLATE:
             return zlib.compress(data, level=level), "deflate"
 
-        else:
-            return data, "identity"
+        return data, "identity"
 
     def _update_metrics(
         self,

@@ -7,7 +7,6 @@ License: Proprietary - All rights reserved
 """
 
 from enum import Enum
-from typing import Optional
 
 from pydantic import BaseModel, Field, HttpUrl
 
@@ -59,7 +58,7 @@ class OAuthProviderConfig(BaseModel):
     email_verification_required: bool = Field(
         default=True, description="Require verified email"
     )
-    allowed_domains: Optional[list[str]] = Field(
+    allowed_domains: list[str] | None = Field(
         default=None, description="Allowed email domains"
     )
 

@@ -10,7 +10,7 @@ License: Proprietary - All rights reserved
 from collections import Counter, defaultdict
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -36,8 +36,8 @@ class PatternResult:
     evidence: dict[str, Any]
     recommendations: list[str]
     entities_involved: list[dict[str, Any]]
-    trend_direction: Optional[str] = None  # "increasing", "decreasing", "stable"
-    correlation_strength: Optional[float] = None
+    trend_direction: str | None = None  # "increasing", "decreasing", "stable"
+    correlation_strength: float | None = None
 
 
 @dataclass
@@ -47,7 +47,7 @@ class CorrelationResult:
     correlation_type: str
     variables: list[str]
     correlation_coefficient: float
-    p_value: Optional[float]
+    p_value: float | None
     significance_level: str  # "high", "medium", "low"
     description: str
     business_interpretation: str
@@ -59,16 +59,16 @@ class AnalysisRequest(BaseModel):
     """Request for pattern and correlation analysis."""
 
     query: str = PydanticField(description="Natural language analysis query")
-    analysis_types: Optional[list[str]] = PydanticField(
+    analysis_types: list[str] | None = PydanticField(
         default=None, description="Types of analysis to perform"
     )
-    time_period: Optional[str] = PydanticField(
+    time_period: str | None = PydanticField(
         default="12_months", description="Time period for analysis"
     )
-    organization_codes: Optional[list[str]] = PydanticField(
+    organization_codes: list[str] | None = PydanticField(
         default=None, description="Organizations to analyze"
     )
-    focus_areas: Optional[list[str]] = PydanticField(
+    focus_areas: list[str] | None = PydanticField(
         default=None, description="Specific areas to focus on"
     )
     comparison_mode: bool = PydanticField(
@@ -1411,9 +1411,7 @@ class AnalystAgent(BaseAgent):
             {"date": date, "value": value} for date, value in daily_aggregates.items()
         ]
 
-    def _classify_trend_from_spectral(
-        self, features: SpectralFeatures
-    ) -> Optional[str]:
+    def _classify_trend_from_spectral(self, features: SpectralFeatures) -> str | None:
         """Classify trend direction from spectral features."""
         # Analyze trend component
         if hasattr(features, "trend_component") and len(features.trend_component) > 10:
@@ -1426,10 +1424,9 @@ class AnalystAgent(BaseAgent):
 
             if trend_end > trend_start * 1.1:
                 return "increasing"
-            elif trend_end < trend_start * 0.9:
+            if trend_end < trend_start * 0.9:
                 return "decreasing"
-            else:
-                return "stable"
+            return "stable"
 
         return None
 
@@ -1437,10 +1434,9 @@ class AnalystAgent(BaseAgent):
         """Assess significance level of spectral coherence."""
         if coherence > 0.8:
             return "high"
-        elif coherence > 0.6:
+        if coherence > 0.6:
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     def _generate_insights(
         self,

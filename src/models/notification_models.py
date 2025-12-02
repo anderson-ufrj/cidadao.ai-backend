@@ -2,12 +2,21 @@
 
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
-from sqlalchemy import JSON, Boolean, Column, DateTime
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    String,
+    Table,
+    Text,
+)
 from sqlalchemy import Enum as SQLEnum
-from sqlalchemy import ForeignKey, Integer, String, Table, Text
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -111,8 +120,8 @@ class NotificationPreference(BaseModel):
     push_tokens: list[str] = Field(default_factory=list)
 
     # Time preferences
-    quiet_hours_start: Optional[str] = None
-    quiet_hours_end: Optional[str] = None
+    quiet_hours_start: str | None = None
+    quiet_hours_end: str | None = None
     timezone: str = "America/Sao_Paulo"
 
     model_config = ConfigDict(
@@ -163,9 +172,9 @@ class NotificationHistory(BaseModel):
     delivery_status: dict[str, str] = Field(default_factory=dict)
     metadata: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime
-    read_at: Optional[datetime] = None
+    read_at: datetime | None = None
     error_count: int = 0
-    last_error: Optional[str] = None
+    last_error: str | None = None
 
 
 class WebhookConfigDB(Base):
@@ -209,15 +218,15 @@ class WebhookConfigDB(Base):
 class WebhookConfig(BaseModel):
     """Webhook configuration Pydantic model."""
 
-    id: Optional[int] = None
+    id: int | None = None
     user_id: str
     url: str
-    secret: Optional[str] = None
-    description: Optional[str] = None
+    secret: str | None = None
+    description: str | None = None
     events: list[str] = Field(default_factory=list)
     active: bool = True
     headers: dict[str, str] = Field(default_factory=dict)
-    auth_type: Optional[str] = None
-    auth_value: Optional[str] = None
+    auth_type: str | None = None
+    auth_value: str | None = None
     max_retries: int = 3
     timeout_seconds: int = 30

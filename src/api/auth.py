@@ -6,7 +6,7 @@ Handles JWT tokens, user management, and security
 import os
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 import bcrypt
 import jwt
@@ -162,7 +162,7 @@ class AuthManager:
         """Verify password against hash"""
         return bcrypt.checkpw(password.encode("utf-8"), password_hash.encode("utf-8"))
 
-    def authenticate_user(self, email: str, password: str) -> Optional[User]:
+    def authenticate_user(self, email: str, password: str) -> User | None:
         """Authenticate user with email and password"""
         user_data = self.users_db.get(email)
         if not user_data:

@@ -7,7 +7,7 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from pydantic import BaseModel, Field
@@ -27,7 +27,7 @@ router = APIRouter(prefix="/cache-warming", tags=["Admin - Cache Warming"])
 class CacheWarmingRequest(BaseModel):
     """Request to warm specific cache data."""
 
-    strategies: Optional[list[CacheWarmingStrategy]] = Field(
+    strategies: list[CacheWarmingStrategy] | None = Field(
         None, description="Specific strategies to execute (None = all)"
     )
 
@@ -37,13 +37,13 @@ class SpecificDataWarmingRequest(BaseModel):
 
     data_type: str = Field(..., description="Type of data to warm")
     identifiers: list[str] = Field(..., description="List of identifiers")
-    ttl: Optional[int] = Field(None, description="Cache TTL in seconds")
+    ttl: int | None = Field(None, description="Cache TTL in seconds")
 
 
 class CacheWarmingStatusResponse(BaseModel):
     """Cache warming status response."""
 
-    last_warming: Optional[datetime]
+    last_warming: datetime | None
     query_frequency_tracked: int
     top_queries: list[tuple]
     config: dict[str, Any]

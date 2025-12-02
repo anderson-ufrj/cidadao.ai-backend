@@ -9,7 +9,7 @@ import json
 import random
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from scipy import stats
@@ -60,15 +60,15 @@ class ABTestFramework:
     async def create_test(
         self,
         test_name: str,
-        model_a: tuple[str, Optional[int]],  # (model_id, version)
-        model_b: tuple[str, Optional[int]],
+        model_a: tuple[str, int | None],  # (model_id, version)
+        model_b: tuple[str, int | None],
         allocation_strategy: TrafficAllocationStrategy = TrafficAllocationStrategy.RANDOM,
         traffic_split: tuple[float, float] = (0.5, 0.5),
         success_metric: str = "f1_score",
         minimum_sample_size: int = 1000,
         significance_level: float = 0.05,
         auto_stop: bool = True,
-        duration_hours: Optional[int] = None,
+        duration_hours: int | None = None,
     ) -> dict[str, Any]:
         """
         Create a new A/B test.
@@ -164,7 +164,7 @@ class ABTestFramework:
         return True
 
     async def allocate_model(
-        self, test_name: str, user_id: Optional[str] = None
+        self, test_name: str, user_id: str | None = None
     ) -> tuple[str, int]:
         """
         Allocate a model for a user based on the test configuration.
@@ -204,7 +204,7 @@ class ABTestFramework:
         return (model_info["model_id"], model_info["version"])
 
     async def _random_allocation(
-        self, test_config: dict[str, Any], user_id: Optional[str] = None
+        self, test_config: dict[str, Any], user_id: str | None = None
     ) -> str:
         """Random allocation with optional user-based consistency."""
         if user_id:
@@ -212,13 +212,12 @@ class ABTestFramework:
             hash_val = hash(user_id + test_config["test_id"]) % 100
             threshold = test_config["traffic_split"][0] * 100
             return "model_a" if hash_val < threshold else "model_b"
-        else:
-            # Pure random
-            return (
-                "model_a"
-                if random.random() < test_config["traffic_split"][0]
-                else "model_b"
-            )
+        # Pure random
+        return (
+            "model_a"
+            if random.random() < test_config["traffic_split"][0]
+            else "model_b"
+        )
 
     async def _weighted_allocation(self, test_config: dict[str, Any]) -> str:
         """Weighted allocation based on traffic split."""
@@ -231,17 +230,16 @@ class ABTestFramework:
         if random.random() < epsilon:
             # Explore
             return random.choice(["model_a", "model_b"])
-        else:
-            # Exploit - choose best performing
-            results = test_config["results"]
-            rate_a = results["model_a"]["successes"] / max(
-                results["model_a"]["predictions"], 1
-            )
-            rate_b = results["model_b"]["successes"] / max(
-                results["model_b"]["predictions"], 1
-            )
+        # Exploit - choose best performing
+        results = test_config["results"]
+        rate_a = results["model_a"]["successes"] / max(
+            results["model_a"]["predictions"], 1
+        )
+        rate_b = results["model_b"]["successes"] / max(
+            results["model_b"]["predictions"], 1
+        )
 
-            return "model_a" if rate_a >= rate_b else "model_b"
+        return "model_a" if rate_a >= rate_b else "model_b"
 
     async def _thompson_sampling_allocation(self, test_config: dict[str, Any]) -> str:
         """Thompson sampling allocation (Bayesian approach)."""
@@ -258,7 +256,7 @@ class ABTestFramework:
         test_name: str,
         model_selection: str,  # "model_a" or "model_b"
         success: bool,
-        prediction_metadata: Optional[dict[str, Any]] = None,
+        prediction_metadata: dict[str, Any] | None = None,
     ):
         """
         Record a prediction result for the test.
@@ -488,7 +486,7 @@ class ABTestFramework:
         key = f"ab_test:{test_config['test_name']}"
         await redis_client.set(key, json.dumps(test_config), ex=86400 * 90)  # 90 days
 
-    async def _load_test_config(self, test_name: str) -> Optional[dict[str, Any]]:
+    async def _load_test_config(self, test_name: str) -> dict[str, Any] | None:
         """Load test configuration from Redis."""
         redis_client = await get_redis_client()
         key = f"ab_test:{test_name}"

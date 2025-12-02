@@ -16,7 +16,7 @@ import hashlib
 import json
 from datetime import datetime
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from pydantic import BaseModel, Field
@@ -95,11 +95,11 @@ def cache_with_ttl(ttl_seconds: int = 3600):
 class Organization(BaseModel):
     """Organization (órgão) data."""
 
-    codigo: Optional[str] = None
-    nome: Optional[str] = None
-    cnpj: Optional[str] = None
-    esfera: Optional[str] = None  # Federal, Estadual, Municipal
-    poder: Optional[str] = None  # Executivo, Legislativo, Judiciário
+    codigo: str | None = None
+    nome: str | None = None
+    cnpj: str | None = None
+    esfera: str | None = None  # Federal, Estadual, Municipal
+    poder: str | None = None  # Executivo, Legislativo, Judiciário
 
     class Config:
         populate_by_name = True
@@ -108,11 +108,11 @@ class Organization(BaseModel):
 class Supplier(BaseModel):
     """Supplier (fornecedor) data."""
 
-    cnpj_cpf: Optional[str] = Field(default=None, alias="cnpj_cpf")
-    nome: Optional[str] = None
-    uf: Optional[str] = None
-    municipio: Optional[str] = None
-    habilitado: Optional[bool] = None
+    cnpj_cpf: str | None = Field(default=None, alias="cnpj_cpf")
+    nome: str | None = None
+    uf: str | None = None
+    municipio: str | None = None
+    habilitado: bool | None = None
 
     class Config:
         populate_by_name = True
@@ -121,18 +121,18 @@ class Supplier(BaseModel):
 class Bidding(BaseModel):
     """Bidding (licitação) data."""
 
-    codigo: Optional[str] = None
-    numero: Optional[str] = None
-    ano: Optional[int] = None
-    modalidade: Optional[str] = None  # Pregão, Concorrência, Tomada de Preços, etc
-    objeto: Optional[str] = None
-    situacao: Optional[str] = None
-    data_abertura: Optional[str] = Field(default=None, alias="data_abertura")
-    data_homologacao: Optional[str] = Field(default=None, alias="data_homologacao")
-    valor_estimado: Optional[float] = Field(default=None, alias="valor_estimado")
-    valor_homologado: Optional[float] = Field(default=None, alias="valor_homologado")
-    orgao_codigo: Optional[str] = Field(default=None, alias="orgao_codigo")
-    orgao_nome: Optional[str] = Field(default=None, alias="orgao_nome")
+    codigo: str | None = None
+    numero: str | None = None
+    ano: int | None = None
+    modalidade: str | None = None  # Pregão, Concorrência, Tomada de Preços, etc
+    objeto: str | None = None
+    situacao: str | None = None
+    data_abertura: str | None = Field(default=None, alias="data_abertura")
+    data_homologacao: str | None = Field(default=None, alias="data_homologacao")
+    valor_estimado: float | None = Field(default=None, alias="valor_estimado")
+    valor_homologado: float | None = Field(default=None, alias="valor_homologado")
+    orgao_codigo: str | None = Field(default=None, alias="orgao_codigo")
+    orgao_nome: str | None = Field(default=None, alias="orgao_nome")
 
     class Config:
         populate_by_name = True
@@ -141,21 +141,19 @@ class Bidding(BaseModel):
 class Contract(BaseModel):
     """Contract (contrato) data."""
 
-    numero: Optional[str] = None
-    ano: Optional[int] = None
-    objeto: Optional[str] = None
-    situacao: Optional[str] = None
-    data_assinatura: Optional[str] = Field(default=None, alias="data_assinatura")
-    data_vigencia_inicio: Optional[str] = Field(
-        default=None, alias="data_vigencia_inicio"
-    )
-    data_vigencia_fim: Optional[str] = Field(default=None, alias="data_vigencia_fim")
-    valor_inicial: Optional[float] = Field(default=None, alias="valor_inicial")
-    valor_global: Optional[float] = Field(default=None, alias="valor_global")
-    fornecedor_cnpj: Optional[str] = Field(default=None, alias="fornecedor_cnpj")
-    fornecedor_nome: Optional[str] = Field(default=None, alias="fornecedor_nome")
-    orgao_codigo: Optional[str] = Field(default=None, alias="orgao_codigo")
-    orgao_nome: Optional[str] = Field(default=None, alias="orgao_nome")
+    numero: str | None = None
+    ano: int | None = None
+    objeto: str | None = None
+    situacao: str | None = None
+    data_assinatura: str | None = Field(default=None, alias="data_assinatura")
+    data_vigencia_inicio: str | None = Field(default=None, alias="data_vigencia_inicio")
+    data_vigencia_fim: str | None = Field(default=None, alias="data_vigencia_fim")
+    valor_inicial: float | None = Field(default=None, alias="valor_inicial")
+    valor_global: float | None = Field(default=None, alias="valor_global")
+    fornecedor_cnpj: str | None = Field(default=None, alias="fornecedor_cnpj")
+    fornecedor_nome: str | None = Field(default=None, alias="fornecedor_nome")
+    orgao_codigo: str | None = Field(default=None, alias="orgao_codigo")
+    orgao_nome: str | None = Field(default=None, alias="orgao_nome")
 
     class Config:
         populate_by_name = True
@@ -164,13 +162,11 @@ class Contract(BaseModel):
 class Material(BaseModel):
     """Material (item) data."""
 
-    codigo: Optional[str] = None
-    descricao: Optional[str] = None
-    unidade_fornecimento: Optional[str] = Field(
-        default=None, alias="unidade_fornecimento"
-    )
-    grupo: Optional[str] = None
-    sustentavel: Optional[bool] = None
+    codigo: str | None = None
+    descricao: str | None = None
+    unidade_fornecimento: str | None = Field(default=None, alias="unidade_fornecimento")
+    grupo: str | None = None
+    sustentavel: bool | None = None
 
     class Config:
         populate_by_name = True
@@ -179,9 +175,9 @@ class Material(BaseModel):
 class Service(BaseModel):
     """Service data."""
 
-    codigo: Optional[str] = None
-    descricao: Optional[str] = None
-    grupo: Optional[str] = None
+    codigo: str | None = None
+    descricao: str | None = None
+    grupo: str | None = None
 
     class Config:
         populate_by_name = True
@@ -320,7 +316,7 @@ class ComprasGovClient:
                     status_code=response.status_code,
                     response_data={"url": url},
                 )
-            elif response.status_code >= 400:
+            if response.status_code >= 400:
                 retryable = response.status_code == 429
                 FederalAPIMetrics.record_error(
                     api_name="ComprasGov",
@@ -403,7 +399,7 @@ class ComprasGovClient:
 
     @cache_with_ttl(ttl_seconds=86400)  # 24 hours cache
     async def search_organizations(
-        self, name: Optional[str] = None, limit: int = 100
+        self, name: str | None = None, limit: int = 100
     ) -> list[Organization]:
         """
         Search for organizations (órgãos).
@@ -445,9 +441,9 @@ class ComprasGovClient:
     @cache_with_ttl(ttl_seconds=3600)  # 1 hour cache
     async def search_biddings(
         self,
-        organization_code: Optional[str] = None,
-        modality: Optional[int] = None,
-        year: Optional[int] = None,
+        organization_code: str | None = None,
+        modality: int | None = None,
+        year: int | None = None,
         limit: int = 100,
     ) -> list[Bidding]:
         """
@@ -529,7 +525,7 @@ class ComprasGovClient:
 
     @cache_with_ttl(ttl_seconds=3600)  # 1 hour cache
     async def search_suppliers(
-        self, state: Optional[str] = None, name: Optional[str] = None, limit: int = 100
+        self, state: str | None = None, name: str | None = None, limit: int = 100
     ) -> list[Supplier]:
         """
         Search for suppliers (fornecedores).
@@ -573,7 +569,7 @@ class ComprasGovClient:
 
     @cache_with_ttl(ttl_seconds=86400)  # 24 hours cache
     async def search_materials(
-        self, description: Optional[str] = None, limit: int = 100
+        self, description: str | None = None, limit: int = 100
     ) -> list[Material]:
         """
         Search for materials (materiais) in the catalog.
@@ -614,7 +610,7 @@ class ComprasGovClient:
 
     @cache_with_ttl(ttl_seconds=86400)  # 24 hours cache
     async def search_services(
-        self, description: Optional[str] = None, limit: int = 100
+        self, description: str | None = None, limit: int = 100
     ) -> list[Service]:
         """
         Search for services in the catalog.
@@ -656,8 +652,8 @@ class ComprasGovClient:
     @cache_with_ttl(ttl_seconds=3600)  # 1 hour cache
     async def search_contracts(
         self,
-        organization_code: Optional[str] = None,
-        year: Optional[int] = None,
+        organization_code: str | None = None,
+        year: int | None = None,
         limit: int = 100,
         new_law: bool = True,
     ) -> list[Contract]:

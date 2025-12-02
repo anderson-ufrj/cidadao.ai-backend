@@ -4,7 +4,7 @@ Enhanced chat service with Redis caching integration
 
 import asyncio
 from collections.abc import AsyncIterator
-from typing import Any, Optional
+from typing import Any
 
 from src.api.models.pagination import ChatMessagePagination, CursorPaginationResponse
 from src.core import get_logger
@@ -26,8 +26,8 @@ class CachedChatService(ChatService):
         self,
         message: str,
         session_id: str,
-        user_id: Optional[str] = None,
-        context: Optional[dict[str, Any]] = None,
+        user_id: str | None = None,
+        context: dict[str, Any] | None = None,
         stream: bool = False,
     ) -> dict[str, Any]:
         """
@@ -79,42 +79,39 @@ class CachedChatService(ChatService):
                 return self._stream_agent_response(
                     agent, message, intent, session, session_id
                 )
-            else:
-                # Regular response
-                response = await self._get_agent_response(
-                    agent, message, intent, session
+            # Regular response
+            response = await self._get_agent_response(agent, message, intent, session)
+
+            # Save agent response
+            await self.save_message(
+                session_id, "assistant", response["message"], response["agent_id"]
+            )
+
+            # Cache successful responses with high confidence
+            if intent.confidence > 0.8 and response.get("confidence", 0) > 0.7:
+                await cache_service.cache_chat_response(
+                    message, response, intent.type.value
                 )
 
-                # Save agent response
-                await self.save_message(
-                    session_id, "assistant", response["message"], response["agent_id"]
+            # Update session with any investigation ID
+            if "investigation_id" in response:
+                await self.update_session_investigation(
+                    session_id, response["investigation_id"]
                 )
 
-                # Cache successful responses with high confidence
-                if intent.confidence > 0.8 and response.get("confidence", 0) > 0.7:
-                    await cache_service.cache_chat_response(
-                        message, response, intent.type.value
-                    )
+            # Save session state to cache
+            await cache_service.save_session_state(
+                session_id,
+                {
+                    "last_message": message,
+                    "last_intent": intent.dict(),
+                    "last_agent": response["agent_id"],
+                    "investigation_id": session.current_investigation_id,
+                    "message_count": len(self.messages.get(session_id, [])),
+                },
+            )
 
-                # Update session with any investigation ID
-                if "investigation_id" in response:
-                    await self.update_session_investigation(
-                        session_id, response["investigation_id"]
-                    )
-
-                # Save session state to cache
-                await cache_service.save_session_state(
-                    session_id,
-                    {
-                        "last_message": message,
-                        "last_intent": intent.dict(),
-                        "last_agent": response["agent_id"],
-                        "investigation_id": session.current_investigation_id,
-                        "message_count": len(self.messages.get(session_id, [])),
-                    },
-                )
-
-                return response
+            return response
 
         except Exception as e:
             logger.error(f"Error processing message: {e}")
@@ -227,7 +224,7 @@ class CachedChatService(ChatService):
 
     async def restore_session_from_cache(
         self, session_id: str
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Restore session state from cache"""
         cached_state = await cache_service.get_session_state(session_id)
 
@@ -250,7 +247,7 @@ class CachedChatService(ChatService):
     async def get_session_messages_paginated(
         self,
         session_id: str,
-        cursor: Optional[str] = None,
+        cursor: str | None = None,
         limit: int = 50,
         direction: str = "prev",
     ) -> CursorPaginationResponse[dict[str, Any]]:

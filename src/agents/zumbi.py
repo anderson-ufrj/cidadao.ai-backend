@@ -10,7 +10,7 @@ License: Proprietary - All rights reserved
 import time
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -45,23 +45,23 @@ class AnomalyResult:
     evidence: dict[str, Any]
     recommendations: list[str]
     affected_entities: list[dict[str, Any]]
-    financial_impact: Optional[float] = None
+    financial_impact: float | None = None
 
 
 class InvestigationRequest(BaseModel):
     """Request for investigation with specific parameters."""
 
     query: str = PydanticField(description="Natural language investigation query")
-    organization_codes: Optional[list[str]] = PydanticField(
+    organization_codes: list[str] | None = PydanticField(
         default=None, description="Specific organization codes to investigate"
     )
-    date_range: Optional[tuple[str, str]] = PydanticField(
+    date_range: tuple[str, str] | None = PydanticField(
         default=None, description="Date range (start, end) in DD/MM/YYYY format"
     )
-    value_threshold: Optional[float] = PydanticField(
+    value_threshold: float | None = PydanticField(
         default=None, description="Minimum value threshold for contracts"
     )
-    anomaly_types: Optional[list[str]] = PydanticField(
+    anomaly_types: list[str] | None = PydanticField(
         default=None, description="Specific types of anomalies to look for"
     )
     max_records: int = PydanticField(
@@ -619,7 +619,7 @@ class InvestigatorAgent(BaseAgent):
 
             return contracts_data[: request.max_records]
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             # Timeout - use demo data
             self.logger.warning(
                 "data_fetch_timeout_using_demo",
@@ -1515,7 +1515,7 @@ class InvestigatorAgent(BaseAgent):
 
     def _calculate_spectral_financial_impact(
         self, spec_anomaly: SpectralAnomaly, spending_data: pd.Series
-    ) -> Optional[float]:
+    ) -> float | None:
         """Calculate financial impact of spectral anomaly."""
         try:
             # For high-amplitude anomalies, estimate impact as percentage of total spending

@@ -13,7 +13,6 @@ import io
 import json
 from collections.abc import AsyncGenerator
 from pathlib import Path
-from typing import Optional
 
 from google.cloud import speech_v1, texttospeech_v1
 from google.oauth2 import service_account
@@ -34,8 +33,8 @@ class VoiceService:
 
     def __init__(
         self,
-        credentials_path: Optional[str] = None,
-        language_code: Optional[str] = None,
+        credentials_path: str | None = None,
+        language_code: str | None = None,
     ):
         """
         Initialize voice service with Google Cloud credentials.
@@ -48,8 +47,8 @@ class VoiceService:
         self.credentials_path = credentials_path or settings.google_credentials_path
 
         # Initialize clients (lazy loading)
-        self._stt_client: Optional[speech_v1.SpeechClient] = None
-        self._tts_client: Optional[texttospeech_v1.TextToSpeechClient] = None
+        self._stt_client: speech_v1.SpeechClient | None = None
+        self._tts_client: texttospeech_v1.TextToSpeechClient | None = None
 
         logger.info(
             "voice_service_initialized",
@@ -57,7 +56,7 @@ class VoiceService:
             credentials_configured=bool(credentials_path),
         )
 
-    def _get_credentials(self) -> Optional[service_account.Credentials]:
+    def _get_credentials(self) -> service_account.Credentials | None:
         """Load Google Cloud credentials from file or base64 env var.
 
         Priority:
@@ -391,7 +390,7 @@ class VoiceService:
 
 
 # Singleton instance
-_voice_service: Optional[VoiceService] = None
+_voice_service: VoiceService | None = None
 
 
 def get_voice_service() -> VoiceService:

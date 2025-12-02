@@ -10,7 +10,7 @@ import asyncio
 import hashlib
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from src.core import get_logger
 from src.db.session import get_session
@@ -338,7 +338,7 @@ class CacheWarmingService:
                 del self._query_frequency[query]
 
     async def warm_specific_data(
-        self, data_type: str, identifiers: list[str], ttl: Optional[int] = None
+        self, data_type: str, identifiers: list[str], ttl: int | None = None
     ) -> dict[str, Any]:
         """Warm cache with specific data."""
         if ttl is None:
@@ -392,7 +392,7 @@ class CacheWarmingService:
         return status
 
     async def trigger_manual_warming(
-        self, strategies: Optional[list[CacheWarmingStrategy]] = None
+        self, strategies: list[CacheWarmingStrategy] | None = None
     ) -> dict[str, Any]:
         """Manually trigger cache warming."""
         if strategies is None:

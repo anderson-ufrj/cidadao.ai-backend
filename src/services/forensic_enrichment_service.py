@@ -10,7 +10,7 @@ legal references, and actionable intelligence.
 """
 
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from src.core import get_logger
@@ -50,7 +50,7 @@ class ForensicEnrichmentService:
         self,
         basic_anomaly: dict[str, Any],
         contract_data: dict[str, Any],
-        comparative_data: Optional[list[dict[str, Any]]] = None,
+        comparative_data: list[dict[str, Any]] | None = None,
     ) -> ForensicAnomalyResult:
         """
         Transform a basic anomaly into a comprehensive forensic report.
@@ -531,11 +531,11 @@ para os órgãos competentes. Todas as informações são rastreáveis e verific
         """Map confidence score to severity level."""
         if score >= 0.9:
             return AnomalySeverity.CRITICAL
-        elif score >= 0.7:
+        if score >= 0.7:
             return AnomalySeverity.HIGH
-        elif score >= 0.5:
+        if score >= 0.5:
             return AnomalySeverity.MEDIUM
-        elif score >= 0.3:
+        if score >= 0.3:
             return AnomalySeverity.LOW
         return AnomalySeverity.INFO
 
@@ -661,13 +661,13 @@ Metodologia aplicada:
         # Examples of what the money could fund
         return f"Com R$ {overcharge:,.2f} seria possível contratar aproximadamente {int(overcharge / 5000)} consultas médicas no SUS"
 
-    def _build_contract_url(self, contract_id: Optional[str]) -> Optional[str]:
+    def _build_contract_url(self, contract_id: str | None) -> str | None:
         """Build direct URL to contract in transparency portal."""
         if not contract_id:
             return None
         return f"{self.transparency_portal_base}/despesas/contrato/{contract_id}"
 
-    def _build_supplier_url(self, cnpj: Optional[str]) -> Optional[str]:
+    def _build_supplier_url(self, cnpj: str | None) -> str | None:
         """Build URL to supplier page."""
         if not cnpj:
             return None
@@ -675,19 +675,19 @@ Metodologia aplicada:
         cnpj_clean = "".join(c for c in str(cnpj) if c.isdigit())
         return f"{self.transparency_portal_base}/despesas/fornecedor/{cnpj_clean}"
 
-    def _build_agency_url(self, code: Optional[str]) -> Optional[str]:
+    def _build_agency_url(self, code: str | None) -> str | None:
         """Build URL to agency page."""
         if not code:
             return None
         return f"{self.transparency_portal_base}/orgaos/{code}"
 
-    def _build_receita_url(self, cnpj: Optional[str]) -> Optional[str]:
+    def _build_receita_url(self, cnpj: str | None) -> str | None:
         """Build URL to Receita Federal."""
         if not cnpj:
             return None
         return f"{self.receita_federal_base}/servicos/cnpj/cnpj.asp"
 
-    def _parse_date(self, date_str: Optional[str]) -> datetime:
+    def _parse_date(self, date_str: str | None) -> datetime:
         """Parse date string to datetime."""
         if not date_str:
             return datetime.now(UTC)

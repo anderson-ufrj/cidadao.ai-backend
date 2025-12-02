@@ -9,7 +9,7 @@ import asyncio
 import weakref
 from contextlib import asynccontextmanager
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from src.agents.deodoro import AgentContext, BaseAgent
 from src.core import get_logger
@@ -100,7 +100,7 @@ class AgentPool:
         }
 
         # Cleanup task
-        self._cleanup_task: Optional[asyncio.Task] = None
+        self._cleanup_task: asyncio.Task | None = None
         self._running = False
 
         # Lock for thread-safe pool operations

@@ -6,7 +6,7 @@ Date: 2025-01-24
 License: Proprietary - All rights reserved
 """
 
-from typing import Any, Optional
+from typing import Any
 
 
 class CidadaoAIError(Exception):
@@ -15,8 +15,8 @@ class CidadaoAIError(Exception):
     def __init__(
         self,
         message: str,
-        error_code: Optional[str] = None,
-        details: Optional[dict[str, Any]] = None,
+        error_code: str | None = None,
+        details: dict[str, Any] | None = None,
     ) -> None:
         """Initialize the exception."""
         super().__init__(message)

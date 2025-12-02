@@ -26,17 +26,16 @@ from src.core.config import get_settings
 from src.services.agent_routing import resolve_agent_id
 from src.services.chat_data_integration import chat_data_integration
 from src.services.chat_service import IntentType
-from src.services.message_sanitizer import (
-    MessageValidationStatus,
-    ValidationResult,
-    extract_safe_log_message,
-    get_edge_case_response,
-    sanitize_message,
-)
 from src.services.maritaca_direct_service import (
     MaritacaChatRequest,
     MaritacaChatResponse,
     get_maritaca_service,
+)
+from src.services.message_sanitizer import (
+    MessageValidationStatus,
+    extract_safe_log_message,
+    get_edge_case_response,
+    sanitize_message,
 )
 from src.services.orchestration.models.investigation import InvestigationIntent
 from src.services.orchestration.query_planner.intent_classifier import IntentClassifier
@@ -432,7 +431,10 @@ async def send_message(
         # Log with safe message content
         logger.info(
             f"Chat request: {extract_safe_log_message(request.message)}",
-            extra={"session_id": session_id, "validation_status": validation.status.value},
+            extra={
+                "session_id": session_id,
+                "validation_status": validation.status.value,
+            },
         )
 
         # Handle edge cases with instant responses
@@ -1388,7 +1390,9 @@ async def stream_message(request: ChatRequest):
                     return  # Exit the generator early
 
             # Check if this is a contract search query that should use real data
-            is_contract_search = _is_contract_search_query(sanitized_message, intent.type)
+            is_contract_search = _is_contract_search_query(
+                sanitized_message, intent.type
+            )
 
             # If contract search intent and investigative service available, use real data
             if (

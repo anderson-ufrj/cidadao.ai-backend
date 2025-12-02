@@ -639,9 +639,7 @@ class FallbackRedisClient:
 
     async def sadd(self, key: str, *values: str) -> int:
         """Add members to set."""
-        if key not in self._hash_data:
-            self._hash_data[key] = set()
-        elif not isinstance(self._hash_data[key], set):
+        if key not in self._hash_data or not isinstance(self._hash_data[key], set):
             self._hash_data[key] = set()
 
         initial_size = len(self._hash_data[key])

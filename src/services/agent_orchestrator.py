@@ -11,7 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
 from src.core import get_logger
@@ -52,7 +52,7 @@ class CircuitBreaker:
 
     state: CircuitState = CircuitState.CLOSED
     failure_count: int = 0
-    last_failure_time: Optional[datetime] = None
+    last_failure_time: datetime | None = None
     success_count: int = 0
 
 
@@ -336,7 +336,7 @@ class AgentOrchestrator:
                 "duration": duration,
             }
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise OrchestrationError(
                 f"Step {step.step_id} timed out after {step.timeout}s"
             )
@@ -360,11 +360,11 @@ class AgentOrchestrator:
 
             if "eq" in conditions:
                 return value == conditions["eq"]
-            elif "gt" in conditions:
+            if "gt" in conditions:
                 return value > conditions["gt"]
-            elif "lt" in conditions:
+            if "lt" in conditions:
                 return value < conditions["lt"]
-            elif "in" in conditions:
+            if "in" in conditions:
                 return value in conditions["in"]
 
         return True
@@ -411,7 +411,7 @@ class AgentOrchestrator:
 
     async def select_best_agent(
         self, required_capabilities: list[str]
-    ) -> Optional[BaseAgent]:
+    ) -> BaseAgent | None:
         """Select the best agent based on required capabilities."""
         best_match = None
         best_score = 0
@@ -436,7 +436,7 @@ class AgentOrchestrator:
         context: AgentContext,
         max_retries: int = 3,
         backoff_multiplier: float = 2.0,
-        fallback_agent: Optional[BaseAgent] = None,
+        fallback_agent: BaseAgent | None = None,
     ) -> AgentResponse:
         """Execute agent with retry logic and optional fallback."""
         last_error = None
@@ -566,8 +566,7 @@ class AgentOrchestrator:
                 datetime.now(UTC) - circuit_breaker.last_failure_time
             ).seconds < circuit_breaker.recovery_timeout:
                 raise OrchestrationError(f"Circuit breaker open for {agent_name}")
-            else:
-                circuit_breaker.state = CircuitState.HALF_OPEN
+            circuit_breaker.state = CircuitState.HALF_OPEN
 
         try:
             response = await agent.process(message, context)

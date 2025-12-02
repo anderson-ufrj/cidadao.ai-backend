@@ -7,7 +7,6 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import datetime
-from typing import Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, EmailStr, Field
@@ -28,21 +27,19 @@ class CreateAPIKeyRequest(BaseModel):
 
     name: str = Field(..., description="Key name/description")
     client_id: str = Field(..., description="Client identifier")
-    client_name: Optional[str] = Field(None, description="Client display name")
-    client_email: Optional[EmailStr] = Field(None, description="Client email")
+    client_name: str | None = Field(None, description="Client display name")
+    client_email: EmailStr | None = Field(None, description="Client email")
     tier: APIKeyTier = Field(APIKeyTier.FREE, description="API key tier")
-    expires_in_days: Optional[int] = Field(
+    expires_in_days: int | None = Field(
         None, ge=1, le=365, description="Days until expiration"
     )
     rotation_period_days: int = Field(
         90, ge=0, le=365, description="Rotation period (0=disabled)"
     )
-    allowed_ips: Optional[list[str]] = Field(None, description="Allowed IP addresses")
-    allowed_origins: Optional[list[str]] = Field(
-        None, description="Allowed CORS origins"
-    )
-    scopes: Optional[list[str]] = Field(None, description="API scopes/permissions")
-    metadata: Optional[dict] = Field(None, description="Additional metadata")
+    allowed_ips: list[str] | None = Field(None, description="Allowed IP addresses")
+    allowed_origins: list[str] | None = Field(None, description="Allowed CORS origins")
+    scopes: list[str] | None = Field(None, description="API scopes/permissions")
+    metadata: dict | None = Field(None, description="Additional metadata")
 
 
 class APIKeyResponse(BaseModel):
@@ -54,9 +51,9 @@ class APIKeyResponse(BaseModel):
     status: str
     tier: str
     client_id: str
-    client_name: Optional[str]
-    expires_at: Optional[datetime]
-    last_used_at: Optional[datetime]
+    client_name: str | None
+    expires_at: datetime | None
+    last_used_at: datetime | None
     is_active: bool
     needs_rotation: bool
     rate_limits: dict
@@ -73,9 +70,9 @@ class APIKeyCreateResponse(APIKeyResponse):
 class UpdateRateLimitsRequest(BaseModel):
     """Request model for updating rate limits."""
 
-    per_minute: Optional[int] = Field(None, ge=0, description="Requests per minute")
-    per_hour: Optional[int] = Field(None, ge=0, description="Requests per hour")
-    per_day: Optional[int] = Field(None, ge=0, description="Requests per day")
+    per_minute: int | None = Field(None, ge=0, description="Requests per minute")
+    per_hour: int | None = Field(None, ge=0, description="Requests per hour")
+    per_day: int | None = Field(None, ge=0, description="Requests per day")
 
 
 @router.post("", response_model=APIKeyCreateResponse)

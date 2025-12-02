@@ -13,7 +13,7 @@ import random
 from collections.abc import Callable
 from datetime import datetime
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 from src.core import get_logger
 
@@ -115,8 +115,8 @@ def retry_with_backoff(
     max_delay: float = 60.0,
     exponential_base: float = 2.0,
     jitter: bool = True,
-    on_retry: Optional[Callable[[int, Exception], None]] = None,
-    retryable_exceptions: Optional[tuple[type[Exception], ...]] = None,
+    on_retry: Callable[[int, Exception], None] | None = None,
+    retryable_exceptions: tuple[type[Exception], ...] | None = None,
 ):
     """
     Decorator for automatic retry with exponential backoff.
@@ -270,7 +270,7 @@ class RetryContext:
         self.operation_name = operation_name
         self.max_attempts = max_attempts
         self.current_attempt = 0
-        self.start_time: Optional[datetime] = None
+        self.start_time: datetime | None = None
         self.total_delay = 0.0
 
     def __enter__(self):

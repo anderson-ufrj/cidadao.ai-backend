@@ -14,7 +14,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -599,7 +599,7 @@ class LampiaoAgent(BaseAgent):
         self,
         metric: str,
         region_type: RegionType,
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> dict[str, Any]:
         """
         Analisa desigualdades regionais usando múltiplos índices.
@@ -683,7 +683,7 @@ class LampiaoAgent(BaseAgent):
         self,
         data: list[dict[str, Any]],
         variables: list[str],
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> list[dict[str, Any]]:
         """
         Detecta clusters regionais usando análise espacial.
@@ -750,7 +750,7 @@ class LampiaoAgent(BaseAgent):
         self,
         metric: str,
         threshold: float = 0.9,
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> list[GeographicInsight]:
         """
         Identifica hotspots e coldspots usando estatística Getis-Ord G*.
@@ -818,7 +818,7 @@ class LampiaoAgent(BaseAgent):
         self,
         variable: str,
         region_type: RegionType,
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> dict[str, Any]:
         """
         Calcula autocorrelação espacial usando Moran's I.
@@ -954,7 +954,7 @@ class LampiaoAgent(BaseAgent):
         resources: float,
         objectives: list[str],
         constraints: dict[str, Any],
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> dict[str, Any]:
         """
         Otimiza alocação de recursos entre regiões.

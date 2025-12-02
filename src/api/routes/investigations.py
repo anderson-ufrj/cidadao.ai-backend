@@ -8,14 +8,13 @@ License: Proprietary - All rights reserved
 
 import asyncio
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from pydantic import Field as PydanticField
-from pydantic import field_validator
 
 from src.agents import AgentContext, InvestigatorAgent
 from src.agents.zumbi_wrapper import patch_investigator_agent
@@ -103,7 +102,7 @@ class InvestigationResponse(BaseModel):
     query: str
     data_source: str
     started_at: datetime
-    completed_at: Optional[datetime] = None
+    completed_at: datetime | None = None
     anomalies_found: int
     total_records_analyzed: int
     results: list[dict[str, Any]]
@@ -135,7 +134,7 @@ class InvestigationStatus(BaseModel):
     current_phase: str
     records_processed: int
     anomalies_detected: int
-    estimated_completion: Optional[datetime] = None
+    estimated_completion: datetime | None = None
 
 
 # In-memory storage for investigation tracking (replace with database later)
@@ -407,7 +406,7 @@ async def get_investigation_results(
 
 @router.get("/", response_model=list[InvestigationStatus])
 async def list_investigations(
-    status: Optional[str] = Query(None, description="Filter by status"),
+    status: str | None = Query(None, description="Filter by status"),
     limit: int = Query(
         10, ge=1, le=100, description="Number of investigations to return"
     ),

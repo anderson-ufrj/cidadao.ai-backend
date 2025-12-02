@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from enum import Enum
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 import psutil
 
@@ -104,7 +104,7 @@ class MonitoringConfig(BaseModel):
 
     # Alerting
     enable_alerting: bool = True
-    alert_webhook_url: Optional[str] = None
+    alert_webhook_url: str | None = None
 
 
 class PerformanceMetrics(BaseModel):
@@ -158,7 +158,7 @@ class Alert(BaseModel):
     threshold: float
     timestamp: datetime = Field(default_factory=datetime.utcnow)
     resolved: bool = False
-    resolution_time: Optional[datetime] = None
+    resolution_time: datetime | None = None
 
 
 class HealthCheck(BaseModel):
@@ -167,9 +167,9 @@ class HealthCheck(BaseModel):
     component: str
     status: HealthStatus
     details: dict[str, Any] = Field(default_factory=dict)
-    latency_ms: Optional[float] = None
+    latency_ms: float | None = None
     last_check: datetime = Field(default_factory=datetime.utcnow)
-    error_message: Optional[str] = None
+    error_message: str | None = None
 
 
 class ObservabilityManager:
@@ -730,7 +730,7 @@ class ObservabilityManager:
             if health.status == HealthStatus.UNHEALTHY:
                 overall_status = HealthStatus.UNHEALTHY
                 break
-            elif (
+            if (
                 health.status == HealthStatus.DEGRADED
                 and overall_status == HealthStatus.HEALTHY
             ):
@@ -796,7 +796,7 @@ class ObservabilityManager:
 
 
 # Singleton instance
-_monitoring_manager: Optional[ObservabilityManager] = None
+_monitoring_manager: ObservabilityManager | None = None
 
 
 async def get_monitoring_manager() -> ObservabilityManager:

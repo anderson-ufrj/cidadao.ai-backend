@@ -10,7 +10,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import redis.asyncio as redis
 
@@ -64,7 +64,7 @@ class Event:
         cls,
         event_type: EventType,
         data: dict[str, Any],
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> "Event":
         """Create a new event."""
         return cls(
@@ -174,7 +174,7 @@ class EventBus:
         self,
         event_type: EventType,
         data: dict[str, Any],
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """
         Publish an event to the bus.
@@ -210,7 +210,7 @@ class EventBus:
         return event.id
 
     def register_handler(
-        self, handler: EventHandler, event_types: Optional[list[EventType]] = None
+        self, handler: EventHandler, event_types: list[EventType] | None = None
     ):
         """
         Register an event handler.
@@ -230,7 +230,7 @@ class EventBus:
                 f"Registered handler {handler.__class__.__name__} for {event_type}"
             )
 
-    async def start(self, consumer_name: Optional[str] = None):
+    async def start(self, consumer_name: str | None = None):
         """
         Start consuming events.
 
@@ -445,7 +445,7 @@ class InvestigationEventHandler(EventHandler):
 
 
 # Global event bus instance
-_event_bus: Optional[EventBus] = None
+_event_bus: EventBus | None = None
 
 
 async def get_event_bus() -> EventBus:

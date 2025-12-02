@@ -6,7 +6,7 @@ Date: 2025-01-25
 License: Proprietary - All rights reserved
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 
@@ -148,7 +148,7 @@ async def create_missing_indexes(
 
 @router.post("/optimize-statistics")
 async def optimize_table_statistics(
-    tables: Optional[list[str]] = None,
+    tables: list[str] | None = None,
     admin_user=Depends(require_admin),
     db=Depends(get_db),
 ):

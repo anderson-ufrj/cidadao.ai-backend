@@ -7,7 +7,7 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID
 
 import httpx
@@ -46,7 +46,7 @@ class AlertService:
         self,
         anomaly_id: UUID,
         anomaly_data: dict[str, Any],
-        alert_types: Optional[list[str]] = None,
+        alert_types: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Send alerts for a detected anomaly.

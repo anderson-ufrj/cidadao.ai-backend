@@ -8,7 +8,7 @@ allowing investigations to be stored centrally for frontend consumption.
 import os
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from asyncpg import Pool, create_pool
 from pydantic import BaseModel, Field
@@ -23,10 +23,10 @@ class SupabaseConfig(BaseModel):
     """Supabase connection configuration."""
 
     url: str = Field(..., description="Supabase PostgreSQL connection URL")
-    anon_key: Optional[str] = Field(
+    anon_key: str | None = Field(
         None, description="Supabase anon key (for Row Level Security)"
     )
-    service_role_key: Optional[str] = Field(
+    service_role_key: str | None = Field(
         None, description="Supabase service role key (bypasses RLS)"
     )
     min_connections: int = Field(default=5, description="Minimum pool connections")
@@ -59,7 +59,7 @@ class SupabaseService:
     Provides connection pooling and CRUD operations for investigations.
     """
 
-    def __init__(self, config: Optional[SupabaseConfig] = None):
+    def __init__(self, config: SupabaseConfig | None = None):
         """
         Initialize Supabase service.
 
@@ -67,7 +67,7 @@ class SupabaseService:
             config: Supabase configuration (loads from env if None)
         """
         self.config = config or SupabaseConfig.from_env()
-        self._pool: Optional[Pool] = None
+        self._pool: Pool | None = None
         self._initialized = False
 
     async def initialize(self) -> None:
@@ -128,9 +128,9 @@ class SupabaseService:
         user_id: str,
         query: str,
         data_source: str,
-        filters: Optional[dict[str, Any]] = None,
-        anomaly_types: Optional[list[str]] = None,
-        session_id: Optional[str] = None,
+        filters: dict[str, Any] | None = None,
+        anomaly_types: list[str] | None = None,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Create a new investigation in Supabase.
@@ -174,9 +174,7 @@ class SupabaseService:
             logger.info(f"Created investigation {row['id']} in Supabase")
             return dict(row)
 
-    async def get_investigation(
-        self, investigation_id: str
-    ) -> Optional[dict[str, Any]]:
+    async def get_investigation(self, investigation_id: str) -> dict[str, Any] | None:
         """
         Get investigation by ID.
 
@@ -254,8 +252,8 @@ class SupabaseService:
         investigation_id: str,
         progress: float,
         current_phase: str,
-        records_processed: Optional[int] = None,
-        anomalies_found: Optional[int] = None,
+        records_processed: int | None = None,
+        anomalies_found: int | None = None,
     ) -> dict[str, Any]:
         """
         Update investigation progress.
@@ -347,7 +345,7 @@ class SupabaseService:
         user_id: str,
         limit: int = 20,
         offset: int = 0,
-        status: Optional[str] = None,
+        status: str | None = None,
     ) -> list[dict[str, Any]]:
         """
         List investigations for a user.

@@ -7,7 +7,6 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import UTC, datetime
-from typing import Optional
 
 from fastapi import HTTPException, Request, status
 from fastapi.security import HTTPBearer
@@ -28,7 +27,7 @@ class APIKeyAuth(HTTPBearer):
     def __init__(self, auto_error: bool = True):
         super().__init__(auto_error=auto_error)
 
-    async def __call__(self, request: Request) -> Optional[APIKey]:
+    async def __call__(self, request: Request) -> APIKey | None:
         """
         Extract and validate API key from request.
 
@@ -106,7 +105,7 @@ class APIKeyAuth(HTTPBearer):
                     )
                 return None
 
-    def _get_required_scope(self, request: Request) -> Optional[str]:
+    def _get_required_scope(self, request: Request) -> str | None:
         """Determine required scope based on endpoint."""
         path = request.url.path
         method = request.method
@@ -134,9 +133,9 @@ class APIKeyAuth(HTTPBearer):
         # Default scopes by method
         if method == "GET":
             return "read"
-        elif method in ["POST", "PUT", "PATCH"]:
+        if method in ["POST", "PUT", "PATCH"]:
             return "write"
-        elif method == "DELETE":
+        if method == "DELETE":
             return "delete"
 
         return None
@@ -184,7 +183,7 @@ class RateLimitMiddleware:
 
 
 def get_api_key_auth(
-    required_scopes: Optional[list] = None, auto_error: bool = True
+    required_scopes: list | None = None, auto_error: bool = True
 ) -> APIKeyAuth:
     """
     Get API key auth dependency with optional scope requirements.
@@ -202,7 +201,7 @@ def get_api_key_auth(
     if required_scopes:
         original_call = auth.__call__
 
-        async def scoped_call(request: Request) -> Optional[APIKey]:
+        async def scoped_call(request: Request) -> APIKey | None:
             api_key = await original_call(request)
 
             if api_key and required_scopes:

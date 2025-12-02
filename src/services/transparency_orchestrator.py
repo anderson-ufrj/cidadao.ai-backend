@@ -12,7 +12,7 @@ License: Proprietary - All rights reserved
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from src.core import get_logger
 from src.services.transparency_apis.federal_apis.bcb_client import (
@@ -64,9 +64,9 @@ class TransparencyOrchestrator:
     def __init__(self):
         """Initialize orchestrator with all available clients."""
         self.portal_federal = TransparencyAPIClient()
-        self.pncp_client: Optional[PNCPClient] = None
-        self.compras_gov_client: Optional[ComprasGovClient] = None
-        self.bcb_client: Optional[BCBClient] = None
+        self.pncp_client: PNCPClient | None = None
+        self.compras_gov_client: ComprasGovClient | None = None
+        self.bcb_client: BCBClient | None = None
 
         # Statistics
         self._query_count = 0
@@ -98,9 +98,9 @@ class TransparencyOrchestrator:
 
     async def get_contracts(
         self,
-        filters: Optional[dict] = None,
+        filters: dict | None = None,
         strategy: QueryStrategy = QueryStrategy.FALLBACK,
-        sources: Optional[list[DataSource]] = None,
+        sources: list[DataSource] | None = None,
     ) -> dict[str, Any]:
         """
         Get contracts from multiple sources with intelligent routing.
@@ -163,9 +163,7 @@ class TransparencyOrchestrator:
 
         return results
 
-    def _select_sources_for_contracts(
-        self, filters: Optional[dict]
-    ) -> list[DataSource]:
+    def _select_sources_for_contracts(self, filters: dict | None) -> list[DataSource]:
         """
         Intelligently select best sources for contract query.
 
@@ -196,7 +194,7 @@ class TransparencyOrchestrator:
         self,
         sources: list[DataSource],
         data_type: str,
-        filters: Optional[dict],
+        filters: dict | None,
     ) -> dict[str, Any]:
         """
         Execute query with fallback strategy.
@@ -252,7 +250,7 @@ class TransparencyOrchestrator:
         self,
         sources: list[DataSource],
         data_type: str,
-        filters: Optional[dict],
+        filters: dict | None,
     ) -> dict[str, Any]:
         """
         Execute query with aggregation strategy.
@@ -298,7 +296,7 @@ class TransparencyOrchestrator:
         self,
         sources: list[DataSource],
         data_type: str,
-        filters: Optional[dict],
+        filters: dict | None,
     ) -> dict[str, Any]:
         """
         Execute query with fastest-first strategy.
@@ -332,7 +330,7 @@ class TransparencyOrchestrator:
         self,
         sources: list[DataSource],
         data_type: str,
-        filters: Optional[dict],
+        filters: dict | None,
     ) -> dict[str, Any]:
         """
         Execute query in parallel (same as aggregate but async).
@@ -372,7 +370,7 @@ class TransparencyOrchestrator:
         self,
         source: DataSource,
         data_type: str,
-        filters: Optional[dict],
+        filters: dict | None,
     ) -> dict[str, Any]:
         """
         Query a specific data source.
@@ -402,7 +400,7 @@ class TransparencyOrchestrator:
         return {"data": []}
 
     async def _query_tce(
-        self, state_code: str, data_type: str, filters: Optional[dict]
+        self, state_code: str, data_type: str, filters: dict | None
     ) -> dict[str, Any]:
         """Query state TCE (Tribunal de Contas Estadual)."""
         tce_key = f"{state_code.upper()}-tce"

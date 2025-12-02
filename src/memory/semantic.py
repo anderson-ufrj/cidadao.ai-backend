@@ -1,6 +1,6 @@
 """Semantic memory for knowledge and patterns."""
 
-from typing import Any, Optional
+from typing import Any
 
 from .base import BaseMemory
 
@@ -13,9 +13,7 @@ class SemanticMemory(BaseMemory):
         self._knowledge_base: dict[str, dict] = {}
         self._patterns: list[dict] = []
 
-    async def store(
-        self, key: str, value: Any, metadata: Optional[dict] = None
-    ) -> bool:
+    async def store(self, key: str, value: Any, metadata: dict | None = None) -> bool:
         """Store semantic knowledge."""
         knowledge_item = {
             "key": key,
@@ -33,7 +31,7 @@ class SemanticMemory(BaseMemory):
 
         return True
 
-    async def retrieve(self, key: str) -> Optional[Any]:
+    async def retrieve(self, key: str) -> Any | None:
         """Retrieve knowledge by key."""
         knowledge = self._storage.get(key)
         return knowledge["value"] if knowledge else None

@@ -271,18 +271,17 @@ class AgentDataIntegration:
                 return (
                     {"city": city_data, "municipalities": cities} if city_data else None
                 )
-            else:
-                # Fetch states
-                states = await ibge_client.get_states()
-                state_data = next(
-                    (
-                        s
-                        for s in states
-                        if location_name.lower() in s.get("nome", "").lower()
-                    ),
-                    None,
-                )
-                return {"state": state_data, "states": states} if state_data else None
+            # Fetch states
+            states = await ibge_client.get_states()
+            state_data = next(
+                (
+                    s
+                    for s in states
+                    if location_name.lower() in s.get("nome", "").lower()
+                ),
+                None,
+            )
+            return {"state": state_data, "states": states} if state_data else None
 
         except Exception as e:
             self.logger.error(f"Error fetching IBGE data: {e}")

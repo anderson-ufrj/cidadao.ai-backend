@@ -6,7 +6,7 @@ abstracting the database and agent interactions.
 """
 
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import select
 
@@ -33,9 +33,9 @@ class InvestigationService:
         user_id: str,
         query: str,
         data_source: str = "contracts",
-        filters: Optional[dict[str, Any]] = None,
-        anomaly_types: Optional[list[str]] = None,
-        session_id: Optional[str] = None,
+        filters: dict[str, Any] | None = None,
+        anomaly_types: list[str] | None = None,
+        session_id: str | None = None,
     ) -> Investigation:
         """
         Create a new investigation in the database.
@@ -74,8 +74,8 @@ class InvestigationService:
         self,
         investigation_id: str,
         status: str,
-        progress: Optional[float] = None,
-        current_phase: Optional[str] = None,
+        progress: float | None = None,
+        current_phase: str | None = None,
         **kwargs,
     ) -> Investigation:
         """Update investigation status and progress."""
@@ -141,7 +141,7 @@ class InvestigationService:
             investigation.status = "failed"
             investigation.completed_at = datetime.now(UTC)
 
-    async def get_by_id(self, investigation_id: str) -> Optional[Investigation]:
+    async def get_by_id(self, investigation_id: str) -> Investigation | None:
         """Get investigation by ID from database."""
         async with get_db_session() as db:
             result = await db.execute(
@@ -151,8 +151,8 @@ class InvestigationService:
 
     async def search(
         self,
-        user_id: Optional[str] = None,
-        status: Optional[str] = None,
+        user_id: str | None = None,
+        status: str | None = None,
         limit: int = 20,
         offset: int = 0,
     ) -> list[Investigation]:

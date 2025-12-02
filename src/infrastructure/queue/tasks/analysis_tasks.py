@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 
 import asyncio
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from celery import chord
@@ -27,7 +27,7 @@ logger = get_task_logger(__name__)
 def analyze_patterns(
     data_type: str,
     time_range: dict[str, str],
-    pattern_types: Optional[list[str]] = None,
+    pattern_types: list[str] | None = None,
     min_confidence: float = 0.7,
 ) -> dict[str, Any]:
     """
@@ -78,7 +78,7 @@ def analyze_patterns(
 async def _analyze_patterns_async(
     data_type: str,
     time_range: dict[str, str],
-    pattern_types: Optional[list[str]],
+    pattern_types: list[str] | None,
     min_confidence: float,
 ) -> dict[str, Any]:
     """Async pattern analysis implementation."""
@@ -189,7 +189,7 @@ def correlation_analysis(
 
 @celery_app.task(name="tasks.temporal_analysis", queue="normal")
 def temporal_analysis(
-    data_source: str, time_window: str = "monthly", metrics: Optional[list[str]] = None
+    data_source: str, time_window: str = "monthly", metrics: list[str] | None = None
 ) -> dict[str, Any]:
     """
     Analyze temporal trends and seasonality.
@@ -226,7 +226,7 @@ def temporal_analysis(
 
 
 async def _temporal_analysis_async(
-    data_source: str, time_window: str, metrics: Optional[list[str]]
+    data_source: str, time_window: str, metrics: list[str] | None
 ) -> dict[str, Any]:
     """Async temporal analysis implementation."""
     async with get_db_session() as db:

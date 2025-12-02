@@ -6,8 +6,6 @@ Date: 2025-01-25
 License: Proprietary - All rights reserved
 """
 
-from typing import Optional
-
 from fastapi import Request, status
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import JSONResponse
@@ -146,7 +144,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     def _get_rate_limit_info(
         self, request: Request
-    ) -> tuple[Optional[str], RateLimitTier, Optional[dict[str, int]]]:
+    ) -> tuple[str | None, RateLimitTier, dict[str, int] | None]:
         """
         Get rate limit key, tier, and custom limits from request.
 
@@ -214,7 +212,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
 
 def get_rate_limit_decorator(
-    tier: Optional[RateLimitTier] = None, custom_limits: Optional[dict[str, int]] = None
+    tier: RateLimitTier | None = None, custom_limits: dict[str, int] | None = None
 ):
     """
     Decorator for endpoint-specific rate limiting.
