@@ -491,11 +491,18 @@ async def send_message(
                 confidence = intent_result["confidence"]
                 method = intent_result.get("method", "unknown")
 
-                logger.info(
-                    f"[{method.upper()}] Detected intent: {detected_intent.value} with confidence {confidence:.2f}"
+                # Get intent value (string) - handles both InvestigationIntent enum and raw strings
+                intent_value = (
+                    detected_intent.value
+                    if hasattr(detected_intent, "value")
+                    else str(detected_intent)
                 )
 
-                # Convert InvestigationIntent to string for routing
+                logger.info(
+                    f"[{method.upper()}] Detected intent: {intent_value} with confidence {confidence:.2f}"
+                )
+
+                # Convert InvestigationIntent to "investigate" string for routing
                 if detected_intent in [
                     InvestigationIntent.CONTRACT_ANOMALY_DETECTION,
                     InvestigationIntent.SUPPLIER_INVESTIGATION,
@@ -506,11 +513,9 @@ async def send_message(
                 ]:
                     intent_type_str = "investigate"
                 else:
-                    intent_type_str = (
-                        detected_intent.value
-                        if hasattr(detected_intent, "value")
-                        else str(detected_intent)
-                    )
+                    # For non-investigation intents (greeting, thanks, goodbye, help_request, about_system)
+                    # or GENERAL_QUERY, use the value directly
+                    intent_type_str = intent_value
         except Exception as e:
             logger.error(f"Error in intent classification: {e}")
 
