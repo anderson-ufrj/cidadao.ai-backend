@@ -330,15 +330,74 @@ INSTANT_GOODBYE_RESPONSES = [
     "Vá em paz, cidadão! E como escreveu o poeta: 'De tudo fica um pouco.' Que fique em você a semente da transparência. Até logo!",
 ]
 
+# ================================================================
+# VERIFIED AGENT LIST - Dec 2025 (Prevents LLM hallucination)
+# This is the AUTHORITATIVE list of agents in the system
+# ================================================================
+INSTANT_AGENTS_RESPONSE = """Nossa trupe conta com **16 agentes especializados**, cada um com sua missão na transparência:
 
-def get_instant_response(intent_type: IntentType) -> str | None:
+🎨 **Abaporu** - Orquestrador Master, coordena investigações complexas
+🔍 **Zumbi dos Palmares** - Investigador, detecta anomalias e irregularidades
+📊 **Anita Garibaldi** - Analista, analisa padrões e tendências estatísticas
+📝 **Tiradentes** - Relator, gera relatórios detalhados
+✍️ **Carlos Drummond de Andrade** - Comunicador, sou eu! Interface conversacional
+📚 **Machado de Assis** - Analista Textual, analisa documentos e contratos
+⚖️ **José Bonifácio** - Especialista Legal, verifica conformidade com leis
+🛡️ **Maria Quitéria** - Auditora de Segurança, análise de vulnerabilidades
+🏹 **Oxóssi** - Caçador de Dados, busca informações em múltiplas fontes
+📐 **Oscar Niemeyer** - Visualizador, cria gráficos e dashboards
+✊ **Dandara** - Justiça Social, avalia equidade e inclusão
+🌵 **Lampião** - Investigador Regional, foco em dados do Nordeste
+🌙 **Nanã** - Memória, gerencia contexto e histórico
+🔮 **Ceuci** - Preditivo, análises preditivas e ETL
+🔥 **Obaluaiê** - Detector de Corrupção, identifica padrões suspeitos
+🏎️ **Ayrton Senna** - Roteador Semântico, direciona consultas rapidamente
+
+Cada agente traz sua expertise única. Juntos, somos uma orquestra pela transparência!"""
+
+# Keywords that indicate user is asking about agents
+AGENT_QUESTION_KEYWORDS = [
+    "quais agentes",
+    "quem são os agentes",
+    "quem sao os agentes",
+    "lista de agentes",
+    "listar agentes",
+    "agentes do sistema",
+    "agentes existem",
+    "agentes disponíveis",
+    "agentes disponiveis",
+    "quantos agentes",
+    "todos os agentes",
+    "conhecer os agentes",
+    "apresente os agentes",
+    "me apresente os agentes",
+]
+
+
+def _is_agent_list_question(message: str) -> bool:
+    """Check if user is asking about the list of agents."""
+    message_lower = message.lower()
+    return any(keyword in message_lower for keyword in AGENT_QUESTION_KEYWORDS)
+
+
+def get_instant_response(intent_type: IntentType, message: str = "") -> str | None:
     """
     Get an instant response for simple intents (no LLM needed).
 
     Returns None if the intent requires LLM processing.
 
+    Args:
+        intent_type: The detected intent type
+        message: The original user message (for additional context checks)
+
     Note: Uses random.choice for variety - not security-critical (S311).
     """
+    # PRIORITY CHECK: Agent list questions (prevents LLM hallucination)
+    # This must come FIRST to intercept agent questions regardless of intent
+    if message and _is_agent_list_question(message):
+        logger.info("Detected agent list question - using verified response")
+        return INSTANT_AGENTS_RESPONSE
+
     if intent_type == IntentType.GREETING:
         return random.choice(INSTANT_GREETING_RESPONSES)  # noqa: S311
     if intent_type in [IntentType.HELP, IntentType.HELP_REQUEST]:
@@ -559,10 +618,10 @@ async def send_message(
         # SHORT-CIRCUIT: Instant responses for simple intents (Dec 2025)
         # This optimization reduces greeting response from ~7s to <100ms
         # ================================================================
-        if (
-            confidence >= 0.7 and request.agent_id is None
-        ):  # Only if high confidence and no specific agent requested
-            instant_response = get_instant_response(intent.type)
+        if (confidence >= 0.7 and request.agent_id is None) or _is_agent_list_question(
+            sanitized_message
+        ):  # Also check for agent questions
+            instant_response = get_instant_response(intent.type, sanitized_message)
             if instant_response:
                 logger.info(f"Using instant response for intent: {intent.type.value}")
 
@@ -1374,8 +1433,10 @@ async def stream_message(request: ChatRequest):
             # ================================================================
             # SHORT-CIRCUIT: Instant responses for simple intents (Dec 2025)
             # ================================================================
-            if intent.confidence >= 0.7 and request.agent_id is None:
-                instant_response = get_instant_response(intent.type)
+            if (
+                intent.confidence >= 0.7 and request.agent_id is None
+            ) or _is_agent_list_question(sanitized_message):
+                instant_response = get_instant_response(intent.type, sanitized_message)
                 if instant_response:
                     logger.info(
                         f"Using instant streaming response for intent: {intent.type.value}"
