@@ -375,11 +375,146 @@ AGENT_QUESTION_KEYWORDS = [
     "me apresente os agentes",
 ]
 
+# ================================================================
+# VERIFIED RESPONSES FOR KEY TOPICS (Dec 2025)
+# Prevents LLM hallucination about project stakeholders
+# ================================================================
+
+INSTANT_CREATOR_RESPONSE = """**Anderson Henrique da Silva** é o criador e idealizador do Cidadão.AI.
+
+Mineiro de coração, Anderson é estudante do **IFSULDEMINAS** (Instituto Federal do Sul de Minas Gerais) e desenvolveu este sistema como seu Trabalho de Conclusão de Curso (TCC).
+
+Sua visão: criar uma ferramenta que democratize o acesso à informação pública, usando IA para ajudar cidadãos a entenderem como o dinheiro público é gasto.
+
+O projeto conta com a orientação da **Professora Aracele Garcia de Oliveira Fassbinder** e foi viabilizado pelo apoio da **Maritaca AI**, que cedeu créditos gratuitos acreditando no potencial da pesquisa brasileira.
+
+Anderson sonha que o Cidadão.AI inspire mais projetos de transparência e engajamento cívico no Brasil! 🇧🇷"""
+
+INSTANT_ADVISOR_RESPONSE = """**Aracele Garcia de Oliveira Fassbinder** é a orientadora do projeto Cidadão.AI.
+
+Professora do **IFSULDEMINAS**, ela tem sido fundamental para o desenvolvimento deste Trabalho de Conclusão de Curso, oferecendo:
+
+📚 **Orientação Acadêmica** - Direcionamento metodológico e científico
+🎯 **Visão Estratégica** - Ajudando a definir escopo e objetivos
+✅ **Rigor Técnico** - Garantindo qualidade e consistência do trabalho
+
+Sua experiência e dedicação são pilares essenciais para que o Cidadão.AI alcance seus objetivos de promover transparência governamental através da tecnologia.
+
+O projeto é uma parceria entre a visão do estudante Anderson Henrique da Silva e a expertise acadêmica da Professora Aracele! 🎓"""
+
+INSTANT_IFSULDEMINAS_RESPONSE = """O **IFSULDEMINAS** (Instituto Federal de Educação, Ciência e Tecnologia do Sul de Minas Gerais) é o berço acadêmico do Cidadão.AI!
+
+🏛️ **Instituição de Excelência** - Referência em educação pública de qualidade no sul de Minas Gerais
+
+📖 **Contexto do Projeto** - O Cidadão.AI é um Trabalho de Conclusão de Curso (TCC) desenvolvido por Anderson Henrique da Silva, sob orientação da Professora Aracele Garcia de Oliveira Fassbinder
+
+🌟 **Importância** - O IFSULDEMINAS proporciona o ambiente acadêmico e o suporte necessário para que projetos inovadores como este possam florescer
+
+🤝 **Parceria** - Junto com o apoio da Maritaca AI (créditos gratuitos para pesquisa), o instituto possibilita que a pesquisa brasileira em IA avance!
+
+O Cidadão.AI é prova de que a educação pública brasileira pode gerar inovação de impacto social! 🇧🇷"""
+
+INSTANT_MARITACA_RESPONSE = """A **Maritaca AI** é uma parceira essencial do projeto Cidadão.AI!
+
+🤖 **Quem são** - Empresa brasileira de Inteligência Artificial, criadora dos modelos Sabiá (otimizados para português brasileiro)
+
+🎁 **Apoio ao Projeto** - A Maritaca AI cedeu **créditos gratuitos** para pesquisa, viabilizando o desenvolvimento do Cidadão.AI
+
+💡 **Por que é importante** - Sem esse apoio, seria muito mais difícil para um projeto acadêmico (TCC) ter acesso a modelos de linguagem de alta qualidade
+
+🇧🇷 **Visão** - A Maritaca acredita no potencial da IA brasileira para transformar a sociedade, e o Cidadão.AI é um exemplo dessa transformação
+
+**Nosso sincero agradecimento à Maritaca AI** por acreditar na pesquisa e na educação brasileira! O Cidadão.AI não seria possível sem esse incentivo. 🙏"""
+
+# Keywords for each topic
+CREATOR_KEYWORDS = [
+    "anderson",
+    "criador",
+    "quem criou",
+    "quem fez",
+    "idealizador",
+    "desenvolvedor",
+    "autor do projeto",
+    "fale sobre o anderson",
+    "me fale sobre anderson",
+    "quem é o anderson",
+]
+
+ADVISOR_KEYWORDS = [
+    "aracele",
+    "orientadora",
+    "orientador",
+    "professora",
+    "fassbinder",
+    "quem orienta",
+    "orientação",
+]
+
+IFSULDEMINAS_KEYWORDS = [
+    "ifsuldeminas",
+    "instituto federal",
+    "sul de minas",
+    "onde foi criado",
+    "onde nasceu",
+    "instituição",
+    "faculdade",
+    "universidade",
+]
+
+MARITACA_KEYWORDS = [
+    "maritaca",
+    "maritaca ai",
+    "sabia",
+    "sabiá",
+    "modelo de linguagem",
+    "llm usado",
+    "qual ia",
+    "qual modelo",
+    "parceiro",
+    "patrocinador",
+    "apoio",
+]
+
 
 def _is_agent_list_question(message: str) -> bool:
     """Check if user is asking about the list of agents."""
     message_lower = message.lower()
     return any(keyword in message_lower for keyword in AGENT_QUESTION_KEYWORDS)
+
+
+def _is_creator_question(message: str) -> bool:
+    """Check if user is asking about the creator (Anderson)."""
+    message_lower = message.lower()
+    return any(keyword in message_lower for keyword in CREATOR_KEYWORDS)
+
+
+def _is_advisor_question(message: str) -> bool:
+    """Check if user is asking about the advisor (Aracele)."""
+    message_lower = message.lower()
+    return any(keyword in message_lower for keyword in ADVISOR_KEYWORDS)
+
+
+def _is_ifsuldeminas_question(message: str) -> bool:
+    """Check if user is asking about IFSULDEMINAS."""
+    message_lower = message.lower()
+    return any(keyword in message_lower for keyword in IFSULDEMINAS_KEYWORDS)
+
+
+def _is_maritaca_question(message: str) -> bool:
+    """Check if user is asking about Maritaca AI."""
+    message_lower = message.lower()
+    return any(keyword in message_lower for keyword in MARITACA_KEYWORDS)
+
+
+def _needs_verified_response(message: str) -> bool:
+    """Check if message needs a verified (hardcoded) response to prevent hallucination."""
+    return (
+        _is_agent_list_question(message)
+        or _is_creator_question(message)
+        or _is_advisor_question(message)
+        or _is_ifsuldeminas_question(message)
+        or _is_maritaca_question(message)
+    )
 
 
 def get_instant_response(intent_type: IntentType, message: str = "") -> str | None:
@@ -394,11 +529,40 @@ def get_instant_response(intent_type: IntentType, message: str = "") -> str | No
 
     Note: Uses random.choice for variety - not security-critical (S311).
     """
-    # PRIORITY CHECK: Agent list questions (prevents LLM hallucination)
-    # This must come FIRST to intercept agent questions regardless of intent
-    if message and _is_agent_list_question(message):
-        logger.info("Detected agent list question - using verified response")
-        return INSTANT_AGENTS_RESPONSE
+    # ================================================================
+    # PRIORITY CHECKS: Verified responses to prevent LLM hallucination
+    # These must come FIRST to intercept specific questions
+    # ================================================================
+
+    if message:
+        # Check for agent list questions
+        if _is_agent_list_question(message):
+            logger.info("Detected agent list question - using verified response")
+            return INSTANT_AGENTS_RESPONSE
+
+        # Check for creator (Anderson) questions
+        if _is_creator_question(message):
+            logger.info("Detected creator question - using verified response")
+            return INSTANT_CREATOR_RESPONSE
+
+        # Check for advisor (Aracele) questions
+        if _is_advisor_question(message):
+            logger.info("Detected advisor question - using verified response")
+            return INSTANT_ADVISOR_RESPONSE
+
+        # Check for IFSULDEMINAS questions
+        if _is_ifsuldeminas_question(message):
+            logger.info("Detected IFSULDEMINAS question - using verified response")
+            return INSTANT_IFSULDEMINAS_RESPONSE
+
+        # Check for Maritaca AI questions
+        if _is_maritaca_question(message):
+            logger.info("Detected Maritaca AI question - using verified response")
+            return INSTANT_MARITACA_RESPONSE
+
+    # ================================================================
+    # INTENT-BASED RESPONSES
+    # ================================================================
 
     if intent_type == IntentType.GREETING:
         return random.choice(INSTANT_GREETING_RESPONSES)  # noqa: S311
@@ -619,10 +783,11 @@ async def send_message(
         # ================================================================
         # SHORT-CIRCUIT: Instant responses for simple intents (Dec 2025)
         # This optimization reduces greeting response from ~7s to <100ms
+        # Also intercepts questions about project stakeholders to prevent hallucination
         # ================================================================
-        if (confidence >= 0.7 and request.agent_id is None) or _is_agent_list_question(
+        if (confidence >= 0.7 and request.agent_id is None) or _needs_verified_response(
             sanitized_message
-        ):  # Also check for agent questions
+        ):
             instant_response = get_instant_response(intent.type, sanitized_message)
             if instant_response:
                 logger.info(f"Using instant response for intent: {intent.type.value}")
@@ -1434,10 +1599,11 @@ async def stream_message(request: ChatRequest):
 
             # ================================================================
             # SHORT-CIRCUIT: Instant responses for simple intents (Dec 2025)
+            # Also intercepts questions about project stakeholders
             # ================================================================
             if (
                 intent.confidence >= 0.7 and request.agent_id is None
-            ) or _is_agent_list_question(sanitized_message):
+            ) or _needs_verified_response(sanitized_message):
                 instant_response = get_instant_response(intent.type, sanitized_message)
                 if instant_response:
                     logger.info(
