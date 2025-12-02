@@ -381,17 +381,17 @@ class TransparencyOrchestrator:
             response = await self.portal_federal.get_contracts(filters)
             return {"data": response.data}
 
-        elif source == DataSource.PNCP:
+        if source == DataSource.PNCP:
             client = await self._get_pncp_client()
             response = await client.get_contracts(filters)
             return {"data": response}
 
-        elif source == DataSource.COMPRAS_GOV:
+        if source == DataSource.COMPRAS_GOV:
             client = await self._get_compras_client()
             response = await client.search_bids(filters)
             return {"data": response}
 
-        elif source == DataSource.TCE:
+        if source == DataSource.TCE:
             # Try to find appropriate TCE based on state
             state_code = filters.get("estado") or filters.get("uf") if filters else None
             if state_code:
