@@ -4,9 +4,10 @@ VERSION: 2025-10-17 15:00:00 - Consolidated implementation
 """
 
 import asyncio
+import random
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
@@ -230,9 +231,9 @@ class ChatRequest(BaseModel):
     """Chat message request"""
 
     message: str = Field(..., min_length=1, max_length=1000)
-    session_id: Optional[str] = None
-    context: Optional[dict[str, Any]] = None
-    agent_id: Optional[str] = Field(
+    session_id: str | None = None
+    context: dict[str, Any] | None = None
+    agent_id: str | None = Field(
         None,
         description="Force a specific agent (zumbi, anita, drummond, tiradentes, oxossi, dandara, machado, abaporu). If not provided, agent is auto-selected based on intent.",
     )
@@ -242,14 +243,14 @@ class ChatResponse(BaseModel):
     """Chat message response"""
 
     session_id: str
-    message_id: Optional[str] = None
+    message_id: str | None = None
     agent_id: str
     agent_name: str
     message: str
     confidence: float
-    suggested_actions: Optional[list[str]] = None
-    follow_up_questions: Optional[list[str]] = None
-    requires_input: Optional[dict[str, str]] = None
+    suggested_actions: list[str] | None = None
+    follow_up_questions: list[str] | None = None
+    requires_input: dict[str, str] | None = None
     metadata: dict[str, Any] = {}
 
 
@@ -260,6 +261,85 @@ class QuickAction(BaseModel):
     label: str
     icon: str
     action: str
+
+
+# ============================================================================
+# INSTANT RESPONSES - No LLM needed (performance optimization Dec 2025)
+# ============================================================================
+# These responses are returned instantly without calling the LLM,
+# reducing greeting response time from ~7s to <100ms
+
+INSTANT_GREETING_RESPONSES = [
+    "Olá! Sou o Cidadão.AI, seu assistente para análise de transparência governamental. Como posso ajudá-lo hoje?",
+    "Oi! Pronto para investigar a transparência pública brasileira? Posso ajudá-lo a analisar contratos, gastos e detectar anomalias.",
+    "Olá! Bem-vindo ao Cidadão.AI. Estou aqui para ajudar você a entender os gastos públicos. O que gostaria de investigar?",
+    "Oi! Sou especializado em análise de contratos e gastos governamentais. Como posso ajudar?",
+    "Olá! O Cidadão.AI está pronto para ajudá-lo. Quer investigar algum contrato ou órgão específico?",
+]
+
+INSTANT_HELP_RESPONSES = [
+    """Posso ajudar você de várias formas:
+
+🔍 **Investigações**: Analiso contratos, licitações e gastos públicos
+📊 **Detecção de Anomalias**: Identifico padrões suspeitos e irregularidades
+📝 **Relatórios**: Gero documentos detalhados sobre suas investigações
+📈 **Análises Estatísticas**: Forneço insights sobre tendências e padrões
+
+Experimente perguntar: "Quero investigar contratos da saúde" ou "Mostre anomalias recentes".""",
+    """Estou aqui para ajudar! Aqui está o que posso fazer:
+
+• **Investigar contratos** - Busque contratos por órgão, valor ou período
+• **Detectar anomalias** - Encontre padrões suspeitos em gastos
+• **Analisar fornecedores** - Verifique histórico de empresas
+• **Gerar relatórios** - Exporte dados em PDF, CSV ou JSON
+
+Tente: "Contratos do Ministério da Saúde em 2024".""",
+]
+
+INSTANT_ABOUT_RESPONSES = [
+    """O Cidadão.AI é um sistema multi-agente de inteligência artificial para análise de transparência governamental brasileira.
+
+**Criador e Idealizador:** Anderson Henrique da Silva
+
+**Contexto Acadêmico:** Este projeto é um Trabalho de Conclusão de Curso (TCC) desenvolvido no Instituto Federal do Sul de Minas Gerais (IFSULDEMINAS), sob orientação da Professora Aracele Garcia de Oliveira Fassbinder.
+
+**O que fazemos:** Temos 16 agentes especializados com identidades culturais brasileiras (Zumbi, Anita Garibaldi, Tiradentes, Drummond, entre outros) que trabalham juntos para investigar contratos públicos, detectar anomalias, analisar gastos e promover a transparência governamental.
+
+Como posso ajudá-lo hoje?""",
+]
+
+INSTANT_THANKS_RESPONSES = [
+    "De nada! Estou sempre aqui para ajudar com a transparência pública. Precisa de mais alguma coisa?",
+    "Por nada! Foi um prazer ajudar. Se tiver mais dúvidas sobre gastos públicos, é só perguntar!",
+    "Fico feliz em ajudar! Estou à disposição para mais investigações.",
+]
+
+INSTANT_GOODBYE_RESPONSES = [
+    "Até logo! Volte sempre que precisar de informações sobre gastos públicos.",
+    "Tchau! Foi um prazer ajudar. Lembre-se: a transparência é um direito do cidadão!",
+    "Até mais! Estarei aqui sempre que precisar investigar a transparência governamental.",
+]
+
+
+def get_instant_response(intent_type: IntentType) -> str | None:
+    """
+    Get an instant response for simple intents (no LLM needed).
+
+    Returns None if the intent requires LLM processing.
+
+    Note: Uses random.choice for variety - not security-critical (S311).
+    """
+    if intent_type == IntentType.GREETING:
+        return random.choice(INSTANT_GREETING_RESPONSES)  # noqa: S311
+    if intent_type in [IntentType.HELP, IntentType.HELP_REQUEST]:
+        return random.choice(INSTANT_HELP_RESPONSES)  # noqa: S311
+    if intent_type == IntentType.ABOUT_SYSTEM:
+        return random.choice(INSTANT_ABOUT_RESPONSES)  # noqa: S311
+    if intent_type == IntentType.THANKS:
+        return random.choice(INSTANT_THANKS_RESPONSES)  # noqa: S311
+    if intent_type == IntentType.GOODBYE:
+        return random.choice(INSTANT_GOODBYE_RESPONSES)  # noqa: S311
+    return None
 
 
 # Contract search detection keywords
@@ -418,6 +498,87 @@ async def send_message(
         logger.info(
             f"Message routing: intent={intent.type.value}, agent={target_agent}"
         )
+
+        # ================================================================
+        # SHORT-CIRCUIT: Instant responses for simple intents (Dec 2025)
+        # This optimization reduces greeting response from ~7s to <100ms
+        # ================================================================
+        if (
+            confidence >= 0.7 and request.agent_id is None
+        ):  # Only if high confidence and no specific agent requested
+            instant_response = get_instant_response(intent.type)
+            if instant_response:
+                logger.info(f"Using instant response for intent: {intent.type.value}")
+
+                # Save to chat history
+                await chat_service.save_message(
+                    session_id=session_id, role="user", content=request.message
+                )
+                await chat_service.save_message(
+                    session_id=session_id,
+                    role="assistant",
+                    content=instant_response,
+                    agent_id="drummond",
+                )
+
+                # Get suggested actions based on intent
+                suggested_actions = []
+                if intent.type == IntentType.GREETING:
+                    suggested_actions = [
+                        "start_investigation",
+                        "learn_more",
+                        "view_examples",
+                    ]
+                elif intent.type in [IntentType.HELP, IntentType.HELP_REQUEST]:
+                    suggested_actions = [
+                        "investigate_contracts",
+                        "detect_anomalies",
+                        "generate_report",
+                    ]
+                elif intent.type == IntentType.ABOUT_SYSTEM:
+                    suggested_actions = [
+                        "start_investigation",
+                        "meet_agents",
+                        "view_capabilities",
+                    ]
+                elif intent.type == IntentType.THANKS:
+                    suggested_actions = ["new_investigation", "learn_more"]
+                elif intent.type == IntentType.GOODBYE:
+                    suggested_actions = ["restart_chat"]
+
+                return ChatResponse(
+                    session_id=session_id,
+                    message_id=str(uuid.uuid4()),
+                    agent_id="drummond",
+                    agent_name="Carlos Drummond de Andrade",
+                    message=instant_response,
+                    confidence=confidence,
+                    suggested_actions=suggested_actions,
+                    follow_up_questions=(
+                        [
+                            "Quer investigar algum contrato específico?",
+                            "Posso ajudar com análise de gastos?",
+                        ]
+                        if intent.type in [IntentType.GREETING, IntentType.HELP_REQUEST]
+                        else None
+                    ),
+                    requires_input=None,
+                    metadata={
+                        "intent_type": intent.type.value,
+                        "message_id": str(uuid.uuid4()),
+                        "timestamp": datetime.now(UTC).isoformat(),
+                        "is_demo_mode": False,
+                        "processing_time_ms": 0,  # Instant!
+                        "instant_response": True,
+                        "orchestration": {
+                            "target_agent": "drummond",
+                            "agent_id": "drummond",
+                            "agent_name": "Carlos Drummond de Andrade",
+                            "routing_reason": f"Instant response for {intent.type.value}",
+                            "confidence": confidence,
+                        },
+                    },
+                )
 
         # Check if user is asking for specific government data
         portal_data = None
@@ -1122,7 +1283,34 @@ async def stream_message(request: ChatRequest):
             logger.info(f"Stream routing: intent={intent.type.value}, agent={agent_id}")
 
             yield f"data: {json_utils.dumps({'type': 'agent_selected', 'agent_id': agent_id, 'agent_name': agent_name})}\n\n"
-            await asyncio.sleep(0.2)
+            await asyncio.sleep(0.1)
+
+            # ================================================================
+            # SHORT-CIRCUIT: Instant responses for simple intents (Dec 2025)
+            # ================================================================
+            if intent.confidence >= 0.7 and request.agent_id is None:
+                instant_response = get_instant_response(intent.type)
+                if instant_response:
+                    logger.info(
+                        f"Using instant streaming response for intent: {intent.type.value}"
+                    )
+
+                    # Stream the response in chunks for natural effect
+                    words = instant_response.split()
+                    chunk = ""
+                    for i, word in enumerate(words):
+                        chunk += word + " "
+                        if i % 4 == 3:  # Send every 4 words
+                            yield f"data: {json_utils.dumps({'type': 'chunk', 'content': chunk.strip()})}\n\n"
+                            chunk = ""
+                            await asyncio.sleep(0.03)  # Very fast streaming
+
+                    if chunk:
+                        yield f"data: {json_utils.dumps({'type': 'chunk', 'content': chunk.strip()})}\n\n"
+
+                    # Send completion
+                    yield f"data: {json_utils.dumps({'type': 'complete', 'agent_id': agent_id, 'agent_name': agent_name, 'instant_response': True, 'suggested_actions': ['start_investigation', 'learn_more']})}\n\n"
+                    return  # Exit the generator early
 
             # Check if this is a contract search query that should use real data
             is_contract_search = _is_contract_search_query(request.message, intent.type)
@@ -1275,7 +1463,7 @@ async def get_chat_history(
 @router.get("/history/{session_id}/paginated")
 async def get_chat_history_paginated(
     session_id: str,
-    cursor: Optional[str] = None,
+    cursor: str | None = None,
     limit: int = 50,
     direction: str = "prev",
     current_user=Depends(get_current_optional_user),
