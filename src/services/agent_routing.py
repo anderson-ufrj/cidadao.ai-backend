@@ -193,20 +193,27 @@ def get_agent_for_intent(intent_type: str, intent_confidence: float = 0.5) -> st
     # Normalize intent type
     intent_lower = intent_type.lower() if intent_type else "unknown"
 
-    # Task-specific intents -> Specialized agents
-    # But investigations go through Abaporu for orchestration
+    # =========================================================================
+    # INTELLIGENT AGENT ROUTING (December 2025 Update)
+    # =========================================================================
+    # Strategy: Route to specialized agents DIRECTLY for better expertise
+    # Use Abaporu ONLY for complex multi-step orchestration tasks
+    # This improves from 99% Abaporu to balanced distribution across agents
+
+    # Primary task mappings -> Specialized agents
     task_mapping = {
-        # Investigation tasks -> Abaporu orchestrates, may delegate to Zumbi
-        "investigate": "abaporu",
-        "contract_anomaly_detection": "abaporu",
-        "supplier_investigation": "abaporu",
-        "corruption_indicators": "abaporu",
-        "budget_analysis": "abaporu",
-        "health_budget_analysis": "abaporu",
-        "education_performance": "abaporu",
+        # Investigation tasks -> Zumbi (specialist investigator)
+        # Zumbi excels at contract analysis, anomaly detection
+        "investigate": "zumbi",
+        "contract_anomaly_detection": "zumbi",
+        "supplier_investigation": "zumbi",
+        "corruption_indicators": "obaluaie",  # Corruption specialist
         # Analysis tasks -> Anita (statistical analyst)
         "analyze": "anita",
         "statistical": "anita",
+        "budget_analysis": "anita",
+        "health_budget_analysis": "anita",
+        "education_performance": "anita",
         # Report generation -> Tiradentes
         "report": "tiradentes",
         # Status checks -> Abaporu (knows overall state)
@@ -216,10 +223,23 @@ def get_agent_for_intent(intent_type: str, intent_confidence: float = 0.5) -> st
         "legal_compliance": "bonifacio",
         "security_audit": "maria_quiteria",
         "visualization": "oscar_niemeyer",
-        "fraud_detection": "oxossi",
+        # Fraud/Anomaly detection -> Obaluaiê (corruption specialist)
+        "fraud_detection": "obaluaie",
+        "anomaly": "obaluaie",
         # Data hunting -> Oxóssi
         "data": "oxossi",
         "search": "oxossi",
+        "data_hunting": "oxossi",
+        # Regional focus -> Lampião
+        "regional": "lampiao",
+        # Social equity analysis -> Dandara
+        "social_equity": "dandara",
+        "equity": "dandara",
+        # Complex multi-agent orchestration -> Abaporu
+        # Only use Abaporu when we need coordination across agents
+        "orchestrate": "abaporu",
+        "complex_investigation": "abaporu",
+        "multi_source": "abaporu",
     }
 
     # Conversational intents -> Drummond (friendly communicator)
