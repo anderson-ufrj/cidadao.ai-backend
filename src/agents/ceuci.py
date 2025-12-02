@@ -767,7 +767,7 @@ class PredictiveAgent(BaseAgent):
                     metadata=result.metadata,
                 )
 
-            elif action == "analyze_trends":
+            if action == "analyze_trends":
                 data = message.content.get("data", [])
                 target_var = message.content.get("target_variable")
 
@@ -782,7 +782,7 @@ class PredictiveAgent(BaseAgent):
                     confidence=0.85,
                 )
 
-            elif action == "compare_models":
+            if action == "compare_models":
                 data = message.content.get("data", [])
                 target_var = message.content.get("target_variable")
                 models = [
