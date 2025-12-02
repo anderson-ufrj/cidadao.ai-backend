@@ -87,6 +87,74 @@ class IntentClassifier:
         "quanto ganha",
     ]
 
+    # ================================================================
+    # NON-INVESTIGATION INTENTS (Dec 2025)
+    # Added to properly route greetings, help, etc.
+    # ================================================================
+    GREETING_PATTERNS = [
+        r"^ol[áa]\b",
+        r"^oi\b",
+        r"^bom\s+dia\b",
+        r"^boa\s+tarde\b",
+        r"^boa\s+noite\b",
+        r"^e\s*a[íi]\b",
+        r"^fala\b",
+        r"^salve\b",
+        r"^opa\b",
+        r"^eae\b",
+        r"^eai\b",
+        r"^hi\b",
+        r"^hello\b",
+        r"^hey\b",
+        r"tudo\s+bem",
+        r"tudo\s+bom",
+        r"como\s+vai",
+    ]
+
+    HELP_PATTERNS = [
+        r"preciso\s+de\s+ajuda",
+        r"me\s+ajud[ae]",
+        r"pode\s+ajudar",
+        r"como\s+fa[çc]o",
+        r"como\s+usar",
+        r"n[ãa]o\s+sei\s+como",
+        r"n[ãa]o\s+entendi",
+        r"ajuda\b",
+        r"help\b",
+        r"tutorial",
+    ]
+
+    ABOUT_SYSTEM_PATTERNS = [
+        r"o\s+que\s+[ée]\s+o\s+cidad[ãa]o",
+        r"quem\s+[ée]\s+voc[êe]",
+        r"quem\s+criou",
+        r"quem\s+desenvolveu",
+        r"quem\s+fez",
+        r"para\s+que\s+serve",
+        r"o\s+que\s+voc[êe]\s+faz",
+        r"suas?\s+capacidades?",
+        r"sobre\s+o\s+projeto",
+        r"sobre\s+o\s+cidad[ãa]o",
+    ]
+
+    THANKS_PATTERNS = [
+        r"obrigad[oa]",
+        r"valeu\b",
+        r"agrade[çc]o",
+        r"thanks\b",
+        r"muito\s+obrigad[oa]",
+    ]
+
+    GOODBYE_PATTERNS = [
+        r"tchau\b",
+        r"at[ée]\s+(logo|mais)",
+        r"adeus\b",
+        r"bye\b",
+        r"at[ée]\s+a\s+pr[óo]xima",
+        r"falou\b",
+        r"flw\b",
+    ]
+
     # Keywords for PUBLIC SERVANT identification
     PUBLIC_SERVANT_KEYWORDS = [
         "servidor",
@@ -209,11 +277,70 @@ class IntentClassifier:
 
         Returns None if no clear pattern match (defer to LLM).
 
-        Note: Multiple returns (7) are intentional for distinct query patterns.
+        Note: Multiple returns are intentional for distinct query patterns.
         Each return represents a specific detection pattern with different confidence levels.
         """
         # ruff: noqa: PLR0911
-        query_lower = query.lower()
+        query_lower = query.lower().strip()
+
+        # ================================================================
+        # NON-INVESTIGATION INTENTS (check these FIRST for fast responses)
+        # Dec 2025: Added to properly route greetings, help, thanks, goodbye
+        # ================================================================
+
+        # Check GREETING patterns
+        for pattern in self.GREETING_PATTERNS:
+            if re.search(pattern, query_lower):
+                return {
+                    "intent": "greeting",  # String, not InvestigationIntent
+                    "confidence": 0.95,
+                    "reasoning": "Greeting pattern detected",
+                    "method": "keyword",
+                }
+
+        # Check THANKS patterns
+        for pattern in self.THANKS_PATTERNS:
+            if re.search(pattern, query_lower):
+                return {
+                    "intent": "thanks",
+                    "confidence": 0.95,
+                    "reasoning": "Thanks pattern detected",
+                    "method": "keyword",
+                }
+
+        # Check GOODBYE patterns
+        for pattern in self.GOODBYE_PATTERNS:
+            if re.search(pattern, query_lower):
+                return {
+                    "intent": "goodbye",
+                    "confidence": 0.95,
+                    "reasoning": "Goodbye pattern detected",
+                    "method": "keyword",
+                }
+
+        # Check HELP patterns
+        for pattern in self.HELP_PATTERNS:
+            if re.search(pattern, query_lower):
+                return {
+                    "intent": "help_request",
+                    "confidence": 0.90,
+                    "reasoning": "Help request pattern detected",
+                    "method": "keyword",
+                }
+
+        # Check ABOUT_SYSTEM patterns
+        for pattern in self.ABOUT_SYSTEM_PATTERNS:
+            if re.search(pattern, query_lower):
+                return {
+                    "intent": "about_system",
+                    "confidence": 0.90,
+                    "reasoning": "System information query detected",
+                    "method": "keyword",
+                }
+
+        # ================================================================
+        # INVESTIGATION INTENTS (original logic)
+        # ================================================================
 
         # Check for CNPJ (strong indicator of supplier investigation)
         if self.CNPJ_PATTERN.search(query):
