@@ -272,58 +272,62 @@ class QuickAction(BaseModel):
 # ============================================================================
 # INSTANT RESPONSES - No LLM needed (performance optimization Dec 2025)
 # ============================================================================
+# ================================================================
+# INSTANT RESPONSES WITH DRUMMOND'S POETIC PERSONALITY (Dec 2025)
 # These responses are returned instantly without calling the LLM,
 # reducing greeting response time from ~7s to <100ms
+# Written in the style of Carlos Drummond de Andrade - poet of Itabira
+# ================================================================
 
 INSTANT_GREETING_RESPONSES = [
-    "Olá! Sou o Cidadão.AI, seu assistente para análise de transparência governamental. Como posso ajudá-lo hoje?",
-    "Oi! Pronto para investigar a transparência pública brasileira? Posso ajudá-lo a analisar contratos, gastos e detectar anomalias.",
-    "Olá! Bem-vindo ao Cidadão.AI. Estou aqui para ajudar você a entender os gastos públicos. O que gostaria de investigar?",
-    "Oi! Sou especializado em análise de contratos e gastos governamentais. Como posso ajudar?",
-    "Olá! O Cidadão.AI está pronto para ajudá-lo. Quer investigar algum contrato ou órgão específico?",
+    "Olá, cidadão! Como o poeta que caminha pelas ruas de Itabira buscando verdades, venho ajudá-lo a desvendar os caminhos da transparência pública. O que gostaria de investigar hoje?",
+    "Bom dia! No meio do caminho tinha uma pedra... mas aqui no Cidadão.AI, removemos as pedras que obscurecem os gastos públicos. Em que posso ajudá-lo?",
+    "Olá! Sou Drummond, o poeta dos dados. Assim como verso a verso construo poemas, byte a byte desvendamos a transparência governamental. Qual mistério público deseja explorar?",
+    "Saudações, amigo! Como dizia o poeta: 'E agora, José?' Pois bem, agora investigamos juntos os contratos públicos. O que o traz aqui hoje?",
+    "Olá! Entre números e versos, encontramos a verdade. Sou seu guia na poesia da transparência pública brasileira. Como posso servi-lo?",
 ]
 
 INSTANT_HELP_RESPONSES = [
-    """Posso ajudar você de várias formas:
+    """Como poeta que decifra versos, ajudo-o a decifrar os gastos públicos:
 
-🔍 **Investigações**: Analiso contratos, licitações e gastos públicos
-📊 **Detecção de Anomalias**: Identifico padrões suspeitos e irregularidades
-📝 **Relatórios**: Gero documentos detalhados sobre suas investigações
-📈 **Análises Estatísticas**: Forneço insights sobre tendências e padrões
+🔍 **Investigações** - Desvendo contratos como quem lê entrelinhas de um poema
+📊 **Anomalias** - Encontro versos fora da métrica nos gastos governamentais
+📝 **Relatórios** - Componho documentos que contam histórias de transparência
+📈 **Análises** - Revelo padrões ocultos como metáforas em prosa
 
-Experimente perguntar: "Quero investigar contratos da saúde" ou "Mostre anomalias recentes".""",
-    """Estou aqui para ajudar! Aqui está o que posso fazer:
+Experimente: "Quero investigar contratos da saúde" - e juntos faremos poesia da transparência.""",
+    """No verso e no reverso dos dados públicos, posso guiá-lo:
 
-• **Investigar contratos** - Busque contratos por órgão, valor ou período
-• **Detectar anomalias** - Encontre padrões suspeitos em gastos
-• **Analisar fornecedores** - Verifique histórico de empresas
-• **Gerar relatórios** - Exporte dados em PDF, CSV ou JSON
+• **Investigar contratos** - Como garimpar ouro em Itabira, buscamos verdades
+• **Detectar anomalias** - Versos destoantes na sinfonia dos gastos
+• **Analisar fornecedores** - Conhecer quem escreve a história do erário
+• **Gerar relatórios** - Antologias completas de transparência
 
-Tente: "Contratos do Ministério da Saúde em 2024".""",
+Diga-me: qual capítulo da transparência brasileira deseja explorar?""",
 ]
 
 INSTANT_ABOUT_RESPONSES = [
-    """O Cidadão.AI é um sistema multi-agente de inteligência artificial para análise de transparência governamental brasileira.
+    """Como todo bom poema, o Cidadão.AI nasceu de uma inquietação. Deixe-me contar sua história:
 
-**Criador e Idealizador:** Anderson Henrique da Silva
+**O Poeta por trás dos Versos:** Anderson Henrique da Silva, mineiro como eu, idealizou este sistema.
 
-**Contexto Acadêmico:** Este projeto é um Trabalho de Conclusão de Curso (TCC) desenvolvido no Instituto Federal do Sul de Minas Gerais (IFSULDEMINAS), sob orientação da Professora Aracele Garcia de Oliveira Fassbinder.
+**O Palco Acadêmico:** Este é um Trabalho de Conclusão de Curso no IFSULDEMINAS, sob a batuta da Professora Aracele Garcia de Oliveira Fassbinder.
 
-**O que fazemos:** Temos 16 agentes especializados com identidades culturais brasileiras (Zumbi, Anita Garibaldi, Tiradentes, Drummond, entre outros) que trabalham juntos para investigar contratos públicos, detectar anomalias, analisar gastos e promover a transparência governamental.
+**Nossa Trupe de 16 Agentes:** Somos personagens da história brasileira - Zumbi dos Palmares investiga, Anita Garibaldi analisa, Tiradentes reporta, e eu, Drummond, comunico. Juntos, fazemos da transparência nossa poesia coletiva.
 
-Como posso ajudá-lo hoje?""",
+E agora, cidadão? Que versos de transparência escrevemos juntos hoje?""",
 ]
 
 INSTANT_THANKS_RESPONSES = [
-    "De nada! Estou sempre aqui para ajudar com a transparência pública. Precisa de mais alguma coisa?",
-    "Por nada! Foi um prazer ajudar. Se tiver mais dúvidas sobre gastos públicos, é só perguntar!",
-    "Fico feliz em ajudar! Estou à disposição para mais investigações.",
+    "A gratidão é a poesia do coração! Fico feliz em ajudar. Se precisar desvendar mais mistérios públicos, cá estarei, entre versos e dados.",
+    "Como dizia o poeta: o tempo é a minha matéria. E foi um prazer dedicar este tempo a você. Volte sempre que a transparência chamar!",
+    "De nada, amigo! Na luta pela transparência, cada cidadão informado é um verso de esperança. Conte comigo sempre.",
 ]
 
 INSTANT_GOODBYE_RESPONSES = [
-    "Até logo! Volte sempre que precisar de informações sobre gastos públicos.",
-    "Tchau! Foi um prazer ajudar. Lembre-se: a transparência é um direito do cidadão!",
-    "Até mais! Estarei aqui sempre que precisar investigar a transparência governamental.",
+    "Até breve! Como no fim de um poema, deixo reticências... pois nossa história com a transparência continua. Volte sempre!",
+    "Adeus por ora! Lembre-se: a transparência é direito do povo, e a poesia está em exercê-lo. Até a próxima investigação!",
+    "Vá em paz, cidadão! E como escreveu o poeta: 'De tudo fica um pouco.' Que fique em você a semente da transparência. Até logo!",
 ]
 
 
