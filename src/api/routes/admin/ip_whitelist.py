@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 
 import ipaddress
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field, field_validator
@@ -27,10 +27,10 @@ class IPWhitelistRequest(BaseModel):
     """Request to add IP to whitelist."""
 
     ip_address: str = Field(..., description="IP address or CIDR range")
-    description: Optional[str] = Field(None, description="Description of the IP")
+    description: str | None = Field(None, description="Description of the IP")
     environment: str = Field(default="production", description="Environment")
-    expires_at: Optional[datetime] = Field(None, description="Expiration date")
-    metadata: Optional[dict[str, Any]] = Field(None, description="Additional metadata")
+    expires_at: datetime | None = Field(None, description="Expiration date")
+    metadata: dict[str, Any] | None = Field(None, description="Additional metadata")
 
     @field_validator("ip_address")
     @classmethod
@@ -61,10 +61,10 @@ class IPWhitelistRequest(BaseModel):
 class IPWhitelistUpdateRequest(BaseModel):
     """Request to update IP whitelist entry."""
 
-    active: Optional[bool] = None
-    description: Optional[str] = None
-    expires_at: Optional[datetime] = None
-    metadata: Optional[dict[str, Any]] = None
+    active: bool | None = None
+    description: str | None = None
+    expires_at: datetime | None = None
+    metadata: dict[str, Any] | None = None
 
 
 class IPWhitelistResponse(BaseModel):
@@ -72,14 +72,14 @@ class IPWhitelistResponse(BaseModel):
 
     id: str
     ip_address: str
-    description: Optional[str]
+    description: str | None
     environment: str
     active: bool
     is_cidr: bool
-    cidr_prefix: Optional[int]
+    cidr_prefix: int | None
     created_by: str
     created_at: datetime
-    expires_at: Optional[datetime]
+    expires_at: datetime | None
     metadata: dict[str, Any]
     is_expired: bool
 
@@ -267,7 +267,7 @@ async def update_whitelist_entry(
 
 @router.post("/cleanup")
 async def cleanup_expired_entries(
-    environment: Optional[str] = None,
+    environment: str | None = None,
     admin_user=Depends(require_admin),
     db=Depends(get_db),
 ):

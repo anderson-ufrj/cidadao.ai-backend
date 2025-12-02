@@ -7,14 +7,13 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from pydantic import Field as PydanticField
-from pydantic import field_validator
 
 from src.api.middleware.authentication import get_current_user
 from src.core import get_logger, json_utils
@@ -32,7 +31,7 @@ class ExportRequest(BaseModel):
 
     export_type: str = PydanticField(description="Type of data to export")
     format: str = PydanticField(description="Export format")
-    filters: Optional[dict[str, Any]] = PydanticField(
+    filters: dict[str, Any] | None = PydanticField(
         default={}, description="Filters to apply"
     )
     include_metadata: bool = PydanticField(default=True, description="Include metadata")
@@ -120,7 +119,7 @@ async def export_investigation(
             headers={"Content-Disposition": f"attachment; filename={filename}.xlsx"},
         )
 
-    elif format == "csv":
+    if format == "csv":
         # Create CSV with main data
         main_data = {
             "investigation_id": investigation["id"],
@@ -140,7 +139,7 @@ async def export_investigation(
             headers={"Content-Disposition": f"attachment; filename={filename}.csv"},
         )
 
-    elif format == "pdf":
+    if format == "pdf":
         # Generate PDF report
         content = _format_investigation_as_markdown(investigation)
         pdf_bytes = await export_service.generate_pdf(
@@ -159,15 +158,14 @@ async def export_investigation(
             headers={"Content-Disposition": f"attachment; filename={filename}.pdf"},
         )
 
-    elif format == "json":
+    if format == "json":
         return Response(
             content=json_utils.dumps(investigation, indent=2, ensure_ascii=False),
             media_type="application/json",
             headers={"Content-Disposition": f"attachment; filename={filename}.json"},
         )
 
-    else:
-        raise HTTPException(status_code=400, detail="Unsupported format")
+    raise HTTPException(status_code=400, detail="Unsupported format")
 
 
 @router.post("/contracts/export")
@@ -215,7 +213,7 @@ async def export_contracts(
             headers={"Content-Disposition": f"attachment; filename={filename}.xlsx"},
         )
 
-    elif request.format == "csv":
+    if request.format == "csv":
         df = pd.DataFrame(contracts)
         csv_bytes = await export_service.generate_csv(df)
 
@@ -225,10 +223,9 @@ async def export_contracts(
             headers={"Content-Disposition": f"attachment; filename={filename}.csv"},
         )
 
-    else:
-        raise HTTPException(
-            status_code=400, detail="Format not supported for contracts export"
-        )
+    raise HTTPException(
+        status_code=400, detail="Format not supported for contracts export"
+    )
 
 
 @router.post("/anomalies/export")
@@ -294,10 +291,9 @@ async def export_anomalies(
             headers={"Content-Disposition": f"attachment; filename={filename}.xlsx"},
         )
 
-    else:
-        raise HTTPException(
-            status_code=400, detail="Format not supported for anomalies export"
-        )
+    raise HTTPException(
+        status_code=400, detail="Format not supported for anomalies export"
+    )
 
 
 @router.post("/bulk")
@@ -513,7 +509,7 @@ async def export_visualization_data(
             headers={"Content-Disposition": f"attachment; filename={filename}.xlsx"},
         )
 
-    elif request.format == "csv":
+    if request.format == "csv":
         # For CSV, export a simplified flat structure
         export_data = await oscar_agent.create_export_format(
             data=[],  # Would contain actual data
@@ -527,7 +523,7 @@ async def export_visualization_data(
             headers={"Content-Disposition": f"attachment; filename={filename}.csv"},
         )
 
-    elif request.format == "json":
+    if request.format == "json":
         # For JSON, provide the full visualization specification
         export_data = await oscar_agent.create_export_format(
             data={
@@ -567,11 +563,10 @@ async def export_visualization_data(
             headers={"Content-Disposition": f"attachment; filename={filename}.json"},
         )
 
-    else:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Format {request.format} not supported for visualization export",
-        )
+    raise HTTPException(
+        status_code=400,
+        detail=f"Format {request.format} not supported for visualization export",
+    )
 
 
 @router.post("/regional-analysis/export")
@@ -703,7 +698,7 @@ async def export_regional_analysis(
             headers={"Content-Disposition": f"attachment; filename={filename}.xlsx"},
         )
 
-    elif request.format == "csv":
+    if request.format == "csv":
         # For CSV, create a flat structure with all regional data
         csv_data = []
         for metric_data in regional_data.metrics:
@@ -734,7 +729,7 @@ async def export_regional_analysis(
             headers={"Content-Disposition": f"attachment; filename={filename}.csv"},
         )
 
-    elif request.format == "json":
+    if request.format == "json":
         # For JSON, provide complete structured data optimized for visualization
         export_data = {
             "metadata": {
@@ -780,11 +775,10 @@ async def export_regional_analysis(
             headers={"Content-Disposition": f"attachment; filename={filename}.json"},
         )
 
-    else:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Format {request.format} not supported for regional analysis export",
-        )
+    raise HTTPException(
+        status_code=400,
+        detail=f"Format {request.format} not supported for regional analysis export",
+    )
 
 
 @router.post("/time-series/export")
@@ -893,7 +887,7 @@ async def export_time_series_data(
             headers={"Content-Disposition": f"attachment; filename={filename}.xlsx"},
         )
 
-    elif request.format == "csv":
+    if request.format == "csv":
         # Create CSV with time series data
         ts_data = []
         for time_point, value in zip(
@@ -917,7 +911,7 @@ async def export_time_series_data(
             headers={"Content-Disposition": f"attachment; filename={filename}.csv"},
         )
 
-    elif request.format == "json":
+    if request.format == "json":
         # JSON format optimized for charting libraries (Chart.js, D3.js, etc.)
         export_data = {
             "metadata": {
@@ -1001,8 +995,7 @@ async def export_time_series_data(
             headers={"Content-Disposition": f"attachment; filename={filename}.json"},
         )
 
-    else:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Format {request.format} not supported for time series export",
-        )
+    raise HTTPException(
+        status_code=400,
+        detail=f"Format {request.format} not supported for time series export",
+    )

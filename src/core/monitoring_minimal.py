@@ -10,7 +10,7 @@ from collections import defaultdict, deque
 from collections.abc import Callable
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 import psutil
 from prometheus_client import (
@@ -134,7 +134,7 @@ class MockTracer:
             def set_status(self, status: Any):
                 pass
 
-            def add_event(self, name: str, attributes: Optional[dict] = None):
+            def add_event(self, name: str, attributes: dict | None = None):
                 pass
 
         return MockSpan()
@@ -206,7 +206,7 @@ class MetricsCollector:
 
     @asynccontextmanager
     async def trace_operation(
-        self, operation_name: str, attributes: Optional[dict] = None
+        self, operation_name: str, attributes: dict | None = None
     ):
         """Context manager for tracing operations."""
         start_time = time.time()
@@ -233,7 +233,7 @@ def get_metrics_collector() -> MetricsCollector:
     return _metrics_collector
 
 
-def trace_method(span_name: Optional[str] = None) -> Callable:
+def trace_method(span_name: str | None = None) -> Callable:
     """Decorator for tracing methods - simplified version."""
 
     def decorator(func: Callable) -> Callable:

@@ -9,7 +9,7 @@ License: Proprietary - All rights reserved
 import asyncio
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from celery.utils.log import get_task_logger
 
@@ -23,7 +23,7 @@ logger = get_task_logger(__name__)
 
 @celery_app.task(name="tasks.export_to_pdf", bind=True, queue="normal")
 def export_to_pdf(
-    self, content_type: str, content_id: str, options: Optional[dict[str, Any]] = None
+    self, content_type: str, content_id: str, options: dict[str, Any] | None = None
 ) -> dict[str, Any]:
     """
     Export content to PDF format.
@@ -66,7 +66,7 @@ def export_to_pdf(
 
 
 async def _export_to_pdf_async(
-    task, content_type: str, content_id: str, options: Optional[dict[str, Any]]
+    task, content_type: str, content_id: str, options: dict[str, Any] | None
 ) -> dict[str, Any]:
     """Async PDF export implementation."""
     export_service = ExportService()
@@ -120,7 +120,7 @@ async def _export_to_pdf_async(
 @celery_app.task(name="tasks.export_to_excel", queue="normal")
 def export_to_excel(
     data_type: str,
-    filters: Optional[dict[str, Any]] = None,
+    filters: dict[str, Any] | None = None,
     include_charts: bool = True,
 ) -> dict[str, Any]:
     """
@@ -158,7 +158,7 @@ def export_to_excel(
 
 
 async def _export_to_excel_async(
-    data_type: str, filters: Optional[dict[str, Any]], include_charts: bool
+    data_type: str, filters: dict[str, Any] | None, include_charts: bool
 ) -> dict[str, Any]:
     """Async Excel export implementation."""
     export_service = ExportService()

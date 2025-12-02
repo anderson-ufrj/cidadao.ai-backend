@@ -6,7 +6,7 @@ This module provides tools to analyze slow queries and suggest optimizations.
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -228,7 +228,7 @@ class QueryAnalyzer:
         )
 
     async def analyze_query_plan(
-        self, session: AsyncSession, query: str, params: Optional[dict[str, Any]] = None
+        self, session: AsyncSession, query: str, params: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         """
         Analyze execution plan for a specific query.

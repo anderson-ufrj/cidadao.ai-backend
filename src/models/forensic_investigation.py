@@ -12,7 +12,7 @@ evidence, legal references, and documentary proof for government transparency.
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class AnomalySeverity(str, Enum):
@@ -44,15 +44,15 @@ class OfficialDocument:
 
     title: str
     document_type: str  # edital, contrato, nota_fiscal, processo, etc
-    document_number: Optional[str] = None
-    url: Optional[str] = None  # Link direto ao documento
-    portal_url: Optional[str] = None  # Portal da Transparência
-    issue_date: Optional[datetime] = None
-    issuing_authority: Optional[str] = None
-    legal_basis: Optional[str] = None  # Base legal aplicável
-    hash_verification: Optional[str] = None  # Hash para verificação
+    document_number: str | None = None
+    url: str | None = None  # Link direto ao documento
+    portal_url: str | None = None  # Portal da Transparência
+    issue_date: datetime | None = None
+    issuing_authority: str | None = None
+    legal_basis: str | None = None  # Base legal aplicável
+    hash_verification: str | None = None  # Hash para verificação
     access_date: datetime = field(default_factory=datetime.utcnow)
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 @dataclass
@@ -63,30 +63,30 @@ class LegalEntity:
     entity_type: str  # empresa, pessoa_fisica, orgao_publico
 
     # Identificação
-    cnpj: Optional[str] = None
-    cpf: Optional[str] = None
-    company_registration: Optional[str] = None  # Inscrição estadual/municipal
+    cnpj: str | None = None
+    cpf: str | None = None
+    company_registration: str | None = None  # Inscrição estadual/municipal
 
     # Contato
-    address: Optional[str] = None
-    city: Optional[str] = None
-    state: Optional[str] = None
-    phone: Optional[str] = None
-    email: Optional[str] = None
+    address: str | None = None
+    city: str | None = None
+    state: str | None = None
+    phone: str | None = None
+    email: str | None = None
 
     # Links e Referências
-    receita_federal_url: Optional[str] = None
-    transparency_portal_url: Optional[str] = None
-    company_website: Optional[str] = None
+    receita_federal_url: str | None = None
+    transparency_portal_url: str | None = None
+    company_website: str | None = None
 
     # Histórico
-    foundation_date: Optional[datetime] = None
+    foundation_date: datetime | None = None
     previous_contracts_count: int = 0
     previous_irregularities: list[str] = field(default_factory=list)
-    total_contracted_value: Optional[float] = None
+    total_contracted_value: float | None = None
 
     # Status Legal
-    legal_status: Optional[str] = None  # ativa, suspensa, inidônea
+    legal_status: str | None = None  # ativa, suspensa, inidônea
     sanctions: list[dict[str, Any]] = field(default_factory=list)
 
     # Metadata
@@ -110,7 +110,7 @@ class Evidence:
     analysis_method: str  # Como foi obtida/analisada
 
     # Optional fields with defaults
-    raw_data: Optional[str] = None  # Dados brutos se aplicável
+    raw_data: str | None = None  # Dados brutos se aplicável
     confidence_score: float = 1.0  # 0-1, confiança na evidência
 
     # Referências
@@ -118,14 +118,14 @@ class Evidence:
     source_urls: list[str] = field(default_factory=list)
 
     # Comparações
-    comparison_baseline: Optional[str] = None  # O que foi usado como referência
-    deviation_percentage: Optional[float] = None
-    statistical_significance: Optional[float] = None  # p-value
+    comparison_baseline: str | None = None  # O que foi usado como referência
+    deviation_percentage: float | None = None
+    statistical_significance: float | None = None  # p-value
 
     # Metadata
     collected_at: datetime = field(default_factory=datetime.utcnow)
     verified: bool = False
-    verification_notes: Optional[str] = None
+    verification_notes: str | None = None
 
 
 @dataclass
@@ -134,27 +134,27 @@ class FinancialImpact:
 
     # Valores
     contract_value: float
-    expected_value: Optional[float] = None  # Valor esperado/normal
-    overcharge_amount: Optional[float] = None  # Sobrepreço identificado
-    potential_savings: Optional[float] = None  # Economia potencial
+    expected_value: float | None = None  # Valor esperado/normal
+    overcharge_amount: float | None = None  # Sobrepreço identificado
+    potential_savings: float | None = None  # Economia potencial
 
     # Análise Comparativa
-    market_average: Optional[float] = None
-    previous_contracts_average: Optional[float] = None
+    market_average: float | None = None
+    previous_contracts_average: float | None = None
     similar_contracts: list[dict[str, Any]] = field(default_factory=list)
 
     # Classificação Orçamentária
-    budget_source: Optional[str] = None  # Fonte de recurso
-    budget_category: Optional[str] = None
-    fiscal_year: Optional[int] = None
+    budget_source: str | None = None  # Fonte de recurso
+    budget_category: str | None = None
+    fiscal_year: int | None = None
 
     # Impacto
-    affected_population: Optional[int] = None  # Pessoas afetadas
-    opportunity_cost: Optional[str] = None  # O que poderia ser feito com o valor
+    affected_population: int | None = None  # Pessoas afetadas
+    opportunity_cost: str | None = None  # O que poderia ser feito com o valor
 
     # Cálculos
-    calculation_method: Optional[str] = None
-    calculation_notes: Optional[str] = None
+    calculation_method: str | None = None
+    calculation_notes: str | None = None
 
 
 @dataclass
@@ -168,11 +168,11 @@ class Timeline:
 
     # Documentação
     related_documents: list[OfficialDocument] = field(default_factory=list)
-    responsible_party: Optional[str] = None
+    responsible_party: str | None = None
 
     # Análise
     suspicious_aspects: list[str] = field(default_factory=list)
-    legal_implications: Optional[str] = None
+    legal_implications: str | None = None
 
 
 @dataclass
@@ -186,7 +186,7 @@ class LegalFramework:
 
     # Órgãos Competentes
     oversight_bodies: list[str] = field(default_factory=list)  # TCU, CGU, MPF
-    jurisdiction: Optional[str] = None  # Federal, estadual, municipal
+    jurisdiction: str | None = None  # Federal, estadual, municipal
 
     # Procedimentos
     required_procedures: list[str] = field(default_factory=list)
@@ -212,14 +212,14 @@ class RecommendedAction:
     expected_outcome: str  # Resultado esperado
 
     # Execução
-    responsible_body: Optional[str] = None  # Quem deve executar
-    contact_info: Optional[str] = None
-    submission_url: Optional[str] = None
+    responsible_body: str | None = None  # Quem deve executar
+    contact_info: str | None = None
+    submission_url: str | None = None
     required_documents: list[str] = field(default_factory=list)
 
     # Prazos
-    recommended_deadline: Optional[datetime] = None
-    legal_deadline: Optional[datetime] = None
+    recommended_deadline: datetime | None = None
+    legal_deadline: datetime | None = None
 
     # Referências
     legal_basis: list[str] = field(default_factory=list)
@@ -264,17 +264,17 @@ class ForensicAnomalyResult:
     evidence: list[Evidence] = field(default_factory=list)
 
     # ANÁLISE FINANCEIRA
-    financial_impact: Optional[FinancialImpact] = None
+    financial_impact: FinancialImpact | None = None
 
     # CRONOLOGIA
     timeline: list[Timeline] = field(default_factory=list)
 
     # CONTEXTO LEGAL
-    legal_framework: Optional[LegalFramework] = None
+    legal_framework: LegalFramework | None = None
 
     # COMPARAÇÕES E BENCHMARK
     similar_cases: list[dict[str, Any]] = field(default_factory=list)
-    statistical_comparison: Optional[dict[str, Any]] = None
+    statistical_comparison: dict[str, Any] | None = None
 
     # AÇÕES RECOMENDADAS
     recommended_actions: list[RecommendedAction] = field(default_factory=list)
@@ -296,9 +296,9 @@ class ForensicAnomalyResult:
 
     # Para Auditoria
     reproducible: bool = True
-    reproducibility_notes: Optional[str] = None
+    reproducibility_notes: str | None = None
     peer_reviewed: bool = False
-    review_notes: Optional[str] = None
+    review_notes: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary for JSON serialization."""

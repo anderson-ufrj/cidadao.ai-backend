@@ -6,7 +6,7 @@ This endpoint ensures the chat always works, even if other services fail
 import os
 import random
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from fastapi import APIRouter
@@ -22,7 +22,7 @@ router = APIRouter(prefix="/api/v1/chat", tags=["chat-emergency"])
 # Request/Response models
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=1000)
-    session_id: Optional[str] = None
+    session_id: str | None = None
 
 
 class ChatResponse(BaseModel):
@@ -69,21 +69,20 @@ def detect_intent(message: str) -> str:
         for word in ["olá", "oi", "bom dia", "boa tarde", "boa noite", "prazer"]
     ):
         return "greeting"
-    elif any(
+    if any(
         word in message_lower
         for word in ["investigar", "verificar", "analisar", "buscar", "procurar"]
     ):
         return "investigation"
-    elif any(
+    if any(
         word in message_lower
         for word in ["ajuda", "ajudar", "pode", "consegue", "o que", "como"]
     ):
         return "help"
-    else:
-        return "default"
+    return "default"
 
 
-async def try_maritaca(message: str) -> Optional[str]:
+async def try_maritaca(message: str) -> str | None:
     """Try to get response from Maritaca AI"""
     api_key = os.getenv("MARITACA_API_KEY")
     if not api_key:

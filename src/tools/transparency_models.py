@@ -8,22 +8,19 @@ License: Proprietary - All rights reserved
 
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, Optional, Union
+from typing import Any
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from pydantic import Field as PydanticField
-from pydantic import field_validator
 
 
 class Organization(BaseModel):
     """Government organization model."""
 
-    codigo: Optional[str] = PydanticField(default=None, description="Organization code")
-    nome: Optional[str] = PydanticField(default=None, description="Organization name")
-    sigla: Optional[str] = PydanticField(
-        default=None, description="Organization acronym"
-    )
-    descricao: Optional[str] = PydanticField(
+    codigo: str | None = PydanticField(default=None, description="Organization code")
+    nome: str | None = PydanticField(default=None, description="Organization name")
+    sigla: str | None = PydanticField(default=None, description="Organization acronym")
+    descricao: str | None = PydanticField(
         default=None, description="Organization description"
     )
 
@@ -31,14 +28,12 @@ class Organization(BaseModel):
 class Supplier(BaseModel):
     """Supplier/contractor model."""
 
-    cnpj: Optional[str] = PydanticField(default=None, description="CNPJ")
-    cpf: Optional[str] = PydanticField(default=None, description="CPF")
-    nome: Optional[str] = PydanticField(default=None, description="Name")
-    razao_social: Optional[str] = PydanticField(
-        default=None, description="Corporate name"
-    )
-    municipio: Optional[str] = PydanticField(default=None, description="Municipality")
-    uf: Optional[str] = PydanticField(default=None, description="State")
+    cnpj: str | None = PydanticField(default=None, description="CNPJ")
+    cpf: str | None = PydanticField(default=None, description="CPF")
+    nome: str | None = PydanticField(default=None, description="Name")
+    razao_social: str | None = PydanticField(default=None, description="Corporate name")
+    municipio: str | None = PydanticField(default=None, description="Municipality")
+    uf: str | None = PydanticField(default=None, description="State")
 
     @field_validator("cnpj", "cpf")
     @classmethod
@@ -61,62 +56,60 @@ class Supplier(BaseModel):
 class Contract(BaseModel):
     """Government contract model."""
 
-    id: Optional[str] = PydanticField(default=None, description="Contract ID")
-    numero: Optional[str] = PydanticField(default=None, description="Contract number")
-    ano: Optional[int] = PydanticField(default=None, description="Year")
-    mes: Optional[int] = PydanticField(default=None, description="Month")
+    id: str | None = PydanticField(default=None, description="Contract ID")
+    numero: str | None = PydanticField(default=None, description="Contract number")
+    ano: int | None = PydanticField(default=None, description="Year")
+    mes: int | None = PydanticField(default=None, description="Month")
 
     # Dates
-    data_assinatura: Optional[Union[str, date]] = PydanticField(
+    data_assinatura: str | date | None = PydanticField(
         default=None, description="Signature date"
     )
-    data_inicio_vigencia: Optional[Union[str, date]] = PydanticField(
+    data_inicio_vigencia: str | date | None = PydanticField(
         default=None, description="Start date"
     )
-    data_fim_vigencia: Optional[Union[str, date]] = PydanticField(
+    data_fim_vigencia: str | date | None = PydanticField(
         default=None, description="End date"
     )
-    data_publicacao: Optional[Union[str, date]] = PydanticField(
+    data_publicacao: str | date | None = PydanticField(
         default=None, description="Publication date"
     )
 
     # Financial
-    valor_inicial: Optional[Decimal] = PydanticField(
+    valor_inicial: Decimal | None = PydanticField(
         default=None, description="Initial value"
     )
-    valor_global: Optional[Decimal] = PydanticField(
+    valor_global: Decimal | None = PydanticField(
         default=None, description="Global value"
     )
-    valor_acumulado: Optional[Decimal] = PydanticField(
+    valor_acumulado: Decimal | None = PydanticField(
         default=None, description="Accumulated value"
     )
 
     # Description
-    objeto: Optional[str] = PydanticField(default=None, description="Contract object")
-    objeto_resumido: Optional[str] = PydanticField(
+    objeto: str | None = PydanticField(default=None, description="Contract object")
+    objeto_resumido: str | None = PydanticField(
         default=None, description="Contract summary"
     )
 
     # Classification
-    modalidade_contratacao: Optional[Union[int, str]] = PydanticField(
+    modalidade_contratacao: int | str | None = PydanticField(
         default=None, description="Contracting modality"
     )
-    modalidade_licitacao: Optional[Union[int, str]] = PydanticField(
+    modalidade_licitacao: int | str | None = PydanticField(
         default=None, description="Bidding modality"
     )
-    situacao: Optional[str] = PydanticField(default=None, description="Status")
+    situacao: str | None = PydanticField(default=None, description="Status")
 
     # Related entities
-    orgao: Optional[Organization] = PydanticField(
-        default=None, description="Organization"
-    )
-    fornecedor: Optional[Supplier] = PydanticField(default=None, description="Supplier")
+    orgao: Organization | None = PydanticField(default=None, description="Organization")
+    fornecedor: Supplier | None = PydanticField(default=None, description="Supplier")
 
     # Additional fields
-    fundamento_legal: Optional[str] = PydanticField(
+    fundamento_legal: str | None = PydanticField(
         default=None, description="Legal basis"
     )
-    origem_recurso: Optional[str] = PydanticField(
+    origem_recurso: str | None = PydanticField(
         default=None, description="Resource origin"
     )
 
@@ -145,7 +138,7 @@ class Contract(BaseModel):
         """Parse decimal values."""
         if isinstance(v, (int, float)):
             return Decimal(str(v))
-        elif isinstance(v, str):
+        if isinstance(v, str):
             # Remove common formatting
             v = v.replace(",", ".").replace(" ", "")
             try:
@@ -158,50 +151,44 @@ class Contract(BaseModel):
 class Expense(BaseModel):
     """Government expense model."""
 
-    id: Optional[str] = PydanticField(default=None, description="Expense ID")
-    ano: Optional[int] = PydanticField(default=None, description="Year")
-    mes: Optional[int] = PydanticField(default=None, description="Month")
+    id: str | None = PydanticField(default=None, description="Expense ID")
+    ano: int | None = PydanticField(default=None, description="Year")
+    mes: int | None = PydanticField(default=None, description="Month")
 
     # Dates
-    data_pagamento: Optional[Union[str, date]] = PydanticField(
+    data_pagamento: str | date | None = PydanticField(
         default=None, description="Payment date"
     )
-    data_documento: Optional[Union[str, date]] = PydanticField(
+    data_documento: str | date | None = PydanticField(
         default=None, description="Document date"
     )
 
     # Financial
-    valor: Optional[Decimal] = PydanticField(default=None, description="Amount")
-    valor_empenhado: Optional[Decimal] = PydanticField(
+    valor: Decimal | None = PydanticField(default=None, description="Amount")
+    valor_empenhado: Decimal | None = PydanticField(
         default=None, description="Committed amount"
     )
-    valor_liquidado: Optional[Decimal] = PydanticField(
+    valor_liquidado: Decimal | None = PydanticField(
         default=None, description="Liquidated amount"
     )
-    valor_pago: Optional[Decimal] = PydanticField(
-        default=None, description="Paid amount"
-    )
+    valor_pago: Decimal | None = PydanticField(default=None, description="Paid amount")
 
     # Classification
-    funcao: Optional[str] = PydanticField(default=None, description="Function")
-    subfuncao: Optional[str] = PydanticField(default=None, description="Subfunction")
-    programa: Optional[str] = PydanticField(default=None, description="Program")
-    acao: Optional[str] = PydanticField(default=None, description="Action")
-    elemento_despesa: Optional[str] = PydanticField(
+    funcao: str | None = PydanticField(default=None, description="Function")
+    subfuncao: str | None = PydanticField(default=None, description="Subfunction")
+    programa: str | None = PydanticField(default=None, description="Program")
+    acao: str | None = PydanticField(default=None, description="Action")
+    elemento_despesa: str | None = PydanticField(
         default=None, description="Expense element"
     )
 
     # Description
-    descricao: Optional[str] = PydanticField(default=None, description="Description")
-    documento: Optional[str] = PydanticField(default=None, description="Document")
+    descricao: str | None = PydanticField(default=None, description="Description")
+    documento: str | None = PydanticField(default=None, description="Document")
 
     # Related entities
-    orgao: Optional[Organization] = PydanticField(
-        default=None, description="Organization"
-    )
-    favorecido: Optional[Supplier] = PydanticField(
-        default=None, description="Beneficiary"
-    )
+    orgao: Organization | None = PydanticField(default=None, description="Organization")
+    favorecido: Supplier | None = PydanticField(default=None, description="Beneficiary")
 
     @field_validator("data_pagamento", "data_documento")
     @classmethod
@@ -222,7 +209,7 @@ class Expense(BaseModel):
         """Parse decimal values."""
         if isinstance(v, (int, float)):
             return Decimal(str(v))
-        elif isinstance(v, str):
+        if isinstance(v, str):
             v = v.replace(",", ".").replace(" ", "")
             try:
                 return Decimal(v)
@@ -234,47 +221,47 @@ class Expense(BaseModel):
 class Agreement(BaseModel):
     """Government agreement (convênio) model."""
 
-    id: Optional[str] = PydanticField(default=None, description="Agreement ID")
-    numero: Optional[str] = PydanticField(default=None, description="Agreement number")
-    ano: Optional[int] = PydanticField(default=None, description="Year")
+    id: str | None = PydanticField(default=None, description="Agreement ID")
+    numero: str | None = PydanticField(default=None, description="Agreement number")
+    ano: int | None = PydanticField(default=None, description="Year")
 
     # Dates
-    data_assinatura: Optional[Union[str, date]] = PydanticField(
+    data_assinatura: str | date | None = PydanticField(
         default=None, description="Signature date"
     )
-    data_inicio_vigencia: Optional[Union[str, date]] = PydanticField(
+    data_inicio_vigencia: str | date | None = PydanticField(
         default=None, description="Start date"
     )
-    data_fim_vigencia: Optional[Union[str, date]] = PydanticField(
+    data_fim_vigencia: str | date | None = PydanticField(
         default=None, description="End date"
     )
-    data_publicacao: Optional[Union[str, date]] = PydanticField(
+    data_publicacao: str | date | None = PydanticField(
         default=None, description="Publication date"
     )
 
     # Financial
-    valor_global: Optional[Decimal] = PydanticField(
+    valor_global: Decimal | None = PydanticField(
         default=None, description="Global value"
     )
-    valor_repasse: Optional[Decimal] = PydanticField(
+    valor_repasse: Decimal | None = PydanticField(
         default=None, description="Transfer value"
     )
-    valor_contrapartida: Optional[Decimal] = PydanticField(
+    valor_contrapartida: Decimal | None = PydanticField(
         default=None, description="Counterpart value"
     )
 
     # Description
-    objeto: Optional[str] = PydanticField(default=None, description="Agreement object")
-    situacao: Optional[str] = PydanticField(default=None, description="Status")
+    objeto: str | None = PydanticField(default=None, description="Agreement object")
+    situacao: str | None = PydanticField(default=None, description="Status")
 
     # Related entities
-    orgao_superior: Optional[Organization] = PydanticField(
+    orgao_superior: Organization | None = PydanticField(
         default=None, description="Superior organization"
     )
-    orgao_vinculado: Optional[Organization] = PydanticField(
+    orgao_vinculado: Organization | None = PydanticField(
         default=None, description="Linked organization"
     )
-    convenente: Optional[Supplier] = PydanticField(
+    convenente: Supplier | None = PydanticField(
         default=None, description="Agreement partner"
     )
 
@@ -302,7 +289,7 @@ class Agreement(BaseModel):
         """Parse decimal values."""
         if isinstance(v, (int, float)):
             return Decimal(str(v))
-        elif isinstance(v, str):
+        if isinstance(v, str):
             v = v.replace(",", ".").replace(" ", "")
             try:
                 return Decimal(v)
@@ -314,43 +301,41 @@ class Agreement(BaseModel):
 class Bidding(BaseModel):
     """Government bidding (licitação) model."""
 
-    id: Optional[str] = PydanticField(default=None, description="Bidding ID")
-    numero: Optional[str] = PydanticField(default=None, description="Bidding number")
-    ano: Optional[int] = PydanticField(default=None, description="Year")
+    id: str | None = PydanticField(default=None, description="Bidding ID")
+    numero: str | None = PydanticField(default=None, description="Bidding number")
+    ano: int | None = PydanticField(default=None, description="Year")
 
     # Dates
-    data_abertura: Optional[Union[str, date]] = PydanticField(
+    data_abertura: str | date | None = PydanticField(
         default=None, description="Opening date"
     )
-    data_homologacao: Optional[Union[str, date]] = PydanticField(
+    data_homologacao: str | date | None = PydanticField(
         default=None, description="Approval date"
     )
-    data_publicacao: Optional[Union[str, date]] = PydanticField(
+    data_publicacao: str | date | None = PydanticField(
         default=None, description="Publication date"
     )
 
     # Financial
-    valor_estimado: Optional[Decimal] = PydanticField(
+    valor_estimado: Decimal | None = PydanticField(
         default=None, description="Estimated value"
     )
-    valor_homologado: Optional[Decimal] = PydanticField(
+    valor_homologado: Decimal | None = PydanticField(
         default=None, description="Approved value"
     )
 
     # Classification
-    modalidade: Optional[str] = PydanticField(default=None, description="Modality")
-    situacao: Optional[str] = PydanticField(default=None, description="Status")
-    tipo: Optional[str] = PydanticField(default=None, description="Type")
+    modalidade: str | None = PydanticField(default=None, description="Modality")
+    situacao: str | None = PydanticField(default=None, description="Status")
+    tipo: str | None = PydanticField(default=None, description="Type")
 
     # Description
-    objeto: Optional[str] = PydanticField(default=None, description="Bidding object")
-    edital: Optional[str] = PydanticField(default=None, description="Notice")
+    objeto: str | None = PydanticField(default=None, description="Bidding object")
+    edital: str | None = PydanticField(default=None, description="Notice")
 
     # Related entities
-    orgao: Optional[Organization] = PydanticField(
-        default=None, description="Organization"
-    )
-    vencedor: Optional[Supplier] = PydanticField(default=None, description="Winner")
+    orgao: Organization | None = PydanticField(default=None, description="Organization")
+    vencedor: Supplier | None = PydanticField(default=None, description="Winner")
 
     @field_validator("data_abertura", "data_homologacao", "data_publicacao")
     @classmethod
@@ -371,7 +356,7 @@ class Bidding(BaseModel):
         """Parse decimal values."""
         if isinstance(v, (int, float)):
             return Decimal(str(v))
-        elif isinstance(v, str):
+        if isinstance(v, str):
             v = v.replace(",", ".").replace(" ", "")
             try:
                 return Decimal(v)
@@ -383,38 +368,36 @@ class Bidding(BaseModel):
 class Servant(BaseModel):
     """Government servant model."""
 
-    id: Optional[str] = PydanticField(default=None, description="Servant ID")
-    cpf: Optional[str] = PydanticField(default=None, description="CPF")
-    nome: Optional[str] = PydanticField(default=None, description="Name")
+    id: str | None = PydanticField(default=None, description="Servant ID")
+    cpf: str | None = PydanticField(default=None, description="CPF")
+    nome: str | None = PydanticField(default=None, description="Name")
 
     # Employment
-    cargo: Optional[str] = PydanticField(default=None, description="Position")
-    funcao: Optional[str] = PydanticField(default=None, description="Function")
-    situacao: Optional[str] = PydanticField(default=None, description="Status")
-    regime_juridico: Optional[str] = PydanticField(
+    cargo: str | None = PydanticField(default=None, description="Position")
+    funcao: str | None = PydanticField(default=None, description="Function")
+    situacao: str | None = PydanticField(default=None, description="Status")
+    regime_juridico: str | None = PydanticField(
         default=None, description="Legal regime"
     )
 
     # Financial
-    remuneracao_basica: Optional[Decimal] = PydanticField(
+    remuneracao_basica: Decimal | None = PydanticField(
         default=None, description="Basic salary"
     )
-    remuneracao_total: Optional[Decimal] = PydanticField(
+    remuneracao_total: Decimal | None = PydanticField(
         default=None, description="Total salary"
     )
 
     # Dates
-    data_ingresso: Optional[Union[str, date]] = PydanticField(
+    data_ingresso: str | date | None = PydanticField(
         default=None, description="Entry date"
     )
-    data_diploma_ingresso: Optional[Union[str, date]] = PydanticField(
+    data_diploma_ingresso: str | date | None = PydanticField(
         default=None, description="Diploma date"
     )
 
     # Related entities
-    orgao: Optional[Organization] = PydanticField(
-        default=None, description="Organization"
-    )
+    orgao: Organization | None = PydanticField(default=None, description="Organization")
 
     @field_validator("cpf")
     @classmethod
@@ -445,7 +428,7 @@ class Servant(BaseModel):
         """Parse decimal values."""
         if isinstance(v, (int, float)):
             return Decimal(str(v))
-        elif isinstance(v, str):
+        if isinstance(v, str):
             v = v.replace(",", ".").replace(" ", "")
             try:
                 return Decimal(v)
@@ -457,40 +440,36 @@ class Servant(BaseModel):
 class SanctionedCompany(BaseModel):
     """Sanctioned company model (CEAF, CEIS, CNEP)."""
 
-    cnpj: Optional[str] = PydanticField(default=None, description="CNPJ")
-    nome: Optional[str] = PydanticField(default=None, description="Company name")
-    razao_social: Optional[str] = PydanticField(
-        default=None, description="Corporate name"
-    )
+    cnpj: str | None = PydanticField(default=None, description="CNPJ")
+    nome: str | None = PydanticField(default=None, description="Company name")
+    razao_social: str | None = PydanticField(default=None, description="Corporate name")
 
     # Location
-    municipio: Optional[str] = PydanticField(default=None, description="Municipality")
-    uf: Optional[str] = PydanticField(default=None, description="State")
+    municipio: str | None = PydanticField(default=None, description="Municipality")
+    uf: str | None = PydanticField(default=None, description="State")
 
     # Sanction details
-    tipo_sancao: Optional[str] = PydanticField(
-        default=None, description="Sanction type"
-    )
-    data_inicio_sancao: Optional[Union[str, date]] = PydanticField(
+    tipo_sancao: str | None = PydanticField(default=None, description="Sanction type")
+    data_inicio_sancao: str | date | None = PydanticField(
         default=None, description="Sanction start date"
     )
-    data_fim_sancao: Optional[Union[str, date]] = PydanticField(
+    data_fim_sancao: str | date | None = PydanticField(
         default=None, description="Sanction end date"
     )
-    data_publicacao: Optional[Union[str, date]] = PydanticField(
+    data_publicacao: str | date | None = PydanticField(
         default=None, description="Publication date"
     )
 
     # Legal details
-    fundamentacao_legal: Optional[str] = PydanticField(
+    fundamentacao_legal: str | None = PydanticField(
         default=None, description="Legal basis"
     )
-    descricao_fundamentacao: Optional[str] = PydanticField(
+    descricao_fundamentacao: str | None = PydanticField(
         default=None, description="Basis description"
     )
 
     # Related entities
-    orgao_sancionador: Optional[Organization] = PydanticField(
+    orgao_sancionador: Organization | None = PydanticField(
         default=None, description="Sanctioning organization"
     )
 

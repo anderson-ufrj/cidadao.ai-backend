@@ -9,7 +9,7 @@ License: Proprietary - All rights reserved
 import warnings
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -117,7 +117,7 @@ class SpectralAnalyzer:
         }
 
     def analyze_time_series(
-        self, data: pd.Series, timestamps: Optional[pd.DatetimeIndex] = None
+        self, data: pd.Series, timestamps: pd.DatetimeIndex | None = None
     ) -> SpectralFeatures:
         """
         Perform comprehensive spectral analysis of a time series.
@@ -191,7 +191,7 @@ class SpectralAnalyzer:
         self,
         data: pd.Series,
         timestamps: pd.DatetimeIndex,
-        context: Optional[dict[str, Any]] = None,
+        context: dict[str, Any] | None = None,
     ) -> list[SpectralAnomaly]:
         """
         Detect anomalies using spectral analysis techniques.
@@ -245,7 +245,7 @@ class SpectralAnalyzer:
         self,
         data: pd.Series,
         timestamps: pd.DatetimeIndex,
-        entity_name: Optional[str] = None,
+        entity_name: str | None = None,
     ) -> list[PeriodicPattern]:
         """
         Find and classify periodic patterns in spending data.
@@ -286,7 +286,7 @@ class SpectralAnalyzer:
         data2: pd.Series,
         entity1_name: str,
         entity2_name: str,
-        timestamps: Optional[pd.DatetimeIndex] = None,
+        timestamps: pd.DatetimeIndex | None = None,
     ) -> dict[str, Any]:
         """
         Perform cross-spectral analysis between two entities.
@@ -596,7 +596,7 @@ class SpectralAnalyzer:
         return anomalies
 
     def _detect_suspicious_patterns(
-        self, features: SpectralFeatures, context: Optional[dict[str, Any]]
+        self, features: SpectralFeatures, context: dict[str, Any] | None
     ) -> list[SpectralAnomaly]:
         """Detect patterns that might indicate irregular activities."""
         anomalies = []
@@ -683,8 +683,8 @@ class SpectralAnalyzer:
         band_name: str,
         min_freq: float,
         max_freq: float,
-        entity_name: Optional[str],
-    ) -> Optional[PeriodicPattern]:
+        entity_name: str | None,
+    ) -> PeriodicPattern | None:
         """Analyze specific frequency band for patterns."""
         # Find frequencies in this band
         mask = (features.frequencies >= min_freq) & (features.frequencies <= max_freq)
@@ -742,19 +742,17 @@ class SpectralAnalyzer:
         if band_name in ["weekly", "monthly", "quarterly", "annual"]:
             if amplitude > 0.2:
                 return "seasonal"
-            else:
-                return "cyclical"
-        elif band_name == "suspicious" or period_days < 3:
+            return "cyclical"
+        if band_name == "suspicious" or period_days < 3:
             return "suspicious"
-        else:
-            return "irregular"
+        return "irregular"
 
     def _interpret_pattern(
         self,
         band_name: str,
         period_days: float,
         amplitude: float,
-        entity_name: Optional[str],
+        entity_name: str | None,
     ) -> str:
         """Provide business interpretation of detected pattern."""
         entity_str = f" for {entity_name}" if entity_name else ""

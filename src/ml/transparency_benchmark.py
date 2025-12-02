@@ -11,7 +11,7 @@ import time
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -74,16 +74,16 @@ class TaskMetrics:
     precision: float
     recall: float
     f1_score: float
-    auc_score: Optional[float] = None
+    auc_score: float | None = None
     confidence_score: float = 0.0
     processing_time: float = 0.0
     sample_count: int = 0
 
     # Métricas específicas de transparência
-    anomaly_detection_rate: Optional[float] = None
-    false_positive_rate: Optional[float] = None
-    compliance_accuracy: Optional[float] = None
-    risk_assessment_accuracy: Optional[float] = None
+    anomaly_detection_rate: float | None = None
+    false_positive_rate: float | None = None
+    compliance_accuracy: float | None = None
+    risk_assessment_accuracy: float | None = None
 
 
 @dataclass
@@ -110,8 +110,8 @@ class BenchmarkResults:
     financial_risk_assessment: float
 
     # Comparações
-    compared_to_baselines: Optional[dict[str, float]] = None
-    improvement_over_baseline: Optional[float] = None
+    compared_to_baselines: dict[str, float] | None = None
+    improvement_over_baseline: float | None = None
 
 
 class TransparencyBenchmarkSuite:
@@ -518,7 +518,7 @@ class TransparencyBenchmarkSuite:
                     return pred_map.get(anomaly_type, 0), confidence
             return 0, 0.5
 
-        elif task_name == "financial_analysis":
+        if task_name == "financial_analysis":
             if result.financial_analysis:
                 predictions = result.financial_analysis["predictions"]
                 if predictions:
@@ -533,7 +533,7 @@ class TransparencyBenchmarkSuite:
                     return risk_map.get(risk_level, 2), 0.8
             return 2, 0.5
 
-        elif task_name == "legal_compliance":
+        if task_name == "legal_compliance":
             if result.legal_compliance:
                 predictions = result.legal_compliance["predictions"]
                 if predictions:
@@ -542,7 +542,7 @@ class TransparencyBenchmarkSuite:
                     return int(is_compliant), confidence
             return 1, 0.5
 
-        elif task_name == "integration":
+        if task_name == "integration":
             # Para integração, usar anomalia como proxy
             return self._extract_prediction_for_task(result, "anomaly_detection")
 
@@ -985,7 +985,7 @@ class TransparencyBenchmarkSuite:
 
 
 async def run_transparency_benchmark(
-    model_path: Optional[str] = None, config: Optional[BenchmarkConfig] = None
+    model_path: str | None = None, config: BenchmarkConfig | None = None
 ) -> BenchmarkResults:
     """
     Executar benchmark completo de transparência

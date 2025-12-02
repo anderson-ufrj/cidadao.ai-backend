@@ -10,7 +10,7 @@ import asyncio
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 import typer
@@ -39,8 +39,8 @@ class InvestigationRequest(BaseModel):
     """Investigation request model."""
 
     query: str = Field(description="Natural language query")
-    organization_code: Optional[str] = Field(None, description="Organization code")
-    year: Optional[int] = Field(None, description="Year filter")
+    organization_code: str | None = Field(None, description="Organization code")
+    year: int | None = Field(None, description="Year filter")
     threshold: float = Field(0.7, description="Anomaly detection threshold")
     max_results: int = Field(100, description="Maximum results")
     include_contracts: bool = Field(True, description="Include contract analysis")
@@ -52,7 +52,7 @@ class InvestigationResult(BaseModel):
     id: str
     status: str
     created_at: datetime
-    summary: Optional[str] = None
+    summary: str | None = None
     anomalies_count: int = 0
     total_analyzed: int = 0
     risk_score: float = 0.0
@@ -63,9 +63,9 @@ class InvestigationResult(BaseModel):
 async def call_api(
     endpoint: str,
     method: str = "GET",
-    data: Optional[dict[str, Any]] = None,
-    params: Optional[dict[str, Any]] = None,
-    auth_token: Optional[str] = None,
+    data: dict[str, Any] | None = None,
+    params: dict[str, Any] | None = None,
+    auth_token: str | None = None,
 ) -> dict[str, Any]:
     """Make API call to backend."""
     # Get API URL from environment or use default
@@ -200,10 +200,9 @@ def get_risk_color(risk_score: float) -> str:
     """Get color based on risk score."""
     if risk_score >= 0.8:
         return "red"
-    elif risk_score >= 0.5:
+    if risk_score >= 0.5:
         return "yellow"
-    else:
-        return "green"
+    return "green"
 
 
 @app.command()
@@ -211,12 +210,10 @@ def investigate(
     query: str = typer.Argument(
         help="Natural language description of what to investigate"
     ),
-    org: Optional[str] = typer.Option(
+    org: str | None = typer.Option(
         None, "--org", "-o", help="Organization code to focus investigation"
     ),
-    year: Optional[int] = typer.Option(
-        None, "--year", "-y", help="Year to investigate"
-    ),
+    year: int | None = typer.Option(None, "--year", "-y", help="Year to investigate"),
     threshold: float = typer.Option(
         0.7, "--threshold", "-t", min=0.0, max=1.0, help="Anomaly detection threshold"
     ),
@@ -229,10 +226,8 @@ def investigate(
     no_contracts: bool = typer.Option(
         False, "--no-contracts", help="Exclude contract analysis"
     ),
-    save: Optional[Path] = typer.Option(
-        None, "--save", "-s", help="Save results to file"
-    ),
-    api_key: Optional[str] = typer.Option(
+    save: Path | None = typer.Option(None, "--save", "-s", help="Save results to file"),
+    api_key: str | None = typer.Option(
         None, "--api-key", envvar="CIDADAO_API_KEY", help="API key for authentication"
     ),
 ):

@@ -3,8 +3,6 @@ OAuth2 routes for Cidadão.AI API
 Multiple provider authentication endpoints
 """
 
-from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel
@@ -63,9 +61,7 @@ async def list_oauth_providers():
 @router.get("/{provider}/authorize", response_model=OAuthUrlResponse)
 async def get_oauth_authorization_url(
     provider: OAuthProvider,
-    redirect_url: Optional[str] = Query(
-        None, description="URL to redirect after login"
-    ),
+    redirect_url: str | None = Query(None, description="URL to redirect after login"),
 ):
     """Get OAuth authorization URL for provider."""
 
@@ -89,9 +85,7 @@ async def get_oauth_authorization_url(
 @router.get("/{provider}/login")
 async def oauth_login_redirect(
     provider: OAuthProvider,
-    redirect_url: Optional[str] = Query(
-        None, description="URL to redirect after login"
-    ),
+    redirect_url: str | None = Query(None, description="URL to redirect after login"),
 ):
     """Redirect to OAuth provider for authentication."""
 
@@ -113,10 +107,10 @@ async def oauth_login_redirect(
 @router.get("/{provider}/callback", response_model=OAuthLoginResponse)
 async def oauth_callback(
     provider: OAuthProvider,
-    code: Optional[str] = Query(None, description="Authorization code"),
-    state: Optional[str] = Query(None, description="OAuth state"),
-    error: Optional[str] = Query(None, description="OAuth error"),
-    error_description: Optional[str] = Query(None, description="Error description"),
+    code: str | None = Query(None, description="Authorization code"),
+    state: str | None = Query(None, description="OAuth state"),
+    error: str | None = Query(None, description="OAuth error"),
+    error_description: str | None = Query(None, description="Error description"),
 ):
     """Handle OAuth callback from provider."""
 

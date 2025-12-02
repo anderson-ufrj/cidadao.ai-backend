@@ -6,7 +6,7 @@ Date: 2025-01-25
 License: Proprietary - All rights reserved
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -360,7 +360,7 @@ class DatabaseOptimizationService:
         return filter_columns
 
     async def optimize_table_statistics(
-        self, session: AsyncSession, tables: Optional[list[str]] = None
+        self, session: AsyncSession, tables: list[str] | None = None
     ) -> dict[str, Any]:
         """Update table statistics for query planner."""
         results = {"analyzed": [], "vacuumed": [], "errors": []}

@@ -7,7 +7,7 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
@@ -26,20 +26,20 @@ class IncomingWebhookPayload(BaseModel):
     """Generic incoming webhook payload."""
 
     event: str
-    timestamp: Optional[datetime] = None
+    timestamp: datetime | None = None
     data: dict[str, Any]
-    signature: Optional[str] = None
+    signature: str | None = None
 
 
 class WebhookRegistrationRequest(BaseModel):
     """Request to register a new webhook."""
 
     url: str = Field(..., description="Webhook endpoint URL")
-    events: Optional[list[str]] = Field(
+    events: list[str] | None = Field(
         None, description="Events to subscribe to (None = all)"
     )
-    secret: Optional[str] = Field(None, description="Webhook secret for HMAC signing")
-    headers: Optional[dict[str, str]] = Field(None, description="Custom headers")
+    secret: str | None = Field(None, description="Webhook secret for HMAC signing")
+    headers: dict[str, str] | None = Field(None, description="Custom headers")
     active: bool = Field(True, description="Whether webhook is active")
 
 
@@ -47,7 +47,7 @@ class WebhookTestRequest(BaseModel):
     """Request to test a webhook."""
 
     url: str = Field(..., description="Webhook URL to test")
-    secret: Optional[str] = Field(None, description="Webhook secret if any")
+    secret: str | None = Field(None, description="Webhook secret if any")
 
 
 @router.post("/incoming/github")
@@ -271,9 +271,9 @@ async def test_webhook(
 
 @router.get("/history")
 async def get_webhook_history(
-    event: Optional[str] = None,
-    url: Optional[str] = None,
-    success: Optional[bool] = None,
+    event: str | None = None,
+    url: str | None = None,
+    success: bool | None = None,
     limit: int = 100,
     current_user=Depends(get_current_user),
 ):
@@ -318,7 +318,7 @@ async def get_webhook_history(
 # Helper functions
 
 
-def get_incoming_webhook_config(webhook_id: str) -> Optional[dict[str, Any]]:
+def get_incoming_webhook_config(webhook_id: str) -> dict[str, Any] | None:
     """Get configuration for incoming webhook."""
     # In production, this would be from database
     # For now, return mock config

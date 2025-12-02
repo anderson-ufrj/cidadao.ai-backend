@@ -12,7 +12,7 @@ from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -50,9 +50,7 @@ class LLMRequest(BaseModel):
     """Request for LLM inference."""
 
     messages: list[dict[str, str]] = PydanticField(description="Conversation messages")
-    system_prompt: Optional[str] = PydanticField(
-        default=None, description="System prompt"
-    )
+    system_prompt: str | None = PydanticField(default=None, description="System prompt")
     temperature: float = PydanticField(
         default=0.7, ge=0.0, le=2.0, description="Sampling temperature"
     )
@@ -63,9 +61,7 @@ class LLMRequest(BaseModel):
         default=0.9, ge=0.0, le=1.0, description="Top-p sampling"
     )
     stream: bool = PydanticField(default=False, description="Enable streaming response")
-    model: Optional[str] = PydanticField(
-        default=None, description="Specific model to use"
-    )
+    model: str | None = PydanticField(default=None, description="Specific model to use")
 
 
 class BaseLLMProvider(ABC):
@@ -151,14 +147,13 @@ class BaseLLMProvider(ABC):
 
     async def _make_request(
         self, endpoint: str, data: dict[str, Any], stream: bool = False
-    ) -> Union[dict[str, Any], AsyncGenerator[dict[str, Any], None]]:
+    ) -> dict[str, Any] | AsyncGenerator[dict[str, Any], None]:
         """Make HTTP request with retry logic."""
         if stream:
             # Return async generator for streaming
             return self._stream_request(endpoint, data)
-        else:
-            # Return regular result for non-streaming
-            return await self._non_stream_request(endpoint, data)
+        # Return regular result for non-streaming
+        return await self._non_stream_request(endpoint, data)
 
     async def _non_stream_request(
         self, endpoint: str, data: dict[str, Any]
@@ -213,8 +208,7 @@ class BaseLLMProvider(ABC):
                     )
 
                     return loads(response.content)
-                else:
-                    await self._handle_error_response(response, attempt)
+                await self._handle_error_response(response, attempt)
 
             except httpx.TimeoutException:
                 self.logger.error(
@@ -354,28 +348,27 @@ class BaseLLMProvider(ABC):
                 },
             )
 
-        else:
-            error_msg = f"API request failed with status {response.status_code}"
+        error_msg = f"API request failed with status {response.status_code}"
 
-            try:
-                error_data = response.json()
-                error_msg += f": {error_data}"
-            except:
-                error_msg += f": {response.text}"
+        try:
+            error_data = response.json()
+            error_msg += f": {error_data}"
+        except:
+            error_msg += f": {response.text}"
 
-            self.logger.error(
-                "llm_request_failed",
-                provider=self.__class__.__name__,
-                status_code=response.status_code,
-                error=error_msg,
-                attempt=attempt + 1,
-            )
+        self.logger.error(
+            "llm_request_failed",
+            provider=self.__class__.__name__,
+            status_code=response.status_code,
+            error=error_msg,
+            attempt=attempt + 1,
+        )
 
-            if attempt < self.max_retries:
-                await asyncio.sleep(2**attempt)
-                return
+        if attempt < self.max_retries:
+            await asyncio.sleep(2**attempt)
+            return
 
-            raise LLMError(error_msg, details={"provider": self.__class__.__name__})
+        raise LLMError(error_msg, details={"provider": self.__class__.__name__})
 
     async def _process_stream_response(
         self, response: httpx.Response
@@ -395,7 +388,7 @@ class BaseLLMProvider(ABC):
 class GroqProvider(BaseLLMProvider):
     """Groq LLM provider implementation."""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """Initialize Groq provider."""
         if api_key:
             actual_api_key = api_key
@@ -479,7 +472,7 @@ class GroqProvider(BaseLLMProvider):
 class TogetherProvider(BaseLLMProvider):
     """Together AI provider implementation."""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """Initialize Together AI provider."""
         if api_key:
             actual_api_key = api_key
@@ -562,7 +555,7 @@ class TogetherProvider(BaseLLMProvider):
 class HuggingFaceProvider(BaseLLMProvider):
     """Hugging Face provider implementation."""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """Initialize Hugging Face provider."""
         if api_key:
             actual_api_key = api_key
@@ -662,7 +655,7 @@ class HuggingFaceProvider(BaseLLMProvider):
 class MaritacaProvider(BaseLLMProvider):
     """Maritaca AI provider implementation."""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """Initialize Maritaca AI provider."""
         # We don't use the base class init for Maritaca since it has its own client
         self.logger = get_logger(__name__)
@@ -762,7 +755,7 @@ class LLMManager:
     def __init__(
         self,
         primary_provider: LLMProvider = LLMProvider.GROQ,
-        fallback_providers: Optional[list[LLMProvider]] = None,
+        fallback_providers: list[LLMProvider] | None = None,
         enable_fallback: bool = True,
     ):
         """

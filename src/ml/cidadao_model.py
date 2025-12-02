@@ -11,7 +11,7 @@ Inspirado no Kimi K2, este modelo é otimizado especificamente para:
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import torch
 from torch import nn
@@ -86,11 +86,11 @@ class TransparencyEmbeddings(nn.Module):
     def forward(
         self,
         input_ids: torch.Tensor,
-        position_ids: Optional[torch.Tensor] = None,
-        entity_types: Optional[torch.Tensor] = None,
-        financial_types: Optional[torch.Tensor] = None,
-        legal_types: Optional[torch.Tensor] = None,
-        corruption_indicators: Optional[torch.Tensor] = None,
+        position_ids: torch.Tensor | None = None,
+        entity_types: torch.Tensor | None = None,
+        financial_types: torch.Tensor | None = None,
+        legal_types: torch.Tensor | None = None,
+        corruption_indicators: torch.Tensor | None = None,
     ) -> torch.Tensor:
 
         seq_length = input_ids.size(1)
@@ -293,12 +293,12 @@ class CidadaoAIModel(nn.Module):
     def forward(
         self,
         input_ids: torch.Tensor,
-        attention_mask: Optional[torch.Tensor] = None,
-        position_ids: Optional[torch.Tensor] = None,
-        entity_types: Optional[torch.Tensor] = None,
-        financial_types: Optional[torch.Tensor] = None,
-        legal_types: Optional[torch.Tensor] = None,
-        corruption_indicators: Optional[torch.Tensor] = None,
+        attention_mask: torch.Tensor | None = None,
+        position_ids: torch.Tensor | None = None,
+        entity_types: torch.Tensor | None = None,
+        financial_types: torch.Tensor | None = None,
+        legal_types: torch.Tensor | None = None,
+        corruption_indicators: torch.Tensor | None = None,
         task: str = "generation",
         **kwargs,
     ) -> dict[str, torch.Tensor]:
@@ -359,7 +359,7 @@ class CidadaoAIForTransparency(nn.Module):
     def detect_anomalies(
         self,
         input_ids: torch.Tensor,
-        attention_mask: Optional[torch.Tensor] = None,
+        attention_mask: torch.Tensor | None = None,
         **kwargs,
     ) -> dict[str, Any]:
         """Detectar anomalias em dados de transparência"""
@@ -414,7 +414,7 @@ class CidadaoAIForTransparency(nn.Module):
     def analyze_financial_risk(
         self,
         input_ids: torch.Tensor,
-        attention_mask: Optional[torch.Tensor] = None,
+        attention_mask: torch.Tensor | None = None,
         **kwargs,
     ) -> dict[str, Any]:
         """Analisar risco financeiro"""
@@ -462,7 +462,7 @@ class CidadaoAIForTransparency(nn.Module):
     def check_legal_compliance(
         self,
         input_ids: torch.Tensor,
-        attention_mask: Optional[torch.Tensor] = None,
+        attention_mask: torch.Tensor | None = None,
         **kwargs,
     ) -> dict[str, Any]:
         """Verificar conformidade legal"""
@@ -511,7 +511,7 @@ class CidadaoAIForTransparency(nn.Module):
     def generate_transparency_report(
         self,
         input_ids: torch.Tensor,
-        attention_mask: Optional[torch.Tensor] = None,
+        attention_mask: torch.Tensor | None = None,
         max_length: int = 512,
         **kwargs,
     ) -> str:

@@ -3,7 +3,6 @@ Authentication routes for Cidadão.AI API
 """
 
 from datetime import datetime
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
@@ -42,7 +41,7 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     password: str
     name: str
-    role: Optional[str] = "analyst"
+    role: str | None = "analyst"
 
 
 class ChangePasswordRequest(BaseModel):
@@ -57,7 +56,7 @@ class UserResponse(BaseModel):
     role: str
     is_active: bool
     created_at: datetime
-    last_login: Optional[datetime] = None
+    last_login: datetime | None = None
 
 
 @router.post("/login", response_model=LoginResponse)
@@ -177,11 +176,10 @@ async def change_password(
 
         if success:
             return {"message": "Password changed successfully"}
-        else:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Failed to change password",
-            )
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Failed to change password",
+        )
     except HTTPException:
         raise
     except Exception as e:

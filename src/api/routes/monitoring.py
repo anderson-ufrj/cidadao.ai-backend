@@ -6,7 +6,7 @@ dependency health checks, SLO compliance, and alerting.
 """
 
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -46,7 +46,7 @@ class MetricRecordRequest(BaseModel):
     slo_name: str
     value: float
     success: bool = True
-    metadata: Optional[dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
 
 # Health Check Endpoints
@@ -167,7 +167,7 @@ async def get_dependency_health(
 
 @router.post("/health/check", response_model=dict[str, Any])
 async def trigger_health_check(
-    dependency_name: Optional[str] = Query(
+    dependency_name: str | None = Query(
         default=None, description="Specific dependency to check"
     ),
     current_user=Depends(get_current_user),
@@ -201,16 +201,15 @@ async def trigger_health_check(
                 "result": result.to_dict(),
                 "timestamp": datetime.now(UTC).isoformat(),
             }
-        else:
-            # Check all dependencies
-            results = await health_manager.check_all(parallel=True)
-            overall_status = health_manager.get_overall_status(results)
+        # Check all dependencies
+        results = await health_manager.check_all(parallel=True)
+        overall_status = health_manager.get_overall_status(results)
 
-            return {
-                "overall_status": overall_status.value,
-                "results": {name: result.to_dict() for name, result in results.items()},
-                "timestamp": datetime.now(UTC).isoformat(),
-            }
+        return {
+            "overall_status": overall_status.value,
+            "results": {name: result.to_dict() for name, result in results.items()},
+            "timestamp": datetime.now(UTC).isoformat(),
+        }
 
     except HTTPException:
         raise
@@ -375,7 +374,7 @@ async def get_slo_violations(
     hours: int = Query(
         default=24, ge=1, le=168, description="Hours of violations to retrieve"
     ),
-    severity: Optional[str] = Query(default=None, description="Filter by severity"),
+    severity: str | None = Query(default=None, description="Filter by severity"),
     current_user=Depends(get_current_user),
 ):
     """

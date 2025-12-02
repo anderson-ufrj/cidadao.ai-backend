@@ -8,7 +8,7 @@ import time
 from collections import defaultdict, deque
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 import psutil
 from prometheus_client import (
@@ -51,12 +51,11 @@ def get_or_create_metric(metric_type, name, description, labels=None, **kwargs):
     # Create new metric
     if metric_type == Counter:
         return Counter(name, description, labels or [], **kwargs)
-    elif metric_type == Histogram:
+    if metric_type == Histogram:
         return Histogram(name, description, labels or [], **kwargs)
-    elif metric_type == Gauge:
+    if metric_type == Gauge:
         return Gauge(name, description, labels or [], **kwargs)
-    else:
-        raise ValueError(f"Unknown metric type: {metric_type}")
+    raise ValueError(f"Unknown metric type: {metric_type}")
 
 
 # Prometheus Metrics - with duplicate checking
@@ -181,7 +180,7 @@ class PerformanceMetrics:
     def __init__(self):
         """Initialize performance metrics collector."""
         self.metrics_history: dict[str, deque] = defaultdict(lambda: deque(maxlen=1000))
-        self._system_metrics_task: Optional[asyncio.Task] = None
+        self._system_metrics_task: asyncio.Task | None = None
         self._last_update = time.time()
         self._update_interval = 60  # Update every 60 seconds
 
@@ -336,7 +335,7 @@ class TracingManager:
 
     @asynccontextmanager
     async def trace_operation(
-        self, operation_name: str, attributes: Optional[dict[str, Any]] = None
+        self, operation_name: str, attributes: dict[str, Any] | None = None
     ):
         """Context manager for tracing operations."""
         if not self.tracer:

@@ -8,7 +8,7 @@ optimized separately from write operations.
 import uuid
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -26,9 +26,9 @@ class Query(BaseModel):
 
     query_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    user_id: Optional[str] = None
+    user_id: str | None = None
     use_cache: bool = True
-    cache_ttl: Optional[int] = None
+    cache_ttl: int | None = None
 
 
 class QueryResult(BaseModel, Generic[T]):
@@ -36,8 +36,8 @@ class QueryResult(BaseModel, Generic[T]):
 
     success: bool
     query_id: str
-    data: Optional[T] = None
-    error: Optional[str] = None
+    data: T | None = None
+    error: str | None = None
     from_cache: bool = False
     execution_time_ms: float = 0.0
     metadata: dict[str, Any] = Field(default_factory=dict)
@@ -65,20 +65,20 @@ class SearchInvestigationsQuery(Query):
 class GetInvestigationStatsQuery(Query):
     """Query to get investigation statistics."""
 
-    user_id: Optional[str] = None
-    date_from: Optional[datetime] = None
-    date_to: Optional[datetime] = None
+    user_id: str | None = None
+    date_from: datetime | None = None
+    date_to: datetime | None = None
 
 
 # Contract Queries
 class SearchContractsQuery(Query):
     """Query to search contracts."""
 
-    search_term: Optional[str] = None
-    orgao: Optional[str] = None
-    min_value: Optional[float] = None
-    max_value: Optional[float] = None
-    year: Optional[int] = None
+    search_term: str | None = None
+    orgao: str | None = None
+    min_value: float | None = None
+    max_value: float | None = None
+    year: int | None = None
     limit: int = 50
     offset: int = 0
 
@@ -87,7 +87,7 @@ class SearchContractsQuery(Query):
 class GetAgentPerformanceQuery(Query):
     """Query to get agent performance metrics."""
 
-    agent_name: Optional[str] = None
+    agent_name: str | None = None
     time_period: str = "1h"  # 1h, 24h, 7d, 30d
 
 

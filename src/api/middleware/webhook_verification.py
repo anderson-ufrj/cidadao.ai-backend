@@ -9,7 +9,6 @@ License: Proprietary - All rights reserved
 import hashlib
 import hmac
 import time
-from typing import Optional
 
 from fastapi import Request, status
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -30,7 +29,7 @@ class WebhookVerificationMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app,
-        webhook_paths: Optional[dict[str, str]] = None,
+        webhook_paths: dict[str, str] | None = None,
         max_timestamp_age: int = 300,  # 5 minutes
     ):
         """

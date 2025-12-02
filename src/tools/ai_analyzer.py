@@ -8,7 +8,7 @@ Date: 2025-01-15
 import logging
 import re
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from src.core import json_utils
 
@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class AIAnalyzer:
     """AI-powered analyzer for government transparency data."""
 
-    def __init__(self, groq_api_key: Optional[str] = None):
+    def __init__(self, groq_api_key: str | None = None):
         self.groq_api_key = groq_api_key
         self.data_integrator = DataIntegrator()
         self.visualizer = DataVisualizer()
@@ -119,12 +119,11 @@ class AIAnalyzer:
         """Convert risk score to risk level."""
         if score >= 7:
             return "CRÍTICO"
-        elif score >= 5:
+        if score >= 5:
             return "ALTO"
-        elif score >= 3:
+        if score >= 3:
             return "MÉDIO"
-        else:
-            return "BAIXO"
+        return "BAIXO"
 
     def _analyze_patterns(self, data: dict[str, Any]) -> dict[str, Any]:
         """Analyze patterns in government data."""
@@ -314,10 +313,7 @@ Base sua análise exclusivamente nos dados fornecidos."""
             if response.status_code == 200:
                 result = response.json()
                 return result["choices"][0]["message"]["content"]
-            else:
-                return (
-                    f"❌ **Erro na API**: {response.status_code}\\n\\n{response.text}"
-                )
+            return f"❌ **Erro na API**: {response.status_code}\\n\\n{response.text}"
 
         except Exception as e:
             logger.error(f"Error in AI analysis: {str(e)}")
@@ -472,6 +468,6 @@ Base sua análise exclusivamente nos dados fornecidos."""
 
 
 # Factory function
-def create_ai_analyzer(groq_api_key: Optional[str] = None) -> AIAnalyzer:
+def create_ai_analyzer(groq_api_key: str | None = None) -> AIAnalyzer:
     """Create an AI analyzer instance."""
     return AIAnalyzer(groq_api_key=groq_api_key)

@@ -5,7 +5,6 @@ Simple database session management for SQLite.
 import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-from typing import Optional
 
 from dotenv import load_dotenv
 from sqlalchemy.ext.asyncio import (
@@ -25,8 +24,7 @@ def _ensure_async_driver(url: str) -> str:
         # Replace postgresql:// or postgres:// with postgresql+asyncpg://
         if url.startswith("postgresql://"):
             return url.replace("postgresql://", "postgresql+asyncpg://", 1)
-        else:
-            return url.replace("postgres://", "postgresql+asyncpg://", 1)
+        return url.replace("postgres://", "postgresql+asyncpg://", 1)
     # If it already has a driver (like postgresql+asyncpg or sqlite+aiosqlite), keep it
     return url
 
@@ -36,8 +34,8 @@ _raw_url = os.getenv("DATABASE_URL", "sqlite+aiosqlite:///./cidadao_ai.db")
 DATABASE_URL = _ensure_async_driver(_raw_url)
 
 # Lazy initialization
-_engine: Optional[AsyncEngine] = None
-_session_factory: Optional[async_sessionmaker] = None
+_engine: AsyncEngine | None = None
+_session_factory: async_sessionmaker | None = None
 
 
 def _get_engine() -> AsyncEngine:

@@ -11,7 +11,7 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from src.core import get_logger
 from src.services.transparency_orchestrator import (
@@ -31,7 +31,7 @@ class DataService:
         self._contract_cache: dict[str, dict] = {}
         self._expense_cache: dict[str, dict] = {}
         self._last_updated = None
-        self._api_client: Optional[TransparencyAPIClient] = None
+        self._api_client: TransparencyAPIClient | None = None
 
     async def _get_api_client(self) -> TransparencyAPIClient:
         """Get or create API client instance."""
@@ -39,7 +39,7 @@ class DataService:
             self._api_client = TransparencyAPIClient()
         return self._api_client
 
-    async def fetch_contracts(self, filters: Optional[dict] = None) -> list[dict]:
+    async def fetch_contracts(self, filters: dict | None = None) -> list[dict]:
         """
         Fetch government contracts data from Portal da Transparência.
 
@@ -77,7 +77,7 @@ class DataService:
             logger.error("fetch_contracts_failed", error=str(e))
             return []
 
-    async def get_contract(self, contract_id: str) -> Optional[dict]:
+    async def get_contract(self, contract_id: str) -> dict | None:
         """
         Get a specific contract by ID.
 
@@ -229,7 +229,7 @@ class DataService:
             logger.error("get_recent_contract_ids_failed", error=str(e))
             return []
 
-    async def fetch_expenses(self, filters: Optional[dict] = None) -> list[dict]:
+    async def fetch_expenses(self, filters: dict | None = None) -> list[dict]:
         """Fetch government expenses data."""
         try:
             client = await self._get_api_client()
@@ -240,7 +240,7 @@ class DataService:
             logger.error("fetch_expenses_failed", error=str(e))
             return []
 
-    async def fetch_agreements(self, filters: Optional[dict] = None) -> list[dict]:
+    async def fetch_agreements(self, filters: dict | None = None) -> list[dict]:
         """Fetch government agreements data."""
         try:
             client = await self._get_api_client()
@@ -277,9 +277,9 @@ class DataService:
 
     async def get_contracts_multi_source(
         self,
-        filters: Optional[dict] = None,
+        filters: dict | None = None,
         strategy: QueryStrategy = QueryStrategy.FALLBACK,
-        sources: Optional[list[DataSource]] = None,
+        sources: list[DataSource] | None = None,
     ) -> dict[str, Any]:
         """
         Get contracts from multiple sources using orchestrator.
@@ -322,7 +322,7 @@ class DataService:
     async def get_state_contracts(
         self,
         state_code: str,
-        filters: Optional[dict] = None,
+        filters: dict | None = None,
         include_federal: bool = True,
     ) -> dict[str, Any]:
         """
@@ -359,7 +359,7 @@ class DataService:
 
     async def search_contracts_fastest(
         self,
-        filters: Optional[dict] = None,
+        filters: dict | None = None,
     ) -> dict[str, Any]:
         """
         Get contracts using fastest-first strategy.

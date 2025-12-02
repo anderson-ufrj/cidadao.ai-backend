@@ -1,7 +1,7 @@
 """Episodic memory for specific events and investigations."""
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from .base import BaseMemory
 
@@ -13,9 +13,7 @@ class EpisodicMemory(BaseMemory):
         super().__init__()
         self._episodes: list[dict] = []
 
-    async def store(
-        self, key: str, value: Any, metadata: Optional[dict] = None
-    ) -> bool:
+    async def store(self, key: str, value: Any, metadata: dict | None = None) -> bool:
         """Store an episodic memory."""
         episode = {
             "key": key,
@@ -28,7 +26,7 @@ class EpisodicMemory(BaseMemory):
         self._storage[key] = episode
         return True
 
-    async def retrieve(self, key: str) -> Optional[Any]:
+    async def retrieve(self, key: str) -> Any | None:
         """Retrieve an episode by key."""
         episode = self._storage.get(key)
         return episode["value"] if episode else None

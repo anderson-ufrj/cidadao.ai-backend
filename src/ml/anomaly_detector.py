@@ -120,10 +120,9 @@ class AnomalyDetector(MLModel):
         """Get severity level based on anomaly score."""
         if score >= 0.8:
             return "high"
-        elif score >= 0.6:
+        if score >= 0.6:
             return "medium"
-        else:
-            return "low"
+        return "low"
 
     def set_thresholds(self, **thresholds):
         """Update detection thresholds."""

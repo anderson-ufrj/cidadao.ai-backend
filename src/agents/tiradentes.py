@@ -10,7 +10,7 @@ License: Proprietary - All rights reserved
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
@@ -61,10 +61,10 @@ class ReportRequest(BaseModel):
     format: ReportFormat = PydanticField(
         default=ReportFormat.MARKDOWN, description="Output format"
     )
-    investigation_results: Optional[dict[str, Any]] = PydanticField(
+    investigation_results: dict[str, Any] | None = PydanticField(
         default=None, description="Investigation results from InvestigatorAgent"
     )
-    analysis_results: Optional[dict[str, Any]] = PydanticField(
+    analysis_results: dict[str, Any] | None = PydanticField(
         default=None, description="Analysis results from AnalystAgent"
     )
     target_audience: str = PydanticField(
@@ -282,8 +282,7 @@ class ReporterAgent(BaseAgent):
         if request.report_type in self.report_generators:
             generator = self.report_generators[request.report_type]
             return await generator(request, context)
-        else:
-            raise AgentExecutionError(f"Unsupported report type: {request.report_type}")
+        raise AgentExecutionError(f"Unsupported report type: {request.report_type}")
 
     async def _generate_investigation_report(
         self, request: ReportRequest, context: AgentContext
@@ -735,9 +734,8 @@ class ReporterAgent(BaseAgent):
         if request.format in self.format_renderers:
             renderer = self.format_renderers[request.format]
             return await renderer(sections, request, context)
-        else:
-            # Default to markdown
-            return await self._render_markdown(sections, request, context)
+        # Default to markdown
+        return await self._render_markdown(sections, request, context)
 
     async def _render_markdown(
         self,

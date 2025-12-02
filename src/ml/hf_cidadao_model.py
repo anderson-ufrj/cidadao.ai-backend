@@ -6,7 +6,6 @@ compatível com a biblioteca transformers do Hugging Face.
 """
 
 import logging
-from typing import Optional, Union
 
 import torch
 from torch import nn
@@ -169,26 +168,26 @@ class CidadaoAIModel(PreTrainedModel):
 
     def forward(
         self,
-        input_ids: Optional[torch.Tensor] = None,
-        attention_mask: Optional[torch.Tensor] = None,
-        token_type_ids: Optional[torch.Tensor] = None,
-        position_ids: Optional[torch.Tensor] = None,
-        head_mask: Optional[torch.Tensor] = None,
-        inputs_embeds: Optional[torch.Tensor] = None,
-        use_cache: Optional[bool] = None,
-        output_attentions: Optional[bool] = None,
-        output_hidden_states: Optional[bool] = None,
-        return_dict: Optional[bool] = None,
+        input_ids: torch.Tensor | None = None,
+        attention_mask: torch.Tensor | None = None,
+        token_type_ids: torch.Tensor | None = None,
+        position_ids: torch.Tensor | None = None,
+        head_mask: torch.Tensor | None = None,
+        inputs_embeds: torch.Tensor | None = None,
+        use_cache: bool | None = None,
+        output_attentions: bool | None = None,
+        output_hidden_states: bool | None = None,
+        return_dict: bool | None = None,
         # Inputs especializados
-        entity_types: Optional[torch.Tensor] = None,
-        financial_types: Optional[torch.Tensor] = None,
-        legal_types: Optional[torch.Tensor] = None,
-        corruption_indicators: Optional[torch.Tensor] = None,
+        entity_types: torch.Tensor | None = None,
+        financial_types: torch.Tensor | None = None,
+        legal_types: torch.Tensor | None = None,
+        corruption_indicators: torch.Tensor | None = None,
         # Labels para treinamento
-        anomaly_labels: Optional[torch.Tensor] = None,
-        financial_labels: Optional[torch.Tensor] = None,
-        legal_labels: Optional[torch.Tensor] = None,
-    ) -> Union[tuple, BaseModelOutput]:
+        anomaly_labels: torch.Tensor | None = None,
+        financial_labels: torch.Tensor | None = None,
+        legal_labels: torch.Tensor | None = None,
+    ) -> tuple | BaseModelOutput:
 
         return_dict = (
             return_dict if return_dict is not None else self.config.use_return_dict
@@ -265,7 +264,7 @@ class CidadaoAIModel(PreTrainedModel):
                 result["legal_loss"] = legal_loss
 
         # Calcular loss total se em modo de treinamento
-        if any(key.endswith("_loss") for key in result.keys()):
+        if any(key.endswith("_loss") for key in result):
             total_loss = 0
             loss_count = 0
 
@@ -490,7 +489,7 @@ class TransparencyAnalysisPipeline(Pipeline):
 
 
 # Registro dos modelos no AutoModel
-from transformers import AutoConfig, AutoModel
+from transformers import AutoConfig
 
 AutoConfig.register("cidadao-gpt", CidadaoAIConfig)
 AutoModel.register(CidadaoAIConfig, CidadaoAIModel)

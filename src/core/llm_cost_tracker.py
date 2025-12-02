@@ -9,7 +9,7 @@ License: Proprietary - All rights reserved
 import asyncio
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from src.core import get_logger
 from src.infrastructure.observability.metrics import metrics_manager
@@ -29,9 +29,9 @@ class LLMUsage:
     cost_usd: float
     latency_ms: float
     timestamp: datetime = field(default_factory=datetime.utcnow)
-    user_id: Optional[str] = None
-    agent_name: Optional[str] = None
-    request_id: Optional[str] = None
+    user_id: str | None = None
+    agent_name: str | None = None
+    request_id: str | None = None
 
 
 # Cost per 1M tokens (as of 2025-01) - Update quarterly
@@ -136,9 +136,9 @@ class LLMCostTracker:
         input_tokens: int,
         output_tokens: int,
         latency_ms: float,
-        user_id: Optional[str] = None,
-        agent_name: Optional[str] = None,
-        request_id: Optional[str] = None,
+        user_id: str | None = None,
+        agent_name: str | None = None,
+        request_id: str | None = None,
     ) -> LLMUsage:
         """
         Track LLM usage and update metrics.
@@ -232,7 +232,7 @@ class LLMCostTracker:
 
         return usage
 
-    async def _check_budget_limits(self, cost: float, user_id: Optional[str]):
+    async def _check_budget_limits(self, cost: float, user_id: str | None):
         """Check if budget limits are exceeded and log warnings."""
         # Check daily budget
         daily_cost = await self.get_daily_cost()

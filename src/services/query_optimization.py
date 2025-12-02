@@ -294,7 +294,7 @@ async def execute_with_timeout(
     try:
         result = await asyncio.wait_for(coro, timeout=timeout)
         return result, False
-    except asyncio.TimeoutError:
+    except TimeoutError:
         logger.warning(f"Query timed out after {timeout}s")
         if fallback_result is None:
             fallback_result = {
@@ -331,7 +331,7 @@ async def parallel_fetch(
         try:
             result = await asyncio.wait_for(coro, timeout=timeout)
             return name, {"status": "success", "data": result}
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return name, {"status": "timeout", "data": None}
         except Exception as e:
             return name, {"status": "error", "error": str(e), "data": None}
