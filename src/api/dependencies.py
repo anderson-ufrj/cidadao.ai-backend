@@ -4,7 +4,7 @@ Provides common dependencies used across API routes.
 """
 
 from collections.abc import AsyncGenerator
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -21,7 +21,7 @@ def get_current_user(request: Request) -> dict[str, Any]:
     return _get_current_user(request)
 
 
-def get_current_optional_user(request: Request) -> Optional[dict[str, Any]]:
+def get_current_optional_user(request: Request) -> dict[str, Any] | None:
     """
     Get current user if authenticated, None otherwise.
     Used for endpoints that support both authenticated and anonymous access.

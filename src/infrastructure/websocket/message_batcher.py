@@ -9,7 +9,7 @@ import asyncio
 import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from src.core import get_logger
 from src.core.json_utils import dumps
@@ -156,7 +156,7 @@ class MessageBatcher:
     async def broadcast_message(
         self,
         message: dict[str, Any],
-        connection_ids: Optional[set[str]] = None,
+        connection_ids: set[str] | None = None,
         priority: int = 0,
     ):
         """
@@ -426,7 +426,7 @@ class WebSocketManager:
         self,
         room: str,
         message: dict[str, Any],
-        exclude: Optional[set[str]] = None,
+        exclude: set[str] | None = None,
         priority: int = 0,
     ):
         """

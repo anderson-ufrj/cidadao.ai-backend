@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 """
 
 import re
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
@@ -67,7 +67,7 @@ class SemanticRouter(BaseAgent):
     def __init__(
         self,
         llm_service: Any,
-        embedding_service: Optional[Any] = None,
+        embedding_service: Any | None = None,
         confidence_threshold: float = 0.7,
         **kwargs: Any,
     ) -> None:
@@ -237,7 +237,7 @@ class SemanticRouter(BaseAgent):
         self,
         query: str,
         context: AgentContext,
-        user_preferences: Optional[dict[str, Any]] = None,
+        user_preferences: dict[str, Any] | None = None,
     ) -> RoutingDecision:
         """
         Route a query to the most appropriate agent.
@@ -317,7 +317,7 @@ class SemanticRouter(BaseAgent):
         self,
         query: str,
         context: AgentContext,
-    ) -> Optional[RoutingDecision]:
+    ) -> RoutingDecision | None:
         """Apply rule-based routing."""
         query_lower = query.lower()
 
@@ -360,7 +360,7 @@ class SemanticRouter(BaseAgent):
         self,
         query: str,
         context: AgentContext,
-    ) -> Optional[RoutingDecision]:
+    ) -> RoutingDecision | None:
         """Use LLM for semantic routing."""
         try:
             routing_prompt = self._create_routing_prompt(query)
@@ -615,7 +615,7 @@ class SemanticRouter(BaseAgent):
         self,
         response: str,
         query: str,
-    ) -> Optional[RoutingDecision]:
+    ) -> RoutingDecision | None:
         """Parse LLM routing response."""
         try:
             import json

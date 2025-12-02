@@ -14,7 +14,7 @@ import zlib  # For compression
 from datetime import UTC, datetime
 from enum import Enum
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 import redis.asyncio as redis
 from redis.asyncio.connection import ConnectionPool
@@ -48,8 +48,8 @@ class CacheService:
 
     def __init__(self):
         """Initialize Redis connection pool."""
-        self.pool: Optional[ConnectionPool] = None
-        self.redis: Optional[redis.Redis] = None
+        self.pool: ConnectionPool | None = None
+        self.redis: redis.Redis | None = None
         self._initialized = False
 
         # Cache TTLs (in seconds)
@@ -111,7 +111,7 @@ class CacheService:
 
         return f"cidadao:{prefix}:{key_data}"
 
-    async def get(self, key: str, decompress: bool = False) -> Optional[Any]:
+    async def get(self, key: str, decompress: bool = False) -> Any | None:
         """Get value from cache with optional decompression."""
         if not self._initialized:
             await self.initialize()
@@ -157,7 +157,7 @@ class CacheService:
             return None
 
     async def set(
-        self, key: str, value: Any, ttl: Optional[int] = None, compress: bool = False
+        self, key: str, value: Any, ttl: int | None = None, compress: bool = False
     ) -> bool:
         """Set value in cache with optional TTL and compression."""
         if not self._initialized:
@@ -207,7 +207,7 @@ class CacheService:
 
     async def get_with_stampede_protection(
         self, key: str, ttl: int, refresh_callback=None, decompress: bool = False
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """
         Get value with cache stampede protection using probabilistic early expiration.
 
@@ -270,7 +270,7 @@ class CacheService:
     # Chat-specific methods
 
     async def cache_chat_response(
-        self, message: str, response: dict[str, Any], intent: Optional[str] = None
+        self, message: str, response: dict[str, Any], intent: str | None = None
     ) -> bool:
         """Cache a chat response for a given message."""
         # Generate key from message and optional intent
@@ -286,8 +286,8 @@ class CacheService:
         return await self.set(key, cache_data, self.TTL_CHAT_RESPONSE, compress=True)
 
     async def get_cached_chat_response(
-        self, message: str, intent: Optional[str] = None
-    ) -> Optional[dict[str, Any]]:
+        self, message: str, intent: str | None = None
+    ) -> dict[str, Any] | None:
         """Get cached chat response if available."""
         key = self._generate_key("chat", message.lower().strip(), intent)
         cache_data = await self.get(key, decompress=True)
@@ -310,7 +310,7 @@ class CacheService:
         state["last_updated"] = datetime.now(UTC).isoformat()
         return await self.set(key, state, self.TTL_SESSION, compress=True)
 
-    async def get_session_state(self, session_id: str) -> Optional[dict[str, Any]]:
+    async def get_session_state(self, session_id: str) -> dict[str, Any] | None:
         """Get session state from cache."""
         key = self._generate_key("session", session_id)
         return await self.get(key)
@@ -334,7 +334,7 @@ class CacheService:
 
     async def get_cached_investigation(
         self, investigation_id: str
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get cached investigation results."""
         key = self._generate_key("investigation", investigation_id)
         return await self.get(key)
@@ -350,7 +350,7 @@ class CacheService:
 
     async def get_agent_context(
         self, agent_id: str, session_id: str
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Get agent context for a session."""
         key = self._generate_key("agent_context", agent_id, session_id)
         return await self.get(key)
@@ -375,7 +375,7 @@ class CacheService:
 
     async def get_cached_search_results(
         self, query: str, filters: dict[str, Any]
-    ) -> Optional[list[dict[str, Any]]]:
+    ) -> list[dict[str, Any]] | None:
         """Get cached search results."""
         filter_str = json_utils.dumps(filters, sort_keys=True)
         key = self._generate_key("search", query, filter_str)

@@ -10,7 +10,7 @@ License: Proprietary - All rights reserved
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -317,7 +317,7 @@ class PredictiveAgent(BaseAgent):
     - Memória: Otimizado para datasets de até 10GB
     """
 
-    def __init__(self, config: Optional[dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(
             name="Ceuci",
             description="Ceuci - Agente especializado em análise preditiva e machine learning",

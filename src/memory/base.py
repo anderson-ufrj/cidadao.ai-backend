@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 
 class BaseMemory(ABC):
@@ -13,14 +13,12 @@ class BaseMemory(ABC):
         self._created_at = datetime.now()
 
     @abstractmethod
-    async def store(
-        self, key: str, value: Any, metadata: Optional[dict] = None
-    ) -> bool:
+    async def store(self, key: str, value: Any, metadata: dict | None = None) -> bool:
         """Store a memory item."""
         pass
 
     @abstractmethod
-    async def retrieve(self, key: str) -> Optional[Any]:
+    async def retrieve(self, key: str) -> Any | None:
         """Retrieve a memory item by key."""
         pass
 

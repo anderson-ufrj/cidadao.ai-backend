@@ -6,7 +6,7 @@ for the Brazilian Open Data Portal integration.
 """
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from src.services.cache_service import CacheService, CacheTTL
 from src.tools.dados_gov_api import DadosGovAPIClient, DadosGovAPIError
@@ -28,7 +28,7 @@ class DadosGovService:
     analyzing data availability, and retrieving government open data.
     """
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """
         Initialize the dados.gov.br service.
 
@@ -44,9 +44,9 @@ class DadosGovService:
 
     async def search_transparency_datasets(
         self,
-        keywords: Optional[list[str]] = None,
-        organization: Optional[str] = None,
-        data_format: Optional[str] = None,
+        keywords: list[str] | None = None,
+        organization: str | None = None,
+        data_format: str | None = None,
         limit: int = 20,
     ) -> DatasetSearchResult:
         """
@@ -151,9 +151,9 @@ class DadosGovService:
 
     async def find_government_spending_data(
         self,
-        year: Optional[int] = None,
-        state: Optional[str] = None,
-        city: Optional[str] = None,
+        year: int | None = None,
+        state: str | None = None,
+        city: str | None = None,
     ) -> list[Dataset]:
         """
         Find datasets related to government spending.
@@ -202,8 +202,8 @@ class DadosGovService:
 
     async def find_procurement_data(
         self,
-        organization: Optional[str] = None,
-        modality: Optional[str] = None,
+        organization: str | None = None,
+        modality: str | None = None,
     ) -> list[Dataset]:
         """
         Find datasets related to public procurement and contracts.

@@ -5,8 +5,6 @@ Provides REST API for frontend visualization of entity networks,
 suspicious patterns, and cross-investigation analysis.
 """
 
-from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import and_, func, or_, select
@@ -31,8 +29,8 @@ class EntitySearchResponse(BaseModel):
     id: str
     entity_type: str
     name: str
-    cnpj: Optional[str] = None
-    cpf: Optional[str] = None
+    cnpj: str | None = None
+    cpf: str | None = None
     total_investigations: int
     total_contracts: int
     total_contract_value: float
@@ -85,7 +83,7 @@ class NetworkStatisticsResponse(BaseModel):
 @router.get("/entities/search", response_model=list[EntitySearchResponse])
 async def search_entities(
     query: str = Query(..., min_length=3, description="Search query (name, CNPJ, CPF)"),
-    entity_type: Optional[str] = Query(None, description="Filter by entity type"),
+    entity_type: str | None = Query(None, description="Filter by entity type"),
     limit: int = Query(20, le=100, description="Result limit"),
     db: AsyncSession = Depends(get_db),
 ):
@@ -233,8 +231,8 @@ async def get_entity_investigations(
 
 @router.get("/suspicious-networks", response_model=list[SuspiciousNetworkResponse])
 async def get_suspicious_networks(
-    network_type: Optional[str] = Query(None, description="Filter by network type"),
-    severity: Optional[str] = Query(None, description="Filter by severity"),
+    network_type: str | None = Query(None, description="Filter by network type"),
+    severity: str | None = Query(None, description="Filter by severity"),
     active_only: bool = Query(True, description="Show only active networks"),
     limit: int = Query(50, le=200),
     db: AsyncSession = Depends(get_db),

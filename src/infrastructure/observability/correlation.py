@@ -11,7 +11,7 @@ import uuid
 from collections.abc import Callable
 from contextvars import ContextVar
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -21,13 +21,11 @@ from src.core import get_logger
 logger = get_logger(__name__)
 
 # Context variables for correlation tracking
-correlation_id_ctx: ContextVar[Optional[str]] = ContextVar(
-    "correlation_id", default=None
-)
-request_id_ctx: ContextVar[Optional[str]] = ContextVar("request_id", default=None)
-user_id_ctx: ContextVar[Optional[str]] = ContextVar("user_id", default=None)
-session_id_ctx: ContextVar[Optional[str]] = ContextVar("session_id", default=None)
-span_id_ctx: ContextVar[Optional[str]] = ContextVar("span_id", default=None)
+correlation_id_ctx: ContextVar[str | None] = ContextVar("correlation_id", default=None)
+request_id_ctx: ContextVar[str | None] = ContextVar("request_id", default=None)
+user_id_ctx: ContextVar[str | None] = ContextVar("user_id", default=None)
+session_id_ctx: ContextVar[str | None] = ContextVar("session_id", default=None)
+span_id_ctx: ContextVar[str | None] = ContextVar("span_id", default=None)
 
 # Headers for correlation propagation
 CORRELATION_ID_HEADER = "X-Correlation-ID"
@@ -94,7 +92,7 @@ class CorrelationContext:
         request_id_ctx.set(request_id)
 
     @staticmethod
-    def get_user_id() -> Optional[str]:
+    def get_user_id() -> str | None:
         """Get current user ID from context."""
         return user_id_ctx.get()
 
@@ -109,7 +107,7 @@ class CorrelationContext:
         user_id_ctx.set(user_id)
 
     @staticmethod
-    def get_session_id() -> Optional[str]:
+    def get_session_id() -> str | None:
         """Get current session ID from context."""
         return session_id_ctx.get()
 
@@ -124,7 +122,7 @@ class CorrelationContext:
         session_id_ctx.set(session_id)
 
     @staticmethod
-    def get_span_id() -> Optional[str]:
+    def get_span_id() -> str | None:
         """Get current span ID from context."""
         return span_id_ctx.get()
 
@@ -139,7 +137,7 @@ class CorrelationContext:
         span_id_ctx.set(span_id)
 
     @staticmethod
-    def get_all_ids() -> dict[str, Optional[str]]:
+    def get_all_ids() -> dict[str, str | None]:
         """
         Get all correlation IDs from context.
 
@@ -164,7 +162,7 @@ class CorrelationContext:
         span_id_ctx.set(None)
 
     @staticmethod
-    def copy_context() -> dict[str, Optional[str]]:
+    def copy_context() -> dict[str, str | None]:
         """
         Copy current context for propagation.
 
@@ -174,7 +172,7 @@ class CorrelationContext:
         return CorrelationContext.get_all_ids()
 
     @staticmethod
-    def restore_context(context: dict[str, Optional[str]]):
+    def restore_context(context: dict[str, str | None]):
         """
         Restore context from dictionary.
 
@@ -308,7 +306,7 @@ class CorrelationMiddleware(BaseHTTPMiddleware):
             CorrelationContext.clear_context()
 
 
-def propagate_correlation(headers: Optional[dict[str, str]] = None) -> dict[str, str]:
+def propagate_correlation(headers: dict[str, str] | None = None) -> dict[str, str]:
     """
     Generate headers for correlation propagation.
 
@@ -379,8 +377,7 @@ def with_correlation(func: Callable) -> Callable:
 
     if asyncio.iscoroutinefunction(func):
         return async_wrapper
-    else:
-        return sync_wrapper
+    return sync_wrapper
 
 
 class CorrelationLogger:
@@ -398,7 +395,7 @@ class CorrelationLogger:
         self.logger = logger_instance
 
     def _add_correlation_extra(
-        self, extra: Optional[dict[str, Any]] = None
+        self, extra: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         """Add correlation IDs to log extra data."""
         correlation_extra = extra.copy() if extra else {}
@@ -422,33 +419,29 @@ class CorrelationLogger:
 
         return correlation_extra
 
-    def debug(self, msg: str, *args, extra: Optional[dict[str, Any]] = None, **kwargs):
+    def debug(self, msg: str, *args, extra: dict[str, Any] | None = None, **kwargs):
         """Log debug message with correlation IDs."""
         self.logger.debug(
             msg, *args, extra=self._add_correlation_extra(extra), **kwargs
         )
 
-    def info(self, msg: str, *args, extra: Optional[dict[str, Any]] = None, **kwargs):
+    def info(self, msg: str, *args, extra: dict[str, Any] | None = None, **kwargs):
         """Log info message with correlation IDs."""
         self.logger.info(msg, *args, extra=self._add_correlation_extra(extra), **kwargs)
 
-    def warning(
-        self, msg: str, *args, extra: Optional[dict[str, Any]] = None, **kwargs
-    ):
+    def warning(self, msg: str, *args, extra: dict[str, Any] | None = None, **kwargs):
         """Log warning message with correlation IDs."""
         self.logger.warning(
             msg, *args, extra=self._add_correlation_extra(extra), **kwargs
         )
 
-    def error(self, msg: str, *args, extra: Optional[dict[str, Any]] = None, **kwargs):
+    def error(self, msg: str, *args, extra: dict[str, Any] | None = None, **kwargs):
         """Log error message with correlation IDs."""
         self.logger.error(
             msg, *args, extra=self._add_correlation_extra(extra), **kwargs
         )
 
-    def critical(
-        self, msg: str, *args, extra: Optional[dict[str, Any]] = None, **kwargs
-    ):
+    def critical(self, msg: str, *args, extra: dict[str, Any] | None = None, **kwargs):
         """Log critical message with correlation IDs."""
         self.logger.critical(
             msg, *args, extra=self._add_correlation_extra(extra), **kwargs
@@ -487,7 +480,7 @@ class RequestTracker:
         }
 
     def start_request(
-        self, request_id: str, method: str, path: str, user_id: Optional[str] = None
+        self, request_id: str, method: str, path: str, user_id: str | None = None
     ):
         """
         Start tracking a request.
@@ -510,8 +503,8 @@ class RequestTracker:
         self.request_stats["total_requests"] += 1
 
     def end_request(
-        self, request_id: str, status_code: int, error: Optional[str] = None
-    ) -> Optional[float]:
+        self, request_id: str, status_code: int, error: str | None = None
+    ) -> float | None:
         """
         End tracking a request.
 

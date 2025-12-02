@@ -7,7 +7,7 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -51,12 +51,11 @@ class KatanaService:
             # Ensure we return a list
             if isinstance(data, dict):
                 return data.get("data", [])
-            elif isinstance(data, list):
+            if isinstance(data, list):
                 return data
-            else:
-                return []
+            return []
 
-    async def get_dispensa_by_id(self, dispensa_id: str) -> Optional[dict[str, Any]]:
+    async def get_dispensa_by_id(self, dispensa_id: str) -> dict[str, Any] | None:
         """
         Fetch a specific dispensa by ID.
 

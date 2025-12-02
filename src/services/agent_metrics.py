@@ -9,7 +9,7 @@ import time
 from collections import defaultdict, deque
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from prometheus_client import (
     CollectorRegistry,
@@ -93,9 +93,9 @@ class AgentMetrics:
     response_times: deque = field(default_factory=lambda: deque(maxlen=1000))
     error_times: deque = field(default_factory=lambda: deque(maxlen=1000))
     actions_count: dict[str, int] = field(default_factory=lambda: defaultdict(int))
-    last_error: Optional[str] = None
-    last_success_time: Optional[datetime] = None
-    last_failure_time: Optional[datetime] = None
+    last_error: str | None = None
+    last_success_time: datetime | None = None
+    last_failure_time: datetime | None = None
     quality_scores: deque = field(default_factory=lambda: deque(maxlen=100))
     reflection_counts: deque = field(default_factory=lambda: deque(maxlen=100))
     memory_samples: deque = field(default_factory=lambda: deque(maxlen=60))
@@ -132,8 +132,8 @@ class AgentMetricsService:
         action: str,
         duration: float,
         success: bool,
-        error: Optional[str] = None,
-        quality_score: Optional[float] = None,
+        error: str | None = None,
+        quality_score: float | None = None,
         reflection_iterations: int = 0,
     ):
         """Record the end of an agent request."""
@@ -346,7 +346,7 @@ class AgentMetricsService:
         """Get Prometheus metrics in text format."""
         return generate_latest(registry)
 
-    async def reset_metrics(self, agent_name: Optional[str] = None):
+    async def reset_metrics(self, agent_name: str | None = None):
         """Reset metrics for specific agent or all agents."""
         async with self._lock:
             if agent_name:
@@ -370,7 +370,7 @@ class MetricsCollector:
         self,
         agent_name: str,
         action: str,
-        metrics_service: Optional[AgentMetricsService] = None,
+        metrics_service: AgentMetricsService | None = None,
     ):
         self.agent_name = agent_name
         self.action = action

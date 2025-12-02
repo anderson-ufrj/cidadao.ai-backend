@@ -14,7 +14,7 @@ import hashlib
 import json
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 
 class CacheTTL(Enum):
@@ -97,7 +97,7 @@ class MemoryCache:
         self.max_size = max_size
         self._access_order = []
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         """
         Get value from cache.
 
@@ -189,7 +189,7 @@ class TransparencyCache:
     data with appropriate TTL values.
     """
 
-    def __init__(self, backend: Optional[MemoryCache] = None):
+    def __init__(self, backend: MemoryCache | None = None):
         """
         Initialize transparency cache.
 
@@ -216,7 +216,7 @@ class TransparencyCache:
         key_hash = hashlib.md5(key_base.encode()).hexdigest()
         return f"transparency:{key_hash}"
 
-    def get_contracts(self, api_name: str, **params: Any) -> Optional[Any]:
+    def get_contracts(self, api_name: str, **params: Any) -> Any | None:
         """Get cached contracts."""
         key = self._generate_key(api_name, "get_contracts", **params)
         return self.backend.get(key)
@@ -226,7 +226,7 @@ class TransparencyCache:
         key = self._generate_key(api_name, "get_contracts", **params)
         self.backend.set(key, data, CacheTTL.CONTRACTS.value)
 
-    def get_expenses(self, api_name: str, **params: Any) -> Optional[Any]:
+    def get_expenses(self, api_name: str, **params: Any) -> Any | None:
         """Get cached expenses."""
         key = self._generate_key(api_name, "get_expenses", **params)
         return self.backend.get(key)
@@ -236,7 +236,7 @@ class TransparencyCache:
         key = self._generate_key(api_name, "get_expenses", **params)
         self.backend.set(key, data, CacheTTL.EXPENSES.value)
 
-    def get_suppliers(self, api_name: str, **params: Any) -> Optional[Any]:
+    def get_suppliers(self, api_name: str, **params: Any) -> Any | None:
         """Get cached suppliers."""
         key = self._generate_key(api_name, "get_suppliers", **params)
         return self.backend.get(key)
@@ -246,7 +246,7 @@ class TransparencyCache:
         key = self._generate_key(api_name, "get_suppliers", **params)
         self.backend.set(key, data, CacheTTL.SUPPLIERS.value)
 
-    def get_bidding_processes(self, api_name: str, **params: Any) -> Optional[Any]:
+    def get_bidding_processes(self, api_name: str, **params: Any) -> Any | None:
         """Get cached bidding processes."""
         key = self._generate_key(api_name, "get_bidding_processes", **params)
         return self.backend.get(key)
@@ -256,7 +256,7 @@ class TransparencyCache:
         key = self._generate_key(api_name, "get_bidding_processes", **params)
         self.backend.set(key, data, CacheTTL.BIDDING.value)
 
-    def get_municipalities(self, api_name: str) -> Optional[Any]:
+    def get_municipalities(self, api_name: str) -> Any | None:
         """Get cached municipalities."""
         key = self._generate_key(api_name, "get_municipalities")
         return self.backend.get(key)
@@ -266,7 +266,7 @@ class TransparencyCache:
         key = self._generate_key(api_name, "get_municipalities")
         self.backend.set(key, data, CacheTTL.MUNICIPALITIES.value)
 
-    def get_health_check(self, api_name: str) -> Optional[Any]:
+    def get_health_check(self, api_name: str) -> Any | None:
         """Get cached health check result."""
         key = self._generate_key(api_name, "test_connection")
         return self.backend.get(key)
@@ -294,7 +294,7 @@ class TransparencyCache:
 
 
 # Global cache instance
-_global_cache: Optional[TransparencyCache] = None
+_global_cache: TransparencyCache | None = None
 
 
 def get_cache() -> TransparencyCache:

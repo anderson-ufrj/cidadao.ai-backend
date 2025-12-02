@@ -17,7 +17,7 @@ import hashlib
 import json
 from datetime import datetime
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from pydantic import BaseModel, Field
@@ -99,37 +99,37 @@ class CNPJData(BaseModel):
 
     cnpj: str
     razao_social: str = Field(alias="razao_social")
-    nome_fantasia: Optional[str] = Field(default=None, alias="nome_fantasia")
+    nome_fantasia: str | None = Field(default=None, alias="nome_fantasia")
     situacao_cadastral: int = Field(
         alias="situacao_cadastral"
     )  # Changed from str to int
-    data_situacao_cadastral: Optional[str] = Field(
+    data_situacao_cadastral: str | None = Field(
         default=None, alias="data_situacao_cadastral"
     )
-    descricao_situacao_cadastral: Optional[str] = Field(
+    descricao_situacao_cadastral: str | None = Field(
         default=None, alias="descricao_situacao_cadastral"
     )
-    atividade_principal: Optional[Any] = Field(
+    atividade_principal: Any | None = Field(
         default=None, alias="atividade_principal"
     )  # Can be dict or None
-    atividades_secundarias: Optional[Any] = Field(
+    atividades_secundarias: Any | None = Field(
         default=None, alias="atividades_secundarias"
     )  # Can be list or None
-    natureza_juridica: Optional[str] = Field(
+    natureza_juridica: str | None = Field(
         default=None, alias="natureza_juridica"
     )  # Changed from dict to str
-    logradouro: Optional[str] = None
-    numero: Optional[str] = None
-    complemento: Optional[str] = None
-    bairro: Optional[str] = None
-    municipio: Optional[str] = None
-    uf: Optional[str] = None
-    cep: Optional[str] = None
-    email: Optional[str] = None
-    telefone: Optional[str] = None
-    data_abertura: Optional[str] = Field(default=None, alias="data_abertura")
-    capital_social: Optional[float] = Field(default=None, alias="capital_social")
-    qsa: Optional[list[dict[str, Any]]] = None  # Quadro Societário
+    logradouro: str | None = None
+    numero: str | None = None
+    complemento: str | None = None
+    bairro: str | None = None
+    municipio: str | None = None
+    uf: str | None = None
+    cep: str | None = None
+    email: str | None = None
+    telefone: str | None = None
+    data_abertura: str | None = Field(default=None, alias="data_abertura")
+    capital_social: float | None = Field(default=None, alias="capital_social")
+    qsa: list[dict[str, Any]] | None = None  # Quadro Societário
 
     class Config:
         populate_by_name = True
@@ -264,7 +264,7 @@ class MinhaReceitaClient:
                     status_code=response.status_code,
                     response_data={"url": url},
                 )
-            elif response.status_code >= 400:
+            if response.status_code >= 400:
                 error_msg = f"Client error: {response.status_code}"
                 # Record error before raising
                 retryable = response.status_code == 429  # Only rate limit is retryable

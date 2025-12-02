@@ -10,7 +10,6 @@ import logging
 import os
 import sys
 from pathlib import Path
-from typing import Optional
 
 import torch
 from transformers import AutoConfig, AutoModel, AutoTokenizer
@@ -29,8 +28,8 @@ class CidadaoAIHubManager:
     def __init__(
         self,
         model_name: str = "neural-thinker/cidadao-gpt",
-        cache_dir: Optional[str] = None,
-        use_auth_token: Optional[str] = None,
+        cache_dir: str | None = None,
+        use_auth_token: str | None = None,
     ):
         self.model_name = model_name
         self.cache_dir = cache_dir
@@ -144,72 +143,66 @@ class CidadaoAIHubManager:
             if self.pipeline:
                 # Usar pipeline se disponível
                 return self.pipeline(text, return_all_scores=return_all_scores)
-            else:
-                # Usar modelo diretamente
-                inputs = self.tokenizer(
-                    text,
-                    return_tensors="pt",
-                    truncation=True,
-                    padding=True,
-                    max_length=512,
+            # Usar modelo diretamente
+            inputs = self.tokenizer(
+                text,
+                return_tensors="pt",
+                truncation=True,
+                padding=True,
+                max_length=512,
+            )
+
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+
+            # Processar outputs
+            results = {}
+
+            # Anomalias
+            if hasattr(outputs, "anomaly_logits") or "anomaly_logits" in outputs:
+                anomaly_logits = outputs.get("anomaly_logits", outputs.anomaly_logits)
+                anomaly_probs = torch.softmax(anomaly_logits, dim=-1)
+                anomaly_pred = torch.argmax(anomaly_probs, dim=-1)
+
+                anomaly_labels = ["Normal", "Suspeito", "Anômalo"]
+                results["anomaly"] = {
+                    "label": anomaly_labels[anomaly_pred.item()],
+                    "score": anomaly_probs.max().item(),
+                }
+
+            # Risco financeiro
+            if hasattr(outputs, "financial_logits") or "financial_logits" in outputs:
+                financial_logits = outputs.get(
+                    "financial_logits", outputs.financial_logits
                 )
+                financial_probs = torch.softmax(financial_logits, dim=-1)
+                financial_pred = torch.argmax(financial_probs, dim=-1)
 
-                with torch.no_grad():
-                    outputs = self.model(**inputs)
+                financial_labels = [
+                    "Muito Baixo",
+                    "Baixo",
+                    "Médio",
+                    "Alto",
+                    "Muito Alto",
+                ]
+                results["financial"] = {
+                    "label": financial_labels[financial_pred.item()],
+                    "score": financial_probs.max().item(),
+                }
 
-                # Processar outputs
-                results = {}
+            # Conformidade legal
+            if hasattr(outputs, "legal_logits") or "legal_logits" in outputs:
+                legal_logits = outputs.get("legal_logits", outputs.legal_logits)
+                legal_probs = torch.softmax(legal_logits, dim=-1)
+                legal_pred = torch.argmax(legal_probs, dim=-1)
 
-                # Anomalias
-                if hasattr(outputs, "anomaly_logits") or "anomaly_logits" in outputs:
-                    anomaly_logits = outputs.get(
-                        "anomaly_logits", outputs.anomaly_logits
-                    )
-                    anomaly_probs = torch.softmax(anomaly_logits, dim=-1)
-                    anomaly_pred = torch.argmax(anomaly_probs, dim=-1)
+                legal_labels = ["Não Conforme", "Conforme"]
+                results["legal"] = {
+                    "label": legal_labels[legal_pred.item()],
+                    "score": legal_probs.max().item(),
+                }
 
-                    anomaly_labels = ["Normal", "Suspeito", "Anômalo"]
-                    results["anomaly"] = {
-                        "label": anomaly_labels[anomaly_pred.item()],
-                        "score": anomaly_probs.max().item(),
-                    }
-
-                # Risco financeiro
-                if (
-                    hasattr(outputs, "financial_logits")
-                    or "financial_logits" in outputs
-                ):
-                    financial_logits = outputs.get(
-                        "financial_logits", outputs.financial_logits
-                    )
-                    financial_probs = torch.softmax(financial_logits, dim=-1)
-                    financial_pred = torch.argmax(financial_probs, dim=-1)
-
-                    financial_labels = [
-                        "Muito Baixo",
-                        "Baixo",
-                        "Médio",
-                        "Alto",
-                        "Muito Alto",
-                    ]
-                    results["financial"] = {
-                        "label": financial_labels[financial_pred.item()],
-                        "score": financial_probs.max().item(),
-                    }
-
-                # Conformidade legal
-                if hasattr(outputs, "legal_logits") or "legal_logits" in outputs:
-                    legal_logits = outputs.get("legal_logits", outputs.legal_logits)
-                    legal_probs = torch.softmax(legal_logits, dim=-1)
-                    legal_pred = torch.argmax(legal_probs, dim=-1)
-
-                    legal_labels = ["Não Conforme", "Conforme"]
-                    results["legal"] = {
-                        "label": legal_labels[legal_pred.item()],
-                        "score": legal_probs.max().item(),
-                    }
-
-                return results
+            return results
 
         except Exception as e:
             logger.error(f"❌ Erro na análise: {e}")

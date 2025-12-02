@@ -4,7 +4,6 @@ Enables natural language queries like "Ministério da Saúde" -> code "36000"
 """
 
 import re
-from typing import Optional
 
 from unidecode import unidecode
 
@@ -240,7 +239,7 @@ class OrganizationMapper:
         text = " ".join(text.split())
         return text
 
-    def find_organization_code(self, query: str) -> Optional[str]:
+    def find_organization_code(self, query: str) -> str | None:
         """
         Find organization code from natural language query.
 
@@ -316,7 +315,7 @@ class OrganizationMapper:
 
         return found
 
-    def get_organization_info(self, code: str) -> Optional[dict]:
+    def get_organization_info(self, code: str) -> dict | None:
         """Get full organization information by code"""
         return self.orgs.get(code)
 

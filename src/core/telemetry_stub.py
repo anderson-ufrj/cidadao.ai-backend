@@ -5,7 +5,7 @@ Provides mock implementations when full OpenTelemetry is not available.
 
 import functools
 from collections.abc import Callable
-from typing import Any, Optional
+from typing import Any
 
 
 class MockTracer:
@@ -37,7 +37,7 @@ class MockMeter:
         """Mock counter."""
 
         class MockCounter:
-            def add(self, amount: int = 1, attributes: Optional[dict] = None):
+            def add(self, amount: int = 1, attributes: dict | None = None):
                 pass
 
         return MockCounter()
@@ -46,7 +46,7 @@ class MockMeter:
         """Mock histogram."""
 
         class MockHistogram:
-            def record(self, amount: float, attributes: Optional[dict] = None):
+            def record(self, amount: float, attributes: dict | None = None):
                 pass
 
         return MockHistogram()
@@ -55,7 +55,7 @@ class MockMeter:
         """Mock up-down counter."""
 
         class MockUpDownCounter:
-            def add(self, amount: int = 1, attributes: Optional[dict] = None):
+            def add(self, amount: int = 1, attributes: dict | None = None):
                 pass
 
         return MockUpDownCounter()
@@ -66,7 +66,7 @@ mock_tracer = MockTracer()
 mock_meter = MockMeter()
 
 
-def trace_method(span_name: Optional[str] = None) -> Callable:
+def trace_method(span_name: str | None = None) -> Callable:
     """Decorator for tracing methods - no-op version."""
 
     def decorator(func: Callable) -> Callable:

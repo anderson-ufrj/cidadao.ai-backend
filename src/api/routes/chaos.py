@@ -9,7 +9,7 @@ import asyncio
 import random
 import time
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel
@@ -29,7 +29,7 @@ class ChaosExperimentRequest(BaseModel):
     experiment_type: str
     duration_seconds: int = 30
     intensity: float = 0.5  # 0.0 to 1.0
-    target_component: Optional[str] = None
+    target_component: str | None = None
     description: str = ""
 
 
@@ -437,12 +437,11 @@ def apply_chaos_errors():
 
         if error_type == "HTTP_500":
             raise HTTPException(status_code=500, detail="Chaos: Internal Server Error")
-        elif error_type == "HTTP_503":
+        if error_type == "HTTP_503":
             raise HTTPException(status_code=503, detail="Chaos: Service Unavailable")
-        elif error_type == "TIMEOUT":
+        if error_type == "TIMEOUT":
             raise HTTPException(status_code=408, detail="Chaos: Request Timeout")
-        else:
-            raise HTTPException(status_code=500, detail=f"Chaos: {error_type}")
+        raise HTTPException(status_code=500, detail=f"Chaos: {error_type}")
 
     return
 

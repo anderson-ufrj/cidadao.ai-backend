@@ -9,7 +9,7 @@ License: Proprietary - All rights reserved
 import logging
 import sys
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 from structlog.processors import CallsiteParameter, CallsiteParameterAdder
@@ -93,7 +93,7 @@ class LogContext:
         """Initialize log context."""
         self.logger = logger
         self.context = kwargs
-        self.token: Optional[Any] = None
+        self.token: Any | None = None
 
     def __enter__(self) -> "LogContext":
         """Enter context and bind values."""
@@ -208,10 +208,10 @@ def log_error(error_type: str, error_message: str, **kwargs: Any) -> None:
 
 def create_audit_log_entry(
     action: str,
-    user_id: Optional[str] = None,
-    resource_type: Optional[str] = None,
-    resource_id: Optional[str] = None,
-    changes: Optional[dict[str, Any]] = None,
+    user_id: str | None = None,
+    resource_type: str | None = None,
+    resource_id: str | None = None,
+    changes: dict[str, Any] | None = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
     """

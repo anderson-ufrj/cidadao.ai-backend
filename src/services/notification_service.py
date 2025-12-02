@@ -10,7 +10,7 @@ This service integrates multiple notification channels:
 import asyncio
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -67,7 +67,7 @@ class Notification(BaseModel):
     title: str
     message: str
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    metadata: Optional[dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
     read: bool = False
     channels_sent: list[str] = Field(default_factory=list)
 
@@ -87,8 +87,8 @@ class NotificationService:
         title: str,
         message: str,
         level: NotificationLevel = NotificationLevel.INFO,
-        metadata: Optional[dict[str, Any]] = None,
-        channels: Optional[list[str]] = None,
+        metadata: dict[str, Any] | None = None,
+        channels: list[str] | None = None,
     ) -> Notification:
         """Send a notification through configured channels.
 
@@ -209,7 +209,7 @@ class NotificationService:
         user_id: str,
         report_id: str,
         report_type: str,
-        download_url: Optional[str] = None,
+        download_url: str | None = None,
     ) -> Notification:
         """Send notification when report is ready."""
         return await self.send_notification(
@@ -235,12 +235,11 @@ class NotificationService:
         # Default channels based on level
         if level == NotificationLevel.CRITICAL:
             return ["email", "webhook", "push"]
-        elif level == NotificationLevel.ERROR:
+        if level == NotificationLevel.ERROR:
             return ["email", "webhook"]
-        elif level == NotificationLevel.WARNING:
+        if level == NotificationLevel.WARNING:
             return ["email"]
-        else:
-            return ["email"]  # INFO level
+        return ["email"]  # INFO level
 
     async def _send_email(self, user_id: str, notification: Notification) -> bool:
         """Send notification via email."""
@@ -334,10 +333,10 @@ class NotificationService:
 
     def get_notifications(
         self,
-        user_id: Optional[str] = None,
+        user_id: str | None = None,
         unread_only: bool = False,
-        type: Optional[NotificationType] = None,
-        level: Optional[NotificationLevel] = None,
+        type: NotificationType | None = None,
+        level: NotificationLevel | None = None,
         limit: int = 100,
     ) -> list[Notification]:
         """Get notifications with filtering."""
@@ -366,7 +365,7 @@ class NotificationService:
                 return True
         return False
 
-    def mark_all_as_read(self, user_id: Optional[str] = None) -> int:
+    def mark_all_as_read(self, user_id: str | None = None) -> int:
         """Mark all notifications as read for a user."""
         count = 0
         for notification in self._notifications:

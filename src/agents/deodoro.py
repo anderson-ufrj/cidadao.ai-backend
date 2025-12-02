@@ -460,7 +460,7 @@ class BaseAgent(ABC):
                 self.process(message, context),
                 timeout=self.timeout,
             )
-        except asyncio.TimeoutError as e:
+        except TimeoutError as e:
             self.status = AgentStatus.ERROR
             raise AgentExecutionError(
                 f"Agent {self.name} execution timed out after {self.timeout}s",

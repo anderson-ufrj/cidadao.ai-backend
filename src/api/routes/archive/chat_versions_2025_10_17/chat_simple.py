@@ -6,7 +6,6 @@ Focused on making the chat work with minimal dependencies
 import os
 import uuid
 from datetime import UTC, datetime
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -37,7 +36,7 @@ class SimpleChatRequest(BaseModel):
     """Simple chat request"""
 
     message: str = Field(..., min_length=1, max_length=1000)
-    session_id: Optional[str] = None
+    session_id: str | None = None
 
 
 class SimpleChatResponse(BaseModel):

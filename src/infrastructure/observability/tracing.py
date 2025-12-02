@@ -11,7 +11,7 @@ import uuid
 from collections.abc import Callable
 from contextlib import asynccontextmanager
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 # Try to import OpenTelemetry, use stubs if not available
 OPENTELEMETRY_AVAILABLE = False
@@ -126,8 +126,8 @@ class TracingConfig:
         self,
         service_name: str = "cidadao-ai-backend",
         service_version: str = "1.0.0",
-        jaeger_endpoint: Optional[str] = None,
-        otlp_endpoint: Optional[str] = None,
+        jaeger_endpoint: str | None = None,
+        otlp_endpoint: str | None = None,
         enable_console_export: bool = False,
         sample_rate: float = 1.0,
         max_tag_value_length: int = 1024,
@@ -157,8 +157,8 @@ class TracingManager:
             config: Tracing configuration
         """
         self.config = config
-        self.tracer_provider: Optional[TracerProvider] = None
-        self.tracer: Optional[trace.Tracer] = None
+        self.tracer_provider: TracerProvider | None = None
+        self.tracer: trace.Tracer | None = None
         self._initialized = False
 
     def initialize(self):
@@ -366,7 +366,7 @@ class TraceContext:
         return ""
 
     @staticmethod
-    def set_user_context(user_id: str, user_email: Optional[str] = None):
+    def set_user_context(user_id: str, user_email: str | None = None):
         """Set user context in current trace."""
         if hasattr(trace, "get_current_span"):
             span = trace.get_current_span()
@@ -394,7 +394,7 @@ class TraceContext:
                 context.attach(ctx)
 
     @staticmethod
-    def add_event(name: str, attributes: Optional[dict[str, Any]] = None):
+    def add_event(name: str, attributes: dict[str, Any] | None = None):
         """Add event to current span."""
         if hasattr(trace, "get_current_span"):
             span = trace.get_current_span()
@@ -403,7 +403,7 @@ class TraceContext:
 
 
 def trace_function(
-    operation_name: Optional[str] = None,
+    operation_name: str | None = None,
     include_args: bool = False,
     include_result: bool = False,
 ):
@@ -500,15 +500,14 @@ def trace_function(
 
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
-        else:
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 
 
 @asynccontextmanager
 async def trace_operation(
-    operation_name: str, attributes: Optional[dict[str, Any]] = None
+    operation_name: str, attributes: dict[str, Any] | None = None
 ):
     """
     Context manager for tracing operations.
@@ -542,7 +541,7 @@ class SpanMetrics:
         span: trace.Span,
         agent_name: str,
         task_type: str,
-        confidence_score: Optional[float] = None,
+        confidence_score: float | None = None,
     ):
         """Record agent execution metrics."""
         span.set_attribute("agent.name", agent_name)
@@ -556,7 +555,7 @@ class SpanMetrics:
         span: trace.Span,
         operation: str,
         table: str,
-        rows_affected: Optional[int] = None,
+        rows_affected: int | None = None,
     ):
         """Record database operation metrics."""
         span.set_attribute("db.operation", operation)
@@ -567,7 +566,7 @@ class SpanMetrics:
 
     @staticmethod
     def record_cache_operation(
-        span: trace.Span, operation: str, cache_key: str, hit: Optional[bool] = None
+        span: trace.Span, operation: str, cache_key: str, hit: bool | None = None
     ):
         """Record cache operation metrics."""
         span.set_attribute("cache.operation", operation)
@@ -581,7 +580,7 @@ class SpanMetrics:
         span: trace.Span,
         service_name: str,
         endpoint: str,
-        status_code: Optional[int] = None,
+        status_code: int | None = None,
     ):
         """Record external API call metrics."""
         span.set_attribute("http.client.service", service_name)

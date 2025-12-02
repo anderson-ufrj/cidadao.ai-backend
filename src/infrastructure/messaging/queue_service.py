@@ -11,7 +11,7 @@ import uuid
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import redis.asyncio as redis
 
@@ -52,14 +52,14 @@ class Task:
     priority: TaskPriority
     status: TaskStatus
     created_at: datetime
-    scheduled_at: Optional[datetime] = None
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    scheduled_at: datetime | None = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
     max_retries: int = 3
     retry_count: int = 0
-    error: Optional[str] = None
-    result: Optional[Any] = None
-    metadata: Optional[dict[str, Any]] = None
+    error: str | None = None
+    result: Any | None = None
+    metadata: dict[str, Any] | None = None
 
     @classmethod
     def create(
@@ -68,9 +68,9 @@ class Task:
         task_type: str,
         payload: dict[str, Any],
         priority: TaskPriority = TaskPriority.MEDIUM,
-        scheduled_at: Optional[datetime] = None,
+        scheduled_at: datetime | None = None,
         max_retries: int = 3,
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> "Task":
         """Create a new task."""
         return cls(
@@ -158,7 +158,7 @@ class QueueService:
         self,
         redis_client: redis.Redis,
         queue_prefix: str = "queue",
-        worker_name: Optional[str] = None,
+        worker_name: str | None = None,
         max_concurrent_tasks: int = 10,
     ):
         """
@@ -183,7 +183,7 @@ class QueueService:
 
         # Worker state
         self._running = False
-        self._worker_task: Optional[asyncio.Task] = None
+        self._worker_task: asyncio.Task | None = None
 
         # Statistics
         self._stats = {
@@ -214,9 +214,9 @@ class QueueService:
         task_type: str,
         payload: dict[str, Any],
         priority: TaskPriority = TaskPriority.MEDIUM,
-        delay: Optional[timedelta] = None,
+        delay: timedelta | None = None,
         max_retries: int = 3,
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """
         Enqueue a task for processing.
@@ -276,7 +276,7 @@ class QueueService:
         logger.info(f"Enqueued task {task.id} in queue {queue}")
         return task.id
 
-    async def get_task(self, task_id: str) -> Optional[Task]:
+    async def get_task(self, task_id: str) -> Task | None:
         """Get task by ID."""
         task_data = await self.redis.hget(f"task:{task_id}", "data")
 
@@ -444,7 +444,7 @@ class QueueService:
                     await self.redis.zadd(queue_name, {task_id: final_score})
                     await self.redis.zrem(delayed_queue, task_id)
 
-    async def _get_next_task(self, queues: list[str]) -> Optional[Task]:
+    async def _get_next_task(self, queues: list[str]) -> Task | None:
         """Get next task from queues (highest priority first)."""
         for queue in queues:
             queue_name = self._get_queue_name(queue)
@@ -594,7 +594,7 @@ class InvestigationTaskHandler(TaskHandler):
                 "findings": ["Sample finding 1", "Sample finding 2"],
             }
 
-        elif task.task_type == "analyze_contract":
+        if task.task_type == "analyze_contract":
             # Simulate contract analysis
             await asyncio.sleep(1)
             return {
@@ -603,7 +603,7 @@ class InvestigationTaskHandler(TaskHandler):
                 "score": 0.85,
             }
 
-        elif task.task_type == "detect_anomaly":
+        if task.task_type == "detect_anomaly":
             # Simulate anomaly detection
             await asyncio.sleep(0.5)
             return {
@@ -614,7 +614,7 @@ class InvestigationTaskHandler(TaskHandler):
 
 
 # Global queue service instance
-_queue_service: Optional[QueueService] = None
+_queue_service: QueueService | None = None
 
 
 async def get_queue_service() -> QueueService:

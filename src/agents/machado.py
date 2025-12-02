@@ -11,7 +11,7 @@ import re
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
@@ -66,7 +66,7 @@ class DocumentAlert:
 
     alert_type: str
     excerpt: str
-    legal_violation: Optional[str]
+    legal_violation: str | None
     severity: AlertSeverity
     confidence: float
     explanation: str
@@ -94,16 +94,16 @@ class TextualAnalysisRequest(BaseModel):
     """Request for textual analysis of government documents."""
 
     document_content: str = PydanticField(description="Full text of the document")
-    document_type: Optional[str] = PydanticField(
+    document_type: str | None = PydanticField(
         default=None, description="Type of document"
     )
-    document_metadata: Optional[dict[str, Any]] = PydanticField(
+    document_metadata: dict[str, Any] | None = PydanticField(
         default=None, description="Document metadata"
     )
-    focus_areas: Optional[list[str]] = PydanticField(
+    focus_areas: list[str] | None = PydanticField(
         default=None, description="Specific analysis focus areas"
     )
-    legal_framework: Optional[list[str]] = PydanticField(
+    legal_framework: list[str] | None = PydanticField(
         default=None, description="Legal frameworks to check against"
     )
     complexity_threshold: float = PydanticField(
@@ -620,12 +620,11 @@ class MachadoAgent(BaseAgent):
         # Simplified grade calculation
         if avg_sentence_length <= 10:
             return 6  # Elementary
-        elif avg_sentence_length <= 15:
+        if avg_sentence_length <= 15:
             return 8  # Middle school
-        elif avg_sentence_length <= 20:
+        if avg_sentence_length <= 20:
             return 12  # High school
-        else:
-            return 16  # College level
+        return 16  # College level
 
     async def _detect_suspicious_patterns(self, text: str) -> list[str]:
         """Detect suspicious patterns in document."""

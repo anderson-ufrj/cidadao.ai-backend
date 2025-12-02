@@ -7,7 +7,7 @@ It handles authentication, rate limiting, error handling, and data parsing.
 
 import asyncio
 import logging
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -37,7 +37,7 @@ class DadosGovAPIClient:
     RATE_LIMIT_CALLS = 100  # Estimated, adjust based on API documentation
     RATE_LIMIT_PERIOD = 60  # seconds
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         """
         Initialize the Dados.gov.br API client.
 
@@ -45,7 +45,7 @@ class DadosGovAPIClient:
             api_key: Optional API key for authentication (if required)
         """
         self.api_key = api_key or getattr(settings, "dados_gov_api_key", None)
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
         self._rate_limit_semaphore = asyncio.Semaphore(self.RATE_LIMIT_CALLS)
         self._last_request_time = 0
 
@@ -80,8 +80,8 @@ class DadosGovAPIClient:
         self,
         method: str,
         endpoint: str,
-        params: Optional[dict[str, Any]] = None,
-        json: Optional[dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
+        json: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Make an HTTP request to the API with retry logic and rate limiting.
@@ -116,22 +116,22 @@ class DadosGovAPIClient:
                     # Handle different status codes
                     if response.status_code == 200:
                         return response.json()
-                    elif response.status_code == 401:
+                    if response.status_code == 401:
                         raise DadosGovAPIError(
                             "Authentication failed. Please check your API key.",
                             details={"status_code": 401},
                         )
-                    elif response.status_code == 403:
+                    if response.status_code == 403:
                         raise DadosGovAPIError(
                             "Access forbidden. You may need additional permissions.",
                             details={"status_code": 403},
                         )
-                    elif response.status_code == 404:
+                    if response.status_code == 404:
                         raise DadosGovAPIError(
                             f"Resource not found: {url}",
                             details={"status_code": 404},
                         )
-                    elif response.status_code == 429:
+                    if response.status_code == 429:
                         # Rate limit exceeded, wait and retry
                         retry_after = int(response.headers.get("Retry-After", "60"))
                         logger.warning(
@@ -139,8 +139,7 @@ class DadosGovAPIClient:
                         )
                         await asyncio.sleep(retry_after)
                         continue
-                    else:
-                        response.raise_for_status()
+                    response.raise_for_status()
 
                 except httpx.HTTPError as e:
                     logger.error(f"HTTP error on attempt {attempt + 1}: {e}")
@@ -156,10 +155,10 @@ class DadosGovAPIClient:
 
     async def search_datasets(
         self,
-        query: Optional[str] = None,
-        organization: Optional[str] = None,
-        tags: Optional[list[str]] = None,
-        format: Optional[str] = None,
+        query: str | None = None,
+        organization: str | None = None,
+        tags: list[str] | None = None,
+        format: str | None = None,
         limit: int = 10,
         offset: int = 0,
     ) -> dict[str, Any]:
@@ -256,8 +255,8 @@ class DadosGovAPIClient:
 
     async def search_resources(
         self,
-        query: Optional[str] = None,
-        format: Optional[str] = None,
+        query: str | None = None,
+        format: str | None = None,
         limit: int = 10,
         offset: int = 0,
     ) -> dict[str, Any]:

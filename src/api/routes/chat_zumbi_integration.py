@@ -7,7 +7,7 @@ without causing circular imports.
 
 import logging
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from src.agents.deodoro import AgentContext, AgentStatus
 from src.agents.zumbi import InvestigationRequest, InvestigatorAgent
@@ -15,7 +15,7 @@ from src.agents.zumbi import InvestigationRequest, InvestigatorAgent
 logger = logging.getLogger(__name__)
 
 # Cache for agent instance
-_zumbi_agent_instance: Optional[InvestigatorAgent] = None
+_zumbi_agent_instance: InvestigatorAgent | None = None
 
 
 async def get_zumbi_agent() -> InvestigatorAgent:
@@ -37,10 +37,10 @@ async def get_zumbi_agent() -> InvestigatorAgent:
 
 async def run_zumbi_investigation(
     query: str,
-    organization_codes: Optional[list] = None,
+    organization_codes: list | None = None,
     enable_open_data: bool = True,
-    session_id: Optional[str] = None,
-    user_id: Optional[str] = None,
+    session_id: str | None = None,
+    user_id: str | None = None,
 ) -> dict[str, Any]:
     """
     Run investigation using Zumbi agent.
@@ -207,29 +207,28 @@ async def run_zumbi_investigation(
 
             return investigation_data
 
-        else:
-            logger.error(f"Zumbi investigation failed: {response.error}")
+        logger.error(f"Zumbi investigation failed: {response.error}")
 
-            # UPDATE INVESTIGATION STATUS TO ERROR
-            from sqlalchemy import select
+        # UPDATE INVESTIGATION STATUS TO ERROR
+        from sqlalchemy import select
 
-            async with get_db_session() as db:
-                result_query = await db.execute(
-                    select(Investigation).where(Investigation.id == investigation.id)
-                )
-                inv = result_query.scalar_one_or_none()
-                if inv:
-                    inv.status = "error"
-                    inv.completed_at = datetime.now(UTC)
-                    await db.commit()
-                    logger.info(f"❌ Marked investigation {investigation.id} as error")
+        async with get_db_session() as db:
+            result_query = await db.execute(
+                select(Investigation).where(Investigation.id == investigation.id)
+            )
+            inv = result_query.scalar_one_or_none()
+            if inv:
+                inv.status = "error"
+                inv.completed_at = datetime.now(UTC)
+                await db.commit()
+                logger.info(f"❌ Marked investigation {investigation.id} as error")
 
-            return {
-                "status": "error",
-                "error": response.error or "Investigation failed",
-                "anomalies_found": 0,
-                "records_analyzed": 0,
-            }
+        return {
+            "status": "error",
+            "error": response.error or "Investigation failed",
+            "anomalies_found": 0,
+            "records_analyzed": 0,
+        }
 
     except Exception as e:
         logger.error(f"Error in Zumbi investigation: {e}")

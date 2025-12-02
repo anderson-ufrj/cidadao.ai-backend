@@ -16,7 +16,7 @@ import hashlib
 import json
 from datetime import datetime
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -108,7 +108,7 @@ class IDEBIndicator(BaseModel):
     year: int
     value: float
     location_type: str  # municipal, state, national
-    location_code: Optional[str] = None
+    location_code: str | None = None
     education_level: str  # anos_iniciais, anos_finais, ensino_medio
 
 
@@ -243,7 +243,7 @@ class INEPClient:
                     status_code=response.status_code,
                     response_data={"url": url},
                 )
-            elif response.status_code >= 400:
+            if response.status_code >= 400:
                 error_msg = f"Client error: {response.status_code}"
                 # Record error before raising
                 retryable = response.status_code == 429  # Only rate limit is retryable
@@ -355,9 +355,9 @@ class INEPClient:
     @cache_with_ttl(ttl_seconds=7200)  # 2 hours cache
     async def search_institutions(
         self,
-        state: Optional[str] = None,
-        city: Optional[str] = None,
-        name: Optional[str] = None,
+        state: str | None = None,
+        city: str | None = None,
+        name: str | None = None,
         limit: int = 20,
         page: int = 1,
     ) -> dict[str, Any]:
@@ -451,9 +451,9 @@ class INEPClient:
     @cache_with_ttl(ttl_seconds=7200)  # 2 hours cache
     async def get_school_census_data(
         self,
-        state_code: Optional[str] = None,
-        municipality_code: Optional[str] = None,
-        year: Optional[int] = None,
+        state_code: str | None = None,
+        municipality_code: str | None = None,
+        year: int | None = None,
     ) -> dict[str, Any]:
         """
         Get school census data.
@@ -498,10 +498,10 @@ class INEPClient:
     @cache_with_ttl(ttl_seconds=7200)
     async def get_ideb_indicators(
         self,
-        state_code: Optional[str] = None,
-        municipality_code: Optional[str] = None,
-        year: Optional[int] = None,
-        education_level: Optional[str] = None,
+        state_code: str | None = None,
+        municipality_code: str | None = None,
+        year: int | None = None,
+        education_level: str | None = None,
     ) -> dict[str, Any]:
         """
         Get IDEB (Basic Education Development Index) indicators.
@@ -543,7 +543,7 @@ class INEPClient:
 
     @cache_with_ttl(ttl_seconds=7200)
     async def get_enem_results(
-        self, state_code: Optional[str] = None, year: Optional[int] = None
+        self, state_code: str | None = None, year: int | None = None
     ) -> dict[str, Any]:
         """
         Get ENEM (National High School Exam) results.
@@ -576,7 +576,7 @@ class INEPClient:
 
     @cache_with_ttl(ttl_seconds=3600)
     async def get_school_infrastructure(
-        self, state_code: Optional[str] = None, municipality_code: Optional[str] = None
+        self, state_code: str | None = None, municipality_code: str | None = None
     ) -> dict[str, Any]:
         """
         Get school infrastructure data.
@@ -616,7 +616,7 @@ class INEPClient:
 
     @cache_with_ttl(ttl_seconds=7200)
     async def get_teacher_statistics(
-        self, state_code: Optional[str] = None, municipality_code: Optional[str] = None
+        self, state_code: str | None = None, municipality_code: str | None = None
     ) -> dict[str, Any]:
         """
         Get teacher statistics.
@@ -655,9 +655,9 @@ class INEPClient:
 
     async def get_education_indicators(
         self,
-        state_code: Optional[str] = None,
-        municipality_code: Optional[str] = None,
-        year: Optional[int] = None,
+        state_code: str | None = None,
+        municipality_code: str | None = None,
+        year: int | None = None,
     ) -> dict[str, Any]:
         """
         Get comprehensive education indicators for a location.

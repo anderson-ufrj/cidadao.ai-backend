@@ -5,7 +5,7 @@ Real-time data fetching from Brazilian government transparency portal
 
 import asyncio
 from datetime import UTC, date, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urlencode
 
 import httpx
@@ -70,14 +70,14 @@ class PortalTransparenciaService:
 
     async def search_contracts(
         self,
-        orgao: Optional[str] = None,
-        cnpj_fornecedor: Optional[str] = None,
-        data_inicial: Optional[date] = None,
-        data_final: Optional[date] = None,
-        valor_minimo: Optional[float] = None,
-        valor_maximo: Optional[float] = None,
-        situacao: Optional[str] = None,
-        modalidade: Optional[str] = None,
+        orgao: str | None = None,
+        cnpj_fornecedor: str | None = None,
+        data_inicial: date | None = None,
+        data_final: date | None = None,
+        valor_minimo: float | None = None,
+        valor_maximo: float | None = None,
+        situacao: str | None = None,
+        modalidade: str | None = None,
         page: int = 1,
         size: int = 100,
     ) -> dict[str, Any]:
@@ -211,23 +211,22 @@ class PortalTransparenciaService:
             if e.response.status_code == 401:
                 logger.error("Invalid API key for Portal da Transparência")
                 raise TransparencyAPIError("Invalid API key")
-            elif e.response.status_code == 429:
+            if e.response.status_code == 429:
                 logger.warning("Rate limit exceeded for Portal da Transparência")
                 raise TransparencyAPIError("Rate limit exceeded")
-            else:
-                logger.error(f"HTTP error from Portal da Transparência: {e}")
-                raise TransparencyAPIError(f"API error: {e.response.status_code}")
+            logger.error(f"HTTP error from Portal da Transparência: {e}")
+            raise TransparencyAPIError(f"API error: {e.response.status_code}")
         except Exception as e:
             logger.error(f"Error fetching contracts: {e}")
             raise TransparencyAPIError(f"Failed to fetch contracts: {str(e)}")
 
     async def search_biddings(
         self,
-        orgao: Optional[str] = None,
-        modalidade: Optional[str] = None,
-        situacao: Optional[str] = None,
-        data_inicial: Optional[date] = None,
-        data_final: Optional[date] = None,
+        orgao: str | None = None,
+        modalidade: str | None = None,
+        situacao: str | None = None,
+        data_inicial: date | None = None,
+        data_final: date | None = None,
         page: int = 1,
         size: int = 100,
     ) -> dict[str, Any]:
@@ -265,10 +264,10 @@ class PortalTransparenciaService:
 
     async def search_expenses(
         self,
-        orgao: Optional[str] = None,
-        favorecido: Optional[str] = None,
-        elemento_despesa: Optional[str] = None,
-        mes_ano: Optional[str] = None,  # MM/AAAA
+        orgao: str | None = None,
+        favorecido: str | None = None,
+        elemento_despesa: str | None = None,
+        mes_ano: str | None = None,  # MM/AAAA
         page: int = 1,
         size: int = 100,
     ) -> dict[str, Any]:
@@ -302,10 +301,10 @@ class PortalTransparenciaService:
 
     async def search_public_servants(
         self,
-        nome: Optional[str] = None,
-        cpf: Optional[str] = None,
-        orgao: Optional[str] = None,
-        cargo: Optional[str] = None,
+        nome: str | None = None,
+        cpf: str | None = None,
+        orgao: str | None = None,
+        cargo: str | None = None,
         page: int = 1,
         size: int = 100,
     ) -> dict[str, Any]:
@@ -338,14 +337,13 @@ class PortalTransparenciaService:
                     "tamanho_pagina": size,
                     "timestamp": datetime.now(UTC).isoformat(),
                 }
-            else:
-                return {
-                    "servidores": data.get("resultado", []),
-                    "total": data.get("quantidadeTotal", 0),
-                    "pagina": page,
-                    "tamanho_pagina": size,
-                    "timestamp": datetime.now(UTC).isoformat(),
-                }
+            return {
+                "servidores": data.get("resultado", []),
+                "total": data.get("quantidadeTotal", 0),
+                "pagina": page,
+                "tamanho_pagina": size,
+                "timestamp": datetime.now(UTC).isoformat(),
+            }
         except Exception as e:
             logger.error(f"Error fetching servants: {e}")
             raise TransparencyAPIError(f"Failed to fetch servants: {str(e)}")
@@ -396,7 +394,7 @@ class PortalTransparenciaService:
             raise TransparencyAPIError(f"Failed to fetch agency: {str(e)}")
 
     async def analyze_spending_patterns(
-        self, orgao: Optional[str] = None, periodo_meses: int = 12
+        self, orgao: str | None = None, periodo_meses: int = 12
     ) -> dict[str, Any]:
         """Analyze spending patterns over time."""
         end_date = datetime.now().date()

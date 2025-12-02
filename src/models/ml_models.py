@@ -7,7 +7,7 @@ versioning, and metadata management.
 
 from datetime import datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 from sqlalchemy import JSON, Column, DateTime, Float, Integer, String, Text
@@ -52,16 +52,16 @@ class AnomalyType(str, Enum):
 class ModelMetrics(BaseModel):
     """Model performance metrics."""
 
-    accuracy: Optional[float] = Field(None, ge=0, le=1)
-    precision: Optional[float] = Field(None, ge=0, le=1)
-    recall: Optional[float] = Field(None, ge=0, le=1)
-    f1_score: Optional[float] = Field(None, ge=0, le=1)
-    roc_auc: Optional[float] = Field(None, ge=0, le=1)
-    anomaly_detection_rate: Optional[float] = Field(None, ge=0, le=1)
-    false_positive_rate: Optional[float] = Field(None, ge=0, le=1)
-    false_negative_rate: Optional[float] = Field(None, ge=0, le=1)
-    inference_time_ms: Optional[float] = Field(None, ge=0)
-    training_time_seconds: Optional[float] = Field(None, ge=0)
+    accuracy: float | None = Field(None, ge=0, le=1)
+    precision: float | None = Field(None, ge=0, le=1)
+    recall: float | None = Field(None, ge=0, le=1)
+    f1_score: float | None = Field(None, ge=0, le=1)
+    roc_auc: float | None = Field(None, ge=0, le=1)
+    anomaly_detection_rate: float | None = Field(None, ge=0, le=1)
+    false_positive_rate: float | None = Field(None, ge=0, le=1)
+    false_negative_rate: float | None = Field(None, ge=0, le=1)
+    inference_time_ms: float | None = Field(None, ge=0)
+    training_time_seconds: float | None = Field(None, ge=0)
 
 
 class ModelParameters(BaseModel):
@@ -83,7 +83,7 @@ class ModelParameters(BaseModel):
     nu: float = Field(0.5, ge=0, le=1)
 
     # Random Forest parameters
-    max_depth: Optional[int] = None
+    max_depth: int | None = None
     min_samples_split: int = 2
     min_samples_leaf: int = 1
 
@@ -95,22 +95,22 @@ class TrainingData(BaseModel):
     """Training data information."""
 
     dataset_name: str
-    dataset_version: Optional[str] = None
+    dataset_version: str | None = None
     n_samples: int = Field(..., gt=0)
     n_features: int = Field(..., gt=0)
     feature_names: list[str] = []
-    target_column: Optional[str] = None
+    target_column: str | None = None
     train_test_split: float = Field(0.8, ge=0.5, le=0.95)
     validation_split: float = Field(0.2, ge=0.05, le=0.4)
     preprocessing_steps: list[str] = []
-    data_hash: Optional[str] = None
+    data_hash: str | None = None
 
 
 class AnomalyDetectorModel(BaseModel):
     """Main model for anomaly detection tracking."""
 
     # Model identification
-    model_id: Optional[str] = None
+    model_id: str | None = None
     model_name: str
     model_type: ModelType
     version: str = "1.0.0"
@@ -121,9 +121,9 @@ class AnomalyDetectorModel(BaseModel):
     target_types: list[AnomalyType] = [AnomalyType.COMBINED]
 
     # Training information
-    training_data: Optional[TrainingData] = None
-    trained_at: Optional[datetime] = None
-    trained_by: Optional[str] = None
+    training_data: TrainingData | None = None
+    trained_at: datetime | None = None
+    trained_by: str | None = None
 
     # Performance metrics
     metrics: ModelMetrics = Field(default_factory=ModelMetrics)
@@ -131,18 +131,18 @@ class AnomalyDetectorModel(BaseModel):
 
     # Model status
     status: ModelStatus = ModelStatus.TRAINING
-    deployed_at: Optional[datetime] = None
-    deployment_endpoint: Optional[str] = None
+    deployed_at: datetime | None = None
+    deployment_endpoint: str | None = None
 
     # Model artifacts
-    model_path: Optional[str] = None
-    scaler_path: Optional[str] = None
-    encoder_path: Optional[str] = None
-    mlflow_run_id: Optional[str] = None
-    mlflow_experiment_id: Optional[str] = None
+    model_path: str | None = None
+    scaler_path: str | None = None
+    encoder_path: str | None = None
+    mlflow_run_id: str | None = None
+    mlflow_experiment_id: str | None = None
 
     # Additional metadata
-    description: Optional[str] = None
+    description: str | None = None
     tags: list[str] = []
     metadata: dict[str, Any] = {}
 
@@ -161,7 +161,7 @@ class AnomalyPrediction(BaseModel):
 
     # Input data
     input_data: dict[str, Any]
-    preprocessed_features: Optional[list[float]] = None
+    preprocessed_features: list[float] | None = None
 
     # Prediction results
     is_anomaly: bool
@@ -170,7 +170,7 @@ class AnomalyPrediction(BaseModel):
     confidence: float = Field(..., ge=0, le=1)
 
     # Explanation
-    explanation: Optional[str] = None
+    explanation: str | None = None
     feature_contributions: dict[str, float] = {}
     similar_cases: list[str] = []
 
@@ -188,12 +188,12 @@ class ModelComparison(BaseModel):
     models: list[AnomalyDetectorModel]
 
     # Comparison metrics
-    best_model_id: Optional[str] = None
+    best_model_id: str | None = None
     comparison_metrics: dict[str, dict[str, float]] = {}
     statistical_tests: dict[str, Any] = {}
 
     # Recommendations
-    recommendation: Optional[str] = None
+    recommendation: str | None = None
     confidence_in_recommendation: float = Field(0.0, ge=0, le=1)
 
 
@@ -258,7 +258,7 @@ class PredictionHistoryDB(Base):
 def create_anomaly_detector_model(
     model_type: ModelType,
     model_name: str,
-    parameters: Optional[dict[str, Any]] = None,
+    parameters: dict[str, Any] | None = None,
 ) -> AnomalyDetectorModel:
     """Factory function to create an anomaly detector model."""
     import uuid
@@ -274,7 +274,7 @@ def create_anomaly_detector_model(
     return model
 
 
-def load_model_from_db(model_id: str, db_session) -> Optional[AnomalyDetectorModel]:
+def load_model_from_db(model_id: str, db_session) -> AnomalyDetectorModel | None:
     """Load a model from the database."""
     db_model = (
         db_session.query(AnomalyDetectorModelDB)

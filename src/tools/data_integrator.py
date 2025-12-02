@@ -8,7 +8,7 @@ Date: 2025-01-15
 import asyncio
 import logging
 from datetime import datetime
-from typing import Any, Optional, Union
+from typing import Any
 
 from .transparency_api import TransparencyAPIClient, TransparencyAPIFilter
 
@@ -28,7 +28,7 @@ class DataIntegrator:
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         await self.client.close()
 
-    def _format_currency(self, value: Union[str, float, int]) -> str:
+    def _format_currency(self, value: str | float | int) -> str:
         """Format currency values for display."""
         try:
             if isinstance(value, str):
@@ -83,7 +83,7 @@ class DataIntegrator:
                 ),
             }
 
-        elif data_type == "expenses":
+        if data_type == "expenses":
             return {
                 "id": data.get("id", "N/A"),
                 "document": data.get("numeroDocumento", data.get("documento", "N/A")),
@@ -102,7 +102,7 @@ class DataIntegrator:
                 "action": data.get("nomeAcao", data.get("acao", "N/A")),
             }
 
-        elif data_type == "biddings":
+        if data_type == "biddings":
             return {
                 "id": data.get("id", "N/A"),
                 "number": data.get("numero", data.get("numeroLicitacao", "N/A")),
@@ -125,11 +125,11 @@ class DataIntegrator:
 
     async def search_contracts(
         self,
-        cnpj: Optional[str] = None,
-        year: Optional[int] = None,
-        min_value: Optional[float] = None,
-        max_value: Optional[float] = None,
-        organ_code: Optional[str] = None,
+        cnpj: str | None = None,
+        year: int | None = None,
+        min_value: float | None = None,
+        max_value: float | None = None,
+        organ_code: str | None = None,
         limit: int = 20,
     ) -> dict[str, Any]:
         """Search government contracts with filters."""
@@ -172,11 +172,11 @@ class DataIntegrator:
 
     async def search_expenses(
         self,
-        year: Optional[int] = None,
-        month: Optional[int] = None,
-        min_value: Optional[float] = None,
-        max_value: Optional[float] = None,
-        organ_code: Optional[str] = None,
+        year: int | None = None,
+        month: int | None = None,
+        min_value: float | None = None,
+        max_value: float | None = None,
+        organ_code: str | None = None,
         limit: int = 20,
     ) -> dict[str, Any]:
         """Search government expenses with filters."""
@@ -219,11 +219,11 @@ class DataIntegrator:
 
     async def search_biddings(
         self,
-        year: Optional[int] = None,
-        min_value: Optional[float] = None,
-        max_value: Optional[float] = None,
-        organ_code: Optional[str] = None,
-        modality: Optional[int] = None,
+        year: int | None = None,
+        min_value: float | None = None,
+        max_value: float | None = None,
+        organ_code: str | None = None,
+        modality: int | None = None,
         limit: int = 20,
     ) -> dict[str, Any]:
         """Search government biddings with filters."""

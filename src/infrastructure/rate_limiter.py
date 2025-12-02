@@ -10,7 +10,7 @@ import time
 from collections import defaultdict
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from src.core import get_logger
 from src.core.cache import get_redis_client
@@ -133,7 +133,7 @@ class RateLimiter:
         key: str,
         endpoint: str,
         tier: RateLimitTier = RateLimitTier.FREE,
-        custom_limits: Optional[dict[str, int]] = None,
+        custom_limits: dict[str, int] | None = None,
     ) -> tuple[bool, dict[str, Any]]:
         """
         Check if request is within rate limits.
@@ -185,12 +185,11 @@ class RateLimiter:
         """Check specific time window."""
         if self.strategy == RateLimitStrategy.FIXED_WINDOW:
             return await self._check_fixed_window(key, window, limit)
-        elif self.strategy == RateLimitStrategy.SLIDING_WINDOW:
+        if self.strategy == RateLimitStrategy.SLIDING_WINDOW:
             return await self._check_sliding_window(key, window, limit)
-        elif self.strategy == RateLimitStrategy.TOKEN_BUCKET:
+        if self.strategy == RateLimitStrategy.TOKEN_BUCKET:
             return await self._check_token_bucket(key, window, limit)
-        else:
-            return await self._check_leaky_bucket(key, window, limit)
+        return await self._check_leaky_bucket(key, window, limit)
 
     async def _check_fixed_window(
         self, key: str, window: str, limit: int
@@ -210,30 +209,29 @@ class RateLimiter:
 
             remaining = max(0, limit - count)
             return count <= limit, remaining
-        else:
-            # Local implementation
-            now = time.time()
-            duration = self._get_window_duration(window)
-            window_start = int(now / duration) * duration
+        # Local implementation
+        now = time.time()
+        duration = self._get_window_duration(window)
+        window_start = int(now / duration) * duration
 
-            window_key = f"{key}:{window_start}"
-            if window_key not in self._local_storage:
-                self._local_storage[window_key] = {
-                    "count": 0,
-                    "expires": window_start + duration,
-                }
+        window_key = f"{key}:{window_start}"
+        if window_key not in self._local_storage:
+            self._local_storage[window_key] = {
+                "count": 0,
+                "expires": window_start + duration,
+            }
 
-            # Clean expired windows
-            expired = [k for k, v in self._local_storage.items() if v["expires"] < now]
-            for k in expired:
-                del self._local_storage[k]
+        # Clean expired windows
+        expired = [k for k, v in self._local_storage.items() if v["expires"] < now]
+        for k in expired:
+            del self._local_storage[k]
 
-            # Check limit
-            self._local_storage[window_key]["count"] += 1
-            count = self._local_storage[window_key]["count"]
+        # Check limit
+        self._local_storage[window_key]["count"] += 1
+        count = self._local_storage[window_key]["count"]
 
-            remaining = max(0, limit - count)
-            return count <= limit, remaining
+        remaining = max(0, limit - count)
+        return count <= limit, remaining
 
     async def _check_sliding_window(
         self, key: str, window: str, limit: int
@@ -266,27 +264,26 @@ class RateLimiter:
 
             remaining = max(0, limit - count)
             return count <= limit, remaining
-        else:
-            # Local sliding window
-            now = time.time()
-            duration = self._get_window_duration(window)
-            window_start = now - duration
+        # Local sliding window
+        now = time.time()
+        duration = self._get_window_duration(window)
+        window_start = now - duration
 
-            # Initialize if needed
-            if key not in self._local_storage:
-                self._local_storage[key] = []
+        # Initialize if needed
+        if key not in self._local_storage:
+            self._local_storage[key] = []
 
-            # Remove old entries
-            self._local_storage[key] = [
-                ts for ts in self._local_storage[key] if ts > window_start
-            ]
+        # Remove old entries
+        self._local_storage[key] = [
+            ts for ts in self._local_storage[key] if ts > window_start
+        ]
 
-            # Add current request
-            self._local_storage[key].append(now)
+        # Add current request
+        self._local_storage[key].append(now)
 
-            count = len(self._local_storage[key])
-            remaining = max(0, limit - count)
-            return count <= limit, remaining
+        count = len(self._local_storage[key])
+        remaining = max(0, limit - count)
+        return count <= limit, remaining
 
     async def _check_token_bucket(
         self, key: str, window: str, limit: int
@@ -342,28 +339,27 @@ class RateLimiter:
             )
 
             return result[0] == 1, result[1]
-        else:
-            # Local token bucket
-            now = time.time()
-            duration = self._get_window_duration(window)
-            refill_rate = limit / duration
+        # Local token bucket
+        now = time.time()
+        duration = self._get_window_duration(window)
+        refill_rate = limit / duration
 
-            if key not in self._local_storage:
-                self._local_storage[key] = {"tokens": limit, "last_refill": now}
+        if key not in self._local_storage:
+            self._local_storage[key] = {"tokens": limit, "last_refill": now}
 
-            bucket = self._local_storage[key]
-            elapsed = now - bucket["last_refill"]
+        bucket = self._local_storage[key]
+        elapsed = now - bucket["last_refill"]
 
-            # Refill tokens
-            bucket["tokens"] = min(limit, bucket["tokens"] + (elapsed * refill_rate))
-            bucket["last_refill"] = now
+        # Refill tokens
+        bucket["tokens"] = min(limit, bucket["tokens"] + (elapsed * refill_rate))
+        bucket["last_refill"] = now
 
-            # Try to consume
-            if bucket["tokens"] >= 1:
-                bucket["tokens"] -= 1
-                return True, int(bucket["tokens"])
+        # Try to consume
+        if bucket["tokens"] >= 1:
+            bucket["tokens"] -= 1
+            return True, int(bucket["tokens"])
 
-            return False, 0
+        return False, 0
 
     async def _check_leaky_bucket(
         self, key: str, window: str, limit: int
@@ -376,7 +372,7 @@ class RateLimiter:
         self,
         endpoint: str,
         tier: RateLimitTier,
-        custom_limits: Optional[dict[str, int]],
+        custom_limits: dict[str, int] | None,
     ) -> dict[str, int]:
         """Get applicable rate limits."""
         # Start with tier limits
@@ -419,11 +415,11 @@ class RateLimiter:
 
         if window == "per_second":
             return now + timedelta(seconds=1)
-        elif window == "per_minute":
+        if window == "per_minute":
             return now.replace(second=0, microsecond=0) + timedelta(minutes=1)
-        elif window == "per_hour":
+        if window == "per_hour":
             return now.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
-        elif window == "per_day":
+        if window == "per_day":
             return now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(
                 days=1
             )

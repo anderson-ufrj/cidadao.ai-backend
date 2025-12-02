@@ -173,23 +173,21 @@ class MetricsMiddleware(BaseHTTPMiddleware):
         """Categorize error types based on status code."""
         if 400 <= status_code < 500:
             return "client_error"
-        elif 500 <= status_code < 600:
+        if 500 <= status_code < 600:
             return "server_error"
-        else:
-            return "unknown_error"
+        return "unknown_error"
 
     def _get_duration_bucket(self, duration: float) -> str:
         """Categorize request duration into buckets."""
         if duration < 1:
             return "0-1s"
-        elif duration < 5:
+        if duration < 5:
             return "1-5s"
-        elif duration < 10:
+        if duration < 10:
             return "5-10s"
-        elif duration < 30:
+        if duration < 30:
             return "10-30s"
-        else:
-            return "30s+"
+        return "30s+"
 
 
 def setup_http_metrics():

@@ -2,7 +2,7 @@
 API routes for agent orchestration.
 """
 
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
@@ -41,7 +41,7 @@ class WorkflowStepRequest(BaseModel):
 class WorkflowRequest(BaseModel):
     """Request model for workflow execution."""
 
-    workflow_id: Optional[str] = None
+    workflow_id: str | None = None
     name: str
     pattern: str = "sequential"
     steps: list[WorkflowStepRequest]

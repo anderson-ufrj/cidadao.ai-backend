@@ -11,7 +11,7 @@ from collections.abc import AsyncGenerator
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any
 
 import httpx
 from pydantic import BaseModel, Field
@@ -38,7 +38,7 @@ class MaritacaResponse:
     metadata: dict[str, Any]
     response_time: float
     timestamp: datetime
-    finish_reason: Optional[str] = None
+    finish_reason: str | None = None
 
 
 class MaritacaMessage(BaseModel):
@@ -67,7 +67,7 @@ class MaritacaRequest(BaseModel):
         default=0.0, ge=-2.0, le=2.0, description="Presence penalty"
     )
     stream: bool = Field(default=False, description="Enable streaming response")
-    stop: Optional[list[str]] = Field(default=None, description="Stop sequences")
+    stop: list[str] | None = Field(default=None, description="Stop sequences")
 
 
 class MaritacaClient:
@@ -117,7 +117,7 @@ class MaritacaClient:
         self._circuit_breaker_failures = 0
         self._circuit_breaker_threshold = circuit_breaker_threshold
         self._circuit_breaker_timeout = circuit_breaker_timeout
-        self._circuit_breaker_opened_at: Optional[datetime] = None
+        self._circuit_breaker_opened_at: datetime | None = None
 
         # HTTP client configuration
         self.client = httpx.AsyncClient(
@@ -202,16 +202,16 @@ class MaritacaClient:
     async def chat_completion(
         self,
         messages: list[dict[str, str]],
-        model: Optional[str] = None,
+        model: str | None = None,
         temperature: float = 0.7,
         max_tokens: int = 2048,
         top_p: float = 0.9,
         frequency_penalty: float = 0.0,
         presence_penalty: float = 0.0,
-        stop: Optional[list[str]] = None,
+        stop: list[str] | None = None,
         stream: bool = False,
         **kwargs,
-    ) -> Union[MaritacaResponse, AsyncGenerator[str, None]]:
+    ) -> MaritacaResponse | AsyncGenerator[str, None]:
         """
         Create a chat completion with Maritaca AI.
 
@@ -271,8 +271,7 @@ class MaritacaClient:
 
         if stream:
             return self._stream_completion(request)
-        else:
-            return await self._complete(request)
+        return await self._complete(request)
 
     async def _complete(self, request: MaritacaRequest) -> MaritacaResponse:
         """
@@ -328,7 +327,7 @@ class MaritacaClient:
                         finish_reason=choice.get("finish_reason"),
                     )
 
-                elif response.status_code == 429:
+                if response.status_code == 429:
                     # Rate limit exceeded
                     self._record_failure()
                     retry_after = int(response.headers.get("Retry-After", 60))
@@ -348,37 +347,34 @@ class MaritacaClient:
                         details={"provider": "maritaca", "retry_after": retry_after},
                     )
 
-                else:
-                    # Other errors
-                    self._record_failure()
-                    error_msg = f"API request failed with status {response.status_code}"
+                # Other errors
+                self._record_failure()
+                error_msg = f"API request failed with status {response.status_code}"
 
-                    try:
-                        error_data = response.json()
-                        error_msg = error_data.get("error", {}).get(
-                            "message", error_msg
-                        )
-                    except:
-                        error_msg += f": {response.text}"
+                try:
+                    error_data = response.json()
+                    error_msg = error_data.get("error", {}).get("message", error_msg)
+                except:
+                    error_msg += f": {response.text}"
 
-                    self.logger.error(
-                        "maritaca_request_failed",
-                        status_code=response.status_code,
-                        error=error_msg,
-                        attempt=attempt + 1,
-                    )
+                self.logger.error(
+                    "maritaca_request_failed",
+                    status_code=response.status_code,
+                    error=error_msg,
+                    attempt=attempt + 1,
+                )
 
-                    if attempt < self.max_retries:
-                        await asyncio.sleep(2**attempt)
-                        continue
+                if attempt < self.max_retries:
+                    await asyncio.sleep(2**attempt)
+                    continue
 
-                    raise LLMError(
-                        error_msg,
-                        details={
-                            "provider": "maritaca",
-                            "status_code": response.status_code,
-                        },
-                    )
+                raise LLMError(
+                    error_msg,
+                    details={
+                        "provider": "maritaca",
+                        "status_code": response.status_code,
+                    },
+                )
 
             except httpx.TimeoutException:
                 self._record_failure()
@@ -534,7 +530,7 @@ class MaritacaClient:
                 )
 
     async def chat(
-        self, messages: list[Union[MaritacaMessage, dict[str, str]]], **kwargs
+        self, messages: list[MaritacaMessage | dict[str, str]], **kwargs
     ) -> MaritacaResponse:
         """
         Simplified chat method that accepts MaritacaMessage objects or dicts.

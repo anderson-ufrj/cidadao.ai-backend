@@ -104,9 +104,9 @@ class CommunicationResult:
     channel: CommunicationChannel
     status: str  # "sent", "failed", "pending", "delivered", "read"
     sent_at: datetime
-    delivered_at: Optional[datetime]
-    read_at: Optional[datetime]
-    error_message: Optional[str]
+    delivered_at: datetime | None
+    read_at: datetime | None
+    error_message: str | None
     retry_count: int
     metadata: dict[str, Any]
 
@@ -225,7 +225,7 @@ class CommunicationAgent(BaseAgent):
     5. **Engajamento Cívico**: Calls-to-action participativos
     """
 
-    def __init__(self, config: Optional[dict[str, Any]] = None):
+    def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(
             name="drummond",
             description="Carlos Drummond de Andrade - Comunicador do povo",
@@ -341,8 +341,8 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         content: dict[str, Any],
         targets: list[str],
         priority: MessagePriority = MessagePriority.NORMAL,
-        channels: Optional[list[CommunicationChannel]] = None,
-        context: Optional[AgentContext] = None,
+        channels: list[CommunicationChannel] | None = None,
+        context: AgentContext | None = None,
     ) -> list[CommunicationResult]:
         """
         Envia notificação para targets especificados.
@@ -412,8 +412,8 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         message_type: MessageType,
         content: dict[str, Any],
         target_segments: list[str],
-        scheduling: Optional[dict[str, Any]] = None,
-        context: Optional[AgentContext] = None,
+        scheduling: dict[str, Any] | None = None,
+        context: AgentContext | None = None,
     ) -> dict[str, Any]:
         """Envia comunicação em massa para segmentos."""
         self.logger.info(
@@ -462,7 +462,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         report_data: dict[str, Any],
         target_audience: str,
         language: str = "pt-BR",
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> dict[str, str]:
         """Gera resumo executivo de relatório."""
         self.logger.info(f"Generating report summary for {target_audience}")
@@ -538,7 +538,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         content: str,
         source_language: str,
         target_language: str,
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> str:
         """Traduz conteúdo para idioma especificado."""
         self.logger.info(
@@ -573,7 +573,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         return f"[Translation {source_language}->{target_language}] {content}"
 
     async def analyze_communication_effectiveness(
-        self, campaign_id: str, context: Optional[AgentContext] = None
+        self, campaign_id: str, context: AgentContext | None = None
     ) -> dict[str, Any]:
         """Analisa efetividade de comunicação."""
         self.logger.info(f"Analyzing effectiveness for campaign {campaign_id}")
@@ -713,7 +713,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         return response
 
     async def generate_greeting(
-        self, user_profile: Optional[dict] = None
+        self, user_profile: dict | None = None
     ) -> dict[str, str]:
         """Gera saudação personalizada à la Drummond."""
         hour = datetime.now().hour
@@ -933,7 +933,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
             "metadata": {"type": "contextual", "fallback": True},
         }
 
-    async def determine_handoff(self, intent: Optional["Intent"]) -> Optional[str]:
+    async def determine_handoff(self, intent: Optional["Intent"]) -> str | None:
         """Decide quando passar para agente especializado."""
         from src.services.chat_service import IntentType
 
@@ -1313,7 +1313,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
         to: str,
         subject: str,
         body: str,
-        html_body: Optional[str],
+        html_body: str | None,
         priority: MessagePriority,
     ) -> None:
         """Send email via SMTP or API."""

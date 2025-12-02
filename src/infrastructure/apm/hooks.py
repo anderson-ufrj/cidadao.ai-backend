@@ -12,7 +12,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 from src.infrastructure.observability import get_structured_logger
 
@@ -94,7 +94,7 @@ class APMHooks:
 
         self.logger = get_structured_logger(__name__, component="apm_hooks")
 
-    def enable(self, config: Optional[dict[str, Any]] = None):
+    def enable(self, config: dict[str, Any] | None = None):
         """Enable APM hooks with optional configuration."""
         if config:
             self.config.update(config)
@@ -138,7 +138,7 @@ class APMHooks:
         self.event_handlers.append(handler)
 
     def track_performance(
-        self, operation_name: str, tags: Optional[dict[str, str]] = None
+        self, operation_name: str, tags: dict[str, str] | None = None
     ):
         """
         Decorator for tracking performance of operations.
@@ -251,8 +251,8 @@ class APMHooks:
     def track_error(
         self,
         error: Exception,
-        context: Optional[dict[str, Any]] = None,
-        tags: Optional[dict[str, str]] = None,
+        context: dict[str, Any] | None = None,
+        tags: dict[str, str] | None = None,
     ):
         """
         Track an error in APM systems.
@@ -285,8 +285,8 @@ class APMHooks:
         metric_name: str,
         value: float,
         unit: str = "count",
-        tags: Optional[dict[str, str]] = None,
-        dimensions: Optional[dict[str, Any]] = None,
+        tags: dict[str, str] | None = None,
+        dimensions: dict[str, Any] | None = None,
     ):
         """
         Track a performance metric.
@@ -320,8 +320,8 @@ class APMHooks:
         self,
         event_type: str,
         data: dict[str, Any],
-        tags: Optional[dict[str, str]] = None,
-        metrics: Optional[dict[str, float]] = None,
+        tags: dict[str, str] | None = None,
+        metrics: dict[str, float] | None = None,
     ):
         """
         Track a business event.

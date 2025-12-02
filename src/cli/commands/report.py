@@ -10,7 +10,7 @@ import asyncio
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 import typer
@@ -59,16 +59,16 @@ class ReportRequest(BaseModel):
     target_audience: str = "general"
     include_visualizations: bool = True
     include_raw_data: bool = False
-    time_range: Optional[dict[str, str]] = None
+    time_range: dict[str, str] | None = None
     language: str = "pt-BR"
 
 
 async def call_api(
     endpoint: str,
     method: str = "GET",
-    data: Optional[dict[str, Any]] = None,
-    params: Optional[dict[str, Any]] = None,
-    auth_token: Optional[str] = None,
+    data: dict[str, Any] | None = None,
+    params: dict[str, Any] | None = None,
+    auth_token: str | None = None,
 ) -> dict[str, Any]:
     """Make API call to backend."""
     api_url = "http://localhost:8000"
@@ -124,7 +124,7 @@ def display_report_preview(report_data: dict[str, Any]):
 
 
 async def download_report(
-    report_id: str, format: str, save_path: Path, auth_token: Optional[str] = None
+    report_id: str, format: str, save_path: Path, auth_token: str | None = None
 ):
     """Download report in specified format."""
     # Get download URL
@@ -166,10 +166,10 @@ def get_file_extension(format: str) -> str:
 @app.command()
 def report(
     report_type: ReportType = typer.Argument(help="Type of report to generate"),
-    investigations: Optional[list[str]] = typer.Option(
+    investigations: list[str] | None = typer.Option(
         None, "--investigation", "-i", help="Investigation IDs to include"
     ),
-    analyses: Optional[list[str]] = typer.Option(
+    analyses: list[str] | None = typer.Option(
         None, "--analysis", "-a", help="Analysis IDs to include"
     ),
     title: str = typer.Option(None, "--title", "-t", help="Report title"),
@@ -181,10 +181,10 @@ def report(
     output: OutputFormat = typer.Option(
         OutputFormat.PDF, "--output", "-f", help="Output format"
     ),
-    save_dir: Optional[Path] = typer.Option(
+    save_dir: Path | None = typer.Option(
         None, "--save-dir", "-d", help="Directory to save report"
     ),
-    filename: Optional[str] = typer.Option(
+    filename: str | None = typer.Option(
         None, "--filename", help="Custom filename (without extension)"
     ),
     include_data: bool = typer.Option(
@@ -194,7 +194,7 @@ def report(
         False, "--no-visuals", help="Exclude visualizations"
     ),
     language: str = typer.Option("pt-BR", "--language", "-l", help="Report language"),
-    api_key: Optional[str] = typer.Option(
+    api_key: str | None = typer.Option(
         None, "--api-key", envvar="CIDADAO_API_KEY", help="API key"
     ),
 ):
@@ -388,13 +388,13 @@ def download(
     format: OutputFormat = typer.Option(
         OutputFormat.PDF, "--format", "-f", help="Download format"
     ),
-    save_dir: Optional[Path] = typer.Option(
+    save_dir: Path | None = typer.Option(
         None, "--save-dir", "-d", help="Directory to save report"
     ),
-    filename: Optional[str] = typer.Option(
+    filename: str | None = typer.Option(
         None, "--filename", help="Custom filename (without extension)"
     ),
-    api_key: Optional[str] = typer.Option(
+    api_key: str | None = typer.Option(
         None, "--api-key", envvar="CIDADAO_API_KEY", help="API key"
     ),
 ):
@@ -445,11 +445,11 @@ def download(
 
 @app.command()
 def list(
-    report_type: Optional[ReportType] = typer.Option(
+    report_type: ReportType | None = typer.Option(
         None, "--type", "-t", help="Filter by report type"
     ),
     limit: int = typer.Option(10, "--limit", "-n", help="Number of reports to show"),
-    api_key: Optional[str] = typer.Option(
+    api_key: str | None = typer.Option(
         None, "--api-key", envvar="CIDADAO_API_KEY", help="API key"
     ),
 ):

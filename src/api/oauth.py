@@ -10,7 +10,6 @@ import base64
 import hashlib
 import secrets
 from datetime import UTC, datetime, timedelta
-from typing import Optional
 from urllib.parse import urlencode
 
 import httpx
@@ -31,7 +30,7 @@ class OAuthState(BaseModel):
     code_verifier: str
     code_challenge: str
     created_at: datetime
-    redirect_url: Optional[str] = None
+    redirect_url: str | None = None
 
 
 class OAuthUserInfo(BaseModel):
@@ -41,7 +40,7 @@ class OAuthUserInfo(BaseModel):
     provider_id: str
     email: str
     name: str
-    avatar_url: Optional[str] = None
+    avatar_url: str | None = None
     email_verified: bool = True
     raw_data: dict = {}
 
@@ -85,7 +84,7 @@ class OAuthManager:
             del self.states[state_id]
 
     async def get_authorization_url(
-        self, provider: OAuthProvider, redirect_url: Optional[str] = None
+        self, provider: OAuthProvider, redirect_url: str | None = None
     ) -> tuple[str, str]:
         """Get OAuth authorization URL for provider."""
 
@@ -168,7 +167,7 @@ class OAuthManager:
         provider: OAuthProvider,
         code: str,
         state: str,
-        error: Optional[str] = None,
+        error: str | None = None,
     ) -> tuple[User, bool]:
         """Handle OAuth callback and return user."""
 

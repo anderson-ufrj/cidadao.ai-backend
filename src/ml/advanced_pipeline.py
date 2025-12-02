@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 # ML Libraries
 import torch
@@ -90,13 +90,13 @@ class TrainingRun:
     model_type: ModelType
     status: TrainingStatus
     config: dict[str, Any]
-    metrics: Optional[ModelMetrics] = None
-    artifacts_path: Optional[str] = None
-    error_message: Optional[str] = None
+    metrics: ModelMetrics | None = None
+    artifacts_path: str | None = None
+    error_message: str | None = None
     created_at: datetime = field(default_factory=datetime.utcnow)
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
-    experiment_id: Optional[str] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
+    experiment_id: str | None = None
 
 
 class MLPipelineConfig(BaseModel):
@@ -453,14 +453,13 @@ class MLPipelineManager:
 
         if valor < 100_000:
             return 0  # Muito Baixo
-        elif valor < 1_000_000:
+        if valor < 1_000_000:
             return 1  # Baixo
-        elif valor < 10_000_000:
+        if valor < 10_000_000:
             return 2  # Médio
-        elif valor < 50_000_000:
+        if valor < 50_000_000:
             return 3  # Alto
-        else:
-            return 4  # Muito Alto
+        return 4  # Muito Alto
 
     def _generate_legal_label(self, contract: dict[str, Any]) -> int:
         """Gerar label de conformidade legal (0=Não Conforme, 1=Conforme)"""
@@ -470,8 +469,7 @@ class MLPipelineManager:
         # Simple compliance check
         if "pregao" in modalidade or "concorrencia" in modalidade:
             return 1  # Conforme
-        else:
-            return 0  # Potentially non-compliant
+        return 0  # Potentially non-compliant
 
     async def train_model(
         self,
@@ -797,7 +795,7 @@ class MLPipelineManager:
         except Exception as e:
             logger.error(f"❌ Erro ao registrar modelo: {e}")
 
-    async def load_model(self, run_id: str) -> Optional[TransparencyClassifier]:
+    async def load_model(self, run_id: str) -> TransparencyClassifier | None:
         """Carregar modelo treinado"""
 
         model_path = Path(self.config.models_dir) / f"{run_id}_best.pt"
@@ -894,7 +892,7 @@ class MLPipelineManager:
 
         return results
 
-    def get_training_status(self, run_id: str) -> Optional[TrainingRun]:
+    def get_training_status(self, run_id: str) -> TrainingRun | None:
         """Obter status do treinamento"""
         return self.training_runs.get(run_id)
 
@@ -922,7 +920,7 @@ class MLPipelineManager:
 
 
 # Singleton instance
-_ml_pipeline_manager: Optional[MLPipelineManager] = None
+_ml_pipeline_manager: MLPipelineManager | None = None
 
 
 async def get_ml_pipeline_manager() -> MLPipelineManager:

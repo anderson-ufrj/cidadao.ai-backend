@@ -7,7 +7,6 @@ especially important for mobile applications and slow connections.
 
 import gzip
 from collections.abc import Callable
-from typing import Optional
 
 from fastapi import Request, Response
 from starlette.datastructures import MutableHeaders
@@ -46,7 +45,7 @@ class CompressionMiddleware(BaseHTTPMiddleware):
         gzip_level: int = 6,
         brotli_quality: int = 4,
         brotli_mode: str = "text",
-        exclude_paths: Optional[set] = None,
+        exclude_paths: set | None = None,
     ):
         """
         Initialize compression middleware.
@@ -256,7 +255,7 @@ def add_compression_middleware(
     minimum_size: int = 1024,
     gzip_level: int = 6,
     brotli_quality: int = 4,
-    exclude_paths: Optional[set] = None,
+    exclude_paths: set | None = None,
 ):
     """
     Add compression middleware to FastAPI app.

@@ -8,7 +8,7 @@ import os
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 import structlog
@@ -33,14 +33,14 @@ class VaultConfig:
 
     # Connection settings
     url: str = field(default="http://localhost:8200")
-    token: Optional[str] = field(default=None)
-    namespace: Optional[str] = field(default=None)
+    token: str | None = field(default=None)
+    namespace: str | None = field(default=None)
     timeout: int = field(default=10)
 
     # Authentication
     auth_method: str = field(default="token")  # token, approle, k8s
-    role_id: Optional[str] = field(default=None)
-    secret_id: Optional[str] = field(default=None)
+    role_id: str | None = field(default=None)
+    secret_id: str | None = field(default=None)
 
     # Paths
     secret_path: str = field(default="secret/cidadao-ai")
@@ -118,9 +118,9 @@ class VaultClient:
     - Health monitoring
     """
 
-    def __init__(self, config: Optional[VaultConfig] = None):
+    def __init__(self, config: VaultConfig | None = None):
         self.config = config or self._load_config()
-        self._client: Optional[httpx.AsyncClient] = None
+        self._client: httpx.AsyncClient | None = None
 
         # Cache system
         self._cache: dict[str, SecretEntry] = {}
@@ -128,17 +128,17 @@ class VaultClient:
 
         # Circuit breaker
         self._circuit_breaker_failures = 0
-        self._circuit_breaker_last_failure: Optional[datetime] = None
+        self._circuit_breaker_last_failure: datetime | None = None
         self._circuit_breaker_open = False
 
         # Status tracking
         self._status = VaultStatus.NOT_CONFIGURED
-        self._last_health_check: Optional[datetime] = None
+        self._last_health_check: datetime | None = None
         self._health_check_interval = 30  # seconds
 
         # Authentication
-        self._auth_token: Optional[str] = None
-        self._auth_expires: Optional[datetime] = None
+        self._auth_token: str | None = None
+        self._auth_expires: datetime | None = None
 
         logger.info(
             "vault_client_initialized",
@@ -339,9 +339,7 @@ class VaultClient:
                 failure_count=self._circuit_breaker_failures,
             )
 
-    async def get_secret(
-        self, key: str, version: Optional[int] = None
-    ) -> Optional[str]:
+    async def get_secret(self, key: str, version: int | None = None) -> str | None:
         """
         Get secret value with intelligent caching and fallback
 
@@ -369,9 +367,8 @@ class VaultClient:
                 )
 
                 return entry.value
-            else:
-                # Remove expired entry
-                del self._cache[cache_key]
+            # Remove expired entry
+            del self._cache[cache_key]
 
         self._cache_stats["misses"] += 1
 
@@ -420,8 +417,8 @@ class VaultClient:
         return None
 
     async def _fetch_from_vault(
-        self, key: str, version: Optional[int] = None
-    ) -> Optional[str]:
+        self, key: str, version: int | None = None
+    ) -> str | None:
         """Fetch secret directly from Vault"""
         if self._is_circuit_breaker_open():
             raise VaultCircuitBreakerError("Circuit breaker is open")
@@ -459,17 +456,15 @@ class VaultClient:
                     # Return the specific field or the entire secret
                     if isinstance(secret_data, dict):
                         return secret_data.get("value") or json_utils.dumps(secret_data)
-                    else:
-                        return str(secret_data)
+                    return str(secret_data)
 
-                elif response.status_code == 404:
+                if response.status_code == 404:
                     return None
 
-                elif response.status_code == 403:
+                if response.status_code == 403:
                     raise VaultAuthError("Access denied to secret")
 
-                else:
-                    raise VaultClientError(f"Vault API error: {response.status_code}")
+                raise VaultClientError(f"Vault API error: {response.status_code}")
 
             except httpx.RequestError as e:
                 if attempt == self.config.max_retries - 1:
@@ -502,7 +497,7 @@ class VaultClient:
                 self._cache_stats["evictions"] += 1
 
     async def set_secret(
-        self, key: str, value: str, metadata: Optional[dict] = None
+        self, key: str, value: str, metadata: dict | None = None
     ) -> bool:
         """Set a secret value in Vault"""
         if self._is_circuit_breaker_open():
@@ -530,13 +525,12 @@ class VaultClient:
                 logger.info("vault_secret_stored", key=key)
                 return True
 
-            else:
-                logger.error(
-                    "vault_secret_store_failed",
-                    key=key,
-                    status_code=response.status_code,
-                )
-                return False
+            logger.error(
+                "vault_secret_store_failed",
+                key=key,
+                status_code=response.status_code,
+            )
+            return False
 
         except Exception as e:
             logger.error("vault_secret_store_error", key=key, error=str(e))
@@ -571,10 +565,10 @@ class VaultClient:
 
 
 # Global client instance
-_vault_client: Optional[VaultClient] = None
+_vault_client: VaultClient | None = None
 
 
-async def get_vault_client(config: Optional[VaultConfig] = None) -> VaultClient:
+async def get_vault_client(config: VaultConfig | None = None) -> VaultClient:
     """Get or create global Vault client instance"""
     global _vault_client
 

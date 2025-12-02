@@ -16,7 +16,7 @@ import hashlib
 import json
 from datetime import datetime
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -97,10 +97,10 @@ class ExchangeRateData(BaseModel):
     dataHoraCotacao: str
     tipoBoletim: str
     moeda: dict[str, Any]
-    valorCompra: Optional[float] = None
-    valorVenda: Optional[float] = None
-    paridadeCompra: Optional[float] = None
-    paridadeVenda: Optional[float] = None
+    valorCompra: float | None = None
+    valorVenda: float | None = None
+    paridadeCompra: float | None = None
+    paridadeVenda: float | None = None
 
 
 class BancoCentralClient:
@@ -197,7 +197,7 @@ class BancoCentralClient:
                     status_code=response.status_code,
                     response_data={"url": url},
                 )
-            elif response.status_code >= 400:
+            if response.status_code >= 400:
                 retryable = response.status_code == 429
                 FederalAPIMetrics.record_error(
                     api_name="BCB",
@@ -273,9 +273,9 @@ class BancoCentralClient:
     @cache_with_ttl(ttl_seconds=3600)  # 1 hour
     async def get_selic(
         self,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
-        last_n: Optional[int] = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        last_n: int | None = None,
     ) -> list[SELICData]:
         """
         Get SELIC rate data.
@@ -331,7 +331,7 @@ class BancoCentralClient:
 
     @cache_with_ttl(ttl_seconds=86400)  # 24 hours
     async def get_exchange_rates(
-        self, currency: str = "USD", start_date: Optional[str] = None
+        self, currency: str = "USD", start_date: str | None = None
     ) -> list[dict[str, Any]]:
         """
         Get exchange rate data.
@@ -402,9 +402,9 @@ class BancoCentralClient:
     async def get_indicator(
         self,
         indicator_name: str,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
-        last_n: Optional[int] = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        last_n: int | None = None,
     ) -> list[dict[str, Any]]:
         """
         Get any economic indicator by name.

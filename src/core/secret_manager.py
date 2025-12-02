@@ -6,7 +6,7 @@ High-level interface for secret management with Vault integration
 import os
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 import structlog
 from pydantic import BaseModel, ConfigDict, Field, SecretStr
@@ -31,11 +31,11 @@ class SecretSource(Enum):
 class SecretResult(Generic[T]):
     """Result of secret retrieval"""
 
-    value: Optional[T]
+    value: T | None
     source: SecretSource
     key: str
     cached: bool = False
-    error: Optional[str] = None
+    error: str | None = None
 
     @property
     def found(self) -> bool:
@@ -76,11 +76,11 @@ class DatabaseSecrets(SecretSchema):
     """Database connection secrets"""
 
     url: str = Field(..., description="Database URL")
-    username: Optional[str] = Field(None, description="Database username")
-    password: Optional[SecretStr] = Field(None, description="Database password")
-    host: Optional[str] = Field(None, description="Database host")
-    port: Optional[int] = Field(None, description="Database port")
-    database: Optional[str] = Field(None, description="Database name")
+    username: str | None = Field(None, description="Database username")
+    password: SecretStr | None = Field(None, description="Database password")
+    host: str | None = Field(None, description="Database host")
+    port: int | None = Field(None, description="Database port")
+    database: str | None = Field(None, description="Database name")
 
 
 class JWTSecrets(SecretSchema):
@@ -99,57 +99,53 @@ class JWTSecrets(SecretSchema):
 class APIKeySecrets(SecretSchema):
     """External API keys"""
 
-    transparency_api_key: Optional[SecretStr] = Field(
+    transparency_api_key: SecretStr | None = Field(
         None, description="Portal da Transparência API key"
     )
-    groq_api_key: Optional[SecretStr] = Field(None, description="Groq API key")
-    together_api_key: Optional[SecretStr] = Field(
-        None, description="Together AI API key"
-    )
-    huggingface_api_key: Optional[SecretStr] = Field(
+    groq_api_key: SecretStr | None = Field(None, description="Groq API key")
+    together_api_key: SecretStr | None = Field(None, description="Together AI API key")
+    huggingface_api_key: SecretStr | None = Field(
         None, description="Hugging Face API key"
     )
-    openai_api_key: Optional[SecretStr] = Field(None, description="OpenAI API key")
+    openai_api_key: SecretStr | None = Field(None, description="OpenAI API key")
 
 
 class RedisSecrets(SecretSchema):
     """Redis connection secrets"""
 
     url: str = Field(default="redis://localhost:6379/0", description="Redis URL")
-    password: Optional[SecretStr] = Field(None, description="Redis password")
-    username: Optional[str] = Field(None, description="Redis username")
+    password: SecretStr | None = Field(None, description="Redis password")
+    username: str | None = Field(None, description="Redis username")
 
 
 class ApplicationSecrets(SecretSchema):
     """Core application secrets"""
 
     secret_key: SecretStr = Field(..., description="Application secret key")
-    encryption_key: Optional[SecretStr] = Field(None, description="Data encryption key")
-    signing_key: Optional[SecretStr] = Field(None, description="Request signing key")
+    encryption_key: SecretStr | None = Field(None, description="Data encryption key")
+    signing_key: SecretStr | None = Field(None, description="Request signing key")
 
 
 class InfrastructureSecrets(SecretSchema):
     """Infrastructure service secrets"""
 
-    minio_access_key: Optional[str] = Field(None, description="MinIO access key")
-    minio_secret_key: Optional[SecretStr] = Field(None, description="MinIO secret key")
-    chroma_auth_token: Optional[SecretStr] = Field(
-        None, description="ChromaDB auth token"
-    )
-    pgadmin_password: Optional[SecretStr] = Field(None, description="PgAdmin password")
+    minio_access_key: str | None = Field(None, description="MinIO access key")
+    minio_secret_key: SecretStr | None = Field(None, description="MinIO secret key")
+    chroma_auth_token: SecretStr | None = Field(None, description="ChromaDB auth token")
+    pgadmin_password: SecretStr | None = Field(None, description="PgAdmin password")
 
 
 class UserCredentials(SecretSchema):
     """User account credentials (development only)"""
 
-    admin_email: Optional[str] = Field(None, description="Admin user email")
-    admin_password: Optional[SecretStr] = Field(None, description="Admin user password")
-    admin_name: Optional[str] = Field(None, description="Admin user name")
-    analyst_email: Optional[str] = Field(None, description="Analyst user email")
-    analyst_password: Optional[SecretStr] = Field(
+    admin_email: str | None = Field(None, description="Admin user email")
+    admin_password: SecretStr | None = Field(None, description="Admin user password")
+    admin_name: str | None = Field(None, description="Admin user name")
+    analyst_email: str | None = Field(None, description="Analyst user email")
+    analyst_password: SecretStr | None = Field(
         None, description="Analyst user password"
     )
-    analyst_name: Optional[str] = Field(None, description="Analyst user name")
+    analyst_name: str | None = Field(None, description="Analyst user name")
 
 
 class SecretManager:
@@ -164,9 +160,9 @@ class SecretManager:
     - Health monitoring and metrics
     """
 
-    def __init__(self, vault_config: Optional[VaultConfig] = None):
+    def __init__(self, vault_config: VaultConfig | None = None):
         self.vault_config = vault_config
-        self._vault_client: Optional[VaultClient] = None
+        self._vault_client: VaultClient | None = None
         self._initialized = False
 
         # Secret schemas registry
@@ -233,7 +229,7 @@ class SecretManager:
         logger.info("secret_manager_closed")
 
     async def get_secret(
-        self, key: str, default: Optional[T] = None, cast_to: Optional[type[T]] = None
+        self, key: str, default: T | None = None, cast_to: type[T] | None = None
     ) -> SecretResult[T]:
         """
         Get a single secret value with type casting
@@ -341,17 +337,16 @@ class SecretManager:
         try:
             if target_type == int:
                 return int(value)
-            elif target_type == float:
+            if target_type == float:
                 return float(value)
-            elif target_type == bool:
+            if target_type == bool:
                 if isinstance(value, str):
                     return value.lower() in ("true", "1", "yes", "on")
                 return bool(value)
-            elif target_type == str:
+            if target_type == str:
                 return str(value)
-            else:
-                # Try direct casting
-                return target_type(value)
+            # Try direct casting
+            return target_type(value)
 
         except (ValueError, TypeError) as e:
             logger.warning(
@@ -362,7 +357,7 @@ class SecretManager:
             )
             return value
 
-    async def get_secrets_schema(self, schema_name: str) -> Optional[SecretSchema]:
+    async def get_secrets_schema(self, schema_name: str) -> SecretSchema | None:
         """
         Get all secrets for a specific schema with validation
 
@@ -421,7 +416,7 @@ class SecretManager:
             return None
 
     async def set_secret(
-        self, key: str, value: str, metadata: Optional[dict] = None
+        self, key: str, value: str, metadata: dict | None = None
     ) -> bool:
         """
         Store a secret value in Vault
@@ -482,10 +477,10 @@ class SecretManager:
 
 
 # Global secret manager instance
-_secret_manager: Optional[SecretManager] = None
+_secret_manager: SecretManager | None = None
 
 
-async def get_secret_manager(config: Optional[VaultConfig] = None) -> SecretManager:
+async def get_secret_manager(config: VaultConfig | None = None) -> SecretManager:
     """Get or create global secret manager instance"""
     global _secret_manager
 
@@ -506,19 +501,19 @@ async def close_secret_manager():
 
 
 # Convenience functions for common secret types
-async def get_database_secrets() -> Optional[DatabaseSecrets]:
+async def get_database_secrets() -> DatabaseSecrets | None:
     """Get database secrets with validation"""
     manager = await get_secret_manager()
     return await manager.get_secrets_schema("database")
 
 
-async def get_jwt_secrets() -> Optional[JWTSecrets]:
+async def get_jwt_secrets() -> JWTSecrets | None:
     """Get JWT secrets with validation"""
     manager = await get_secret_manager()
     return await manager.get_secrets_schema("jwt")
 
 
-async def get_api_key_secrets() -> Optional[APIKeySecrets]:
+async def get_api_key_secrets() -> APIKeySecrets | None:
     """Get API key secrets with validation"""
     manager = await get_secret_manager()
     return await manager.get_secrets_schema("api_keys")

@@ -1,6 +1,6 @@
 """Notification API endpoints."""
 
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, HttpUrl
@@ -40,31 +40,31 @@ class NotificationResponse(BaseModel):
     timestamp: str
     read: bool
     channels_sent: list[str]
-    metadata: Optional[dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
 
 class NotificationPreferencesUpdate(BaseModel):
     """Update notification preferences."""
 
-    enabled: Optional[bool] = None
-    email_enabled: Optional[bool] = None
-    webhook_enabled: Optional[bool] = None
-    push_enabled: Optional[bool] = None
-    frequency: Optional[str] = None
-    quiet_hours_start: Optional[str] = None
-    quiet_hours_end: Optional[str] = None
-    timezone: Optional[str] = None
-    type_preferences: Optional[dict[str, dict[str, Any]]] = None
+    enabled: bool | None = None
+    email_enabled: bool | None = None
+    webhook_enabled: bool | None = None
+    push_enabled: bool | None = None
+    frequency: str | None = None
+    quiet_hours_start: str | None = None
+    quiet_hours_end: str | None = None
+    timezone: str | None = None
+    type_preferences: dict[str, dict[str, Any]] | None = None
 
 
 class WebhookConfigRequest(BaseModel):
     """Webhook configuration request."""
 
     url: HttpUrl
-    events: Optional[list[str]] = None
-    secret: Optional[str] = None
-    description: Optional[str] = None
-    headers: Optional[dict[str, str]] = None
+    events: list[str] | None = None
+    secret: str | None = None
+    description: str | None = None
+    headers: dict[str, str] | None = None
 
 
 class TestNotificationRequest(BaseModel):
@@ -74,14 +74,14 @@ class TestNotificationRequest(BaseModel):
     level: NotificationLevel = NotificationLevel.INFO
     title: str = "Test Notification"
     message: str = "This is a test notification from Cidadão.AI"
-    channels: Optional[list[str]] = None
+    channels: list[str] | None = None
 
 
 @router.get("", response_model=list[NotificationResponse])
 async def get_notifications(
     unread_only: bool = Query(False, description="Filter unread notifications only"),
-    type: Optional[str] = Query(None, description="Filter by notification type"),
-    level: Optional[str] = Query(None, description="Filter by notification level"),
+    type: str | None = Query(None, description="Filter by notification type"),
+    level: str | None = Query(None, description="Filter by notification level"),
     limit: int = Query(
         100, ge=1, le=500, description="Maximum notifications to return"
     ),

@@ -7,7 +7,7 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from celery import shared_task
 from celery.utils.log import get_task_logger
@@ -146,7 +146,7 @@ def warm_contract_cache(contract_ids: list[str]) -> dict[str, Any]:
     name="cache_warming.warm_investigations", max_retries=2, default_retry_delay=120
 )
 def warm_investigation_cache(
-    investigation_ids: Optional[list[str]] = None, limit: int = 50
+    investigation_ids: list[str] | None = None, limit: int = 50
 ) -> dict[str, Any]:
     """
     Warm cache for investigations.

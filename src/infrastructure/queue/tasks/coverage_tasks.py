@@ -11,7 +11,6 @@ Created: 2025-10-23
 import logging
 import os
 from datetime import UTC, datetime
-from typing import Optional
 
 from celery import shared_task
 from sqlalchemy import create_engine
@@ -263,7 +262,7 @@ def transform_to_map_format(health_report: dict) -> dict:
     }
 
 
-def extract_api_detail(health_report: dict, api_key: str) -> Optional[dict]:
+def extract_api_detail(health_report: dict, api_key: str) -> dict | None:
     """
     Extract detailed information for a specific API from health report.
 
@@ -319,11 +318,11 @@ def detect_api_type(api_key: str) -> str:
     """
     if "tce" in api_key.lower():
         return "tce"
-    elif "ckan" in api_key.lower():
+    if "ckan" in api_key.lower():
         return "ckan"
-    elif "state" in api_key.lower():
+    if "state" in api_key.lower():
         return "state_portal"
-    elif "portal" in api_key.lower() or "federal" in api_key.lower():
+    if "portal" in api_key.lower() or "federal" in api_key.lower():
         return "federal"
     return "unknown"
 

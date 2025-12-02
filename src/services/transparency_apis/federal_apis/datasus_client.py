@@ -16,7 +16,7 @@ import hashlib
 import json
 from datetime import datetime
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -99,7 +99,7 @@ class DataSUSIndicator(BaseModel):
     code: str
     name: str
     category: str
-    unit: Optional[str] = None
+    unit: str | None = None
 
 
 class DataSUSClient:
@@ -234,7 +234,7 @@ class DataSUSClient:
                     status_code=response.status_code,
                     response_data={"url": url},
                 )
-            elif response.status_code >= 400:
+            if response.status_code >= 400:
                 error_msg = f"Client error: {response.status_code}"
                 # Record error before raising
                 retryable = response.status_code == 429  # Only rate limit is retryable
@@ -346,9 +346,9 @@ class DataSUSClient:
     @cache_with_ttl(ttl_seconds=7200)  # 2 hours cache
     async def get_health_facilities(
         self,
-        state_code: Optional[str] = None,
-        municipality_code: Optional[str] = None,
-        facility_type: Optional[str] = None,
+        state_code: str | None = None,
+        municipality_code: str | None = None,
+        facility_type: str | None = None,
     ) -> dict[str, Any]:
         """
         Get health facilities data from CNES.
@@ -394,9 +394,9 @@ class DataSUSClient:
     @cache_with_ttl(ttl_seconds=3600)  # 1 hour cache
     async def get_mortality_statistics(
         self,
-        state_code: Optional[str] = None,
-        year: Optional[int] = None,
-        cause_category: Optional[str] = None,
+        state_code: str | None = None,
+        year: int | None = None,
+        cause_category: str | None = None,
     ) -> dict[str, Any]:
         """
         Get mortality statistics from SIM.
@@ -439,9 +439,9 @@ class DataSUSClient:
     @cache_with_ttl(ttl_seconds=3600)
     async def get_hospital_admissions(
         self,
-        state_code: Optional[str] = None,
-        year: Optional[int] = None,
-        procedure_category: Optional[str] = None,
+        state_code: str | None = None,
+        year: int | None = None,
+        procedure_category: str | None = None,
     ) -> dict[str, Any]:
         """
         Get hospital admission statistics from SIH.
@@ -481,7 +481,7 @@ class DataSUSClient:
 
     @cache_with_ttl(ttl_seconds=7200)
     async def get_vaccination_data(
-        self, state_code: Optional[str] = None, vaccine_type: Optional[str] = None
+        self, state_code: str | None = None, vaccine_type: str | None = None
     ) -> dict[str, Any]:
         """
         Get vaccination coverage data from SI-PNI.
@@ -515,7 +515,7 @@ class DataSUSClient:
         return result
 
     async def get_health_indicators(
-        self, state_code: Optional[str] = None, municipality_code: Optional[str] = None
+        self, state_code: str | None = None, municipality_code: str | None = None
     ) -> dict[str, Any]:
         """
         Get comprehensive health indicators for a location.

@@ -1,7 +1,7 @@
 """Authentication service using PostgreSQL database"""
 
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 from uuid import UUID, uuid4
 
 import asyncpg
@@ -22,7 +22,7 @@ class AuthService:
         self.algorithm = "HS256"
         self.access_token_expire = timedelta(minutes=30)
         self.refresh_token_expire = timedelta(days=7)
-        self._pool: Optional[Pool] = None
+        self._pool: Pool | None = None
 
     async def get_pool(self) -> Pool:
         """Get database connection pool"""
@@ -35,7 +35,7 @@ class AuthService:
         username: str,
         email: EmailStr,
         password: str,
-        full_name: Optional[str] = None,
+        full_name: str | None = None,
     ) -> dict[str, Any]:
         """Create a new user in the database"""
         # Validate password strength
@@ -78,7 +78,7 @@ class AuthService:
 
     async def authenticate_user(
         self, username: str, password: str
-    ) -> Optional[dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         """Authenticate user with username and password"""
         pool = await self.get_pool()
 
@@ -207,7 +207,7 @@ class AuthService:
         except JWTError:
             raise AuthenticationError("Invalid token")
 
-    async def _is_token_blacklisted(self, jti: Optional[str]) -> bool:
+    async def _is_token_blacklisted(self, jti: str | None) -> bool:
         """Check if token JTI is in blacklist"""
         if not jti:
             return False
@@ -219,7 +219,7 @@ class AuthService:
             )
             return result is not None
 
-    async def revoke_token(self, token: str, reason: Optional[str] = None):
+    async def revoke_token(self, token: str, reason: str | None = None):
         """Add token to blacklist"""
         try:
             payload = jwt.decode(
@@ -246,7 +246,7 @@ class AuthService:
         except JWTError:
             pass  # Invalid token, ignore
 
-    async def get_current_user(self, token: str) -> Optional[dict[str, Any]]:
+    async def get_current_user(self, token: str) -> dict[str, Any] | None:
         """Get current user from token"""
         payload = await self.verify_token(token)
         user_id = payload.get("sub")

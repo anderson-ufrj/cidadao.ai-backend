@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 
 import asyncio
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from celery import group
 from celery.utils.log import get_task_logger
@@ -26,7 +26,7 @@ logger = get_task_logger(__name__)
 
 @celery_app.task(name="tasks.run_investigation", bind=True, queue="high")
 def run_investigation(
-    self, investigation_id: str, query: str, config: Optional[dict[str, Any]] = None
+    self, investigation_id: str, query: str, config: dict[str, Any] | None = None
 ) -> dict[str, Any]:
     """
     Run a complete investigation asynchronously.
@@ -73,7 +73,7 @@ def run_investigation(
 
 
 async def _run_investigation_async(
-    investigation_id: str, query: str, config: Optional[dict[str, Any]] = None
+    investigation_id: str, query: str, config: dict[str, Any] | None = None
 ) -> dict[str, Any]:
     """Async implementation of investigation."""
     async with get_db_session() as db:
@@ -212,7 +212,7 @@ async def _analyze_contract_async(
 def detect_anomalies_batch(
     data_source: str,
     time_range: dict[str, str],
-    detection_config: Optional[dict[str, Any]] = None,
+    detection_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     Run batch anomaly detection on data source.
@@ -255,7 +255,7 @@ def detect_anomalies_batch(
 async def _detect_anomalies_async(
     data_source: str,
     time_range: dict[str, str],
-    detection_config: Optional[dict[str, Any]] = None,
+    detection_config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Async anomaly detection."""
     async with get_db_session() as db:

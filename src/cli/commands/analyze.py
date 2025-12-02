@@ -10,7 +10,7 @@ import asyncio
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 import pandas as pd
@@ -52,14 +52,14 @@ class AnalysisRequest(BaseModel):
     """Analysis request model."""
 
     analysis_type: AnalysisType
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
     organizations: list[str] = Field(default_factory=list)
     suppliers: list[str] = Field(default_factory=list)
     categories: list[str] = Field(default_factory=list)
     regions: list[str] = Field(default_factory=list)
-    min_value: Optional[float] = None
-    max_value: Optional[float] = None
+    min_value: float | None = None
+    max_value: float | None = None
     include_trends: bool = True
     include_outliers: bool = True
     correlation_threshold: float = 0.7
@@ -83,9 +83,9 @@ class AnalysisResult(BaseModel):
 async def call_api(
     endpoint: str,
     method: str = "GET",
-    data: Optional[dict[str, Any]] = None,
-    params: Optional[dict[str, Any]] = None,
-    auth_token: Optional[str] = None,
+    data: dict[str, Any] | None = None,
+    params: dict[str, Any] | None = None,
+    auth_token: str | None = None,
 ) -> dict[str, Any]:
     """Make API call to backend."""
     api_url = "http://localhost:8000"
@@ -272,41 +272,41 @@ def export_csv(result: AnalysisResult, filename: Path):
 @app.command()
 def analyze(
     analysis_type: AnalysisType = typer.Argument(help="Type of analysis to perform"),
-    period: Optional[str] = typer.Option(
+    period: str | None = typer.Option(
         None,
         "--period",
         "-p",
         help="Analysis period (e.g., 2024, 2024-Q1, last-30-days)",
     ),
-    organizations: Optional[list[str]] = typer.Option(
+    organizations: list[str] | None = typer.Option(
         None, "--org", "-o", help="Organization codes to analyze"
     ),
-    suppliers: Optional[list[str]] = typer.Option(
+    suppliers: list[str] | None = typer.Option(
         None, "--supplier", "-s", help="Supplier names to analyze"
     ),
-    categories: Optional[list[str]] = typer.Option(
+    categories: list[str] | None = typer.Option(
         None, "--category", "-c", help="Contract categories to analyze"
     ),
-    regions: Optional[list[str]] = typer.Option(
+    regions: list[str] | None = typer.Option(
         None, "--region", "-r", help="Regions to analyze"
     ),
-    min_value: Optional[float] = typer.Option(
+    min_value: float | None = typer.Option(
         None, "--min-value", help="Minimum contract value"
     ),
-    max_value: Optional[float] = typer.Option(
+    max_value: float | None = typer.Option(
         None, "--max-value", help="Maximum contract value"
     ),
     output: OutputFormat = typer.Option(
         OutputFormat.DASHBOARD, "--output", "-f", help="Output format"
     ),
-    save: Optional[Path] = typer.Option(None, "--save", help="Save results to file"),
+    save: Path | None = typer.Option(None, "--save", help="Save results to file"),
     show_outliers: bool = typer.Option(
         False, "--show-outliers", help="Show detailed outlier information"
     ),
     correlation_threshold: float = typer.Option(
         0.7, "--corr-threshold", help="Minimum correlation threshold"
     ),
-    api_key: Optional[str] = typer.Option(
+    api_key: str | None = typer.Option(
         None, "--api-key", envvar="CIDADAO_API_KEY", help="API key"
     ),
 ):
@@ -473,8 +473,8 @@ def analyze(
 
 
 def parse_period(
-    period: Optional[str],
-) -> tuple[Optional[datetime], Optional[datetime]]:
+    period: str | None,
+) -> tuple[datetime | None, datetime | None]:
     """Parse period string into start and end dates."""
     if not period:
         return None, None

@@ -11,21 +11,19 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
     CollectorRegistry,
     Counter,
-)
-from prometheus_client import Enum as PrometheusEnum
-from prometheus_client import (
     Gauge,
     Histogram,
     Info,
     Summary,
     generate_latest,
 )
+from prometheus_client import Enum as PrometheusEnum
 
 # Try to import OpenMetricsHandler - not available in all versions
 try:
@@ -58,9 +56,9 @@ class MetricConfig:
 
     name: str
     description: str
-    labels: Optional[list[str]] = None
-    buckets: Optional[list[float]] = None  # For histograms
-    states: Optional[list[str]] = None  # For enums
+    labels: list[str] | None = None
+    buckets: list[float] | None = None  # For histograms
+    states: list[str] | None = None  # For enums
 
 
 class MetricsManager:
@@ -71,7 +69,7 @@ class MetricsManager:
     exposing custom application metrics.
     """
 
-    def __init__(self, registry: Optional[CollectorRegistry] = None):
+    def __init__(self, registry: CollectorRegistry | None = None):
         """
         Initialize metrics manager.
 
@@ -330,12 +328,12 @@ class MetricsManager:
         logger.debug(f"Registered {metric_type} metric: {config.name}")
         return metric
 
-    def get_metric(self, name: str) -> Optional[Any]:
+    def get_metric(self, name: str) -> Any | None:
         """Get metric by name."""
         return self._metrics.get(name)
 
     def increment_counter(
-        self, name: str, labels: Optional[dict[str, str]] = None, amount: float = 1.0
+        self, name: str, labels: dict[str, str] | None = None, amount: float = 1.0
     ):
         """Increment a counter metric."""
         metric = self.get_metric(name)
@@ -345,9 +343,7 @@ class MetricsManager:
             else:
                 metric.inc(amount)
 
-    def set_gauge(
-        self, name: str, value: float, labels: Optional[dict[str, str]] = None
-    ):
+    def set_gauge(self, name: str, value: float, labels: dict[str, str] | None = None):
         """Set a gauge metric value."""
         metric = self.get_metric(name)
         if metric and hasattr(metric, "set"):
@@ -357,7 +353,7 @@ class MetricsManager:
                 metric.set(value)
 
     def observe_histogram(
-        self, name: str, value: float, labels: Optional[dict[str, str]] = None
+        self, name: str, value: float, labels: dict[str, str] | None = None
     ):
         """Observe a value in histogram metric."""
         metric = self.get_metric(name)
@@ -367,26 +363,25 @@ class MetricsManager:
             else:
                 metric.observe(value)
 
-    def time_histogram(self, name: str, labels: Optional[dict[str, str]] = None):
+    def time_histogram(self, name: str, labels: dict[str, str] | None = None):
         """Context manager for timing histogram metrics."""
         metric = self.get_metric(name)
         if metric and hasattr(metric, "time"):
             if labels:
                 return metric.labels(**labels).time()
-            else:
-                return metric.time()
-        else:
-            # Fallback no-op context manager
-            class NoOpTimer:
-                def __enter__(self):
-                    return self
+            return metric.time()
 
-                def __exit__(self, *args):
-                    pass
+        # Fallback no-op context manager
+        class NoOpTimer:
+            def __enter__(self):
+                return self
 
-            return NoOpTimer()
+            def __exit__(self, *args):
+                pass
 
-    def set_enum(self, name: str, state: str, labels: Optional[dict[str, str]] = None):
+        return NoOpTimer()
+
+    def set_enum(self, name: str, state: str, labels: dict[str, str] | None = None):
         """Set enum metric state."""
         metric = self.get_metric(name)
         if metric and hasattr(metric, "state"):
@@ -424,21 +419,21 @@ class MetricsManager:
             "metrics": list(self._metrics.keys()),
         }
 
-    def _get_metric_type(self, name: str) -> Optional[MetricType]:
+    def _get_metric_type(self, name: str) -> MetricType | None:
         """Get the type of a registered metric."""
         metric = self._metrics.get(name)
         if metric:
             if hasattr(metric, "inc"):
                 return MetricType.COUNTER
-            elif hasattr(metric, "observe") and hasattr(metric, "_buckets"):
+            if hasattr(metric, "observe") and hasattr(metric, "_buckets"):
                 return MetricType.HISTOGRAM
-            elif hasattr(metric, "set"):
+            if hasattr(metric, "set"):
                 return MetricType.GAUGE
-            elif hasattr(metric, "observe"):
+            if hasattr(metric, "observe"):
                 return MetricType.SUMMARY
-            elif hasattr(metric, "info"):
+            if hasattr(metric, "info"):
                 return MetricType.INFO
-            elif hasattr(metric, "state"):
+            if hasattr(metric, "state"):
                 return MetricType.ENUM
         return None
 
@@ -447,7 +442,7 @@ class MetricsManager:
 metrics_manager = MetricsManager()
 
 
-def track_time(metric_name: str, labels: Optional[dict[str, str]] = None):
+def track_time(metric_name: str, labels: dict[str, str] | None = None):
     """
     Decorator to track execution time in histogram metric.
 
@@ -500,13 +495,12 @@ def track_time(metric_name: str, labels: Optional[dict[str, str]] = None):
 
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
-        else:
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 
 
-def count_calls(metric_name: str, labels: Optional[dict[str, str]] = None):
+def count_calls(metric_name: str, labels: dict[str, str] | None = None):
     """
     Decorator to count function calls.
 
@@ -557,8 +551,7 @@ def count_calls(metric_name: str, labels: Optional[dict[str, str]] = None):
 
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
-        else:
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 
@@ -662,7 +655,7 @@ class BusinessMetrics:
 def initialize_app_info(
     version: str = "1.0.0",
     environment: str = "development",
-    build_info: Optional[dict[str, str]] = None,
+    build_info: dict[str, str] | None = None,
 ):
     """Initialize application info metric."""
     info_data = {"version": version, "environment": environment}

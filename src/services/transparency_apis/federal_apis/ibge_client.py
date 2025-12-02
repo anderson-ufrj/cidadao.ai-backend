@@ -16,7 +16,7 @@ import hashlib
 import json
 from datetime import datetime
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from pydantic import BaseModel, field_validator
@@ -98,9 +98,9 @@ class IBGELocation(BaseModel):
 
     id: str
     nome: str
-    regiao: Optional[dict[str, Any]] = None
-    microrregiao: Optional[dict[str, Any]] = None
-    mesorregiao: Optional[dict[str, Any]] = None
+    regiao: dict[str, Any] | None = None
+    microrregiao: dict[str, Any] | None = None
+    mesorregiao: dict[str, Any] | None = None
 
     @field_validator("id", mode="before")
     @classmethod
@@ -114,8 +114,8 @@ class IBGEIndicator(BaseModel):
 
     id: str
     nome: str
-    unidade: Optional[str] = None
-    periodicidade: Optional[str] = None
+    unidade: str | None = None
+    periodicidade: str | None = None
 
     @field_validator("id", mode="before")
     @classmethod
@@ -243,7 +243,7 @@ class IBGEClient:
                     status_code=response.status_code,
                     response_data={"url": url},
                 )
-            elif response.status_code >= 400:
+            if response.status_code >= 400:
                 error_msg = f"Client error: {response.status_code}"
                 # Record error before raising
                 retryable = response.status_code == 429  # Only rate limit is retryable
@@ -332,7 +332,7 @@ class IBGEClient:
 
     @cache_with_ttl(ttl_seconds=86400)  # 24 hours cache
     async def get_municipalities(
-        self, state_id: Optional[str] = None
+        self, state_id: str | None = None
     ) -> list[IBGELocation]:
         """
         Get list of municipalities.
@@ -388,7 +388,7 @@ class IBGEClient:
 
     @cache_with_ttl(ttl_seconds=3600)  # 1 hour cache
     async def get_population(
-        self, location_id: Optional[str] = None, year: Optional[int] = None
+        self, location_id: str | None = None, year: int | None = None
     ) -> dict[str, Any]:
         """
         Get population data.
@@ -423,8 +423,8 @@ class IBGEClient:
     @cache_with_ttl(ttl_seconds=3600)
     async def get_demographic_data(
         self,
-        location_ids: Optional[list[str]] = None,
-        indicators: Optional[list[str]] = None,
+        location_ids: list[str] | None = None,
+        indicators: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Get comprehensive demographic data.
@@ -477,7 +477,7 @@ class IBGEClient:
 
     @cache_with_ttl(ttl_seconds=7200)  # 2 hours cache
     async def get_gdp_per_capita(
-        self, location_ids: Optional[list[str]] = None, year: Optional[int] = None
+        self, location_ids: list[str] | None = None, year: int | None = None
     ) -> dict[str, Any]:
         """
         Get GDP per capita data.
@@ -524,7 +524,7 @@ class IBGEClient:
 
     @cache_with_ttl(ttl_seconds=7200)
     async def get_poverty_data(
-        self, location_ids: Optional[list[str]] = None
+        self, location_ids: list[str] | None = None
     ) -> dict[str, Any]:
         """
         Get poverty and inequality data.
@@ -578,7 +578,7 @@ class IBGEClient:
 
     @cache_with_ttl(ttl_seconds=3600)
     async def get_education_data(
-        self, location_ids: Optional[list[str]] = None
+        self, location_ids: list[str] | None = None
     ) -> dict[str, Any]:
         """
         Get education indicators from IBGE.
@@ -632,7 +632,7 @@ class IBGEClient:
 
     @cache_with_ttl(ttl_seconds=7200)
     async def get_housing_data(
-        self, location_ids: Optional[list[str]] = None
+        self, location_ids: list[str] | None = None
     ) -> dict[str, Any]:
         """
         Get housing and infrastructure data.
@@ -686,8 +686,8 @@ class IBGEClient:
 
     async def get_comprehensive_social_data(
         self,
-        state_id: Optional[str] = None,
-        municipality_ids: Optional[list[str]] = None,
+        state_id: str | None = None,
+        municipality_ids: list[str] | None = None,
     ) -> dict[str, Any]:
         """
         Get comprehensive social equity data for analysis.

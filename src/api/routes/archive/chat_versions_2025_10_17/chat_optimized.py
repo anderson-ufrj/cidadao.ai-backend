@@ -6,7 +6,7 @@ More economical and culturally enriched responses
 import os
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -39,7 +39,7 @@ class OptimizedChatRequest(BaseModel):
     """Optimized chat request"""
 
     message: str = Field(..., min_length=1, max_length=1000)
-    session_id: Optional[str] = None
+    session_id: str | None = None
     use_drummond: bool = Field(default=True, description="Use Drummond persona")
 
 
@@ -175,17 +175,16 @@ async def optimized_chat(request: OptimizedChatRequest) -> OptimizedChatResponse
                 response = "No meio do caminho tinha uma pedra... e essa pedra pode ser a falta de transparência. Posso ajudá-lo a:\n\n📊 Analisar contratos públicos\n💰 Seguir o rastro do dinheiro\n🔍 Encontrar padrões suspeitos\n📈 Comparar gastos ao longo do tempo\n\nQual pedra no caminho da transparência você quer remover?"
             else:
                 response = "Como dizia em meus versos, 'as coisas findas, muito mais que lindas, essas ficarão'. Mas os gastos públicos mal explicados não devem ficar. Diga-me: que história dos cofres públicos você quer conhecer?"
+        # Standard professional responses
+        elif any(
+            greeting in message_lower
+            for greeting in ["olá", "oi", "bom dia", "boa tarde", "boa noite"]
+        ):
+            response = "Olá! Sou o assistente do Cidadão.AI. Estou aqui para ajudá-lo a investigar gastos públicos e promover a transparência governamental. Como posso ajudar?"
+        elif "investigar" in message_lower or "verificar" in message_lower:
+            response = "Posso ajudá-lo a investigar:\n\n• Contratos e licitações públicas\n• Gastos de órgãos governamentais\n• Pagamentos a fornecedores\n• Salários de servidores\n\nQual área você gostaria de investigar?"
         else:
-            # Standard professional responses
-            if any(
-                greeting in message_lower
-                for greeting in ["olá", "oi", "bom dia", "boa tarde", "boa noite"]
-            ):
-                response = "Olá! Sou o assistente do Cidadão.AI. Estou aqui para ajudá-lo a investigar gastos públicos e promover a transparência governamental. Como posso ajudar?"
-            elif "investigar" in message_lower or "verificar" in message_lower:
-                response = "Posso ajudá-lo a investigar:\n\n• Contratos e licitações públicas\n• Gastos de órgãos governamentais\n• Pagamentos a fornecedores\n• Salários de servidores\n\nQual área você gostaria de investigar?"
-            else:
-                response = "Estou aqui para ajudá-lo com transparência pública. Você pode perguntar sobre contratos, gastos, licitações ou qualquer dado do Portal da Transparência."
+            response = "Estou aqui para ajudá-lo com transparência pública. Você pode perguntar sobre contratos, gastos, licitações ou qualquer dado do Portal da Transparência."
 
         return OptimizedChatResponse(
             message=response,

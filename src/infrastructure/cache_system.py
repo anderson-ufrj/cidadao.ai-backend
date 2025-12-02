@@ -12,7 +12,7 @@ import time
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any
 
 import msgpack
 import redis.asyncio as redis
@@ -62,7 +62,7 @@ class CacheEntry:
     created_at: datetime = field(default_factory=datetime.utcnow)
     last_accessed: datetime = field(default_factory=datetime.utcnow)
     access_count: int = 0
-    ttl_seconds: Optional[int] = None
+    ttl_seconds: int | None = None
     tags: list[str] = field(default_factory=list)
     size_bytes: int = 0
     hit_count: int = 0
@@ -73,12 +73,12 @@ class CacheConfig(BaseModel):
     """Configuração do sistema de cache"""
 
     # Redis Cluster configuration
-    redis_nodes: list[dict[str, Union[str, int]]] = [
+    redis_nodes: list[dict[str, str | int]] = [
         {"host": "localhost", "port": 7000},
         {"host": "localhost", "port": 7001},
         {"host": "localhost", "port": 7002},
     ]
-    redis_password: Optional[str] = None
+    redis_password: str | None = None
     redis_db: int = 0
     redis_decode_responses: bool = False  # Keep False for binary data
 
@@ -186,8 +186,8 @@ class AdvancedCacheManager:
         self.metrics = CacheMetrics()
 
         # Cache layers
-        self.l1_cache: Optional[Cache] = None
-        self.l2_cache: Optional[Union[redis.Redis, RedisCluster]] = None
+        self.l1_cache: Cache | None = None
+        self.l2_cache: redis.Redis | RedisCluster | None = None
 
         # Serializers
         self.serializers = {
@@ -201,8 +201,8 @@ class AdvancedCacheManager:
         self.l1_entries: dict[str, CacheEntry] = {}
 
         # Background tasks
-        self._metrics_task: Optional[asyncio.Task] = None
-        self._cleanup_task: Optional[asyncio.Task] = None
+        self._metrics_task: asyncio.Task | None = None
+        self._cleanup_task: asyncio.Task | None = None
 
         self._initialized = False
 
@@ -322,8 +322,8 @@ class AdvancedCacheManager:
         self,
         key: str,
         default: Any = None,
-        ttl: Optional[int] = None,
-        serialization: Optional[SerializationType] = None,
+        ttl: int | None = None,
+        serialization: SerializationType | None = None,
     ) -> Any:
         """Buscar valor do cache com fallback multi-layer"""
 
@@ -362,9 +362,9 @@ class AdvancedCacheManager:
         self,
         key: str,
         value: Any,
-        ttl: Optional[int] = None,
+        ttl: int | None = None,
         tags: list[str] = None,
-        serialization: Optional[SerializationType] = None,
+        serialization: SerializationType | None = None,
     ) -> bool:
         """Definir valor no cache"""
 
@@ -503,7 +503,7 @@ class AdvancedCacheManager:
 
         return results
 
-    async def batch_set(self, items: dict[str, Any], ttl: Optional[int] = None) -> int:
+    async def batch_set(self, items: dict[str, Any], ttl: int | None = None) -> int:
         """Definir múltiplas chaves em lote"""
 
         success_count = 0
@@ -532,7 +532,7 @@ class AdvancedCacheManager:
         return None
 
     async def _get_from_l2(
-        self, key: str, serialization: Optional[SerializationType] = None
+        self, key: str, serialization: SerializationType | None = None
     ) -> Any:
         """Buscar do cache L2"""
         if not self.l2_cache:
@@ -553,7 +553,7 @@ class AdvancedCacheManager:
             logger.error(f"❌ Erro ao deserializar {key}: {e}")
             return None
 
-    async def _set_to_l1(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def _set_to_l1(self, key: str, value: Any, ttl: int | None = None) -> bool:
         """Definir no cache L1"""
         if self.l1_cache:
             try:
@@ -567,8 +567,8 @@ class AdvancedCacheManager:
         self,
         key: str,
         value: Any,
-        ttl: Optional[int] = None,
-        serialization: Optional[SerializationType] = None,
+        ttl: int | None = None,
+        serialization: SerializationType | None = None,
     ) -> bool:
         """Definir no cache L2"""
         if not self.l2_cache:
@@ -671,9 +671,7 @@ class AdvancedCacheManager:
 
         return results
 
-    async def _batch_set_l1(
-        self, items: dict[str, Any], ttl: Optional[int] = None
-    ) -> int:
+    async def _batch_set_l1(self, items: dict[str, Any], ttl: int | None = None) -> int:
         """Definir lote no L1"""
         success_count = 0
         for key, value in items.items():
@@ -681,9 +679,7 @@ class AdvancedCacheManager:
                 success_count += 1
         return success_count
 
-    async def _batch_set_l2(
-        self, items: dict[str, Any], ttl: Optional[int] = None
-    ) -> int:
+    async def _batch_set_l2(self, items: dict[str, Any], ttl: int | None = None) -> int:
         """Definir lote no L2"""
         if not self.l2_cache or not items:
             return 0
@@ -821,7 +817,7 @@ class AdvancedCacheManager:
 
         return stats
 
-    async def warm_up(self, data: dict[str, Any], ttl: Optional[int] = None):
+    async def warm_up(self, data: dict[str, Any], ttl: int | None = None):
         """Pré-carregar cache com dados"""
 
         logger.info(f"🔥 Aquecendo cache com {len(data)} entradas...")
@@ -939,7 +935,7 @@ def cached_result(ttl: int = 3600, key_prefix: str = "", tags: list[str] = None)
 
 
 # Singleton instance
-_cache_manager: Optional[AdvancedCacheManager] = None
+_cache_manager: AdvancedCacheManager | None = None
 
 
 async def get_cache_manager() -> AdvancedCacheManager:

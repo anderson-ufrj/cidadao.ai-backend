@@ -12,7 +12,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from src.infrastructure.observability import BusinessMetrics, get_structured_logger
 
@@ -298,7 +298,7 @@ class SLOMonitor:
         slo_name: str,
         value: float,
         success: bool = True,
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ):
         """
         Record a metric for SLO monitoring.
@@ -436,7 +436,7 @@ class SLOMonitor:
                     error=e,
                 )
 
-    async def calculate_current_slo(self, slo_name: str) -> Optional[float]:
+    async def calculate_current_slo(self, slo_name: str) -> float | None:
         """Calculate current SLO value."""
         if slo_name not in self.slo_targets:
             return None
@@ -451,19 +451,19 @@ class SLOMonitor:
         if slo_target.slo_type == SLOType.AVAILABILITY:
             return self.calculator.calculate_availability(metrics)
 
-        elif slo_target.slo_type == SLOType.LATENCY:
+        if slo_target.slo_type == SLOType.LATENCY:
             # For latency SLOs, we want percentage under threshold
             under_threshold = sum(
                 1 for m in metrics if m.value <= slo_target.target_value
             )
             return (under_threshold / len(metrics)) * 100
 
-        elif slo_target.slo_type == SLOType.ERROR_RATE:
+        if slo_target.slo_type == SLOType.ERROR_RATE:
             error_rate = self.calculator.calculate_error_rate(metrics)
             # For error rate SLOs, we want percentage compliance (low error rate)
             return max(0, 100 - error_rate)
 
-        elif slo_target.slo_type == SLOType.THROUGHPUT:
+        if slo_target.slo_type == SLOType.THROUGHPUT:
             time_window_minutes = self._get_time_window_minutes(slo_target.time_window)
             throughput = self.calculator.calculate_throughput(
                 metrics, time_window_minutes
@@ -471,7 +471,7 @@ class SLOMonitor:
             # Calculate percentage of target throughput achieved
             return min(100, (throughput / slo_target.target_value) * 100)
 
-        elif slo_target.slo_type == SLOType.CUSTOM:
+        if slo_target.slo_type == SLOType.CUSTOM:
             # For custom SLOs, use the metric values directly
             if metrics:
                 return statistics.mean(m.value for m in metrics)

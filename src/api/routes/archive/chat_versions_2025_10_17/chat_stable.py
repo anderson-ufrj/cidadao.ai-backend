@@ -5,7 +5,7 @@ Ensures 100% availability with Maritaca AI integration
 
 import os
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from fastapi import APIRouter
@@ -56,8 +56,8 @@ def get_intent_detector():
 # Request/Response models
 class ChatRequest(BaseModel):
     message: str = Field(..., min_length=1, max_length=1000)
-    session_id: Optional[str] = None
-    context: Optional[dict[str, Any]] = None
+    session_id: str | None = None
+    context: dict[str, Any] | None = None
 
 
 class ChatResponse(BaseModel):
@@ -66,7 +66,7 @@ class ChatResponse(BaseModel):
     agent_name: str
     message: str
     confidence: float
-    suggested_actions: Optional[list[str]] = None
+    suggested_actions: list[str] | None = None
     metadata: dict[str, Any] = {}
 
 
@@ -105,9 +105,7 @@ FALLBACK_RESPONSES = {
 }
 
 
-def get_fallback_response(
-    intent_type: IntentType, context: Optional[dict] = None
-) -> str:
+def get_fallback_response(intent_type: IntentType, context: dict | None = None) -> str:
     """Get appropriate fallback response based on intent"""
     import random
 
@@ -121,7 +119,7 @@ async def process_with_maritaca(
     message: str,
     intent_type: IntentType,
     session_id: str,
-    context: Optional[dict] = None,
+    context: dict | None = None,
 ) -> dict[str, Any]:
     """Process message with Maritaca AI with multiple fallback layers and Portal da Transparência integration"""
 

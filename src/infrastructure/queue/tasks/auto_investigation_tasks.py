@@ -11,7 +11,7 @@ and trigger investigations on suspicious patterns.
 
 import asyncio
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from celery.utils.log import get_task_logger
 
@@ -23,7 +23,7 @@ logger = get_task_logger(__name__)
 
 @celery_app.task(name="tasks.auto_monitor_new_contracts", queue="normal")
 def auto_monitor_new_contracts(
-    lookback_hours: int = 24, organization_codes: Optional[list] = None
+    lookback_hours: int = 24, organization_codes: list | None = None
 ) -> dict[str, Any]:
     """
     Monitor and investigate new contracts (runs every N hours).

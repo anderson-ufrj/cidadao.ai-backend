@@ -6,8 +6,6 @@ Date: 2025-01-25
 License: Proprietary - All rights reserved
 """
 
-from typing import Optional
-
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from src.api.dependencies import require_admin
@@ -147,7 +145,7 @@ async def get_pool_configurations(admin_user=Depends(require_admin)):
 
 @router.post("/reset-stats")
 async def reset_pool_statistics(
-    pool_name: Optional[str] = None, admin_user=Depends(require_admin)
+    pool_name: str | None = None, admin_user=Depends(require_admin)
 ):
     """
     Reset connection pool statistics.
@@ -167,24 +165,22 @@ async def reset_pool_statistics(
                     pool=pool_name,
                 )
                 return {"status": "reset", "pool": pool_name}
-            else:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f"Pool '{pool_name}' not found",
-                )
-        else:
-            # Reset all stats
-            for key in connection_pool_service._stats:
-                connection_pool_service._stats[key] = type(
-                    connection_pool_service._stats[key]
-                )()
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Pool '{pool_name}' not found",
+            )
+        # Reset all stats
+        for key in connection_pool_service._stats:
+            connection_pool_service._stats[key] = type(
+                connection_pool_service._stats[key]
+            )()
 
-            logger.info("admin_all_pool_stats_reset", admin=admin_user.get("email"))
+        logger.info("admin_all_pool_stats_reset", admin=admin_user.get("email"))
 
-            return {
-                "status": "reset",
-                "pools": list(connection_pool_service._stats.keys()),
-            }
+        return {
+            "status": "reset",
+            "pools": list(connection_pool_service._stats.keys()),
+        }
 
     except HTTPException:
         raise

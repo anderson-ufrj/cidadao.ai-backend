@@ -15,7 +15,6 @@ Status: Professional implementation with comprehensive command structure.
 
 import sys
 from pathlib import Path
-from typing import Optional
 
 import typer
 from rich.console import Console
@@ -84,7 +83,7 @@ def main(
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Enable verbose output"
     ),
-    config_file: Optional[Path] = typer.Option(
+    config_file: Path | None = typer.Option(
         None, "--config", "-c", help="Custom configuration file path"
     ),
 ) -> None:

@@ -16,7 +16,7 @@ import hashlib
 import json
 from datetime import datetime
 from functools import wraps
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from pydantic import BaseModel
@@ -95,28 +95,28 @@ def cache_with_ttl(ttl_seconds: int = 3600):
 class ContractPublication(BaseModel):
     """Contract publication data from PNCP."""
 
-    sequencialCompra: Optional[int] = None
-    numeroCompra: Optional[str] = None
-    anoCompra: Optional[int] = None
-    orgaoEntidade: Optional[dict[str, Any]] = None
-    unidadeOrgao: Optional[dict[str, Any]] = None
-    modalidadeId: Optional[int] = None
-    modalidadeNome: Optional[str] = None
-    modoDisputaId: Optional[int] = None
-    modoDisputaNome: Optional[str] = None
-    situacaoCompraId: Optional[int] = None
-    situacaoCompraNome: Optional[str] = None
-    numeroControlePNCP: Optional[str] = None
-    linkSistemaOrigem: Optional[str] = None
-    dataPublicacaoPncp: Optional[str] = None
-    dataAberturaProposta: Optional[str] = None
-    dataEncerramentoProposta: Optional[str] = None
-    objetoCompra: Optional[str] = None
-    informacaoComplementar: Optional[str] = None
-    valorTotalEstimado: Optional[float] = None
-    valorTotalHomologado: Optional[float] = None
-    orcamentoSigilosoCodigo: Optional[int] = None
-    orcamentoSigilosoDescricao: Optional[str] = None
+    sequencialCompra: int | None = None
+    numeroCompra: str | None = None
+    anoCompra: int | None = None
+    orgaoEntidade: dict[str, Any] | None = None
+    unidadeOrgao: dict[str, Any] | None = None
+    modalidadeId: int | None = None
+    modalidadeNome: str | None = None
+    modoDisputaId: int | None = None
+    modoDisputaNome: str | None = None
+    situacaoCompraId: int | None = None
+    situacaoCompraNome: str | None = None
+    numeroControlePNCP: str | None = None
+    linkSistemaOrigem: str | None = None
+    dataPublicacaoPncp: str | None = None
+    dataAberturaProposta: str | None = None
+    dataEncerramentoProposta: str | None = None
+    objetoCompra: str | None = None
+    informacaoComplementar: str | None = None
+    valorTotalEstimado: float | None = None
+    valorTotalHomologado: float | None = None
+    orcamentoSigilosoCodigo: int | None = None
+    orcamentoSigilosoDescricao: str | None = None
 
     class Config:
         populate_by_name = True
@@ -125,16 +125,16 @@ class ContractPublication(BaseModel):
 class AnnualProcurementPlan(BaseModel):
     """Annual procurement plan item from PNCP."""
 
-    orgaoCnpj: Optional[str] = None
-    anoPlano: Optional[int] = None
-    sequencialItem: Optional[int] = None
-    codigoCatmat: Optional[str] = None
-    descricaoItem: Optional[str] = None
-    unidadeFornecimento: Optional[str] = None
-    quantidadeEstimada: Optional[float] = None
-    valorUnitarioEstimado: Optional[float] = None
-    valorTotalEstimado: Optional[float] = None
-    dataInclusao: Optional[str] = None
+    orgaoCnpj: str | None = None
+    anoPlano: int | None = None
+    sequencialItem: int | None = None
+    codigoCatmat: str | None = None
+    descricaoItem: str | None = None
+    unidadeFornecimento: str | None = None
+    quantidadeEstimada: float | None = None
+    valorUnitarioEstimado: float | None = None
+    valorTotalEstimado: float | None = None
+    dataInclusao: str | None = None
 
     class Config:
         populate_by_name = True
@@ -143,17 +143,17 @@ class AnnualProcurementPlan(BaseModel):
 class PriceRegistration(BaseModel):
     """Price registration record from PNCP."""
 
-    numeroControlePNCP: Optional[str] = None
-    orgaoEntidade: Optional[dict[str, Any]] = None
-    numeroAta: Optional[str] = None
-    anoAta: Optional[int] = None
-    dataPublicacaoPncp: Optional[str] = None
-    dataVigenciaInicio: Optional[str] = None
-    dataVigenciaFim: Optional[str] = None
-    objetoAta: Optional[str] = None
-    situacaoAtaId: Optional[int] = None
-    situacaoAtaNome: Optional[str] = None
-    valorTotalEstimado: Optional[float] = None
+    numeroControlePNCP: str | None = None
+    orgaoEntidade: dict[str, Any] | None = None
+    numeroAta: str | None = None
+    anoAta: int | None = None
+    dataPublicacaoPncp: str | None = None
+    dataVigenciaInicio: str | None = None
+    dataVigenciaFim: str | None = None
+    objetoAta: str | None = None
+    situacaoAtaId: int | None = None
+    situacaoAtaNome: str | None = None
+    valorTotalEstimado: float | None = None
 
     class Config:
         populate_by_name = True
@@ -305,7 +305,7 @@ class PNCPClient:
                     status_code=response.status_code,
                     response_data={"url": url},
                 )
-            elif response.status_code >= 400:
+            if response.status_code >= 400:
                 retryable = response.status_code == 429
                 FederalAPIMetrics.record_error(
                     api_name="PNCP",
@@ -392,7 +392,7 @@ class PNCPClient:
         start_date: str,
         end_date: str,
         modality_code: int = 6,  # Default to "pregao_eletronico" (most common)
-        state: Optional[str] = None,
+        state: str | None = None,
         page_size: int = 50,
         page: int = 1,
     ) -> list[ContractPublication]:
@@ -517,9 +517,9 @@ class PNCPClient:
     @cache_with_ttl(ttl_seconds=7200)  # 2 hours cache
     async def search_price_registrations(
         self,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
-        state: Optional[str] = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        state: str | None = None,
         page_size: int = 50,
         page: int = 1,
     ) -> list[PriceRegistration]:

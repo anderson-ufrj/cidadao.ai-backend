@@ -8,7 +8,7 @@ like HuggingFace Spaces that block direct database connections.
 
 import os
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 from supabase import Client, create_client
@@ -24,9 +24,7 @@ class SupabaseConfig(BaseModel):
 
     url: str = Field(..., description="Supabase project URL")
     key: str = Field(..., description="Supabase service role key (for backend)")
-    anon_key: Optional[str] = Field(
-        None, description="Supabase anon key (for frontend)"
-    )
+    anon_key: str | None = Field(None, description="Supabase anon key (for frontend)")
 
     @classmethod
     def from_env(cls) -> "SupabaseConfig":
@@ -55,7 +53,7 @@ class SupabaseServiceRest:
     where direct PostgreSQL connections are blocked.
     """
 
-    def __init__(self, config: Optional[SupabaseConfig] = None):
+    def __init__(self, config: SupabaseConfig | None = None):
         """
         Initialize Supabase service.
 
@@ -63,7 +61,7 @@ class SupabaseServiceRest:
             config: Supabase configuration (loads from env if None)
         """
         self._config = config
-        self._client: Optional[Client] = None
+        self._client: Client | None = None
         self._initialized = False
 
     @property
@@ -123,9 +121,9 @@ class SupabaseServiceRest:
         user_id: str,
         query: str,
         data_source: str,
-        filters: Optional[dict[str, Any]] = None,
-        anomaly_types: Optional[list[str]] = None,
-        session_id: Optional[str] = None,
+        filters: dict[str, Any] | None = None,
+        anomaly_types: list[str] | None = None,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Create a new investigation in Supabase.
@@ -165,9 +163,7 @@ class SupabaseServiceRest:
         logger.info(f"Created investigation {investigation['id']} via REST API")
         return investigation
 
-    async def get_investigation(
-        self, investigation_id: str
-    ) -> Optional[dict[str, Any]]:
+    async def get_investigation(self, investigation_id: str) -> dict[str, Any] | None:
         """
         Get investigation by ID.
 
@@ -227,8 +223,8 @@ class SupabaseServiceRest:
         investigation_id: str,
         progress: float,
         current_phase: str,
-        records_processed: Optional[int] = None,
-        anomalies_found: Optional[int] = None,
+        records_processed: int | None = None,
+        anomalies_found: int | None = None,
     ) -> dict[str, Any]:
         """
         Update investigation progress.
@@ -320,7 +316,7 @@ class SupabaseServiceRest:
         user_id: str,
         limit: int = 20,
         offset: int = 0,
-        status: Optional[str] = None,
+        status: str | None = None,
     ) -> list[dict[str, Any]]:
         """
         List investigations for a user.

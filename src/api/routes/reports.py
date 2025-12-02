@@ -7,14 +7,13 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query, Response
 from fastapi.responses import HTMLResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from pydantic import Field as PydanticField
-from pydantic import field_validator
 
 from src.agents import AgentContext
 from src.agents.tiradentes import ReporterAgent
@@ -103,7 +102,7 @@ class ReportResponse(BaseModel):
     status: str
     content: str
     metadata: dict[str, Any]
-    download_url: Optional[str] = None
+    download_url: str | None = None
 
 
 class ReportStatus(BaseModel):
@@ -113,8 +112,8 @@ class ReportStatus(BaseModel):
     status: str
     progress: float
     current_phase: str
-    estimated_completion: Optional[datetime] = None
-    error_message: Optional[str] = None
+    estimated_completion: datetime | None = None
+    error_message: str | None = None
 
 
 # In-memory storage for report tracking
@@ -366,14 +365,14 @@ async def download_report(
             headers={"Content-Disposition": f"attachment; filename={title}.html"},
         )
 
-    elif format == "markdown":
+    if format == "markdown":
         return Response(
             content=content,
             media_type="text/markdown",
             headers={"Content-Disposition": f"attachment; filename={title}.md"},
         )
 
-    elif format == "json":
+    if format == "json":
         json_content = {
             "report": report,
             "content": content,
@@ -386,7 +385,7 @@ async def download_report(
             headers={"Content-Disposition": f"attachment; filename={title}.json"},
         )
 
-    elif format == "pdf":
+    if format == "pdf":
         # Check if content is base64 encoded PDF
         import base64
 
@@ -420,8 +419,8 @@ async def download_report(
 
 @router.get("/", response_model=list[dict[str, Any]])
 async def list_reports(
-    report_type: Optional[str] = Query(None, description="Filter by report type"),
-    status: Optional[str] = Query(None, description="Filter by status"),
+    report_type: str | None = Query(None, description="Filter by report type"),
+    status: str | None = Query(None, description="Filter by status"),
     limit: int = Query(10, ge=1, le=100, description="Number of reports to return"),
     current_user: dict[str, Any] = Depends(get_current_user),
 ):
@@ -527,9 +526,8 @@ async def _generate_report(report_id: str, request: ReportRequest):
         report["progress"] = 0.3
 
         # Create report request for Tiradentes
-        from src.agents.tiradentes import ReportFormat
+        from src.agents.tiradentes import ReportFormat, ReportType
         from src.agents.tiradentes import ReportRequest as TiradentesReportRequest
-        from src.agents.tiradentes import ReportType
 
         # Map report type
         report_type_map = {

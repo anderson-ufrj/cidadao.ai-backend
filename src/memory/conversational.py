@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from .base import BaseMemory
 
@@ -12,8 +12,8 @@ class ConversationContext:
     """Context information for conversations."""
 
     session_id: str
-    user_id: Optional[str] = None
-    user_profile: Optional[dict[str, Any]] = None
+    user_id: str | None = None
+    user_profile: dict[str, Any] | None = None
     metadata: dict[str, Any] = None
 
     def __post_init__(self):
@@ -30,9 +30,7 @@ class ConversationalMemory(BaseMemory):
         self._max_messages = max_messages
         self._context: dict[str, Any] = {}
 
-    async def store(
-        self, key: str, value: Any, metadata: Optional[dict] = None
-    ) -> bool:
+    async def store(self, key: str, value: Any, metadata: dict | None = None) -> bool:
         """Store a conversational item."""
         message = {
             "key": key,
@@ -51,7 +49,7 @@ class ConversationalMemory(BaseMemory):
         self._storage[key] = message
         return True
 
-    async def retrieve(self, key: str) -> Optional[Any]:
+    async def retrieve(self, key: str) -> Any | None:
         """Retrieve a message by key."""
         message = self._storage.get(key)
         return message["value"] if message else None
@@ -77,7 +75,7 @@ class ConversationalMemory(BaseMemory):
         self._storage.clear()
         return True
 
-    def get_conversation_history(self, limit: Optional[int] = None) -> list[dict]:
+    def get_conversation_history(self, limit: int | None = None) -> list[dict]:
         """Get conversation history."""
         if limit:
             return self._messages[-limit:]
@@ -110,7 +108,7 @@ class ConversationalMemory(BaseMemory):
         role: str = None,
         content: str = None,
         session_id: str = None,
-        metadata: Optional[dict] = None,
+        metadata: dict | None = None,
     ) -> None:
         """Add a message to conversation history (async version)."""
         await self.store(

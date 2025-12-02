@@ -1382,9 +1382,7 @@ class OxossiAgent(BaseAgent):
         low_patterns = [p for p in patterns if p.severity == FraudSeverity.LOW]
 
         # Determine overall risk level
-        if critical_patterns:
-            risk_level = "CRITICAL"
-        elif len(high_patterns) >= 3:
+        if critical_patterns or len(high_patterns) >= 3:
             risk_level = "CRITICAL"
         elif high_patterns:
             risk_level = "HIGH"

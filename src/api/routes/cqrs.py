@@ -6,7 +6,7 @@ for better scalability and separation of concerns.
 """
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel
@@ -40,7 +40,7 @@ class CreateInvestigationRequest(BaseModel):
     """Request to create investigation."""
 
     query: str
-    data_sources: Optional[list[str]] = None
+    data_sources: list[str] | None = None
     priority: str = "medium"
 
 
@@ -48,7 +48,7 @@ class UpdateInvestigationRequest(BaseModel):
     """Request to update investigation."""
 
     status: str
-    results: Optional[dict[str, Any]] = None
+    results: dict[str, Any] | None = None
 
 
 class SearchInvestigationsRequest(BaseModel):
@@ -64,11 +64,11 @@ class SearchInvestigationsRequest(BaseModel):
 class SearchContractsRequest(BaseModel):
     """Request to search contracts."""
 
-    search_term: Optional[str] = None
-    orgao: Optional[str] = None
-    min_value: Optional[float] = None
-    max_value: Optional[float] = None
-    year: Optional[int] = None
+    search_term: str | None = None
+    orgao: str | None = None
+    min_value: float | None = None
+    max_value: float | None = None
+    year: int | None = None
     limit: int = 50
     offset: int = 0
 
@@ -79,12 +79,12 @@ class ExecuteAgentTaskRequest(BaseModel):
     agent_name: str
     task_type: str
     payload: dict[str, Any]
-    timeout: Optional[float] = None
+    timeout: float | None = None
 
 
 # Global instances
-command_bus: Optional[CommandBus] = None
-query_bus: Optional[QueryBus] = None
+command_bus: CommandBus | None = None
+query_bus: QueryBus | None = None
 
 
 async def get_command_bus() -> CommandBus:
@@ -165,7 +165,7 @@ async def update_investigation(
 @router.delete("/investigations/{investigation_id}", response_model=dict[str, Any])
 async def cancel_investigation(
     investigation_id: str,
-    reason: Optional[str] = None,
+    reason: str | None = None,
     current_user=Depends(get_current_user),
     cmd_bus: CommandBus = Depends(get_command_bus),
 ):
@@ -276,8 +276,8 @@ async def search_investigations(
 
 @router.get("/investigations/stats", response_model=dict[str, Any])
 async def get_investigation_stats(
-    date_from: Optional[datetime] = None,
-    date_to: Optional[datetime] = None,
+    date_from: datetime | None = None,
+    date_to: datetime | None = None,
     current_user=Depends(get_current_user),
     q_bus: QueryBus = Depends(get_query_bus),
 ):
@@ -332,7 +332,7 @@ async def search_contracts(
 
 @router.get("/agents/performance", response_model=dict[str, Any])
 async def get_agent_performance(
-    agent_name: Optional[str] = None,
+    agent_name: str | None = None,
     time_period: str = "1h",
     current_user=Depends(get_current_user),
     q_bus: QueryBus = Depends(get_query_bus),

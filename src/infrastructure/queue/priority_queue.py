@@ -12,7 +12,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from enum import IntEnum
-from typing import Any, Optional, TypeVar
+from typing import Any, TypeVar
 from uuid import uuid4
 
 from pydantic import BaseModel
@@ -57,7 +57,7 @@ class PriorityTask:
     retry_count: int = field(default=0, compare=False)
     max_retries: int = field(default=3, compare=False)
     timeout: int = field(default=300, compare=False)  # 5 minutes default
-    callback: Optional[str] = field(default=None, compare=False)
+    callback: str | None = field(default=None, compare=False)
     metadata: dict[str, Any] = field(default_factory=dict, compare=False)
 
 
@@ -66,8 +66,8 @@ class TaskResult(BaseModel):
 
     task_id: str
     status: str
-    result: Optional[Any] = None
-    error: Optional[str] = None
+    result: Any | None = None
+    error: str | None = None
     started_at: datetime
     completed_at: datetime
     duration_seconds: float
@@ -149,8 +149,8 @@ class PriorityQueueService:
         priority: TaskPriority = TaskPriority.NORMAL,
         timeout: int = 300,
         max_retries: int = 3,
-        callback: Optional[str] = None,
-        metadata: Optional[dict[str, Any]] = None,
+        callback: str | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> str:
         """
         Enqueue a task with priority.
@@ -194,7 +194,7 @@ class PriorityQueueService:
 
         return task_id
 
-    async def dequeue(self) -> Optional[PriorityTask]:
+    async def dequeue(self) -> PriorityTask | None:
         """Dequeue highest priority task."""
         async with self._lock:
             if self._queue:
@@ -203,7 +203,7 @@ class PriorityQueueService:
                 return task
         return None
 
-    async def get_task_status(self, task_id: str) -> Optional[str]:
+    async def get_task_status(self, task_id: str) -> str | None:
         """Get task status."""
         # Check if processing
         if task_id in self._processing:
@@ -225,11 +225,11 @@ class PriorityQueueService:
 
         return None
 
-    async def get_task_result(self, task_id: str) -> Optional[TaskResult]:
+    async def get_task_result(self, task_id: str) -> TaskResult | None:
         """Get task result if completed or failed."""
         if task_id in self._completed:
             return self._completed[task_id]
-        elif task_id in self._failed:
+        if task_id in self._failed:
             return self._failed[task_id]
         return None
 
@@ -356,7 +356,7 @@ class PriorityQueueService:
             if task.callback:
                 await self._execute_callback(task, task_result)
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             await self._handle_task_failure(task, worker_id, "Task timeout", start_time)
         except Exception as e:
             await self._handle_task_failure(task, worker_id, str(e), start_time)
