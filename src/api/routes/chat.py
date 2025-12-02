@@ -26,6 +26,13 @@ from src.core.config import get_settings
 from src.services.agent_routing import resolve_agent_id
 from src.services.chat_data_integration import chat_data_integration
 from src.services.chat_service import IntentType
+from src.services.message_sanitizer import (
+    MessageValidationStatus,
+    ValidationResult,
+    extract_safe_log_message,
+    get_edge_case_response,
+    sanitize_message,
+)
 from src.services.maritaca_direct_service import (
     MaritacaChatRequest,
     MaritacaChatResponse,
@@ -416,19 +423,56 @@ async def send_message(
     Process a chat message and return agent response
     """
     try:
+        # ================================================================
+        # EDGE CASE HANDLING: Validate and sanitize message (Dec 2025)
+        # ================================================================
+        validation = sanitize_message(request.message)
+        session_id = request.session_id or str(uuid.uuid4())
+
+        # Log with safe message content
+        logger.info(
+            f"Chat request: {extract_safe_log_message(request.message)}",
+            extra={"session_id": session_id, "validation_status": validation.status.value},
+        )
+
+        # Handle edge cases with instant responses
+        if validation.status != MessageValidationStatus.VALID:
+            edge_response = get_edge_case_response(validation.status)
+            if edge_response:
+                logger.info(f"Edge case handled: {validation.status.value}")
+                return ChatResponse(
+                    session_id=session_id,
+                    message_id=str(uuid.uuid4()),
+                    agent_id="drummond",
+                    agent_name="Carlos Drummond de Andrade",
+                    message=validation.suggested_response or edge_response["message"],
+                    confidence=1.0,
+                    suggested_actions=edge_response.get("suggested_actions"),
+                    follow_up_questions=None,
+                    requires_input=None,
+                    metadata={
+                        "edge_case": validation.status.value,
+                        "warning": validation.warning,
+                        "timestamp": datetime.now(UTC).isoformat(),
+                    },
+                )
+
+        # Use sanitized message for processing
+        sanitized_message = validation.sanitized_message
+
         # Check if chat service is available
         if chat_service is None:
             logger.error("Chat service not available")
-            return {
-                "response": "Desculpe, o serviço de chat está temporariamente indisponível.",
-                "session_id": request.session_id or str(uuid.uuid4()),
-                "message_id": str(uuid.uuid4()),
-                "timestamp": datetime.now(UTC).isoformat(),
-                "intent": None,
-            }
-
-        # Get or create session
-        session_id = request.session_id or str(uuid.uuid4())
+            return ChatResponse(
+                session_id=session_id,
+                message_id=str(uuid.uuid4()),
+                agent_id="system",
+                agent_name="Sistema",
+                message="Desculpe, o serviço de chat está temporariamente indisponível.",
+                confidence=0.0,
+                suggested_actions=["retry"],
+                metadata={"error": "service_unavailable"},
+            )
         session = await chat_service.get_or_create_session(
             session_id, user_id=current_user.id if current_user else None
         )
@@ -439,7 +483,8 @@ async def send_message(
 
         try:
             if intent_classifier is not None:
-                intent_result = await intent_classifier.classify(request.message)
+                # Use sanitized message for intent detection
+                intent_result = await intent_classifier.classify(sanitized_message)
                 detected_intent = intent_result["intent"]
                 confidence = intent_result["confidence"]
                 method = intent_result.get("method", "unknown")
@@ -512,7 +557,7 @@ async def send_message(
 
                 # Save to chat history
                 await chat_service.save_message(
-                    session_id=session_id, role="user", content=request.message
+                    session_id=session_id, role="user", content=sanitized_message
                 )
                 await chat_service.save_message(
                     session_id=session_id,
@@ -582,7 +627,7 @@ async def send_message(
 
         # Check if user is asking for specific government data
         portal_data = None
-        message_lower = request.message.lower()
+        message_lower = sanitized_message.lower()
         data_keywords = [
             "contratos",
             "gastos",
@@ -611,12 +656,12 @@ async def send_message(
             if ORCHESTRATOR_AVAILABLE:
                 try:
                     logger.info(
-                        f"Using InvestigationOrchestrator for comprehensive analysis: {request.message}"
+                        f"Using InvestigationOrchestrator for comprehensive analysis: {extract_safe_log_message(sanitized_message)}"
                     )
 
                     # Run full investigation (30+ APIs, multi-agent)
                     investigation_result = await orchestrator.investigate(
-                        query=request.message,
+                        query=sanitized_message,
                         user_id=current_user.id if current_user else "anonymous",
                         session_id=session_id,
                     )
@@ -646,7 +691,7 @@ async def send_message(
                     # Fall back to simple integration
                     try:
                         portal_result = await chat_data_integration.process_user_query(
-                            request.message, request.context
+                            sanitized_message, request.context
                         )
                         if portal_result and portal_result.get("data"):
                             portal_data = portal_result
@@ -656,10 +701,10 @@ async def send_message(
                 # Orchestrator not available, use simple integration
                 try:
                     logger.info(
-                        f"Fetching data from Portal da Transparência (Orchestrator not available): {request.message}"
+                        f"Fetching data from Portal da Transparência (Orchestrator not available): {extract_safe_log_message(sanitized_message)}"
                     )
                     portal_result = await chat_data_integration.process_user_query(
-                        request.message, request.context
+                        sanitized_message, request.context
                     )
                     if portal_result and portal_result.get("data"):
                         portal_data = portal_result
@@ -671,7 +716,7 @@ async def send_message(
 
         # Create agent message with Portal data if available
         payload_data = {
-            "user_message": request.message,
+            "user_message": sanitized_message,
             "intent": intent.dict(),
             "context": request.context or {},
             "session": session.to_dict(),
@@ -784,7 +829,7 @@ async def send_message(
                 )
 
                 # Extract what to investigate from the message
-                search_query = request.message.lower()
+                search_query = sanitized_message.lower()
                 data_source = DataSourceType.CONTRACTS  # Default
 
                 # Detect data source from keywords
@@ -814,7 +859,7 @@ async def send_message(
 
                 # Run investigation with dados.gov.br enabled
                 investigation_result = await run_zumbi_investigation(
-                    query=request.message,
+                    query=sanitized_message,
                     organization_codes=org_codes,
                     enable_open_data=True,  # Always enable dados.gov.br search
                     session_id=session_id,
@@ -947,7 +992,7 @@ async def send_message(
                 try:
                     logger.info("Attempting Portal data fetch in fallback handler")
                     portal_result = await chat_data_integration.process_user_query(
-                        request.message, request.context
+                        sanitized_message, request.context
                     )
                     if portal_result and portal_result.get("data"):
                         portal_data = portal_result
@@ -1019,9 +1064,9 @@ async def send_message(
                 agent_id = "system"
                 agent_name = "Sistema"
 
-        # Save to chat history
+        # Save to chat history (use sanitized message for security)
         await chat_service.save_message(
-            session_id=session_id, role="user", content=request.message
+            session_id=session_id, role="user", content=sanitized_message
         )
 
         # Get content from response
@@ -1221,6 +1266,36 @@ async def stream_message(request: ChatRequest):
     Stream chat response using Server-Sent Events (SSE)
     """
 
+    # Sanitize input message before processing
+    validation = sanitize_message(request.message)
+    sanitized_message = validation.sanitized_message
+
+    # Handle edge cases with streaming responses
+    if validation.status != MessageValidationStatus.VALID:
+        edge_response = get_edge_case_response(validation.status)
+        if edge_response and validation.suggested_response:
+
+            async def edge_case_generator():
+                yield f"data: {json_utils.dumps({'type': 'start', 'timestamp': datetime.now(UTC).isoformat()})}\n\n"
+                yield f"data: {json_utils.dumps({'type': 'edge_case', 'status': validation.status.value})}\n\n"
+
+                # Stream the response in chunks
+                response_text = validation.suggested_response
+                words = response_text.split()
+                chunk = ""
+                for i, word in enumerate(words):
+                    chunk += word + " "
+                    if i % 4 == 0:
+                        yield f"data: {json_utils.dumps({'type': 'chunk', 'content': chunk.strip()})}\n\n"
+                        chunk = ""
+                        await asyncio.sleep(0.05)
+                if chunk:
+                    yield f"data: {json_utils.dumps({'type': 'chunk', 'content': chunk.strip()})}\n\n"
+
+                yield f"data: {json_utils.dumps({'type': 'complete', 'agent_id': 'drummond', 'agent_name': 'Carlos Drummond de Andrade', 'edge_case': True, 'suggested_actions': edge_response.get('suggested_actions', [])})}\n\n"
+
+            return EventSourceResponse(edge_case_generator())
+
     async def generate():
         try:
             # Send initial event
@@ -1236,7 +1311,7 @@ async def stream_message(request: ChatRequest):
 
             try:
                 if intent_classifier is not None:
-                    intent_result = await intent_classifier.classify(request.message)
+                    intent_result = await intent_classifier.classify(sanitized_message)
                     detected_intent = intent_result["intent"]
                     confidence = intent_result["confidence"]
 
@@ -1313,7 +1388,7 @@ async def stream_message(request: ChatRequest):
                     return  # Exit the generator early
 
             # Check if this is a contract search query that should use real data
-            is_contract_search = _is_contract_search_query(request.message, intent.type)
+            is_contract_search = _is_contract_search_query(sanitized_message, intent.type)
 
             # If contract search intent and investigative service available, use real data
             if (
@@ -1326,7 +1401,7 @@ async def stream_message(request: ChatRequest):
                 # Stream real contract search
                 contracts_found = []
                 async for event in investigative_service.search_contracts_streaming(
-                    message=request.message,
+                    message=sanitized_message,
                     max_results=5,
                 ):
                     # Forward search events
@@ -1359,7 +1434,7 @@ async def stream_message(request: ChatRequest):
                 # Stream response from DSPy agent
                 async for chunk_data in dspy_service.chat_stream(
                     agent_id=agent_id,
-                    message=request.message,
+                    message=sanitized_message,
                     intent_type=intent.type.value,
                     context="",
                 ):
