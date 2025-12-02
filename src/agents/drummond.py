@@ -1003,7 +1003,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
                     metadata={"conversation": True, "confidence": 0.95},
                 )
 
-            elif action == "send_notification":
+            if action == "send_notification":
                 message_type = MessageType(payload.get("message_type"))
                 content = payload.get("content", {})
                 targets = payload.get("targets", [])
@@ -1030,7 +1030,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
                     metadata={"results_count": len(results)},
                 )
 
-            elif action == "generate_report_summary":
+            if action == "generate_report_summary":
                 report_data = payload.get("report_data", {})
                 audience = payload.get("target_audience", "general")
                 language = payload.get("language", "pt-BR")
@@ -1045,7 +1045,7 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
                     result={"report_summary": summary, "status": "summary_generated"},
                 )
 
-            elif action == "send_bulk_communication":
+            if action == "send_bulk_communication":
                 message_type = MessageType(payload.get("message_type"))
                 content = payload.get("content", {})
                 segments = payload.get("target_segments", [])
