@@ -11,7 +11,7 @@ import signal
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 import typer
@@ -57,7 +57,7 @@ class MonitoringConfig(BaseModel):
     organizations: list[str] = Field(default_factory=list)
     suppliers: list[str] = Field(default_factory=list)
     categories: list[str] = Field(default_factory=list)
-    min_value: Optional[float] = None
+    min_value: float | None = None
     anomaly_threshold: float = 0.7
     alert_level: AlertLevel = AlertLevel.MEDIUM
     check_interval: int = 60  # seconds
@@ -70,16 +70,16 @@ class MonitoringStats(BaseModel):
     checks_performed: int = 0
     anomalies_detected: int = 0
     alerts_triggered: int = 0
-    last_check: Optional[datetime] = None
+    last_check: datetime | None = None
     active_alerts: list[dict[str, Any]] = Field(default_factory=list)
 
 
 async def call_api(
     endpoint: str,
     method: str = "GET",
-    data: Optional[dict[str, Any]] = None,
-    params: Optional[dict[str, Any]] = None,
-    auth_token: Optional[str] = None,
+    data: dict[str, Any] | None = None,
+    params: dict[str, Any] | None = None,
+    auth_token: str | None = None,
 ) -> dict[str, Any]:
     """Make API call to backend."""
     api_url = "http://localhost:8000"
@@ -203,7 +203,7 @@ def render_footer() -> Panel:
 
 
 async def check_for_anomalies(
-    config: MonitoringConfig, stats: MonitoringStats, auth_token: Optional[str] = None
+    config: MonitoringConfig, stats: MonitoringStats, auth_token: str | None = None
 ) -> list[dict[str, Any]]:
     """Check for anomalies based on monitoring mode."""
     new_alerts = []
@@ -327,16 +327,16 @@ def setup_signal_handlers():
 @app.command()
 def watch(
     mode: MonitoringMode = typer.Argument(help="What to monitor"),
-    organizations: Optional[list[str]] = typer.Option(
+    organizations: list[str] | None = typer.Option(
         None, "--org", "-o", help="Organization codes to monitor"
     ),
-    suppliers: Optional[list[str]] = typer.Option(
+    suppliers: list[str] | None = typer.Option(
         None, "--supplier", "-s", help="Supplier names to monitor"
     ),
-    categories: Optional[list[str]] = typer.Option(
+    categories: list[str] | None = typer.Option(
         None, "--category", "-c", help="Contract categories to monitor"
     ),
-    min_value: Optional[float] = typer.Option(
+    min_value: float | None = typer.Option(
         None, "--min-value", help="Minimum value threshold for alerts"
     ),
     threshold: float = typer.Option(
@@ -348,10 +348,10 @@ def watch(
     interval: int = typer.Option(
         60, "--interval", "-i", min=10, help="Check interval in seconds"
     ),
-    export_alerts: Optional[Path] = typer.Option(
+    export_alerts: Path | None = typer.Option(
         None, "--export", "-e", help="Export alerts to file"
     ),
-    api_key: Optional[str] = typer.Option(
+    api_key: str | None = typer.Option(
         None, "--api-key", envvar="CIDADAO_API_KEY", help="API key"
     ),
 ):
@@ -487,7 +487,7 @@ def watch(
 
 @app.command()
 def test_connection(
-    api_key: Optional[str] = typer.Option(
+    api_key: str | None = typer.Option(
         None, "--api-key", envvar="CIDADAO_API_KEY", help="API key"
     ),
 ):

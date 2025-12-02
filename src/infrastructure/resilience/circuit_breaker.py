@@ -11,7 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from src.core import get_logger
 
@@ -46,8 +46,8 @@ class CircuitBreakerStats:
     failed_requests: int = 0
     rejected_requests: int = 0
     state_changes: int = 0
-    last_failure_time: Optional[datetime] = None
-    last_success_time: Optional[datetime] = None
+    last_failure_time: datetime | None = None
+    last_success_time: datetime | None = None
     current_consecutive_failures: int = 0
     current_consecutive_successes: int = 0
 
@@ -76,7 +76,7 @@ class CircuitBreaker:
     - Async/await support
     """
 
-    def __init__(self, name: str, config: Optional[CircuitBreakerConfig] = None):
+    def __init__(self, name: str, config: CircuitBreakerConfig | None = None):
         """
         Initialize circuit breaker.
 
@@ -89,7 +89,7 @@ class CircuitBreaker:
         self.state = CircuitState.CLOSED
         self.stats = CircuitBreakerStats()
         self._lock = asyncio.Lock()
-        self._last_failure_time: Optional[float] = None
+        self._last_failure_time: float | None = None
 
         logger.info(f"Circuit breaker '{name}' initialized")
 
@@ -141,7 +141,7 @@ class CircuitBreaker:
 
             return result
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             await self._record_failure()
             execution_time = time.time() - start_time
 
@@ -169,10 +169,9 @@ class CircuitBreaker:
         """Execute function, handling both sync and async functions."""
         if asyncio.iscoroutinefunction(func):
             return await func(*args, **kwargs)
-        else:
-            # Run sync function in thread pool
-            loop = asyncio.get_event_loop()
-            return await loop.run_in_executor(None, func, *args, **kwargs)
+        # Run sync function in thread pool
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, func, *args, **kwargs)
 
     async def _check_state(self):
         """Check and update circuit breaker state."""
@@ -328,7 +327,7 @@ class CircuitBreakerManager:
         logger.info(f"Registered default config for service '{service_name}'")
 
     def get_circuit_breaker(
-        self, service_name: str, config: Optional[CircuitBreakerConfig] = None
+        self, service_name: str, config: CircuitBreakerConfig | None = None
     ) -> CircuitBreaker:
         """
         Get or create circuit breaker for service.
@@ -357,7 +356,7 @@ class CircuitBreakerManager:
         service_name: str,
         func: Callable,
         *args,
-        config: Optional[CircuitBreakerConfig] = None,
+        config: CircuitBreakerConfig | None = None,
         **kwargs,
     ) -> Any:
         """
@@ -477,7 +476,7 @@ setup_default_circuit_breakers()
 
 
 # Convenience decorators
-def circuit_breaker(service_name: str, config: Optional[CircuitBreakerConfig] = None):
+def circuit_breaker(service_name: str, config: CircuitBreakerConfig | None = None):
     """
     Decorator to protect functions with circuit breaker.
 

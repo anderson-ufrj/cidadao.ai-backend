@@ -7,7 +7,6 @@ License: Proprietary - All rights reserved
 """
 
 import re
-from typing import Optional
 from urllib.parse import urlparse
 
 from fastapi import Request
@@ -36,12 +35,12 @@ class EnhancedCORSMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app,
-        allowed_origins: Optional[list[str]] = None,
-        allowed_origin_patterns: Optional[list[str]] = None,
+        allowed_origins: list[str] | None = None,
+        allowed_origin_patterns: list[str] | None = None,
         allow_credentials: bool = True,
-        allowed_methods: Optional[list[str]] = None,
-        allowed_headers: Optional[list[str]] = None,
-        exposed_headers: Optional[list[str]] = None,
+        allowed_methods: list[str] | None = None,
+        allowed_headers: list[str] | None = None,
+        exposed_headers: list[str] | None = None,
         max_age: int = 3600,
     ):
         """Initialize enhanced CORS middleware."""
@@ -130,8 +129,8 @@ class EnhancedCORSMiddleware(BaseHTTPMiddleware):
         return response
 
     async def _handle_preflight(
-        self, request: Request, origin: Optional[str]
-    ) -> Optional[Response]:
+        self, request: Request, origin: str | None
+    ) -> Response | None:
         """Handle preflight OPTIONS requests."""
         if not origin or not self._is_origin_allowed(origin):
             return None

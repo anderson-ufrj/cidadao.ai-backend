@@ -12,7 +12,7 @@ License: Proprietary - All rights reserved
 import asyncio
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from .cache import get_cache
 from .registry import registry
@@ -37,7 +37,7 @@ class HealthCheckResult:
         api_name: str,
         status: HealthStatus,
         response_time: float,
-        error: Optional[str] = None,
+        error: str | None = None,
     ):
         """
         Initialize health check result.
@@ -293,7 +293,7 @@ class HealthMonitor:
         }
 
     def get_history(
-        self, api_key: Optional[str] = None, hours: int = 24
+        self, api_key: str | None = None, hours: int = 24
     ) -> dict[str, list[dict[str, Any]]]:
         """
         Get health check history.
@@ -321,7 +321,7 @@ class HealthMonitor:
 
         return result
 
-    def clear_history(self, api_key: Optional[str] = None) -> None:
+    def clear_history(self, api_key: str | None = None) -> None:
         """
         Clear health check history.
 
@@ -336,7 +336,7 @@ class HealthMonitor:
 
 
 # Global health monitor instance
-_global_monitor: Optional[HealthMonitor] = None
+_global_monitor: HealthMonitor | None = None
 
 
 def get_health_monitor() -> HealthMonitor:

@@ -9,7 +9,7 @@ import hashlib
 import json
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from src.agents.deodoro import AgentContext, AgentMessage, BaseAgent
 from src.agents.nana import (
@@ -498,7 +498,7 @@ class AgentMemoryIntegration:
         source_agent: str,
         target_agent: str,
         knowledge_type: str,
-        filters: Optional[dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
     ) -> bool:
         """
         Share specific knowledge from one agent to another.
@@ -688,6 +688,6 @@ async def initialize_memory_integration(
     return memory_integration
 
 
-def get_memory_integration() -> Optional[AgentMemoryIntegration]:
+def get_memory_integration() -> AgentMemoryIntegration | None:
     """Get the global memory integration instance."""
     return memory_integration

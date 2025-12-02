@@ -116,14 +116,13 @@ class TransparencyCoverageSnapshot(Base):
                 f"date={self.snapshot_date.isoformat()}"
                 f")>"
             )
-        else:
-            return (
-                f"<TransparencyCoverageSnapshot("
-                f"id={self.id}, "
-                f"type=MAIN, "
-                f"date={self.snapshot_date.isoformat()}"
-                f")>"
-            )
+        return (
+            f"<TransparencyCoverageSnapshot("
+            f"id={self.id}, "
+            f"type=MAIN, "
+            f"date={self.snapshot_date.isoformat()}"
+            f")>"
+        )
 
     def to_dict(self) -> dict:
         """Convert snapshot to dictionary for API responses."""

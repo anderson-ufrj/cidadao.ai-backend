@@ -10,7 +10,6 @@ License: Proprietary - All rights reserved
 """
 
 from enum import Enum
-from typing import Optional
 
 from .base import TransparencyAPIClient
 from .federal_apis.portal_adapter import PortalTransparenciaAdapter
@@ -111,7 +110,7 @@ class TransparencyAPIRegistry:
         """
         self._clients[key] = client_class
 
-    def get_client(self, key: str) -> Optional[TransparencyAPIClient]:
+    def get_client(self, key: str) -> TransparencyAPIClient | None:
         """
         Get API client instance by key.
 

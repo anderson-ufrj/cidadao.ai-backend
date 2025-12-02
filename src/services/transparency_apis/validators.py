@@ -11,7 +11,7 @@ License: Proprietary - All rights reserved
 
 import re
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 
 class DataValidator:
@@ -32,7 +32,7 @@ class DataValidator:
     IBGE_CODE_PATTERN = re.compile(r"^\d{7}$")
 
     @staticmethod
-    def validate_cnpj(cnpj: Optional[str]) -> bool:
+    def validate_cnpj(cnpj: str | None) -> bool:
         """
         Validate Brazilian CNPJ (company tax ID).
 
@@ -58,7 +58,7 @@ class DataValidator:
         return True
 
     @staticmethod
-    def validate_cpf(cpf: Optional[str]) -> bool:
+    def validate_cpf(cpf: str | None) -> bool:
         """
         Validate Brazilian CPF (individual tax ID).
 
@@ -84,7 +84,7 @@ class DataValidator:
         return True
 
     @staticmethod
-    def validate_ibge_code(code: Optional[str]) -> bool:
+    def validate_ibge_code(code: str | None) -> bool:
         """
         Validate IBGE municipality code.
 
@@ -100,7 +100,7 @@ class DataValidator:
         return bool(DataValidator.IBGE_CODE_PATTERN.match(str(code)))
 
     @staticmethod
-    def validate_date(date_str: Optional[str]) -> bool:
+    def validate_date(date_str: str | None) -> bool:
         """
         Validate date string in various Brazilian formats.
 
@@ -260,12 +260,11 @@ class DataValidator:
         supplier_id = supplier.get("supplier_id")
         if not supplier_id:
             issues.append("Missing supplier_id")
-        else:
-            if not (
-                DataValidator.validate_cnpj(supplier_id)
-                or DataValidator.validate_cpf(supplier_id)
-            ):
-                issues.append(f"Invalid supplier_id format: {supplier_id}")
+        elif not (
+            DataValidator.validate_cnpj(supplier_id)
+            or DataValidator.validate_cpf(supplier_id)
+        ):
+            issues.append(f"Invalid supplier_id format: {supplier_id}")
 
         return {"valid": len(issues) == 0, "issues": issues, "data": supplier}
 

@@ -7,7 +7,7 @@ than offset pagination for large datasets and real-time data.
 
 import base64
 from datetime import UTC, datetime
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -50,7 +50,7 @@ class CursorInfo(BaseModel):
 class CursorPaginationRequest(BaseModel):
     """Request parameters for cursor pagination."""
 
-    cursor: Optional[str] = Field(None, description="Cursor for next/previous page")
+    cursor: str | None = Field(None, description="Cursor for next/previous page")
     limit: int = Field(20, ge=1, le=100, description="Number of items per page")
     direction: str = Field(
         "next", pattern="^(next|prev)$", description="Pagination direction"
@@ -61,10 +61,10 @@ class CursorPaginationResponse(BaseModel, Generic[T]):
     """Response with cursor pagination metadata."""
 
     items: list[T]
-    next_cursor: Optional[str] = None
-    prev_cursor: Optional[str] = None
+    next_cursor: str | None = None
+    prev_cursor: str | None = None
     has_more: bool = False
-    total_items: Optional[int] = None
+    total_items: int | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -82,7 +82,7 @@ class PaginationHelper:
         return cursor_info.encode()
 
     @staticmethod
-    def parse_cursor(cursor: Optional[str]) -> Optional[CursorInfo]:
+    def parse_cursor(cursor: str | None) -> CursorInfo | None:
         """Parse cursor string to CursorInfo."""
         if not cursor:
             return None
@@ -171,7 +171,7 @@ class ChatMessagePagination:
     @staticmethod
     def paginate_messages(
         messages: list[dict[str, Any]],
-        cursor: Optional[str] = None,
+        cursor: str | None = None,
         limit: int = 50,
         direction: str = "prev",  # Default to loading older messages
     ) -> CursorPaginationResponse[dict[str, Any]]:

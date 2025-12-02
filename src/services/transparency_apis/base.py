@@ -13,7 +13,7 @@ License: Proprietary - All rights reserved
 import asyncio
 from abc import ABC, abstractmethod
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -61,7 +61,7 @@ class TransparencyAPIClient(ABC):
         # Circuit breaker state
         self._failure_count = 0
         self._circuit_open = False
-        self._circuit_open_until: Optional[datetime] = None
+        self._circuit_open_until: datetime | None = None
 
         self.logger.info(
             f"Initialized {name} API client",
@@ -82,8 +82,8 @@ class TransparencyAPIClient(ABC):
     @abstractmethod
     async def get_contracts(
         self,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """
@@ -103,8 +103,8 @@ class TransparencyAPIClient(ABC):
         self,
         method: str,
         endpoint: str,
-        params: Optional[dict[str, Any]] = None,
-        headers: Optional[dict[str, str]] = None,
+        params: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
     ) -> dict[str, Any]:
         """
         Make HTTP request with rate limiting and circuit breaker.
@@ -125,11 +125,10 @@ class TransparencyAPIClient(ABC):
         if self._circuit_open:
             if datetime.now(UTC) < self._circuit_open_until:
                 raise Exception(f"Circuit breaker open for {self.name} API")
-            else:
-                # Reset circuit breaker
-                self._circuit_open = False
-                self._failure_count = 0
-                self.logger.info(f"Circuit breaker reset for {self.name}")
+            # Reset circuit breaker
+            self._circuit_open = False
+            self._failure_count = 0
+            self.logger.info(f"Circuit breaker reset for {self.name}")
 
         # Rate limiting
         await self._wait_for_rate_limit()

@@ -7,7 +7,7 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,15 +35,15 @@ class APIKeyService:
         self,
         name: str,
         client_id: str,
-        client_name: Optional[str] = None,
-        client_email: Optional[str] = None,
+        client_name: str | None = None,
+        client_email: str | None = None,
         tier: APIKeyTier = APIKeyTier.FREE,
-        expires_in_days: Optional[int] = None,
+        expires_in_days: int | None = None,
         rotation_period_days: int = 90,
-        allowed_ips: Optional[list[str]] = None,
-        allowed_origins: Optional[list[str]] = None,
-        scopes: Optional[list[str]] = None,
-        metadata: Optional[dict[str, Any]] = None,
+        allowed_ips: list[str] | None = None,
+        allowed_origins: list[str] | None = None,
+        scopes: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> tuple[APIKey, str]:
         """
         Create a new API key.
@@ -110,9 +110,9 @@ class APIKeyService:
     async def validate_api_key(
         self,
         key: str,
-        ip: Optional[str] = None,
-        origin: Optional[str] = None,
-        scope: Optional[str] = None,
+        ip: str | None = None,
+        origin: str | None = None,
+        scope: str | None = None,
     ) -> APIKey:
         """
         Validate an API key and check permissions.
@@ -341,7 +341,7 @@ class APIKeyService:
 
         return api_key
 
-    async def get_by_id(self, api_key_id: str) -> Optional[APIKey]:
+    async def get_by_id(self, api_key_id: str) -> APIKey | None:
         """Get API key by ID."""
         result = await self.db.execute(
             select(APIKey)
@@ -365,9 +365,9 @@ class APIKeyService:
     async def update_rate_limits(
         self,
         api_key_id: str,
-        per_minute: Optional[int] = None,
-        per_hour: Optional[int] = None,
-        per_day: Optional[int] = None,
+        per_minute: int | None = None,
+        per_hour: int | None = None,
+        per_day: int | None = None,
     ) -> APIKey:
         """Update custom rate limits for a key."""
         api_key = await self.get_by_id(api_key_id)

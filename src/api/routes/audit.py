@@ -5,7 +5,6 @@ Security audit logging and monitoring endpoints
 
 import io
 from datetime import UTC, datetime, timedelta
-from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
@@ -31,45 +30,45 @@ class AuditEventResponse(BaseModel):
     event_type: str
     severity: str
     message: str
-    user_id: Optional[str] = None
-    user_email: Optional[str] = None
-    user_role: Optional[str] = None
-    resource_type: Optional[str] = None
-    resource_id: Optional[str] = None
-    resource_name: Optional[str] = None
+    user_id: str | None = None
+    user_email: str | None = None
+    user_role: str | None = None
+    resource_type: str | None = None
+    resource_id: str | None = None
+    resource_name: str | None = None
     success: bool
-    error_code: Optional[str] = None
-    error_message: Optional[str] = None
+    error_code: str | None = None
+    error_message: str | None = None
     details: dict = {}
-    context: Optional[dict] = None
+    context: dict | None = None
 
 
 class AuditQueryRequest(BaseModel):
     """Audit query request model."""
 
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
-    event_types: Optional[list[AuditEventType]] = None
-    severity_levels: Optional[list[AuditSeverity]] = None
-    user_id: Optional[str] = None
-    user_email: Optional[str] = None
-    resource_type: Optional[str] = None
-    resource_id: Optional[str] = None
-    success_only: Optional[bool] = None
-    ip_address: Optional[str] = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    event_types: list[AuditEventType] | None = None
+    severity_levels: list[AuditSeverity] | None = None
+    user_id: str | None = None
+    user_email: str | None = None
+    resource_type: str | None = None
+    resource_id: str | None = None
+    success_only: bool | None = None
+    ip_address: str | None = None
     limit: int = 100
     offset: int = 0
 
 
 @router.get("/events", response_model=list[AuditEventResponse])
 async def get_audit_events(
-    start_date: Optional[datetime] = Query(None, description="Start date filter"),
-    end_date: Optional[datetime] = Query(None, description="End date filter"),
-    event_type: Optional[AuditEventType] = Query(None, description="Event type filter"),
-    severity: Optional[AuditSeverity] = Query(None, description="Severity filter"),
-    user_email: Optional[str] = Query(None, description="User email filter"),
-    resource_type: Optional[str] = Query(None, description="Resource type filter"),
-    success_only: Optional[bool] = Query(None, description="Success only filter"),
+    start_date: datetime | None = Query(None, description="Start date filter"),
+    end_date: datetime | None = Query(None, description="End date filter"),
+    event_type: AuditEventType | None = Query(None, description="Event type filter"),
+    severity: AuditSeverity | None = Query(None, description="Severity filter"),
+    user_email: str | None = Query(None, description="User email filter"),
+    resource_type: str | None = Query(None, description="Resource type filter"),
+    success_only: bool | None = Query(None, description="Success only filter"),
     limit: int = Query(100, le=1000, description="Result limit"),
     offset: int = Query(0, ge=0, description="Result offset"),
     current_user: User = Depends(get_current_user),
@@ -164,8 +163,8 @@ async def query_audit_events(
 
 @router.get("/statistics", response_model=AuditStatistics)
 async def get_audit_statistics(
-    start_date: Optional[datetime] = Query(None, description="Start date filter"),
-    end_date: Optional[datetime] = Query(None, description="End date filter"),
+    start_date: datetime | None = Query(None, description="Start date filter"),
+    end_date: datetime | None = Query(None, description="End date filter"),
     current_user: User = Depends(get_current_user),
 ):
     """Get audit statistics (admin only)."""
@@ -182,11 +181,11 @@ async def get_audit_statistics(
 @router.get("/export")
 async def export_audit_events(
     format: str = Query("json", regex="^(json|csv)$", description="Export format"),
-    start_date: Optional[datetime] = Query(None, description="Start date filter"),
-    end_date: Optional[datetime] = Query(None, description="End date filter"),
-    event_type: Optional[AuditEventType] = Query(None, description="Event type filter"),
-    severity: Optional[AuditSeverity] = Query(None, description="Severity filter"),
-    user_email: Optional[str] = Query(None, description="User email filter"),
+    start_date: datetime | None = Query(None, description="Start date filter"),
+    end_date: datetime | None = Query(None, description="End date filter"),
+    event_type: AuditEventType | None = Query(None, description="Event type filter"),
+    severity: AuditSeverity | None = Query(None, description="Severity filter"),
+    user_email: str | None = Query(None, description="User email filter"),
     current_user: User = Depends(get_current_user),
 ):
     """Export audit events (admin only)."""

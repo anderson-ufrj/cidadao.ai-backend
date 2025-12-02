@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
@@ -34,8 +34,8 @@ class EpisodicMemory(MemoryEntry):
     """Episodic memory entry for specific events/investigations."""
 
     investigation_id: str = PydanticField(..., description="Investigation ID")
-    user_id: Optional[str] = PydanticField(default=None, description="User ID")
-    session_id: Optional[str] = PydanticField(default=None, description="Session ID")
+    user_id: str | None = PydanticField(default=None, description="User ID")
+    session_id: str | None = PydanticField(default=None, description="Session ID")
     query: str = PydanticField(..., description="Original query")
     result: dict[str, Any] = PydanticField(..., description="Investigation result")
     context: dict[str, Any] = PydanticField(default_factory=dict, description="Context")
@@ -63,7 +63,7 @@ class ConversationMemory(MemoryEntry):
     turn_number: int = PydanticField(..., description="Turn in conversation")
     speaker: str = PydanticField(..., description="Speaker (user/agent)")
     message: str = PydanticField(..., description="Message content")
-    intent: Optional[str] = PydanticField(default=None, description="Detected intent")
+    intent: str | None = PydanticField(default=None, description="Detected intent")
 
 
 class ContextMemoryAgent(BaseAgent):
@@ -648,7 +648,9 @@ class ContextMemoryAgent(BaseAgent):
                     memory_data = await self.redis_client.get(key)
                     if memory_data:
                         memory = json_utils.loads(memory_data)
-                        timestamp_str = memory.get("timestamp", datetime.now(UTC).isoformat())
+                        timestamp_str = memory.get(
+                            "timestamp", datetime.now(UTC).isoformat()
+                        )
                         timestamp = datetime.fromisoformat(timestamp_str)
                         # Ensure timezone-aware for comparison
                         if timestamp.tzinfo is None:
@@ -912,9 +914,9 @@ class ContextMemoryAgent(BaseAgent):
             m.get("id") for m in sorted_memories
         ]
         consolidated["metadata"]["consolidated_count"] = len(sorted_memories)
-        consolidated["metadata"][
-            "consolidation_timestamp"
-        ] = datetime.now(UTC).isoformat()
+        consolidated["metadata"]["consolidation_timestamp"] = datetime.now(
+            UTC
+        ).isoformat()
 
         return consolidated
 
@@ -925,12 +927,11 @@ class ContextMemoryAgent(BaseAgent):
 
         if confidence > 0.8 and findings_count > 3:
             return MemoryImportance.CRITICAL
-        elif confidence > 0.6 and findings_count > 1:
+        if confidence > 0.6 and findings_count > 1:
             return MemoryImportance.HIGH
-        elif confidence > 0.4:
+        if confidence > 0.4:
             return MemoryImportance.MEDIUM
-        else:
-            return MemoryImportance.LOW
+        return MemoryImportance.LOW
 
     def _extract_tags(self, text: str) -> list[str]:
         """Extract tags from text for better organization."""

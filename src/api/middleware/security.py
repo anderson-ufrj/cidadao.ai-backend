@@ -13,7 +13,6 @@ import re
 import time
 from collections import defaultdict, deque
 from datetime import UTC, datetime, timedelta
-from typing import Optional
 
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
@@ -166,9 +165,8 @@ class IPBlockList:
                 minutes=SecurityConfig.BLOCK_DURATION_MINUTES
             ):
                 return True
-            else:
-                # Unblock expired IPs
-                del self.blocked_ips[ip]
+            # Unblock expired IPs
+            del self.blocked_ips[ip]
 
         return False
 
@@ -290,7 +288,7 @@ class RequestValidator:
                 return False
         return True
 
-    def validate_headers(self, request: Request) -> tuple[bool, Optional[str]]:
+    def validate_headers(self, request: Request) -> tuple[bool, str | None]:
         """Validate request headers."""
 
         # Check header size
@@ -345,7 +343,7 @@ class RequestValidator:
 
         return True, None
 
-    def validate_url(self, request: Request) -> tuple[bool, Optional[str]]:
+    def validate_url(self, request: Request) -> tuple[bool, str | None]:
         """Validate request URL."""
 
         url = str(request.url)
@@ -381,7 +379,7 @@ class RequestValidator:
 
         return content_type.lower() in SecurityConfig.ALLOWED_CONTENT_TYPES
 
-    async def scan_request_body(self, body: bytes) -> tuple[bool, Optional[str]]:
+    async def scan_request_body(self, body: bytes) -> tuple[bool, str | None]:
         """Scan request body for suspicious content."""
         if not body:
             return True, None
@@ -545,7 +543,7 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
     async def _validate_request(
         self, request: Request, audit_context: AuditContext
-    ) -> Optional[JSONResponse]:
+    ) -> JSONResponse | None:
         """Validate request and return error response if invalid."""
 
         # Validate request size

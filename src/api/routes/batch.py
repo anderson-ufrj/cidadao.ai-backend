@@ -8,7 +8,7 @@ reducing network overhead and improving throughput.
 import asyncio
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from pydantic import BaseModel, Field, field_validator
@@ -42,7 +42,7 @@ class BatchOperation(BaseModel):
     operation: str = Field(..., description="Operation type")
     data: dict[str, Any] = Field(..., description="Operation data")
     priority: int = Field(default=5, ge=1, le=10)
-    timeout: Optional[float] = Field(default=30.0, ge=1.0, le=300.0)
+    timeout: float | None = Field(default=30.0, ge=1.0, le=300.0)
 
     @field_validator("operation")
     @classmethod
@@ -72,8 +72,8 @@ class BatchOperationResult(BaseModel):
     id: str
     operation: str
     success: bool
-    result: Optional[dict[str, Any]] = None
-    error: Optional[str] = None
+    result: dict[str, Any] | None = None
+    error: str | None = None
     execution_time: float
     timestamp: datetime = Field(default_factory=datetime.utcnow)
 

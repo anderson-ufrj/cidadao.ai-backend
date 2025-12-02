@@ -10,7 +10,7 @@ Created: 2025-10-22
 """
 
 from datetime import date, datetime
-from typing import Any, Optional
+from typing import Any
 
 from src.core import get_logger
 from src.services.portal_transparencia_service_improved import portal_transparencia
@@ -88,10 +88,10 @@ class PortalTransparenciaAdapter(TransparencyAPIClient):
 
     async def get_contracts(
         self,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
-        year: Optional[int] = None,
-        municipality_code: Optional[str] = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        year: int | None = None,
+        municipality_code: str | None = None,
         **kwargs,
     ) -> list[dict[str, Any]]:
         """
@@ -194,9 +194,9 @@ class PortalTransparenciaAdapter(TransparencyAPIClient):
 
     async def get_expenses(
         self,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
-        year: Optional[int] = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        year: int | None = None,
         **kwargs,
     ) -> list[dict[str, Any]]:
         """
@@ -259,7 +259,7 @@ class PortalTransparenciaAdapter(TransparencyAPIClient):
             return []
 
     async def get_suppliers(
-        self, cnpj: Optional[str] = None, **kwargs
+        self, cnpj: str | None = None, **kwargs
     ) -> list[dict[str, Any]]:
         """
         Get suppliers/fornecedores from Portal da Transparência.

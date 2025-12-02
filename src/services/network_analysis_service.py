@@ -11,7 +11,7 @@ This service builds and analyzes entity relationship graphs from investigation d
 import re
 import unicodedata
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -47,8 +47,8 @@ class NetworkAnalysisService:
         legal_entity: LegalEntity,
         investigation_id: str,
         role: str = "unknown",
-        contract_id: Optional[str] = None,
-        contract_value: Optional[float] = None,
+        contract_id: str | None = None,
+        contract_value: float | None = None,
     ) -> EntityNode:
         """
         Find existing entity or create new one in the graph.
@@ -176,7 +176,7 @@ class NetworkAnalysisService:
         target_entity_id: str,
         relationship_type: str,
         investigation_id: str,
-        evidence: Optional[dict[str, Any]] = None,
+        evidence: dict[str, Any] | None = None,
         strength: float = 1.0,
     ) -> EntityRelationship:
         """
@@ -256,7 +256,7 @@ class NetworkAnalysisService:
         self,
         investigation_id: str,
         entities: list[LegalEntity],
-        contract_data: Optional[dict[str, Any]] = None,
+        contract_data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Build entity graph from investigation results.
@@ -635,9 +635,9 @@ class NetworkAnalysisService:
         """Determine role of entity based on type."""
         if entity.entity_type == "empresa":
             return "supplier"
-        elif entity.entity_type == "orgao_publico":
+        if entity.entity_type == "orgao_publico":
             return "contracting_agency"
-        elif entity.entity_type == "pessoa_fisica":
+        if entity.entity_type == "pessoa_fisica":
             return "owner"
         return "unknown"
 

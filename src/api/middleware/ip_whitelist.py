@@ -7,7 +7,6 @@ License: Proprietary - All rights reserved
 """
 
 import ipaddress
-from typing import Optional
 
 from fastapi import Request, status
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -35,8 +34,8 @@ class IPWhitelistMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app,
-        enabled: Optional[bool] = None,
-        excluded_paths: Optional[list[str]] = None,
+        enabled: bool | None = None,
+        excluded_paths: list[str] | None = None,
         strict_mode: bool = True,
     ):
         """
@@ -94,10 +93,9 @@ class IPWhitelistMiddleware(BaseHTTPMiddleware):
                             "error": "IP_NOT_DETERMINED",
                         },
                     )
-                else:
-                    # Allow through if can't determine IP
-                    logger.debug("ip_whitelist_no_client_ip_allowing")
-                    return await call_next(request)
+                # Allow through if can't determine IP
+                logger.debug("ip_whitelist_no_client_ip_allowing")
+                return await call_next(request)
 
             # Check whitelist
             async with get_session() as session:
@@ -139,9 +137,8 @@ class IPWhitelistMiddleware(BaseHTTPMiddleware):
                         "error": "WHITELIST_CHECK_ERROR",
                     },
                 )
-            else:
-                # Allow through on error
-                return await call_next(request)
+            # Allow through on error
+            return await call_next(request)
 
     def _get_default_excluded_paths(self) -> list[str]:
         """Get default paths to exclude from whitelist."""
@@ -185,7 +182,7 @@ class IPWhitelistMiddleware(BaseHTTPMiddleware):
 
         return False
 
-    def _get_client_ip(self, request: Request) -> Optional[str]:
+    def _get_client_ip(self, request: Request) -> str | None:
         """
         Extract client IP from request.
 

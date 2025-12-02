@@ -8,7 +8,7 @@ Created: 2025-10-12
 License: Proprietary - All rights reserved
 """
 
-from typing import Any, Optional
+from typing import Any
 
 
 class FederalAPIError(Exception):
@@ -18,9 +18,9 @@ class FederalAPIError(Exception):
         self,
         message: str,
         api_name: str = "Unknown",
-        status_code: Optional[int] = None,
-        response_data: Optional[dict[str, Any]] = None,
-        original_error: Optional[Exception] = None,
+        status_code: int | None = None,
+        response_data: dict[str, Any] | None = None,
+        original_error: Exception | None = None,
     ):
         self.message = message
         self.api_name = api_name
@@ -51,7 +51,7 @@ class TimeoutError(NetworkError):
     def __init__(
         self,
         message: str = "Request timed out",
-        timeout_seconds: Optional[float] = None,
+        timeout_seconds: float | None = None,
         **kwargs,
     ):
         self.timeout_seconds = timeout_seconds
@@ -66,7 +66,7 @@ class RateLimitError(FederalAPIError):
     def __init__(
         self,
         message: str = "Rate limit exceeded",
-        retry_after: Optional[int] = None,
+        retry_after: int | None = None,
         **kwargs,
     ):
         self.retry_after = retry_after
@@ -88,7 +88,7 @@ class NotFoundError(FederalAPIError):
     def __init__(
         self,
         message: str = "Resource not found",
-        resource_id: Optional[str] = None,
+        resource_id: str | None = None,
         **kwargs,
     ):
         self.resource_id = resource_id
@@ -107,7 +107,7 @@ class ServerError(FederalAPIError):
 class ValidationError(FederalAPIError):
     """Data validation errors."""
 
-    def __init__(self, message: str, field: Optional[str] = None, **kwargs):
+    def __init__(self, message: str, field: str | None = None, **kwargs):
         self.field = field
         if field:
             message = f"{message} (field: {field})"
@@ -146,7 +146,7 @@ def exception_from_response(
     status_code: int,
     message: str,
     api_name: str = "Unknown",
-    response_data: Optional[dict[str, Any]] = None,
+    response_data: dict[str, Any] | None = None,
 ) -> FederalAPIError:
     """
     Create appropriate exception from HTTP response.

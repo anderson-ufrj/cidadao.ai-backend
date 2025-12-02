@@ -221,7 +221,7 @@ class ParallelAgentProcessor:
             return await asyncio.wait_for(
                 agent.process(task.message, context), timeout=timeout
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(f"Agent {agent.name} timed out after {timeout}s")
             return AgentResponse(
                 agent_name=agent.name,

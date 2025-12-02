@@ -7,7 +7,7 @@ Open Data Portal (dados.gov.br) to enhance their investigations.
 
 import logging
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from src.services.dados_gov_service import DadosGovService
 from src.tools.dados_gov_api import DadosGovAPIError
@@ -21,7 +21,7 @@ class ToolResult:
 
     success: bool
     data: Any
-    error: Optional[str] = None
+    error: str | None = None
 
 
 class DadosGovTool:
@@ -45,13 +45,13 @@ class DadosGovTool:
 
     async def execute(
         self,
-        query: Optional[str] = None,
+        query: str | None = None,
         action: str = "search",
-        topic: Optional[str] = None,
-        organization: Optional[str] = None,
-        dataset_id: Optional[str] = None,
-        year: Optional[int] = None,
-        state: Optional[str] = None,
+        topic: str | None = None,
+        organization: str | None = None,
+        dataset_id: str | None = None,
+        year: int | None = None,
+        state: str | None = None,
         limit: int = 10,
         **kwargs,
     ) -> ToolResult:
@@ -80,7 +80,7 @@ class DadosGovTool:
                     limit=limit,
                 )
 
-            elif action == "analyze":
+            if action == "analyze":
                 if not topic:
                     return ToolResult(
                         success=False,
@@ -88,7 +88,7 @@ class DadosGovTool:
                     )
                 return await self._analyze_topic(topic)
 
-            elif action == "get_dataset":
+            if action == "get_dataset":
                 if not dataset_id:
                     return ToolResult(
                         success=False,
@@ -96,24 +96,23 @@ class DadosGovTool:
                     )
                 return await self._get_dataset(dataset_id)
 
-            elif action == "find_spending":
+            if action == "find_spending":
                 return await self._find_spending_data(
                     year=year,
                     state=state,
                     limit=limit,
                 )
 
-            elif action == "find_procurement":
+            if action == "find_procurement":
                 return await self._find_procurement_data(
                     organization=organization,
                     limit=limit,
                 )
 
-            else:
-                return ToolResult(
-                    success=False,
-                    error=f"Unknown action: {action}. Valid actions are: search, analyze, get_dataset, find_spending, find_procurement",
-                )
+            return ToolResult(
+                success=False,
+                error=f"Unknown action: {action}. Valid actions are: search, analyze, get_dataset, find_spending, find_procurement",
+            )
 
         except DadosGovAPIError as e:
             logger.error(f"dados.gov.br API error: {e}")
@@ -132,8 +131,8 @@ class DadosGovTool:
 
     async def _search_datasets(
         self,
-        query: Optional[str],
-        organization: Optional[str],
+        query: str | None,
+        organization: str | None,
         limit: int,
     ) -> ToolResult:
         """Search for datasets"""
@@ -257,8 +256,8 @@ class DadosGovTool:
 
     async def _find_spending_data(
         self,
-        year: Optional[int],
-        state: Optional[str],
+        year: int | None,
+        state: str | None,
         limit: int,
     ) -> ToolResult:
         """Find government spending datasets"""
@@ -305,7 +304,7 @@ class DadosGovTool:
 
     async def _find_procurement_data(
         self,
-        organization: Optional[str],
+        organization: str | None,
         limit: int,
     ) -> ToolResult:
         """Find procurement/contract datasets"""

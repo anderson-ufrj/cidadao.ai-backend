@@ -11,7 +11,7 @@ License: Proprietary - All rights reserved
 
 import asyncio
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from .cache import get_cache
 from .health_check import get_health_monitor
@@ -36,10 +36,10 @@ class TransparencyDataCollector:
     async def _collect_from_single_api(
         self,
         api_key: str,
-        year: Optional[int] = None,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
-        municipality_code: Optional[str] = None,
+        year: int | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        municipality_code: str | None = None,
         validate: bool = True,
         timeout: float = 15.0,
         **kwargs: Any,
@@ -111,7 +111,7 @@ class TransparencyDataCollector:
 
             return {"contracts": [], "source": None, "error": "No data returned"}
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             return {
                 "contracts": [],
                 "source": None,
@@ -122,11 +122,11 @@ class TransparencyDataCollector:
 
     async def collect_contracts(
         self,
-        state: Optional[str] = None,
-        municipality_code: Optional[str] = None,
-        year: Optional[int] = None,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
+        state: str | None = None,
+        municipality_code: str | None = None,
+        year: int | None = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
         validate: bool = True,
         api_timeout: float = 15.0,
         global_timeout: float = 60.0,
@@ -192,7 +192,7 @@ class TransparencyDataCollector:
                     if result.get("error"):
                         errors.append({"api": api_key, "error": result["error"]})
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             errors.append(
                 {
                     "api": "global",
@@ -225,9 +225,9 @@ class TransparencyDataCollector:
 
     async def collect_expenses(
         self,
-        state: Optional[str] = None,
-        municipality_code: Optional[str] = None,
-        year: Optional[int] = None,
+        state: str | None = None,
+        municipality_code: str | None = None,
+        year: int | None = None,
         validate: bool = True,
     ) -> dict[str, Any]:
         """
@@ -310,8 +310,8 @@ class TransparencyDataCollector:
 
     async def collect_suppliers(
         self,
-        state: Optional[str] = None,
-        municipality_code: Optional[str] = None,
+        state: str | None = None,
+        municipality_code: str | None = None,
         validate: bool = True,
     ) -> dict[str, Any]:
         """
@@ -456,7 +456,7 @@ class TransparencyDataCollector:
         """
         return await self.health_monitor.generate_report()
 
-    def _select_apis(self, state: Optional[str] = None) -> list[str]:
+    def _select_apis(self, state: str | None = None) -> list[str]:
         """
         Select appropriate APIs based on state.
 
@@ -487,7 +487,7 @@ class TransparencyDataCollector:
 
 
 # Global collector instance
-_global_collector: Optional[TransparencyDataCollector] = None
+_global_collector: TransparencyDataCollector | None = None
 
 
 def get_transparency_collector() -> TransparencyDataCollector:

@@ -6,7 +6,7 @@ This allows different pooling strategies while maintaining a consistent API.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional
+from typing import Any
 
 
 class AgentPoolInterface(ABC):
@@ -123,7 +123,7 @@ class DistributedPoolInterface(AgentPoolInterface):
         agent_type: str,
         method: str,
         *args,
-        priority: Optional[str] = None,
+        priority: str | None = None,
         **kwargs,
     ) -> str:
         """
@@ -142,7 +142,7 @@ class DistributedPoolInterface(AgentPoolInterface):
         pass
 
     @abstractmethod
-    async def get_task_result(self, task_id: str, timeout: Optional[float] = None) -> Any:
+    async def get_task_result(self, task_id: str, timeout: float | None = None) -> Any:
         """
         Get the result of a submitted task.
 

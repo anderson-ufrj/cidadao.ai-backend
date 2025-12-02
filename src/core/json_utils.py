@@ -7,7 +7,7 @@ with significant performance improvements.
 
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Any, Union
+from typing import Any
 from uuid import UUID
 
 import orjson
@@ -20,13 +20,13 @@ def default(obj: Any) -> Any:
     """
     if isinstance(obj, (datetime, date)):
         return obj.isoformat()
-    elif isinstance(obj, UUID):
+    if isinstance(obj, UUID):
         return str(obj)
-    elif isinstance(obj, Decimal):
+    if isinstance(obj, Decimal):
         return float(obj)
-    elif isinstance(obj, BaseModel):
+    if isinstance(obj, BaseModel):
         return obj.model_dump()
-    elif hasattr(obj, "__dict__"):
+    if hasattr(obj, "__dict__"):
         return obj.__dict__
     raise TypeError(f"Type {type(obj)} not serializable")
 
@@ -49,7 +49,7 @@ def dumps(obj: Any, *, indent: bool = False) -> str:
     return orjson.dumps(obj, default=default, option=options).decode("utf-8")
 
 
-def loads(s: Union[str, bytes]) -> Any:
+def loads(s: str | bytes) -> Any:
     """
     Deserialize s (a str or bytes containing JSON) to a Python object.
 

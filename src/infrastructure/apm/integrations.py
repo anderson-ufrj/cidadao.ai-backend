@@ -5,7 +5,7 @@ This module provides pre-built integrations for common APM tools
 like New Relic, Datadog, Dynatrace, and Elastic APM.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -248,7 +248,7 @@ class ElasticAPMIntegration:
     def __init__(
         self,
         server_url: str,
-        secret_token: Optional[str] = None,
+        secret_token: str | None = None,
         service_name: str = "cidadao-ai",
     ):
         self.server_url = server_url.rstrip("/")
@@ -329,7 +329,7 @@ class APMIntegrations:
         self,
         license_key: str,
         app_name: str = "cidadao-ai",
-        account_id: Optional[str] = None,
+        account_id: str | None = None,
     ):
         """Setup New Relic integration."""
         integration = NewRelicIntegration(license_key, app_name)
@@ -350,7 +350,7 @@ class APMIntegrations:
     def setup_elastic_apm(
         self,
         server_url: str,
-        secret_token: Optional[str] = None,
+        secret_token: str | None = None,
         service_name: str = "cidadao-ai",
     ):
         """Setup Elastic APM integration."""

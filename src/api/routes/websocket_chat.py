@@ -10,7 +10,7 @@ This module provides WebSocket connections for:
 
 import asyncio
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
@@ -149,7 +149,7 @@ manager = ConnectionManager()
 
 @router.websocket("/ws/chat/{session_id}")
 async def websocket_chat_endpoint(
-    websocket: WebSocket, session_id: str, token: Optional[str] = Query(None)
+    websocket: WebSocket, session_id: str, token: str | None = Query(None)
 ):
     """
     WebSocket endpoint for real-time chat.
@@ -286,7 +286,7 @@ async def websocket_chat_endpoint(
 
 @router.websocket("/ws/investigations/{investigation_id}")
 async def websocket_investigation_endpoint(
-    websocket: WebSocket, investigation_id: str, token: Optional[str] = Query(None)
+    websocket: WebSocket, investigation_id: str, token: str | None = Query(None)
 ):
     """
     WebSocket endpoint for investigation-specific updates.

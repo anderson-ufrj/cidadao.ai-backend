@@ -6,7 +6,7 @@ responses from the Brazilian Open Data Portal API.
 """
 
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -17,21 +17,17 @@ class Resource(BaseModel):
     id: str = Field(..., description="Unique resource identifier")
     package_id: str = Field(..., description="Parent dataset identifier")
     name: str = Field(..., description="Resource name")
-    description: Optional[str] = Field(None, description="Resource description")
-    format: Optional[str] = Field(
-        None, description="File format (CSV, JSON, XML, etc.)"
-    )
+    description: str | None = Field(None, description="Resource description")
+    format: str | None = Field(None, description="File format (CSV, JSON, XML, etc.)")
     url: str = Field(..., description="URL to access the resource")
-    size: Optional[int] = Field(None, description="File size in bytes")
-    mimetype: Optional[str] = Field(None, description="MIME type")
-    created: Optional[datetime] = Field(None, description="Creation date")
-    last_modified: Optional[datetime] = Field(
-        None, description="Last modification date"
-    )
+    size: int | None = Field(None, description="File size in bytes")
+    mimetype: str | None = Field(None, description="MIME type")
+    created: datetime | None = Field(None, description="Creation date")
+    last_modified: datetime | None = Field(None, description="Last modification date")
 
     @field_validator("format")
     @classmethod
-    def uppercase_format(cls, v: Optional[str]) -> Optional[str]:
+    def uppercase_format(cls, v: str | None) -> str | None:
         """Normalize format to uppercase"""
         return v.upper() if v else None
 
@@ -40,8 +36,8 @@ class Tag(BaseModel):
     """Model for dataset tags"""
 
     name: str = Field(..., description="Tag name")
-    display_name: Optional[str] = Field(None, description="Display name")
-    vocabulary_id: Optional[str] = Field(None, description="Vocabulary identifier")
+    display_name: str | None = Field(None, description="Display name")
+    vocabulary_id: str | None = Field(None, description="Vocabulary identifier")
 
     class Config:
         populate_by_name = True
@@ -53,10 +49,10 @@ class Organization(BaseModel):
     id: str = Field(..., description="Organization identifier")
     name: str = Field(..., description="Organization name")
     title: str = Field(..., description="Organization title")
-    description: Optional[str] = Field(None, description="Organization description")
-    image_url: Optional[str] = Field(None, description="Organization logo URL")
-    created: Optional[datetime] = Field(None, description="Creation date")
-    package_count: Optional[int] = Field(0, description="Number of datasets")
+    description: str | None = Field(None, description="Organization description")
+    image_url: str | None = Field(None, description="Organization logo URL")
+    created: datetime | None = Field(None, description="Creation date")
+    package_count: int | None = Field(0, description="Number of datasets")
 
     class Config:
         populate_by_name = True
@@ -68,19 +64,19 @@ class Dataset(BaseModel):
     id: str = Field(..., description="Dataset identifier")
     name: str = Field(..., description="Dataset name (slug)")
     title: str = Field(..., description="Dataset title")
-    author: Optional[str] = Field(None, description="Dataset author")
-    author_email: Optional[str] = Field(None, description="Author email")
-    maintainer: Optional[str] = Field(None, description="Dataset maintainer")
-    maintainer_email: Optional[str] = Field(None, description="Maintainer email")
-    license_id: Optional[str] = Field(None, description="License identifier")
-    notes: Optional[str] = Field(None, description="Dataset description/notes")
-    url: Optional[str] = Field(None, description="Dataset URL")
-    version: Optional[str] = Field(None, description="Dataset version")
-    state: Optional[str] = Field("active", description="Dataset state")
-    type: Optional[str] = Field("dataset", description="Resource type")
+    author: str | None = Field(None, description="Dataset author")
+    author_email: str | None = Field(None, description="Author email")
+    maintainer: str | None = Field(None, description="Dataset maintainer")
+    maintainer_email: str | None = Field(None, description="Maintainer email")
+    license_id: str | None = Field(None, description="License identifier")
+    notes: str | None = Field(None, description="Dataset description/notes")
+    url: str | None = Field(None, description="Dataset URL")
+    version: str | None = Field(None, description="Dataset version")
+    state: str | None = Field("active", description="Dataset state")
+    type: str | None = Field("dataset", description="Resource type")
 
     # Relationships
-    organization: Optional[Organization] = Field(
+    organization: Organization | None = Field(
         None, description="Publishing organization"
     )
     resources: list[Resource] = Field(
@@ -89,15 +85,15 @@ class Dataset(BaseModel):
     tags: list[Tag] = Field(default_factory=list, description="Dataset tags")
 
     # Metadata
-    metadata_created: Optional[datetime] = Field(
+    metadata_created: datetime | None = Field(
         None, description="Metadata creation date"
     )
-    metadata_modified: Optional[datetime] = Field(
+    metadata_modified: datetime | None = Field(
         None, description="Metadata modification date"
     )
 
     # Additional fields
-    extras: Optional[list[dict[str, Any]]] = Field(None, description="Extra metadata")
+    extras: list[dict[str, Any]] | None = Field(None, description="Extra metadata")
 
     class Config:
         populate_by_name = True
@@ -108,8 +104,8 @@ class DatasetSearchResult(BaseModel):
 
     count: int = Field(..., description="Total number of results")
     results: list[Dataset] = Field(..., description="List of datasets")
-    facets: Optional[dict[str, Any]] = Field(None, description="Search facets")
-    search_facets: Optional[dict[str, Any]] = Field(
+    facets: dict[str, Any] | None = Field(None, description="Search facets")
+    search_facets: dict[str, Any] | None = Field(
         None, description="Active search facets"
     )
 
@@ -140,9 +136,7 @@ class TagWithCount(BaseModel):
 class OrganizationWithDatasets(Organization):
     """Extended organization model including datasets"""
 
-    packages: Optional[list[Dataset]] = Field(
-        None, description="Organization's datasets"
-    )
+    packages: list[Dataset] | None = Field(None, description="Organization's datasets")
 
     class Config:
         populate_by_name = True
@@ -165,11 +159,11 @@ class DatasetActivity(BaseModel):
 
     id: str = Field(..., description="Activity identifier")
     timestamp: datetime = Field(..., description="Activity timestamp")
-    user_id: Optional[str] = Field(None, description="User who performed the activity")
+    user_id: str | None = Field(None, description="User who performed the activity")
     object_id: str = Field(..., description="Dataset identifier")
-    revision_id: Optional[str] = Field(None, description="Revision identifier")
+    revision_id: str | None = Field(None, description="Revision identifier")
     activity_type: str = Field(..., description="Type of activity")
-    data: Optional[dict[str, Any]] = Field(None, description="Additional activity data")
+    data: dict[str, Any] | None = Field(None, description="Additional activity data")
 
     class Config:
         populate_by_name = True

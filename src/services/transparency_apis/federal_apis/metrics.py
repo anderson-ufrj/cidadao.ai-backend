@@ -12,7 +12,6 @@ License: Proprietary - All rights reserved
 import asyncio
 import time
 from functools import wraps
-from typing import Optional
 
 from src.core import get_logger
 from src.infrastructure.observability.metrics import (
@@ -322,7 +321,7 @@ class FederalAPIMetrics:
         )
 
     @staticmethod
-    def record_rate_limit(api_name: str, retry_after: Optional[int] = None):
+    def record_rate_limit(api_name: str, retry_after: int | None = None):
         """
         Record a rate limit error.
 
@@ -447,8 +446,7 @@ def track_federal_api_call(api_name: str):
 
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
-        else:
-            return sync_wrapper
+        return sync_wrapper
 
     return decorator
 

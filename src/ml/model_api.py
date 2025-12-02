@@ -11,7 +11,6 @@ from contextlib import asynccontextmanager
 from datetime import datetime
 from io import StringIO
 from pathlib import Path
-from typing import Optional, Union
 
 import pandas as pd
 import torch
@@ -64,7 +63,7 @@ class ChatRequest(BaseModel):
     temperature: float = Field(default=0.6, ge=0.0, le=2.0)
     max_tokens: int = Field(default=512, ge=1, le=2048)
     stream: bool = Field(default=False, description="Usar streaming de resposta")
-    tools: Optional[list[dict]] = Field(
+    tools: list[dict] | None = Field(
         default=None, description="Ferramentas disponíveis"
     )
 
@@ -77,17 +76,17 @@ class TransparencyAnalysisResponse(BaseModel):
     timestamp: str = Field(..., description="Timestamp da análise")
 
     # Resultados de anomalia
-    anomaly_detection: Optional[dict] = Field(
+    anomaly_detection: dict | None = Field(
         None, description="Resultados de detecção de anomalias"
     )
 
     # Resultados financeiros
-    financial_analysis: Optional[dict] = Field(
+    financial_analysis: dict | None = Field(
         None, description="Análise de risco financeiro"
     )
 
     # Resultados legais
-    legal_compliance: Optional[dict] = Field(
+    legal_compliance: dict | None = Field(
         None, description="Verificação de conformidade legal"
     )
 
@@ -110,9 +109,9 @@ class ChatResponse(BaseModel):
     """Response do chat"""
 
     message: str = Field(..., description="Resposta do assistente")
-    tools_used: Optional[list[str]] = Field(None, description="Ferramentas utilizadas")
+    tools_used: list[str] | None = Field(None, description="Ferramentas utilizadas")
     confidence: float = Field(..., description="Confiança da resposta")
-    sources: Optional[list[str]] = Field(None, description="Fontes consultadas")
+    sources: list[str] | None = Field(None, description="Fontes consultadas")
 
 
 class ModelInfoResponse(BaseModel):
@@ -134,10 +133,10 @@ class ModelInfoResponse(BaseModel):
 class CidadaoAIManager:
     """Gerenciador do modelo Cidadão.AI"""
 
-    def __init__(self, model_path: Optional[str] = None):
+    def __init__(self, model_path: str | None = None):
         self.model_path = model_path
-        self.model: Optional[CidadaoAIForTransparency] = None
-        self.tokenizer: Optional[AutoTokenizer] = None
+        self.model: CidadaoAIForTransparency | None = None
+        self.tokenizer: AutoTokenizer | None = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.loaded = False
 
@@ -272,7 +271,7 @@ class CidadaoAIManager:
 
     async def batch_analyze(
         self, request: BatchAnalysisRequest
-    ) -> Union[list[TransparencyAnalysisResponse], str]:
+    ) -> list[TransparencyAnalysisResponse] | str:
         """Análise em lote"""
 
         results = []
@@ -292,9 +291,7 @@ class CidadaoAIManager:
 
         return results
 
-    async def chat_completion(
-        self, request: ChatRequest
-    ) -> Union[ChatResponse, Generator]:
+    async def chat_completion(self, request: ChatRequest) -> ChatResponse | Generator:
         """Completação de chat"""
 
         if not self.loaded:
@@ -340,16 +337,15 @@ class CidadaoAIManager:
                     confidence=analysis_result.confidence,
                     sources=["Portal da Transparência", "Cidadão.AI Analysis"],
                 )
-            else:
-                # Resposta geral do chatbot
-                response_message = self._generate_general_response(user_message)
+            # Resposta geral do chatbot
+            response_message = self._generate_general_response(user_message)
 
-                return ChatResponse(
-                    message=response_message,
-                    tools_used=None,
-                    confidence=0.8,
-                    sources=None,
-                )
+            return ChatResponse(
+                message=response_message,
+                tools_used=None,
+                confidence=0.8,
+                sources=None,
+            )
 
         except Exception as e:
             logger.error(f"❌ Erro no chat: {e}")
@@ -483,7 +479,7 @@ class CidadaoAIManager:
                 "Como posso ajudá-lo hoje?"
             )
 
-        elif any(word in message_lower for word in ["ajuda", "help", "como"]):
+        if any(word in message_lower for word in ["ajuda", "help", "como"]):
             return (
                 "🤖 **Cidadão.AI - Suas Funcionalidades**\n\n"
                 "• 🔍 **Análise de Anomalias**: Detectar padrões suspeitos em contratos\n"
@@ -493,18 +489,17 @@ class CidadaoAIManager:
                 "Compartilhe um texto de contrato ou despesa pública para análise!"
             )
 
-        elif any(word in message_lower for word in ["obrigado", "obrigada", "valeu"]):
+        if any(word in message_lower for word in ["obrigado", "obrigada", "valeu"]):
             return (
                 "Fico feliz em ajudar! 😊 A transparência pública é fundamental para a democracia. "
                 "Se precisar de mais análises, estarei aqui!"
             )
 
-        else:
-            return (
-                "Entendo que você tem uma pergunta. Como sou especializado em análise de transparência pública, "
-                "funciono melhor quando você compartilha textos de contratos, licitações ou despesas para análise. "
-                "Você poderia reformular sua pergunta incluindo dados de transparência?"
-            )
+        return (
+            "Entendo que você tem uma pergunta. Como sou especializado em análise de transparência pública, "
+            "funciono melhor quando você compartilha textos de contratos, licitações ou despesas para análise. "
+            "Você poderia reformular sua pergunta incluindo dados de transparência?"
+        )
 
     def _convert_to_csv(self, results: list[TransparencyAnalysisResponse]) -> str:
         """Converter resultados para CSV"""

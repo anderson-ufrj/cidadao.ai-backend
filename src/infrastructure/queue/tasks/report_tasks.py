@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 
 import asyncio
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from celery import chain, group
 from celery.utils.log import get_task_logger
@@ -28,7 +28,7 @@ def generate_report(
     report_id: str,
     report_type: str,
     investigation_ids: list[str],
-    config: Optional[dict[str, Any]] = None,
+    config: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """
     Generate a comprehensive report.
@@ -96,7 +96,7 @@ async def _generate_report_async(
     report_id: str,
     report_type: str,
     investigation_ids: list[str],
-    config: Optional[dict[str, Any]],
+    config: dict[str, Any] | None,
 ) -> dict[str, Any]:
     """Async report generation implementation."""
     async with get_db_session() as db:

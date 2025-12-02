@@ -17,7 +17,7 @@ Author: Anderson Henrique da Silva
 Created: 2025-10-23
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from ..base import TransparencyAPIClient
 
@@ -288,7 +288,7 @@ class RondoniaCGEClient(TransparencyAPIClient):
         )
 
     async def get_all_pages(
-        self, endpoint_method: str, max_pages: Optional[int] = None
+        self, endpoint_method: str, max_pages: int | None = None
     ) -> list[dict[str, Any]]:
         """
         Fetch all pages from a specific endpoint.

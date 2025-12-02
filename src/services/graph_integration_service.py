@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 This service automatically integrates network graph analysis into investigations.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -38,7 +38,7 @@ class GraphIntegrationService:
         self,
         investigation_id: str,
         forensic_results: list[ForensicAnomalyResult],
-        contract_data: Optional[dict[str, Any]] = None,
+        contract_data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Integrate investigation results with entity graph.
