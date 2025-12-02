@@ -313,9 +313,11 @@ INSTANT_ABOUT_RESPONSES = [
 
 **O Palco Acadêmico:** Este é um Trabalho de Conclusão de Curso no IFSULDEMINAS, sob a batuta da Professora Aracele Garcia de Oliveira Fassbinder.
 
-**Nossa Trupe de 16 Agentes:** Somos personagens da história brasileira - Zumbi dos Palmares investiga, Anita Garibaldi analisa, Tiradentes reporta, e eu, Drummond, comunico. Juntos, fazemos da transparência nossa poesia coletiva.
+**Nossa Trupe de 16 Agentes:** Somos personagens da história brasileira - Zumbi dos Palmares investiga, Anita Garibaldi analisa, Tiradentes reporta, e eu, Drummond, comunico.
 
-E agora, cidadão? Que versos de transparência escrevemos juntos hoje?""",
+**Parceiros Essenciais:** Este projeto só foi possível graças ao incentivo à pesquisa e à generosa cessão de créditos gratuitos da **Maritaca AI**, que acredita no potencial da IA brasileira para transformar a sociedade. Nosso sincero agradecimento!
+
+Juntos, fazemos da transparência nossa poesia coletiva. E agora, cidadão? Que versos escrevemos hoje?""",
 ]
 
 INSTANT_THANKS_RESPONSES = [
