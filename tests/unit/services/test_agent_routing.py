@@ -55,17 +55,25 @@ class TestAgentRegistry:
 class TestGetAgentForIntent:
     """Tests for intent-based agent selection."""
 
-    def test_investigate_routes_to_abaporu(self):
-        """Investigation intents should go to Abaporu for orchestration."""
-        assert get_agent_for_intent("investigate") == "abaporu"
-        assert get_agent_for_intent("contract_anomaly_detection") == "abaporu"
-        assert get_agent_for_intent("supplier_investigation") == "abaporu"
-        assert get_agent_for_intent("corruption_indicators") == "abaporu"
+    def test_investigate_routes_to_zumbi(self):
+        """Investigation intents should go to Zumbi (specialist investigator)."""
+        # December 2025: Route to specialized agents directly
+        assert get_agent_for_intent("investigate") == "zumbi"
+        assert get_agent_for_intent("contract_anomaly_detection") == "zumbi"
+        assert get_agent_for_intent("supplier_investigation") == "zumbi"
+
+    def test_corruption_routes_to_obaluaie(self):
+        """Corruption detection should go to Obaluaiê (specialist)."""
+        assert get_agent_for_intent("corruption_indicators") == "obaluaie"
+        assert get_agent_for_intent("fraud_detection") == "obaluaie"
+        assert get_agent_for_intent("anomaly") == "obaluaie"
 
     def test_analyze_routes_to_anita(self):
         """Analysis intents should go to Anita."""
         assert get_agent_for_intent("analyze") == "anita"
         assert get_agent_for_intent("statistical") == "anita"
+        assert get_agent_for_intent("budget_analysis") == "anita"
+        assert get_agent_for_intent("health_budget_analysis") == "anita"
 
     def test_report_routes_to_tiradentes(self):
         """Report intents should go to Tiradentes."""
@@ -93,7 +101,7 @@ class TestGetAgentForIntent:
         """Data hunting intents should go to Oxóssi."""
         assert get_agent_for_intent("data") == "oxossi"
         assert get_agent_for_intent("search") == "oxossi"
-        assert get_agent_for_intent("fraud_detection") == "oxossi"
+        assert get_agent_for_intent("data_hunting") == "oxossi"
 
     def test_specialized_agents(self):
         """Test specialized agent routing."""
@@ -101,6 +109,15 @@ class TestGetAgentForIntent:
         assert get_agent_for_intent("legal_compliance") == "bonifacio"
         assert get_agent_for_intent("security_audit") == "maria_quiteria"
         assert get_agent_for_intent("visualization") == "oscar_niemeyer"
+        assert get_agent_for_intent("regional") == "lampiao"
+        assert get_agent_for_intent("social_equity") == "dandara"
+
+    def test_orchestration_routes_to_abaporu(self):
+        """Complex multi-agent tasks should still go to Abaporu."""
+        assert get_agent_for_intent("orchestrate") == "abaporu"
+        assert get_agent_for_intent("complex_investigation") == "abaporu"
+        assert get_agent_for_intent("multi_source") == "abaporu"
+        assert get_agent_for_intent("status") == "abaporu"
 
     def test_unknown_intent_low_confidence_routes_to_drummond(self):
         """Unknown intent with low confidence should go to Drummond."""
@@ -113,7 +130,7 @@ class TestGetAgentForIntent:
 
     def test_case_insensitive(self):
         """Intent matching should be case insensitive."""
-        assert get_agent_for_intent("INVESTIGATE") == "abaporu"
+        assert get_agent_for_intent("INVESTIGATE") == "zumbi"
         assert get_agent_for_intent("Greeting") == "drummond"
         assert get_agent_for_intent("ANALYZE") == "anita"
 
@@ -150,10 +167,11 @@ class TestResolveAgentId:
 
     def test_no_agent_with_intent_uses_routing(self):
         """No agent_id but with intent should use intent routing."""
+        # December 2025: Investigate goes directly to Zumbi (specialist)
         agent_id, _ = resolve_agent_id(
             requested_agent_id=None, intent_type="investigate"
         )
-        assert agent_id == "abaporu"
+        assert agent_id == "zumbi"
 
         agent_id, _ = resolve_agent_id(requested_agent_id=None, intent_type="greeting")
         assert agent_id == "drummond"
@@ -202,23 +220,34 @@ class TestHelperFunctions:
 class TestIntegrationWithFrontend:
     """Tests that verify the fix for the frontend issue."""
 
-    def test_automatic_mode_uses_abaporu_not_anita(self):
+    def test_automatic_mode_routes_to_specialized_agents(self):
         """
-        When frontend sends no agent_id (automatic mode), should use Abaporu.
-        This was the original bug - it was using Anita instead.
+        December 2025: Route to specialized agents directly for better expertise.
+        Abaporu only for complex orchestration tasks.
         """
-        # Simulate automatic mode (no agent_id, question intent)
+        # Question intent -> Drummond (conversational)
         agent_id, _ = resolve_agent_id(
             requested_agent_id=None, intent_type="question", intent_confidence=0.7
         )
-        # Should NOT be anita anymore
-        assert agent_id == "drummond"  # Questions go to Drummond now
+        assert agent_id == "drummond"  # Questions go to Drummond
 
-        # Investigation should go to Abaporu (orchestrator)
+        # Investigation -> Zumbi (specialist investigator)
         agent_id, _ = resolve_agent_id(
             requested_agent_id=None, intent_type="investigate", intent_confidence=0.9
         )
-        assert agent_id == "abaporu"
+        assert agent_id == "zumbi"  # December 2025: Direct to specialist
+
+        # Analysis -> Anita (statistical analyst)
+        agent_id, _ = resolve_agent_id(
+            requested_agent_id=None, intent_type="analyze", intent_confidence=0.8
+        )
+        assert agent_id == "anita"
+
+        # Report -> Tiradentes
+        agent_id, _ = resolve_agent_id(
+            requested_agent_id=None, intent_type="report", intent_confidence=0.8
+        )
+        assert agent_id == "tiradentes"
 
     def test_manual_mode_respects_agent_choice(self):
         """
@@ -229,3 +258,41 @@ class TestIntegrationWithFrontend:
 
         agent_id, _ = resolve_agent_id(requested_agent_id="zumbi")
         assert agent_id == "zumbi"
+
+    def test_agent_distribution_balanced(self):
+        """
+        December 2025: Verify agents are distributed, not all going to Abaporu.
+        Target: Abaporu < 50% of routed intents.
+        """
+        test_intents = [
+            "investigate",  # -> zumbi
+            "analyze",  # -> anita
+            "report",  # -> tiradentes
+            "greeting",  # -> drummond
+            "search",  # -> oxossi
+            "fraud_detection",  # -> obaluaie
+            "text_analysis",  # -> machado
+            "legal_compliance",  # -> bonifacio
+            "regional",  # -> lampiao
+            "social_equity",  # -> dandara
+        ]
+
+        agents_used = {}
+        for intent in test_intents:
+            agent_id, _ = resolve_agent_id(
+                requested_agent_id=None, intent_type=intent, intent_confidence=0.8
+            )
+            agents_used[agent_id] = agents_used.get(agent_id, 0) + 1
+
+        # Verify Abaporu is NOT used for all intents
+        abaporu_count = agents_used.get("abaporu", 0)
+        total_count = len(test_intents)
+
+        # Abaporu should be < 50% of routed intents
+        assert abaporu_count < total_count * 0.5, (
+            f"Abaporu used {abaporu_count}/{total_count} times "
+            f"({100 * abaporu_count / total_count:.0f}%), should be < 50%"
+        )
+
+        # Should use at least 5 different agents
+        assert len(agents_used) >= 5, f"Only {len(agents_used)} agents used, expected >= 5"
