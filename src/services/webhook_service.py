@@ -13,7 +13,7 @@ import hashlib
 import hmac
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 from pydantic import BaseModel, Field, HttpUrl, field_validator
@@ -60,7 +60,7 @@ class WebhookPayload(BaseModel):
     event: WebhookEvent
     timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     data: dict[str, Any]
-    metadata: Optional[dict[str, Any]] = None
+    metadata: dict[str, Any] | None = None
 
     @field_validator("timestamp", mode="before")
     @classmethod
@@ -75,9 +75,9 @@ class WebhookConfig(BaseModel):
     """Webhook configuration model."""
 
     url: HttpUrl
-    secret: Optional[str] = None
-    events: Optional[list[WebhookEvent]] = None  # None means all events
-    headers: Optional[dict[str, str]] = None
+    secret: str | None = None
+    events: list[WebhookEvent] | None = None  # None means all events
+    headers: dict[str, str] | None = None
     timeout: int = Field(default=30, ge=1, le=300)
     max_retries: int = Field(default=3, ge=0, le=10)
     active: bool = Field(default=True)
@@ -97,12 +97,12 @@ class WebhookDelivery(BaseModel):
     webhook_url: str
     event: WebhookEvent
     timestamp: datetime
-    status_code: Optional[int] = None
-    response_body: Optional[str] = None
-    error: Optional[str] = None
+    status_code: int | None = None
+    response_body: str | None = None
+    error: str | None = None
     attempts: int = 0
     success: bool = False
-    duration_ms: Optional[float] = None
+    duration_ms: float | None = None
 
 
 class WebhookService:
@@ -242,7 +242,7 @@ class WebhookService:
         self,
         event: WebhookEvent,
         data: dict[str, Any],
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> list[WebhookDelivery]:
         """Send an event to all configured webhooks.
 
@@ -309,9 +309,9 @@ class WebhookService:
 
     def get_delivery_history(
         self,
-        event: Optional[WebhookEvent] = None,
-        url: Optional[str] = None,
-        success: Optional[bool] = None,
+        event: WebhookEvent | None = None,
+        url: str | None = None,
+        success: bool | None = None,
         limit: int = 100,
     ) -> list[WebhookDelivery]:
         """Get webhook delivery history with filtering."""
@@ -354,7 +354,7 @@ webhook_service = WebhookService()
 
 # Convenience functions
 async def send_webhook_event(
-    event: WebhookEvent, data: dict[str, Any], metadata: Optional[dict[str, Any]] = None
+    event: WebhookEvent, data: dict[str, Any], metadata: dict[str, Any] | None = None
 ) -> list[WebhookDelivery]:
     """Send a webhook event using the default service."""
     return await webhook_service.send_event(event, data, metadata)
@@ -362,8 +362,8 @@ async def send_webhook_event(
 
 async def register_webhook(
     url: str,
-    events: Optional[list[WebhookEvent]] = None,
-    secret: Optional[str] = None,
+    events: list[WebhookEvent] | None = None,
+    secret: str | None = None,
     **kwargs,
 ) -> None:
     """Register a new webhook."""

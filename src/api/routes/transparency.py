@@ -9,8 +9,6 @@ Created: 2025-10-09
 License: Proprietary - All rights reserved
 """
 
-from typing import Optional
-
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel, Field
 
@@ -104,13 +102,11 @@ class AvailableAPIsResponse(BaseModel):
     """,
 )
 async def get_contracts(
-    state: Optional[str] = Query(None, description="State code (e.g., PE, CE, RJ)"),
-    municipality_code: Optional[str] = Query(
-        None, description="IBGE municipality code"
-    ),
-    year: Optional[int] = Query(None, description="Filter by year"),
-    start_date: Optional[str] = Query(None, description="Start date (YYYY-MM-DD)"),
-    end_date: Optional[str] = Query(None, description="End date (YYYY-MM-DD)"),
+    state: str | None = Query(None, description="State code (e.g., PE, CE, RJ)"),
+    municipality_code: str | None = Query(None, description="IBGE municipality code"),
+    year: int | None = Query(None, description="Filter by year"),
+    start_date: str | None = Query(None, description="Start date (YYYY-MM-DD)"),
+    end_date: str | None = Query(None, description="End date (YYYY-MM-DD)"),
     validate: bool = Query(True, description="Enable data validation"),
 ):
     """
@@ -165,11 +161,9 @@ async def get_contracts(
     """,
 )
 async def get_expenses(
-    state: Optional[str] = Query(None, description="State code (e.g., PE, CE, RJ)"),
-    municipality_code: Optional[str] = Query(
-        None, description="IBGE municipality code"
-    ),
-    year: Optional[int] = Query(None, description="Filter by year"),
+    state: str | None = Query(None, description="State code (e.g., PE, CE, RJ)"),
+    municipality_code: str | None = Query(None, description="IBGE municipality code"),
+    year: int | None = Query(None, description="Filter by year"),
     validate: bool = Query(True, description="Enable data validation"),
 ):
     """
@@ -222,10 +216,8 @@ async def get_expenses(
     """,
 )
 async def get_suppliers(
-    state: Optional[str] = Query(None, description="State code (e.g., PE, CE, RJ)"),
-    municipality_code: Optional[str] = Query(
-        None, description="IBGE municipality code"
-    ),
+    state: str | None = Query(None, description="State code (e.g., PE, CE, RJ)"),
+    municipality_code: str | None = Query(None, description="IBGE municipality code"),
     validate: bool = Query(True, description="Enable data validation"),
 ):
     """

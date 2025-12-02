@@ -22,7 +22,7 @@ Created: 2025-10-09 14:45:00 -03 (Minas Gerais, Brazil)
 License: Proprietary - All rights reserved
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from ..base import TransparencyAPIClient
 
@@ -73,10 +73,10 @@ class TCERioDeJaneiroClient(TransparencyAPIClient):
 
     async def get_contracts(
         self,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
-        year: Optional[int] = None,
-        municipality_code: Optional[str] = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
+        year: int | None = None,
+        municipality_code: str | None = None,
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """
@@ -122,7 +122,7 @@ class TCERioDeJaneiroClient(TransparencyAPIClient):
             return []
 
     async def get_suppliers(
-        self, municipality_code: Optional[str] = None, **kwargs: Any
+        self, municipality_code: str | None = None, **kwargs: Any
     ) -> list[dict[str, Any]]:
         """
         Get suppliers (fornecedores) from TCE-RJ.
@@ -160,8 +160,8 @@ class TCERioDeJaneiroClient(TransparencyAPIClient):
 
     async def get_bidding_processes(
         self,
-        year: Optional[int] = None,
-        municipality_code: Optional[str] = None,
+        year: int | None = None,
+        municipality_code: str | None = None,
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """
@@ -201,8 +201,8 @@ class TCERioDeJaneiroClient(TransparencyAPIClient):
 
     async def get_expenses(
         self,
-        year: Optional[int] = None,
-        municipality_code: Optional[str] = None,
+        year: int | None = None,
+        municipality_code: str | None = None,
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """
@@ -242,8 +242,8 @@ class TCERioDeJaneiroClient(TransparencyAPIClient):
 
     async def get_revenue(
         self,
-        year: Optional[int] = None,
-        municipality_code: Optional[str] = None,
+        year: int | None = None,
+        municipality_code: str | None = None,
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """

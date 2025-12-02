@@ -12,7 +12,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from src.core import get_logger
 
@@ -39,10 +39,10 @@ class RetryPolicy:
     max_delay: float = 300.0  # 5 minutes
     multiplier: float = 2.0  # for exponential backoff
     jitter: bool = True  # add randomness to prevent thundering herd
-    retry_on: Optional[list[type]] = None  # specific exceptions to retry
-    dont_retry_on: Optional[list[type]] = None  # exceptions to not retry
-    on_retry: Optional[Callable] = None  # callback on retry
-    on_failure: Optional[Callable] = None  # callback on final failure
+    retry_on: list[type] | None = None  # specific exceptions to retry
+    dont_retry_on: list[type] | None = None  # exceptions to not retry
+    on_retry: Callable | None = None  # callback on retry
+    on_failure: Callable | None = None  # callback on final failure
 
 
 class RetryHandler:
@@ -136,24 +136,23 @@ class RetryHandler:
         if self.policy.strategy == RetryStrategy.FIXED_DELAY:
             return self.policy.initial_delay
 
-        elif self.policy.strategy == RetryStrategy.EXPONENTIAL_BACKOFF:
+        if self.policy.strategy == RetryStrategy.EXPONENTIAL_BACKOFF:
             return self.policy.initial_delay * (self.policy.multiplier ** (attempt - 1))
 
-        elif self.policy.strategy == RetryStrategy.LINEAR_BACKOFF:
+        if self.policy.strategy == RetryStrategy.LINEAR_BACKOFF:
             return self.policy.initial_delay * attempt
 
-        elif self.policy.strategy == RetryStrategy.RANDOM_JITTER:
+        if self.policy.strategy == RetryStrategy.RANDOM_JITTER:
             # Random delay between initial and max
             return random.uniform(
                 self.policy.initial_delay,
                 min(self.policy.initial_delay * 10, self.policy.max_delay),
             )
 
-        elif self.policy.strategy == RetryStrategy.FIBONACCI:
+        if self.policy.strategy == RetryStrategy.FIBONACCI:
             return self.policy.initial_delay * self._fibonacci(attempt)
 
-        else:
-            return self.policy.initial_delay
+        return self.policy.initial_delay
 
     def _fibonacci(self, n: int) -> int:
         """Calculate fibonacci number with memoization."""
@@ -238,7 +237,7 @@ class RetryHandler:
         callback: Callable,
         exception: Exception,
         attempt: int,
-        delay: Optional[float] = None,
+        delay: float | None = None,
     ):
         """Call callback function safely."""
         try:
@@ -271,7 +270,7 @@ class CircuitBreaker:
         self,
         failure_threshold: int = 5,
         recovery_timeout: float = 60.0,
-        expected_exception: Optional[type] = None,
+        expected_exception: type | None = None,
     ):
         """
         Initialize circuit breaker.
@@ -287,7 +286,7 @@ class CircuitBreaker:
 
         self.state = self.State.CLOSED
         self.failure_count = 0
-        self.last_failure_time: Optional[datetime] = None
+        self.last_failure_time: datetime | None = None
         self.success_count = 0
 
     def call(self, func: Callable, *args, **kwargs) -> Any:

@@ -7,7 +7,6 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import UTC, datetime, timedelta
-from typing import Optional
 
 import jwt
 from fastapi import HTTPException, Request
@@ -131,7 +130,7 @@ class AuthenticationMiddleware:
             raise HTTPException(status_code=401, detail="Invalid token")
 
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
     """Create JWT access token."""
     to_encode = data.copy()
 

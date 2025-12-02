@@ -11,7 +11,7 @@ import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from src.core import get_logger
 
@@ -31,7 +31,7 @@ class BulkheadConfig:
     """Bulkhead configuration."""
 
     max_concurrent: int = 10  # Maximum concurrent operations
-    queue_size: Optional[int] = None  # Queue size (None = unlimited)
+    queue_size: int | None = None  # Queue size (None = unlimited)
     timeout: float = 30.0  # Operation timeout
     bulkhead_type: BulkheadType = BulkheadType.SEMAPHORE
 
@@ -77,7 +77,7 @@ class Bulkhead:
     - Different isolation strategies
     """
 
-    def __init__(self, name: str, config: Optional[BulkheadConfig] = None):
+    def __init__(self, name: str, config: BulkheadConfig | None = None):
         """
         Initialize bulkhead.
 
@@ -133,13 +133,12 @@ class Bulkhead:
                 return await self._execute_with_semaphore(
                     func, operation_id, start_time, *args, **kwargs
                 )
-            elif self.config.bulkhead_type == BulkheadType.QUEUE:
+            if self.config.bulkhead_type == BulkheadType.QUEUE:
                 return await self._execute_with_queue(
                     func, operation_id, start_time, *args, **kwargs
                 )
-            else:
-                # Direct execution (no protection)
-                return await self._execute_function(func, *args, **kwargs)
+            # Direct execution (no protection)
+            return await self._execute_function(func, *args, **kwargs)
 
         except Exception as e:
             async with self._lock:
@@ -163,7 +162,7 @@ class Bulkhead:
             await asyncio.wait_for(
                 self._semaphore.acquire(), timeout=self.config.timeout
             )
-        except asyncio.TimeoutError:
+        except TimeoutError:
             raise BulkheadTimeoutException(
                 f"Failed to acquire semaphore for bulkhead '{self.name}' "
                 f"within {self.config.timeout}s"
@@ -239,7 +238,7 @@ class Bulkhead:
 
                 return result
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 # Cancel the operation
                 operation["future"].cancel()
                 raise BulkheadTimeoutException(
@@ -316,10 +315,9 @@ class Bulkhead:
         """Execute function, handling both sync and async functions."""
         if asyncio.iscoroutinefunction(func):
             return await func(*args, **kwargs)
-        else:
-            # Run sync function in thread pool
-            loop = asyncio.get_event_loop()
-            return await loop.run_in_executor(None, func, *args, **kwargs)
+        # Run sync function in thread pool
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(None, func, *args, **kwargs)
 
     def get_stats(self) -> dict[str, Any]:
         """Get bulkhead statistics."""
@@ -403,7 +401,7 @@ class BulkheadManager:
         logger.info(f"Registered default bulkhead config for '{resource_type}'")
 
     def get_bulkhead(
-        self, resource_type: str, config: Optional[BulkheadConfig] = None
+        self, resource_type: str, config: BulkheadConfig | None = None
     ) -> Bulkhead:
         """
         Get or create bulkhead for resource type.
@@ -430,7 +428,7 @@ class BulkheadManager:
         resource_type: str,
         func: Callable,
         *args,
-        config: Optional[BulkheadConfig] = None,
+        config: BulkheadConfig | None = None,
         **kwargs,
     ) -> Any:
         """
@@ -564,7 +562,7 @@ setup_default_bulkheads()
 
 
 # Convenience decorator
-def bulkhead(resource_type: str, config: Optional[BulkheadConfig] = None):
+def bulkhead(resource_type: str, config: BulkheadConfig | None = None):
     """
     Decorator to protect functions with bulkhead.
 

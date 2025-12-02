@@ -6,7 +6,7 @@ including ARIMA, SARIMA, Prophet, and LSTM that were previously stubbed.
 """
 
 import warnings
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -320,7 +320,7 @@ class ProphetModel:
         )
 
     def fit(
-        self, data: np.ndarray, dates: Optional[pd.DatetimeIndex] = None
+        self, data: np.ndarray, dates: pd.DatetimeIndex | None = None
     ) -> "ProphetModel":
         """
         Fit Prophet model to data.
@@ -596,7 +596,7 @@ class EnsembleModel:
     Combines ARIMA, SARIMA, Prophet, and LSTM predictions for better accuracy.
     """
 
-    def __init__(self, models: Optional[list] = None, weights: Optional[list] = None):
+    def __init__(self, models: list | None = None, weights: list | None = None):
         """
         Initialize ensemble model.
 
@@ -624,7 +624,7 @@ class EnsembleModel:
         logger.info(f"Initialized ensemble with {len(self.models)} models")
 
     def fit(
-        self, data: np.ndarray, dates: Optional[pd.DatetimeIndex] = None
+        self, data: np.ndarray, dates: pd.DatetimeIndex | None = None
     ) -> "EnsembleModel":
         """
         Fit all models in the ensemble.
@@ -702,7 +702,7 @@ class EnsembleModel:
         return ensemble_pred, lower_bounds, upper_bounds
 
 
-def get_model_by_type(model_type: str, params: Optional[dict] = None) -> Any:
+def get_model_by_type(model_type: str, params: dict | None = None) -> Any:
     """
     Factory function to create model instances.
 
@@ -739,6 +739,5 @@ def get_model_by_type(model_type: str, params: Optional[dict] = None) -> Any:
     model_type_lower = model_type.lower()
     if model_type_lower in model_map:
         return model_map[model_type_lower]()
-    else:
-        logger.warning(f"Unknown model type {model_type}, using ARIMA as fallback")
-        return ARIMAModel()
+    logger.warning(f"Unknown model type {model_type}, using ARIMA as fallback")
+    return ARIMAModel()

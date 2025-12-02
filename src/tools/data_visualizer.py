@@ -8,7 +8,7 @@ Date: 2025-01-15
 import logging
 import re
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -43,12 +43,11 @@ class DataVisualizer:
         """Format currency for display."""
         if value >= 1_000_000_000:
             return f"R$ {value/1_000_000_000:.1f}B"
-        elif value >= 1_000_000:
+        if value >= 1_000_000:
             return f"R$ {value/1_000_000:.1f}M"
-        elif value >= 1_000:
+        if value >= 1_000:
             return f"R$ {value/1_000:.1f}K"
-        else:
-            return f"R$ {value:.2f}"
+        return f"R$ {value:.2f}"
 
     def create_summary_cards(self, data: dict[str, Any]) -> str:
         """Create summary cards visualization."""
@@ -65,11 +64,11 @@ class DataVisualizer:
         max_value = 0
 
         for item in items:
-            if data_type == "contracts":
-                value = self._extract_numeric_value(item.get("value", 0))
-            elif data_type == "expenses":
-                value = self._extract_numeric_value(item.get("value", 0))
-            elif data_type == "biddings":
+            if (
+                data_type == "contracts"
+                or data_type == "expenses"
+                or data_type == "biddings"
+            ):
                 value = self._extract_numeric_value(item.get("value", 0))
             else:
                 value = 0
@@ -334,7 +333,7 @@ class DataVisualizer:
         return timeline_html
 
     def create_comprehensive_visualization(
-        self, data: dict[str, Any], risk_analysis: Optional[dict[str, Any]] = None
+        self, data: dict[str, Any], risk_analysis: dict[str, Any] | None = None
     ) -> str:
         """Create comprehensive visualization combining all charts."""
         if not data.get("success"):

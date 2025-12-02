@@ -7,13 +7,12 @@ License: Proprietary - All rights reserved
 """
 
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from pydantic import Field as PydanticField
-from pydantic import field_validator
 
 from src.agents import AgentContext, AnalystAgent
 from src.api.middleware.authentication import get_current_user
@@ -86,7 +85,7 @@ class AnalysisResponse(BaseModel):
     data_source: str
     time_range: dict[str, str]
     started_at: datetime
-    completed_at: Optional[datetime] = None
+    completed_at: datetime | None = None
     status: str
     results: dict[str, Any]
     insights: list[str]
@@ -187,7 +186,7 @@ async def get_spending_trends(
     time_period: str = Query(
         "6months", description="Time period (3months, 6months, 1year, 2years)"
     ),
-    organization: Optional[str] = Query(None, description="Organization code"),
+    organization: str | None = Query(None, description="Organization code"),
     current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
@@ -261,7 +260,7 @@ async def get_spending_trends(
 async def get_correlations(
     data_source: str = Query("contracts", description="Data source"),
     variables: list[str] = Query(description="Variables to correlate"),
-    time_range: Optional[str] = Query("6months", description="Time range"),
+    time_range: str | None = Query("6months", description="Time range"),
     current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
@@ -322,7 +321,7 @@ async def get_correlations(
 async def detect_patterns(
     data_source: str = Query("contracts", description="Data source"),
     pattern_type: str = Query("all", description="Pattern type to detect"),
-    organization: Optional[str] = Query(None, description="Organization code"),
+    organization: str | None = Query(None, description="Organization code"),
     current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
@@ -466,8 +465,8 @@ async def get_analysis_results(
 
 @router.get("/", response_model=list[dict[str, Any]])
 async def list_analyses(
-    analysis_type: Optional[str] = Query(None, description="Filter by analysis type"),
-    status: Optional[str] = Query(None, description="Filter by status"),
+    analysis_type: str | None = Query(None, description="Filter by analysis type"),
+    status: str | None = Query(None, description="Filter by status"),
     limit: int = Query(10, ge=1, le=100, description="Number of analyses to return"),
     current_user: dict[str, Any] = Depends(get_current_user),
 ):

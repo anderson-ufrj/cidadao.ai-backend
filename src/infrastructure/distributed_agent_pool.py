@@ -11,7 +11,7 @@ from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 from pydantic import BaseModel
@@ -57,14 +57,14 @@ class AgentTask:
     args: tuple = field(default_factory=tuple)
     kwargs: dict = field(default_factory=dict)
     priority: TaskPriority = TaskPriority.NORMAL
-    timeout: Optional[float] = None
+    timeout: float | None = None
     retry_count: int = 0
     max_retries: int = 3
     created_at: datetime = field(default_factory=datetime.utcnow)
-    started_at: Optional[datetime] = None
-    completed_at: Optional[datetime] = None
+    started_at: datetime | None = None
+    completed_at: datetime | None = None
     result: Any = None
-    error: Optional[str] = None
+    error: str | None = None
     execution_mode: ExecutionMode = ExecutionMode.ASYNC
 
 
@@ -76,15 +76,15 @@ class AgentInstance:
     agent_type: str = ""
     instance: Any = None
     status: AgentStatus = AgentStatus.INITIALIZING
-    current_task_id: Optional[str] = None
+    current_task_id: str | None = None
     total_tasks: int = 0
     successful_tasks: int = 0
     failed_tasks: int = 0
     average_task_time: float = 0.0
     last_activity: datetime = field(default_factory=datetime.utcnow)
     created_at: datetime = field(default_factory=datetime.utcnow)
-    process_id: Optional[int] = None
-    thread_id: Optional[int] = None
+    process_id: int | None = None
+    thread_id: int | None = None
 
 
 class PoolConfig(BaseModel):
@@ -136,14 +136,14 @@ class AgentPoolManager:
         self.completed_tasks: dict[str, AgentTask] = {}
 
         # Execution pools
-        self.thread_pool: Optional[ThreadPoolExecutor] = None
-        self.process_pool: Optional[ProcessPoolExecutor] = None
+        self.thread_pool: ThreadPoolExecutor | None = None
+        self.process_pool: ProcessPoolExecutor | None = None
 
         # Control
         self._running = False
         self._worker_tasks: list[asyncio.Task] = []
-        self._health_check_task: Optional[asyncio.Task] = None
-        self._cleanup_task: Optional[asyncio.Task] = None
+        self._health_check_task: asyncio.Task | None = None
+        self._cleanup_task: asyncio.Task | None = None
 
         # Metrics
         self.metrics = {
@@ -228,7 +228,7 @@ class AgentPoolManager:
             logger.error(f"❌ Erro ao criar pool para '{agent_type}': {e}")
             return False
 
-    async def _create_agent_instance(self, agent_type: str) -> Optional[AgentInstance]:
+    async def _create_agent_instance(self, agent_type: str) -> AgentInstance | None:
         """Criar nova instância de agente"""
 
         try:
@@ -254,7 +254,7 @@ class AgentPoolManager:
         method: str,
         *args,
         priority: TaskPriority = TaskPriority.NORMAL,
-        timeout: Optional[float] = None,
+        timeout: float | None = None,
         execution_mode: ExecutionMode = ExecutionMode.ASYNC,
         **kwargs,
     ) -> str:
@@ -308,7 +308,7 @@ class AgentPoolManager:
             # Task not found
             break
 
-        raise asyncio.TimeoutError(f"Task {task_id} did not complete within {timeout}s")
+        raise TimeoutError(f"Task {task_id} did not complete within {timeout}s")
 
     async def _start_worker_tasks(self):
         """Iniciar tasks de workers"""
@@ -334,7 +334,7 @@ class AgentPoolManager:
                     priority, queued_time, task = await asyncio.wait_for(
                         self.task_queue.get(), timeout=1.0
                     )
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     continue
 
                 # Calculate queue wait time
@@ -458,8 +458,7 @@ class AgentPoolManager:
 
         if asyncio.iscoroutinefunction(method):
             return await method(*task.args, **task.kwargs)
-        else:
-            return method(*task.args, **task.kwargs)
+        return method(*task.args, **task.kwargs)
 
     async def _execute_in_thread(
         self, agent_instance: AgentInstance, task: AgentTask
@@ -490,7 +489,7 @@ class AgentPoolManager:
         # For full process execution, we'd need to serialize agent state
         raise NotImplementedError("Process execution not fully implemented")
 
-    async def _get_available_agent(self, agent_type: str) -> Optional[AgentInstance]:
+    async def _get_available_agent(self, agent_type: str) -> AgentInstance | None:
         """Obter agente disponível"""
 
         if agent_type not in self.agent_pools:
@@ -686,7 +685,7 @@ class AgentPoolManager:
 
 
 # Singleton instance
-_agent_pool_manager: Optional[AgentPoolManager] = None
+_agent_pool_manager: AgentPoolManager | None = None
 
 
 async def get_agent_pool_manager() -> AgentPoolManager:

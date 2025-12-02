@@ -12,7 +12,7 @@ import re
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 import spacy
@@ -420,7 +420,7 @@ class TransparencyDataProcessor:
         )
         return processed_data
 
-    def _process_single_item(self, item: dict) -> Optional[dict]:
+    def _process_single_item(self, item: dict) -> dict | None:
         """Processar um item individual"""
 
         # Extrair e limpar texto
@@ -828,7 +828,7 @@ class TransparencyDataProcessor:
 
 
 async def run_data_pipeline(
-    config: Optional[DataPipelineConfig] = None,
+    config: DataPipelineConfig | None = None,
 ) -> dict[str, list[dict]]:
     """
     Executar pipeline completo de dados

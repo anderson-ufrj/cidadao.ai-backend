@@ -126,17 +126,17 @@ class TimeoutBudget:
 
 
 # Context variable for current timeout budget
-_current_budget: ContextVar[Optional[TimeoutBudget]] = ContextVar(
+_current_budget: ContextVar[TimeoutBudget | None] = ContextVar(
     "_current_budget", default=None
 )
 
 
-def get_current_budget() -> Optional[TimeoutBudget]:
+def get_current_budget() -> TimeoutBudget | None:
     """Get current timeout budget from context."""
     return _current_budget.get()
 
 
-def set_current_budget(budget: Optional[TimeoutBudget]) -> None:
+def set_current_budget(budget: TimeoutBudget | None) -> None:
     """Set current timeout budget in context."""
     _current_budget.set(budget)
 
@@ -182,9 +182,7 @@ class TimeoutBudgetManager:
         return budget
 
     @classmethod
-    def create_service_budget(
-        cls, total_budget: Optional[float] = None
-    ) -> TimeoutBudget:
+    def create_service_budget(cls, total_budget: float | None = None) -> TimeoutBudget:
         """
         Create budget for service layer.
 
@@ -219,7 +217,7 @@ class TimeoutBudgetManager:
         return budget
 
     @classmethod
-    def create_agent_budget(cls, total_budget: Optional[float] = None) -> TimeoutBudget:
+    def create_agent_budget(cls, total_budget: float | None = None) -> TimeoutBudget:
         """
         Create budget for agent processing.
 
@@ -251,7 +249,7 @@ class TimeoutBudgetManager:
 
     @classmethod
     def create_external_api_budget(
-        cls, total_budget: Optional[float] = None
+        cls, total_budget: float | None = None
     ) -> TimeoutBudget:
         """
         Create budget for external API call.
@@ -287,9 +285,7 @@ class TimeoutBudgetManager:
         return budget
 
     @classmethod
-    def create_database_budget(
-        cls, total_budget: Optional[float] = None
-    ) -> TimeoutBudget:
+    def create_database_budget(cls, total_budget: float | None = None) -> TimeoutBudget:
         """
         Create budget for database query.
 
@@ -325,8 +321,8 @@ class TimeoutBudgetManager:
 
 async def with_timeout_budget(
     coro: Callable[..., Any],
-    budget: Optional[TimeoutBudget] = None,
-    fallback: Optional[Any] = None,
+    budget: TimeoutBudget | None = None,
+    fallback: Any | None = None,
 ) -> Any:
     """
     Execute coroutine with timeout budget.
@@ -368,7 +364,7 @@ async def with_timeout_budget(
 
         return result
 
-    except asyncio.TimeoutError:
+    except TimeoutError:
         elapsed = time.time() - start_time
         logger.warning(
             "timeout_budget_exceeded",
@@ -426,7 +422,7 @@ def timeout_budget_middleware(layer: str, budget_factory: Callable[[], TimeoutBu
 
                 return result
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 elapsed = time.time() - start_time
                 logger.error(
                     "function_timeout",

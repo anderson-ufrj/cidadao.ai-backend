@@ -9,7 +9,7 @@ from contextlib import asynccontextmanager
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import structlog
 from pydantic import BaseModel
@@ -72,7 +72,7 @@ class ComponentHealth:
     name: str
     status: ComponentStatus
     health_score: float = 0.0  # 0-1
-    error_message: Optional[str] = None
+    error_message: str | None = None
     last_check: datetime = field(default_factory=datetime.utcnow)
     uptime_seconds: float = 0.0
     metrics: dict[str, Any] = field(default_factory=dict)
@@ -124,7 +124,7 @@ class CidadaoAIOrchestrator:
         # Control
         self._running = False
         self._shutdown_event = asyncio.Event()
-        self._health_check_task: Optional[asyncio.Task] = None
+        self._health_check_task: asyncio.Task | None = None
 
         # Initialization tracking
         self._initialization_order = [
@@ -178,12 +178,11 @@ class CidadaoAIOrchestrator:
                 logger.info(f"✅ Sistema inicializado com sucesso em {uptime:.1f}s")
 
                 return True
-            else:
-                self.status = SystemStatus.ERROR
-                logger.error("❌ Falha na inicialização do sistema")
-                return False
+            self.status = SystemStatus.ERROR
+            logger.error("❌ Falha na inicialização do sistema")
+            return False
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self.status = SystemStatus.ERROR
             logger.error(
                 f"❌ Timeout na inicialização ({self.config.startup_timeout}s)"
@@ -413,12 +412,9 @@ class CidadaoAIOrchestrator:
                         logger.warning(
                             f"⚠️ {name} degradado (score: {health_score:.2f})"
                         )
-                else:
-                    if self.component_health[name].status != ComponentStatus.ERROR:
-                        logger.error(
-                            f"❌ {name} com problemas (score: {health_score:.2f})"
-                        )
-                        self.component_health[name].status = ComponentStatus.ERROR
+                elif self.component_health[name].status != ComponentStatus.ERROR:
+                    logger.error(f"❌ {name} com problemas (score: {health_score:.2f})")
+                    self.component_health[name].status = ComponentStatus.ERROR
 
             except Exception as e:
                 logger.error(f"❌ Health check falhou para {name}: {e}")
@@ -444,19 +440,17 @@ class CidadaoAIOrchestrator:
 
                     if overall_status == "healthy":
                         return 1.0
-                    elif overall_status == "degraded":
+                    if overall_status == "degraded":
                         return 0.7
-                    elif overall_status == "unhealthy":
+                    if overall_status == "unhealthy":
                         return 0.3
-                    else:
-                        return 0.5
-
-                elif isinstance(health_result, bool):
-                    return 1.0 if health_result else 0.0
-                else:
                     return 0.5
 
-            elif hasattr(component, "get_health_status"):
+                if isinstance(health_result, bool):
+                    return 1.0 if health_result else 0.0
+                return 0.5
+
+            if hasattr(component, "get_health_status"):
                 health_status = await component.get_health_status()
 
                 # Calculate score based on component statuses
@@ -475,14 +469,13 @@ class CidadaoAIOrchestrator:
                     else 0.5
                 )
 
-            else:
-                # Basic connectivity test
-                if hasattr(component, "ping"):
-                    await component.ping()
-                    return 1.0
+            # Basic connectivity test
+            if hasattr(component, "ping"):
+                await component.ping()
+                return 1.0
 
-                # Component exists and is accessible
-                return 0.8
+            # Component exists and is accessible
+            return 0.8
 
         except Exception as e:
             logger.debug(f"Health check error for {name}: {e}")
@@ -577,12 +570,11 @@ class CidadaoAIOrchestrator:
 
         if days > 0:
             return f"{days}d {hours}h {minutes}m {secs}s"
-        elif hours > 0:
+        if hours > 0:
             return f"{hours}h {minutes}m {secs}s"
-        elif minutes > 0:
+        if minutes > 0:
             return f"{minutes}m {secs}s"
-        else:
-            return f"{secs}s"
+        return f"{secs}s"
 
     async def submit_investigation(self, query: str, **kwargs) -> str:
         """Submeter investigação usando o sistema integrado"""
@@ -663,7 +655,7 @@ class CidadaoAIOrchestrator:
             self._health_check_task.cancel()
             try:
                 await asyncio.wait_for(self._health_check_task, timeout=5.0)
-            except (asyncio.CancelledError, asyncio.TimeoutError):
+            except (TimeoutError, asyncio.CancelledError):
                 pass
 
         # Shutdown components in reverse order
@@ -706,7 +698,7 @@ class CidadaoAIOrchestrator:
             self.component_health[name].status = ComponentStatus.SHUTDOWN
             logger.info(f"✅ {name} finalizado")
 
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.warning(f"⚠️ Timeout ao finalizar {name}")
         except Exception as e:
             logger.error(f"❌ Erro ao finalizar {name}: {e}")
@@ -731,11 +723,11 @@ class CidadaoAIOrchestrator:
 
 
 # Singleton instance
-_orchestrator: Optional[CidadaoAIOrchestrator] = None
+_orchestrator: CidadaoAIOrchestrator | None = None
 
 
 async def get_orchestrator(
-    config: Optional[OrchestratorConfig] = None,
+    config: OrchestratorConfig | None = None,
 ) -> CidadaoAIOrchestrator:
     """Obter instância singleton do orchestrador"""
 
@@ -749,7 +741,7 @@ async def get_orchestrator(
 
 
 async def initialize_system(
-    config: Optional[OrchestratorConfig] = None,
+    config: OrchestratorConfig | None = None,
 ) -> CidadaoAIOrchestrator:
     """Inicializar sistema completo"""
 

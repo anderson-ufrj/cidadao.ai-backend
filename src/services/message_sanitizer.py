@@ -131,13 +131,15 @@ def sanitize_message(message: str) -> ValidationResult:
             sanitized_message=message,
             original_message=original,
             warning=f"Mensagem muito curta: {len(message)} caracteres",
-            suggested_response=f"Recebi: \"{message}\". Poderia elaborar um pouco mais? Por exemplo, você pode perguntar sobre contratos de um ministério específico.",
+            suggested_response=f'Recebi: "{message}". Poderia elaborar um pouco mais? Por exemplo, você pode perguntar sobre contratos de um ministério específico.',
         )
 
     if len(message) > MAX_MESSAGE_LENGTH:
         # Truncate and warn
         message = message[:MAX_MESSAGE_LENGTH]
-        logger.warning(f"Message truncated from {len(original)} to {MAX_MESSAGE_LENGTH}")
+        logger.warning(
+            f"Message truncated from {len(original)} to {MAX_MESSAGE_LENGTH}"
+        )
 
     # Check for injection attempts BEFORE sanitization (for logging)
     injection_detected = False
@@ -145,10 +147,12 @@ def sanitize_message(message: str) -> ValidationResult:
         if pattern.search(message):
             injection_detected = True
             logger.warning(
-                f"Potential injection attempt detected",
+                "Potential injection attempt detected",
                 extra={
                     "pattern": pattern.pattern,
-                    "message_preview": message[:50] + "..." if len(message) > 50 else message,
+                    "message_preview": (
+                        message[:50] + "..." if len(message) > 50 else message
+                    ),
                 },
             )
             break
@@ -158,7 +162,8 @@ def sanitize_message(message: str) -> ValidationResult:
 
     # Remove null bytes and control characters (except newlines/tabs)
     message = "".join(
-        char for char in message
+        char
+        for char in message
         if char == "\n" or char == "\t" or (ord(char) >= 32 and ord(char) != 127)
     )
 

@@ -4,7 +4,7 @@ Provides Brazilian geographic data and boundaries for map visualizations.
 """
 
 from datetime import UTC, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
@@ -38,8 +38,8 @@ class BrazilianRegion(BaseModel):
     id: str = Field(..., description="Region identifier (e.g., 'SP' for São Paulo)")
     name: str = Field(..., description="Region name")
     type: RegionType = Field(..., description="Region type")
-    parent_id: Optional[str] = Field(None, description="Parent region ID")
-    geometry: Optional[dict[str, Any]] = Field(None, description="GeoJSON geometry")
+    parent_id: str | None = Field(None, description="Parent region ID")
+    geometry: dict[str, Any] | None = Field(None, description="GeoJSON geometry")
     properties: dict[str, Any] = Field(
         default_factory=dict, description="Additional properties"
     )
@@ -50,7 +50,7 @@ class GeographicBoundary(BaseModel):
 
     type: str = Field("FeatureCollection", description="GeoJSON type")
     features: list[dict[str, Any]] = Field(..., description="GeoJSON features")
-    bbox: Optional[list[float]] = Field(
+    bbox: list[float] | None = Field(
         None, description="Bounding box [min_lng, min_lat, max_lng, max_lat]"
     )
     properties: dict[str, Any] = Field(
@@ -64,7 +64,7 @@ class RegionalDataPoint(BaseModel):
     region_id: str
     region_name: str
     value: float
-    normalized_value: Optional[float] = None
+    normalized_value: float | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -289,8 +289,8 @@ async def list_regions(
     region_type: RegionType = Query(
         RegionType.STATE, description="Type of regions to list"
     ),
-    parent_id: Optional[str] = Query(None, description="Filter by parent region"),
-    search: Optional[str] = Query(None, description="Search regions by name"),
+    parent_id: str | None = Query(None, description="Filter by parent region"),
+    search: str | None = Query(None, description="Search regions by name"),
     current_user: dict[str, Any] = Depends(get_current_user),
 ):
     """
@@ -407,7 +407,7 @@ async def get_region_details(
             )
 
         # Check if it's a macro region
-        elif region_id in BRAZIL_REGIONS:
+        if region_id in BRAZIL_REGIONS:
             region_info = BRAZIL_REGIONS[region_id]
 
             return BrazilianRegion(
@@ -423,8 +423,7 @@ async def get_region_details(
                 },
             )
 
-        else:
-            raise ResourceNotFoundError(f"Region '{region_id}' not found")
+        raise ResourceNotFoundError(f"Region '{region_id}' not found")
 
     except ResourceNotFoundError:
         raise HTTPException(status_code=404, detail=f"Region '{region_id}' not found")

@@ -8,7 +8,7 @@ separating them from read queries for better scalability.
 import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime
-from typing import Any, Generic, Optional, TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, Field
 
@@ -25,7 +25,7 @@ class Command(BaseModel):
 
     command_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     timestamp: datetime = Field(default_factory=datetime.utcnow)
-    user_id: Optional[str] = None
+    user_id: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -34,8 +34,8 @@ class CommandResult(BaseModel):
 
     success: bool
     command_id: str
-    data: Optional[Any] = None
-    error: Optional[str] = None
+    data: Any | None = None
+    error: str | None = None
     events_published: int = 0
 
 
@@ -44,7 +44,7 @@ class CreateInvestigationCommand(Command):
     """Command to create a new investigation."""
 
     query: str
-    data_sources: Optional[list[str]] = None
+    data_sources: list[str] | None = None
     priority: str = "medium"
 
 
@@ -53,14 +53,14 @@ class UpdateInvestigationCommand(Command):
 
     investigation_id: str
     status: str
-    results: Optional[dict[str, Any]] = None
+    results: dict[str, Any] | None = None
 
 
 class CancelInvestigationCommand(Command):
     """Command to cancel an investigation."""
 
     investigation_id: str
-    reason: Optional[str] = None
+    reason: str | None = None
 
 
 # Agent Commands
@@ -70,7 +70,7 @@ class ExecuteAgentTaskCommand(Command):
     agent_name: str
     task_type: str
     payload: dict[str, Any]
-    timeout: Optional[float] = None
+    timeout: float | None = None
 
 
 # Chat Commands
@@ -79,7 +79,7 @@ class SendChatMessageCommand(Command):
 
     session_id: str
     message: str
-    context: Optional[dict[str, Any]] = None
+    context: dict[str, Any] | None = None
 
 
 class CommandHandler(ABC, Generic[T]):

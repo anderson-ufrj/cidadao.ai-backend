@@ -8,7 +8,7 @@ to reduce database load and improve response times.
 import hashlib
 from collections.abc import Callable
 from functools import wraps
-from typing import Any, Optional, TypeVar, Union
+from typing import Any, TypeVar
 
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.sql import Select
@@ -52,8 +52,8 @@ class QueryCache:
 
     def _generate_cache_key(
         self,
-        query: Union[str, Select],
-        params: Optional[dict[str, Any]] = None,
+        query: str | Select,
+        params: dict[str, Any] | None = None,
         prefix: str = "query",
     ) -> str:
         """Generate a unique cache key for a query."""
@@ -76,7 +76,7 @@ class QueryCache:
 
         return f"db:{prefix}:{key_hash}"
 
-    def _get_ttl_for_query(self, query: Union[str, Select]) -> int:
+    def _get_ttl_for_query(self, query: str | Select) -> int:
         """Determine TTL based on query type."""
         query_str = str(query).lower()
 
@@ -89,10 +89,10 @@ class QueryCache:
 
     async def get_or_fetch(
         self,
-        query: Union[str, Select],
+        query: str | Select,
         fetch_func: Callable,
-        params: Optional[dict[str, Any]] = None,
-        ttl: Optional[int] = None,
+        params: dict[str, Any] | None = None,
+        ttl: int | None = None,
         prefix: str = "query",
     ) -> Any:
         """
@@ -147,8 +147,8 @@ class QueryCache:
 
     async def invalidate(
         self,
-        pattern: Optional[str] = None,
-        table: Optional[str] = None,
+        pattern: str | None = None,
+        table: str | None = None,
         prefix: str = "query",
     ):
         """
@@ -208,9 +208,9 @@ query_cache = QueryCache()
 
 
 def cached_query(
-    ttl: Optional[int] = None,
+    ttl: int | None = None,
     key_prefix: str = "query",
-    invalidate_on: Optional[list[str]] = None,
+    invalidate_on: list[str] | None = None,
 ):
     """
     Decorator for caching database queries.
@@ -293,7 +293,7 @@ class CachedRepository:
         self.table_name = table_name
         self._cache = query_cache
 
-    async def invalidate_cache(self, pattern: Optional[str] = None):
+    async def invalidate_cache(self, pattern: str | None = None):
         """Invalidate cache for this repository."""
         await self._cache.invalidate(
             table=self.table_name if not pattern else None, pattern=pattern

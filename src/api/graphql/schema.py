@@ -6,7 +6,6 @@ and subscriptions for efficient data fetching.
 """
 
 from datetime import UTC, datetime
-from typing import Optional
 
 import strawberry
 from strawberry import ID
@@ -52,8 +51,8 @@ class Investigation:
     status: str
     confidence_score: float
     created_at: datetime
-    completed_at: Optional[datetime]
-    processing_time_ms: Optional[float]
+    completed_at: datetime | None
+    processing_time_ms: float | None
 
     @strawberry.field
     async def findings(self, info: Info) -> list["Finding"]:
@@ -66,7 +65,7 @@ class Investigation:
         return []
 
     @strawberry.field
-    async def user(self, info: Info) -> Optional[User]:
+    async def user(self, info: Info) -> User | None:
         """Get investigation owner."""
         return None
 
@@ -128,7 +127,7 @@ class ChatMessage:
     session_id: str
     role: str
     content: str
-    agent_name: Optional[str]
+    agent_name: str | None
     created_at: datetime
 
 
@@ -150,9 +149,9 @@ class InvestigationInput:
     """Input for creating investigations."""
 
     query: str
-    data_sources: Optional[list[str]] = None
-    priority: Optional[str] = "medium"
-    context: Optional[strawberry.scalars.JSON] = None
+    data_sources: list[str] | None = None
+    priority: str | None = "medium"
+    context: strawberry.scalars.JSON | None = None
 
 
 @strawberry.input
@@ -160,8 +159,8 @@ class ChatInput:
     """Input for chat messages."""
 
     message: str
-    session_id: Optional[str] = None
-    context: Optional[strawberry.scalars.JSON] = None
+    session_id: str | None = None
+    context: strawberry.scalars.JSON | None = None
 
 
 @strawberry.input
@@ -179,8 +178,8 @@ class PaginationInput:
 
     limit: int = 20
     offset: int = 0
-    order_by: Optional[str] = None
-    order_dir: Optional[str] = "desc"
+    order_by: str | None = None
+    order_dir: str | None = "desc"
 
 
 # Query Root
@@ -189,7 +188,7 @@ class Query:
     """Root query type."""
 
     @strawberry.field
-    async def me(self, info: Info) -> Optional[User]:
+    async def me(self, info: Info) -> User | None:
         """Get current user."""
         # Get from context
         user = info.context.get("user")
@@ -206,7 +205,7 @@ class Query:
 
     @strawberry.field
     @cached_query(ttl=300)
-    async def investigation(self, info: Info, id: ID) -> Optional[Investigation]:
+    async def investigation(self, info: Info, id: ID) -> Investigation | None:
         """Get investigation by ID."""
         # Fetch from service
         investigation = await investigation_service.get_by_id(id)
@@ -227,8 +226,8 @@ class Query:
     async def investigations(
         self,
         info: Info,
-        filters: Optional[list[SearchFilter]] = None,
-        pagination: Optional[PaginationInput] = None,
+        filters: list[SearchFilter] | None = None,
+        pagination: PaginationInput | None = None,
     ) -> list[Investigation]:
         """Search investigations with filters."""
         # Default pagination
@@ -262,11 +261,11 @@ class Query:
     async def contracts(
         self,
         info: Info,
-        search: Optional[str] = None,
-        orgao: Optional[str] = None,
-        min_value: Optional[float] = None,
-        max_value: Optional[float] = None,
-        pagination: Optional[PaginationInput] = None,
+        search: str | None = None,
+        orgao: str | None = None,
+        min_value: float | None = None,
+        max_value: float | None = None,
+        pagination: PaginationInput | None = None,
     ) -> list[Contract]:
         """Search contracts."""
         # Implementation would fetch from database

@@ -4,14 +4,13 @@ Provides intelligent default date ranges when user doesn't specify dates
 """
 
 from datetime import datetime, timedelta
-from typing import Optional, Tuple
 
 
 class DateRangeDefaults:
     """Provides intelligent date range defaults based on query type"""
 
     @staticmethod
-    def get_contracts_range() -> Tuple[str, str]:
+    def get_contracts_range() -> tuple[str, str]:
         """
         Get default date range for contracts queries.
 
@@ -28,7 +27,7 @@ class DateRangeDefaults:
         )
 
     @staticmethod
-    def get_expenses_range() -> Tuple[str, str]:
+    def get_expenses_range() -> tuple[str, str]:
         """
         Get default date range for expenses queries.
 
@@ -45,7 +44,7 @@ class DateRangeDefaults:
         )
 
     @staticmethod
-    def get_biddings_range() -> Tuple[str, str]:
+    def get_biddings_range() -> tuple[str, str]:
         """
         Get default date range for biddings queries.
 
@@ -62,7 +61,7 @@ class DateRangeDefaults:
         )
 
     @staticmethod
-    def get_servants_range() -> Tuple[str, str]:
+    def get_servants_range() -> tuple[str, str]:
         """
         Get default date range for civil servants queries.
 
@@ -81,7 +80,7 @@ class DateRangeDefaults:
         )
 
     @staticmethod
-    def get_range_for_query_type(query_type: str) -> Tuple[str, str]:
+    def get_range_for_query_type(query_type: str) -> tuple[str, str]:
         """
         Get appropriate date range based on query type.
 
@@ -95,22 +94,21 @@ class DateRangeDefaults:
 
         if "contrato" in query_type:
             return DateRangeDefaults.get_contracts_range()
-        elif "despesa" in query_type or "gasto" in query_type:
+        if "despesa" in query_type or "gasto" in query_type:
             return DateRangeDefaults.get_expenses_range()
-        elif "licitac" in query_type or "edital" in query_type:
+        if "licitac" in query_type or "edital" in query_type:
             return DateRangeDefaults.get_biddings_range()
-        elif "servidor" in query_type or "funciona" in query_type:
+        if "servidor" in query_type or "funciona" in query_type:
             return DateRangeDefaults.get_servants_range()
-        else:
-            # Default: last 30 days
-            return DateRangeDefaults.get_contracts_range()
+        # Default: last 30 days
+        return DateRangeDefaults.get_contracts_range()
 
     @staticmethod
     def apply_defaults_if_missing(
-        data_inicio: Optional[str],
-        data_fim: Optional[str],
+        data_inicio: str | None,
+        data_fim: str | None,
         query_type: str = "contratos",
-    ) -> Tuple[str, str]:
+    ) -> tuple[str, str]:
         """
         Apply default date range if dates are missing.
 
@@ -145,7 +143,7 @@ class DateRangeDefaults:
 
 
 # Global helper function
-def get_default_date_range(query_type: str = "contratos") -> Tuple[str, str]:
+def get_default_date_range(query_type: str = "contratos") -> tuple[str, str]:
     """
     Get default date range for a query type.
 

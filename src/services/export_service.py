@@ -11,7 +11,7 @@ import io
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
-from typing import Any, Optional, Union
+from typing import Any
 
 import markdown
 import pandas as pd
@@ -102,7 +102,7 @@ class ExportService:
         self,
         content: str,
         title: str,
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
         format_type: str = "report",
     ) -> bytes:
         """
@@ -252,9 +252,9 @@ class ExportService:
 
     async def generate_excel(
         self,
-        data: Union[dict[str, pd.DataFrame], pd.DataFrame],
+        data: dict[str, pd.DataFrame] | pd.DataFrame,
         title: str,
-        metadata: Optional[dict[str, Any]] = None,
+        metadata: dict[str, Any] | None = None,
     ) -> bytes:
         """
         Generate Excel file from data.

@@ -28,7 +28,7 @@ Created: 2025-10-09 14:21:00 -03 (Minas Gerais, Brazil)
 License: Proprietary - All rights reserved
 """
 
-from typing import Any, Optional
+from typing import Any
 
 from ..base import TransparencyAPIClient
 
@@ -50,8 +50,8 @@ class CKANClient(TransparencyAPIClient):
     def __init__(
         self,
         base_url: str,
-        state_code: Optional[str] = None,
-        api_token: Optional[str] = None,
+        state_code: str | None = None,
+        api_token: str | None = None,
         timeout: float = 30.0,
     ):
         """
@@ -137,7 +137,7 @@ class CKANClient(TransparencyAPIClient):
             self.logger.error(f"Failed to list datasets: {str(e)}")
             return []
 
-    async def get_dataset(self, dataset_id: str) -> Optional[dict[str, Any]]:
+    async def get_dataset(self, dataset_id: str) -> dict[str, Any] | None:
         """
         Get detailed information about a dataset.
 
@@ -157,7 +157,7 @@ class CKANClient(TransparencyAPIClient):
             return None
 
     async def search_datasets(
-        self, query: str, filters: Optional[dict[str, Any]] = None, limit: int = 20
+        self, query: str, filters: dict[str, Any] | None = None, limit: int = 20
     ) -> list[dict[str, Any]]:
         """
         Search datasets by query.
@@ -194,8 +194,8 @@ class CKANClient(TransparencyAPIClient):
 
     async def get_contracts(
         self,
-        start_date: Optional[str] = None,
-        end_date: Optional[str] = None,
+        start_date: str | None = None,
+        end_date: str | None = None,
         **kwargs: Any,
     ) -> list[dict[str, Any]]:
         """
@@ -242,7 +242,7 @@ class CKANClient(TransparencyAPIClient):
     async def query_datastore(
         self,
         resource_id: str,
-        filters: Optional[dict[str, Any]] = None,
+        filters: dict[str, Any] | None = None,
         limit: int = 100,
         offset: int = 0,
     ) -> list[dict[str, Any]]:
@@ -277,7 +277,7 @@ class CKANClient(TransparencyAPIClient):
             return []
 
     async def _ckan_action(
-        self, action: str, params: Optional[dict[str, Any]] = None
+        self, action: str, params: dict[str, Any] | None = None
     ) -> dict[str, Any]:
         """
         Call a CKAN API action.

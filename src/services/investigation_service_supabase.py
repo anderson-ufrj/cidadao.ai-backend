@@ -7,7 +7,7 @@ providing persistent storage shared with the frontend.
 
 import uuid
 from datetime import UTC, datetime
-from typing import Any, Optional
+from typing import Any
 
 from src.agents import get_agent_pool
 from src.agents.deodoro import AgentContext
@@ -40,9 +40,9 @@ class InvestigationServiceSupabase:
         user_id: str,
         query: str,
         data_source: str = "contracts",
-        filters: Optional[dict[str, Any]] = None,
-        anomaly_types: Optional[list[str]] = None,
-        session_id: Optional[str] = None,
+        filters: dict[str, Any] | None = None,
+        anomaly_types: list[str] | None = None,
+        session_id: str | None = None,
     ) -> dict[str, Any]:
         """
         Create a new investigation in Supabase.
@@ -240,8 +240,8 @@ class InvestigationServiceSupabase:
         investigation_id: str,
         progress: float,
         current_phase: str,
-        records_processed: Optional[int] = None,
-        anomalies_found: Optional[int] = None,
+        records_processed: int | None = None,
+        anomalies_found: int | None = None,
     ) -> dict[str, Any]:
         """
         Update investigation progress.
@@ -298,7 +298,7 @@ class InvestigationServiceSupabase:
             anomalies_found=anomalies_found,
         )
 
-    async def get(self, investigation_id: str) -> Optional[dict[str, Any]]:
+    async def get(self, investigation_id: str) -> dict[str, Any] | None:
         """
         Get investigation by ID (alias for get_by_id).
 
@@ -310,7 +310,7 @@ class InvestigationServiceSupabase:
         """
         return await self.get_by_id(investigation_id)
 
-    async def get_by_id(self, investigation_id: str) -> Optional[dict[str, Any]]:
+    async def get_by_id(self, investigation_id: str) -> dict[str, Any] | None:
         """
         Get investigation by ID.
 
@@ -327,8 +327,8 @@ class InvestigationServiceSupabase:
         self,
         investigation_id: str,
         status: str,
-        progress: Optional[float] = None,
-        current_phase: Optional[str] = None,
+        progress: float | None = None,
+        current_phase: str | None = None,
         **kwargs,
     ) -> dict[str, Any]:
         """
@@ -360,8 +360,8 @@ class InvestigationServiceSupabase:
 
     async def search(
         self,
-        user_id: Optional[str] = None,
-        status: Optional[str] = None,
+        user_id: str | None = None,
+        status: str | None = None,
         limit: int = 20,
         offset: int = 0,
     ) -> list[dict[str, Any]]:

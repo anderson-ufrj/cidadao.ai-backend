@@ -6,7 +6,7 @@ data from the Brazilian Open Data Portal.
 """
 
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
@@ -23,17 +23,17 @@ router = APIRouter(prefix="/dados-gov")
 class DatasetSearchRequest(BaseModel):
     """Request model for dataset search"""
 
-    keywords: Optional[list[str]] = Field(
+    keywords: list[str] | None = Field(
         None,
         description="Keywords to search for",
         example=["transparência", "gastos", "contratos"],
     )
-    organization: Optional[str] = Field(
+    organization: str | None = Field(
         None,
         description="Filter by organization",
         example="ministerio-da-saude",
     )
-    data_format: Optional[str] = Field(
+    data_format: str | None = Field(
         None,
         description="Preferred data format",
         example="csv",
@@ -66,22 +66,22 @@ class DataAvailabilityResponse(BaseModel):
     description="Search for datasets in the Brazilian Open Data Portal",
 )
 async def search_datasets(
-    query: Optional[str] = Query(
+    query: str | None = Query(
         None,
         description="Search query",
         example="educação básica",
     ),
-    organization: Optional[str] = Query(
+    organization: str | None = Query(
         None,
         description="Filter by organization",
         example="inep",
     ),
-    tags: Optional[list[str]] = Query(
+    tags: list[str] | None = Query(
         None,
         description="Filter by tags",
         example=["educação", "censo"],
     ),
-    format: Optional[str] = Query(
+    format: str | None = Query(
         None,
         description="Filter by data format",
         example="csv",
@@ -375,18 +375,18 @@ async def analyze_data_availability(
     description="Find datasets related to government spending and expenses",
 )
 async def find_spending_data(
-    year: Optional[int] = Query(
+    year: int | None = Query(
         None,
         ge=2000,
         le=2030,
         description="Filter by year",
     ),
-    state: Optional[str] = Query(
+    state: str | None = Query(
         None,
         description="Filter by state code",
         example="SP",
     ),
-    city: Optional[str] = Query(
+    city: str | None = Query(
         None,
         description="Filter by city name",
         example="São Paulo",
@@ -432,11 +432,11 @@ async def find_spending_data(
     description="Find datasets related to public procurement and contracts",
 )
 async def find_procurement_data(
-    organization: Optional[str] = Query(
+    organization: str | None = Query(
         None,
         description="Filter by organization",
     ),
-    modality: Optional[str] = Query(
+    modality: str | None = Query(
         None,
         description="Procurement modality",
         example="pregão",

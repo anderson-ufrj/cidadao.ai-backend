@@ -5,7 +5,7 @@ This module provides API endpoints for training, versioning, and
 A/B testing ML models.
 """
 
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
@@ -25,9 +25,9 @@ class TrainModelRequest(BaseModel):
 
     model_type: str = Field(..., description="Type of model (anomaly, fraud, pattern)")
     algorithm: str = Field(..., description="Algorithm to use (isolation_forest, etc)")
-    dataset_id: Optional[str] = Field(None, description="Dataset identifier")
-    hyperparameters: Optional[dict[str, Any]] = Field(default_factory=dict)
-    metadata: Optional[dict[str, Any]] = Field(default_factory=dict)
+    dataset_id: str | None = Field(None, description="Dataset identifier")
+    hyperparameters: dict[str, Any] | None = Field(default_factory=dict)
+    metadata: dict[str, Any] | None = Field(default_factory=dict)
 
 
 class PromoteModelRequest(BaseModel):
@@ -43,16 +43,16 @@ class ABTestRequest(BaseModel):
 
     test_name: str = Field(..., description="Unique test name")
     model_a_id: str = Field(..., description="Model A identifier")
-    model_a_version: Optional[int] = Field(None, description="Model A version")
+    model_a_version: int | None = Field(None, description="Model A version")
     model_b_id: str = Field(..., description="Model B identifier")
-    model_b_version: Optional[int] = Field(None, description="Model B version")
+    model_b_version: int | None = Field(None, description="Model B version")
     allocation_strategy: str = Field("random", description="Allocation strategy")
     traffic_split: list[float] = Field([0.5, 0.5], description="Traffic split")
     success_metric: str = Field("f1_score", description="Success metric")
     minimum_sample_size: int = Field(1000, description="Minimum samples")
     significance_level: float = Field(0.05, description="Significance level")
     auto_stop: bool = Field(True, description="Auto stop on winner")
-    duration_hours: Optional[int] = Field(None, description="Max duration")
+    duration_hours: int | None = Field(None, description="Max duration")
 
 
 class RecordPredictionRequest(BaseModel):
@@ -60,7 +60,7 @@ class RecordPredictionRequest(BaseModel):
 
     model_selection: str = Field(..., description="model_a or model_b")
     success: bool = Field(..., description="Prediction success")
-    metadata: Optional[dict[str, Any]] = Field(default_factory=dict)
+    metadata: dict[str, Any] | None = Field(default_factory=dict)
 
 
 @router.post("/train", response_model=dict[str, Any])
@@ -125,7 +125,7 @@ async def train_model(
 
 @router.get("/models", response_model=list[dict[str, Any]])
 async def list_models(
-    model_type: Optional[str] = None, current_user: dict = Depends(get_current_user)
+    model_type: str | None = None, current_user: dict = Depends(get_current_user)
 ):
     """List all available models with their versions."""
     try:
@@ -198,7 +198,7 @@ async def list_model_versions(
 @router.get("/models/{model_id}/metrics", response_model=dict[str, Any])
 async def get_model_metrics(
     model_id: str,
-    version: Optional[int] = None,
+    version: int | None = None,
     current_user: dict = Depends(get_current_user),
 ):
     """Get metrics for a specific model version."""
@@ -305,7 +305,7 @@ async def start_ab_test(test_name: str, current_user: dict = Depends(get_current
 
 
 @router.get("/ab-test/{test_name}/allocate", response_model=dict[str, Any])
-async def allocate_model_for_test(test_name: str, user_id: Optional[str] = None):
+async def allocate_model_for_test(test_name: str, user_id: str | None = None):
     """Get model allocation for a user in an A/B test."""
     try:
         ab_framework = await get_ab_testing()

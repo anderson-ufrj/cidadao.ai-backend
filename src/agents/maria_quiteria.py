@@ -10,7 +10,7 @@ License: Proprietary - All rights reserved
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 import numpy as np
 
@@ -64,7 +64,7 @@ class SecurityEvent:
     event_type: SecurityEventType
     threat_level: SecurityThreatLevel
     source_ip: str
-    user_id: Optional[str]
+    user_id: str | None
     resource_accessed: str
     timestamp: datetime
     description: str
@@ -485,7 +485,7 @@ class MariaQuiteriaAgent(BaseAgent):
         self,
         network_data: list[dict[str, Any]],
         time_window_minutes: int = 60,
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> IntrusionDetectionResult:
         """
         Detecta tentativas de intrusão no sistema.
@@ -536,8 +536,8 @@ class MariaQuiteriaAgent(BaseAgent):
         self,
         systems: list[str],
         audit_type: str = "comprehensive",
-        compliance_frameworks: Optional[list[ComplianceFramework]] = None,
-        context: Optional[AgentContext] = None,
+        compliance_frameworks: list[ComplianceFramework] | None = None,
+        context: AgentContext | None = None,
     ) -> SecurityAuditResult:
         """Realiza auditoria de segurança completa."""
         audit_id = f"audit_{datetime.now(UTC).timestamp()}"
@@ -592,7 +592,7 @@ class MariaQuiteriaAgent(BaseAgent):
     async def monitor_user_behavior(
         self,
         user_activities: list[dict[str, Any]],
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> list[SecurityEvent]:
         """Monitora comportamento de usuários para detecção de anomalias."""
         security_events = []
@@ -657,7 +657,7 @@ class MariaQuiteriaAgent(BaseAgent):
         return security_events
 
     async def check_data_integrity(
-        self, data_sources: list[str], context: Optional[AgentContext] = None
+        self, data_sources: list[str], context: AgentContext | None = None
     ) -> dict[str, Any]:
         """Verifica integridade de dados críticos."""
         integrity_report = {}
@@ -736,7 +736,7 @@ class MariaQuiteriaAgent(BaseAgent):
         self,
         framework: ComplianceFramework,
         systems: list[str],
-        context: Optional[AgentContext] = None,
+        context: AgentContext | None = None,
     ) -> dict[str, Any]:
         """Gera relatório de compliance para framework específico."""
         # Detailed Compliance Report Generation
@@ -926,7 +926,7 @@ class MariaQuiteriaAgent(BaseAgent):
                     },
                 )
 
-            elif action == "security_audit":
+            if action == "security_audit":
                 systems = message.payload.get("systems", ["all"])
                 audit_type = message.payload.get("audit_type", "comprehensive")
 
@@ -957,7 +957,7 @@ class MariaQuiteriaAgent(BaseAgent):
                     },
                 )
 
-            elif action == "monitor_behavior":
+            if action == "monitor_behavior":
                 activities = message.payload.get("user_activities", [])
 
                 security_events = await self.monitor_user_behavior(activities, context)
@@ -986,7 +986,7 @@ class MariaQuiteriaAgent(BaseAgent):
                     metadata={"confidence": 0.88},
                 )
 
-            elif action == "compliance_check":
+            if action == "compliance_check":
                 framework = ComplianceFramework(message.payload.get("framework"))
                 systems = message.payload.get("systems", ["all"])
 
@@ -1357,8 +1357,7 @@ class MariaQuiteriaAgent(BaseAgent):
                 f"CEP detected {len(correlated_events)} correlated attack patterns"
             )
             return correlated_events
-        else:
-            return all_events
+        return all_events
 
     async def _calculate_detection_confidence(
         self, events: list[dict[str, Any]]
@@ -1704,12 +1703,11 @@ class MariaQuiteriaAgent(BaseAgent):
         """Calculate exploitability level based on CVSS score."""
         if cvss_score >= 9.0:
             return "critical_exploitability"
-        elif cvss_score >= 7.0:
+        if cvss_score >= 7.0:
             return "high_exploitability"
-        elif cvss_score >= 4.0:
+        if cvss_score >= 4.0:
             return "medium_exploitability"
-        else:
-            return "low_exploitability"
+        return "low_exploitability"
 
     def _get_remediation_advice(self, vulnerability: dict) -> str:
         """Generate remediation advice for vulnerability."""
@@ -1718,12 +1716,11 @@ class MariaQuiteriaAgent(BaseAgent):
 
         if severity == "critical":
             return f"URGENT: Apply security patch for {cve_id} immediately. Consider isolating affected systems."
-        elif severity == "high":
+        if severity == "high":
             return f"Apply security patch for {cve_id} within 7 days. Monitor for exploitation attempts."
-        elif severity == "medium":
+        if severity == "medium":
             return f"Schedule patching for {cve_id} within 30 days. Review security configurations."
-        else:
-            return f"Include {cve_id} patch in next maintenance window."
+        return f"Include {cve_id} patch in next maintenance window."
 
     async def _check_compliance(
         self, framework: ComplianceFramework, systems: list[str]
@@ -1970,14 +1967,13 @@ class MariaQuiteriaAgent(BaseAgent):
         """Determina nível de ameaça baseado no score."""
         if risk_score >= 0.9:
             return SecurityThreatLevel.CRITICAL
-        elif risk_score >= 0.7:
+        if risk_score >= 0.7:
             return SecurityThreatLevel.HIGH
-        elif risk_score >= 0.5:
+        if risk_score >= 0.5:
             return SecurityThreatLevel.MEDIUM
-        elif risk_score >= 0.3:
+        if risk_score >= 0.3:
             return SecurityThreatLevel.LOW
-        else:
-            return SecurityThreatLevel.MINIMAL
+        return SecurityThreatLevel.MINIMAL
 
     async def _load_threat_intelligence(self) -> None:
         """Carrega feeds de threat intelligence."""

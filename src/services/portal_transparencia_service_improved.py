@@ -4,7 +4,7 @@ Real-time data fetching from Brazilian government transparency portal with robus
 """
 
 from datetime import UTC, date, datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urlencode
 
 import httpx
@@ -239,14 +239,14 @@ class ImprovedPortalTransparenciaService:
 
     async def search_contracts(
         self,
-        orgao: Optional[str] = None,
-        cnpj_fornecedor: Optional[str] = None,
-        data_inicial: Optional[date] = None,
-        data_final: Optional[date] = None,
-        valor_minimo: Optional[float] = None,
-        valor_maximo: Optional[float] = None,
-        situacao: Optional[str] = None,
-        modalidade: Optional[str] = None,
+        orgao: str | None = None,
+        cnpj_fornecedor: str | None = None,
+        data_inicial: date | None = None,
+        data_final: date | None = None,
+        valor_minimo: float | None = None,
+        valor_maximo: float | None = None,
+        situacao: str | None = None,
+        modalidade: str | None = None,
         page: int = 1,
         size: int = 100,
     ) -> dict[str, Any]:
@@ -453,9 +453,9 @@ class ImprovedPortalTransparenciaService:
 
     async def search_servidor_remuneracao(
         self,
-        cpf: Optional[str] = None,
-        nome: Optional[str] = None,
-        mes_ano: Optional[str] = None,
+        cpf: str | None = None,
+        nome: str | None = None,
+        mes_ano: str | None = None,
         page: int = 1,
         size: int = 100,
     ) -> dict[str, Any]:

@@ -7,7 +7,7 @@ License: Proprietary - All rights reserved
 """
 
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel
 from pydantic import Field as PydanticField
@@ -34,7 +34,7 @@ class LLMChatMessage(BaseModel):
 
     role: str = PydanticField(description="Message role: system, user, assistant")
     content: str = PydanticField(description="Message content")
-    metadata: Optional[dict[str, Any]] = PydanticField(
+    metadata: dict[str, Any] | None = PydanticField(
         default=None, description="Additional metadata"
     )
 
@@ -45,14 +45,12 @@ class LLMConversation(BaseModel):
     messages: list[LLMChatMessage] = PydanticField(
         default_factory=list, description="Conversation messages"
     )
-    system_prompt: Optional[str] = PydanticField(
-        default=None, description="System prompt"
-    )
-    conversation_id: Optional[str] = PydanticField(
+    system_prompt: str | None = PydanticField(default=None, description="System prompt")
+    conversation_id: str | None = PydanticField(
         default=None, description="Unique conversation ID"
     )
-    user_id: Optional[str] = PydanticField(default=None, description="User ID")
-    context: Optional[dict[str, Any]] = PydanticField(
+    user_id: str | None = PydanticField(default=None, description="User ID")
+    context: dict[str, Any] | None = PydanticField(
         default=None, description="Additional context"
     )
 
@@ -69,7 +67,7 @@ class LLMService:
     - Pattern interpretation
     """
 
-    def __init__(self, config: Optional[LLMServiceConfig] = None):
+    def __init__(self, config: LLMServiceConfig | None = None):
         """
         Initialize LLM service.
 
@@ -102,9 +100,9 @@ class LLMService:
     async def generate_text(
         self,
         prompt: str,
-        system_prompt: Optional[str] = None,
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
+        system_prompt: str | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
         stream: bool = False,
     ) -> str:
         """
@@ -134,16 +132,15 @@ class LLMService:
             async for chunk in self.llm_manager.stream_complete(request):
                 chunks.append(chunk)
             return "".join(chunks)
-        else:
-            response = await self.llm_manager.complete(request)
-            return response.content
+        response = await self.llm_manager.complete(request)
+        return response.content
 
     async def chat(
         self,
         conversation: LLMConversation,
         new_message: str,
-        temperature: Optional[float] = None,
-        max_tokens: Optional[int] = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
     ) -> str:
         """
         Continue a conversation with a new message.
@@ -342,7 +339,7 @@ class LLMService:
     async def create_executive_summary(
         self,
         investigation_results: dict[str, Any],
-        analysis_results: Optional[dict[str, Any]] = None,
+        analysis_results: dict[str, Any] | None = None,
         target_length: int = 300,
     ) -> str:
         """

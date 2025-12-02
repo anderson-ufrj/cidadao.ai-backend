@@ -11,7 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any
 
 import httpx
 import redis.asyncio as redis
@@ -55,7 +55,7 @@ class HealthCheckResult:
     message: str
     details: dict[str, Any] = field(default_factory=dict)
     timestamp: datetime = field(default_factory=datetime.utcnow)
-    error: Optional[str] = None
+    error: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
@@ -96,7 +96,7 @@ class BaseHealthCheck:
         self,
         name: str,
         dependency_type: DependencyType,
-        config: Optional[HealthCheckConfig] = None,
+        config: HealthCheckConfig | None = None,
     ):
         self.name = name
         self.dependency_type = dependency_type
@@ -154,7 +154,7 @@ class BaseHealthCheck:
 
                 return health_result
 
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 last_error = (
                     f"Health check timed out after {self.config.timeout_seconds}s"
                 )
@@ -188,7 +188,7 @@ class BaseHealthCheck:
             error=last_error,
         )
 
-    async def _perform_check(self) -> Union[dict[str, Any], bool]:
+    async def _perform_check(self) -> dict[str, Any] | bool:
         """Override this method to implement specific health check logic."""
         raise NotImplementedError("Subclasses must implement _perform_check")
 
@@ -197,7 +197,7 @@ class DatabaseHealthCheck(BaseHealthCheck):
     """Health check for database connectivity."""
 
     def __init__(
-        self, session_factory: Callable, config: Optional[HealthCheckConfig] = None
+        self, session_factory: Callable, config: HealthCheckConfig | None = None
     ):
         super().__init__("database", DependencyType.DATABASE, config)
         self.session_factory = session_factory
@@ -238,7 +238,7 @@ class DatabaseHealthCheck(BaseHealthCheck):
 class RedisHealthCheck(BaseHealthCheck):
     """Health check for Redis connectivity."""
 
-    def __init__(self, redis_url: str, config: Optional[HealthCheckConfig] = None):
+    def __init__(self, redis_url: str, config: HealthCheckConfig | None = None):
         super().__init__("redis", DependencyType.CACHE, config)
         self.redis_url = redis_url
 
@@ -284,9 +284,9 @@ class ExternalAPIHealthCheck(BaseHealthCheck):
         name: str,
         url: str,
         method: str = "GET",
-        headers: Optional[dict[str, str]] = None,
+        headers: dict[str, str] | None = None,
         expected_status: int = 200,
-        config: Optional[HealthCheckConfig] = None,
+        config: HealthCheckConfig | None = None,
     ):
         super().__init__(name, DependencyType.EXTERNAL_API, config)
         self.url = url
@@ -325,7 +325,7 @@ class LLMServiceHealthCheck(BaseHealthCheck):
         name: str,
         api_key: str,
         base_url: str,
-        config: Optional[HealthCheckConfig] = None,
+        config: HealthCheckConfig | None = None,
     ):
         super().__init__(name, DependencyType.LLM_SERVICE, config)
         self.api_key = api_key
@@ -510,7 +510,7 @@ class HealthCheckManager:
         return check_results
 
     def get_overall_status(
-        self, results: Optional[dict[str, HealthCheckResult]] = None
+        self, results: dict[str, HealthCheckResult] | None = None
     ) -> HealthStatus:
         """
         Get overall system health status.

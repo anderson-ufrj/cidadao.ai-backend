@@ -3,7 +3,6 @@ Wrapper methods for InvestigatorAgent (Zumbi) to provide backward compatibility
 """
 
 from datetime import UTC, datetime
-from typing import Optional
 
 from src.agents.deodoro import AgentContext, AgentMessage
 from src.agents.zumbi import AnomalyResult
@@ -13,9 +12,9 @@ async def investigate_anomalies_wrapper(
     self,
     query: str,
     data_source: str = "contracts",
-    filters: Optional[dict] = None,
-    anomaly_types: Optional[list[str]] = None,
-    context: Optional[AgentContext] = None,
+    filters: dict | None = None,
+    anomaly_types: list[str] | None = None,
+    context: AgentContext | None = None,
 ) -> list[AnomalyResult]:
     """
     Wrapper method to provide investigate_anomalies interface for InvestigatorAgent.

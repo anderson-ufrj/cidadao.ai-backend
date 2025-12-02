@@ -10,7 +10,7 @@ import hashlib
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 import aiofiles
@@ -99,25 +99,25 @@ class AuditContext:
     """Audit event context information."""
 
     # Request context
-    request_id: Optional[str] = None
-    session_id: Optional[str] = None
-    correlation_id: Optional[str] = None
+    request_id: str | None = None
+    session_id: str | None = None
+    correlation_id: str | None = None
 
     # Network context
-    ip_address: Optional[str] = None
-    user_agent: Optional[str] = None
-    host: Optional[str] = None
-    referer: Optional[str] = None
+    ip_address: str | None = None
+    user_agent: str | None = None
+    host: str | None = None
+    referer: str | None = None
 
     # Geographic context
-    country: Optional[str] = None
-    region: Optional[str] = None
-    city: Optional[str] = None
+    country: str | None = None
+    region: str | None = None
+    city: str | None = None
 
     # Device context
-    device_type: Optional[str] = None
-    os: Optional[str] = None
-    browser: Optional[str] = None
+    device_type: str | None = None
+    os: str | None = None
+    browser: str | None = None
 
 
 class AuditEvent(BaseModel):
@@ -134,26 +134,26 @@ class AuditEvent(BaseModel):
     details: dict[str, Any] = Field(default_factory=dict)
 
     # Actor information
-    user_id: Optional[str] = None
-    user_email: Optional[str] = None
-    user_role: Optional[str] = None
-    impersonated_by: Optional[str] = None
+    user_id: str | None = None
+    user_email: str | None = None
+    user_role: str | None = None
+    impersonated_by: str | None = None
 
     # Resource information
-    resource_type: Optional[str] = None
-    resource_id: Optional[str] = None
-    resource_name: Optional[str] = None
+    resource_type: str | None = None
+    resource_id: str | None = None
+    resource_name: str | None = None
 
     # Result information
     success: bool = True
-    error_code: Optional[str] = None
-    error_message: Optional[str] = None
+    error_code: str | None = None
+    error_message: str | None = None
 
     # Context
-    context: Optional[AuditContext] = None
+    context: AuditContext | None = None
 
     # Data integrity
-    checksum: Optional[str] = None
+    checksum: str | None = None
 
     def calculate_checksum(self) -> str:
         """Calculate checksum for data integrity."""
@@ -175,16 +175,16 @@ class AuditEvent(BaseModel):
 class AuditFilter(BaseModel):
     """Audit log filtering options."""
 
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
-    event_types: Optional[list[AuditEventType]] = None
-    severity_levels: Optional[list[AuditSeverity]] = None
-    user_id: Optional[str] = None
-    user_email: Optional[str] = None
-    resource_type: Optional[str] = None
-    resource_id: Optional[str] = None
-    success_only: Optional[bool] = None
-    ip_address: Optional[str] = None
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    event_types: list[AuditEventType] | None = None
+    severity_levels: list[AuditSeverity] | None = None
+    user_id: str | None = None
+    user_email: str | None = None
+    resource_type: str | None = None
+    resource_id: str | None = None
+    success_only: bool | None = None
+    ip_address: str | None = None
     limit: int = Field(default=100, le=1000)
     offset: int = Field(default=0, ge=0)
 
@@ -225,17 +225,17 @@ class AuditLogger:
         event_type: AuditEventType,
         message: str,
         severity: AuditSeverity = AuditSeverity.MEDIUM,
-        user_id: Optional[str] = None,
-        user_email: Optional[str] = None,
-        user_role: Optional[str] = None,
-        resource_type: Optional[str] = None,
-        resource_id: Optional[str] = None,
-        resource_name: Optional[str] = None,
+        user_id: str | None = None,
+        user_email: str | None = None,
+        user_role: str | None = None,
+        resource_type: str | None = None,
+        resource_id: str | None = None,
+        resource_name: str | None = None,
         success: bool = True,
-        error_code: Optional[str] = None,
-        error_message: Optional[str] = None,
-        details: Optional[dict[str, Any]] = None,
-        context: Optional[AuditContext] = None,
+        error_code: str | None = None,
+        error_message: str | None = None,
+        details: dict[str, Any] | None = None,
+        context: AuditContext | None = None,
         **kwargs,
     ) -> AuditEvent:
         """Log an audit event."""
@@ -432,7 +432,7 @@ class AuditLogger:
         return filtered_events[start:end]
 
     async def get_statistics(
-        self, start_date: Optional[datetime] = None, end_date: Optional[datetime] = None
+        self, start_date: datetime | None = None, end_date: datetime | None = None
     ) -> AuditStatistics:
         """Get audit statistics."""
 
@@ -524,7 +524,7 @@ class AuditLogger:
                 [event.model_dump() for event in events], indent=2, default=str
             )
 
-        elif format.lower() == "csv":
+        if format.lower() == "csv":
             import csv
             import io
 
@@ -570,8 +570,7 @@ class AuditLogger:
 
             return output.getvalue()
 
-        else:
-            raise ValueError(f"Unsupported export format: {format}")
+        raise ValueError(f"Unsupported export format: {format}")
 
     async def verify_integrity(self) -> dict[str, Any]:
         """Verify integrity of all audit events."""
@@ -611,7 +610,7 @@ audit_logger = AuditLogger()
 
 # Convenience functions for common audit events
 async def audit_login_success(
-    user_id: str, user_email: str, context: Optional[AuditContext] = None
+    user_id: str, user_email: str, context: AuditContext | None = None
 ):
     """Audit successful login."""
     await audit_logger.log_event(
@@ -624,7 +623,7 @@ async def audit_login_success(
 
 
 async def audit_login_failure(
-    email: str, reason: str, context: Optional[AuditContext] = None
+    email: str, reason: str, context: AuditContext | None = None
 ):
     """Audit failed login attempt."""
     await audit_logger.log_event(
@@ -644,7 +643,7 @@ async def audit_data_access(
     resource_type: str,
     resource_id: str,
     action: str,
-    context: Optional[AuditContext] = None,
+    context: AuditContext | None = None,
 ):
     """Audit data access."""
     await audit_logger.log_event(
@@ -660,7 +659,7 @@ async def audit_data_access(
 
 
 async def audit_unauthorized_access(
-    resource: str, reason: str, context: Optional[AuditContext] = None
+    resource: str, reason: str, context: AuditContext | None = None
 ):
     """Audit unauthorized access attempt."""
     await audit_logger.log_event(

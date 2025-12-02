@@ -8,7 +8,7 @@ License: Proprietary - All rights reserved
 
 from datetime import datetime, timedelta
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from celery import chain, group
 from celery.result import AsyncResult
@@ -51,7 +51,7 @@ class BatchJobRequest(BaseModel):
     priority: TaskPriority = TaskPriority.NORMAL
     parallel: bool = True
     max_workers: int = 5
-    callback_url: Optional[str] = None
+    callback_url: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -66,8 +66,8 @@ class BatchJobStatus(BaseModel):
     pending: int
     status: str
     started_at: datetime
-    completed_at: Optional[datetime] = None
-    duration_seconds: Optional[float] = None
+    completed_at: datetime | None = None
+    duration_seconds: float | None = None
     results: list[dict[str, Any]] = Field(default_factory=list)
 
 
@@ -306,7 +306,7 @@ class BatchProcessingService:
 
         self._job_results[job_id] = [result]
 
-    def _create_callback_task(self, job_id: str, callback_url: Optional[str]):
+    def _create_callback_task(self, job_id: str, callback_url: str | None):
         """Create callback task for job completion."""
         if not callback_url:
             return None
@@ -340,7 +340,7 @@ class BatchProcessingService:
 
         return batch_completion_callback.s()
 
-    async def get_job_status(self, job_id: str) -> Optional[BatchJobStatus]:
+    async def get_job_status(self, job_id: str) -> BatchJobStatus | None:
         """
         Get batch job status.
 

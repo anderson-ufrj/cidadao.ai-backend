@@ -7,7 +7,7 @@ import asyncio
 import importlib
 import weakref
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from src.agents.deodoro import BaseAgent
 from src.core import get_logger
@@ -36,10 +36,10 @@ class AgentMetadata:
         self.capabilities = capabilities
         self.priority = priority
         self.preload = preload
-        self.loaded_class: Optional[type[BaseAgent]] = None
-        self.last_used: Optional[datetime] = None
+        self.loaded_class: type[BaseAgent] | None = None
+        self.last_used: datetime | None = None
         self.usage_count: int = 0
-        self.load_time_ms: Optional[float] = None
+        self.load_time_ms: float | None = None
 
 
 class AgentLazyLoader:
@@ -81,7 +81,7 @@ class AgentLazyLoader:
         }
 
         # Cleanup task
-        self._cleanup_task: Optional[asyncio.Task] = None
+        self._cleanup_task: asyncio.Task | None = None
         self._running = False
 
         # Initialize with default agents

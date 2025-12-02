@@ -11,7 +11,7 @@ import threading
 import traceback
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional
+from typing import Any
 
 from pythonjsonlogger import jsonlogger
 
@@ -59,18 +59,18 @@ class StructuredLogRecord:
         message: str,
         level: LogLevel,
         event_type: LogEventType,
-        timestamp: Optional[datetime] = None,
-        correlation_id: Optional[str] = None,
-        request_id: Optional[str] = None,
-        user_id: Optional[str] = None,
-        session_id: Optional[str] = None,
-        span_id: Optional[str] = None,
-        component: Optional[str] = None,
-        operation: Optional[str] = None,
-        duration_ms: Optional[float] = None,
-        error_type: Optional[str] = None,
-        error_stack: Optional[str] = None,
-        additional_data: Optional[dict[str, Any]] = None,
+        timestamp: datetime | None = None,
+        correlation_id: str | None = None,
+        request_id: str | None = None,
+        user_id: str | None = None,
+        session_id: str | None = None,
+        span_id: str | None = None,
+        component: str | None = None,
+        operation: str | None = None,
+        duration_ms: float | None = None,
+        error_type: str | None = None,
+        error_stack: str | None = None,
+        additional_data: dict[str, Any] | None = None,
     ):
         """
         Initialize structured log record.
@@ -168,8 +168,8 @@ class TraceContextFormatter(jsonlogger.JsonFormatter):
 
     def __init__(
         self,
-        fmt: Optional[str] = None,
-        datefmt: Optional[str] = None,
+        fmt: str | None = None,
+        datefmt: str | None = None,
         style: str = "%",
         validate: bool = True,
         include_trace_context: bool = True,
@@ -267,7 +267,7 @@ class StructuredLogger:
         self,
         name: str,
         level: LogLevel = LogLevel.INFO,
-        component: Optional[str] = None,
+        component: str | None = None,
     ):
         """
         Initialize structured logger.
@@ -307,8 +307,8 @@ class StructuredLogger:
         self,
         message: str,
         event_type: LogEventType = LogEventType.SYSTEM,
-        operation: Optional[str] = None,
-        duration_ms: Optional[float] = None,
+        operation: str | None = None,
+        duration_ms: float | None = None,
         **kwargs,
     ):
         """Log debug message."""
@@ -327,8 +327,8 @@ class StructuredLogger:
         self,
         message: str,
         event_type: LogEventType = LogEventType.SYSTEM,
-        operation: Optional[str] = None,
-        duration_ms: Optional[float] = None,
+        operation: str | None = None,
+        duration_ms: float | None = None,
         **kwargs,
     ):
         """Log info message."""
@@ -347,8 +347,8 @@ class StructuredLogger:
         self,
         message: str,
         event_type: LogEventType = LogEventType.SYSTEM,
-        operation: Optional[str] = None,
-        duration_ms: Optional[float] = None,
+        operation: str | None = None,
+        duration_ms: float | None = None,
         **kwargs,
     ):
         """Log warning message."""
@@ -367,9 +367,9 @@ class StructuredLogger:
         self,
         message: str,
         event_type: LogEventType = LogEventType.ERROR,
-        operation: Optional[str] = None,
-        duration_ms: Optional[float] = None,
-        error: Optional[Exception] = None,
+        operation: str | None = None,
+        duration_ms: float | None = None,
+        error: Exception | None = None,
         **kwargs,
     ):
         """Log error message."""
@@ -397,9 +397,9 @@ class StructuredLogger:
         self,
         message: str,
         event_type: LogEventType = LogEventType.ERROR,
-        operation: Optional[str] = None,
-        duration_ms: Optional[float] = None,
-        error: Optional[Exception] = None,
+        operation: str | None = None,
+        duration_ms: float | None = None,
+        error: Exception | None = None,
         **kwargs,
     ):
         """Log critical message."""
@@ -430,8 +430,8 @@ class StructuredLogger:
         path: str,
         status_code: int,
         duration_ms: float,
-        user_agent: Optional[str] = None,
-        client_ip: Optional[str] = None,
+        user_agent: str | None = None,
+        client_ip: str | None = None,
     ):
         """Log HTTP request."""
         self.info(
@@ -450,9 +450,9 @@ class StructuredLogger:
         self,
         investigation_id: str,
         action: str,
-        query: Optional[str] = None,
-        confidence_score: Optional[float] = None,
-        duration_ms: Optional[float] = None,
+        query: str | None = None,
+        confidence_score: float | None = None,
+        duration_ms: float | None = None,
     ):
         """Log investigation event."""
         self.info(
@@ -470,9 +470,9 @@ class StructuredLogger:
         agent_name: str,
         task_type: str,
         action: str,
-        duration_ms: Optional[float] = None,
+        duration_ms: float | None = None,
         success: bool = True,
-        error_message: Optional[str] = None,
+        error_message: str | None = None,
     ):
         """Log agent task execution."""
         level = LogLevel.INFO if success else LogLevel.ERROR
@@ -507,7 +507,7 @@ class StructuredLogger:
         confidence_score: float,
         data_source: str,
         description: str,
-        investigation_id: Optional[str] = None,
+        investigation_id: str | None = None,
     ):
         """Log anomaly detection."""
         self.warning(
@@ -527,7 +527,7 @@ class StructuredLogger:
         operation: str,
         table: str,
         duration_ms: float,
-        rows_affected: Optional[int] = None,
+        rows_affected: int | None = None,
         success: bool = True,
     ):
         """Log database operation."""
@@ -559,8 +559,8 @@ class StructuredLogger:
         self,
         operation: str,
         cache_key: str,
-        hit: Optional[bool] = None,
-        duration_ms: Optional[float] = None,
+        hit: bool | None = None,
+        duration_ms: float | None = None,
         cache_type: str = "redis",
     ):
         """Log cache operation."""
@@ -646,9 +646,7 @@ class StructuredLogger:
             )
 
 
-def get_structured_logger(
-    name: str, component: Optional[str] = None
-) -> StructuredLogger:
+def get_structured_logger(name: str, component: str | None = None) -> StructuredLogger:
     """
     Get a structured logger instance.
 

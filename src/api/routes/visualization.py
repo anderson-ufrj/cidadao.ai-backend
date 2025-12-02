@@ -5,7 +5,7 @@ Provides aggregated and formatted data optimized for frontend consumption.
 
 from datetime import UTC, datetime, timedelta
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
@@ -49,11 +49,11 @@ class ChartDataRequest(BaseModel):
     """Request model for chart data."""
 
     dataset_type: DatasetType
-    chart_type: Optional[VisualizationType] = None
-    time_range: Optional[str] = Field(
+    chart_type: VisualizationType | None = None
+    time_range: str | None = Field(
         default="30d", description="Time range: 7d, 30d, 90d, 1y, all"
     )
-    granularity: Optional[TimeGranularity] = TimeGranularity.DAY
+    granularity: TimeGranularity | None = TimeGranularity.DAY
     dimensions: list[str] = Field(
         default_factory=list, description="Dimensions for grouping"
     )
@@ -83,13 +83,13 @@ class TimeSeriesRequest(BaseModel):
     """Request model for time series data."""
 
     metric: str = Field(..., description="Metric to analyze over time")
-    entity_id: Optional[str] = Field(None, description="Specific entity to track")
-    start_date: Optional[datetime] = None
-    end_date: Optional[datetime] = None
+    entity_id: str | None = Field(None, description="Specific entity to track")
+    start_date: datetime | None = None
+    end_date: datetime | None = None
     granularity: TimeGranularity = TimeGranularity.DAY
     aggregation: AggregationType = AggregationType.SUM
     include_forecast: bool = Field(default=False, description="Include forecast data")
-    comparison_period: Optional[str] = Field(
+    comparison_period: str | None = Field(
         None, description="Compare with previous period"
     )
 
@@ -99,9 +99,9 @@ class VisualizationResponse(BaseModel):
 
     visualization_id: str
     title: str
-    subtitle: Optional[str]
+    subtitle: str | None
     chart_type: VisualizationType
-    data: Union[list[dict[str, Any]], dict[str, Any]]
+    data: list[dict[str, Any]] | dict[str, Any]
     metadata: dict[str, Any]
     cache_timestamp: datetime
     expires_at: datetime

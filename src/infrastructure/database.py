@@ -8,7 +8,7 @@ import os
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from enum import Enum
-from typing import Any, Optional, Union
+from typing import Any
 
 import aiocache
 import asyncpg
@@ -47,12 +47,12 @@ class DatabaseConfig(BaseModel):
     postgres_pool_timeout: int = 30  # Wait time for connection (seconds)
 
     # Redis Cluster
-    redis_nodes: list[dict[str, Union[str, int]]] = [
+    redis_nodes: list[dict[str, str | int]] = [
         {"host": "localhost", "port": 7000},
         {"host": "localhost", "port": 7001},
         {"host": "localhost", "port": 7002},
     ]
-    redis_password: Optional[str] = None
+    redis_password: str | None = None
     redis_decode_responses: bool = True
 
     # Cache TTL configurations
@@ -78,22 +78,22 @@ class Investigation(BaseModel):
     """Modelo para investigações"""
 
     id: str = Field(..., description="ID único da investigação")
-    user_id: Optional[str] = Field(None, description="ID do usuário")
+    user_id: str | None = Field(None, description="ID do usuário")
     query: str = Field(..., description="Query da investigação")
     status: str = Field("pending", description="Status atual")
     progress: float = Field(0.0, description="Progresso da investigação (0.0 a 1.0)")
     current_phase: str = Field("pending", description="Fase atual da investigação")
-    results: Optional[dict[str, Any]] = Field(None, description="Resultados")
-    summary: Optional[str] = Field(None, description="Sumário da investigação")
+    results: dict[str, Any] | None = Field(None, description="Resultados")
+    summary: str | None = Field(None, description="Sumário da investigação")
     metadata: dict[str, Any] = Field(default_factory=dict)
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    completed_at: Optional[datetime] = None
-    error_message: Optional[str] = None
-    confidence_score: Optional[float] = None
+    completed_at: datetime | None = None
+    error_message: str | None = None
+    confidence_score: float | None = None
     anomalies_found: int = 0
     records_processed: int = 0
-    processing_time_ms: Optional[int] = None
+    processing_time_ms: int | None = None
 
 
 class DatabaseManager:
@@ -368,7 +368,7 @@ class DatabaseManager:
             logger.error(f"❌ Erro ao salvar investigação {investigation.id}: {e}")
             return False
 
-    async def get_investigation(self, investigation_id: str) -> Optional[Investigation]:
+    async def get_investigation(self, investigation_id: str) -> Investigation | None:
         """Buscar investigação por ID (com cache)"""
 
         # Tentar cache primeiro
@@ -449,7 +449,7 @@ class DatabaseManager:
 
     async def cache_get(
         self, key: str, layer: CacheLayer = CacheLayer.REDIS
-    ) -> Optional[Any]:
+    ) -> Any | None:
         """Buscar no cache"""
 
         try:
@@ -525,8 +525,8 @@ class DatabaseManager:
 
 
 # Singleton instance
-_db_manager: Optional[DatabaseManager] = None
-_db_pool: Optional[asyncpg.Pool] = None
+_db_manager: DatabaseManager | None = None
+_db_pool: asyncpg.Pool | None = None
 
 
 async def get_database_manager() -> DatabaseManager:
