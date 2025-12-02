@@ -7,17 +7,13 @@ Author: Anderson Henrique da Silva
 Created: 2025-12-02
 """
 
-import pytest
-
 from src.services.message_sanitizer import (
-    MessageValidationStatus,
-    ValidationResult,
-    sanitize_message,
-    extract_safe_log_message,
-    is_valid_session_id,
-    get_edge_case_response,
-    MIN_MESSAGE_LENGTH,
     MAX_MESSAGE_LENGTH,
+    MessageValidationStatus,
+    extract_safe_log_message,
+    get_edge_case_response,
+    is_valid_session_id,
+    sanitize_message,
 )
 
 
@@ -84,9 +80,9 @@ class TestSanitizeMessage:
         ]
         for test_msg in tests:
             result = sanitize_message(test_msg)
-            assert result.status == MessageValidationStatus.POTENTIAL_INJECTION, (
-                f"Failed to detect SQL injection: {test_msg}"
-            )
+            assert (
+                result.status == MessageValidationStatus.POTENTIAL_INJECTION
+            ), f"Failed to detect SQL injection: {test_msg}"
 
     def test_template_injection_detected(self):
         """Template injection attempts should be detected."""
@@ -194,7 +190,9 @@ class TestIsValidSessionId:
         """Invalid UUID formats should return False."""
         assert not is_valid_session_id("not-a-uuid")
         assert not is_valid_session_id("123")
-        assert not is_valid_session_id("123e4567-e89b-12d3-a456-426614174000")  # v1 not v4
+        assert not is_valid_session_id(
+            "123e4567-e89b-12d3-a456-426614174000"
+        )  # v1 not v4
         assert not is_valid_session_id("")
 
     def test_uppercase_uuid(self):
@@ -249,9 +247,9 @@ class TestBrazilianPortuguese:
         ]
         for greeting in greetings:
             result = sanitize_message(greeting)
-            assert result.status == MessageValidationStatus.VALID, (
-                f"Failed for: {greeting}"
-            )
+            assert (
+                result.status == MessageValidationStatus.VALID
+            ), f"Failed for: {greeting}"
 
     def test_common_investigation_queries(self):
         """Common investigation queries should be valid."""
@@ -264,9 +262,9 @@ class TestBrazilianPortuguese:
         ]
         for query in queries:
             result = sanitize_message(query)
-            assert result.status == MessageValidationStatus.VALID, (
-                f"Failed for: {query}"
-            )
+            assert (
+                result.status == MessageValidationStatus.VALID
+            ), f"Failed for: {query}"
 
     def test_accented_characters(self):
         """Accented characters common in Portuguese should be preserved."""
