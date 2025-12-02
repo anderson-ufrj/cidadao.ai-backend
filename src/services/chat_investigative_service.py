@@ -428,7 +428,38 @@ class ChatInvestigativeService:
 
     def _format_contract(self, contract: dict[str, Any]) -> dict[str, Any]:
         """Format contract data for display."""
-        valor = contract.get("valorInicial") or contract.get("valorFinal") or 0
+        # API returns valorInicialCompra/valorFinalCompra, not valorInicial/valorFinal
+        valor = (
+            contract.get("valorInicialCompra")
+            or contract.get("valorFinalCompra")
+            or contract.get("valorInicial")
+            or contract.get("valorFinal")
+            or 0
+        )
+
+        # Extract fornecedor data (nested object in API response)
+        fornecedor = contract.get("fornecedor", {})
+        fornecedor_nome = (
+            fornecedor.get("nome")
+            or fornecedor.get("razaoSocialReceita")
+            or fornecedor.get("nomeFantasiaReceita")
+            or contract.get("nomeFornecedor")
+            or contract.get("nomeFantasiaFornecedor")
+            or "Não informado"
+        )
+        fornecedor_cnpj = (
+            fornecedor.get("cnpjFormatado") or contract.get("cnpjFornecedor") or "N/A"
+        )
+
+        # Extract unidade gestora (nested object)
+        unidade_gestora = contract.get("unidadeGestora", {})
+        orgao_maximo = unidade_gestora.get("orgaoMaximo", {})
+        orgao_nome = (
+            orgao_maximo.get("nome")
+            or unidade_gestora.get("nome")
+            or contract.get("nomeOrgao")
+            or "N/A"
+        )
 
         return {
             "id": contract.get("id"),
@@ -438,14 +469,16 @@ class ChatInvestigativeService:
             .replace(".", ",")
             .replace("X", "."),
             "valor": valor,
-            "fornecedor": contract.get("nomeFornecedor")
-            or contract.get("nomeFantasiaFornecedor", "Não informado"),
-            "cnpj_fornecedor": contract.get("cnpjFornecedor", "N/A"),
-            "orgao": contract.get("nomeOrgao", "N/A"),
+            "fornecedor": fornecedor_nome,
+            "cnpj_fornecedor": fornecedor_cnpj,
+            "orgao": orgao_nome,
             "data_assinatura": contract.get("dataAssinatura", "N/A"),
-            "vigencia_inicio": contract.get("dataVigenciaInicio", "N/A"),
-            "vigencia_fim": contract.get("dataVigenciaFim", "N/A"),
-            "situacao": contract.get("situacao", "N/A"),
+            "vigencia_inicio": contract.get("dataInicioVigencia")
+            or contract.get("dataVigenciaInicio", "N/A"),
+            "vigencia_fim": contract.get("dataFimVigencia")
+            or contract.get("dataVigenciaFim", "N/A"),
+            "situacao": contract.get("situacaoContrato")
+            or contract.get("situacao", "N/A"),
             "modalidade": contract.get("modalidadeCompra", "N/A"),
             "processo": contract.get("numeroProcesso", "N/A"),
         }
