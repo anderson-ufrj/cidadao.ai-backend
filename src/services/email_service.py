@@ -10,17 +10,18 @@ This service provides async email sending capabilities with support for:
 """
 
 import asyncio
+import re
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from pathlib import Path
-from typing import Any, Optional, Union
+from typing import Any
 
 import aiosmtplib
 from email_validator import EmailNotValidError, validate_email
 from jinja2 import Environment, FileSystemLoader, select_autoescape
-from pydantic import BaseModel, EmailStr, Field, field_field_validator
+from pydantic import BaseModel, EmailStr, Field, ValidationInfo, field_validator
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from src.core.config import settings
@@ -33,12 +34,12 @@ class EmailAttachment(BaseModel):
     """Email attachment model."""
 
     filename: str
-    content: Union[bytes, str]
+    content: bytes | str
     content_type: str = "application/octet-stream"
 
     @field_validator("content")
     @classmethod
-    def validate_content(cls, v):
+    def validate_content(cls, v: bytes | str) -> bytes:
         """Ensure content is bytes."""
         if isinstance(v, str):
             return v.encode()
@@ -50,19 +51,19 @@ class EmailMessage(BaseModel):
 
     to: list[EmailStr]
     subject: str
-    body: Optional[str] = None
-    html_body: Optional[str] = None
-    cc: Optional[list[EmailStr]] = None
-    bcc: Optional[list[EmailStr]] = None
-    reply_to: Optional[EmailStr] = None
-    attachments: Optional[list[EmailAttachment]] = None
-    headers: Optional[dict[str, str]] = None
-    template: Optional[str] = None
-    template_data: Optional[dict[str, Any]] = None
+    body: str | None = None
+    html_body: str | None = None
+    cc: list[EmailStr] | None = None
+    bcc: list[EmailStr] | None = None
+    reply_to: EmailStr | None = None
+    attachments: list[EmailAttachment] | None = None
+    headers: dict[str, str] | None = None
+    template: str | None = None
+    template_data: dict[str, Any] | None = None
 
-    @field_validator("to", "cc", "bcc", pre=True)
+    @field_validator("to", "cc", "bcc", mode="before")
     @classmethod
-    def validate_emails(cls, v):
+    def validate_emails(cls, v: str | list[str] | None) -> list[str] | None:
         """Validate email addresses."""
         if v is None:
             return v
@@ -78,11 +79,12 @@ class EmailMessage(BaseModel):
                 continue
         return validated
 
-    @field_validator("body", always=True)
+    @field_validator("body", mode="after")
     @classmethod
-    def validate_body(cls, v, values):
+    def validate_body(cls, v: str | None, info: ValidationInfo) -> str | None:
         """Ensure at least one body type is provided."""
-        if not v and not values.get("html_body") and not values.get("template"):
+        data = info.data
+        if not v and not data.get("html_body") and not data.get("template"):
             raise ValueError("Either body, html_body, or template must be provided")
         return v
 
@@ -92,8 +94,8 @@ class SMTPConfig(BaseModel):
 
     host: str = Field(default_factory=lambda: settings.smtp_host)
     port: int = Field(default_factory=lambda: settings.smtp_port)
-    username: Optional[str] = Field(default_factory=lambda: settings.smtp_username)
-    password: Optional[str] = Field(
+    username: str | None = Field(default_factory=lambda: settings.smtp_username)
+    password: str | None = Field(
         default_factory=lambda: (
             settings.smtp_password.get_secret_value()
             if settings.smtp_password
@@ -110,7 +112,7 @@ class SMTPConfig(BaseModel):
 class EmailService:
     """Service for sending emails via SMTP."""
 
-    def __init__(self, config: Optional[SMTPConfig] = None):
+    def __init__(self, config: SMTPConfig | None = None) -> None:
         """Initialize email service.
 
         Args:
@@ -119,7 +121,7 @@ class EmailService:
         self.config = config or SMTPConfig()
         self._template_env = self._setup_template_environment()
         self._connection_lock = asyncio.Lock()
-        self._smtp_client: Optional[aiosmtplib.SMTP] = None
+        self._smtp_client: aiosmtplib.SMTP | None = None
 
     def _setup_template_environment(self) -> Environment:
         """Setup Jinja2 template environment."""
@@ -185,8 +187,6 @@ class EmailService:
             text_body = await text_template.render_async(**context)
         except Exception:
             # Simple HTML to text conversion
-            import re
-
             text_body = re.sub(r"<[^>]+>", "", html_body)
             text_body = re.sub(r"\s+", " ", text_body).strip()
 
@@ -314,7 +314,7 @@ class EmailService:
 
         return [result if isinstance(result, bool) else False for result in results]
 
-    async def close(self):
+    async def close(self) -> None:
         """Close SMTP connection."""
         if self._smtp_client and self._smtp_client.is_connected:
             await self._smtp_client.quit()
@@ -326,15 +326,15 @@ email_service = EmailService()
 
 
 # Convenience functions
-async def send_email(
-    to: Union[str, list[str]],
+async def send_email(  # noqa: PLR0913
+    to: str | list[str],
     subject: str,
-    body: Optional[str] = None,
-    html_body: Optional[str] = None,
-    template: Optional[str] = None,
-    template_data: Optional[dict[str, Any]] = None,
-    attachments: Optional[list[EmailAttachment]] = None,
-    **kwargs,
+    body: str | None = None,
+    html_body: str | None = None,
+    template: str | None = None,
+    template_data: dict[str, Any] | None = None,
+    attachments: list[EmailAttachment] | None = None,
+    **kwargs: Any,  # noqa: ANN401
 ) -> bool:
     """Send an email using the default email service.
 
@@ -369,11 +369,11 @@ async def send_email(
 
 
 async def send_template_email(
-    to: Union[str, list[str]],
+    to: str | list[str],
     subject: str,
     template: str,
-    template_data: Optional[dict[str, Any]] = None,
-    **kwargs,
+    template_data: dict[str, Any] | None = None,
+    **kwargs: Any,  # noqa: ANN401
 ) -> bool:
     """Send an email using a template.
 
