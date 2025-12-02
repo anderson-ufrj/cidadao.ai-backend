@@ -266,6 +266,8 @@ audit_logs/
 
 # Reports (generated files, not source code)
 reports/
+# Allow reports in docs/ for documentation purposes
+!docs/reports/
 
 # Test outputs
 test_output/
@@ -390,6 +392,8 @@ backups/
 *_20[0-9][0-9][0-9][0-9][0-9][0-9]*
 *-[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]-*
 *_[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_*
+# Allow dated files in docs/reports/ (test results and documentation)
+!docs/reports/*
 
 # Arquivos redundantes e desnecessários
 .old/
@@ -412,7 +416,8 @@ next-steps.md
 /planning/
 *.planning
 ROADMAP_MELHORIAS_2025.md
-*ROADMAP*.md
+# Allow official roadmaps in docs/project/
+!docs/project/ROADMAP*.md
 
 # Local archive - internal reports and notes (temporary files only)
 .local-archive/
