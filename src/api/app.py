@@ -23,6 +23,7 @@ from src.api.middleware.logging_middleware import LoggingMiddleware
 from src.api.middleware.metrics_middleware import MetricsMiddleware, setup_http_metrics
 from src.api.middleware.rate_limit import RateLimitMiddleware
 from src.api.routes import (
+    academy,
     agent_metrics,
     agents,
     analysis,
@@ -514,6 +515,11 @@ from src.api.routes import dashboard, dashboard_view
 
 app.include_router(dashboard.router, prefix="/api/v1", tags=["Agent Dashboard"])
 app.include_router(dashboard_view.router, tags=["Dashboard View"])
+
+# Academy Gamification endpoints (IFSULDEMINAS Partnership)
+app.include_router(
+    academy.router, prefix="/api/v1/academy", tags=["Academy Gamification"]
+)
 
 
 # Global exception handler
