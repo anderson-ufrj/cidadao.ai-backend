@@ -1,0 +1,290 @@
+{
+  "metadata": {
+    "generated_at": "2025-12-02T07:50:30.845571",
+    "base_url": "https://cidadao-api-production.up.railway.app",
+    "total_scenarios": 100
+  },
+  "results": {
+    "total": 100,
+    "successful": 75,
+    "failed": 25,
+    "success_rate": 75,
+    "avg_time": 9.987373469670613,
+    "max_time": 74.56678915023804,
+    "min_time": 0.8357279300689697,
+    "categories": {
+      "identity": {
+        "total": 10,
+        "success": 10,
+        "times": [
+          1.8352689743041992,
+          1.8302710056304932,
+          2.7558038234710693,
+          1.8330307006835938,
+          1.8319401741027832,
+          4.328746557235718,
+          2.111250877380371,
+          2.0604724884033203,
+          2.71903395652771,
+          3.6749465465545654
+        ]
+      },
+      "greeting": {
+        "total": 10,
+        "success": 10,
+        "times": [
+          0.8676807880401611,
+          0.8673970699310303,
+          0.8379595279693604,
+          0.8361554145812988,
+          0.8357279300689697,
+          0.8455772399902344,
+          0.8451058864593506,
+          0.8439264297485352,
+          0.8736908435821533,
+          0.8729333877563477
+        ]
+      },
+      "help": {
+        "total": 10,
+        "success": 10,
+        "times": [
+          3.5780282020568848,
+          2.6319897174835205,
+          1.2435767650604248,
+          3.1740617752075195,
+          2.333986759185791,
+          1.192134141921997,
+          1.1920337677001953,
+          12.830635070800781,
+          13.831037521362305,
+          1.191770315170288
+        ]
+      },
+      "investigate": {
+        "total": 15,
+        "success": 15,
+        "times": [
+          2.1608083248138428,
+          1.9494757652282715,
+          2.553361654281616,
+          2.5914924144744873,
+          2.571516513824463,
+          1.94313383102417,
+          2.3072009086608887,
+          2.160252809524536,
+          1.4654412269592285,
+          2.2793257236480713,
+          2.160562515258789,
+          2.2961320877075195,
+          2.3017210960388184,
+          2.295926332473755,
+          2.322364091873169
+        ]
+      },
+      "anomaly": {
+        "total": 10,
+        "success": 10,
+        "times": [
+          2.426079034805298,
+          2.2875373363494873,
+          3.126817464828491,
+          2.302412986755371,
+          3.126214027404785,
+          2.068373918533325,
+          2.973005533218384,
+          4.180520057678223,
+          4.282285213470459,
+          2.1557562351226807
+        ]
+      },
+      "specific": {
+        "total": 10,
+        "success": 10,
+        "times": [
+          2.6783447265625,
+          3.584075450897217,
+          2.4005212783813477,
+          3.787374258041382,
+          3.029909372329712,
+          3.4451658725738525,
+          4.39846396446228,
+          4.500083923339844,
+          2.437396764755249,
+          4.197054862976074
+        ]
+      },
+      "agent": {
+        "total": 10,
+        "success": 0,
+        "times": []
+      },
+      "complex": {
+        "total": 10,
+        "success": 0,
+        "times": []
+      },
+      "edge": {
+        "total": 10,
+        "success": 5,
+        "times": [
+          58.31972002983093,
+          57.085994482040405,
+          57.266379833221436,
+          17.341445446014404,
+          17.441431999206543
+        ]
+      },
+      "followup": {
+        "total": 5,
+        "success": 5,
+        "times": [
+          74.01359128952026,
+          74.56678915023804,
+          73.30540037155151,
+          73.96137380599976,
+          72.29860258102417
+        ]
+      }
+    },
+    "intents": {
+      "about_system": 4,
+      "unknown": 45,
+      "greeting": 10,
+      "help_request": 4,
+      "investigate": 12
+    },
+    "agents": {
+      "drummond": 18,
+      "abaporu": 45,
+      "zumbi": 12
+    },
+    "errors": [
+      {
+        "category": "agent",
+        "message": "Fale com o Zumbi",
+        "error": "Timeout"
+      },
+      {
+        "category": "agent",
+        "message": "Quero conversar com Anita",
+        "error": "Timeout"
+      },
+      {
+        "category": "agent",
+        "message": "O que o Tiradentes faz?",
+        "error": "Timeout"
+      },
+      {
+        "category": "agent",
+        "message": "Chame o Drummond",
+        "error": "Timeout"
+      },
+      {
+        "category": "agent",
+        "message": "Quais agentes existem?",
+        "error": "Timeout"
+      },
+      {
+        "category": "agent",
+        "message": "Me apresente os agentes",
+        "error": "Timeout"
+      },
+      {
+        "category": "agent",
+        "message": "O Machado pode analisar um documento?",
+        "error": "Timeout"
+      },
+      {
+        "category": "agent",
+        "message": "Oxóssi pode buscar dados?",
+        "error": "Timeout"
+      },
+      {
+        "category": "agent",
+        "message": "Fale como poeta",
+        "error": "Timeout"
+      },
+      {
+        "category": "agent",
+        "message": "Use o agente de segurança",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Compare gastos de saúde e educação",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Evolução de contratos nos últimos 3 anos",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Análise regional de gastos no Nordeste",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Correlação entre eleições e contratos",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Principais fornecedores do governo federal",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Tendência de gastos públicos",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Ranking de órgãos por volume de contratos",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Sazonalidade nos gastos",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Impacto da pandemia nos contratos",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Previsão de gastos para 2025",
+        "error": "Timeout"
+      },
+      {
+        "category": "edge",
+        "message": "(empty)",
+        "error": "Empty message - skipped"
+      },
+      {
+        "category": "edge",
+        "message": "a",
+        "error": "HTTP 500"
+      },
+      {
+        "category": "edge",
+        "message": "SELECT * FROM contratos",
+        "error": "HTTP 500"
+      },
+      {
+        "category": "edge",
+        "message": "<script>alert('xss')</script>",
+        "error": "HTTP 500"
+      },
+      {
+        "category": "edge",
+        "message": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "error": "HTTP 500"
+      }
+    ]
+  }
+}
