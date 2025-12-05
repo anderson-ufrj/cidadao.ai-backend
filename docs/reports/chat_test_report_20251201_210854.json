@@ -1,0 +1,572 @@
+{
+  "metadata": {
+    "generated_at": "2025-12-01T21:08:54.277680",
+    "base_url": "https://cidadao-api-production.up.railway.app",
+    "total_scenarios": 100
+  },
+  "results": {
+    "total": 100,
+    "successful": 0,
+    "failed": 100,
+    "success_rate": 0,
+    "avg_time": 0.0,
+    "min_time": 0,
+    "max_time": 0,
+    "categories": {
+      "identity": {
+        "total": 10,
+        "success": 0,
+        "times": []
+      },
+      "greeting": {
+        "total": 10,
+        "success": 0,
+        "times": []
+      },
+      "help": {
+        "total": 10,
+        "success": 0,
+        "times": []
+      },
+      "investigate": {
+        "total": 15,
+        "success": 0,
+        "times": []
+      },
+      "anomaly": {
+        "total": 10,
+        "success": 0,
+        "times": []
+      },
+      "specific": {
+        "total": 10,
+        "success": 0,
+        "times": []
+      },
+      "agent": {
+        "total": 10,
+        "success": 0,
+        "times": []
+      },
+      "complex": {
+        "total": 10,
+        "success": 0,
+        "times": []
+      },
+      "edge": {
+        "total": 10,
+        "success": 0,
+        "times": []
+      },
+      "followup": {
+        "total": 5,
+        "success": 0,
+        "times": []
+      }
+    },
+    "intents": {},
+    "agents": {},
+    "errors": [
+      {
+        "category": "identity",
+        "message": "Quem criou o Cidadão.AI?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "identity",
+        "message": "Quem desenvolveu esse sistema?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "identity",
+        "message": "Quem é o autor do projeto?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "identity",
+        "message": "O que é o Cidadão.AI?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "identity",
+        "message": "Para que serve essa plataforma?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "identity",
+        "message": "Qual é a história do Cidadão.AI?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "identity",
+        "message": "Quem idealizou o projeto?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "identity",
+        "message": "Esse sistema foi feito por qual empresa?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "identity",
+        "message": "A Maritaca AI criou o Cidadão.AI?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "identity",
+        "message": "Conte sobre o TCC do Cidadão.AI",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "greeting",
+        "message": "Olá",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "greeting",
+        "message": "Oi, tudo bem?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "greeting",
+        "message": "Bom dia!",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "greeting",
+        "message": "Boa tarde, como posso usar o sistema?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "greeting",
+        "message": "E aí!",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "greeting",
+        "message": "Opa, beleza?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "greeting",
+        "message": "Olá, sou novo aqui",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "greeting",
+        "message": "Oi, preciso de ajuda",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "greeting",
+        "message": "Hey",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "greeting",
+        "message": "Olá Cidadão.AI",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "help",
+        "message": "Como funciona?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "help",
+        "message": "O que você pode fazer?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "help",
+        "message": "Me ajuda a entender o sistema",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "help",
+        "message": "Quais são suas funcionalidades?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "help",
+        "message": "Como posso investigar contratos?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "help",
+        "message": "Me explica como usar",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "help",
+        "message": "Preciso de ajuda",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "help",
+        "message": "Não sei o que fazer",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "help",
+        "message": "Quais comandos posso usar?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "help",
+        "message": "Tutorial básico",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Quero investigar contratos do Ministério da Saúde",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Busque contratos da educação em 2024",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Contratos do Ministério da Defesa",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Investigar gastos da Fazenda",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Contratos de tecnologia do governo",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Quero ver contratos de limpeza",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Contratos acima de 1 milhão",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Buscar contratos de 2023",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Contratos do Ministério do Meio Ambiente",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Investigar licitações de saúde",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Contratos de alimentação escolar",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Gastos com medicamentos",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Contratos de obras públicas",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Investigar terceirizados",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "investigate",
+        "message": "Contratos de consultoria",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "anomaly",
+        "message": "Detecte anomalias nos contratos da saúde",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "anomaly",
+        "message": "Há fraudes nos gastos de educação?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "anomaly",
+        "message": "Busque irregularidades em licitações",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "anomaly",
+        "message": "Contratos suspeitos do governo",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "anomaly",
+        "message": "Encontre sobrepreço em contratos",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "anomaly",
+        "message": "Anomalias em pagamentos",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "anomaly",
+        "message": "Contratos com valores atípicos",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "anomaly",
+        "message": "Detectar corrupção",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "anomaly",
+        "message": "Fornecedores com muitos contratos",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "anomaly",
+        "message": "Contratos sem licitação",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "specific",
+        "message": "Qual o maior contrato de 2024?",
+        "error": "Timeout"
+      },
+      {
+        "category": "specific",
+        "message": "Quantos contratos a saúde tem?",
+        "error": "Timeout"
+      },
+      {
+        "category": "specific",
+        "message": "Valor total de contratos da educação",
+        "error": "Timeout"
+      },
+      {
+        "category": "specific",
+        "message": "Fornecedor com mais contratos",
+        "error": "Timeout"
+      },
+      {
+        "category": "specific",
+        "message": "Média de valor dos contratos",
+        "error": "Timeout"
+      },
+      {
+        "category": "specific",
+        "message": "Contratos vencendo este mês",
+        "error": "Timeout"
+      },
+      {
+        "category": "specific",
+        "message": "Último contrato assinado",
+        "error": "Timeout"
+      },
+      {
+        "category": "specific",
+        "message": "Contratos por modalidade",
+        "error": "Timeout"
+      },
+      {
+        "category": "specific",
+        "message": "Quais órgãos você monitora?",
+        "error": "Timeout"
+      },
+      {
+        "category": "specific",
+        "message": "Dados do IBGE sobre população",
+        "error": "Timeout"
+      },
+      {
+        "category": "agent",
+        "message": "Fale com o Zumbi",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "agent",
+        "message": "Quero conversar com Anita",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "agent",
+        "message": "O que o Tiradentes faz?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "agent",
+        "message": "Chame o Drummond",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "agent",
+        "message": "Quais agentes existem?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "agent",
+        "message": "Me apresente os agentes",
+        "error": "Timeout"
+      },
+      {
+        "category": "agent",
+        "message": "O Machado pode analisar um documento?",
+        "error": "Timeout"
+      },
+      {
+        "category": "agent",
+        "message": "Oxóssi pode buscar dados?",
+        "error": "Timeout"
+      },
+      {
+        "category": "agent",
+        "message": "Fale como poeta",
+        "error": "Timeout"
+      },
+      {
+        "category": "agent",
+        "message": "Use o agente de segurança",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Compare gastos de saúde e educação",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Evolução de contratos nos últimos 3 anos",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Análise regional de gastos no Nordeste",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Correlação entre eleições e contratos",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Principais fornecedores do governo federal",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Tendência de gastos públicos",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Ranking de órgãos por volume de contratos",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Sazonalidade nos gastos",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Impacto da pandemia nos contratos",
+        "error": "Timeout"
+      },
+      {
+        "category": "complex",
+        "message": "Previsão de gastos para 2025",
+        "error": "Timeout"
+      },
+      {
+        "category": "edge",
+        "message": "(empty)",
+        "error": "Empty message - skipped"
+      },
+      {
+        "category": "edge",
+        "message": "a",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "edge",
+        "message": "🇧🇷 contratos",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "edge",
+        "message": "CONTRATOS DA SAÚDE",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "edge",
+        "message": "contratossaudelicitacao",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "edge",
+        "message": "   espaços   extras   ",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "edge",
+        "message": "SELECT * FROM contratos",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "edge",
+        "message": "<script>alert('xss')</script>",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "edge",
+        "message": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "edge",
+        "message": "私は契約を調査したい",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "followup",
+        "message": "Me conte mais sobre isso",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "followup",
+        "message": "Pode detalhar?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "followup",
+        "message": "E o que mais?",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "followup",
+        "message": "Continue",
+        "error": "'str' object has no attribute 'get'"
+      },
+      {
+        "category": "followup",
+        "message": "Próximo",
+        "error": "'str' object has no attribute 'get'"
+      }
+    ]
+  }
+}
