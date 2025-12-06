@@ -175,19 +175,36 @@ class RedisCache:
         Safety margin: 5× → 45-50 connections recommended for 1000 rps @ 5ms latency
         """
         if not self.redis_client:
+            # Build connection pool options
+            pool_options = {
+                "max_connections": 50,  # Increased from 20 for higher concurrency
+                "retry_on_timeout": True,
+                "socket_keepalive": True,  # Prevent connection drops
+                "health_check_interval": 30,  # Regular health checks
+                "socket_connect_timeout": 5,  # Connection timeout
+                "socket_timeout": 5,  # Socket operation timeout
+            }
+
+            # Only add keepalive options on Linux (may cause Error 22 on some platforms)
+            import sys
+
+            if sys.platform == "linux":
+                try:
+                    import socket
+
+                    # Check if TCP keepalive options are available
+                    if hasattr(socket, "TCP_KEEPIDLE"):
+                        pool_options["socket_keepalive_options"] = {
+                            socket.TCP_KEEPIDLE: 60,  # Start probes after 60s idle
+                            socket.TCP_KEEPINTVL: 10,  # Probe interval 10s
+                            socket.TCP_KEEPCNT: 3,  # 3 probes before giving up
+                        }
+                except (ImportError, AttributeError):
+                    pass  # Skip keepalive options if not available
+
             self._connection_pool = redis.ConnectionPool.from_url(
                 settings.redis_url,
-                max_connections=50,  # Increased from 20 for higher concurrency
-                retry_on_timeout=True,
-                socket_keepalive=True,  # Prevent connection drops
-                socket_keepalive_options={
-                    1: 1,  # TCP_KEEPIDLE (seconds)
-                    2: 1,  # TCP_KEEPINTVL (seconds)
-                    3: 3,  # TCP_KEEPCNT (retries)
-                },
-                health_check_interval=30,  # Regular health checks
-                socket_connect_timeout=5,  # Connection timeout
-                socket_timeout=5,  # Socket operation timeout
+                **pool_options,
             )
             self.redis_client = Redis(
                 connection_pool=self._connection_pool,
