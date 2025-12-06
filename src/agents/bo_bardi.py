@@ -17,6 +17,11 @@ from src.agents.deodoro import (
     AgentStatus,
     BaseAgent,
 )
+from src.agents.knowledge.cidadao_ai_docs import (
+    CIDADAO_AI_KNOWLEDGE,
+    format_links_for_display,
+    get_useful_links,
+)
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError
 
@@ -40,20 +45,33 @@ class FrontendDesignerAgent(BaseAgent):
 
     MISSÃO:
     Orientar desenvolvedores frontend na integração com o backend do Cidadão.AI,
-    fornecendo exemplos de código, padrões de design e boas práticas.
+    com a paixão e o espírito revolucionário da grande arquiteta ítalo-brasileira.
 
-    SOBRE LINA BO BARDI:
-    - Arquiteta ítalo-brasileira (1914-1992)
-    - Projetou o MASP e o SESC Pompeia
-    - Conhecida por integrar arte, arquitetura e funcionalidade
-    - Valorizava materiais simples com design sofisticado
+    SOBRE LINA BO BARDI (1914-1992):
+    - Nasceu na Itália, naturalizou-se brasileira em 1951
+    - "Eu escolhi o Brasil, e o Brasil me escolheu"
+    - Projetou o MASP (aquela estrutura suspensa espetacular!)
+    - Criou o SESC Pompeia transformando uma fábrica em centro cultural
+    - Valorizava a cultura popular e o artesanato brasileiro
+    - Lutava contra o elitismo na arquitetura
+    - Famosa pelo sotaque italiano misturado com português
 
-    FILOSOFIA:
-    - "A arquitetura é uma arte que todos devem poder usar"
-    - Design acessível e funcional
-    - Integração harmoniosa entre forma e função
+    FILOSOFIA DE DESIGN:
+    - "A arquitetura é vida, ou melhor, é um instrumento de vida"
+    - "O povo sabe fazer coisas lindas"
+    - Design deve ser acessível a TODOS, não só às elites
+    - Materiais simples podem criar beleza extraordinária
+    - Funcionalidade nunca deve ser sacrificada pela estética
+    - Cada projeto deve respeitar o contexto e a cultura local
 
-    CAPACIDADES:
+    PERSONALIDADE:
+    - Direta e apaixonada - não faz rodeios
+    - Usa expressões italianas carinhosas (caro, bellissimo, ma che)
+    - Critica duramente designs elitistas ou inacessíveis
+    - Celebra soluções criativas e populares
+    - Mistura italiano com português de forma única
+
+    CAPACIDADES TÉCNICAS:
 
     1. INTEGRAÇÃO SSE:
        - Como consumir /api/v1/chat/stream
@@ -62,18 +80,18 @@ class FrontendDesignerAgent(BaseAgent):
 
     2. ESTRUTURA DE COMPONENTES:
        - Organização de pastas React/Vue/Angular
-       - Componentes reutilizáveis
+       - Componentes reutilizáveis (como peças de uma construção!)
        - Padrões de nomenclatura
 
-    3. CONSUMO DE API:
-       - Fetch/Axios patterns
-       - Autenticação JWT
-       - Tratamento de erros
-
-    4. ACESSIBILIDADE:
-       - WCAG guidelines
+    3. ACESSIBILIDADE:
+       - WCAG guidelines (design para TODOS!)
        - VLibras integration
        - Semantic HTML
+
+    4. DESIGN RESPONSIVO:
+       - Mobile-first (porque o povo usa celular!)
+       - Layouts fluidos
+       - Performance em conexões lentas
     """
 
     def __init__(self, config: dict[str, Any] | None = None):
@@ -87,6 +105,8 @@ class FrontendDesignerAgent(BaseAgent):
                 "advise_accessibility",
                 "suggest_styling_patterns",
                 "help_error_handling",
+                "provide_useful_links",
+                "answer_technical_questions",
             ],
             max_retries=3,
             timeout=60,
@@ -96,23 +116,39 @@ class FrontendDesignerAgent(BaseAgent):
         # Load frontend knowledge
         self._load_frontend_knowledge()
 
-        # Personality - técnica e direta
-        self.personality_prompt = """Você é Lina Bo Bardi, especialista em Frontend do Cidadão.AI.
+        # Personality - AUTENTICA LINA BO BARDI!
+        self.personality_prompt = """Você é Lina Bo Bardi, especialista em Frontend e Interfaces!
 
-REGRAS:
-1. Respostas TÉCNICAS e DIRETAS com código funcional
-2. SEMPRE forneça exemplos de código quando apropriado
-3. Foque em React/TypeScript (stack do frontend)
-4. Inclua tratamento de erros nos exemplos
+A grande arquiteta ítalo-brasileira agora projeta interfaces digitais!
 
-CONHECIMENTO DO BACKEND:
+PERSONALIDADE:
+- Você tem sotaque italiano e usa expressões como "caro", "ma che", "bellissimo"
+- Você é APAIXONADA pelo que faz e isso transparece em cada resposta
+- Você valoriza o POVO e designs acessíveis - critica coisas elitistas
+- Você é direta, não faz rodeios, vai direto ao ponto técnico
+- Você mistura paixão artística com precisão técnica no frontend
+
+EXPRESSÕES QUE VOCÊ USA:
+- "Caro mio..." (quando vai explicar algo)
+- "Ma che bellezza!" (quando algo é bem feito)
+- "Isso não serve ao povo!" (quando algo é elitista ou inacessível)
+- "Como no MASP..." (fazendo paralelos com arquitetura)
+- "È semplice!" (quando a solução é elegante)
+- "Mamma mia!" (quando algo está errado)
+
+CONHECIMENTO TÉCNICO FRONTEND:
 - Chat SSE: POST /api/v1/chat/stream
 - Eventos: start, detecting, intent, agent_selected, thinking, chunk, complete
-- Autenticação: JWT Bearer token
-- Base URL produção: https://cidadao-api-production.up.railway.app
+- Base URL: https://cidadao-api-production.up.railway.app
+- Docs: https://cidadao-api-production.up.railway.app/docs
+- GitHub: https://github.com/anderson-ufrj/cidadao.ai-backend
 
-TOM: Prático e funcional, como uma arquiteta que projeta para pessoas reais.
+TOM: Apaixonada mas técnica. Como uma arquiteta que AMA seu ofício e quer
+que todos possam usar o que ela projeta. Respostas práticas com alma.
 """
+
+        # Reference to full knowledge base
+        self.knowledge_base = CIDADAO_AI_KNOWLEDGE
 
     def _load_frontend_knowledge(self) -> None:
         """Load knowledge about frontend integration."""
@@ -365,10 +401,27 @@ src/
                     metadata={"frontend": True, "type": "event_explanation"},
                 )
 
+            elif action == "answer_question":
+                question = payload.get("question", "")
+                response = await self._answer_question(question)
+
+                return AgentResponse(
+                    agent_name=self.name,
+                    status=AgentStatus.COMPLETED,
+                    result={
+                        "answer": response["content"],
+                        "metadata": response.get("metadata", {}),
+                    },
+                    metadata={"frontend": True, "type": "qa"},
+                )
+
             return AgentResponse(
                 agent_name=self.name,
                 status=AgentStatus.COMPLETED,
-                result={"error": "Ação não reconhecida"},
+                result={
+                    "error": "Mamma mia! Ação não reconhecida, caro. "
+                    "Use: guide, code_example, explain_event, answer_question"
+                },
                 metadata={"confidence": 0.0},
             )
 
@@ -543,15 +596,244 @@ if (data.type === '{event_type}') {{
             lines.append(f"| `{event}` | {desc} |")
         return "\n".join(lines)
 
+    async def _provide_links(self, category: str | None = None) -> dict[str, Any]:
+        """Provide useful links with Bo Bardi's personality."""
+        links = get_useful_links(category)
+
+        if category == "documentacao" or category == "docs":
+            content = """## Caro, aqui estão os links da documentação!
+
+*Ma che bellezza* ter tudo organizado assim, como uma boa planta de projeto!
+
+### Documentação da API (Swagger/OpenAPI)
+- **Produção**: https://cidadao-api-production.up.railway.app/docs
+- **ReDoc** (mais elegante!): https://cidadao-api-production.up.railway.app/redoc
+- **Local**: http://localhost:8000/docs
+
+### Repositório GitHub
+- **Backend**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **Issues**: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
+
+### Documentação Interna
+- **Manual completo**: `CLAUDE.md` (na raiz - leia primeiro!)
+- **Frontend Guide**: `docs/api/STREAMING_IMPLEMENTATION.md`
+- **Arquitetura**: `docs/architecture/`
+
+*È semplice* - comece pela doc do Swagger, depois veja o código!
+"""
+        elif category == "api" or category == "producao":
+            content = """## A API em Produção, caro!
+
+Como o MASP - sólida, suspensa no ar, funcionando 24 horas!
+
+- **URL Base**: https://cidadao-api-production.up.railway.app/
+- **Swagger UI**: https://cidadao-api-production.up.railway.app/docs
+- **ReDoc**: https://cidadao-api-production.up.railway.app/redoc
+- **Health Check**: https://cidadao-api-production.up.railway.app/health
+- **Métricas**: https://cidadao-api-production.up.railway.app/health/metrics
+
+Para desenvolvimento local: `http://localhost:8000/docs`
+
+*Bellissimo!* Tudo acessível para o povo usar!
+"""
+        elif category == "github" or category == "repositorio":
+            content = """## Repositório no GitHub, caro mio!
+
+O projeto é aberto, como a arquitetura deve ser - para todos verem e contribuírem!
+
+- **Código**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **Issues**: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
+- **Pull Requests**: https://github.com/anderson-ufrj/cidadao.ai-backend/pulls
+
+Quer contribuir? *Ma che bellezza!* Abra uma issue ou PR!
+"""
+        elif category == "frontend":
+            content = """## Links para o Frontend, caro desenvolvedor!
+
+Aqui está tudo que você precisa para integrar com o backend:
+
+### API e Documentação
+- **Swagger UI**: https://cidadao-api-production.up.railway.app/docs
+- **Chat SSE Endpoint**: `POST /api/v1/chat/stream`
+- **Agents List**: `GET /api/v1/agents/`
+
+### Código e Referências
+- **GitHub**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **SSE Guide**: `docs/api/STREAMING_IMPLEMENTATION.md`
+
+### Para Desenvolvimento Local
+- **API Local**: http://localhost:8000/
+- **Docs Local**: http://localhost:8000/docs
+
+*Come no MASP* - a estrutura é sólida, você só precisa construir a interface bonita por cima!
+"""
+        else:
+            content = f"""## Links Úteis do Cidadão.AI
+
+*Caro mio*, aqui está tudo organizado para você!
+
+{format_links_for_display()}
+
+*È semplice!* Salva esses links e manda ver no código!
+"""
+
+        return {
+            "content": content.strip(),
+            "metadata": {"type": "links", "category": category},
+            "links": links,
+        }
+
+    async def _answer_question(self, question: str) -> dict[str, Any]:
+        """Answer a general question with Bo Bardi's personality."""
+        question_lower = question.lower()
+
+        # Detect link requests
+        link_keywords = [
+            "link",
+            "url",
+            "endereço",
+            "acesso",
+            "acessar",
+            "documentação",
+            "documentacao",
+            "docs",
+            "swagger",
+            "github",
+            "repositório",
+            "repositorio",
+            "repo",
+        ]
+        if any(keyword in question_lower for keyword in link_keywords):
+            # Determine category
+            if "doc" in question_lower or "swagger" in question_lower:
+                return await self._provide_links("documentacao")
+            elif "github" in question_lower or "repo" in question_lower:
+                return await self._provide_links("github")
+            elif (
+                "api" in question_lower
+                or "producao" in question_lower
+                or "produção" in question_lower
+            ):
+                return await self._provide_links("api")
+            elif "frontend" in question_lower or "front" in question_lower:
+                return await self._provide_links("frontend")
+            else:
+                return await self._provide_links()
+
+        # SSE related questions
+        if (
+            "sse" in question_lower
+            or "stream" in question_lower
+            or "chat" in question_lower
+        ):
+            response = await self._guide_topic("sse_integration")
+            return {
+                "content": f"""*Caro mio*, você quer integrar o chat? *Bellissimo!*
+
+{response["content"]}
+
+{response.get("code_example", "")}
+
+*È semplice!* Qualquer dúvida, me pergunta!
+""",
+                "metadata": {"type": "sse_help"},
+            }
+
+        # Component structure questions
+        if (
+            "componente" in question_lower
+            or "estrutura" in question_lower
+            or "pasta" in question_lower
+        ):
+            response = await self._guide_topic("component_structure")
+            return {
+                "content": f"""*Come no MASP*, a estrutura precisa ser sólida!
+
+{response["content"]}
+
+Organização é tudo, caro. Como dizia: "A arquitetura é organização do espaço!"
+""",
+                "metadata": {"type": "structure_help"},
+            }
+
+        # Accessibility questions
+        if (
+            "acessibilidade" in question_lower
+            or "a11y" in question_lower
+            or "wcag" in question_lower
+        ):
+            return {
+                "content": """## Acessibilidade - Design para TODOS!
+
+*Mamma mia*, isso é fundamental! O povo TODO precisa usar!
+
+### Princípios WCAG que você DEVE seguir:
+
+1. **Perceptível** - Todo conteúdo visível também deve ser legível por screen readers
+2. **Operável** - Navegação por teclado é OBRIGATÓRIA
+3. **Compreensível** - Linguagem clara, sem jargões elitistas
+4. **Robusto** - Funciona em qualquer navegador, qualquer dispositivo
+
+### No Cidadão.AI:
+- Use `aria-labels` em todos os botões
+- Contraste mínimo 4.5:1 para texto
+- Integre o VLibras para Libras
+- Teste com screen readers
+
+*Isso não é opcional, caro!* É direito do povo acessar!
+""",
+                "metadata": {"type": "accessibility"},
+            }
+
+        # API/Endpoint questions
+        if (
+            "endpoint" in question_lower
+            or "api" in question_lower
+            or "rota" in question_lower
+        ):
+            response = await self._guide_topic("api_consumption")
+            return {
+                "content": f"""*Caro*, os endpoints são a fundação!
+
+{response["content"]}
+
+Como uma boa planta arquitetônica - tudo tem seu lugar!
+""",
+                "metadata": {"type": "api_help"},
+            }
+
+        # Default response with personality
+        return {
+            "content": f"""*Caro mio*, você perguntou: "{question}"
+
+*Ma che* pergunta interessante! Posso te ajudar com:
+
+1. **Integração SSE** - Como conectar o chat streaming
+2. **Estrutura de Componentes** - Organização do projeto frontend
+3. **Consumo de API** - Endpoints e autenticação
+4. **Acessibilidade** - Design para TODOS (fundamental!)
+5. **Links Úteis** - URLs da API, GitHub e docs
+
+### Links Rápidos:
+- **Docs**: https://cidadao-api-production.up.railway.app/docs
+- **GitHub**: https://github.com/anderson-ufrj/cidadao.ai-backend
+
+*Diga-me* o que você precisa e eu projeto a solução!
+
+"A arquitetura é vida!" - e o código também, caro!
+""",
+            "metadata": {"type": "clarification_needed"},
+        }
+
     async def initialize(self) -> None:
         """Initialize the frontend designer agent."""
         self.logger.info("Initializing Bo Bardi frontend agent...")
-        self.logger.info("Bo Bardi ready! Design é para todos.")
+        self.logger.info("Bo Bardi ready! Design è per tutti - para todos!")
 
     async def shutdown(self) -> None:
         """Shutdown the frontend designer agent."""
         self.logger.info("Shutting down Bo Bardi...")
-        self.logger.info("Bo Bardi shutdown complete.")
+        self.logger.info("Bo Bardi shutdown. Arrivederci!")
 
 
 # Alias for consistency
