@@ -25,14 +25,10 @@ from src.schemas.academy import (
     ConversationResponse,
     ConversationStartRequest,
     DifficultyLevel,
-    GitHubStatsResponse,
-    LeaderboardEntry,
     LeaderboardResponse,
     MissionCompleteRequest,
     MissionResponse,
     MissionStartRequest,
-    OnboardingAcceptRequest,
-    OnboardingResponse,
     ProgressInfo,
     RankLevel,
     TrackType,
@@ -46,143 +42,6 @@ from src.schemas.academy import (
 from src.services.academy_service import academy_service
 
 router = APIRouter()
-
-
-# =============================================================================
-# ONBOARDING ENDPOINTS
-# =============================================================================
-
-
-@router.get("/onboarding", response_model=OnboardingResponse)
-async def get_onboarding_state(
-    current_user: dict = Depends(get_current_user),
-    demo_mode: bool = Query(
-        default=True,
-        description="Modo demo: sempre mostra termos para fins educacionais",
-    ),
-) -> OnboardingResponse:
-    """
-    Obter estado do onboarding.
-
-    Em modo demo (padrao), sempre mostra os termos de consentimento
-    para que os estagiarios entendam como funciona o processo.
-
-    **Importante**: No programa real, os termos so precisariam
-    ser aceitos uma vez.
-    """
-    return await academy_service.get_onboarding_state(
-        user_id=current_user.get("user_id", current_user.get("sub")),
-        demo_mode=demo_mode,
-    )
-
-
-@router.post("/onboarding/accept", response_model=OnboardingResponse)
-async def accept_terms(
-    request: OnboardingAcceptRequest,
-    current_user: dict = Depends(get_current_user),
-) -> OnboardingResponse:
-    """
-    Aceitar termos de consentimento.
-
-    Avanca o usuario para a proxima etapa do onboarding.
-    """
-    return await academy_service.accept_terms(
-        user_id=current_user.get("user_id", current_user.get("sub")),
-        accepted=request.accepted,
-        github_username=request.github_username,
-        main_track=request.main_track,
-    )
-
-
-@router.post("/onboarding/complete", response_model=OnboardingResponse)
-async def complete_onboarding(
-    current_user: dict = Depends(get_current_user),
-    main_track: TrackType = Query(default=TrackType.BACKEND),
-    github_username: str | None = Query(default=None),
-) -> OnboardingResponse:
-    """
-    Completar onboarding.
-
-    Finaliza o processo de onboarding e desativa o modo demo.
-    """
-    return await academy_service.complete_onboarding(
-        user_id=current_user.get("user_id", current_user.get("sub")),
-        main_track=main_track,
-        github_username=github_username,
-    )
-
-
-# =============================================================================
-# GITHUB STATS ENDPOINTS
-# =============================================================================
-
-
-@router.get("/github/stats", response_model=GitHubStatsResponse | None)
-async def get_github_stats(
-    current_user: dict = Depends(get_current_user),
-) -> GitHubStatsResponse | None:
-    """
-    Obter estatisticas do GitHub.
-
-    Retorna metricas de contribuicao como commits, PRs, e code reviews.
-    Igualzinho uma empresa de verdade!
-    """
-    stats = await academy_service.get_github_stats(
-        user_id=current_user.get("user_id", current_user.get("sub")),
-    )
-    if not stats:
-        raise HTTPException(
-            status_code=404,
-            detail="GitHub nao conectado. Conecte seu GitHub primeiro.",
-        )
-    return stats
-
-
-@router.post("/github/connect")
-async def connect_github(
-    github_username: str,
-    current_user: dict = Depends(get_current_user),
-) -> dict[str, Any]:
-    """
-    Conectar conta GitHub.
-
-    Permite rastrear commits, PRs e code reviews.
-    """
-    return await academy_service.connect_github(
-        user_id=current_user.get("user_id", current_user.get("sub")),
-        github_username=github_username,
-    )
-
-
-@router.post("/github/stats/update", response_model=GitHubStatsResponse)
-async def update_github_stats(
-    current_user: dict = Depends(get_current_user),
-    commits: int = Query(default=0, ge=0, description="Numero de commits"),
-    prs_opened: int = Query(default=0, ge=0, description="PRs abertos"),
-    prs_merged: int = Query(default=0, ge=0, description="PRs merged"),
-    prs_approved: int = Query(default=0, ge=0, description="PRs aprovados"),
-    code_reviews: int = Query(default=0, ge=0, description="Code reviews"),
-) -> GitHubStatsResponse:
-    """
-    Atualizar estatisticas do GitHub.
-
-    Endpoint para simular contribuicoes no modo demo.
-    Em producao, isso seria feito via webhook do GitHub.
-
-    XP concedido:
-    - Commit: +15 XP cada
-    - PR aberto: +15 XP
-    - PR merged: +50 XP
-    - Code review: +10 XP
-    """
-    return await academy_service.update_github_stats(
-        user_id=current_user.get("user_id", current_user.get("sub")),
-        commits=commits,
-        prs_opened=prs_opened,
-        prs_merged=prs_merged,
-        prs_approved=prs_approved,
-        code_reviews=code_reviews,
-    )
 
 
 # =============================================================================
