@@ -477,6 +477,56 @@ MARITACA_KEYWORDS = [
     "apoio",
 ]
 
+# Keywords for documentation/links questions
+LINKS_KEYWORDS = [
+    "link",
+    "links",
+    "url",
+    "documentação",
+    "documentacao",
+    "docs",
+    "swagger",
+    "github",
+    "repositório",
+    "repositorio",
+    "repo",
+    "endereço da api",
+    "endereco da api",
+    "acessar api",
+    "onde acesso",
+]
+
+INSTANT_LINKS_RESPONSE = """## Links Úteis do Cidadão.AI
+
+Como dizia o poeta: "No meio do caminho tinha uma pedra" - mas aqui temos os atalhos!
+
+### 🌐 API em Produção
+- **Swagger UI**: https://cidadao-api-production.up.railway.app/docs
+- **ReDoc**: https://cidadao-api-production.up.railway.app/redoc
+- **Health Check**: https://cidadao-api-production.up.railway.app/health
+
+### 📚 Repositório GitHub
+- **Código**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **Issues**: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
+
+### 📖 Documentação Interna
+- **Manual completo**: `CLAUDE.md` (na raiz do projeto)
+- **Agentes**: `docs/agents/`
+- **Arquitetura**: `docs/architecture/`
+- **Streaming SSE**: `docs/api/STREAMING_IMPLEMENTATION.md`
+
+### 💻 Desenvolvimento Local
+- **API**: http://localhost:8000/
+- **Docs**: http://localhost:8000/docs
+
+Navegue à vontade! A transparência começa com o acesso à informação. 🚀"""
+
+
+def _is_links_question(message: str) -> bool:
+    """Check if user is asking about documentation/links."""
+    message_lower = message.lower()
+    return any(keyword in message_lower for keyword in LINKS_KEYWORDS)
+
 
 def _is_agent_list_question(message: str) -> bool:
     """Check if user is asking about the list of agents."""
@@ -516,6 +566,7 @@ def _needs_verified_response(message: str) -> bool:
         or _is_advisor_question(message)
         or _is_ifsuldeminas_question(message)
         or _is_maritaca_question(message)
+        or _is_links_question(message)
     )
 
 
@@ -561,6 +612,13 @@ def get_instant_response(intent_type: IntentType, message: str = "") -> str | No
         if _is_maritaca_question(message):
             logger.info("Detected Maritaca AI question - using verified response")
             return INSTANT_MARITACA_RESPONSE
+
+        # Check for documentation/links questions
+        if _is_links_question(message):
+            logger.info(
+                "Detected links/documentation question - using verified response"
+            )
+            return INSTANT_LINKS_RESPONSE
 
     # ================================================================
     # INTENT-BASED RESPONSES
