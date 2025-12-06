@@ -37,13 +37,26 @@ class MaritacaChatRequest(BaseModel):
     )
 
 
+class MaritacaUsage(BaseModel):
+    """Usage statistics from Maritaca.ai API."""
+
+    prompt_tokens: int = 0
+    completion_tokens: int = 0
+    total_tokens: int = 0
+    # Maritaca may include additional fields like 'extraction'
+    extraction: dict[str, Any] | None = None
+
+    class Config:
+        extra = "allow"  # Allow additional fields not defined in model
+
+
 class MaritacaChatResponse(BaseModel):
     """Response from Maritaca.ai chat."""
 
     id: str
     model: str
     content: str
-    usage: dict[str, int] | None = None
+    usage: MaritacaUsage | dict[str, Any] | None = None
     created_at: datetime
     finish_reason: str | None = None
 
