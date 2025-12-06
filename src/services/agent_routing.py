@@ -164,6 +164,36 @@ AGENT_REGISTRY: dict[str, dict[str, Any]] = {
         "avatar": "🏎️",
         "is_orchestrator": False,
     },
+    "santos_dumont": {
+        "name": "Alberto Santos-Dumont",
+        "full_name": "Alberto Santos-Dumont",
+        "role": AgentRole.COMMUNICATOR,
+        "description": "Educador - ensina sobre o sistema Cidadao.AI",
+        "avatar": "✈️",
+        "is_orchestrator": False,
+    },
+}
+
+# Agent name aliases for flexible matching
+# Maps variations -> canonical name
+AGENT_ALIASES: dict[str, str] = {
+    # Santos-Dumont variations
+    "santos-dumont": "santos_dumont",
+    "santosdumont": "santos_dumont",
+    "santos": "santos_dumont",
+    "dumont": "santos_dumont",
+    # Ayrton Senna variations
+    "ayrton_senna": "senna",
+    "ayrton-senna": "senna",
+    "ayrtonsenna": "senna",
+    # Oscar Niemeyer variations
+    "oscar-niemeyer": "oscar_niemeyer",
+    "oscarniemeyer": "oscar_niemeyer",
+    "niemeyer": "oscar_niemeyer",
+    # Maria Quitéria variations
+    "maria-quiteria": "maria_quiteria",
+    "mariaquiteria": "maria_quiteria",
+    "quiteria": "maria_quiteria",
 }
 
 # Default orchestrator when no agent is specified
@@ -300,6 +330,12 @@ def resolve_agent_id(
     # If user explicitly requested an agent, use it (if valid)
     if requested_agent_id:
         agent_id = requested_agent_id.lower()
+
+        # Check aliases first
+        if agent_id in AGENT_ALIASES:
+            agent_id = AGENT_ALIASES[agent_id]
+            logger.debug(f"Resolved agent alias: {requested_agent_id} -> {agent_id}")
+
         if agent_id in AGENT_REGISTRY:
             agent_info = AGENT_REGISTRY[agent_id]
             logger.info(f"Using explicitly requested agent: {agent_id}")
