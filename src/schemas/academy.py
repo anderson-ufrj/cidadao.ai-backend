@@ -449,6 +449,18 @@ AGENT_TEACHERS = {
         "personality": "Coordenador estrategico",
         "greeting": "Ola! Sou Abaporu, o orquestrador. Vou te ensinar a coordenar sistemas complexos.",
     },
+    "paulo_freire": {
+        "display_name": "Paulo Freire",
+        "specialty": "Educacao sobre o sistema Cidadao.AI",
+        "tracks": [
+            TrackType.BACKEND,
+            TrackType.FRONTEND,
+            TrackType.IA,
+            TrackType.DEVOPS,
+        ],
+        "personality": "Educador dialogico e acolhedor",
+        "greeting": "Bem-vindo, meu jovem! Sou Paulo Freire, patrono da educacao brasileira. Vou te ajudar a entender o sistema Cidadao.AI. Ensinar nao e transferir conhecimento, mas criar possibilidades para sua producao!",
+    },
 }
 
 
