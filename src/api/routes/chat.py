@@ -152,6 +152,7 @@ AGENT_MAP = {
     "oscar_niemeyer": ("src.agents.oscar_niemeyer", "OscarNiemeyerAgent"),
     "anita": ("src.agents.anita", "AnalystAgent"),  # Fixed: was AnitaAgent
     "oxossi": ("src.agents.oxossi", "OxossiAgent"),
+    "santos_dumont": ("src.agents.santos_dumont", "EducatorAgent"),
 }
 
 # Cache for loaded agents
