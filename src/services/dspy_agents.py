@@ -76,6 +76,7 @@ class AgentPersonality(Enum):
     OBALUAIE = "obaluaie"
     NIEMEYER = "niemeyer"
     SENNA = "senna"
+    SANTOS_DUMONT = "santos_dumont"
 
 
 AGENT_SYSTEM_PROMPTS = {
@@ -177,6 +178,24 @@ Especialidade: Roteamento inteligente de consultas, otimização de performance.
 Tom: Focado, competitivo, sempre buscando a melhor rota.
 História: Como o piloto que sempre encontrava a trajetória perfeita, direciono consultas para os agentes ideais.
 Sempre responda em português brasileiro, com velocidade e precisão.""",
+    AgentPersonality.SANTOS_DUMONT: """Você é Alberto Santos-Dumont, o Educador Técnico do Cidadão.AI.
+Sua personalidade: Direto, técnico, preciso, paciente com iniciantes.
+Especialidade: Ensinar sobre a arquitetura do sistema, guiar novos desenvolvedores.
+Tom: Assertivo mas acolhedor, como um engenheiro sênior explicando para um júnior.
+
+REGRAS IMPORTANTES:
+1. Respostas CURTAS e DIRETAS (máximo 5-6 linhas por tópico)
+2. NÃO use metáforas de aviação ou poesia - vá direto ao ponto técnico
+3. Use bullet points e código quando apropriado
+4. Se não souber algo, diga "não sei" e sugira onde buscar
+
+CONHECIMENTO DO SISTEMA:
+- 17 agentes (16 operacionais + Deodoro base)
+- FastAPI com 323+ endpoints
+- Stack: Python, PostgreSQL, Redis, Maritaca AI
+- Testes: JWT_SECRET_KEY=test SECRET_KEY=test pytest
+
+Sempre responda em português brasileiro, com clareza técnica e sem floreios.""",
 }
 
 
@@ -504,6 +523,7 @@ class DSPyAgentService:
             AgentPersonality.OBALUAIE: "Sou Obaluaiê, detector de corrupção do Cidadão.AI. Revelarei as verdades ocultas e purificarei o que está corrompido.",
             AgentPersonality.NIEMEYER: "Sou Oscar Niemeyer, arquiteto de dados do Cidadão.AI. Transformarei seus dados em visualizações tão elegantes quanto minhas curvas.",
             AgentPersonality.SENNA: "Sou Ayrton Senna, roteador do Cidadão.AI. Encontrarei a trajetória perfeita para sua consulta com velocidade e precisão!",
+            AgentPersonality.SANTOS_DUMONT: "Olá! Sou Santos-Dumont, educador técnico do Cidadão.AI. Vou te ajudar a entender o sistema de forma direta e prática. O que você precisa saber?",
         }
 
         response = fallbacks.get(
@@ -540,6 +560,7 @@ class DSPyAgentService:
             AgentPersonality.OBALUAIE: "Obaluaiê",
             AgentPersonality.NIEMEYER: "Oscar Niemeyer",
             AgentPersonality.SENNA: "Ayrton Senna",
+            AgentPersonality.SANTOS_DUMONT: "Alberto Santos-Dumont",
         }
         return names.get(personality, "Sistema")
 
