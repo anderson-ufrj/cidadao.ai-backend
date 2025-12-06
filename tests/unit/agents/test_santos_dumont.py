@@ -1,12 +1,12 @@
 """
-Unit tests for Paulo Freire Agent - System educator specialist.
+Unit tests for Santos-Dumont Agent - System educator specialist.
 Tests educational content generation, learning path suggestions, and onboarding guidance.
 """
 
 import pytest
 
 from src.agents.deodoro import AgentContext, AgentMessage
-from src.agents.paulo_freire import DifficultyLevel, EducatorAgent, LearningTopic
+from src.agents.santos_dumont import DifficultyLevel, EducatorAgent, LearningTopic
 from src.core import AgentStatus
 
 
@@ -22,45 +22,45 @@ def agent_context():
             "level": "beginner",
             "focus": "system_overview",
         },
-        trace_id="trace-freire-789",
+        trace_id="trace-santos-dumont-789",
     )
 
 
 @pytest.fixture
-def paulo_freire_agent():
-    """Create Paulo Freire agent."""
+def santos_dumont_agent():
+    """Create Santos-Dumont agent."""
     return EducatorAgent()
 
 
-class TestPauloFreireAgent:
-    """Test suite for Paulo Freire (Educator Agent)."""
+class TestSantosDumontAgent:
+    """Test suite for Santos-Dumont (Educator Agent)."""
 
     @pytest.mark.unit
-    def test_agent_initialization(self, paulo_freire_agent):
-        """Test Paulo Freire agent initialization."""
-        assert paulo_freire_agent.name == "paulo_freire"
-        assert "teach_system_overview" in paulo_freire_agent.capabilities
-        assert "explain_agent_architecture" in paulo_freire_agent.capabilities
-        assert "guide_first_contribution" in paulo_freire_agent.capabilities
-        assert "explain_specific_agent" in paulo_freire_agent.capabilities
-        assert "troubleshoot_issues" in paulo_freire_agent.capabilities
-        assert "suggest_learning_path" in paulo_freire_agent.capabilities
-        assert "answer_technical_questions" in paulo_freire_agent.capabilities
-        assert len(paulo_freire_agent.capabilities) == 7
+    def test_agent_initialization(self, santos_dumont_agent):
+        """Test Santos-Dumont agent initialization."""
+        assert santos_dumont_agent.name == "santos_dumont"
+        assert "teach_system_overview" in santos_dumont_agent.capabilities
+        assert "explain_agent_architecture" in santos_dumont_agent.capabilities
+        assert "guide_first_contribution" in santos_dumont_agent.capabilities
+        assert "explain_specific_agent" in santos_dumont_agent.capabilities
+        assert "troubleshoot_issues" in santos_dumont_agent.capabilities
+        assert "suggest_learning_path" in santos_dumont_agent.capabilities
+        assert "answer_technical_questions" in santos_dumont_agent.capabilities
+        assert len(santos_dumont_agent.capabilities) == 7
 
     @pytest.mark.unit
-    def test_system_knowledge_loaded(self, paulo_freire_agent):
+    def test_system_knowledge_loaded(self, santos_dumont_agent):
         """Test that system knowledge is properly loaded."""
-        assert "overview" in paulo_freire_agent.system_knowledge
-        assert "agents" in paulo_freire_agent.system_knowledge
-        assert "architecture" in paulo_freire_agent.system_knowledge
-        assert "contribution" in paulo_freire_agent.system_knowledge
-        assert "commands" in paulo_freire_agent.system_knowledge
+        assert "overview" in santos_dumont_agent.system_knowledge
+        assert "agents" in santos_dumont_agent.system_knowledge
+        assert "architecture" in santos_dumont_agent.system_knowledge
+        assert "contribution" in santos_dumont_agent.system_knowledge
+        assert "commands" in santos_dumont_agent.system_knowledge
 
     @pytest.mark.unit
-    def test_agents_knowledge_complete(self, paulo_freire_agent):
+    def test_agents_knowledge_complete(self, santos_dumont_agent):
         """Test that all 17 agents are documented in knowledge base."""
-        agents = paulo_freire_agent.system_knowledge["agents"]
+        agents = santos_dumont_agent.system_knowledge["agents"]
         expected_agents = [
             "deodoro",
             "zumbi",
@@ -85,11 +85,11 @@ class TestPauloFreireAgent:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_teach_system_overview(self, paulo_freire_agent, agent_context):
+    async def test_teach_system_overview(self, santos_dumont_agent, agent_context):
         """Test teaching system overview."""
         message = AgentMessage(
             action="teach",
-            recipient="paulo_freire",
+            recipient="santos_dumont",
             payload={
                 "topic": "system_overview",
                 "level": "beginner",
@@ -98,7 +98,7 @@ class TestPauloFreireAgent:
             metadata={},
         )
 
-        response = await paulo_freire_agent.process(message, agent_context)
+        response = await santos_dumont_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
         assert "lesson" in response.result
@@ -109,11 +109,11 @@ class TestPauloFreireAgent:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_teach_agent_architecture(self, paulo_freire_agent, agent_context):
+    async def test_teach_agent_architecture(self, santos_dumont_agent, agent_context):
         """Test teaching agent architecture."""
         message = AgentMessage(
             action="teach",
-            recipient="paulo_freire",
+            recipient="santos_dumont",
             payload={
                 "topic": "agent_architecture",
                 "level": "intermediate",
@@ -122,7 +122,7 @@ class TestPauloFreireAgent:
             metadata={},
         )
 
-        response = await paulo_freire_agent.process(message, agent_context)
+        response = await santos_dumont_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
         assert "lesson" in response.result
@@ -138,12 +138,12 @@ class TestPauloFreireAgent:
     @pytest.mark.unit
     @pytest.mark.asyncio
     async def test_explain_specific_agent_zumbi(
-        self, paulo_freire_agent, agent_context
+        self, santos_dumont_agent, agent_context
     ):
         """Test explaining a specific agent (Zumbi)."""
         message = AgentMessage(
             action="explain_agent",
-            recipient="paulo_freire",
+            recipient="santos_dumont",
             payload={
                 "agent_name": "zumbi",
             },
@@ -151,7 +151,7 @@ class TestPauloFreireAgent:
             metadata={},
         )
 
-        response = await paulo_freire_agent.process(message, agent_context)
+        response = await santos_dumont_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
         assert "explanation" in response.result
@@ -164,11 +164,11 @@ class TestPauloFreireAgent:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_explain_unknown_agent(self, paulo_freire_agent, agent_context):
+    async def test_explain_unknown_agent(self, santos_dumont_agent, agent_context):
         """Test explaining an unknown agent returns helpful error."""
         message = AgentMessage(
             action="explain_agent",
-            recipient="paulo_freire",
+            recipient="santos_dumont",
             payload={
                 "agent_name": "unknown_agent",
             },
@@ -176,7 +176,7 @@ class TestPauloFreireAgent:
             metadata={},
         )
 
-        response = await paulo_freire_agent.process(message, agent_context)
+        response = await santos_dumont_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
         assert "explanation" in response.result
@@ -184,17 +184,17 @@ class TestPauloFreireAgent:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_first_steps_guide(self, paulo_freire_agent, agent_context):
+    async def test_first_steps_guide(self, santos_dumont_agent, agent_context):
         """Test first steps onboarding guide."""
         message = AgentMessage(
             action="first_steps",
-            recipient="paulo_freire",
+            recipient="santos_dumont",
             payload={},
             sender="intern",
             metadata={},
         )
 
-        response = await paulo_freire_agent.process(message, agent_context)
+        response = await santos_dumont_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
         assert "guide" in response.result
@@ -207,11 +207,11 @@ class TestPauloFreireAgent:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_teach_contribution_guide(self, paulo_freire_agent, agent_context):
+    async def test_teach_contribution_guide(self, santos_dumont_agent, agent_context):
         """Test teaching contribution guide."""
         message = AgentMessage(
             action="teach",
-            recipient="paulo_freire",
+            recipient="santos_dumont",
             payload={
                 "topic": "contribution_guide",
                 "level": "beginner",
@@ -220,7 +220,7 @@ class TestPauloFreireAgent:
             metadata={},
         )
 
-        response = await paulo_freire_agent.process(message, agent_context)
+        response = await santos_dumont_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
         assert "lesson" in response.result
@@ -231,11 +231,11 @@ class TestPauloFreireAgent:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_teach_testing_patterns(self, paulo_freire_agent, agent_context):
+    async def test_teach_testing_patterns(self, santos_dumont_agent, agent_context):
         """Test teaching testing patterns."""
         message = AgentMessage(
             action="teach",
-            recipient="paulo_freire",
+            recipient="santos_dumont",
             payload={
                 "topic": "testing_patterns",
                 "level": "beginner",
@@ -244,7 +244,7 @@ class TestPauloFreireAgent:
             metadata={},
         )
 
-        response = await paulo_freire_agent.process(message, agent_context)
+        response = await santos_dumont_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
         assert "lesson" in response.result
@@ -253,11 +253,11 @@ class TestPauloFreireAgent:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_suggest_learning_path(self, paulo_freire_agent, agent_context):
+    async def test_suggest_learning_path(self, santos_dumont_agent, agent_context):
         """Test suggesting a learning path."""
         message = AgentMessage(
             action="suggest_learning_path",
-            recipient="paulo_freire",
+            recipient="santos_dumont",
             payload={
                 "track": "backend",
                 "level": "beginner",
@@ -267,7 +267,7 @@ class TestPauloFreireAgent:
             metadata={},
         )
 
-        response = await paulo_freire_agent.process(message, agent_context)
+        response = await santos_dumont_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
         assert "learning_path" in response.result
@@ -279,12 +279,12 @@ class TestPauloFreireAgent:
     @pytest.mark.unit
     @pytest.mark.asyncio
     async def test_answer_question_agents_count(
-        self, paulo_freire_agent, agent_context
+        self, santos_dumont_agent, agent_context
     ):
         """Test answering question about number of agents."""
         message = AgentMessage(
             action="answer_question",
-            recipient="paulo_freire",
+            recipient="santos_dumont",
             payload={
                 "question": "Quantos agentes existem no sistema?",
             },
@@ -292,7 +292,7 @@ class TestPauloFreireAgent:
             metadata={},
         )
 
-        response = await paulo_freire_agent.process(message, agent_context)
+        response = await santos_dumont_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
         assert "answer" in response.result
@@ -300,11 +300,13 @@ class TestPauloFreireAgent:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_answer_question_about_zumbi(self, paulo_freire_agent, agent_context):
+    async def test_answer_question_about_zumbi(
+        self, santos_dumont_agent, agent_context
+    ):
         """Test answering question about Zumbi agent."""
         message = AgentMessage(
             action="answer_question",
-            recipient="paulo_freire",
+            recipient="santos_dumont",
             payload={
                 "question": "Como funciona o Zumbi?",
             },
@@ -312,7 +314,7 @@ class TestPauloFreireAgent:
             metadata={},
         )
 
-        response = await paulo_freire_agent.process(message, agent_context)
+        response = await santos_dumont_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
         assert "answer" in response.result
@@ -322,11 +324,11 @@ class TestPauloFreireAgent:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_teach_api_structure(self, paulo_freire_agent, agent_context):
+    async def test_teach_api_structure(self, santos_dumont_agent, agent_context):
         """Test teaching API structure."""
         message = AgentMessage(
             action="teach",
-            recipient="paulo_freire",
+            recipient="santos_dumont",
             payload={
                 "topic": "api_structure",
                 "level": "intermediate",
@@ -335,7 +337,7 @@ class TestPauloFreireAgent:
             metadata={},
         )
 
-        response = await paulo_freire_agent.process(message, agent_context)
+        response = await santos_dumont_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
         assert "lesson" in response.result
@@ -344,11 +346,11 @@ class TestPauloFreireAgent:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_teach_troubleshooting(self, paulo_freire_agent, agent_context):
+    async def test_teach_troubleshooting(self, santos_dumont_agent, agent_context):
         """Test teaching troubleshooting guide."""
         message = AgentMessage(
             action="teach",
-            recipient="paulo_freire",
+            recipient="santos_dumont",
             payload={
                 "topic": "troubleshooting",
             },
@@ -356,7 +358,7 @@ class TestPauloFreireAgent:
             metadata={},
         )
 
-        response = await paulo_freire_agent.process(message, agent_context)
+        response = await santos_dumont_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
         assert "lesson" in response.result
@@ -368,35 +370,35 @@ class TestPauloFreireAgent:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_unknown_action(self, paulo_freire_agent, agent_context):
+    async def test_unknown_action(self, santos_dumont_agent, agent_context):
         """Test handling unknown action."""
         message = AgentMessage(
             action="unknown_action",
-            recipient="paulo_freire",
+            recipient="santos_dumont",
             payload={},
             sender="intern",
             metadata={},
         )
 
-        response = await paulo_freire_agent.process(message, agent_context)
+        response = await santos_dumont_agent.process(message, agent_context)
 
         assert response.status == AgentStatus.COMPLETED
         assert "error" in response.result
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    async def test_initialize_and_shutdown(self, paulo_freire_agent):
+    async def test_initialize_and_shutdown(self, santos_dumont_agent):
         """Test agent initialization and shutdown lifecycle."""
-        await paulo_freire_agent.initialize()
-        await paulo_freire_agent.shutdown()
+        await santos_dumont_agent.initialize()
+        await santos_dumont_agent.shutdown()
         # No exceptions means success
 
     @pytest.mark.unit
-    def test_personality_prompt_exists(self, paulo_freire_agent):
+    def test_personality_prompt_exists(self, santos_dumont_agent):
         """Test that personality prompt is defined."""
-        assert hasattr(paulo_freire_agent, "personality_prompt")
-        assert "Paulo Freire" in paulo_freire_agent.personality_prompt
-        assert "educador" in paulo_freire_agent.personality_prompt.lower()
+        assert hasattr(santos_dumont_agent, "personality_prompt")
+        assert "Santos-Dumont" in santos_dumont_agent.personality_prompt
+        assert "inventor" in santos_dumont_agent.personality_prompt.lower()
 
 
 class TestLearningTopicEnum:
@@ -432,20 +434,20 @@ class TestAgentAliasImport:
 
     @pytest.mark.unit
     def test_import_via_alias(self):
-        """Test importing EducatorAgent via PauloFreireAgent alias."""
-        from src.agents.paulo_freire import PauloFreireAgent
+        """Test importing EducatorAgent via SantosDumontAgent alias."""
+        from src.agents.santos_dumont import SantosDumontAgent
 
-        agent = PauloFreireAgent()
-        assert agent.name == "paulo_freire"
+        agent = SantosDumontAgent()
+        assert agent.name == "santos_dumont"
 
     @pytest.mark.unit
     def test_import_via_lazy_loading(self):
         """Test importing via lazy loading system."""
         from src.agents import get_agent
 
-        agent = get_agent("paulo_freire")
+        agent = get_agent("santos_dumont")
         assert agent is not None
-        assert agent.name == "paulo_freire"
+        assert agent.name == "santos_dumont"
 
     @pytest.mark.unit
     def test_import_educator_agent(self):
@@ -453,4 +455,4 @@ class TestAgentAliasImport:
         from src.agents import EducatorAgent
 
         agent = EducatorAgent()
-        assert agent.name == "paulo_freire"
+        assert agent.name == "santos_dumont"
