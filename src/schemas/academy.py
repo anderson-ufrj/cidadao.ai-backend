@@ -1,7 +1,7 @@
 """
 Academy Gamification Schemas.
 
-Schemas Pydantic para validacao de requests/responses da Academy.
+Schemas Pydantic para validação de requests/responses da Academy.
 Parceria: Neural Thinker AI Engineering + IFSULDEMINAS/LabSoft
 """
 
@@ -17,7 +17,7 @@ from pydantic import BaseModel, Field
 
 
 class TrackType(str, Enum):
-    """Trilhas disponiveis na Academy."""
+    """Trilhas disponíveis na Academy."""
 
     BACKEND = "backend"
     FRONTEND = "frontend"
@@ -26,7 +26,7 @@ class TrackType(str, Enum):
 
 
 class RankLevel(str, Enum):
-    """Niveis de rank baseados em XP."""
+    """Níveis de rank baseados em XP."""
 
     NOVATO = "novato"  # 0-99 XP
     APRENDIZ = "aprendiz"  # 100-499 XP
@@ -36,7 +36,7 @@ class RankLevel(str, Enum):
 
 
 class DifficultyLevel(str, Enum):
-    """Niveis de dificuldade."""
+    """Níveis de dificuldade."""
 
     BEGINNER = "beginner"
     EASY = "easy"
@@ -46,7 +46,7 @@ class DifficultyLevel(str, Enum):
 
 
 class MissionCategory(str, Enum):
-    """Categorias de missoes."""
+    """Categorias de missões."""
 
     BUG_FIX = "bug-fix"
     FEATURE = "feature"
@@ -101,7 +101,7 @@ Parceria: Neural Thinker AI Engineering + IFSULDEMINAS/LabSoft
 
 ### 1. Coleta de Dados
 Ao participar do programa, coletamos:
-- **Dados de identificacao**: Nome, email, username GitHub
+- **Dados de identificação**: Nome, email, username GitHub
 - **Dados de atividade**: Commits, PRs, code reviews, mensagens
 - **Dados de progresso**: XP, nivel, badges, ranking
 
@@ -109,8 +109,8 @@ Ao participar do programa, coletamos:
 Seus dados serao utilizados para:
 - Acompanhar seu progresso no programa
 - Calcular seu ranking e recompensas
-- Gerar relatorios de desempenho
-- Emitir certificados de conclusao
+- Gerar relatórios de desempenho
+- Emitir certificados de conclusão
 
 ### 3. Metricas Rastreadas (Modelo Empresa)
 Como em uma empresa real, rastreamos:
@@ -122,25 +122,25 @@ Como em uma empresa real, rastreamos:
 
 ### 4. Ranking e Competicao
 - Rankings sao publicos entre participantes
-- Sua posicao e baseada em XP total
+- Sua posição e baseada em XP total
 - Top performers recebem destaque especial
 - Mentores podem ver seu progresso detalhado
 
 ### 5. Direitos (LGPD)
-Voce tem direito a:
+Você tem direito a:
 - Acessar seus dados a qualquer momento
-- Solicitar correcao de dados incorretos
-- Solicitar exclusao (anonimizacao) dos dados
+- Solicitar correção de dados incorretos
+- Solicitar exclusao (anonimização) dos dados
 - Exportar seus dados em formato aberto
 
 ### 6. Retencao
 - Dados ativos: Durante participacao no programa
-- Dados historicos: 5 anos apos conclusao
+- Dados historicos: 5 anos apos conclusão
 - Certificados: Permanente
 
 ---
 
-Ao aceitar, voce concorda com estes termos e com o
+Ao aceitar, você concorda com estes termos e com o
 Regulamento do Programa de Estagio.
 """
 
@@ -167,19 +167,19 @@ RANKING_EXPLANATION = """
 | Streak 7 dias | +50 |
 | Streak 30 dias | +200 |
 
-### Niveis de Rank
+### Níveis de Rank
 
 | Rank | XP Necessario | Beneficios |
 |------|---------------|------------|
-| Novato | 0-99 | Acesso missoes easy |
-| Aprendiz | 100-499 | Missoes medium, mentoria mensal |
-| Contribuidor | 500-1999 | Missoes hard, mentoria quinzenal |
+| Novato | 0-99 | Acesso missões easy |
+| Aprendiz | 100-499 | Missões medium, mentoria mensal |
+| Contribuidor | 500-1999 | Missões hard, mentoria quinzenal |
 | Mentor | 2000-4999 | Pode mentorar, acesso expert |
 | Arquiteto | 5000+ | Elegivel para vaga, coautoria |
 
 ### Metricas de Commits (Estilo Empresa)
 
-Rastreamos suas contribuicoes como em uma empresa:
+Rastreamos suas contribuições como em uma empresa:
 - **Frequencia**: Commits por semana
 - **Qualidade**: PRs aprovados vs rejeitados
 - **Colaboracao**: Code reviews realizados
@@ -189,7 +189,7 @@ Rastreamos suas contribuicoes como em uma empresa:
 
 O ranking e atualizado em tempo real e considera:
 1. XP total acumulado
-2. Contribuicoes da semana
+2. Contribuições da semana
 3. Streak atual
 4. Qualidade das entregas
 """
@@ -200,25 +200,25 @@ WELCOME_MESSAGE = """
 Ola! Sou o assistente da Academy, o programa de estagio gamificado
 do projeto Cidadao.AI.
 
-## O que voce vai encontrar aqui:
+## O que você vai encontrar aqui:
 
 ### 1. Agentes Professores
-16 agentes IA com personalidades de figuras historicas brasileiras
+16 agentes IA com personalidades de figuras históricas brasileiras
 que vao te ensinar diferentes areas:
 - **Backend**: Zumbi, Anita, Tiradentes, Bonifacio
 - **Frontend**: Oscar Niemeyer, Dandara, Drummond, Machado
 - **IA/ML**: Zumbi, Oxossi, Ceuci, Nana, Obaluaie
 - **DevOps**: Ayrton Senna, Maria Quiteria, Abaporu
 
-### 2. Missoes
-Tarefas reais do projeto que voce pode completar para ganhar XP:
+### 2. Missões
+Tarefas reais do projeto que você pode completar para ganhar XP:
 - Corrigir bugs
 - Escrever testes
 - Implementar features
 - Documentar codigo
 
 ### 3. Sistema de Ranking
-Suas contribuicoes sao rastreadas como em uma empresa:
+Suas contribuições sao rastreadas como em uma empresa:
 - Commits entregues
 - Pull Requests aprovados
 - Code reviews realizados
@@ -233,7 +233,7 @@ Colecione badges por suas conquistas:
 
 ---
 
-Para comecar, preciso que voce aceite os termos do programa.
+Para comecar, preciso que você aceite os termos do programa.
 """
 
 
@@ -251,13 +251,13 @@ class XPValues:
     CONVERSATION_COMPLETED = 20
     CONVERSATION_EXCELLENT = 50  # Rating 5 estrelas
 
-    # Missoes
+    # Missões
     MISSION_EASY = 10
     MISSION_MEDIUM = 25
     MISSION_HARD = 50
     MISSION_EXPERT = 100
 
-    # Contribuicoes GitHub
+    # Contribuições GitHub
     PR_OPENED = 15
     PR_APPROVED = 30
     PR_MERGED = 50
@@ -298,19 +298,19 @@ RANK_INFO = {
         "name": "Novato",
         "color": "#6B7280",
         "icon": "seedling",
-        "perks": ["Acesso as missoes easy", "Canal de duvidas"],
+        "perks": ["Acesso as missões easy", "Canal de duvidas"],
     },
     RankLevel.APRENDIZ: {
         "name": "Aprendiz",
         "color": "#10B981",
         "icon": "leaf",
-        "perks": ["Acesso as missoes medium", "Mentoria mensal"],
+        "perks": ["Acesso as missões medium", "Mentoria mensal"],
     },
     RankLevel.CONTRIBUIDOR: {
         "name": "Contribuidor",
         "color": "#3B82F6",
         "icon": "star",
-        "perks": ["Acesso as missoes hard", "Mentoria quinzenal", "Badge especial"],
+        "perks": ["Acesso as missões hard", "Mentoria quinzenal", "Badge especial"],
     },
     RankLevel.MENTOR: {
         "name": "Mentor",
@@ -339,24 +339,24 @@ RANK_INFO = {
 AGENT_TEACHERS = {
     "zumbi": {
         "display_name": "Zumbi dos Palmares",
-        "specialty": "Deteccao de anomalias e analise de dados",
+        "specialty": "Detecção de anomalias e análise de dados",
         "tracks": [TrackType.BACKEND, TrackType.IA],
         "personality": "Investigador perspicaz e determinado",
         "greeting": "Ola! Sou Zumbi, especialista em encontrar anomalias. Vamos investigar juntos?",
     },
     "anita": {
         "display_name": "Anita Garibaldi",
-        "specialty": "Analise de padroes e metodologia",
+        "specialty": "Análise de padrões e metodologia",
         "tracks": [TrackType.BACKEND, TrackType.IA],
         "personality": "Estrategista corajosa e analitica",
-        "greeting": "Bem-vindo! Sou Anita, vou te ensinar a identificar padroes. Preparado?",
+        "greeting": "Bem-vindo! Sou Anita, vou te ensinar a identificar padrões. Preparado?",
     },
     "tiradentes": {
         "display_name": "Tiradentes",
-        "specialty": "Documentacao e relatorios",
+        "specialty": "Documentacao e relatórios",
         "tracks": [TrackType.BACKEND, TrackType.DEVOPS],
         "personality": "Comunicador eloquente e organizado",
-        "greeting": "Saudacoes! Sou Tiradentes, mestre em comunicacao clara. Vamos documentar?",
+        "greeting": "Saudações! Sou Tiradentes, mestre em comunicacao clara. Vamos documentar?",
     },
     "ayrton_senna": {
         "display_name": "Ayrton Senna",
@@ -388,7 +388,7 @@ AGENT_TEACHERS = {
     },
     "lampiao": {
         "display_name": "Lampiao",
-        "specialty": "Analise regional e dados locais",
+        "specialty": "Análise regional e dados locais",
         "tracks": [TrackType.BACKEND, TrackType.IA],
         "personality": "Astuto conhecedor do territorio",
         "greeting": "Opa! Sou Lampiao, conheco cada canto desses dados. Bora explorar?",
@@ -398,7 +398,7 @@ AGENT_TEACHERS = {
         "specialty": "Comunicacao e narrativa de dados",
         "tracks": [TrackType.FRONTEND],
         "personality": "Poeta sensivel e reflexivo",
-        "greeting": "Ola, jovem! Sou Drummond, vou te ajudar a contar historias com dados.",
+        "greeting": "Ola, jovem! Sou Drummond, vou te ajudar a contar histórias com dados.",
     },
     "maria_quiteria": {
         "display_name": "Maria Quiteria",
@@ -423,35 +423,35 @@ AGENT_TEACHERS = {
     },
     "obaluaie": {
         "display_name": "Obaluaie",
-        "specialty": "Deteccao de corrupcao",
+        "specialty": "Detecção de corrupção",
         "tracks": [TrackType.BACKEND, TrackType.IA],
         "personality": "Justiceiro implacavel",
-        "greeting": "Atoto! Sou Obaluaie, detector de corrupcao. Vamos purificar os dados?",
+        "greeting": "Atoto! Sou Obaluaie, detector de corrupção. Vamos purificar os dados?",
     },
     "ceuci": {
         "display_name": "Ceuci",
-        "specialty": "Predicao e ETL",
+        "specialty": "Predição e ETL",
         "tracks": [TrackType.BACKEND, TrackType.IA],
         "personality": "Visionaria e profetica",
-        "greeting": "Saudacoes! Sou Ceuci, vejo alem dos dados. Vamos prever o futuro juntos?",
+        "greeting": "Saudações! Sou Ceuci, vejo alem dos dados. Vamos prever o futuro juntos?",
     },
     "bonifacio": {
         "display_name": "Jose Bonifacio",
-        "specialty": "Analise legal e normativa",
+        "specialty": "Análise legal e normativa",
         "tracks": [TrackType.BACKEND],
         "personality": "Estadista sabio e erudito",
         "greeting": "Ilustre aluno! Sou Bonifacio, especialista em leis. Vamos entender a norma?",
     },
     "abaporu": {
         "display_name": "Abaporu",
-        "specialty": "Orquestracao de agentes",
+        "specialty": "Orquestração de agentes",
         "tracks": [TrackType.BACKEND, TrackType.IA, TrackType.DEVOPS],
         "personality": "Coordenador estrategico",
         "greeting": "Ola! Sou Abaporu, o orquestrador. Vou te ensinar a coordenar sistemas complexos.",
     },
     "santos_dumont": {
         "display_name": "Alberto Santos-Dumont",
-        "specialty": "Educacao sobre o sistema Cidadao.AI",
+        "specialty": "Educação sobre o sistema Cidadao.AI",
         "tracks": [
             TrackType.BACKEND,
             TrackType.FRONTEND,
@@ -459,7 +459,7 @@ AGENT_TEACHERS = {
             TrackType.DEVOPS,
         ],
         "personality": "Inventor pioneiro e incentivador",
-        "greeting": "Meu caro amigo! Sou Santos-Dumont, o mineiro Pai da Aviacao. Vou te ensinar a pilotar o sistema Cidadao.AI. O que eu fiz, qualquer um pode fazer - vamos construir juntos!",
+        "greeting": "Meu caro amigo! Sou Santos-Dumont, o mineiro Pai da Aviação. Vou te ensinar a pilotar o sistema Cidadao.AI. O que eu fiz, qualquer um pode fazer - vamos construir juntos!",
     },
 }
 
@@ -528,7 +528,7 @@ class OnboardingAcceptRequest(BaseModel):
 
 
 class GitHubStatsResponse(BaseModel):
-    """Estatisticas do GitHub do usuario."""
+    """Estatísticas do GitHub do usuario."""
 
     github_username: str
     total_commits: int = 0
@@ -556,7 +556,7 @@ class OnboardingResponse(BaseModel):
 
 
 class RankInfo(BaseModel):
-    """Informacoes do rank."""
+    """Informações do rank."""
 
     level: RankLevel
     name: str
@@ -568,7 +568,7 @@ class RankInfo(BaseModel):
 
 
 class ProgressInfo(BaseModel):
-    """Informacoes de progresso."""
+    """Informações de progresso."""
 
     total_xp: int
     current_level: int
@@ -579,7 +579,7 @@ class ProgressInfo(BaseModel):
 
 
 class BadgeInfo(BaseModel):
-    """Informacoes de um badge."""
+    """Informações de um badge."""
 
     code: str
     name: str
@@ -611,7 +611,7 @@ class AcademyUserResponse(BaseModel):
 
 
 class AgentTeacherInfo(BaseModel):
-    """Informacoes de um agente professor."""
+    """Informações de um agente professor."""
 
     name: str
     display_name: str
@@ -696,7 +696,7 @@ class LeaderboardEntry(BaseModel):
     main_track: TrackType
     badges_count: int
     weekly_xp: int = 0
-    change: int = 0  # Mudanca de posicao
+    change: int = 0  # Mudança de posição
 
 
 class LeaderboardResponse(BaseModel):
@@ -709,7 +709,7 @@ class LeaderboardResponse(BaseModel):
 
 
 class XPTransactionResponse(BaseModel):
-    """Response de transacao de XP."""
+    """Response de transação de XP."""
 
     id: str
     amount: int
@@ -720,7 +720,7 @@ class XPTransactionResponse(BaseModel):
 
 
 class AcademyStatsResponse(BaseModel):
-    """Estatisticas gerais da Academy."""
+    """Estatísticas gerais da Academy."""
 
     total_users: int
     total_conversations: int
@@ -755,7 +755,7 @@ def xp_for_next_level(current_level: int) -> int:
 
 
 def get_rank_info(rank: RankLevel) -> RankInfo:
-    """Retorna informacoes completas do rank."""
+    """Retorna informações completas do rank."""
     info = RANK_INFO[rank]
     thresholds = RANK_THRESHOLDS[rank]
     return RankInfo(
