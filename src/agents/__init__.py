@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from .obaluaie import CorruptionDetectorAgent
     from .oscar_niemeyer import OscarNiemeyerAgent
     from .oxossi import OxossiAgent
-    from .paulo_freire import EducatorAgent
+    from .santos_dumont import EducatorAgent
     from .simple_agent_pool import agent_pool, get_agent_pool
     from .tiradentes import ReporterAgent
     from .zumbi import InvestigatorAgent
@@ -68,7 +68,7 @@ _LAZY_IMPORTS = {
     "OscarNiemeyerAgent": ("src.agents.oscar_niemeyer", "OscarNiemeyerAgent"),
     "OxossiAgent": ("src.agents.oxossi", "OxossiAgent"),
     # Educator agent
-    "EducatorAgent": ("src.agents.paulo_freire", "EducatorAgent"),
+    "EducatorAgent": ("src.agents.santos_dumont", "EducatorAgent"),
     # Memory agent
     "ContextMemoryAgent": ("src.agents.nana", "ContextMemoryAgent"),
     "MemoryEntry": ("src.agents.nana", "MemoryEntry"),
@@ -91,7 +91,7 @@ _ALIASES = {
     "AbaporuAgent": "MasterAgent",
     "AyrtonSennaAgent": "SemanticRouter",
     "NanaAgent": "ContextMemoryAgent",
-    "PauloFreireAgent": "EducatorAgent",
+    "SantosDumontAgent": "EducatorAgent",
 }
 
 # Agent name to class name mapping (for get_agent function)
@@ -112,7 +112,7 @@ _AGENT_NAME_TO_CLASS = {
     "ceuci": "PredictiveAgent",
     "obaluaie": "CorruptionDetectorAgent",
     "dandara": "DandaraAgent",
-    "paulo_freire": "EducatorAgent",
+    "santos_dumont": "EducatorAgent",
 }
 
 # Cache for imported modules
@@ -244,7 +244,7 @@ __all__ = [
     "AbaporuAgent",
     "AyrtonSennaAgent",
     "NanaAgent",
-    "PauloFreireAgent",
+    "SantosDumontAgent",
     # Memory Agent (lazy)
     "ContextMemoryAgent",
     "MemoryEntry",
