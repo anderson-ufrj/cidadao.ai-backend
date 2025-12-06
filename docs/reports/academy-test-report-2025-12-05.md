@@ -1,13 +1,15 @@
 # Academy API Test Report
 
 **Date**: 2025-12-05
-**Version**: 1.0.0
+**Version**: 1.1.0
 **Environment**: Production (Railway) + Local Development
 **Status**: All Tests Passing
 
 ## Executive Summary
 
-The Cidadao.AI Academy gamification system has been fully tested and validated. All 30 unit tests pass successfully, and all API endpoints are functional in production.
+The Cidadao.AI Academy gamification system has been fully tested and validated. All 39 unit tests pass successfully, and all API endpoints are functional in production.
+
+**New in v1.1.0**: Added onboarding flow with terms of consent and GitHub commit tracking.
 
 ## Test Results
 
@@ -24,7 +26,9 @@ The Cidadao.AI Academy gamification system has been fully tested and validated. 
 | User Endpoints | 2 | PASSED |
 | Conversation Endpoints | 1 | PASSED |
 | AcademyService Tests | 10 | PASSED |
-| **Total** | **30** | **100% PASSED** |
+| **Onboarding Tests** | **4** | **PASSED** |
+| **GitHub Stats Tests** | **5** | **PASSED** |
+| **Total** | **39** | **100% PASSED** |
 
 ### Production API Tests (Railway)
 
@@ -39,6 +43,11 @@ All endpoints tested and functional:
 | `/api/v1/academy/badges` | GET | 200 OK | < 50ms |
 | `/api/v1/academy/leaderboard` | GET | 200 OK | < 50ms |
 | `/api/v1/academy/stats` | GET | 200 OK | < 50ms |
+| `/api/v1/academy/onboarding` | GET | 200 OK | < 50ms |
+| `/api/v1/academy/onboarding/accept` | POST | 200 OK | < 50ms |
+| `/api/v1/academy/github/stats` | GET | 200 OK | < 50ms |
+| `/api/v1/academy/github/connect` | POST | 200 OK | < 50ms |
+| `/api/v1/academy/github/stats/update` | POST | 200 OK | < 50ms |
 
 ## Features Tested
 
@@ -82,6 +91,31 @@ All endpoints tested and functional:
 - Badge awarding system
 - Leaderboard functionality
 
+### 5. NEW: Onboarding Flow (LGPD Compliant)
+- **Demo Mode**: Always shows terms of consent for educational purposes
+- **Terms of Consent**: Full LGPD-compliant data collection disclosure
+- **Ranking Explanation**: Clear XP table showing how points are earned
+- **Step-by-step Process**:
+  - Welcome message with program overview
+  - Terms acceptance with consent tracking
+  - Track selection (Backend/Frontend/IA/DevOps)
+  - GitHub connection for contribution tracking
+  - First mission recommendation
+
+### 6. NEW: GitHub Commit Tracking (Company-Style)
+- **Metrics Tracked** (like a real company):
+  - Total commits delivered
+  - PRs opened, approved, and merged
+  - Code reviews performed
+  - Weekly activity metrics
+  - Contribution quality score (0-100)
+- **XP Rewards**:
+  - Commit accepted: +15 XP
+  - PR opened: +15 XP
+  - PR merged: +50 XP
+  - Code review: +10 XP
+- **Badges**: First PR badge awarded automatically
+
 ## Code Coverage
 
 Test file location: `tests/unit/routes/test_academy.py`
@@ -119,9 +153,26 @@ Interactive docs: `https://cidadao-api-production.up.railway.app/docs#/Academy`
 
 ## Files Modified/Created
 
+### v1.0.0 (Initial)
 1. `src/agents/__init__.py` - Added `get_agent()` function
 2. `tests/unit/routes/test_academy.py` - Created comprehensive test suite
 3. `docs/reports/academy-test-report-2025-12-05.md` - This report
+
+### v1.1.0 (Onboarding + GitHub Tracking)
+4. `src/schemas/academy.py` - Added:
+   - `OnboardingStep` enum
+   - `TERMS_OF_CONSENT` constant (LGPD compliant)
+   - `RANKING_EXPLANATION` constant
+   - `WELCOME_MESSAGE` constant
+   - `OnboardingResponse`, `OnboardingAcceptRequest`, `GitHubStatsResponse` schemas
+5. `src/services/academy_service.py` - Added:
+   - Onboarding methods: `get_onboarding_state()`, `accept_terms()`, `complete_onboarding()`
+   - GitHub methods: `get_github_stats()`, `update_github_stats()`, `connect_github()`
+   - User fields: `onboarding_step`, `terms_accepted`, `is_demo_mode`
+6. `src/api/routes/academy.py` - Added:
+   - Onboarding endpoints: `/onboarding`, `/onboarding/accept`, `/onboarding/complete`
+   - GitHub endpoints: `/github/stats`, `/github/connect`, `/github/stats/update`
+7. `tests/unit/routes/test_academy.py` - Added 9 new tests for onboarding and GitHub
 
 ## Conclusion
 
@@ -133,9 +184,16 @@ The Academy system is fully functional and ready for use. The gamification platf
 - Badge achievements for engagement
 - Competitive leaderboard system
 
-All tests pass (30/30) and all production endpoints are operational.
+**NEW in v1.1.0**:
+- Demo mode onboarding that always shows terms of consent (educational)
+- LGPD-compliant data collection disclosure
+- Clear ranking explanation with XP table
+- GitHub commit/PR/review tracking (company-style metrics)
+- Quality score calculation for contributions
+
+All tests pass (39/39) and all production endpoints are operational.
 
 ---
 
-**Tested by**: Claude Code Automation
+**Tested by**: Automated Test Suite
 **Partnership**: Neural Thinker AI Engineering + IFSULDEMINAS/LabSoft

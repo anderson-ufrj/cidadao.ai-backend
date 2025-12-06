@@ -14,6 +14,7 @@ from src.api.app import app
 from src.schemas.academy import (
     ConversationStatus,
     DifficultyLevel,
+    OnboardingStep,
     RankLevel,
     TrackType,
 )
@@ -518,3 +519,198 @@ class TestAcademyService:
                     leaderboard.entries[i].total_xp
                     >= leaderboard.entries[i + 1].total_xp
                 )
+
+
+class TestAcademyOnboardingService:
+    """Tests for onboarding service methods."""
+
+    @pytest.mark.asyncio
+    async def test_get_onboarding_state_new_user(self):
+        """Test onboarding state for non-existent user."""
+        from src.services.academy_service import AcademyService
+
+        service = AcademyService()
+        state = await service.get_onboarding_state(
+            user_id="new_user_onboarding",
+            demo_mode=True,
+        )
+
+        assert state.step == OnboardingStep.WELCOME
+        assert "Bem-vindo" in state.message
+
+    @pytest.mark.asyncio
+    async def test_get_onboarding_demo_mode_shows_terms(self):
+        """Test that demo mode always shows terms."""
+        from src.services.academy_service import AcademyService
+
+        service = AcademyService()
+        await service.create_user(
+            user_id="demo_user",
+            username="demouser",
+        )
+
+        state = await service.get_onboarding_state(
+            user_id="demo_user",
+            demo_mode=True,
+        )
+
+        assert state.step == OnboardingStep.TERMS_CONSENT
+        assert state.show_terms is True
+        assert state.terms_content is not None
+        assert "Termos de Consentimento" in state.terms_content
+        assert state.ranking_explanation is not None
+        assert "Sistema de XP" in state.ranking_explanation
+
+    @pytest.mark.asyncio
+    async def test_accept_terms(self):
+        """Test accepting terms of consent."""
+        from src.services.academy_service import AcademyService
+
+        service = AcademyService()
+        await service.create_user(
+            user_id="terms_user",
+            username="termsuser",
+        )
+
+        result = await service.accept_terms(
+            user_id="terms_user",
+            accepted=True,
+            main_track=TrackType.BACKEND,
+        )
+
+        assert result.step == OnboardingStep.TRACK_SELECTION
+        assert result.data.get("terms_accepted") is True
+        assert result.data.get("xp_earned") == 10
+
+    @pytest.mark.asyncio
+    async def test_complete_onboarding(self):
+        """Test completing the onboarding process."""
+        from src.services.academy_service import AcademyService
+
+        service = AcademyService()
+        await service.create_user(
+            user_id="complete_onboarding_user",
+            username="completeuser",
+        )
+
+        result = await service.complete_onboarding(
+            user_id="complete_onboarding_user",
+            main_track=TrackType.IA,
+            github_username="testgithub",
+        )
+
+        assert result.step == OnboardingStep.COMPLETED
+        assert result.data.get("onboarding_completed") is True
+        assert result.data.get("main_track") == "ia"
+
+
+class TestAcademyGitHubService:
+    """Tests for GitHub stats service methods."""
+
+    @pytest.mark.asyncio
+    async def test_connect_github(self):
+        """Test connecting GitHub account."""
+        from src.services.academy_service import AcademyService
+
+        service = AcademyService()
+        await service.create_user(
+            user_id="github_user",
+            username="githubuser",
+        )
+
+        result = await service.connect_github(
+            user_id="github_user",
+            github_username="testgithub",
+        )
+
+        assert result["success"] is True
+        assert result["github_username"] == "testgithub"
+
+    @pytest.mark.asyncio
+    async def test_get_github_stats(self):
+        """Test getting GitHub stats."""
+        from src.services.academy_service import AcademyService
+
+        service = AcademyService()
+        await service.create_user(
+            user_id="stats_user",
+            username="statsuser",
+            github_username="teststats",
+        )
+
+        stats = await service.get_github_stats(user_id="stats_user")
+
+        assert stats is not None
+        assert stats.github_username == "teststats"
+        assert stats.total_commits == 0
+        assert stats.total_prs_merged == 0
+
+    @pytest.mark.asyncio
+    async def test_update_github_stats_commits(self):
+        """Test updating GitHub stats with commits."""
+        from src.services.academy_service import AcademyService
+
+        service = AcademyService()
+        user = await service.create_user(
+            user_id="commit_user",
+            username="commituser",
+            github_username="commitgithub",
+        )
+        initial_xp = user.progress.total_xp
+
+        stats = await service.update_github_stats(
+            user_id="commit_user",
+            commits=5,
+        )
+
+        assert stats.total_commits == 5
+        assert stats.commits_this_week == 5
+
+        # Verify XP was awarded (15 XP per commit)
+        updated_user = await service.get_user_profile("commit_user")
+        assert updated_user.progress.total_xp > initial_xp
+
+    @pytest.mark.asyncio
+    async def test_update_github_stats_prs(self):
+        """Test updating GitHub stats with PRs."""
+        from src.services.academy_service import AcademyService
+
+        service = AcademyService()
+        await service.create_user(
+            user_id="pr_user",
+            username="pruser",
+            github_username="prgithub",
+        )
+
+        stats = await service.update_github_stats(
+            user_id="pr_user",
+            prs_opened=2,
+            prs_merged=1,
+            prs_approved=1,
+        )
+
+        assert stats.total_prs_opened == 2
+        assert stats.total_prs_merged == 1
+        assert stats.total_prs_approved == 1
+        assert stats.contribution_quality_score > 0
+
+    @pytest.mark.asyncio
+    async def test_first_pr_badge(self):
+        """Test that first PR merged awards badge."""
+        from src.services.academy_service import AcademyService
+
+        service = AcademyService()
+        await service.create_user(
+            user_id="first_pr_user",
+            username="firstpruser",
+            github_username="firstprgithub",
+        )
+
+        await service.update_github_stats(
+            user_id="first_pr_user",
+            prs_merged=1,
+        )
+
+        user = await service.get_user_profile("first_pr_user")
+        badge_codes = [b.code for b in user.badges]
+        assert "first_pr" in badge_codes
