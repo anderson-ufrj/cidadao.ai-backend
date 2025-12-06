@@ -1,6 +1,6 @@
 """
-Module: agents.paulo_freire
-Codinome: Paulo Freire - Educador do Sistema
+Module: agents.santos_dumont
+Codinome: Alberto Santos-Dumont - Inventor e Educador do Sistema
 Description: Agent specialized in teaching interns about the Cidadao.AI system
 Author: Anderson H. Silva
 Date: 2025-12-06
@@ -22,7 +22,7 @@ from src.core.exceptions import AgentExecutionError
 
 
 class LearningTopic(Enum):
-    """Topics that Paulo Freire can teach."""
+    """Topics that Santos-Dumont can teach."""
 
     SYSTEM_OVERVIEW = "system_overview"
     AGENT_ARCHITECTURE = "agent_architecture"
@@ -45,18 +45,23 @@ class DifficultyLevel(Enum):
 
 class EducatorAgent(BaseAgent):
     """
-    Paulo Freire - Educador do Sistema
+    Alberto Santos-Dumont - Inventor e Educador do Sistema
 
     MISSAO:
     Ensinar estagiarios sobre a arquitetura, agentes e funcionamento do
-    Cidadao.AI de forma acessivel e pratica, seguindo a pedagogia freiriana
-    de "aprender fazendo".
+    Cidadao.AI de forma pratica e inovadora, seguindo o espirito pioneiro
+    do Pai da Aviacao.
+
+    SOBRE SANTOS-DUMONT:
+    - Nascido em Palmira (hoje Santos Dumont), Minas Gerais, em 1873
+    - Inventor do 14-Bis, realizou o primeiro voo publico homologado (1906)
+    - Pioneiro que tornava publicas suas invencoes para beneficio de todos
+    - Conhecido pela persistencia e espirito colaborativo
 
     FILOSOFIA:
-    - "Ninguem educa ninguem, ninguem educa a si mesmo, os homens se educam
-       entre si, mediatizados pelo mundo."
-    - Conhecimento como pratica libertadora
-    - Dialogicidade: perguntar, refletir, construir juntos
+    - "O que eu fiz, qualquer um pode fazer" - democratizacao do conhecimento
+    - Inovacao com proposito social
+    - Construir, testar, iterar, voar!
 
     CAPACIDADES EDUCACIONAIS:
 
@@ -107,8 +112,8 @@ class EducatorAgent(BaseAgent):
 
     def __init__(self, config: dict[str, Any] | None = None):
         super().__init__(
-            name="paulo_freire",
-            description="Paulo Freire - Educador do Sistema Cidadao.AI",
+            name="santos_dumont",
+            description="Alberto Santos-Dumont - Inventor e Educador do Sistema Cidadao.AI",
             capabilities=[
                 "teach_system_overview",
                 "explain_agent_architecture",
@@ -127,13 +132,16 @@ class EducatorAgent(BaseAgent):
         self._load_system_knowledge()
 
         # Personality configuration
-        self.personality_prompt = """Voce e Paulo Freire, educador brasileiro e patrono da educacao.
+        self.personality_prompt = """Voce e Alberto Santos-Dumont, inventor mineiro e Pai da Aviacao.
 
-ESTILO: Dialogico, acolhedor, questionador (faz perguntas para construir conhecimento).
-FALA: "Meu jovem...", "Voce ja percebeu que...", "O que voce acha que acontece quando..."
-FOCO: Ensinar sobre o sistema Cidadao.AI de forma pratica e contextualizada.
-METODO: Partir do que o estagiario ja sabe, construir conhecimento junto.
-LEMBRE: "Ensinar nao e transferir conhecimento, mas criar possibilidades para sua producao."
+ESTILO: Entusiasmado, pratico, incentivador (motiva a construir e experimentar).
+FALA: "Meu caro amigo...", "Vamos construir juntos!", "Como fiz com o 14-Bis..."
+FOCO: Ensinar sobre o sistema Cidadao.AI de forma pratica, como um projeto de engenharia.
+METODO: Aprender fazendo, construir prototipos, testar, iterar.
+LEMBRE: "O que eu fiz, qualquer um pode fazer" - democratize o conhecimento!
+
+ORIGEM: Nascido em Palmira, Minas Gerais (hoje cidade de Santos Dumont).
+VALORES: Inovacao aberta, colaboracao, persistencia, elegancia tecnica.
 
 Voce conhece profundamente:
 - Os 17 agentes do sistema (16 operacionais + 1 base framework)
@@ -266,7 +274,7 @@ Voce conhece profundamente:
                 },
             },
             "architecture": {
-                "flow": "User Query → IntentClassifier → EntityExtractor → ExecutionPlanner → DataFederationExecutor → EntityGraph → Investigation Agent(s) → Consolidated Result",
+                "flow": "User Query -> IntentClassifier -> EntityExtractor -> ExecutionPlanner -> DataFederationExecutor -> EntityGraph -> Investigation Agent(s) -> Consolidated Result",
                 "base_agent": {
                     "file": "src/agents/deodoro.py",
                     "quality_threshold": 0.8,
@@ -440,10 +448,11 @@ Voce conhece profundamente:
         overview = self.system_knowledge["overview"]
 
         content = f"""
-Meu jovem, seja bem-vindo ao Cidadao.AI!
+Meu caro amigo, seja bem-vindo ao Cidadao.AI!
 
-Como dizia, "a leitura do mundo precede a leitura da palavra". Entao vamos primeiro
-entender o mundo que voce esta entrando...
+Como fiz com meus baloes e aeronaves, vamos primeiro entender a maquina que
+voce vai pilotar. Assim como o 14-Bis precisava de estrutura, motor e asas,
+nosso sistema tem suas partes essenciais.
 
 ## O que e o Cidadao.AI?
 
@@ -451,31 +460,31 @@ entender o mundo que voce esta entrando...
 
 Em producao: {overview["production_url"]}
 
-## Numeros que Importam:
+## Os Numeros da Nossa Aeronave:
 - **{overview["agents_total"]} agentes** ({overview["agents_operational"]} operacionais + 1 framework base)
 - **{overview["endpoints"]} endpoints** na API
 - **{overview["test_coverage"]}** de cobertura de testes
 - **{overview["total_tests"]} testes** automatizados
 
-## Os Agentes - Nossa Equipe
+## A Tripulacao - Nossos Agentes
 
-Cada agente tem uma personalidade historica brasileira:
-- **Zumbi dos Palmares**: Investigador de anomalias
-- **Anita Garibaldi**: Analista de padroes
-- **Tiradentes**: Gerador de relatorios
-- **Drummond**: Comunicador com o cidadao
-- **Abaporu**: Orquestrador mestre
+Cada agente e como uma peca do motor, com personalidade historica brasileira:
+- **Zumbi dos Palmares**: Investigador de anomalias (o detetive)
+- **Anita Garibaldi**: Analista de padroes (a estrategista)
+- **Tiradentes**: Gerador de relatorios (o comunicador)
+- **Drummond**: Interface com o cidadao (o poeta)
+- **Abaporu**: Orquestrador mestre (o maestro)
 
-E muitos outros! Quer conhecer algum em especifico?
+E muitos outros! Cada um e essencial, como cada parte de um aviao.
 
-## Proximo Passo
+## Proximo Voo
 
 O que voce gostaria de explorar agora?
-1. Entender como os agentes funcionam (arquitetura)
-2. Aprender a contribuir (fazer seu primeiro commit)
+1. Entender como os agentes funcionam (a engenharia)
+2. Aprender a contribuir (construir junto)
 3. Conhecer um agente especifico
 
-"Nao ha saber mais ou saber menos: ha saberes diferentes."
+"O que eu fiz, qualquer um pode fazer!" - Vamos construir juntos!
         """
 
         return {
@@ -494,25 +503,28 @@ O que voce gostaria de explorar agora?
         arch = self.system_knowledge["architecture"]
 
         content = f"""
-Vamos entender como os agentes funcionam, meu jovem!
+Vamos entender a engenharia dos agentes, meu caro!
 
-## O Fluxo de Orquestracao
+Assim como projetei cada detalhe do 14-Bis, cada agente aqui foi
+cuidadosamente arquitetado.
+
+## O Fluxo de Voo (Orquestracao)
 
 ```
 {arch["flow"]}
 ```
 
-## A Base: Deodoro
+## O Motor Central: Deodoro
 
 Todos os 16 agentes herdam de `BaseAgent` ou `ReflectiveAgent`, definidos em
 `{arch["base_agent"]["file"]}`.
 
-### Caracteristicas Principais:
-- **Quality Threshold**: {arch["base_agent"]["quality_threshold"]} (abaixo disso, reflete e tenta de novo)
-- **Max Iterations**: {arch["base_agent"]["max_iterations"]} tentativas de reflexao
-- **Estados**: {" → ".join(arch["base_agent"]["states"])}
+### Especificacoes Tecnicas:
+- **Quality Threshold**: {arch["base_agent"]["quality_threshold"]} (calibragem minima)
+- **Max Iterations**: {arch["base_agent"]["max_iterations"]} tentativas de ajuste
+- **Estados**: {" -> ".join(arch["base_agent"]["states"])}
 
-### Exemplo de Agente Minimo:
+### Projeto de um Agente (Blueprint):
 
 ```python
 from src.agents.deodoro import ReflectiveAgent, AgentMessage, AgentResponse
@@ -527,7 +539,7 @@ class MeuAgente(ReflectiveAgent):
         )
 
     async def process(self, message: AgentMessage, context) -> AgentResponse:
-        # Sua logica aqui
+        # Sua logica aqui - como o motor do aviao
         result = await self._minha_analise(message.content)
 
         return AgentResponse(
@@ -538,24 +550,23 @@ class MeuAgente(ReflectiveAgent):
         )
 ```
 
-## Lazy Loading - Performance
+## Lazy Loading - Otimizacao de Performance
 
-O sistema usa lazy loading para carregar agentes sob demanda:
+Como reduzi o peso dos meus baloes para voar mais alto:
 - **Antes**: {arch["lazy_loading"]["before"]} para importar
-- **Depois**: {arch["lazy_loading"]["after"]} (367x mais rapido!)
+- **Depois**: {arch["lazy_loading"]["after"]} (367x mais leve!)
 
 Arquivo: `{arch["lazy_loading"]["file"]}`
 
-## Reflexao
+## Sistema de Reflexao
 
-Os agentes reflexivos podem "pensar sobre seu proprio trabalho":
-1. Executam a tarefa
-2. Avaliam a qualidade do resultado
-3. Se < 0.8, refletem e tentam novamente
-4. Maximo de 3 iteracoes
+Os agentes reflexivos sao como pilotos experientes:
+1. Executam a manobra
+2. Avaliam o resultado
+3. Se < 0.8 de qualidade, ajustam e tentam de novo
+4. Maximo de 3 tentativas
 
-"A educacao nao transforma o mundo. Educacao muda as pessoas.
-Pessoas transformam o mundo."
+"Inventar e imaginar o que a humanidade ainda nao pensou!"
         """
 
         return {
@@ -575,43 +586,46 @@ Pessoas transformam o mundo."
         commands = self.system_knowledge["commands"]
 
         content = f"""
-Voce quer contribuir? Maravilha! Vamos juntos!
+Quer construir junto? Magnifico! Vamos montar sua oficina!
 
-## Primeiro: Configurar o Ambiente
+Assim como eu trabalhava em meu hangar em Neuilly, voce precisa
+de um ambiente bem preparado.
+
+## Montando sua Oficina (Ambiente)
 
 ```bash
 # Clonar e entrar no projeto
 git clone <repo>
 cd cidadao.ai-backend
 
-# Criar ambiente virtual
+# Criar ambiente isolado (seu hangar)
 python3 -m venv venv
 source venv/bin/activate
 
-# Instalar dependencias
+# Instalar ferramentas
 {commands["install"]}
 
-# Copiar e configurar .env
+# Configurar variaveis
 cp .env.example .env
 # Editar .env com suas chaves
 ```
 
-## Rodar os Testes
+## Testes - Verificacao de Voo
 
-**IMPORTANTE**: Sempre use o prefixo de ambiente!
+**IMPORTANTE**: Sempre teste antes de voar!
 
 ```bash
 {commands["run_tests"]}
 ```
 
 Por que o prefixo `{contrib["test_prefix"]}`?
-- Isola os testes do ambiente de producao
-- Evita erros de autenticacao
+- Isola os testes (como testar em tunel de vento)
+- Evita acidentes com producao
 - Protege dados sensiveis
 
-## Padrao de Commits
+## Registro de Voo (Commits)
 
-Commits em ingles, formato convencional:
+Commits em ingles, formato padrao:
 
 ```
 {contrib["commit_format"]}
@@ -619,7 +633,7 @@ Commits em ingles, formato convencional:
 
 Tipos validos: {", ".join(contrib["commit_types"])}
 
-**Exemplos bons:**
+**Exemplos de bons registros:**
 - `feat(agents): add fraud detection algorithm`
 - `fix(api): resolve SSE streaming timeout`
 - `test(zumbi): add integration tests for anomaly detection`
@@ -629,33 +643,32 @@ Tipos validos: {", ".join(contrib["commit_types"])}
 - "Generated by..."
 - Emojis de robos
 
-## Arquivos Importantes
+## Plantas Importantes
 
-- **Entry Point**: `{contrib["important_files"]["entry_point"]}`
-- **Base de Agentes**: `{contrib["important_files"]["agent_base"]}`
-- **Configuracao**: `{contrib["important_files"]["config"]}`
+- **Cabine de comando**: `{contrib["important_files"]["entry_point"]}`
+- **Motor principal**: `{contrib["important_files"]["agent_base"]}`
+- **Painel de controle**: `{contrib["important_files"]["config"]}`
 
-## Seu Primeiro PR
+## Seu Primeiro Voo (PR)
 
-1. Crie uma branch: `git checkout -b feat/minha-feature`
-2. Faca suas mudancas
-3. Rode os testes: `{commands["run_tests"]}`
-4. Formate o codigo: `{commands["format"]}`
-5. Commit: `git commit -m "feat(scope): description"`
-6. Push: `git push -u origin feat/minha-feature`
-7. Abra o PR no GitHub
+1. Crie uma pista: `git checkout -b feat/minha-feature`
+2. Construa sua melhoria
+3. Teste: `{commands["run_tests"]}`
+4. Calibre: `{commands["format"]}`
+5. Registre: `git commit -m "feat(scope): description"`
+6. Decole: `git push -u origin feat/minha-feature`
+7. Solicite autorizacao (PR no GitHub)
 
-## Qualidade
+## Checagem Pre-Voo
 
-Antes de cada commit, rode:
+Antes de cada commit:
 ```bash
 {commands["check"]}
 ```
 
 Isso verifica: formatacao, lint, tipos e testes.
 
-"Ninguem ignora tudo. Ninguem sabe tudo. Todos nos sabemos alguma coisa.
-Todos nos ignoramos alguma coisa."
+"A persistencia e o caminho do exito!" - Nao desista nos primeiros testes!
         """
 
         return {
@@ -671,10 +684,9 @@ Todos nos ignoramos alguma coisa."
         agents = self.system_knowledge["agents"]
 
         if agent_name not in agents:
-            # Try to find similar
             available = ", ".join(agents.keys())
             content = f"""
-Meu jovem, nao encontrei o agente "{agent_name}".
+Meu caro, nao encontrei o agente "{agent_name}" no hangar.
 
 Agentes disponiveis: {available}
 
@@ -690,50 +702,49 @@ Qual deles voce gostaria de conhecer?
         content = f"""
 ## {agent["description"]}
 
-**Tipo**: {agent["type"]}
-**Arquivo**: `{agent["file"]}`
+**Funcao**: {agent["type"]}
+**Projeto**: `{agent["file"]}`
 
 ### Especialidade
-{agent.get("specialty", "Agente base do sistema")}
+{agent.get("specialty", "Componente base do sistema")}
 """
 
         if "algorithms" in agent:
             content += f"""
-### Algoritmos Utilizados
+### Mecanismos Utilizados
 {", ".join(agent["algorithms"])}
 """
 
         if "classes" in agent:
             content += f"""
-### Classes Exportadas
+### Pecas Exportadas
 {", ".join(agent["classes"])}
 """
 
         if "features" in agent:
             content += f"""
-### Caracteristicas
+### Caracteristicas Tecnicas
 - {chr(10).join("- " + f for f in agent["features"])}
 """
 
         content += f"""
 
-### Como Usar
+### Como Acionar
 
 ```python
 from src.agents import {agent_name.title().replace("_", "")}Agent
 
-# Ou via lazy loading
+# Ou via lazy loading (mais eficiente)
 from src.agents import get_agent
 agent = get_agent("{agent_name}")
 ```
 
-### Quer Ver o Codigo?
+### Quer Estudar o Projeto?
 
-O arquivo esta em `{agent["file"]}`. Recomendo ler para entender
-os padroes de implementacao.
+O arquivo esta em `{agent["file"]}`. Recomendo estudar
+para entender os padroes de construcao.
 
-"Nao e no silencio que os homens se fazem, mas na palavra,
-no trabalho, na acao-reflexao."
+"Voar e muito mais que um sonho - e uma ciencia!"
         """
 
         return {
@@ -745,35 +756,35 @@ no trabalho, na acao-reflexao."
 
     async def _guide_first_steps(self) -> dict[str, Any]:
         """Guide interns through their first steps."""
-        commands = self.system_knowledge["commands"]
 
         content = """
-## Bem-vindo ao Seu Primeiro Dia!
+## Bem-vindo ao Seu Primeiro Dia de Voo!
 
-Meu jovem, hoje voce comeca sua jornada. Vamos passo a passo...
+Meu caro amigo, hoje voce comeca sua jornada como aviador do Cidadao.AI!
+Assim como preparei cada detalhe antes do voo do 14-Bis, vamos preparar tudo.
 
-### Checklist do Primeiro Dia
+### Checklist Pre-Voo
 
-1. [ ] Clone o repositorio
-2. [ ] Configure o ambiente virtual (`python3 -m venv venv`)
-3. [ ] Instale dependencias (`make install-dev`)
-4. [ ] Configure o `.env` (copie de `.env.example`)
-5. [ ] Rode os testes para verificar tudo funciona
-6. [ ] Rode o servidor local (`make run-dev`)
-7. [ ] Acesse a documentacao: http://localhost:8000/docs
+1. [ ] Clone o repositorio (baixe os projetos)
+2. [ ] Configure o hangar (`python3 -m venv venv`)
+3. [ ] Instale as ferramentas (`make install-dev`)
+4. [ ] Configure o painel (`.env` de `.env.example`)
+5. [ ] Teste os motores (rode os testes)
+6. [ ] Ligue os sistemas (`make run-dev`)
+7. [ ] Verifique instrumentos: http://localhost:8000/docs
 
-### Exploracao Inicial
+### Reconhecimento do Terreno
 
 Depois de configurar, explore:
 
-1. **Leia o CLAUDE.md** - Contem toda a documentacao do projeto
-2. **Veja a estrutura**:
-   - `src/agents/` - Os 17 agentes
-   - `src/api/routes/` - As 39 rotas da API
-   - `src/services/` - Logica de negocio
-   - `tests/` - 149 arquivos de teste
+1. **Leia o CLAUDE.md** - O manual completo da aeronave
+2. **Mapeie a estrutura**:
+   - `src/agents/` - Os 17 motores (agentes)
+   - `src/api/routes/` - As 39 rotas de voo
+   - `src/services/` - Sistemas auxiliares
+   - `tests/` - 149 procedimentos de teste
 
-3. **Rode um agente**:
+3. **Acione um agente**:
 ```python
 from src.agents import get_agent
 zumbi = get_agent("zumbi")
@@ -782,21 +793,21 @@ print(zumbi.capabilities)
 
 ### Sua Primeira Missao
 
-Sugiro comecar com algo simples:
+Sugiro comecar com voos curtos:
 - Adicionar um teste para um agente existente
 - Melhorar a documentacao de uma funcao
 - Corrigir um pequeno bug
 
-### Precisa de Ajuda?
+### Precisa de Suporte?
 
-Estou aqui! Pergunte sobre:
+Estou aqui no torre de controle! Pergunte sobre:
 - Qualquer agente especifico
 - Como funciona alguma parte do sistema
 - Problemas que encontrar
 
-"Quando a educacao nao e libertadora, o sonho do oprimido e ser o opressor."
+"O segredo e voar! Nao importa como!"
 
-Vamos construir juntos!
+Vamos construir o futuro juntos!
         """
 
         checklist = [
@@ -819,11 +830,11 @@ Vamos construir juntos!
     async def _guide_first_mission(self) -> dict[str, Any]:
         """Guide through the first mission."""
         content = """
-## Sua Primeira Missao
+## Sua Primeira Missao de Voo
 
-Vamos escolher uma missao adequada ao seu nivel...
+Vamos escolher uma missao adequada ao seu nivel de experiencia...
 
-### Missoes para Iniciantes
+### Missoes para Novos Pilotos
 
 1. **Adicionar Teste Unitario** (Easy - 10 XP)
    - Escolha um agente com baixa cobertura
@@ -831,15 +842,15 @@ Vamos escolher uma missao adequada ao seu nivel...
    - Arquivo: `tests/unit/agents/test_<agent>.py`
 
 2. **Documentar Funcao** (Easy - 10 XP)
-   - Encontre uma funcao sem docstring
-   - Adicione documentacao clara
+   - Encontre uma funcao sem documentacao
+   - Adicione docstring clara
    - Siga o padrao Google docstrings
 
 3. **Corrigir Typo** (Easy - 5 XP)
    - Encontre erros de digitacao
    - Corrija em codigo ou documentacao
 
-### Missoes Intermediarias
+### Missoes para Pilotos Intermediarios
 
 4. **Implementar Metodo de Agente** (Medium - 25 XP)
    - Adicione nova capacidade a um agente
@@ -851,20 +862,20 @@ Vamos escolher uma missao adequada ao seu nivel...
    - Inclua testes de integracao
    - Documente no OpenAPI
 
-### Como Comecar
+### Procedimento de Voo
 
 1. Escolha uma missao
-2. Crie uma branch: `git checkout -b feat/minha-missao`
-3. Implemente com testes
-4. Rode `make check`
-5. Abra um PR
+2. Crie uma pista: `git checkout -b feat/minha-missao`
+3. Construa com testes
+4. Verificacao pre-voo: `make check`
+5. Solicite autorizacao (PR)
 
-### Dica
+### Dica do Inventor
 
 Comece pelo Zumbi (`src/agents/zumbi.py`) - e o agente mais
-bem documentado e serve como referencia.
+bem documentado e serve como referencia de projeto.
 
-"Nao ha ensino sem pesquisa e pesquisa sem ensino."
+"Nunca desisti de um projeto - a persistencia e o motor do sucesso!"
 
 Qual missao voce escolhe?
         """
@@ -878,28 +889,30 @@ Qual missao voce escolhe?
     async def _teach_testing_patterns(self, level: str) -> dict[str, Any]:
         """Teach about testing patterns in the project."""
         content = """
-## Padroes de Teste no Cidadao.AI
+## Procedimentos de Teste - Tunel de Vento
+
+Assim como testava meus baloes antes de voar, todo codigo precisa de testes!
 
 ### Regra de Ouro
 
-**SEMPRE** prefixe comandos de teste:
+**SEMPRE** use as configuracoes de teste:
 ```bash
 JWT_SECRET_KEY=test SECRET_KEY=test pytest ...
 ```
 
-### Estrutura de Testes
+### Organizacao dos Testes
 
 ```
 tests/
-├── unit/           # Testes unitarios
-│   ├── agents/     # Testes de agentes
-│   ├── api/        # Testes de rotas
-│   └── services/   # Testes de servicos
-├── integration/    # Testes de integracao
-└── multiagent/     # Testes multi-agente
+|-- unit/           # Testes de componentes isolados
+|   |-- agents/     # Testes de agentes
+|   |-- api/        # Testes de rotas
+|   +-- services/   # Testes de servicos
+|-- integration/    # Testes de sistemas integrados
++-- multiagent/     # Testes de voo em formacao
 ```
 
-### Exemplo de Teste de Agente
+### Projeto de Teste para Agente
 
 ```python
 import pytest
@@ -928,27 +941,28 @@ async def test_detect_anomalies(agent, sample_message):
     assert response.result["anomalies_count"] >= 1
 ```
 
-### Comandos Uteis
+### Comandos de Teste
 
 ```bash
-# Rodar todos os testes
+# Teste completo
 JWT_SECRET_KEY=test SECRET_KEY=test make test
 
-# Testes unitarios apenas
+# Testes unitarios
 JWT_SECRET_KEY=test SECRET_KEY=test make test-unit
 
 # Teste especifico
 JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_zumbi.py -v
 
-# Com cobertura
+# Com medicao de cobertura
 JWT_SECRET_KEY=test SECRET_KEY=test pytest --cov=src --cov-report=html
 ```
 
-### Meta de Cobertura
+### Meta de Qualidade
 
-**80% minimo** para codigo novo. Verifique em `htmlcov/index.html`.
+**80% de cobertura** minima para codigo novo.
+Verifique o relatorio em `htmlcov/index.html`.
 
-"A educacao e um ato de amor, por isso, um ato de coragem."
+"Um aviao sem testes e um passaro sem asas - pode ate pular, mas nao voa!"
         """
 
         return {
@@ -960,36 +974,36 @@ JWT_SECRET_KEY=test SECRET_KEY=test pytest --cov=src --cov-report=html
     async def _teach_api_structure(self, level: str) -> dict[str, Any]:
         """Teach about the API structure."""
         content = """
-## Estrutura da API
+## Painel de Controle - Estrutura da API
 
-### Entry Point
+### Cabine Principal
 
-O arquivo principal e `src/api/app.py` (NAO o `app.py` da raiz!).
+O arquivo de comando e `src/api/app.py` (NAO o `app.py` da raiz!).
 
-### Rotas Principais (7 de 39)
+### Rotas de Voo (7 principais de 39)
 
-- `/api/v1/chat/` - Chat com agentes (SSE streaming)
-- `/api/v1/agents/` - Invocacao direta de agentes
-- `/api/v1/investigations/` - CRUD de investigacoes
+- `/api/v1/chat/` - Comunicacao com agentes (SSE streaming)
+- `/api/v1/agents/` - Acionamento direto de agentes
+- `/api/v1/investigations/` - Gestao de investigacoes
 - `/api/v1/federal/` - APIs federais (IBGE, DataSUS, INEP)
-- `/api/v1/orchestration/` - Orquestracao multi-agente
+- `/api/v1/orchestration/` - Coordenacao multi-agente
 - `/api/v1/transparency/` - Portal da Transparencia
-- `/health/metrics` - Metricas Prometheus
+- `/health/metrics` - Metricas de voo (Prometheus)
 
-### Middleware Stack (Ordem de Execucao)
+### Sistemas de Seguranca (Middleware Stack)
 
-1. IPWhitelistMiddleware (producao)
-2. CORSMiddleware
-3. LoggingMiddleware
-4. SecurityMiddleware
-5. RateLimitMiddleware
-6. CompressionMiddleware
-7. CorrelationMiddleware
-8. MetricsMiddleware
+1. IPWhitelistMiddleware (filtro de origem)
+2. CORSMiddleware (controle de acesso)
+3. LoggingMiddleware (caixa preta)
+4. SecurityMiddleware (escudo)
+5. RateLimitMiddleware (controle de velocidade)
+6. CompressionMiddleware (economia de combustivel)
+7. CorrelationMiddleware (rastreamento)
+8. MetricsMiddleware (instrumentos)
 
-### SSE Streaming
+### SSE Streaming - Comunicacao em Tempo Real
 
-O chat usa Server-Sent Events:
+O chat usa Server-Sent Events (como radio de bordo):
 
 ```python
 from sse_starlette.sse import EventSourceResponse
@@ -1004,11 +1018,12 @@ async def stream_chat():
     return EventSourceResponse(event_generator())
 ```
 
-### Documentacao
+### Manual de Voo
 
 Acesse `/docs` para Swagger UI ou `/redoc` para ReDoc.
 
-"Ensinar exige disponibilidade para o dialogo."
+"A simplicidade e a maior das sofisticacoes!" - Leonardo da Vinci
+(Meu inspirador!)
         """
 
         return {
@@ -1020,13 +1035,13 @@ Acesse `/docs` para Swagger UI ou `/redoc` para ReDoc.
     async def _teach_troubleshooting(self) -> dict[str, Any]:
         """Teach common troubleshooting."""
         content = """
-## Problemas Comuns e Solucoes
+## Manutencao e Reparos
 
 ### 1. Testes Falham com Auth Error
 
 **Sintoma**: "Authorization header is missing"
 
-**Solucao**:
+**Reparo**:
 ```bash
 JWT_SECRET_KEY=test SECRET_KEY=test pytest ...
 ```
@@ -1035,25 +1050,25 @@ JWT_SECRET_KEY=test SECRET_KEY=test pytest ...
 
 **Sintoma**: Demora para importar agentes
 
-**Solucao**: Use lazy loading:
+**Reparo**: Use lazy loading:
 ```python
-# BOM - lazy
+# BOM - carregamento sob demanda
 from src.agents import ZumbiAgent
 
-# RUIM - eager
+# EVITAR - carregamento completo
 from src.agents.zumbi import InvestigatorAgent
 ```
 
-### 3. Porta em Uso
+### 3. Porta Ocupada
 
 **Sintoma**: "Address already in use"
 
-**Solucao**:
+**Reparo**:
 ```bash
-# Encontrar processo
+# Identificar processo
 lsof -i :8000
 
-# Matar ou usar outra porta
+# Usar pista alternativa
 uvicorn src.api.app:app --port 8001
 ```
 
@@ -1061,36 +1076,36 @@ uvicorn src.api.app:app --port 8001
 
 **Sintoma**: ModuleNotFoundError
 
-**Solucao**:
+**Reparo**:
 ```bash
-# Verificar se esta ativo
+# Verificar hangar ativo
 which python  # Deve mostrar venv/bin/python
 
 # Reativar se necessario
 source venv/bin/activate
 ```
 
-### 5. Database Issues
+### 5. Problemas de Banco
 
 **Sintoma**: Erros de conexao
 
-**Solucao**: O sistema usa SQLite in-memory por padrao.
+**Reparo**: O sistema usa SQLite in-memory por padrao.
 Para PostgreSQL, configure `DATABASE_URL` no `.env`.
 
 ### 6. LLM Provider
 
 **Sintoma**: Respostas genericas/fallback
 
-**Solucao**: Configure `MARITACA_API_KEY` ou `ANTHROPIC_API_KEY` no `.env`.
+**Reparo**: Configure `MARITACA_API_KEY` ou `ANTHROPIC_API_KEY` no `.env`.
 
 ### Ainda com Problemas?
 
 1. Verifique o `.env`
 2. Rode `make clean && make install-dev`
 3. Consulte `CLAUDE.md`
-4. Pergunte aqui!
+4. Pergunte aqui na torre de controle!
 
-"Nao ha dialogo se nao houver um profundo amor ao mundo e aos homens."
+"Todo problema tem solucao - basta persistir!"
         """
 
         return {
@@ -1103,7 +1118,6 @@ Para PostgreSQL, configure `DATABASE_URL` no `.env`.
         """Answer a general question about the system."""
         question_lower = question.lower()
 
-        # Pattern matching for common questions
         if "quantos agentes" in question_lower or "how many agents" in question_lower:
             return {
                 "content": """
@@ -1134,21 +1148,20 @@ Quer conhecer algum em detalhe?
         else:
             return {
                 "content": f"""
-Boa pergunta, meu jovem! "{question}"
+Excelente pergunta, meu caro! "{question}"
 
-Para te ajudar melhor, posso falar sobre:
+Para ajuda-lo melhor, posso falar sobre:
 
 1. **Visao geral do sistema** - O que e o Cidadao.AI
-2. **Arquitetura de agentes** - Como funcionam os 17 agentes
+2. **Arquitetura de agentes** - A engenharia dos 17 agentes
 3. **Um agente especifico** - Zumbi, Drummond, Abaporu...
-4. **Como contribuir** - Fazer seu primeiro commit
-5. **Testes** - Padroes e boas praticas
-6. **Problemas comuns** - Troubleshooting
+4. **Como contribuir** - Construir junto conosco
+5. **Testes** - Procedimentos de qualidade
+6. **Problemas comuns** - Manutencao e reparos
 
 Qual tema te interessa?
 
-"Ninguem caminha sem aprender a caminhar, sem aprender a fazer o caminho
-caminhando, refazendo e retocando o sonho pelo qual se pos a caminhar."
+"A curiosidade e o primeiro passo para a invencao!"
                 """.strip(),
                 "metadata": {"type": "clarification_needed"},
             }
@@ -1165,7 +1178,7 @@ caminhando, refazendo e retocando o sonho pelo qual se pos a caminhar."
                 "step": 1,
                 "title": "Visao Geral do Sistema",
                 "topic": "system_overview",
-                "description": "Entenda o que e o Cidadao.AI e seus 17 agentes",
+                "description": "Conheca o Cidadao.AI e seus 17 agentes",
                 "estimated_time": "30 min",
             }
         )
@@ -1175,7 +1188,7 @@ caminhando, refazendo e retocando o sonho pelo qual se pos a caminhar."
                 "step": 2,
                 "title": "Arquitetura de Agentes",
                 "topic": "agent_architecture",
-                "description": "Como os agentes funcionam (BaseAgent, ReflectiveAgent)",
+                "description": "Entenda a engenharia (BaseAgent, ReflectiveAgent)",
                 "estimated_time": "45 min",
             }
         )
@@ -1188,7 +1201,7 @@ caminhando, refazendo e retocando o sonho pelo qual se pos a caminhar."
                     "title": "Conheca o Zumbi",
                     "topic": "specific_agent",
                     "agent": "zumbi",
-                    "description": "O agente mais completo - referencia de implementacao",
+                    "description": "O agente referencia - melhor projeto para estudar",
                     "estimated_time": "60 min",
                 }
             )
@@ -1221,7 +1234,7 @@ caminhando, refazendo e retocando o sonho pelo qual se pos a caminhar."
                 "step": 4,
                 "title": "Guia de Contribuicao",
                 "topic": "contribution_guide",
-                "description": "Como fazer seu primeiro commit e PR",
+                "description": "Como construir junto - primeiro commit e PR",
                 "estimated_time": "30 min",
             }
         )
@@ -1231,7 +1244,7 @@ caminhando, refazendo e retocando o sonho pelo qual se pos a caminhar."
                 "step": 5,
                 "title": "Primeira Missao",
                 "topic": "first_mission",
-                "description": "Escolha e complete sua primeira missao",
+                "description": "Escolha e complete sua primeira missao de voo",
                 "estimated_time": "2-4 horas",
             }
         )
@@ -1240,14 +1253,14 @@ caminhando, refazendo e retocando o sonho pelo qual se pos a caminhar."
 
     async def initialize(self) -> None:
         """Initialize the educator agent."""
-        self.logger.info("Initializing Paulo Freire educator agent...")
-        self.logger.info("Paulo Freire ready to teach!")
+        self.logger.info("Initializing Santos-Dumont educator agent...")
+        self.logger.info("Santos-Dumont ready to teach! O ceu e o limite!")
 
     async def shutdown(self) -> None:
         """Shutdown the educator agent."""
-        self.logger.info("Shutting down Paulo Freire...")
-        self.logger.info("Paulo Freire shutdown complete")
+        self.logger.info("Shutting down Santos-Dumont...")
+        self.logger.info("Santos-Dumont shutdown complete. Ate o proximo voo!")
 
 
 # Alias for consistency
-PauloFreireAgent = EducatorAgent
+SantosDumontAgent = EducatorAgent
