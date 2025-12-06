@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from .abaporu import InvestigationPlan, InvestigationResult, MasterAgent
     from .anita import AnalystAgent
     from .ayrton_senna import SemanticRouter
+    from .bo_bardi import FrontendDesignerAgent
     from .bonifacio import BonifacioAgent
     from .ceuci import PredictiveAgent
     from .dandara import DandaraAgent
@@ -69,6 +70,8 @@ _LAZY_IMPORTS = {
     "OxossiAgent": ("src.agents.oxossi", "OxossiAgent"),
     # Educator agent
     "EducatorAgent": ("src.agents.santos_dumont", "EducatorAgent"),
+    # Frontend designer agent
+    "FrontendDesignerAgent": ("src.agents.bo_bardi", "FrontendDesignerAgent"),
     # Memory agent
     "ContextMemoryAgent": ("src.agents.nana", "ContextMemoryAgent"),
     "MemoryEntry": ("src.agents.nana", "MemoryEntry"),
@@ -92,6 +95,8 @@ _ALIASES = {
     "AyrtonSennaAgent": "SemanticRouter",
     "NanaAgent": "ContextMemoryAgent",
     "SantosDumontAgent": "EducatorAgent",
+    "BoBardiAgent": "FrontendDesignerAgent",
+    "LinaBoBardiAgent": "FrontendDesignerAgent",
 }
 
 # Agent name to class name mapping (for get_agent function)
@@ -113,6 +118,7 @@ _AGENT_NAME_TO_CLASS = {
     "obaluaie": "CorruptionDetectorAgent",
     "dandara": "DandaraAgent",
     "santos_dumont": "EducatorAgent",
+    "bo_bardi": "FrontendDesignerAgent",
 }
 
 # Cache for imported modules
@@ -234,6 +240,7 @@ __all__ = [
     "PredictiveAgent",
     "CommunicationAgent",
     "EducatorAgent",
+    "FrontendDesignerAgent",
     # Agent aliases (lazy)
     "ZumbiAgent",
     "AnitaAgent",
@@ -245,6 +252,8 @@ __all__ = [
     "AyrtonSennaAgent",
     "NanaAgent",
     "SantosDumontAgent",
+    "BoBardiAgent",
+    "LinaBoBardiAgent",
     # Memory Agent (lazy)
     "ContextMemoryAgent",
     "MemoryEntry",
