@@ -158,7 +158,7 @@ class AgentOrchestrator:
     async def _discover_agent_capabilities(self):
         """Discover capabilities of all available agents."""
         try:
-            agents = await agent_lazy_loader.list_agents()
+            agents = agent_lazy_loader.get_available_agents()
 
             for agent_info in agents:
                 agent = await agent_lazy_loader.get_agent(agent_info["name"])
@@ -535,7 +535,7 @@ class AgentOrchestrator:
 
     async def discover_agents(self) -> list[dict[str, Any]]:
         """Discover all available agents."""
-        return await agent_lazy_loader.list_agents()
+        return agent_lazy_loader.get_available_agents()
 
     async def find_agents_with_capability(
         self, capability: str
