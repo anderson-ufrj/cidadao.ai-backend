@@ -90,8 +90,65 @@ _ALIASES = {
     "NanaAgent": "ContextMemoryAgent",
 }
 
+# Agent name to class name mapping (for get_agent function)
+_AGENT_NAME_TO_CLASS = {
+    "zumbi": "InvestigatorAgent",
+    "anita": "AnalystAgent",
+    "tiradentes": "ReporterAgent",
+    "ayrton_senna": "SemanticRouter",
+    "bonifacio": "BonifacioAgent",
+    "maria_quiteria": "MariaQuiteriaAgent",
+    "machado": "MachadoAgent",
+    "oxossi": "OxossiAgent",
+    "lampiao": "LampiaoAgent",
+    "oscar_niemeyer": "OscarNiemeyerAgent",
+    "abaporu": "MasterAgent",
+    "nana": "ContextMemoryAgent",
+    "drummond": "CommunicationAgent",
+    "ceuci": "PredictiveAgent",
+    "obaluaie": "CorruptionDetectorAgent",
+    "dandara": "DandaraAgent",
+}
+
 # Cache for imported modules
 _IMPORT_CACHE: dict[str, Any] = {}
+
+# Cache for agent instances
+_AGENT_INSTANCE_CACHE: dict[str, Any] = {}
+
+
+def get_agent(agent_name: str) -> Any | None:
+    """
+    Get an agent instance by its name.
+
+    Args:
+        agent_name: The agent name (e.g., "zumbi", "anita", "machado")
+
+    Returns:
+        Agent instance or None if not found
+    """
+    # Normalize agent name
+    normalized_name = agent_name.lower().strip()
+
+    # Return from cache if already instantiated
+    if normalized_name in _AGENT_INSTANCE_CACHE:
+        return _AGENT_INSTANCE_CACHE[normalized_name]
+
+    # Get class name from mapping
+    class_name = _AGENT_NAME_TO_CLASS.get(normalized_name)
+    if not class_name:
+        return None
+
+    try:
+        # Get the agent class using lazy loading
+        agent_class = __getattr__(class_name)
+        # Create instance
+        agent_instance = agent_class()
+        # Cache and return
+        _AGENT_INSTANCE_CACHE[normalized_name] = agent_instance
+        return agent_instance
+    except (AttributeError, ImportError):
+        return None
 
 
 def __getattr__(name: str):
@@ -190,4 +247,6 @@ __all__ = [
     # Agent Pool (lazy)
     "agent_pool",
     "get_agent_pool",
+    # Agent getter function
+    "get_agent",
 ]
