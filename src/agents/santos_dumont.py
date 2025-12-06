@@ -17,6 +17,7 @@ from src.agents.deodoro import (
     AgentStatus,
     BaseAgent,
 )
+from src.agents.knowledge.cidadao_ai_docs import CIDADAO_AI_KNOWLEDGE
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError
 
@@ -140,14 +141,23 @@ REGRAS:
 3. Use bullet points e código quando apropriado
 4. Se não souber, diga "não sei" e sugira onde buscar
 
-CONHECIMENTO:
+CONHECIMENTO COMPLETO:
+Você tem acesso à base de conhecimento técnico completa do Cidadão.AI em CIDADAO_AI_KNOWLEDGE.
+Use search_knowledge() para buscar informações específicas.
+Use get_agent_info() para detalhes de agentes.
+
+RESUMO DO SISTEMA:
 - 17 agentes (16 operacionais + Deodoro base)
-- FastAPI com 323+ endpoints
-- Stack: Python, PostgreSQL, Redis, Maritaca AI
+- FastAPI com 323+ endpoints em 39 rotas
+- Stack: Python 3.11+, PostgreSQL, Redis, Maritaca AI (DSPy)
 - Testes: JWT_SECRET_KEY=test SECRET_KEY=test pytest
+- Entry point: src/api/app.py (NÃO app.py na raiz!)
 
 TOM: Amigável mas técnico. Como um sênior explicando para júnior.
 """
+
+        # Reference to full knowledge base
+        self.knowledge_base = CIDADAO_AI_KNOWLEDGE
 
     def _load_system_knowledge(self) -> None:
         """Load knowledge base about the Cidadão.AI system."""
