@@ -32,6 +32,7 @@ class AgentRole(Enum):
     DATA_HUNTER = "data_hunter"  # Oxóssi - searches data
     VISUALIZER = "visualizer"  # Oscar Niemeyer - creates visualizations
     SOCIAL_EQUITY = "social_equity"  # Dandara - social justice analysis
+    FRONTEND_DESIGNER = "frontend_designer"  # Bo Bardi - frontend integration
 
 
 # Canonical agent registry with metadata
@@ -172,6 +173,14 @@ AGENT_REGISTRY: dict[str, dict[str, Any]] = {
         "avatar": "✈️",
         "is_orchestrator": False,
     },
+    "bo_bardi": {
+        "name": "Lina Bo Bardi",
+        "full_name": "Achillina Bo Bardi",
+        "role": AgentRole.FRONTEND_DESIGNER,
+        "description": "Especialista Frontend - guia integração com o backend",
+        "avatar": "🎨",
+        "is_orchestrator": False,
+    },
 }
 
 # Agent name aliases for flexible matching
@@ -194,6 +203,12 @@ AGENT_ALIASES: dict[str, str] = {
     "maria-quiteria": "maria_quiteria",
     "mariaquiteria": "maria_quiteria",
     "quiteria": "maria_quiteria",
+    # Bo Bardi variations
+    "bo-bardi": "bo_bardi",
+    "bobardi": "bo_bardi",
+    "bardi": "bo_bardi",
+    "lina": "bo_bardi",
+    "linabobardi": "bo_bardi",
 }
 
 # Default orchestrator when no agent is specified
@@ -270,6 +285,13 @@ def get_agent_for_intent(intent_type: str, intent_confidence: float = 0.5) -> st
         "orchestrate": "abaporu",
         "complex_investigation": "abaporu",
         "multi_source": "abaporu",
+        # Frontend integration -> Bo Bardi
+        "frontend": "bo_bardi",
+        "sse": "bo_bardi",
+        "streaming": "bo_bardi",
+        "react": "bo_bardi",
+        "integration": "bo_bardi",
+        "api_integration": "bo_bardi",
     }
 
     # Conversational intents -> Drummond (friendly communicator)
