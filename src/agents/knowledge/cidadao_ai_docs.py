@@ -28,6 +28,42 @@ CIDADAO_AI_KNOWLEDGE = {
         "repositorio": "github.com/anderson-ufrj/cidadao.ai-backend",
     },
     # =========================================================================
+    # LINKS ÚTEIS
+    # =========================================================================
+    "links": {
+        "producao": {
+            "api": "https://cidadao-api-production.up.railway.app/",
+            "documentacao_swagger": "https://cidadao-api-production.up.railway.app/docs",
+            "documentacao_redoc": "https://cidadao-api-production.up.railway.app/redoc",
+            "health_check": "https://cidadao-api-production.up.railway.app/health",
+            "metricas": "https://cidadao-api-production.up.railway.app/health/metrics",
+        },
+        "repositorios": {
+            "github_backend": "https://github.com/anderson-ufrj/cidadao.ai-backend",
+            "issues": "https://github.com/anderson-ufrj/cidadao.ai-backend/issues",
+            "pull_requests": "https://github.com/anderson-ufrj/cidadao.ai-backend/pulls",
+        },
+        "documentacao_interna": {
+            "claude_md": "CLAUDE.md (na raiz do projeto)",
+            "agentes": "docs/agents/",
+            "arquitetura": "docs/architecture/",
+            "api": "docs/api/",
+            "projeto": "docs/project/",
+        },
+        "apis_governamentais": {
+            "portal_transparencia": "https://portaldatransparencia.gov.br/",
+            "api_transparencia": "https://api.portaldatransparencia.gov.br/",
+            "ibge": "https://servicodados.ibge.gov.br/",
+            "datasus": "https://datasus.saude.gov.br/",
+            "pncp": "https://pncp.gov.br/",
+        },
+        "desenvolvimento_local": {
+            "api_local": "http://localhost:8000/",
+            "docs_local": "http://localhost:8000/docs",
+            "redoc_local": "http://localhost:8000/redoc",
+        },
+    },
+    # =========================================================================
     # ARQUITETURA DO SISTEMA
     # =========================================================================
     "arquitetura": {
@@ -710,3 +746,53 @@ def search_knowledge(query: str) -> list[tuple[str, str, str]]:
 
     search_dict(CIDADAO_AI_KNOWLEDGE)
     return results[:10]  # Limita a 10 resultados
+
+
+def get_useful_links(category: str | None = None) -> dict:
+    """
+    Retorna links úteis do sistema.
+
+    Args:
+        category: Categoria específica (producao, repositorios, documentacao_interna,
+                  apis_governamentais, desenvolvimento_local) ou None para todos.
+
+    Returns:
+        Dicionário com os links solicitados.
+    """
+    links = CIDADAO_AI_KNOWLEDGE.get("links", {})
+    if category and category in links:
+        return {category: links[category]}
+    return links
+
+
+def format_links_for_display(category: str | None = None) -> str:
+    """
+    Formata os links para exibição ao usuário.
+
+    Args:
+        category: Categoria específica ou None para todos.
+
+    Returns:
+        String formatada com os links.
+    """
+    links = get_useful_links(category)
+
+    output_lines = ["## Links Úteis do Cidadão.AI\n"]
+
+    category_titles = {
+        "producao": "Produção (Railway)",
+        "repositorios": "Repositórios GitHub",
+        "documentacao_interna": "Documentação Interna",
+        "apis_governamentais": "APIs Governamentais",
+        "desenvolvimento_local": "Desenvolvimento Local",
+    }
+
+    for cat_key, cat_links in links.items():
+        title = category_titles.get(cat_key, cat_key.replace("_", " ").title())
+        output_lines.append(f"### {title}")
+        for link_name, link_url in cat_links.items():
+            name_formatted = link_name.replace("_", " ").title()
+            output_lines.append(f"- **{name_formatted}**: {link_url}")
+        output_lines.append("")
+
+    return "\n".join(output_lines)
