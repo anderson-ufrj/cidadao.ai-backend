@@ -104,7 +104,7 @@ class TestSantosDumontAgent:
         assert "lesson" in response.result
         assert "suggested_next" in response.result
         assert "related_agents" in response.result
-        assert "Cidadao.AI" in response.result["lesson"]
+        assert "Cidadão.AI" in response.result["lesson"]
         assert "17 agentes" in response.result["lesson"]
 
     @pytest.mark.unit
@@ -180,7 +180,7 @@ class TestSantosDumontAgent:
 
         assert response.status == AgentStatus.COMPLETED
         assert "explanation" in response.result
-        assert "nao encontrei" in response.result["explanation"].lower()
+        assert "não encontrei" in response.result["explanation"].lower()
 
     @pytest.mark.unit
     @pytest.mark.asyncio
@@ -398,7 +398,7 @@ class TestSantosDumontAgent:
         """Test that personality prompt is defined."""
         assert hasattr(santos_dumont_agent, "personality_prompt")
         assert "Santos-Dumont" in santos_dumont_agent.personality_prompt
-        assert "inventor" in santos_dumont_agent.personality_prompt.lower()
+        assert "educador" in santos_dumont_agent.personality_prompt.lower()
 
 
 class TestLearningTopicEnum:
