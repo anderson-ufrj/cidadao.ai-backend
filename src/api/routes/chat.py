@@ -786,8 +786,8 @@ async def send_message(
         # This optimization reduces greeting response from ~7s to <100ms
         # Also intercepts questions about project stakeholders to prevent hallucination
         # ================================================================
-        if (confidence >= 0.7 and request.agent_id is None) or _needs_verified_response(
-            sanitized_message
+        if (confidence >= 0.7 and request.agent_id is None) or (
+            request.agent_id is None and _needs_verified_response(sanitized_message)
         ):
             instant_response = get_instant_response(intent.type, sanitized_message)
             if instant_response:
@@ -1602,9 +1602,9 @@ async def stream_message(request: ChatRequest):
             # SHORT-CIRCUIT: Instant responses for simple intents (Dec 2025)
             # Also intercepts questions about project stakeholders
             # ================================================================
-            if (
-                intent.confidence >= 0.7 and request.agent_id is None
-            ) or _needs_verified_response(sanitized_message):
+            if (intent.confidence >= 0.7 and request.agent_id is None) or (
+                request.agent_id is None and _needs_verified_response(sanitized_message)
+            ):
                 instant_response = get_instant_response(intent.type, sanitized_message)
                 if instant_response:
                     logger.info(
