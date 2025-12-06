@@ -17,7 +17,11 @@ from src.agents.deodoro import (
     AgentStatus,
     BaseAgent,
 )
-from src.agents.knowledge.cidadao_ai_docs import CIDADAO_AI_KNOWLEDGE
+from src.agents.knowledge.cidadao_ai_docs import (
+    CIDADAO_AI_KNOWLEDGE,
+    format_links_for_display,
+    get_useful_links,
+)
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError
 
@@ -1111,9 +1115,87 @@ Para PostgreSQL, configure `DATABASE_URL` no `.env`.
             "suggested_next": ["first_steps", "contribution_guide"],
         }
 
+    async def _provide_links(self, category: str | None = None) -> dict[str, Any]:
+        """Provide useful links to the user."""
+        links = get_useful_links(category)
+
+        if category == "documentacao" or category == "docs":
+            content = """## Documentação do Cidadão.AI
+
+### Documentação da API (Swagger/OpenAPI)
+- **Produção**: https://cidadao-api-production.up.railway.app/docs
+- **ReDoc**: https://cidadao-api-production.up.railway.app/redoc
+- **Local**: http://localhost:8000/docs
+
+### Repositório GitHub
+- **Backend**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **Issues**: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
+
+### Documentação Interna (no repositório)
+- **Manual completo**: `CLAUDE.md` (na raiz)
+- **Agentes**: `docs/agents/`
+- **Arquitetura**: `docs/architecture/`
+- **API**: `docs/api/`
+"""
+        elif category == "api" or category == "producao":
+            content = """## API em Produção
+
+- **URL Base**: https://cidadao-api-production.up.railway.app/
+- **Swagger UI**: https://cidadao-api-production.up.railway.app/docs
+- **ReDoc**: https://cidadao-api-production.up.railway.app/redoc
+- **Health Check**: https://cidadao-api-production.up.railway.app/health
+- **Métricas**: https://cidadao-api-production.up.railway.app/health/metrics
+"""
+        elif category == "github" or category == "repositorio":
+            content = """## Repositório GitHub
+
+- **Código**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **Issues**: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
+- **Pull Requests**: https://github.com/anderson-ufrj/cidadao.ai-backend/pulls
+"""
+        else:
+            content = format_links_for_display()
+
+        return {
+            "content": content.strip(),
+            "metadata": {"type": "links", "category": category},
+            "links": links,
+        }
+
     async def _answer_question(self, question: str) -> dict[str, Any]:
         """Answer a general question about the system."""
         question_lower = question.lower()
+
+        # Detect link requests
+        link_keywords = [
+            "link",
+            "url",
+            "endereço",
+            "acesso",
+            "acessar",
+            "documentação",
+            "documentacao",
+            "docs",
+            "swagger",
+            "github",
+            "repositório",
+            "repositorio",
+            "repo",
+        ]
+        if any(keyword in question_lower for keyword in link_keywords):
+            # Determine category
+            if "doc" in question_lower or "swagger" in question_lower:
+                return await self._provide_links("documentacao")
+            elif "github" in question_lower or "repo" in question_lower:
+                return await self._provide_links("github")
+            elif (
+                "api" in question_lower
+                or "producao" in question_lower
+                or "produção" in question_lower
+            ):
+                return await self._provide_links("api")
+            else:
+                return await self._provide_links()
 
         if "quantos agentes" in question_lower or "how many agents" in question_lower:
             return {
@@ -1154,7 +1236,8 @@ Para ajuda-lo melhor, posso falar sobre:
 3. **Um agente específico** - Zumbi, Drummond, Abaporu...
 4. **Como contribuir** - Construir junto conosco
 5. **Testes** - Procedimentos de qualidade
-6. **Problemas comuns** - Manutenção e reparos
+6. **Links úteis** - URLs da API, GitHub e documentação
+7. **Problemas comuns** - Manutenção e reparos
 
 Qual tema te interessa?
 
