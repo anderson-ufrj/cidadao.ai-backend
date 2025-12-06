@@ -1,22 +1,31 @@
-# Paulo Freire - Educador do Sistema
+# Santos-Dumont - Educador do Sistema
 
-**Codinome**: Paulo Freire
+**Codinome**: Alberto Santos-Dumont
 **Tipo**: Educator Agent
-**Arquivo**: `src/agents/paulo_freire.py`
+**Arquivo**: `src/agents/santos_dumont.py`
 **Classe**: `EducatorAgent`
-**Alias**: `PauloFreireAgent`
+**Alias**: `SantosDumontAgent`
 
 ## Visao Geral
 
-Paulo Freire e o agente educador do Cidadao.AI, especializado em ensinar estagiarios sobre a arquitetura, agentes e funcionamento do sistema. Inspirado no grande educador brasileiro Paulo Freire (1921-1997), patrono da educacao brasileira, o agente segue a filosofia freiriana de "aprender fazendo" e dialogo construtivo.
+Santos-Dumont e o agente educador do Cidadao.AI, especializado em ensinar estagiarios sobre a arquitetura, agentes e funcionamento do sistema. Inspirado no grande inventor brasileiro Alberto Santos-Dumont (1873-1932), o Pai da Aviacao, nascido em Palmira (hoje Santos Dumont), Minas Gerais.
 
-## Filosofia Educacional
+## Filosofia de Ensino
 
-> "Ninguem educa ninguem, ninguem educa a si mesmo, os homens se educam entre si, mediatizados pelo mundo."
+> "O que eu fiz, qualquer um pode fazer!" - Alberto Santos-Dumont
 
-- **Dialogicidade**: Perguntar, refletir, construir conhecimento junto
-- **Contextualizacao**: Partir do que o estagiario ja sabe
-- **Pratica libertadora**: Conhecimento como ferramenta de transformacao
+- **Democratizacao**: Conhecimento aberto para todos
+- **Pratica**: Aprender fazendo, construir prototipos, testar, iterar
+- **Inovacao**: Sempre buscando formas melhores de ensinar
+- **Persistencia**: Nunca desistir nos primeiros obstaculos
+
+## Sobre Santos-Dumont
+
+- Nascido em **Palmira, Minas Gerais** (hoje cidade de Santos Dumont) em 1873
+- Inventor do **14-Bis**, realizou o primeiro voo publico homologado em 1906
+- Pioneiro que **tornava publicas suas invencoes** para beneficio de todos
+- Conhecido pela **persistencia** e **espirito colaborativo**
+- Considerado o **Pai da Aviacao** no Brasil e em varios paises
 
 ## Capacidades
 
@@ -89,11 +98,11 @@ Explicacao detalhada de qualquer um dos 17 agentes:
 from src.agents import get_agent
 from src.agents.deodoro import AgentMessage, AgentContext
 
-agent = get_agent("paulo_freire")
+agent = get_agent("santos_dumont")
 
 message = AgentMessage(
     action="teach",
-    recipient="paulo_freire",
+    recipient="santos_dumont",
     payload={
         "topic": "system_overview",
         "level": "beginner",
@@ -110,7 +119,7 @@ print(response.result["lesson"])
 ```python
 message = AgentMessage(
     action="explain_agent",
-    recipient="paulo_freire",
+    recipient="santos_dumont",
     payload={
         "agent_name": "zumbi",
     },
@@ -127,7 +136,7 @@ print(response.result["agent_info"])
 ```python
 message = AgentMessage(
     action="suggest_learning_path",
-    recipient="paulo_freire",
+    recipient="santos_dumont",
     payload={
         "track": "backend",
         "level": "beginner",
@@ -146,7 +155,7 @@ for step in response.result["learning_path"]:
 ```python
 message = AgentMessage(
     action="answer_question",
-    recipient="paulo_freire",
+    recipient="santos_dumont",
     payload={
         "question": "Como funciona o Zumbi?",
     },
@@ -162,7 +171,7 @@ print(response.result["answer"])
 ```python
 message = AgentMessage(
     action="first_steps",
-    recipient="paulo_freire",
+    recipient="santos_dumont",
     payload={},
     sender="intern"
 )
@@ -175,7 +184,7 @@ for item in response.result["checklist"]:
 
 ## Integracao com Academy
 
-O Paulo Freire e integrado ao sistema Academy para gamificacao:
+O Santos-Dumont e integrado ao sistema Academy para gamificacao:
 
 - Disponivel em **todas as trilhas** (Backend, Frontend, IA, DevOps)
 - Ensina sobre o sistema como um todo
@@ -186,12 +195,12 @@ O Paulo Freire e integrado ao sistema Academy para gamificacao:
 
 ```python
 AGENT_TEACHERS = {
-    "paulo_freire": {
-        "display_name": "Paulo Freire",
+    "santos_dumont": {
+        "display_name": "Alberto Santos-Dumont",
         "specialty": "Educacao sobre o sistema Cidadao.AI",
         "tracks": [TrackType.BACKEND, TrackType.FRONTEND, TrackType.IA, TrackType.DEVOPS],
-        "personality": "Educador dialogico e acolhedor",
-        "greeting": "Bem-vindo, meu jovem! Sou Paulo Freire...",
+        "personality": "Inventor pioneiro e incentivador",
+        "greeting": "Meu caro amigo! Sou Santos-Dumont, o mineiro Pai da Aviacao...",
     },
 }
 ```
@@ -224,35 +233,38 @@ O agente possui conhecimento interno sobre:
 ### Ensino de Visao Geral
 
 ```
-Meu jovem, seja bem-vindo ao Cidadao.AI!
+Meu caro amigo, seja bem-vindo ao Cidadao.AI!
+
+Como fiz com meus baloes e aeronaves, vamos primeiro entender a maquina que
+voce vai pilotar.
 
 ## O que e o Cidadao.AI?
 
 Plataforma multi-agente de IA para analise de transparencia governamental brasileira
 
-## Numeros que Importam:
+## Os Numeros da Nossa Aeronave:
 - **17 agentes** (16 operacionais + 1 framework base)
 - **323+ endpoints** na API
 - **76.29%** de cobertura de testes
 - **1514 testes** automatizados
 
-## Os Agentes - Nossa Equipe
+## A Tripulacao - Nossos Agentes
 
-Cada agente tem uma personalidade historica brasileira:
+Cada agente e como uma peca do motor, com personalidade historica brasileira:
 - **Zumbi dos Palmares**: Investigador de anomalias
 - **Anita Garibaldi**: Analista de padroes
 - **Tiradentes**: Gerador de relatorios
 ...
 
-"Nao ha saber mais ou saber menos: ha saberes diferentes."
+"O que eu fiz, qualquer um pode fazer!" - Vamos construir juntos!
 ```
 
 ## Testes
 
-Os testes do agente estao em `tests/unit/agents/test_paulo_freire.py`:
+Os testes do agente estao em `tests/unit/agents/test_santos_dumont.py`:
 
 ```bash
-JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_paulo_freire.py -v
+JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_santos_dumont.py -v
 ```
 
 ### Cobertura de Testes
@@ -272,15 +284,15 @@ JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_paulo_freire.p
 4. **Conteudo Multimidia**: Links para videos e tutoriais
 5. **Mentoria Personalizada**: Adaptar ao estilo de aprendizado
 
-## Citacoes de Paulo Freire
+## Citacoes de Santos-Dumont
 
-O agente usa citacoes reais de Paulo Freire em suas respostas:
+O agente usa frases inspiradas em Santos-Dumont em suas respostas:
 
-- "Ensinar nao e transferir conhecimento, mas criar possibilidades para sua producao."
-- "Ninguem ignora tudo. Ninguem sabe tudo. Todos nos sabemos alguma coisa."
-- "A educacao nao transforma o mundo. Educacao muda as pessoas. Pessoas transformam o mundo."
-- "Nao ha dialogo se nao houver um profundo amor ao mundo e aos homens."
-- "Quando a educacao nao e libertadora, o sonho do oprimido e ser o opressor."
+- "O que eu fiz, qualquer um pode fazer!"
+- "Inventar e imaginar o que a humanidade ainda nao pensou!"
+- "A persistencia e o caminho do exito!"
+- "O segredo e voar! Nao importa como!"
+- "Nunca desisti de um projeto!"
 
 ## Autor
 
