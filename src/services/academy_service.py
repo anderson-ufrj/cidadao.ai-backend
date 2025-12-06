@@ -14,6 +14,9 @@ from src.agents import get_agent
 from src.agents.deodoro import AgentContext, AgentMessage
 from src.schemas.academy import (
     AGENT_TEACHERS,
+    RANKING_EXPLANATION,
+    TERMS_OF_CONSENT,
+    WELCOME_MESSAGE,
     AcademyStatsResponse,
     AcademyUserResponse,
     BadgeInfo,
@@ -21,9 +24,12 @@ from src.schemas.academy import (
     ConversationResponse,
     ConversationStatus,
     DifficultyLevel,
+    GitHubStatsResponse,
     LeaderboardEntry,
     LeaderboardResponse,
     MissionResponse,
+    OnboardingResponse,
+    OnboardingStep,
     ProgressInfo,
     RankLevel,
     TrackType,
@@ -53,6 +59,7 @@ class AcademyService:
         self._badges: dict[str, dict] = {}
         self._user_missions: dict[str, list[dict]] = {}
         self._xp_transactions: dict[str, list[dict]] = {}
+        self._github_stats: dict[str, dict] = {}
 
         # Inicializar badges padrao
         self._init_default_badges()
@@ -268,6 +275,12 @@ class AcademyService:
             "total_missions_completed": 0,
             "github_username": github_username,
             "enrolled_at": datetime.now(UTC),
+            # Onboarding fields
+            "onboarding_step": OnboardingStep.WELCOME,
+            "onboarding_completed": False,
+            "terms_accepted": False,
+            "terms_accepted_at": None,
+            "is_demo_mode": True,  # Starts in demo mode
         }
 
         self._users[user_id] = user
@@ -450,6 +463,476 @@ class AcademyService:
             category=badge["category"],
             earned_at=badge["earned_at"],
         )
+
+    # =========================================================================
+    # ONBOARDING METHODS
+    # =========================================================================
+
+    async def get_onboarding_state(
+        self,
+        user_id: str,
+        demo_mode: bool = True,
+    ) -> OnboardingResponse:
+        """
+        Obter estado do onboarding.
+
+        Em demo_mode, sempre mostra termos de consentimento para
+        que os estagiarios entendam o processo.
+        """
+        user = self._users.get(user_id)
+
+        # Usuario nao existe - primeira etapa
+        if not user:
+            return OnboardingResponse(
+                step=OnboardingStep.WELCOME,
+                message=WELCOME_MESSAGE,
+                data={
+                    "available_tracks": [t.value for t in TrackType],
+                    "total_agents": len(AGENT_TEACHERS),
+                },
+                actions=[
+                    {"id": "continue", "label": "Continuar", "type": "primary"},
+                ],
+                show_terms=False,
+            )
+
+        # Demo mode - sempre mostrar termos para educacao
+        if demo_mode or user.get("is_demo_mode", True):
+            return OnboardingResponse(
+                step=OnboardingStep.TERMS_CONSENT,
+                message="## Modo Demonstracao\n\n"
+                "Voce esta no modo demonstracao. "
+                "Leia os termos abaixo para entender como funciona "
+                "o programa de estagio gamificado.\n\n"
+                "**Importante**: Em uma empresa real, voce precisaria "
+                "aceitar estes termos uma unica vez.",
+                data={
+                    "user_id": user_id,
+                    "username": user.get("username"),
+                    "demo_mode": True,
+                    "terms_accepted": user.get("terms_accepted", False),
+                },
+                actions=[
+                    {
+                        "id": "accept_terms",
+                        "label": "Aceito os Termos",
+                        "type": "primary",
+                    },
+                    {"id": "view_ranking", "label": "Ver Ranking", "type": "secondary"},
+                ],
+                show_terms=True,
+                terms_content=TERMS_OF_CONSENT,
+                ranking_explanation=RANKING_EXPLANATION,
+            )
+
+        # Usuario completou onboarding
+        if user.get("onboarding_completed", False):
+            return OnboardingResponse(
+                step=OnboardingStep.COMPLETED,
+                message="Onboarding completo! Voce esta pronto para comecar.",
+                data={
+                    "user_id": user_id,
+                    "username": user.get("username"),
+                    "main_track": user.get("main_track"),
+                    "current_level": user.get("current_level", 1),
+                },
+                actions=[
+                    {
+                        "id": "start_mission",
+                        "label": "Iniciar Missao",
+                        "type": "primary",
+                    },
+                    {
+                        "id": "talk_agent",
+                        "label": "Falar com Agente",
+                        "type": "secondary",
+                    },
+                ],
+            )
+
+        # Determinar proxima etapa
+        step = user.get("onboarding_step", OnboardingStep.WELCOME)
+        if isinstance(step, str):
+            step = OnboardingStep(step)
+
+        if step == OnboardingStep.WELCOME:
+            return OnboardingResponse(
+                step=step,
+                message=WELCOME_MESSAGE,
+                data={"user_id": user_id},
+                actions=[
+                    {"id": "continue", "label": "Continuar", "type": "primary"},
+                ],
+            )
+
+        elif step == OnboardingStep.TERMS_CONSENT:
+            return OnboardingResponse(
+                step=step,
+                message="Por favor, leia e aceite os termos de consentimento.",
+                data={"user_id": user_id},
+                actions=[
+                    {
+                        "id": "accept_terms",
+                        "label": "Aceito os Termos",
+                        "type": "primary",
+                    },
+                ],
+                show_terms=True,
+                terms_content=TERMS_OF_CONSENT,
+                ranking_explanation=RANKING_EXPLANATION,
+            )
+
+        elif step == OnboardingStep.TRACK_SELECTION:
+            return OnboardingResponse(
+                step=step,
+                message="Escolha sua trilha principal de aprendizado.",
+                data={
+                    "available_tracks": [
+                        {"id": t.value, "name": t.value.upper()} for t in TrackType
+                    ],
+                },
+                actions=[
+                    {
+                        "id": "select_track",
+                        "label": "Selecionar Trilha",
+                        "type": "primary",
+                    },
+                ],
+            )
+
+        elif step == OnboardingStep.GITHUB_CONNECT:
+            return OnboardingResponse(
+                step=step,
+                message="Conecte sua conta GitHub para rastrear contribuicoes.",
+                data={
+                    "github_username": user.get("github_username"),
+                },
+                actions=[
+                    {
+                        "id": "connect_github",
+                        "label": "Conectar GitHub",
+                        "type": "primary",
+                    },
+                    {"id": "skip", "label": "Pular por Agora", "type": "secondary"},
+                ],
+            )
+
+        elif step == OnboardingStep.FIRST_MISSION:
+            return OnboardingResponse(
+                step=step,
+                message="Hora de sua primeira missao! Escolha uma para comecar.",
+                data={
+                    "recommended_missions": ["mission_001", "mission_002"],
+                },
+                actions=[
+                    {
+                        "id": "start_mission",
+                        "label": "Escolher Missao",
+                        "type": "primary",
+                    },
+                ],
+            )
+
+        # Default
+        return OnboardingResponse(
+            step=OnboardingStep.COMPLETED,
+            message="Bem-vindo de volta!",
+            data={"user_id": user_id},
+            actions=[],
+        )
+
+    async def accept_terms(
+        self,
+        user_id: str,
+        accepted: bool,
+        github_username: str | None = None,
+        main_track: TrackType | None = None,
+    ) -> OnboardingResponse:
+        """Aceitar termos e avancar no onboarding."""
+        user = self._users.get(user_id)
+        if not user:
+            raise ValueError("Usuario nao encontrado")
+
+        if not accepted:
+            raise ValueError("Voce precisa aceitar os termos para continuar")
+
+        # Registrar aceitacao
+        user["terms_accepted"] = True
+        user["terms_accepted_at"] = datetime.now(UTC)
+        user["onboarding_step"] = OnboardingStep.TRACK_SELECTION
+
+        # Atualizar dados opcionais
+        if github_username:
+            user["github_username"] = github_username
+        if main_track:
+            user["main_track"] = main_track
+
+        # XP bonus por aceitar termos
+        await self._add_xp(
+            user_id=user_id,
+            amount=10,
+            source_type="onboarding",
+            source_id="terms_accepted",
+            description="Aceitou os termos de consentimento",
+        )
+
+        return OnboardingResponse(
+            step=OnboardingStep.TRACK_SELECTION,
+            message="Termos aceitos! Agora escolha sua trilha de aprendizado.",
+            data={
+                "terms_accepted": True,
+                "xp_earned": 10,
+            },
+            actions=[
+                {"id": "select_track", "label": "Selecionar Trilha", "type": "primary"},
+            ],
+        )
+
+    async def complete_onboarding(
+        self,
+        user_id: str,
+        main_track: TrackType,
+        github_username: str | None = None,
+    ) -> OnboardingResponse:
+        """Completar onboarding do usuario."""
+        user = self._users.get(user_id)
+        if not user:
+            raise ValueError("Usuario nao encontrado")
+
+        user["onboarding_completed"] = True
+        user["onboarding_step"] = OnboardingStep.COMPLETED
+        user["main_track"] = main_track
+        user["is_demo_mode"] = False
+
+        if github_username:
+            user["github_username"] = github_username
+
+        # XP bonus por completar onboarding
+        await self._add_xp(
+            user_id=user_id,
+            amount=50,
+            source_type="onboarding",
+            source_id="completed",
+            description="Completou o onboarding",
+        )
+
+        # Badge de primeiro acesso
+        await self._award_badge(user_id, "first_conversation")
+
+        return OnboardingResponse(
+            step=OnboardingStep.COMPLETED,
+            message="Parabens! Voce completou o onboarding. Hora de comecar!",
+            data={
+                "user_id": user_id,
+                "main_track": main_track.value,
+                "xp_earned": 50,
+                "onboarding_completed": True,
+            },
+            actions=[
+                {"id": "start_mission", "label": "Ver Missoes", "type": "primary"},
+                {"id": "talk_agent", "label": "Falar com Agente", "type": "secondary"},
+            ],
+        )
+
+    # =========================================================================
+    # GITHUB STATS METHODS
+    # =========================================================================
+
+    async def get_github_stats(self, user_id: str) -> GitHubStatsResponse | None:
+        """Obter estatisticas do GitHub do usuario."""
+        user = self._users.get(user_id)
+        if not user:
+            return None
+
+        github_username = user.get("github_username")
+        if not github_username:
+            return None
+
+        # Verificar se ja temos stats em cache
+        stats = self._github_stats.get(user_id)
+        if stats:
+            return GitHubStatsResponse(
+                github_username=github_username,
+                total_commits=stats.get("total_commits", 0),
+                total_prs_opened=stats.get("total_prs_opened", 0),
+                total_prs_merged=stats.get("total_prs_merged", 0),
+                total_prs_approved=stats.get("total_prs_approved", 0),
+                total_code_reviews=stats.get("total_code_reviews", 0),
+                commits_this_week=stats.get("commits_this_week", 0),
+                prs_this_week=stats.get("prs_this_week", 0),
+                avg_pr_merge_time_hours=stats.get("avg_pr_merge_time_hours", 0.0),
+                contribution_quality_score=stats.get("contribution_quality_score", 0.0),
+                last_activity=stats.get("last_activity"),
+            )
+
+        # Inicializar stats vazias
+        return GitHubStatsResponse(
+            github_username=github_username,
+            total_commits=0,
+            total_prs_opened=0,
+            total_prs_merged=0,
+            total_prs_approved=0,
+            total_code_reviews=0,
+            commits_this_week=0,
+            prs_this_week=0,
+            avg_pr_merge_time_hours=0.0,
+            contribution_quality_score=0.0,
+            last_activity=None,
+        )
+
+    async def update_github_stats(
+        self,
+        user_id: str,
+        commits: int = 0,
+        prs_opened: int = 0,
+        prs_merged: int = 0,
+        prs_approved: int = 0,
+        code_reviews: int = 0,
+    ) -> GitHubStatsResponse:
+        """
+        Atualizar estatisticas do GitHub.
+
+        Em producao, isso seria chamado por um webhook do GitHub.
+        No MVP, permite atualizacao manual para testes.
+        """
+        user = self._users.get(user_id)
+        if not user:
+            raise ValueError("Usuario nao encontrado")
+
+        github_username = user.get("github_username")
+        if not github_username:
+            raise ValueError("Usuario nao tem GitHub conectado")
+
+        # Obter ou criar stats
+        stats = self._github_stats.get(
+            user_id,
+            {
+                "total_commits": 0,
+                "total_prs_opened": 0,
+                "total_prs_merged": 0,
+                "total_prs_approved": 0,
+                "total_code_reviews": 0,
+                "commits_this_week": 0,
+                "prs_this_week": 0,
+                "avg_pr_merge_time_hours": 0.0,
+                "contribution_quality_score": 0.0,
+                "last_activity": None,
+            },
+        )
+
+        # Atualizar totais
+        stats["total_commits"] += commits
+        stats["total_prs_opened"] += prs_opened
+        stats["total_prs_merged"] += prs_merged
+        stats["total_prs_approved"] += prs_approved
+        stats["total_code_reviews"] += code_reviews
+        stats["commits_this_week"] += commits
+        stats["prs_this_week"] += prs_opened
+        stats["last_activity"] = datetime.now(UTC)
+
+        # Calcular quality score (baseado em aprovacoes vs abertos)
+        if stats["total_prs_opened"] > 0:
+            approval_rate = stats["total_prs_approved"] / stats["total_prs_opened"]
+            merge_rate = stats["total_prs_merged"] / stats["total_prs_opened"]
+            stats["contribution_quality_score"] = round(
+                (approval_rate * 50 + merge_rate * 50), 1
+            )
+
+        self._github_stats[user_id] = stats
+
+        # Dar XP por contribuicoes
+        xp_earned = 0
+        if commits > 0:
+            xp_earned += commits * 15  # 15 XP por commit
+            await self._add_xp(
+                user_id=user_id,
+                amount=commits * 15,
+                source_type="github",
+                source_id="commits",
+                description=f"{commits} commit(s) registrado(s)",
+            )
+
+        if prs_opened > 0:
+            xp_earned += prs_opened * XPValues.PR_OPENED
+            await self._add_xp(
+                user_id=user_id,
+                amount=prs_opened * XPValues.PR_OPENED,
+                source_type="github",
+                source_id="prs_opened",
+                description=f"{prs_opened} PR(s) aberto(s)",
+            )
+
+        if prs_merged > 0:
+            xp_earned += prs_merged * XPValues.PR_MERGED
+            await self._add_xp(
+                user_id=user_id,
+                amount=prs_merged * XPValues.PR_MERGED,
+                source_type="github",
+                source_id="prs_merged",
+                description=f"{prs_merged} PR(s) merged",
+            )
+
+        if code_reviews > 0:
+            xp_earned += code_reviews * XPValues.CODE_REVIEW
+            await self._add_xp(
+                user_id=user_id,
+                amount=code_reviews * XPValues.CODE_REVIEW,
+                source_type="github",
+                source_id="code_reviews",
+                description=f"{code_reviews} code review(s) realizado(s)",
+            )
+
+        # Badge de primeiro PR
+        if stats["total_prs_merged"] == 1:
+            await self._award_badge(user_id, "first_pr")
+
+        return GitHubStatsResponse(
+            github_username=github_username,
+            total_commits=stats["total_commits"],
+            total_prs_opened=stats["total_prs_opened"],
+            total_prs_merged=stats["total_prs_merged"],
+            total_prs_approved=stats["total_prs_approved"],
+            total_code_reviews=stats["total_code_reviews"],
+            commits_this_week=stats["commits_this_week"],
+            prs_this_week=stats["prs_this_week"],
+            avg_pr_merge_time_hours=stats["avg_pr_merge_time_hours"],
+            contribution_quality_score=stats["contribution_quality_score"],
+            last_activity=stats["last_activity"],
+        )
+
+    async def connect_github(
+        self, user_id: str, github_username: str
+    ) -> dict[str, Any]:
+        """Conectar conta GitHub ao perfil."""
+        user = self._users.get(user_id)
+        if not user:
+            raise ValueError("Usuario nao encontrado")
+
+        user["github_username"] = github_username
+
+        # Avancar onboarding se necessario
+        if user.get("onboarding_step") == OnboardingStep.GITHUB_CONNECT:
+            user["onboarding_step"] = OnboardingStep.FIRST_MISSION
+
+        # Inicializar stats
+        self._github_stats[user_id] = {
+            "total_commits": 0,
+            "total_prs_opened": 0,
+            "total_prs_merged": 0,
+            "total_prs_approved": 0,
+            "total_code_reviews": 0,
+            "commits_this_week": 0,
+            "prs_this_week": 0,
+            "avg_pr_merge_time_hours": 0.0,
+            "contribution_quality_score": 0.0,
+            "last_activity": None,
+        }
+
+        return {
+            "success": True,
+            "github_username": github_username,
+            "message": f"GitHub @{github_username} conectado com sucesso!",
+        }
 
     # =========================================================================
     # CONVERSATION METHODS

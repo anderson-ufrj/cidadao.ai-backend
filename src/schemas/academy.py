@@ -76,6 +76,167 @@ class ConversationStatus(str, Enum):
     ABANDONED = "abandoned"
 
 
+class OnboardingStep(str, Enum):
+    """Etapas do onboarding."""
+
+    WELCOME = "welcome"
+    TERMS_CONSENT = "terms_consent"
+    TRACK_SELECTION = "track_selection"
+    GITHUB_CONNECT = "github_connect"
+    FIRST_MISSION = "first_mission"
+    COMPLETED = "completed"
+
+
+# =============================================================================
+# TERMOS DE CONSENTIMENTO (LGPD)
+# =============================================================================
+
+TERMS_OF_CONSENT = """
+## Termos de Consentimento - Cidadao.AI Academy
+
+### Programa de Estagio Gamificado
+Parceria: Neural Thinker AI Engineering + IFSULDEMINAS/LabSoft
+
+---
+
+### 1. Coleta de Dados
+Ao participar do programa, coletamos:
+- **Dados de identificacao**: Nome, email, username GitHub
+- **Dados de atividade**: Commits, PRs, code reviews, mensagens
+- **Dados de progresso**: XP, nivel, badges, ranking
+
+### 2. Finalidade
+Seus dados serao utilizados para:
+- Acompanhar seu progresso no programa
+- Calcular seu ranking e recompensas
+- Gerar relatorios de desempenho
+- Emitir certificados de conclusao
+
+### 3. Metricas Rastreadas (Modelo Empresa)
+Como em uma empresa real, rastreamos:
+- **Commits entregues**: Quantidade e qualidade
+- **Pull Requests**: Abertos, aprovados, merged
+- **Code Reviews**: Realizados e recebidos
+- **Tempo de resposta**: Em issues e PRs
+- **Consistencia**: Streak de dias ativos
+
+### 4. Ranking e Competicao
+- Rankings sao publicos entre participantes
+- Sua posicao e baseada em XP total
+- Top performers recebem destaque especial
+- Mentores podem ver seu progresso detalhado
+
+### 5. Direitos (LGPD)
+Voce tem direito a:
+- Acessar seus dados a qualquer momento
+- Solicitar correcao de dados incorretos
+- Solicitar exclusao (anonimizacao) dos dados
+- Exportar seus dados em formato aberto
+
+### 6. Retencao
+- Dados ativos: Durante participacao no programa
+- Dados historicos: 5 anos apos conclusao
+- Certificados: Permanente
+
+---
+
+Ao aceitar, voce concorda com estes termos e com o
+Regulamento do Programa de Estagio.
+"""
+
+RANKING_EXPLANATION = """
+## Como Funciona o Ranking
+
+### Sistema de XP (Experiencia)
+
+| Acao | XP |
+|------|-----|
+| Iniciar conversa com agente | +5 |
+| Enviar mensagem | +2 |
+| Completar conversa | +20 |
+| Avaliacao 5 estrelas | +50 |
+| Commit aceito | +15 |
+| PR aberto | +15 |
+| PR aprovado | +30 |
+| PR merged | +50 |
+| Code review | +10 |
+| Missao easy | +10 |
+| Missao medium | +25 |
+| Missao hard | +50 |
+| Missao expert | +100 |
+| Streak 7 dias | +50 |
+| Streak 30 dias | +200 |
+
+### Niveis de Rank
+
+| Rank | XP Necessario | Beneficios |
+|------|---------------|------------|
+| Novato | 0-99 | Acesso missoes easy |
+| Aprendiz | 100-499 | Missoes medium, mentoria mensal |
+| Contribuidor | 500-1999 | Missoes hard, mentoria quinzenal |
+| Mentor | 2000-4999 | Pode mentorar, acesso expert |
+| Arquiteto | 5000+ | Elegivel para vaga, coautoria |
+
+### Metricas de Commits (Estilo Empresa)
+
+Rastreamos suas contribuicoes como em uma empresa:
+- **Frequencia**: Commits por semana
+- **Qualidade**: PRs aprovados vs rejeitados
+- **Colaboracao**: Code reviews realizados
+- **Consistencia**: Dias consecutivos ativos
+
+### Leaderboard
+
+O ranking e atualizado em tempo real e considera:
+1. XP total acumulado
+2. Contribuicoes da semana
+3. Streak atual
+4. Qualidade das entregas
+"""
+
+WELCOME_MESSAGE = """
+# Bem-vindo a Cidadao.AI Academy!
+
+Ola! Sou o assistente da Academy, o programa de estagio gamificado
+do projeto Cidadao.AI.
+
+## O que voce vai encontrar aqui:
+
+### 1. Agentes Professores
+16 agentes IA com personalidades de figuras historicas brasileiras
+que vao te ensinar diferentes areas:
+- **Backend**: Zumbi, Anita, Tiradentes, Bonifacio
+- **Frontend**: Oscar Niemeyer, Dandara, Drummond, Machado
+- **IA/ML**: Zumbi, Oxossi, Ceuci, Nana, Obaluaie
+- **DevOps**: Ayrton Senna, Maria Quiteria, Abaporu
+
+### 2. Missoes
+Tarefas reais do projeto que voce pode completar para ganhar XP:
+- Corrigir bugs
+- Escrever testes
+- Implementar features
+- Documentar codigo
+
+### 3. Sistema de Ranking
+Suas contribuicoes sao rastreadas como em uma empresa:
+- Commits entregues
+- Pull Requests aprovados
+- Code reviews realizados
+- Dias consecutivos ativos
+
+### 4. Badges e Conquistas
+Colecione badges por suas conquistas:
+- Primeira Conversa
+- Primeiro PR
+- Streak de 7 dias
+- E muito mais!
+
+---
+
+Para comecar, preciso que voce aceite os termos do programa.
+"""
+
+
 # =============================================================================
 # CONSTANTES DE XP
 # =============================================================================
@@ -341,9 +502,45 @@ class MissionCompleteRequest(BaseModel):
     notes: str | None = Field(None, max_length=1000)
 
 
+class OnboardingAcceptRequest(BaseModel):
+    """Request para aceitar termos do onboarding."""
+
+    accepted: bool = Field(..., description="Se o usuario aceitou os termos")
+    github_username: str | None = Field(None, max_length=255)
+    main_track: TrackType = Field(default=TrackType.BACKEND)
+
+
 # =============================================================================
 # RESPONSE SCHEMAS
 # =============================================================================
+
+
+class GitHubStatsResponse(BaseModel):
+    """Estatisticas do GitHub do usuario."""
+
+    github_username: str
+    total_commits: int = 0
+    total_prs_opened: int = 0
+    total_prs_merged: int = 0
+    total_prs_approved: int = 0
+    total_code_reviews: int = 0
+    commits_this_week: int = 0
+    prs_this_week: int = 0
+    avg_pr_merge_time_hours: float = 0.0
+    contribution_quality_score: float = 0.0  # 0-100
+    last_activity: datetime | None = None
+
+
+class OnboardingResponse(BaseModel):
+    """Response do fluxo de onboarding."""
+
+    step: OnboardingStep
+    message: str
+    data: dict[str, Any] = Field(default_factory=dict)
+    actions: list[dict[str, str]] = Field(default_factory=list)
+    show_terms: bool = False
+    terms_content: str | None = None
+    ranking_explanation: str | None = None
 
 
 class RankInfo(BaseModel):
