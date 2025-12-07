@@ -284,33 +284,50 @@ export function useChat() {
             },
             "component_structure": {
                 "recommended": """
-src/
-├── components/
+# Cidadão.AI Frontend - Next.js 15 App Router Structure
+app/
+├── [locale]/              # i18n: /pt/* and /en/*
+│   ├── layout.tsx         # Root layout with providers
+│   ├── page.tsx           # Landing page
 │   ├── chat/
-│   │   ├── ChatWindow.tsx
-│   │   ├── MessageList.tsx
-│   │   ├── MessageBubble.tsx
-│   │   ├── InputArea.tsx
-│   │   └── AgentAvatar.tsx
-│   ├── agents/
-│   │   ├── AgentSelector.tsx
-│   │   └── AgentCard.tsx
-│   └── common/
-│       ├── Button.tsx
-│       ├── Loading.tsx
-│       └── ErrorBoundary.tsx
-├── hooks/
-│   ├── useChat.ts
-│   ├── useAgents.ts
-│   └── useSession.ts
-├── services/
-│   ├── api.ts
-│   └── sse.ts
-├── types/
-│   └── index.ts
-└── utils/
-    └── formatters.ts
+│   │   └── page.tsx       # Chat interface with agents
+│   ├── investigate/
+│   │   └── page.tsx       # Investigation dashboard
+│   └── about/
+│       └── page.tsx       # About page
+├── api/                   # API routes (if any)
+└── globals.css            # Global styles
+
+components/
+├── chat/
+│   ├── ChatWindow.tsx     # Main chat container
+│   ├── MessageList.tsx    # Message history
+│   ├── MessageBubble.tsx  # Individual message
+│   ├── InputArea.tsx      # User input
+│   └── AgentAvatar.tsx    # Agent profile image
+├── agents/
+│   ├── AgentSelector.tsx  # Agent picker grid
+│   └── AgentCard.tsx      # Single agent card
+├── ui/                    # Shadcn/UI or custom
+│   ├── Button.tsx
+│   ├── Input.tsx
+│   └── Card.tsx
+└── providers/
+    └── SessionProvider.tsx
+
+lib/
+├── store/                 # Zustand stores
+│   ├── chat.ts            # Chat state
+│   ├── session.ts         # Session state
+│   └── agents.ts          # Agent state
+├── api.ts                 # API client (fetch wrapper)
+├── sse.ts                 # SSE connection handler
+└── utils.ts               # Utility functions
+
+types/
+└── index.ts               # TypeScript types
 """,
+                "note": "App Router with i18n - bilingual PT/EN support",
             },
             "api_endpoints": {
                 "chat_stream": "POST /api/v1/chat/stream",
@@ -320,6 +337,14 @@ src/
                 "health": "GET /health",
             },
             "agents_available": [
+                # Base Framework
+                {
+                    "id": "deodoro",
+                    "name": "Deodoro",
+                    "emoji": "🏛️",
+                    "role": "Base Framework",
+                },
+                # Operational Agents (16)
                 {
                     "id": "drummond",
                     "name": "Carlos Drummond",
@@ -339,6 +364,80 @@ src/
                     "role": "Analista",
                 },
                 {
+                    "id": "tiradentes",
+                    "name": "Tiradentes",
+                    "emoji": "📝",
+                    "role": "Relator",
+                },
+                {
+                    "id": "ayrton_senna",
+                    "name": "Ayrton Senna",
+                    "emoji": "🏎️",
+                    "role": "Router Semântico",
+                },
+                {
+                    "id": "bonifacio",
+                    "name": "José Bonifácio",
+                    "emoji": "⚖️",
+                    "role": "Analista Jurídico",
+                },
+                {
+                    "id": "maria_quiteria",
+                    "name": "Maria Quitéria",
+                    "emoji": "🛡️",
+                    "role": "Segurança",
+                },
+                {
+                    "id": "machado",
+                    "name": "Machado de Assis",
+                    "emoji": "📚",
+                    "role": "Análise Textual",
+                },
+                {
+                    "id": "oxossi",
+                    "name": "Oxóssi",
+                    "emoji": "🏹",
+                    "role": "Caçador de Dados",
+                },
+                {
+                    "id": "lampiao",
+                    "name": "Lampião",
+                    "emoji": "🌵",
+                    "role": "Regional/Nordeste",
+                },
+                {
+                    "id": "oscar_niemeyer",
+                    "name": "Oscar Niemeyer",
+                    "emoji": "🏗️",
+                    "role": "Agregador",
+                },
+                {
+                    "id": "abaporu",
+                    "name": "Abaporu",
+                    "emoji": "🎭",
+                    "role": "Orquestrador Master",
+                },
+                {"id": "nana", "name": "Nanã", "emoji": "🌙", "role": "Memória"},
+                {
+                    "id": "ceuci",
+                    "name": "Ceuci",
+                    "emoji": "🔮",
+                    "role": "Preditivo/ETL",
+                },
+                {
+                    "id": "obaluaie",
+                    "name": "Obaluaiê",
+                    "emoji": "⚕️",
+                    "role": "Detector de Corrupção",
+                },
+                {
+                    "id": "dandara",
+                    "name": "Dandara",
+                    "emoji": "✊",
+                    "role": "Equidade Social",
+                },
+                # Mentors (specialization)
+                {
                     "id": "santos_dumont",
                     "name": "Santos-Dumont",
                     "emoji": "✈️",
@@ -349,24 +448,6 @@ src/
                     "name": "Lina Bo Bardi",
                     "emoji": "🎨",
                     "role": "Especialista Frontend",
-                },
-                {
-                    "id": "machado",
-                    "name": "Machado de Assis",
-                    "emoji": "📚",
-                    "role": "Análise Textual",
-                },
-                {
-                    "id": "tiradentes",
-                    "name": "Tiradentes",
-                    "emoji": "📝",
-                    "role": "Relator",
-                },
-                {
-                    "id": "abaporu",
-                    "name": "Abaporu",
-                    "emoji": "🎨",
-                    "role": "Orquestrador",
                 },
             ],
         }
@@ -581,9 +662,85 @@ export function AgentSelector({ selectedAgent, onSelect }: Props) {
                 "dependencies": ["react", "typescript", "tailwindcss"],
             }
 
+        elif feature == "zustand_store":
+            return {
+                "code": """
+// lib/store/chat.ts - Zustand store for chat state
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  agentId?: string;
+  agentName?: string;
+  timestamp: Date;
+}
+
+interface ChatState {
+  messages: Message[];
+  isLoading: boolean;
+  currentAgentId: string | null;
+  sessionId: string | null;
+
+  // Actions
+  addMessage: (message: Omit<Message, 'id' | 'timestamp'>) => void;
+  setLoading: (loading: boolean) => void;
+  setAgent: (agentId: string | null) => void;
+  setSession: (sessionId: string) => void;
+  clearChat: () => void;
+}
+
+export const useChatStore = create<ChatState>()(
+  persist(
+    (set) => ({
+      messages: [],
+      isLoading: false,
+      currentAgentId: null,
+      sessionId: null,
+
+      addMessage: (message) =>
+        set((state) => ({
+          messages: [
+            ...state.messages,
+            {
+              ...message,
+              id: crypto.randomUUID(),
+              timestamp: new Date(),
+            },
+          ],
+        })),
+
+      setLoading: (loading) => set({ isLoading: loading }),
+
+      setAgent: (agentId) => set({ currentAgentId: agentId }),
+
+      setSession: (sessionId) => set({ sessionId }),
+
+      clearChat: () => set({ messages: [], currentAgentId: null }),
+    }),
+    {
+      name: 'cidadao-chat-storage', // localStorage key
+      partialize: (state) => ({
+        messages: state.messages.slice(-50), // Keep last 50 messages
+        sessionId: state.sessionId,
+      }),
+    }
+  )
+);
+
+// Usage in component:
+// import { useChatStore } from '@/lib/store/chat';
+// const { messages, addMessage, isLoading } = useChatStore();
+""",
+                "explanation": "Zustand store com persist middleware para gerenciar estado do chat",
+                "dependencies": ["zustand"],
+            }
+
         return {
             "code": "// Feature não encontrada",
-            "explanation": "Features disponíveis: sse_chat, agent_selector",
+            "explanation": "Features disponíveis: sse_chat, agent_selector, zustand_store",
         }
 
     async def _explain_sse_event(self, event_type: str) -> dict[str, Any]:
@@ -810,6 +967,48 @@ Não é "só React", caro - é **{stack["framework"]}** com todo o ecossistema m
 *È semplice!* Qualquer dúvida, me pergunta!
 """,
                 "metadata": {"type": "sse_help"},
+            }
+
+        # State management / Zustand questions
+        if any(kw in question_lower for kw in ["zustand", "estado", "state", "store"]):
+            zustand_example = await self._generate_code_example("zustand_store")
+            stack = self.frontend_knowledge["project_stack"]
+            return {
+                "content": f"""## *Caro*, State Management com Zustand!
+
+*Ma che bellezza!* Usamos **Zustand** ({stack["state_management"]}) - leve, simples, e poderoso!
+
+### Por que Zustand?
+- **Minimalista** - Sem boilerplate como Redux
+- **TypeScript nativo** - Tipos inferidos automaticamente
+- **Persist middleware** - Salva no localStorage se quiser
+- **Sem providers** - Não precisa envolver a app
+
+### Exemplo de Store para o Chat:
+
+```typescript
+{zustand_example["code"]}
+```
+
+### Uso no Componente:
+
+```tsx
+import {{ useChatStore }} from '@/lib/store/chat';
+
+function ChatInput() {{
+  const {{ addMessage, setLoading }} = useChatStore();
+
+  const handleSend = async (text: string) => {{
+    setLoading(true);
+    addMessage({{ role: 'user', content: text }});
+    // ... SSE call
+  }};
+}}
+```
+
+*È semplice!* Nada de Redux complexo - o povo precisa de código simples!
+""",
+                "metadata": {"type": "state_management"},
             }
 
         # Component structure questions

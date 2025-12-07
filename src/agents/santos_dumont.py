@@ -208,6 +208,19 @@ TOM: Amigável mas técnico. Como um sênior explicando para júnior.
                     "async": "asyncio + httpx",
                     "testing": "pytest + pytest-asyncio",
                 },
+                "frontend": {
+                    "framework": "Next.js 15",
+                    "repository": "https://github.com/anderson-ufrj/cidadao.ai-frontend",
+                    "deployment": "Vercel",
+                    "mentor": "bo_bardi",
+                    "note": "Para questões de frontend, consulte a Bo Bardi!",
+                },
+                "academy": {
+                    "name": "Ágora Academy",
+                    "description": "Sistema de gamificação para aprendizado",
+                    "features": ["XP por aprendizado", "Missões", "Badges", "Ranking"],
+                    "status": "Em desenvolvimento",
+                },
             },
             "agents": {
                 "deodoro": {
@@ -317,6 +330,19 @@ TOM: Amigável mas técnico. Como um sênior explicando para júnior.
                     "description": "Dandara - Analista de equidade",
                     "specialty": "Análise de equidade social e acessibilidade",
                     "file": "src/agents/dandara.py",
+                },
+                "santos_dumont": {
+                    "type": "Educator (Backend)",
+                    "description": "Santos-Dumont - Educador do Sistema Backend",
+                    "specialty": "Ensino sobre arquitetura, agentes e backend do Cidadão.AI",
+                    "file": "src/agents/santos_dumont.py",
+                },
+                "bo_bardi": {
+                    "type": "Educator (Frontend)",
+                    "description": "Lina Bo Bardi - Especialista Frontend",
+                    "specialty": "Ensino sobre integração frontend, SSE, componentes React/Next.js",
+                    "file": "src/agents/bo_bardi.py",
+                    "note": "Para questões de frontend, consulte ela!",
                 },
             },
             "architecture": {
@@ -1229,6 +1255,55 @@ Para PostgreSQL, configure `DATABASE_URL` no `.env`.
                 return await self._provide_links("api")
             else:
                 return await self._provide_links()
+
+        # Frontend questions - redirect to Bo Bardi
+        frontend_keywords = [
+            "frontend",
+            "front-end",
+            "react",
+            "nextjs",
+            "next.js",
+            "next js",
+            "componente",
+            "css",
+            "tailwind",
+            "zustand",
+            "vercel",
+            "interface",
+            "ui",
+            "ux",
+        ]
+        if any(kw in question_lower for kw in frontend_keywords):
+            bo_bardi = self.system_knowledge["agents"].get("bo_bardi", {})
+            return {
+                "content": f"""## Questão de Frontend!
+
+Meu caro, essa é uma pergunta sobre **frontend** - a especialidade da **Lina Bo Bardi**!
+
+### Sobre a Bo Bardi
+- **{bo_bardi.get("description", "Especialista Frontend")}**
+- **Especialidade**: {bo_bardi.get("specialty", "Frontend e integração")}
+- **Arquivo**: `{bo_bardi.get("file", "src/agents/bo_bardi.py")}`
+
+### O que ela pode te ensinar:
+- Integração SSE com o chat (`/api/v1/chat/stream`)
+- Estrutura de componentes Next.js 15 com App Router
+- State management com Zustand
+- Estilização com Tailwind CSS
+- Acessibilidade (WCAG AAA)
+
+### Frontend Stack (para referência):
+- **Framework**: Next.js 15 (App Router)
+- **State**: Zustand
+- **Styling**: Tailwind CSS
+- **Deploy**: Vercel
+- **Repositório**: https://github.com/anderson-ufrj/cidadao.ai-frontend
+
+**Recomendo**: Fale com a Bo Bardi para detalhes de frontend!
+Eu sou especialista em **backend** - arquitetura, agentes, API, infraestrutura.
+""".strip(),
+                "metadata": {"type": "redirect", "redirect_to": "bo_bardi"},
+            }
 
         if "quantos agentes" in question_lower or "how many agents" in question_lower:
             return {
