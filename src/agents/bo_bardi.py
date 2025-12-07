@@ -477,7 +477,27 @@ types/
             action = message.action
             payload = message.payload
 
-            if action == "guide":
+            # Handle chat messages from the main chat endpoint
+            if action == "process_chat":
+                # Extract the user's message from payload
+                user_message = payload.get("message", "")
+                if not user_message:
+                    user_message = payload.get("query", payload.get("content", ""))
+
+                # Process as a question using our knowledge base
+                response = await self._answer_question(user_message)
+
+                return AgentResponse(
+                    agent_name=self.name,
+                    status=AgentStatus.COMPLETED,
+                    result={
+                        "message": response["content"],
+                        "metadata": response.get("metadata", {}),
+                    },
+                    metadata={"frontend": True, "type": "chat"},
+                )
+
+            elif action == "guide":
                 topic = payload.get("topic", "sse_integration")
                 response = await self._guide_topic(topic)
 
