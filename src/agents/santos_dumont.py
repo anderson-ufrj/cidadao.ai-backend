@@ -411,7 +411,27 @@ TOM: Amigável mas técnico. Como um sênior explicando para júnior.
             action = message.action
             payload = message.payload
 
-            if action == "teach":
+            # Handle chat messages from the main chat endpoint
+            if action == "process_chat":
+                # Extract the user's message from payload
+                user_message = payload.get("message", "")
+                if not user_message:
+                    user_message = payload.get("query", payload.get("content", ""))
+
+                # Process as a question using our knowledge base
+                response = await self._answer_question(user_message)
+
+                return AgentResponse(
+                    agent_name=self.name,
+                    status=AgentStatus.COMPLETED,
+                    result={
+                        "message": response["content"],
+                        "metadata": response.get("metadata", {}),
+                    },
+                    metadata={"educator": True, "type": "chat"},
+                )
+
+            elif action == "teach":
                 topic = payload.get("topic", "system_overview")
                 level = payload.get("level", "beginner")
                 specific_agent = payload.get("agent_name")
