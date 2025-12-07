@@ -25,6 +25,16 @@ from src.agents.knowledge.cidadao_ai_docs import (
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError
 
+# Import DSPy service for intelligent responses
+try:
+    from src.services.dspy_agents import get_dspy_agent_service
+
+    _dspy_service = get_dspy_agent_service()
+    _DSPY_AVAILABLE = _dspy_service.is_available() if _dspy_service else False
+except ImportError:
+    _dspy_service = None
+    _DSPY_AVAILABLE = False
+
 
 class LearningTopic(Enum):
     """Topics that Santos-Dumont can teach."""
@@ -1477,6 +1487,34 @@ ANTHROPIC_API_KEY=sua-chave-backup
             }
 
         else:
+            # Use LLM for dynamic response if available
+            if _DSPY_AVAILABLE and _dspy_service:
+                try:
+                    # Build context from knowledge base
+                    context = """
+Conhecimento técnico disponível:
+- 17 agentes de IA com identidades culturais brasileiras
+- FastAPI com 323+ endpoints, Python 3.11+, PostgreSQL, Redis
+- Testes: JWT_SECRET_KEY=test SECRET_KEY=test pytest
+- Entry point: src/api/app.py
+- Deploy: Railway (https://cidadao-api-production.up.railway.app/)
+- LLM: Maritaca AI (Sabiá-3.1) primário, Anthropic backup
+"""
+                    result = await _dspy_service.chat(
+                        agent_id="santos_dumont",
+                        message=question,
+                        intent_type="question",
+                        context=context,
+                    )
+                    if result.get("success"):
+                        return {
+                            "content": result.get("response", ""),
+                            "metadata": {"type": "llm_response", "dspy_enabled": True},
+                        }
+                except Exception as e:
+                    self.logger.warning(f"DSPy chat failed, using fallback: {e}")
+
+            # Fallback response
             return {
                 "content": f"""
 Excelente pergunta, meu caro! "{question}"
@@ -1495,7 +1533,7 @@ Qual tema te interessa?
 
 "A curiosidade e o primeiro passo para a invenção!"
                 """.strip(),
-                "metadata": {"type": "clarification_needed"},
+                "metadata": {"type": "fallback_response"},
             }
 
     async def _suggest_learning_path(
