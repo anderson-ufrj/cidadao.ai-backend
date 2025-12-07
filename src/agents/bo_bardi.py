@@ -25,6 +25,16 @@ from src.agents.knowledge.cidadao_ai_docs import (
 from src.core import get_logger
 from src.core.exceptions import AgentExecutionError
 
+# Import DSPy service for intelligent responses
+try:
+    from src.services.dspy_agents import get_dspy_agent_service
+
+    _dspy_service = get_dspy_agent_service()
+    _DSPY_AVAILABLE = _dspy_service.is_available() if _dspy_service else False
+except ImportError:
+    _dspy_service = None
+    _DSPY_AVAILABLE = False
+
 
 class FrontendTopic(Enum):
     """Topics that Bo Bardi can teach about frontend."""
@@ -1111,7 +1121,32 @@ Como uma boa planta arquitetônica - tudo tem seu lugar!
                 "metadata": {"type": "api_help"},
             }
 
-        # Default response with personality
+        # Use LLM for dynamic response if available
+        if _DSPY_AVAILABLE and _dspy_service:
+            try:
+                # Build context from knowledge base
+                context = """
+Conhecimento técnico disponível:
+- Stack: Next.js 15, React 18, TypeScript 5, Zustand, Tailwind CSS
+- Endpoint SSE: POST /api/v1/chat/stream
+- Docs: https://cidadao-api-production.up.railway.app/docs
+- GitHub: https://github.com/anderson-ufrj/cidadao.ai-backend
+"""
+                result = await _dspy_service.chat(
+                    agent_id="bo_bardi",
+                    message=question,
+                    intent_type="question",
+                    context=context,
+                )
+                if result.get("success"):
+                    return {
+                        "content": result.get("response", ""),
+                        "metadata": {"type": "llm_response", "dspy_enabled": True},
+                    }
+            except Exception as e:
+                self.logger.warning(f"DSPy chat failed, using fallback: {e}")
+
+        # Fallback response with personality
         return {
             "content": f"""*Caro mio*, você perguntou: "{question}"
 
@@ -1131,7 +1166,7 @@ Como uma boa planta arquitetônica - tudo tem seu lugar!
 
 "A arquitetura é vida!" - e o código também, caro!
 """,
-            "metadata": {"type": "clarification_needed"},
+            "metadata": {"type": "fallback_response"},
         }
 
     async def initialize(self) -> None:
