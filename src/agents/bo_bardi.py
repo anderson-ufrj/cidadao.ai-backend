@@ -153,6 +153,25 @@ que todos possam usar o que ela projeta. Respostas práticas com alma.
     def _load_frontend_knowledge(self) -> None:
         """Load knowledge about frontend integration."""
         self.frontend_knowledge = {
+            "project_stack": {
+                "framework": "Next.js 15",
+                "version": "^15.5.7",
+                "react": "^18.3.1",
+                "typescript": "^5",
+                "state_management": "Zustand ^5.0.8",
+                "styling": "Tailwind CSS ^3.4.17",
+                "auth": "Supabase (OAuth + SSR)",
+                "pwa": "Serwist ^9.2.1",
+                "testing": {
+                    "unit": "Vitest ^3.2.4",
+                    "e2e": "Playwright ^1.56.1",
+                },
+                "deployment": "Vercel",
+                "routing": "App Router (app/ directory)",
+                "i18n": "Bilingual PT/EN (/pt/* and /en/*)",
+                "accessibility": "WCAG AAA, VLibras support",
+                "repository": "https://github.com/anderson-ufrj/cidadao.ai-frontend",
+            },
             "sse_integration": {
                 "endpoint": "POST /api/v1/chat/stream",
                 "content_type": "application/json",
@@ -686,6 +705,60 @@ Aqui está tudo que você precisa para integrar com o backend:
     async def _answer_question(self, question: str) -> dict[str, Any]:
         """Answer a general question with Bo Bardi's personality."""
         question_lower = question.lower()
+
+        # Framework/Stack questions - CRITICAL KNOWLEDGE
+        framework_keywords = [
+            "framework",
+            "stack",
+            "next",
+            "nextjs",
+            "next.js",
+            "react",
+            "qual tecnologia",
+            "qual tech",
+            "site",
+            "frontend",
+            "vercel",
+            "deploy",
+        ]
+        if any(keyword in question_lower for keyword in framework_keywords):
+            stack = self.frontend_knowledge["project_stack"]
+            return {
+                "content": f"""## *Caro mio*, a Stack do Cidadão.AI Frontend!
+
+*Ma che bellezza!* Você quer saber sobre nossa arquitetura? È **{stack["framework"]}**!
+
+### Framework Principal
+- **{stack["framework"]}** (versão {stack["version"]}) com **App Router**
+- React {stack["react"]} + TypeScript {stack["typescript"]}
+- Estrutura moderna no diretório `app/`
+
+### Stack Completa
+| Tecnologia | Versão | Propósito |
+|------------|--------|-----------|
+| {stack["framework"]} | {stack["version"]} | Framework principal |
+| Tailwind CSS | {stack["styling"].split("^")[1]} | Estilização |
+| Zustand | {stack["state_management"].split("^")[1]} | Estado global |
+| Supabase | SSR | Autenticação OAuth |
+| Serwist | {stack["pwa"].split("^")[1]} | PWA/Service Worker |
+| Vitest | {stack["testing"]["unit"].split("^")[1]} | Testes unitários |
+| Playwright | {stack["testing"]["e2e"].split("^")[1]} | Testes E2E |
+
+### Deploy
+- **Plataforma**: {stack["deployment"]}
+- **Routing**: {stack["routing"]}
+- **i18n**: {stack["i18n"]}
+- **Acessibilidade**: {stack["accessibility"]}
+
+### Repositório
+- **GitHub**: {stack["repository"]}
+
+*Come no MASP* - estrutura sólida suspensa no ar, moderna e acessível!
+
+Não é "só React", caro - é **{stack["framework"]}** com todo o ecossistema moderno!
+""",
+                "metadata": {"type": "stack_info"},
+            }
 
         # Detect link requests
         link_keywords = [
