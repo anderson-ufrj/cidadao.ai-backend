@@ -176,6 +176,39 @@ TOM: Amigável mas técnico. Como um sênior explicando para júnior.
                 "total_tests": 1514,
                 "endpoints": "323+",
             },
+            "infrastructure": {
+                "deployment": {
+                    "platform": "Railway",
+                    "url": "https://cidadao-api-production.up.railway.app/",
+                    "uptime": "99.9%",
+                    "since": "October 7, 2025",
+                    "note": "Previously HuggingFace Spaces (deprecated)",
+                },
+                "llm": {
+                    "primary": "Maritaca AI (Sabiá-3.1)",
+                    "primary_key": "MARITACA_API_KEY",
+                    "backup": "Anthropic Claude (claude-sonnet-4)",
+                    "backup_key": "ANTHROPIC_API_KEY",
+                    "note": "Maritaca is optimized for Brazilian Portuguese",
+                    "deprecated": "Groq (removed October 2025)",
+                },
+                "database": {
+                    "primary": "PostgreSQL + asyncpg",
+                    "fallback": "SQLite in-memory (dev)",
+                },
+                "cache": {
+                    "primary": "Redis",
+                    "fallback": "In-memory cache",
+                },
+                "backend_stack": {
+                    "framework": "FastAPI",
+                    "python": "3.11+",
+                    "orm": "SQLAlchemy 2.0",
+                    "migrations": "Alembic",
+                    "async": "asyncio + httpx",
+                    "testing": "pytest + pytest-asyncio",
+                },
+            },
             "agents": {
                 "deodoro": {
                     "type": "Base Framework",
@@ -1223,6 +1256,115 @@ Quer conhecer algum em detalhe?
 
         elif "primeiro" in question_lower or "começar" in question_lower:
             return await self._guide_first_steps()
+
+        # LLM/AI Model questions
+        elif any(
+            kw in question_lower
+            for kw in ["llm", "maritaca", "groq", "anthropic", "claude", "modelo", "ia"]
+        ):
+            infra = self.system_knowledge["infrastructure"]
+            llm = infra["llm"]
+            return {
+                "content": f"""## LLM do Cidadão.AI
+
+### Provedor Primário
+- **{llm["primary"]}**
+- Variável: `{llm["primary_key"]}`
+- {llm["note"]}
+
+### Backup (Fallback Automático)
+- **{llm["backup"]}**
+- Variável: `{llm["backup_key"]}`
+- Usado quando Maritaca falha ou não está configurado
+
+### Histórico
+- ❌ **{llm["deprecated"]}** - não usamos mais!
+- ✅ Maritaca é o atual primário
+
+### Configuração
+```bash
+# .env
+LLM_PROVIDER=maritaca
+MARITACA_API_KEY=sua-chave
+MARITACA_MODEL=sabia-3.1  # ou sabiazinho-3 (mais rápido)
+
+# Backup (opcional)
+ANTHROPIC_API_KEY=sua-chave-backup
+```
+""".strip(),
+                "metadata": {"type": "infrastructure", "topic": "llm"},
+            }
+
+        # Deployment/Platform questions
+        elif any(
+            kw in question_lower
+            for kw in [
+                "deploy",
+                "railway",
+                "huggingface",
+                "hugging",
+                "hospedado",
+                "produção",
+                "producao",
+                "servidor",
+                "hosting",
+            ]
+        ):
+            infra = self.system_knowledge["infrastructure"]
+            deploy = infra["deployment"]
+            return {
+                "content": f"""## Deploy do Backend
+
+### Plataforma Atual
+- **{deploy["platform"]}** (desde {deploy["since"]})
+- URL: {deploy["url"]}
+- Uptime: {deploy["uptime"]}
+
+### Histórico
+- ⚠️ {deploy["note"]}
+- A migração para Railway trouxe melhor performance e confiabilidade
+
+### URLs de Produção
+- **API**: {deploy["url"]}
+- **Docs**: {deploy["url"]}docs
+- **Health**: {deploy["url"]}health
+- **Metrics**: {deploy["url"]}health/metrics
+""".strip(),
+                "metadata": {"type": "infrastructure", "topic": "deployment"},
+            }
+
+        # Backend Stack questions
+        elif any(
+            kw in question_lower
+            for kw in ["stack", "fastapi", "framework", "tecnologia", "banco", "redis"]
+        ):
+            infra = self.system_knowledge["infrastructure"]
+            stack = infra["backend_stack"]
+            db = infra["database"]
+            cache = infra["cache"]
+            return {
+                "content": f"""## Stack do Backend
+
+### Framework
+- **{stack["framework"]}** com Python {stack["python"]}
+- ORM: {stack["orm"]}
+- Migrations: {stack["migrations"]}
+- Async: {stack["async"]}
+- Testes: {stack["testing"]}
+
+### Banco de Dados
+- **Produção**: {db["primary"]}
+- **Desenvolvimento**: {db["fallback"]}
+
+### Cache
+- **Produção**: {cache["primary"]}
+- **Fallback**: {cache["fallback"]}
+
+### Entry Point
+- `src/api/app.py` (NÃO `app.py` na raiz!)
+""".strip(),
+                "metadata": {"type": "infrastructure", "topic": "stack"},
+            }
 
         else:
             return {
