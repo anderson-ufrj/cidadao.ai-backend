@@ -1729,6 +1729,80 @@ async def stream_message(request: ChatRequest):
                     yield f"data: {json_utils.dumps({'type': 'chunk', 'content': 'Não encontrei contratos com esses critérios. Tente refinar sua busca.'})}\n\n"
                     yield f"data: {json_utils.dumps({'type': 'complete', 'agent_id': agent_id, 'agent_name': agent_name, 'suggested_actions': ['try_again', 'change_filters']})}\n\n"
 
+            # ================================================================
+            # SPECIALIZED AGENTS: Use their process method with knowledge base
+            # Bo Bardi (frontend) and Santos-Dumont (backend) have rich knowledge
+            # ================================================================
+            elif agent_id in ["bo_bardi", "santos_dumont"] and request.agent_id:
+                yield f"data: {json_utils.dumps({'type': 'thinking', 'message': f'{agent_name} está consultando a base de conhecimento...'})}\n\n"
+
+                try:
+                    specialized_agent = await get_agent_by_name(agent_id)
+                    if specialized_agent:
+                        # Create agent message for processing
+                        agent_message = AgentMessage(
+                            sender="user",
+                            recipient=agent_id,
+                            action="process_chat",
+                            payload={"message": sanitized_message},
+                        )
+                        agent_context = AgentContext(
+                            investigation_id=None,
+                            user_id="stream-user",
+                            session_id=request.session_id or "stream",
+                        )
+
+                        # Process with specialized agent
+                        response = await specialized_agent.process(
+                            agent_message, agent_context
+                        )
+
+                        if response.status == AgentStatus.COMPLETED:
+                            response_text = response.result.get(
+                                "message", "Não encontrei informação específica."
+                            )
+
+                            # Stream the response in chunks
+                            words = response_text.split()
+                            chunk = ""
+                            for i, word in enumerate(words):
+                                chunk += word + " "
+                                if i % 3 == 2:  # Send every 3 words
+                                    yield f"data: {json_utils.dumps({'type': 'chunk', 'content': chunk.strip(), 'agent_id': agent_id})}\n\n"
+                                    chunk = ""
+                                    await asyncio.sleep(0.04)
+
+                            if chunk:
+                                yield f"data: {json_utils.dumps({'type': 'chunk', 'content': chunk.strip(), 'agent_id': agent_id})}\n\n"
+
+                            yield f"data: {json_utils.dumps({'type': 'complete', 'agent_id': agent_id, 'agent_name': agent_name, 'suggested_actions': ['start_investigation', 'learn_more']})}\n\n"
+                        else:
+                            # Agent returned error, fallback to DSPy
+                            raise Exception("Agent returned non-completed status")
+                    else:
+                        raise Exception(f"Agent {agent_id} not available")
+                except Exception as e:
+                    logger.warning(
+                        f"Specialized agent {agent_id} failed, falling back to DSPy: {e}"
+                    )
+                    # Continue to DSPy fallback below
+                    if DSPY_AVAILABLE and dspy_service:
+                        yield f"data: {json_utils.dumps({'type': 'thinking', 'message': f'{agent_name} está pensando...'})}\n\n"
+                        async for chunk_data in dspy_service.chat_stream(
+                            agent_id=agent_id,
+                            message=sanitized_message,
+                            intent_type=intent.type.value,
+                            context="",
+                        ):
+                            if chunk_data.get("type") == "chunk":
+                                yield f"data: {json_utils.dumps(chunk_data)}\n\n"
+                                await asyncio.sleep(0.05)
+                            elif chunk_data.get("type") == "complete":
+                                yield f"data: {json_utils.dumps({'type': 'complete', 'agent_id': agent_id, 'agent_name': agent_name, 'suggested_actions': ['start_investigation', 'learn_more']})}\n\n"
+                    else:
+                        yield f"data: {json_utils.dumps({'type': 'chunk', 'content': 'Desculpe, não consegui processar sua mensagem.'})}\n\n"
+                        yield f"data: {json_utils.dumps({'type': 'complete', 'agent_id': agent_id, 'agent_name': agent_name})}\n\n"
+
             # Use DSPy for personality-based responses if available
             elif DSPY_AVAILABLE and dspy_service:
                 yield f"data: {json_utils.dumps({'type': 'thinking', 'message': f'{agent_name} está pensando...'})}\n\n"
