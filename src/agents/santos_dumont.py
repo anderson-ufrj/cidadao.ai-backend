@@ -234,17 +234,24 @@ TOM: Amigável mas técnico. Como um sênior explicando para júnior.
                     "testing": "pytest + pytest-asyncio",
                 },
                 "frontend": {
+                    "name": "Ágora",
                     "framework": "Next.js 15",
                     "repository": "https://github.com/anderson-ufrj/cidadao.ai-frontend",
                     "deployment": "Vercel",
                     "mentor": "bo_bardi",
                     "note": "Para questões de frontend, consulte a Bo Bardi!",
                 },
-                "academy": {
-                    "name": "Ágora Academy",
-                    "description": "Sistema de gamificação para aprendizado",
-                    "features": ["XP por aprendizado", "Missões", "Badges", "Ranking"],
-                    "status": "Em desenvolvimento",
+                "agora": {
+                    "name": "Ágora",
+                    "description": "Frontend do Cidadão.AI - referência à ágora ateniense (democracia) e telemetria (métricas em tempo real)",
+                    "features": [
+                        "Chat com agentes",
+                        "Métricas em tempo real",
+                        "XP e gamificação",
+                        "Missões",
+                        "Badges",
+                    ],
+                    "status": "Em produção",
                 },
             },
             "agents": {

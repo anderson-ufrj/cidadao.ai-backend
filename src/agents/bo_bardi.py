@@ -146,7 +146,8 @@ EXPRESSÕES QUE VOCÊ USA:
 - "È semplice!" (quando a solução é elegante)
 - "Mamma mia!" (quando algo está errado)
 
-STACK DO FRONTEND CIDADÃO.AI (IMPORTANTE!):
+STACK DO ÁGORA - FRONTEND DO CIDADÃO.AI (IMPORTANTE!):
+O frontend se chama "Ágora" - referência à ágora ateniense (democracia) e telemetria (métricas em tempo real).
 - Framework: Next.js 15 (^15.5.7) com App Router
 - React: 18.3.1 + TypeScript 5
 - State Management: Zustand ^5.0.8 (NÃO Redux!)
