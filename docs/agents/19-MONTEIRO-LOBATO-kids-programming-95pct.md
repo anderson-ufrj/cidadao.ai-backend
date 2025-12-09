@@ -5,16 +5,37 @@
 **Arquivo**: `src/agents/monteiro_lobato.py`
 **Classe**: `KidsProgrammingAgent`
 **Aliases**: `MonteiroLobatoAgent`, `LobatoAgent`
+**Base Class**: `BaseKidsAgent` (shared safety features)
+**Status**: 100% Operacional
+**Coverage**: 95%+ (20/20 E2E tests passing)
 
 ## Visao Geral
 
 Monteiro Lobato e o agente educador de programacao para criancas do Cidadao.AI, especializado em ensinar conceitos de codigo e logica usando linguagem natural, historias divertidas e referencias ao Sitio do Picapau Amarelo. Inspirado no grande escritor brasileiro Jose Bento Renato Monteiro Lobato (1882-1948), considerado o pai da literatura infantil brasileira.
 
+## Arquitetura
+
+```
+BaseKidsAgent (base_kids_agent.py)
+├── BLOCKED_TOPICS (70 items - single source of truth)
+├── is_content_safe() (shared)
+├── is_topic_allowed() (shared)
+├── _generate_response() with DSPy (shared)
+└── process() (shared)
+    │
+    └── KidsProgrammingAgent (monteiro_lobato.py)
+        ├── ALLOWED_TOPICS_PROGRAMMING (130 items)
+        ├── PERSONALITY_PROMPT (Sitio do Picapau Amarelo)
+        ├── _get_safe_redirect_response()
+        └── _get_fallback_response()
+```
+
 ## Caracteristicas Principais
 
 **EXTREMAMENTE RESTRITIVO**: Este agente foi projetado com foco total em seguranca para criancas:
-- Filtro de conteudo rigoroso (50+ topicos bloqueados)
-- Apenas topicos educativos permitidos (100+ topicos seguros)
+- Herda de `BaseKidsAgent` para filtro de conteudo centralizado
+- 70 topicos bloqueados (BLOCKED_TOPICS compartilhado)
+- 130 topicos educativos permitidos (ALLOWED_TOPICS_PROGRAMMING)
 - Redirecionamento automatico de perguntas inadequadas
 - Linguagem simples para criancas de 6-12 anos
 
@@ -69,7 +90,18 @@ Monteiro Lobato e o agente educador de programacao para criancas do Cidadao.AI, 
 
 ## Seguranca de Conteudo
 
-### Topicos Bloqueados (50+)
+### BaseKidsAgent - Single Source of Truth
+
+O agente herda de `BaseKidsAgent` que centraliza as safety features:
+
+```python
+from src.agents.base_kids_agent import BaseKidsAgent, BLOCKED_TOPICS
+
+# BLOCKED_TOPICS (70 items) - shared across all kids agents
+# Prevents drift between Monteiro Lobato, Tarsila, and future kids agents
+```
+
+### Topicos Bloqueados (70 - via BaseKidsAgent)
 
 O agente bloqueia automaticamente qualquer mencao a:
 - Violencia (matar, arma, guerra, sangue)
@@ -81,7 +113,7 @@ O agente bloqueia automaticamente qualquer mencao a:
 - Informacoes pessoais (senha, cartao, banco)
 - Politica (eleicao, presidente)
 
-### Topicos Permitidos (100+)
+### Topicos Permitidos (130 - ALLOWED_TOPICS_PROGRAMMING)
 
 O agente aceita perguntas sobre:
 - **Programacao**: variavel, funcao, loop, algoritmo, jogo, robo
@@ -140,24 +172,102 @@ E so isso! Uma caixinha com nome que guarda algo dentro.
 Quer tentar criar sua propria caixinha?
 ```
 
-## Testes
+## API Usage
+
+### Chat Endpoint
 
 ```bash
-# Executar testes
-JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_monteiro_lobato.py -v
+POST /api/v1/chat/stream
+Content-Type: application/json
 
-# Testes especificos
-JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_monteiro_lobato.py::TestContentSafety -v
+{
+  "message": "Quero aprender programacao!",
+  "session_id": "unique-session-id",
+  "agent_id": "monteiro_lobato"
+}
+```
+
+### Agent Aliases
+
+| Alias | Routes To |
+|-------|-----------|
+| `lobato` | `monteiro_lobato` |
+| `monteiro` | `monteiro_lobato` |
+| `monteiro-lobato` | `monteiro_lobato` |
+
+## Testes
+
+### E2E Production Tests
+
+```bash
+# Run all E2E tests
+python tests/e2e/test_kids_agents_production.py
+
+# Run with pytest
+pytest tests/e2e/test_kids_agents_production.py -v -k "monteiro"
+```
+
+### Test Scenarios (10/10 Passing)
+
+| Scenario | Description | Status |
+|----------|-------------|--------|
+| `greeting` | Welcome and introduce programming | PASSED |
+| `variables_concept` | Explain variables using Emilia's boxes | PASSED |
+| `loops_concept` | Explain loops using Saci's jumping | PASSED |
+| `functions_concept` | Explain functions using Tia Nastacia's recipes | PASSED |
+| `conditionals_concept` | Explain conditionals using Pedrinho's decisions | PASSED |
+| `games_interest` | Respond to game creation interest | PASSED |
+| `age_appropriate_language` | Use simple language, avoid jargon | PASSED |
+| `encouragement` | Provide encouragement when frustrated | PASSED |
+| `off_topic_redirect` | Redirect off-topic questions | PASSED |
+| `alias_lobato` | Test 'lobato' alias routes correctly | PASSED |
+
+### Unit Tests
+
+```bash
+JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_monteiro_lobato.py -v
 ```
 
 ## Integracao com DSPy
 
-O agente pode usar o servico DSPy para gerar respostas dinamicas via Maritaca AI (sabia-3.1), com fallback para respostas pre-definidas quando o servico nao esta disponivel.
+O agente usa o servico DSPy para gerar respostas dinamicas via Maritaca AI (sabia-3.1):
+
+```python
+# In BaseKidsAgent._generate_response()
+if _DSPY_AVAILABLE and _dspy_service and self.personality_prompt:
+    response = await _dspy_service.generate_response(
+        agent_name=self.name,
+        personality_prompt=self.personality_prompt,
+        user_message=message,
+        context={
+            "target_audience": "children_6_12",
+            "style": "fun_educational",
+            "max_words": 150,
+        },
+    )
+```
+
+Fallback para respostas pre-definidas quando o servico nao esta disponivel.
 
 ## Metricas
 
-- **Topicos bloqueados**: 50+
-- **Topicos permitidos**: 100+
-- **Personagens do Sitio**: 6
-- **Capacidades**: 5
-- **Cobertura de testes**: 25+ testes unitarios
+| Metrica | Valor |
+|---------|-------|
+| Topicos bloqueados | 70 (via BaseKidsAgent) |
+| Topicos permitidos | 130 |
+| Personagens do Sitio | 6 |
+| Capacidades | 5 |
+| E2E Tests | 10/10 passing |
+| Production Status | Live |
+
+## Relacionamento com Outros Agentes
+
+- **Tarsila do Amaral**: Sister agent for design education (same BaseKidsAgent)
+- **Bo Bardi**: Frontend mentor (can recommend for UI topics)
+- **Santos Dumont**: Backend educator (for older learners)
+
+## Autor
+
+- **Data**: 2025-12-09
+- **Autor**: Anderson H. Silva
+- **Licenca**: Proprietary - All rights reserved
