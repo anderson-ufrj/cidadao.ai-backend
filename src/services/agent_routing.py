@@ -33,6 +33,9 @@ class AgentRole(Enum):
     VISUALIZER = "visualizer"  # Oscar Niemeyer - creates visualizations
     SOCIAL_EQUITY = "social_equity"  # Dandara - social justice analysis
     FRONTEND_DESIGNER = "frontend_designer"  # Bo Bardi - frontend integration
+    KIDS_EDUCATOR = (
+        "kids_educator"  # Monteiro Lobato & Tarsila - educational for children
+    )
 
 
 # Canonical agent registry with metadata
@@ -181,6 +184,22 @@ AGENT_REGISTRY: dict[str, dict[str, Any]] = {
         "avatar": "🎨",
         "is_orchestrator": False,
     },
+    "monteiro_lobato": {
+        "name": "Monteiro Lobato",
+        "full_name": "José Bento Renato Monteiro Lobato",
+        "role": AgentRole.KIDS_EDUCATOR,
+        "description": "Educador Infantil - ensina programação para crianças com histórias do Sítio do Picapau Amarelo",
+        "avatar": "📚",
+        "is_orchestrator": False,
+    },
+    "tarsila": {
+        "name": "Tarsila do Amaral",
+        "full_name": "Tarsila do Amaral",
+        "role": AgentRole.KIDS_EDUCATOR,
+        "description": "Educadora Artística - ensina design e arte para crianças com inspiração modernista",
+        "avatar": "🎨",
+        "is_orchestrator": False,
+    },
 }
 
 # Agent name aliases for flexible matching
@@ -209,6 +228,16 @@ AGENT_ALIASES: dict[str, str] = {
     "bardi": "bo_bardi",
     "lina": "bo_bardi",
     "linabobardi": "bo_bardi",
+    # Monteiro Lobato variations
+    "monteiro-lobato": "monteiro_lobato",
+    "monteirolobato": "monteiro_lobato",
+    "lobato": "monteiro_lobato",
+    "monteiro": "monteiro_lobato",
+    # Tarsila do Amaral variations
+    "tarsila-do-amaral": "tarsila",
+    "tarsila_do_amaral": "tarsila",
+    "tarsiladoamaral": "tarsila",
+    "amaral": "tarsila",
 }
 
 # Default orchestrator when no agent is specified
