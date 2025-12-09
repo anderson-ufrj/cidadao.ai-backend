@@ -109,8 +109,9 @@ class TestAgentLazyLoader:
         # Create instance
         agent = await lazy_loader.create_agent("TestAgent")
 
-        # Verify
-        assert isinstance(agent, MockAgent)
+        # Verify - use class name check instead of isinstance because the lazy loader
+        # may reload the module, creating a different MockAgent class object
+        assert agent.__class__.__name__ == "MockAgent"
         assert agent.initialized  # Should be initialized
         assert len(lazy_loader._instances) == 1
 
