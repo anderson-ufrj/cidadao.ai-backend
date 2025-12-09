@@ -5,16 +5,37 @@
 **Arquivo**: `src/agents/tarsila.py`
 **Classe**: `KidsDesignAgent`
 **Aliases**: `TarsilaAgent`, `TarsilaDoAmaralAgent`
+**Base Class**: `BaseKidsAgent` (shared safety features)
+**Status**: 100% Operacional
+**Coverage**: 95%+ (20/20 E2E tests passing)
 
 ## Visao Geral
 
 Tarsila do Amaral e a agente educadora de design e estetica para criancas do Cidadao.AI, especializada em ensinar teoria das cores, principios de design, harmonia visual e apreciacao artistica. Inspirada na grande pintora brasileira Tarsila do Amaral (1886-1973), icone do modernismo brasileiro e criadora do Abaporu.
 
+## Arquitetura
+
+```
+BaseKidsAgent (base_kids_agent.py)
+├── BLOCKED_TOPICS (70 items - single source of truth)
+├── is_content_safe() (shared)
+├── is_topic_allowed() (shared)
+├── _generate_response() with DSPy (shared)
+└── process() (shared)
+    │
+    └── KidsDesignAgent (tarsila.py)
+        ├── ALLOWED_TOPICS_DESIGN (162 items)
+        ├── PERSONALITY_PROMPT (Brazilian Modernism)
+        ├── _get_safe_redirect_response()
+        └── _get_fallback_response()
+```
+
 ## Caracteristicas Principais
 
 **EXTREMAMENTE RESTRITIVO**: Este agente foi projetado com foco total em seguranca para criancas:
-- Filtro de conteudo rigoroso (50+ topicos bloqueados)
-- Apenas topicos de design e arte permitidos (100+ topicos seguros)
+- Herda de `BaseKidsAgent` para filtro de conteudo centralizado
+- 70 topicos bloqueados (BLOCKED_TOPICS compartilhado)
+- 162 topicos de design e arte permitidos (ALLOWED_TOPICS_DESIGN)
 - Redirecionamento automatico de perguntas inadequadas
 - Linguagem visual e poetica para criancas de 6-12 anos
 
@@ -87,7 +108,18 @@ Tarsila do Amaral e a agente educadora de design e estetica para criancas do Cid
 
 ## Seguranca de Conteudo
 
-### Topicos Bloqueados (50+)
+### BaseKidsAgent - Single Source of Truth
+
+O agente herda de `BaseKidsAgent` que centraliza as safety features:
+
+```python
+from src.agents.base_kids_agent import BaseKidsAgent, BLOCKED_TOPICS
+
+# BLOCKED_TOPICS (70 items) - shared across all kids agents
+# Prevents drift between Monteiro Lobato, Tarsila, and future kids agents
+```
+
+### Topicos Bloqueados (70 - via BaseKidsAgent)
 
 O agente bloqueia automaticamente qualquer mencao a:
 - Violencia, conteudo adulto, drogas
@@ -97,7 +129,7 @@ O agente bloqueia automaticamente qualquer mencao a:
 - Informacoes pessoais
 - Politica
 
-### Topicos Permitidos (100+)
+### Topicos Permitidos (162 - ALLOWED_TOPICS_DESIGN)
 
 O agente aceita perguntas sobre:
 - **Cores**: vermelho, azul, amarelo, verde, quente, fria, arcoiris
@@ -138,40 +170,102 @@ print(response.result["response"])
 
 ## Exemplo de Resposta
 
-**Pergunta**: "O que sao cores quentes?"
+**Pergunta**: "O que e contraste?"
 
 **Resposta**:
 ```
-Ah, as cores quentes! Sao minhas favoritas para pintar o Brasil!
+Contraste e a magia de colocar coisas diferentes lado a lado!
 
-VERMELHO e como o coracao batendo - cheio de energia e paixao!
-LARANJA e o por do sol em Copacabana - alegria pura!
-AMARELO e o nosso sol tropical - luz e felicidade!
+Imagina: voce coloca um circulo amarelo bem brilhante num fundo azul escuro.
+O que acontece? O amarelo parece explodir de tao vivo! Isso e contraste!
 
-No meu quadro Abaporu, usei muito amarelo e tons quentes. Sabe por que?
-Porque queria mostrar o calor da nossa terra brasileira!
+E como quando voce usa uma roupa escura e um tenis colorido -
+o tenis chama toda a atencao!
 
-Cores quentes parecem "pular" da tela! Elas chamam atencao, gritam "olha pra mim!"
+No design, usamos contraste para:
+- Destacar coisas importantes
+- Criar interesse visual
+- Guiar os olhos de quem ve
 
-Quando voce quer que algo seja notado num desenho, use cores quentes!
-E como colocar um solzinho brilhante no seu papel.
-
-Qual cor quente voce mais gosta?
+Quer experimentar criar um desenho usando contraste?
 ```
+
+## API Usage
+
+### Chat Endpoint
+
+```bash
+POST /api/v1/chat/stream
+Content-Type: application/json
+
+{
+  "message": "Me ensina sobre cores!",
+  "session_id": "unique-session-id",
+  "agent_id": "tarsila"
+}
+```
+
+### Agent Aliases
+
+| Alias | Routes To |
+|-------|-----------|
+| `amaral` | `tarsila` |
+| `tarsila_do_amaral` | `tarsila` |
+| `tarsila-do-amaral` | `tarsila` |
 
 ## Testes
 
-```bash
-# Executar testes
-JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_tarsila.py -v
+### E2E Production Tests
 
-# Testes especificos
-JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_tarsila.py::TestDesignContentSafety -v
+```bash
+# Run all E2E tests
+python tests/e2e/test_kids_agents_production.py
+
+# Run with pytest
+pytest tests/e2e/test_kids_agents_production.py -v -k "tarsila"
+```
+
+### Test Scenarios (10/10 Passing)
+
+| Scenario | Description | Status |
+|----------|-------------|--------|
+| `greeting` | Welcome and introduce art concepts | PASSED |
+| `colors_concept` | Explain color theory in simple terms | PASSED |
+| `character_design` | Help with character design concepts | PASSED |
+| `composition` | Teach basic composition principles | PASSED |
+| `contrast` | Explain contrast in simple terms | PASSED |
+| `brazilian_art` | Share knowledge about Brazilian art | PASSED |
+| `ui_design_for_kids` | Simple UI design concepts for children | PASSED |
+| `encouragement` | Encourage when child is frustrated | PASSED |
+| `off_topic_redirect` | Redirect off-topic questions | PASSED |
+| `alias_amaral` | Test 'amaral' alias routes correctly | PASSED |
+
+### Unit Tests
+
+```bash
+JWT_SECRET_KEY=test SECRET_KEY=test pytest tests/unit/agents/test_tarsila.py -v
 ```
 
 ## Integracao com DSPy
 
-O agente pode usar o servico DSPy para gerar respostas dinamicas via Maritaca AI (sabia-3.1), com fallback para respostas pre-definidas quando o servico nao esta disponivel.
+O agente usa o servico DSPy para gerar respostas dinamicas via Maritaca AI (sabia-3.1):
+
+```python
+# In BaseKidsAgent._generate_response()
+if _DSPY_AVAILABLE and _dspy_service and self.personality_prompt:
+    response = await _dspy_service.generate_response(
+        agent_name=self.name,
+        personality_prompt=self.personality_prompt,
+        user_message=message,
+        context={
+            "target_audience": "children_6_12",
+            "style": "fun_educational",
+            "max_words": 150,
+        },
+    )
+```
+
+Fallback para respostas pre-definidas quando o servico nao esta disponivel.
 
 ## Aplicacoes
 
@@ -192,8 +286,23 @@ O agente pode ensinar conceitos basicos de design de interface:
 
 ## Metricas
 
-- **Topicos bloqueados**: 50+
-- **Topicos permitidos**: 100+
-- **Obras de referencia**: 5
-- **Capacidades**: 5
-- **Cobertura de testes**: 34+ testes unitarios
+| Metrica | Valor |
+|---------|-------|
+| Topicos bloqueados | 70 (via BaseKidsAgent) |
+| Topicos permitidos | 162 |
+| Obras de referencia | 5 |
+| Capacidades | 5 |
+| E2E Tests | 10/10 passing |
+| Production Status | Live |
+
+## Relacionamento com Outros Agentes
+
+- **Monteiro Lobato**: Brother agent for programming education (same BaseKidsAgent)
+- **Bo Bardi**: Frontend mentor (can collaborate on design topics)
+- **Oscar Niemeyer**: Data visualization (for older learners)
+
+## Autor
+
+- **Data**: 2025-12-09
+- **Autor**: Anderson H. Silva
+- **Licenca**: Proprietary - All rights reserved
