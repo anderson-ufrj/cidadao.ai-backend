@@ -5,119 +5,18 @@ Description: RAG agent specialized in teaching programming concepts to kids usin
 Author: Anderson H. Silva
 Date: 2025-12-09
 License: Proprietary - All rights reserved
+
+Inherits from BaseKidsAgent for centralized safety features.
 """
 
 from typing import Any
 
-from src.agents.deodoro import (
-    AgentContext,
-    AgentMessage,
-    AgentResponse,
-    AgentStatus,
-    BaseAgent,
-)
-from src.core import get_logger
-
-# Import DSPy service for intelligent responses
-try:
-    from src.services.dspy_agents import get_dspy_agent_service
-
-    _dspy_service = get_dspy_agent_service()
-    _DSPY_AVAILABLE = _dspy_service.is_available() if _dspy_service else False
-except ImportError:
-    _dspy_service = None
-    _DSPY_AVAILABLE = False
-
+from src.agents.base_kids_agent import BaseKidsAgent
 
 # =============================================================================
-# BLOCKED TOPICS - EXTREMELY RESTRICTIVE CONTENT FILTER
+# ALLOWED TOPICS - PROGRAMMING AND EDUCATIONAL CONTENT FOR KIDS
 # =============================================================================
-BLOCKED_TOPICS = [
-    # Violence
-    "violencia",
-    "violence",
-    "matar",
-    "kill",
-    "morte",
-    "death",
-    "arma",
-    "weapon",
-    "gun",
-    "guerra",
-    "war",
-    "sangue",
-    "blood",
-    "briga",
-    "fight",
-    "lutar",
-    # Adult content
-    "sexo",
-    "sex",
-    "pornografia",
-    "adulto",
-    "adult",
-    "namorar",
-    "beijar",
-    # Drugs and substances
-    "droga",
-    "drug",
-    "alcool",
-    "alcohol",
-    "cerveja",
-    "beer",
-    "cigarro",
-    "cigarette",
-    "fumar",
-    "smoke",
-    # Dangerous activities
-    "hackear",
-    "hack",
-    "invadir",
-    "roubar",
-    "steal",
-    "crime",
-    "ilegal",
-    "illegal",
-    # Scary content
-    "terror",
-    "horror",
-    "medo",
-    "fear",
-    "assustador",
-    "scary",
-    "pesadelo",
-    "nightmare",
-    "monstro",
-    "monster",
-    # Hate speech
-    "odio",
-    "hate",
-    "racismo",
-    "racism",
-    "preconceito",
-    "bullying",
-    # Personal information
-    "senha",
-    "password",
-    "cartao",
-    "card",
-    "banco",
-    "bank",
-    "dinheiro",
-    "money",
-    # Politics and controversy
-    "politica",
-    "politics",
-    "eleicao",
-    "election",
-    "presidente",
-    "presidente",
-]
-
-# =============================================================================
-# ALLOWED TOPICS - SAFE CONTENT FOR KIDS
-# =============================================================================
-ALLOWED_TOPICS = [
+ALLOWED_TOPICS_PROGRAMMING = [
     # Programming concepts
     "programacao",
     "programming",
@@ -212,6 +111,8 @@ ALLOWED_TOPICS = [
     "magic",
     "fantasia",
     "fantasy",
+    "nastacia",
+    "saci",
     # Educational
     "aprender",
     "learn",
@@ -233,7 +134,7 @@ ALLOWED_TOPICS = [
     "invent",
     "descobrir",
     "discover",
-    # Nature and animals
+    # Nature and animals (for metaphors)
     "animal",
     "bicho",
     "cachorro",
@@ -252,88 +153,13 @@ ALLOWED_TOPICS = [
     "tree",
     "natureza",
     "nature",
-    # Greetings and basic conversation
-    "ola",
-    "oi",
-    "hello",
-    "hi",
-    "tchau",
-    "bye",
-    "obrigado",
-    "thanks",
-    "por favor",
-    "please",
-    "como",
-    "how",
-    "porque",
-    "why",
-    "quando",
-    "when",
-    "onde",
-    "where",
-    "quem",
-    "who",
-    "o que",
-    "what",
-    "ajuda",
-    "help",
 ]
 
 
-class KidsProgrammingAgent(BaseAgent):
-    """
-    Monteiro Lobato - Educador de Programacao para Criancas
-
-    MISSAO:
-    Ensinar conceitos de programacao para criancas usando linguagem natural,
-    historias divertidas e referencias ao Sitio do Picapau Amarelo.
-
-    SOBRE MONTEIRO LOBATO:
-    - Jose Bento Renato Monteiro Lobato (1882-1948)
-    - Considerado o pai da literatura infantil brasileira
-    - Criador do Sitio do Picapau Amarelo e personagens iconicos
-    - Revolucionou a forma de falar com criancas sobre temas complexos
-    - Misturava fantasia com educacao de forma natural
-
-    FILOSOFIA:
-    - "Um pais se faz com homens e livros" - educacao como base
-    - Criancas sao inteligentes e merecem respeito intelectual
-    - Aprender deve ser divertido como uma aventura no Sitio
-    - Usar fantasia para explicar conceitos reais
-
-    CARACTERISTICAS DO AGENTE:
-    - EXTREMAMENTE RESTRITIVO: So fala sobre programacao e temas infantis
-    - Usa linguagem simples e acessivel para criancas de 6-12 anos
-    - Referencias ao Sitio do Picapau Amarelo para ilustrar conceitos
-    - Transforma codigo em historias e aventuras
-    - Nunca usa jargao tecnico sem explicar de forma divertida
-
-    EXEMPLOS DE EXPLICACOES:
-    - Variavel: "E como uma caixinha onde a Emilia guarda suas ideias!"
-    - Loop: "E quando o Pedrinho faz a mesma coisa varias vezes, tipo comer brigadeiro!"
-    - Funcao: "E como uma receita da Tia Nastacia - voce segue os passos e sai algo gostoso!"
-    - Condicional: "SE chover, ENTAO Narizinho fica em casa, SENAO vai brincar no sitio!"
-    """
-
-    def __init__(self, config: dict[str, Any] | None = None):
-        super().__init__(
-            name="monteiro_lobato",
-            description="Monteiro Lobato - Educador de Programacao para Criancas do Cidadao.AI",
-            capabilities=[
-                "teach_programming_basics",
-                "explain_algorithms",
-                "tell_code_stories",
-                "answer_kids_questions",
-                "make_learning_fun",
-            ],
-            max_retries=3,
-            timeout=60,
-        )
-        self.logger = get_logger(__name__)
-        self.config = config or {}
-
-        # Personality configuration - DIVERTIDO E EDUCATIVO
-        self.personality_prompt = """Voce e Monteiro Lobato, o criador do Sitio do Picapau Amarelo!
+# =============================================================================
+# PERSONALITY PROMPT - MONTEIRO LOBATO CHARACTER
+# =============================================================================
+PERSONALITY_PROMPT = """Voce e Monteiro Lobato, o criador do Sitio do Picapau Amarelo!
 
 REGRAS ABSOLUTAS (NUNCA QUEBRE ESSAS REGRAS):
 1. Voce SO fala sobre programacao, logica, matematica e temas educativos para criancas
@@ -368,25 +194,57 @@ FORMATO DAS RESPOSTAS:
 - Termine com encorajamento ou desafio divertido
 - Respostas curtas e objetivas (maximo 150 palavras)
 
-EXEMPLO DE RESPOSTA:
-"Ola, pequeno programador! Que bom te ver no Sitio!
-
-Sabe o que e uma variavel? E como a caixinha onde a Emilia guarda suas ideias malucas!
-Imagina que a Emilia tem uma caixa chamada 'idade'. Dentro dela, ela coloca o numero 8.
-Quando alguem pergunta 'Emilia, quantos anos voce tem?', ela abre a caixa e mostra: 8!
-
-Em programacao, escrevemos assim:
-idade = 8
-
-Facil, ne? E so uma caixinha com nome!
-Quer tentar criar sua propria caixinha agora?"
-
 LEMBRE-SE: Voce e um educador GENTIL e PACIENTE. Criancas podem errar e perguntar varias vezes - e assim que se aprende!"""
 
-        self.logger.info(
-            "kids_programming_agent_initialized",
-            agent_name=self.name,
-            dspy_available=_DSPY_AVAILABLE,
+
+class KidsProgrammingAgent(BaseKidsAgent):
+    """
+    Monteiro Lobato - Educador de Programacao para Criancas
+
+    MISSAO:
+    Ensinar conceitos de programacao para criancas usando linguagem natural,
+    historias divertidas e referencias ao Sitio do Picapau Amarelo.
+
+    SOBRE MONTEIRO LOBATO:
+    - Jose Bento Renato Monteiro Lobato (1882-1948)
+    - Considerado o pai da literatura infantil brasileira
+    - Criador do Sitio do Picapau Amarelo e personagens iconicos
+    - Revolucionou a forma de falar com criancas sobre temas complexos
+    - Misturava fantasia com educacao de forma natural
+
+    FILOSOFIA:
+    - "Um pais se faz com homens e livros" - educacao como base
+    - Criancas sao inteligentes e merecem respeito intelectual
+    - Aprender deve ser divertido como uma aventura no Sitio
+    - Usar fantasia para explicar conceitos reais
+
+    Inherits safety features from BaseKidsAgent:
+    - BLOCKED_TOPICS filtering
+    - is_content_safe() method
+    - is_topic_allowed() method
+    - Safe redirect behavior
+    """
+
+    # Domain-specific allowed topics (inherited from BaseKidsAgent)
+    allowed_topics = ALLOWED_TOPICS_PROGRAMMING
+
+    # Agent personality for LLM (inherited from BaseKidsAgent)
+    personality_prompt = PERSONALITY_PROMPT
+
+    def __init__(self, config: dict[str, Any] | None = None):
+        super().__init__(
+            name="monteiro_lobato",
+            description="Monteiro Lobato - Educador de Programacao para Criancas do Cidadao.AI",
+            capabilities=[
+                "teach_programming_basics",
+                "explain_algorithms",
+                "tell_code_stories",
+                "answer_kids_questions",
+                "make_learning_fun",
+            ],
+            max_retries=3,
+            timeout=60,
+            config=config,
         )
 
     async def initialize(self) -> None:
@@ -396,50 +254,6 @@ LEMBRE-SE: Voce e um educador GENTIL e PACIENTE. Criancas podem errar e pergunta
     async def shutdown(self) -> None:
         """Cleanup agent resources."""
         self.logger.info(f"{self.name} agent shutting down - Ate a proxima aventura!")
-
-    def _is_content_safe(self, text: str) -> tuple[bool, str]:
-        """
-        Check if content is safe for kids.
-
-        Args:
-            text: Text to check
-
-        Returns:
-            Tuple of (is_safe, reason)
-        """
-        text_lower = text.lower()
-
-        # Check for blocked topics
-        for blocked in BLOCKED_TOPICS:
-            if blocked in text_lower:
-                return False, f"Conteudo nao apropriado detectado: {blocked}"
-
-        return True, "Conteudo seguro"
-
-    def _is_topic_allowed(self, text: str) -> bool:
-        """
-        Check if topic is within allowed scope.
-
-        Args:
-            text: Text to check
-
-        Returns:
-            True if topic is allowed
-        """
-        text_lower = text.lower()
-
-        # Check if any allowed topic is mentioned
-        for allowed in ALLOWED_TOPICS:
-            if allowed in text_lower:
-                return True
-
-        # If no specific topic detected, allow general questions
-        general_patterns = ["o que", "como", "porque", "quando", "onde", "quem", "?"]
-        for pattern in general_patterns:
-            if pattern in text_lower:
-                return True
-
-        return False
 
     def _get_safe_redirect_response(self) -> str:
         """Get a safe redirect response when content is not appropriate."""
@@ -454,60 +268,6 @@ Quer que eu te ensine:
 
 Escolhe um e vamos nessa aventura juntos!"""
 
-    async def _generate_response(self, message: str, context: AgentContext) -> str:
-        """
-        Generate a safe, educational response for kids.
-
-        Args:
-            message: User message
-            context: Agent context
-
-        Returns:
-            Safe response string
-        """
-        # Check content safety
-        is_safe, reason = self._is_content_safe(message)
-        if not is_safe:
-            self.logger.warning(
-                "unsafe_content_detected",
-                reason=reason,
-                investigation_id=context.investigation_id,
-            )
-            return self._get_safe_redirect_response()
-
-        # Check if topic is allowed
-        if not self._is_topic_allowed(message):
-            self.logger.info(
-                "topic_redirect",
-                message=message[:50],
-                investigation_id=context.investigation_id,
-            )
-            return self._get_safe_redirect_response()
-
-        # Try DSPy service if available
-        if _DSPY_AVAILABLE and _dspy_service:
-            try:
-                response = await _dspy_service.generate_response(
-                    agent_name="monteiro_lobato",
-                    personality_prompt=self.personality_prompt,
-                    user_message=message,
-                    context={
-                        "target_audience": "children_6_12",
-                        "style": "fun_educational",
-                        "max_words": 150,
-                    },
-                )
-                if response:
-                    # Double-check the generated response is safe
-                    is_safe, _ = self._is_content_safe(response)
-                    if is_safe:
-                        return response
-            except Exception as e:
-                self.logger.warning(f"DSPy generation failed: {e}")
-
-        # Fallback to predefined responses
-        return self._get_fallback_response(message)
-
     def _get_fallback_response(self, message: str) -> str:
         """
         Get a predefined fallback response based on message content.
@@ -520,7 +280,7 @@ Escolhe um e vamos nessa aventura juntos!"""
         """
         message_lower = message.lower()
 
-        # Programming concepts
+        # Programming concepts - Variables
         if any(
             word in message_lower
             for word in ["variavel", "variable", "caixa", "guardar"]
@@ -538,6 +298,7 @@ idade = 8
 E so isso! Uma caixinha com nome que guarda algo dentro.
 Quer tentar criar sua propria caixinha?"""
 
+        # Loops
         if any(
             word in message_lower
             for word in ["loop", "repeticao", "repetir", "varias vezes"]
@@ -556,6 +317,7 @@ Isso e um loop!
 
 Quer inventar seu proprio loop agora?"""
 
+        # Functions
         if any(word in message_lower for word in ["funcao", "function", "receita"]):
             return """Funcoes sao como as receitas magicas da Tia Nastacia!
 
@@ -576,6 +338,7 @@ funcao fazer_bolo():
 Depois e so chamar fazer_bolo() e pronto! Sai o bolo!
 Legal, ne? Quer criar sua propria receita de codigo?"""
 
+        # Conditionals
         if any(
             word in message_lower for word in ["se", "if", "senao", "else", "condicao"]
         ):
@@ -598,6 +361,7 @@ Voce toma decisoes assim o tempo todo, sabia?
 
 Quer criar uma decisao para a Narizinho?"""
 
+        # Greetings
         if any(
             word in message_lower
             for word in ["ola", "oi", "hello", "hi", "bom dia", "boa tarde"]
@@ -614,6 +378,7 @@ O que voce quer descobrir hoje?
 
 E so perguntar que a aventura comeca!"""
 
+        # Games
         if any(word in message_lower for word in ["jogo", "game", "brincar", "jogar"]):
             return """Jogos! A Emilia adora inventar jogos!
 
@@ -644,70 +409,6 @@ Eu sou especialista em ensinar programacao de um jeito divertido. Posso te ajuda
 - E muito mais!
 
 Sobre o que voce quer aprender hoje? Escolhe um tema e vamos nessa aventura juntos!"""
-
-    async def process(
-        self, message: AgentMessage, context: AgentContext
-    ) -> AgentResponse:
-        """
-        Process a message from a kid and return an educational response.
-
-        Args:
-            message: Message to process
-            context: Agent context
-
-        Returns:
-            AgentResponse with educational content
-        """
-        try:
-            self.logger.info(
-                "kids_message_received",
-                investigation_id=context.investigation_id,
-                agent_name=self.name,
-                action=message.action,
-            )
-
-            # Extract user message
-            user_message = ""
-            if isinstance(message.payload, dict):
-                user_message = message.payload.get(
-                    "message", message.payload.get("query", "")
-                )
-            elif isinstance(message.payload, str):
-                user_message = message.payload
-
-            if not user_message:
-                user_message = "ola"
-
-            # Generate safe, educational response
-            response_text = await self._generate_response(user_message, context)
-
-            return AgentResponse(
-                agent_name=self.name,
-                status=AgentStatus.COMPLETED,
-                result={
-                    "response": response_text,
-                    "agent": "monteiro_lobato",
-                    "target_audience": "kids_6_12",
-                    "topic": "programming_education",
-                },
-                metadata={
-                    "content_filtered": True,
-                    "safe_for_kids": True,
-                    "educational_focus": "programming",
-                },
-            )
-
-        except Exception as e:
-            self.logger.error(f"Error processing kids message: {e}")
-            return AgentResponse(
-                agent_name=self.name,
-                status=AgentStatus.ERROR,
-                error=str(e),
-                result={
-                    "response": "Ops! Algo deu errado aqui no Sitio. Pode tentar de novo?",
-                    "agent": "monteiro_lobato",
-                },
-            )
 
 
 # Aliases for easier imports
