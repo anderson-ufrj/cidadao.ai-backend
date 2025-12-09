@@ -174,8 +174,8 @@ TEST_SCENARIOS = [
 
 
 @dataclass
-class TestResult:
-    """Result of a single test case."""
+class ChatChatTestResult:
+    """Result of a single test case (renamed to avoid pytest collection)."""
 
     category: str
     message: str
@@ -252,7 +252,7 @@ def _parse_sse_response(content: str) -> tuple[str, str, bool, str]:
 
 async def test_single_message(
     client: httpx.AsyncClient, category: str, message: str, session_id: str
-) -> TestResult:
+) -> ChatTestResult:
     """
     Test a single message against the streaming endpoint.
 
@@ -263,13 +263,13 @@ async def test_single_message(
         session_id: Session ID for the conversation
 
     Returns:
-        TestResult with success/failure info and metrics
+        ChatTestResult with success/failure info and metrics
     """
     start = time.time()
 
     # Handle empty message
     if not message or not message.strip():
-        return TestResult(
+        return ChatTestResult(
             category=category,
             message=message or "(empty)",
             success=False,
@@ -287,7 +287,7 @@ async def test_single_message(
         elapsed = time.time() - start
 
         if response.status_code != 200:
-            return TestResult(
+            return ChatTestResult(
                 category=category,
                 message=message[:50],
                 success=False,
@@ -298,7 +298,7 @@ async def test_single_message(
 
         intent, agent, has_data, response_text = _parse_sse_response(response.text)
 
-        return TestResult(
+        return ChatTestResult(
             category=category,
             message=message[:50],
             success=True,
@@ -311,7 +311,7 @@ async def test_single_message(
         )
 
     except httpx.TimeoutException:
-        return TestResult(
+        return ChatTestResult(
             category=category,
             message=message[:50],
             success=False,
@@ -320,7 +320,7 @@ async def test_single_message(
             error="Timeout",
         )
     except Exception as e:
-        return TestResult(
+        return ChatTestResult(
             category=category,
             message=message[:50],
             success=False,
@@ -332,7 +332,7 @@ async def test_single_message(
 
 async def run_all_tests(
     category_filter: str | None = None,
-) -> list[TestResult]:
+) -> list[ChatTestResult]:
     """
     Run all test scenarios against production.
 
@@ -340,7 +340,7 @@ async def run_all_tests(
         category_filter: Optional filter to run only specific category
 
     Returns:
-        List of TestResult objects
+        List of ChatTestResult objects
     """
     print("=" * 70)
     print("🧪 CIDADÃO.AI PRODUCTION TEST SUITE")
@@ -391,7 +391,7 @@ async def run_all_tests(
 # =============================================================================
 
 
-def _compute_basic_stats(results: list[TestResult]) -> dict[str, Any]:
+def _compute_basic_stats(results: list[ChatTestResult]) -> dict[str, Any]:
     """Compute basic statistics from results."""
     total = len(results)
     successful = sum(1 for r in results if r.success)
@@ -407,7 +407,7 @@ def _compute_basic_stats(results: list[TestResult]) -> dict[str, Any]:
     }
 
 
-def _compute_category_stats(results: list[TestResult]) -> dict[str, dict[str, Any]]:
+def _compute_category_stats(results: list[ChatTestResult]) -> dict[str, dict[str, Any]]:
     """Compute per-category statistics."""
     categories: dict[str, dict[str, Any]] = {}
     for r in results:
@@ -420,7 +420,7 @@ def _compute_category_stats(results: list[TestResult]) -> dict[str, dict[str, An
     return categories
 
 
-def _compute_intent_stats(results: list[TestResult]) -> dict[str, int]:
+def _compute_intent_stats(results: list[ChatTestResult]) -> dict[str, int]:
     """Compute intent detection statistics."""
     intents: dict[str, int] = {}
     for r in results:
@@ -429,7 +429,7 @@ def _compute_intent_stats(results: list[TestResult]) -> dict[str, int]:
     return intents
 
 
-def _compute_agent_stats(results: list[TestResult]) -> dict[str, int]:
+def _compute_agent_stats(results: list[ChatTestResult]) -> dict[str, int]:
     """Compute agent usage statistics."""
     agents: dict[str, int] = {}
     for r in results:
@@ -482,7 +482,7 @@ def _print_analysis(
     stats: dict[str, Any],
     categories: dict[str, dict[str, Any]],
     intents: dict[str, int],
-    results: list[TestResult],
+    results: list[ChatTestResult],
 ) -> None:
     """Print SWOT-style analysis section."""
     print("\n" + "=" * 70)
@@ -528,12 +528,12 @@ def _print_analysis(
         print(f"   • Optimize response time for: {', '.join(slow_cats)}")
 
 
-def analyze_results(results: list[TestResult]) -> dict[str, Any]:
+def analyze_results(results: list[ChatTestResult]) -> dict[str, Any]:
     """
     Analyze test results and generate comprehensive report.
 
     Args:
-        results: List of TestResult objects
+        results: List of ChatTestResult objects
 
     Returns:
         Dictionary with analysis statistics

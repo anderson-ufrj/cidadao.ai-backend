@@ -37,8 +37,8 @@ CHAT_ENDPOINT = f"{PRODUCTION_URL}/api/v1/chat/stream"
 TIMEOUT = 60.0
 
 
-class TestStatus(Enum):
-    """Test result status."""
+class ScenarioStatus(Enum):
+    """Scenario result status (renamed to avoid pytest collection)."""
 
     PASSED = "PASSED"
     FAILED = "FAILED"
@@ -46,8 +46,8 @@ class TestStatus(Enum):
 
 
 @dataclass
-class TestScenario:
-    """Test scenario configuration."""
+class KidsScenario:
+    """Kids test scenario configuration (renamed to avoid pytest collection)."""
 
     name: str
     agent_id: str
@@ -61,49 +61,49 @@ class TestScenario:
 # MONTEIRO LOBATO TEST SCENARIOS
 # ============================================================================
 MONTEIRO_LOBATO_SCENARIOS = [
-    TestScenario(
+    KidsScenario(
         name="greeting",
         agent_id="monteiro_lobato",
         message="Ola! Sou uma crianca de 10 anos e quero aprender programacao",
         expected_keywords=["sitio"],  # Core identifier
         description="Basic greeting - should welcome and introduce programming concepts",
     ),
-    TestScenario(
+    KidsScenario(
         name="variables_concept",
         agent_id="monteiro_lobato",
         message="O que e uma variavel?",
         expected_keywords=["caixinha", "emilia"],  # Simplified - caixinha is used
         description="Explain variables using Emilia's boxes metaphor",
     ),
-    TestScenario(
+    KidsScenario(
         name="loops_concept",
         agent_id="monteiro_lobato",
         message="Como funciona um loop? O que e repeticao?",
         expected_keywords=["saci", "vezes"],  # Core concepts
         description="Explain loops using Saci's jumping metaphor",
     ),
-    TestScenario(
+    KidsScenario(
         name="functions_concept",
         agent_id="monteiro_lobato",
         message="O que e uma funcao em programacao?",
         expected_keywords=["receita", "nastacia"],  # Core metaphor
         description="Explain functions using Tia Nastacia's recipes metaphor",
     ),
-    TestScenario(
+    KidsScenario(
         name="conditionals_concept",
         agent_id="monteiro_lobato",
         message="Como funciona o SE e SENAO?",
         expected_keywords=["pedrinho", "se"],  # Core concept
         description="Explain conditionals using Pedrinho's decisions",
     ),
-    TestScenario(
+    KidsScenario(
         name="games_interest",
         agent_id="monteiro_lobato",
         message="Quero fazer um joguinho!",
         expected_keywords=["sitio"],  # May redirect to programming topics
         description="Respond to game creation interest",
     ),
-    TestScenario(
+    KidsScenario(
         name="age_appropriate_language",
         agent_id="monteiro_lobato",
         message="Explica algoritmo pra mim",
@@ -111,21 +111,21 @@ MONTEIRO_LOBATO_SCENARIOS = [
         blocked_keywords=["complexidade", "otimizacao", "big-o"],
         description="Should use simple language, avoid technical jargon",
     ),
-    TestScenario(
+    KidsScenario(
         name="encouragement",
         agent_id="monteiro_lobato",
         message="Eu nao entendi, e muito dificil",
         expected_keywords=["sitio"],  # Context reference
         description="Should provide encouragement when child is frustrated",
     ),
-    TestScenario(
+    KidsScenario(
         name="off_topic_redirect",
         agent_id="monteiro_lobato",
         message="Qual e a capital da Franca?",
         expected_keywords=["sitio"],  # Should redirect to sitio context
         description="Should redirect off-topic questions back to programming",
     ),
-    TestScenario(
+    KidsScenario(
         name="alias_lobato",
         agent_id="lobato",
         message="Oi Lobato!",
@@ -138,70 +138,70 @@ MONTEIRO_LOBATO_SCENARIOS = [
 # TARSILA DO AMARAL TEST SCENARIOS
 # ============================================================================
 TARSILA_SCENARIOS = [
-    TestScenario(
+    KidsScenario(
         name="greeting",
         agent_id="tarsila",
         message="Ola! Quero aprender sobre arte e design!",
         expected_keywords=["tarsila"],  # Should identify as Tarsila
         description="Basic greeting - should welcome and introduce art concepts",
     ),
-    TestScenario(
+    KidsScenario(
         name="colors_concept",
         agent_id="tarsila",
         message="Como funcionam as cores?",
         expected_keywords=["cor"],  # Core topic
         description="Explain color theory in simple terms",
     ),
-    TestScenario(
+    KidsScenario(
         name="character_design",
         agent_id="tarsila",
         message="Quero desenhar um personagem para meu jogo!",
         expected_keywords=["cor"],  # May redirect to colors/design
         description="Help with character design concepts",
     ),
-    TestScenario(
+    KidsScenario(
         name="composition",
         agent_id="tarsila",
         message="Como deixar meu desenho mais bonito?",
         expected_keywords=["cor"],  # Core design topic
         description="Teach basic composition principles",
     ),
-    TestScenario(
+    KidsScenario(
         name="contrast",
         agent_id="tarsila",
         message="O que e contraste?",
         expected_keywords=["contraste"],  # Direct topic
         description="Explain contrast in simple terms",
     ),
-    TestScenario(
+    KidsScenario(
         name="brazilian_art",
         agent_id="tarsila",
         message="Me fala sobre arte brasileira",
         expected_keywords=["tarsila"],  # Should reference self
         description="Share knowledge about Brazilian art",
     ),
-    TestScenario(
+    KidsScenario(
         name="ui_design_for_kids",
         agent_id="tarsila",
         message="Como fazer um botao bonito para meu app?",
         expected_keywords=["cor"],  # Design involves colors
         description="Simple UI design concepts for children",
     ),
-    TestScenario(
+    KidsScenario(
         name="encouragement",
         agent_id="tarsila",
         message="Meu desenho ficou feio",
         expected_keywords=["tarsila"],  # Context reference
         description="Should encourage when child is frustrated",
     ),
-    TestScenario(
+    KidsScenario(
         name="off_topic_redirect",
         agent_id="tarsila",
         message="Quanto e 2 mais 2?",
         expected_keywords=["cor"],  # Should redirect to art/design
         description="Should redirect off-topic questions back to art/design",
     ),
-    TestScenario(
+    KidsScenario(
         name="alias_amaral",
         agent_id="amaral",
         message="Oi Tarsila!",
@@ -259,7 +259,7 @@ def parse_sse_response(response_text: str) -> dict:
     }
 
 
-async def run_scenario(scenario: TestScenario) -> tuple[TestStatus, str]:
+async def run_scenario(scenario: KidsScenario) -> tuple[ScenarioStatus, str]:
     """
     Run a single test scenario against the production API.
 
@@ -285,7 +285,7 @@ async def run_scenario(scenario: TestScenario) -> tuple[TestStatus, str]:
 
             if response.status_code != 200:
                 return (
-                    TestStatus.FAILED,
+                    ScenarioStatus.FAILED,
                     f"HTTP {response.status_code}: {response.text[:200]}",
                 )
 
@@ -300,7 +300,7 @@ async def run_scenario(scenario: TestScenario) -> tuple[TestStatus, str]:
 
             if parsed["agent_id"] != expected_agent:
                 return (
-                    TestStatus.FAILED,
+                    ScenarioStatus.FAILED,
                     f"Wrong agent: expected {expected_agent}, got {parsed['agent_id']}",
                 )
 
@@ -313,7 +313,7 @@ async def run_scenario(scenario: TestScenario) -> tuple[TestStatus, str]:
 
             if missing_keywords:
                 return (
-                    TestStatus.FAILED,
+                    ScenarioStatus.FAILED,
                     f"Missing keywords: {missing_keywords}. Content: {content[:200]}...",
                 )
 
@@ -324,17 +324,20 @@ async def run_scenario(scenario: TestScenario) -> tuple[TestStatus, str]:
                     if keyword.lower() in content:
                         found_blocked.append(keyword)
                 if found_blocked:
-                    return TestStatus.FAILED, f"Found blocked keywords: {found_blocked}"
+                    return (
+                        ScenarioStatus.FAILED,
+                        f"Found blocked keywords: {found_blocked}",
+                    )
 
-            return TestStatus.PASSED, f"Response OK ({len(content)} chars)"
+            return ScenarioStatus.PASSED, f"Response OK ({len(content)} chars)"
 
     except httpx.TimeoutException:
-        return TestStatus.FAILED, "Request timeout"
+        return ScenarioStatus.FAILED, "Request timeout"
     except Exception as e:
-        return TestStatus.FAILED, f"Error: {type(e).__name__}: {str(e)}"
+        return ScenarioStatus.FAILED, f"Error: {type(e).__name__}: {str(e)}"
 
 
-async def run_all_scenarios(scenarios: list[TestScenario], agent_name: str) -> dict:
+async def run_all_scenarios(scenarios: list[KidsScenario], agent_name: str) -> dict:
     """
     Run all scenarios for an agent.
 
@@ -357,10 +360,10 @@ async def run_all_scenarios(scenarios: list[TestScenario], agent_name: str) -> d
 
         status, message = await run_scenario(scenario)
 
-        if status == TestStatus.PASSED:
+        if status == ScenarioStatus.PASSED:
             results["passed"] += 1
             print(f"    Result: PASSED - {message}")
-        elif status == TestStatus.FAILED:
+        elif status == ScenarioStatus.FAILED:
             results["failed"] += 1
             print(f"    Result: FAILED - {message}")
         else:
@@ -457,10 +460,10 @@ class TestMonteiroLobato:
     @pytest.mark.parametrize(
         "scenario", MONTEIRO_LOBATO_SCENARIOS, ids=lambda s: s.name
     )
-    async def test_scenario(self, scenario: TestScenario):
+    async def test_scenario(self, scenario: KidsScenario):
         """Test a Monteiro Lobato scenario."""
         status, message = await run_scenario(scenario)
-        assert status == TestStatus.PASSED, f"{scenario.name}: {message}"
+        assert status == ScenarioStatus.PASSED, f"{scenario.name}: {message}"
 
 
 class TestTarsila:
@@ -468,10 +471,10 @@ class TestTarsila:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("scenario", TARSILA_SCENARIOS, ids=lambda s: s.name)
-    async def test_scenario(self, scenario: TestScenario):
+    async def test_scenario(self, scenario: KidsScenario):
         """Test a Tarsila scenario."""
         status, message = await run_scenario(scenario)
-        assert status == TestStatus.PASSED, f"{scenario.name}: {message}"
+        assert status == ScenarioStatus.PASSED, f"{scenario.name}: {message}"
 
 
 class TestAgentAliases:
@@ -480,38 +483,38 @@ class TestAgentAliases:
     @pytest.mark.asyncio
     async def test_lobato_alias(self):
         """Test 'lobato' alias routes to monteiro_lobato."""
-        scenario = TestScenario(
+        scenario = KidsScenario(
             name="alias_test",
             agent_id="lobato",
             message="Ola!",
             expected_keywords=["sitio"],
         )
         status, message = await run_scenario(scenario)
-        assert status == TestStatus.PASSED, message
+        assert status == ScenarioStatus.PASSED, message
 
     @pytest.mark.asyncio
     async def test_monteiro_alias(self):
         """Test 'monteiro' alias routes to monteiro_lobato."""
-        scenario = TestScenario(
+        scenario = KidsScenario(
             name="alias_test",
             agent_id="monteiro",
             message="Ola!",
             expected_keywords=["sitio"],
         )
         status, message = await run_scenario(scenario)
-        assert status == TestStatus.PASSED, message
+        assert status == ScenarioStatus.PASSED, message
 
     @pytest.mark.asyncio
     async def test_amaral_alias(self):
         """Test 'amaral' alias routes to tarsila."""
-        scenario = TestScenario(
+        scenario = KidsScenario(
             name="alias_test",
             agent_id="amaral",
             message="Ola!",
             expected_keywords=["cor", "arte"],
         )
         status, message = await run_scenario(scenario)
-        assert status == TestStatus.PASSED, message
+        assert status == ScenarioStatus.PASSED, message
 
 
 if __name__ == "__main__":
