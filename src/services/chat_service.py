@@ -411,7 +411,7 @@ class IntentDetector:
                 r"muito\s+obrigad[oa]",
                 r"\bvaleu\b",
                 r"gratid[ãa]o",
-                r"agradec[çc]o",
+                r"agrade[çc]o",  # Fixed: was agradec[çc]o, but "agradeço" has ç before o
                 r"foi\s+[úu]til",
                 r"ajudou\s+muito",
                 r"perfeito",
