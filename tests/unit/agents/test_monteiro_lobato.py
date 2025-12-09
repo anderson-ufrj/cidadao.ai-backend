@@ -5,13 +5,14 @@ Tests content safety, educational responses, and proper content filtering.
 
 import pytest
 
-from src.agents.deodoro import AgentContext, AgentMessage
+from src.agents.base_kids_agent import BLOCKED_TOPICS
+from src.agents.deodoro import AgentContext, AgentMessage, AgentStatus
 from src.agents.monteiro_lobato import (
-    ALLOWED_TOPICS,
-    BLOCKED_TOPICS,
+    ALLOWED_TOPICS_PROGRAMMING,
     KidsProgrammingAgent,
+    LobatoAgent,
+    MonteiroLobatoAgent,
 )
-from src.core import AgentStatus
 
 
 @pytest.fixture
@@ -62,12 +63,14 @@ class TestMonteiroLobatoAgent:
     @pytest.mark.unit
     def test_allowed_topics_exist(self):
         """Test that allowed topics are properly defined."""
-        assert len(ALLOWED_TOPICS) > 100  # Ensure comprehensive allowed list
-        assert "programacao" in ALLOWED_TOPICS
-        assert "variavel" in ALLOWED_TOPICS
-        assert "loop" in ALLOWED_TOPICS
-        assert "emilia" in ALLOWED_TOPICS
-        assert "aprender" in ALLOWED_TOPICS
+        assert (
+            len(ALLOWED_TOPICS_PROGRAMMING) > 100
+        )  # Ensure comprehensive allowed list
+        assert "programacao" in ALLOWED_TOPICS_PROGRAMMING
+        assert "variavel" in ALLOWED_TOPICS_PROGRAMMING
+        assert "loop" in ALLOWED_TOPICS_PROGRAMMING
+        assert "emilia" in ALLOWED_TOPICS_PROGRAMMING
+        assert "aprender" in ALLOWED_TOPICS_PROGRAMMING
 
 
 class TestContentSafety:
@@ -88,7 +91,7 @@ class TestContentSafety:
             "me ensina a fazer um jogo",
         ]
         for text in safe_texts:
-            is_safe, _ = agent._is_content_safe(text)
+            is_safe, _ = agent.is_content_safe(text)
             assert is_safe, f"'{text}' should be safe"
 
     @pytest.mark.unit
@@ -102,7 +105,7 @@ class TestContentSafety:
             "quero matar alguem",
         ]
         for text in unsafe_texts:
-            is_safe, _ = agent._is_content_safe(text)
+            is_safe, _ = agent.is_content_safe(text)
             assert not is_safe, f"'{text}' should NOT be safe"
 
     @pytest.mark.unit
@@ -116,7 +119,7 @@ class TestContentSafety:
             "como criar um jogo",
         ]
         for topic in programming_topics:
-            assert agent._is_topic_allowed(topic), f"'{topic}' should be allowed"
+            assert agent.is_topic_allowed(topic), f"'{topic}' should be allowed"
 
     @pytest.mark.unit
     def test_topic_allowed_sitio_references(self, agent):
@@ -128,7 +131,7 @@ class TestContentSafety:
             "visconde explica bem",
         ]
         for ref in sitio_refs:
-            assert agent._is_topic_allowed(ref), f"'{ref}' should be allowed"
+            assert agent.is_topic_allowed(ref), f"'{ref}' should be allowed"
 
 
 class TestAgentResponses:
@@ -226,7 +229,7 @@ class TestAgentProcess:
         assert response.status == AgentStatus.COMPLETED
         assert response.agent_name == "monteiro_lobato"
         assert "response" in response.result
-        assert response.metadata.get("safe_for_kids") is True
+        assert response.result.get("safe_content") is True
         assert response.metadata.get("content_filtered") is True
 
     @pytest.mark.unit
@@ -244,7 +247,7 @@ class TestAgentProcess:
         response = await agent.process(message, context)
 
         assert response.status == AgentStatus.COMPLETED
-        assert response.metadata.get("safe_for_kids") is True
+        assert response.result.get("safe_content") is True
         # Response should redirect to programming topics
         assert (
             "programacao" in response.result["response"].lower()
@@ -292,16 +295,12 @@ class TestAgentAliases:
     @pytest.mark.unit
     def test_monteiro_lobato_alias(self):
         """Test MonteiroLobatoAgent alias exists."""
-        from src.agents.monteiro_lobato import MonteiroLobatoAgent
-
         agent = MonteiroLobatoAgent()
         assert agent.name == "monteiro_lobato"
 
     @pytest.mark.unit
     def test_lobato_alias(self):
         """Test LobatoAgent alias exists."""
-        from src.agents.monteiro_lobato import LobatoAgent
-
         agent = LobatoAgent()
         assert agent.name == "monteiro_lobato"
 
