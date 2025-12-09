@@ -5,118 +5,18 @@ Description: RAG agent specialized in teaching design and aesthetics to kids
 Author: Anderson H. Silva
 Date: 2025-12-09
 License: Proprietary - All rights reserved
+
+Inherits from BaseKidsAgent for centralized safety features.
 """
 
 from typing import Any
 
-from src.agents.deodoro import (
-    AgentContext,
-    AgentMessage,
-    AgentResponse,
-    AgentStatus,
-    BaseAgent,
-)
-from src.core import get_logger
-
-# Import DSPy service for intelligent responses
-try:
-    from src.services.dspy_agents import get_dspy_agent_service
-
-    _dspy_service = get_dspy_agent_service()
-    _DSPY_AVAILABLE = _dspy_service.is_available() if _dspy_service else False
-except ImportError:
-    _dspy_service = None
-    _DSPY_AVAILABLE = False
-
+from src.agents.base_kids_agent import BaseKidsAgent
 
 # =============================================================================
-# BLOCKED TOPICS - EXTREMELY RESTRICTIVE CONTENT FILTER
+# ALLOWED TOPICS - DESIGN AND ART CONTENT FOR KIDS
 # =============================================================================
-BLOCKED_TOPICS = [
-    # Violence
-    "violencia",
-    "violence",
-    "matar",
-    "kill",
-    "morte",
-    "death",
-    "arma",
-    "weapon",
-    "gun",
-    "guerra",
-    "war",
-    "sangue",
-    "blood",
-    "briga",
-    "fight",
-    "lutar",
-    # Adult content
-    "sexo",
-    "sex",
-    "pornografia",
-    "adulto",
-    "adult",
-    "namorar",
-    "beijar",
-    # Drugs and substances
-    "droga",
-    "drug",
-    "alcool",
-    "alcohol",
-    "cerveja",
-    "beer",
-    "cigarro",
-    "cigarette",
-    "fumar",
-    "smoke",
-    # Dangerous activities
-    "hackear",
-    "hack",
-    "invadir",
-    "roubar",
-    "steal",
-    "crime",
-    "ilegal",
-    "illegal",
-    # Scary content
-    "terror",
-    "horror",
-    "medo",
-    "fear",
-    "assustador",
-    "scary",
-    "pesadelo",
-    "nightmare",
-    "monstro",
-    "monster",
-    # Hate speech
-    "odio",
-    "hate",
-    "racismo",
-    "racism",
-    "preconceito",
-    "bullying",
-    # Personal information
-    "senha",
-    "password",
-    "cartao",
-    "card",
-    "banco",
-    "bank",
-    "dinheiro",
-    "money",
-    # Politics and controversy
-    "politica",
-    "politics",
-    "eleicao",
-    "election",
-    "presidente",
-]
-
-# =============================================================================
-# ALLOWED TOPICS - SAFE DESIGN CONTENT FOR KIDS
-# =============================================================================
-ALLOWED_TOPICS = [
+ALLOWED_TOPICS_DESIGN = [
     # Colors
     "cor",
     "cores",
@@ -204,6 +104,7 @@ ALLOWED_TOPICS = [
     "modern",
     "modernismo",
     "modernism",
+    "tarsila",
     # UI/UX concepts
     "tela",
     "screen",
@@ -256,7 +157,7 @@ ALLOWED_TOPICS = [
     "inspiration",
     "ideia",
     "idea",
-    # Nature elements
+    # Nature elements (for art inspiration)
     "sol",
     "sun",
     "lua",
@@ -286,91 +187,14 @@ ALLOWED_TOPICS = [
     "chalk",
     "pincel",
     "brush",
-    "tela",
     "canvas",
-    # Greetings and basic
-    "ola",
-    "oi",
-    "hello",
-    "hi",
-    "tchau",
-    "bye",
-    "obrigado",
-    "thanks",
-    "ajuda",
-    "help",
-    "como",
-    "how",
-    "porque",
-    "why",
-    "o que",
-    "what",
 ]
 
 
-class KidsDesignAgent(BaseAgent):
-    """
-    Tarsila do Amaral - Educadora de Design para Criancas
-
-    MISSAO:
-    Ensinar conceitos de design, estetica e arte para criancas usando
-    linguagem visual, cores vibrantes e referencias ao modernismo brasileiro.
-
-    SOBRE TARSILA DO AMARAL:
-    - Tarsila do Amaral (1886-1973)
-    - Pintora e desenhista brasileira, icone do modernismo
-    - Criadora do Abaporu, obra mais valorizada da arte brasileira
-    - Participou da Semana de Arte Moderna de 1922
-    - Criou uma linguagem visual tipicamente brasileira
-    - Cores vibrantes, formas organicas, identidade tropical
-
-    FILOSOFIA:
-    - Arte deve refletir a identidade e a beleza local
-    - Cores sao emocoes - cada cor conta uma historia
-    - Formas simples podem transmitir ideias complexas
-    - Beleza esta em toda parte, so precisamos olhar
-    - Design e fazer as coisas funcionarem E serem bonitas
-
-    CARACTERISTICAS DO AGENTE:
-    - EXTREMAMENTE RESTRITIVO: So fala sobre design, arte e estetica
-    - Usa linguagem visual e poetica adequada para criancas
-    - Referencias as obras de Tarsila para ilustrar conceitos
-    - Ensina teoria das cores de forma divertida
-    - Explica harmonia e equilibrio visual com exemplos do dia a dia
-
-    OBRAS QUE USA COMO REFERENCIA:
-    - Abaporu (1928): Formas grandes, cores quentes, brasilidade
-    - Antropofagia (1929): Mistura de elementos, criatividade
-    - A Negra (1923): Formas organicas, representacao
-    - Operarios (1933): Padroes, repeticao, diversidade
-    - Paisagem com Touro: Natureza brasileira, cores tropicais
-
-    EXEMPLOS DE EXPLICACOES:
-    - Cores quentes: "Sao como o sol e o fogo - vermelho, laranja, amarelo!"
-    - Cores frias: "Sao como a agua e o ceu - azul, verde, roxo!"
-    - Contraste: "E quando colocamos o amarelo do sol no azul do ceu!"
-    - Harmonia: "E quando as cores conversam bem entre si, sem brigar!"
-    """
-
-    def __init__(self, config: dict[str, Any] | None = None):
-        super().__init__(
-            name="tarsila",
-            description="Tarsila do Amaral - Educadora de Design e Estetica para Criancas",
-            capabilities=[
-                "teach_color_theory",
-                "explain_design_principles",
-                "inspire_creativity",
-                "teach_visual_harmony",
-                "explain_ui_basics",
-            ],
-            max_retries=3,
-            timeout=60,
-        )
-        self.logger = get_logger(__name__)
-        self.config = config or {}
-
-        # Personality configuration - ARTISTICA E INSPIRADORA
-        self.personality_prompt = """Voce e Tarsila do Amaral, a grande pintora brasileira!
+# =============================================================================
+# PERSONALITY PROMPT - TARSILA DO AMARAL CHARACTER
+# =============================================================================
+PERSONALITY_PROMPT = """Voce e Tarsila do Amaral, a grande pintora brasileira!
 
 REGRAS ABSOLUTAS (NUNCA QUEBRE ESSAS REGRAS):
 1. Voce SO fala sobre design, arte, cores, formas e estetica
@@ -409,25 +233,59 @@ FORMATO DAS RESPOSTAS:
 - Termine com encorajamento criativo
 - Respostas curtas e visuais (maximo 150 palavras)
 
-EXEMPLO DE RESPOSTA:
-"Ola, pequeno artista! Bem-vindo ao meu atelie de cores!
-
-Voce sabe por que o ceu e azul e o sol e amarelo? Porque a natureza e a maior artista!
-
-Quando coloco azul e amarelo lado a lado na minha tela, eles brigam um pouquinho - isso se chama CONTRASTE! E como se gritassem: 'Olha pra mim! Olha pra mim!'
-
-Mas quando junto azul com verde, eles conversam baixinho, como amigos - isso e HARMONIA!
-
-No meu quadro Abaporu, usei muito amarelo e verde. Sao as cores do Brasil, da nossa terra quente e das matas verdes.
-
-Quer tentar misturar cores como eu faco?"
-
 LEMBRE-SE: Cada crianca e um artista! Seu papel e fazer ela enxergar a beleza que ja existe dentro dela!"""
 
-        self.logger.info(
-            "kids_design_agent_initialized",
-            agent_name=self.name,
-            dspy_available=_DSPY_AVAILABLE,
+
+class KidsDesignAgent(BaseKidsAgent):
+    """
+    Tarsila do Amaral - Educadora de Design para Criancas
+
+    MISSAO:
+    Ensinar conceitos de design, estetica e arte para criancas usando
+    linguagem visual, cores vibrantes e referencias ao modernismo brasileiro.
+
+    SOBRE TARSILA DO AMARAL:
+    - Tarsila do Amaral (1886-1973)
+    - Pintora e desenhista brasileira, icone do modernismo
+    - Criadora do Abaporu, obra mais valorizada da arte brasileira
+    - Participou da Semana de Arte Moderna de 1922
+    - Criou uma linguagem visual tipicamente brasileira
+    - Cores vibrantes, formas organicas, identidade tropical
+
+    FILOSOFIA:
+    - Arte deve refletir a identidade e a beleza local
+    - Cores sao emocoes - cada cor conta uma historia
+    - Formas simples podem transmitir ideias complexas
+    - Beleza esta em toda parte, so precisamos olhar
+    - Design e fazer as coisas funcionarem E serem bonitas
+
+    Inherits safety features from BaseKidsAgent:
+    - BLOCKED_TOPICS filtering
+    - is_content_safe() method
+    - is_topic_allowed() method
+    - Safe redirect behavior
+    """
+
+    # Domain-specific allowed topics (inherited from BaseKidsAgent)
+    allowed_topics = ALLOWED_TOPICS_DESIGN
+
+    # Agent personality for LLM (inherited from BaseKidsAgent)
+    personality_prompt = PERSONALITY_PROMPT
+
+    def __init__(self, config: dict[str, Any] | None = None):
+        super().__init__(
+            name="tarsila",
+            description="Tarsila do Amaral - Educadora de Design e Estetica para Criancas",
+            capabilities=[
+                "teach_color_theory",
+                "explain_design_principles",
+                "inspire_creativity",
+                "teach_visual_harmony",
+                "explain_ui_basics",
+            ],
+            max_retries=3,
+            timeout=60,
+            config=config,
         )
 
     async def initialize(self) -> None:
@@ -437,50 +295,6 @@ LEMBRE-SE: Cada crianca e um artista! Seu papel e fazer ela enxergar a beleza qu
     async def shutdown(self) -> None:
         """Cleanup agent resources."""
         self.logger.info(f"{self.name} agent shutting down - Ate a proxima obra!")
-
-    def _is_content_safe(self, text: str) -> tuple[bool, str]:
-        """
-        Check if content is safe for kids.
-
-        Args:
-            text: Text to check
-
-        Returns:
-            Tuple of (is_safe, reason)
-        """
-        text_lower = text.lower()
-
-        # Check for blocked topics
-        for blocked in BLOCKED_TOPICS:
-            if blocked in text_lower:
-                return False, f"Conteudo nao apropriado detectado: {blocked}"
-
-        return True, "Conteudo seguro"
-
-    def _is_topic_allowed(self, text: str) -> bool:
-        """
-        Check if topic is within allowed scope.
-
-        Args:
-            text: Text to check
-
-        Returns:
-            True if topic is allowed
-        """
-        text_lower = text.lower()
-
-        # Check if any allowed topic is mentioned
-        for allowed in ALLOWED_TOPICS:
-            if allowed in text_lower:
-                return True
-
-        # If no specific topic detected, allow general questions
-        general_patterns = ["o que", "como", "porque", "quando", "onde", "quem", "?"]
-        for pattern in general_patterns:
-            if pattern in text_lower:
-                return True
-
-        return False
 
     def _get_safe_redirect_response(self) -> str:
         """Get a safe redirect response when content is not appropriate."""
@@ -496,60 +310,6 @@ Aqui no meu atelie, adoramos criar coisas lindas! Posso te ensinar sobre:
 - Como deixar qualquer coisa mais bonita!
 
 Qual desses temas te deixa mais curioso? Vamos pintar juntos com palavras!"""
-
-    async def _generate_response(self, message: str, context: AgentContext) -> str:
-        """
-        Generate a safe, design-focused response for kids.
-
-        Args:
-            message: User message
-            context: Agent context
-
-        Returns:
-            Safe response string
-        """
-        # Check content safety
-        is_safe, reason = self._is_content_safe(message)
-        if not is_safe:
-            self.logger.warning(
-                "unsafe_content_detected",
-                reason=reason,
-                investigation_id=context.investigation_id,
-            )
-            return self._get_safe_redirect_response()
-
-        # Check if topic is allowed
-        if not self._is_topic_allowed(message):
-            self.logger.info(
-                "topic_redirect",
-                message=message[:50],
-                investigation_id=context.investigation_id,
-            )
-            return self._get_safe_redirect_response()
-
-        # Try DSPy service if available
-        if _DSPY_AVAILABLE and _dspy_service:
-            try:
-                response = await _dspy_service.generate_response(
-                    agent_name="tarsila",
-                    personality_prompt=self.personality_prompt,
-                    user_message=message,
-                    context={
-                        "target_audience": "children_6_12",
-                        "style": "artistic_visual",
-                        "max_words": 150,
-                    },
-                )
-                if response:
-                    # Double-check the generated response is safe
-                    is_safe, _ = self._is_content_safe(response)
-                    if is_safe:
-                        return response
-            except Exception as e:
-                self.logger.warning(f"DSPy generation failed: {e}")
-
-        # Fallback to predefined responses
-        return self._get_fallback_response(message)
 
     def _get_fallback_response(self, message: str) -> str:
         """
@@ -719,6 +479,7 @@ E porque alguem pensou no DESIGN com carinho!
 
 Quer aprender a pensar como um designer de apps?"""
 
+        # Greetings
         if any(
             word in message_lower
             for word in ["ola", "oi", "hello", "hi", "bom dia", "boa tarde"]
@@ -739,6 +500,7 @@ Design e fazer as coisas funcionarem E serem bonitas ao mesmo tempo!
 
 O que voce quer descobrir sobre o mundo das cores e formas?"""
 
+        # Abaporu / paintings
         if any(
             word in message_lower for word in ["abaporu", "quadro", "pintura", "obra"]
         ):
@@ -780,70 +542,6 @@ Eu sou Tarsila do Amaral, e adoro conversar sobre:
 O que te deixa mais curioso? Escolhe um tema e vamos pintar juntos com palavras!
 
 Lembre-se: todo mundo e artista! So precisa deixar a imaginacao voar livre como um passarinho!"""
-
-    async def process(
-        self, message: AgentMessage, context: AgentContext
-    ) -> AgentResponse:
-        """
-        Process a message from a kid and return a design-focused response.
-
-        Args:
-            message: Message to process
-            context: Agent context
-
-        Returns:
-            AgentResponse with design/art education content
-        """
-        try:
-            self.logger.info(
-                "kids_design_message_received",
-                investigation_id=context.investigation_id,
-                agent_name=self.name,
-                action=message.action,
-            )
-
-            # Extract user message
-            user_message = ""
-            if isinstance(message.payload, dict):
-                user_message = message.payload.get(
-                    "message", message.payload.get("query", "")
-                )
-            elif isinstance(message.payload, str):
-                user_message = message.payload
-
-            if not user_message:
-                user_message = "ola"
-
-            # Generate safe, design-focused response
-            response_text = await self._generate_response(user_message, context)
-
-            return AgentResponse(
-                agent_name=self.name,
-                status=AgentStatus.COMPLETED,
-                result={
-                    "response": response_text,
-                    "agent": "tarsila",
-                    "target_audience": "kids_6_12",
-                    "topic": "design_education",
-                },
-                metadata={
-                    "content_filtered": True,
-                    "safe_for_kids": True,
-                    "educational_focus": "design_aesthetics",
-                },
-            )
-
-        except Exception as e:
-            self.logger.error(f"Error processing kids design message: {e}")
-            return AgentResponse(
-                agent_name=self.name,
-                status=AgentStatus.ERROR,
-                error=str(e),
-                result={
-                    "response": "Ops! As tintas se misturaram aqui no atelie. Pode tentar de novo?",
-                    "agent": "tarsila",
-                },
-            )
 
 
 # Aliases for easier imports
