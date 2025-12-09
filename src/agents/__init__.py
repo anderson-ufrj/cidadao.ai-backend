@@ -30,6 +30,7 @@ if TYPE_CHECKING:
     from .lampiao import LampiaoAgent
     from .machado import MachadoAgent
     from .maria_quiteria import MariaQuiteriaAgent
+    from .monteiro_lobato import KidsProgrammingAgent
     from .nana import (
         ContextMemoryAgent,
         ConversationMemory,
@@ -42,6 +43,7 @@ if TYPE_CHECKING:
     from .oxossi import OxossiAgent
     from .santos_dumont import EducatorAgent
     from .simple_agent_pool import agent_pool, get_agent_pool
+    from .tarsila import KidsDesignAgent
     from .tiradentes import ReporterAgent
     from .zumbi import InvestigatorAgent
 
@@ -72,6 +74,9 @@ _LAZY_IMPORTS = {
     "EducatorAgent": ("src.agents.santos_dumont", "EducatorAgent"),
     # Frontend designer agent
     "FrontendDesignerAgent": ("src.agents.bo_bardi", "FrontendDesignerAgent"),
+    # Kids agents (educational, safe content)
+    "KidsProgrammingAgent": ("src.agents.monteiro_lobato", "KidsProgrammingAgent"),
+    "KidsDesignAgent": ("src.agents.tarsila", "KidsDesignAgent"),
     # Memory agent
     "ContextMemoryAgent": ("src.agents.nana", "ContextMemoryAgent"),
     "MemoryEntry": ("src.agents.nana", "MemoryEntry"),
@@ -97,6 +102,11 @@ _ALIASES = {
     "SantosDumontAgent": "EducatorAgent",
     "BoBardiAgent": "FrontendDesignerAgent",
     "LinaBoBardiAgent": "FrontendDesignerAgent",
+    # Kids agents aliases
+    "MonteiroLobatoAgent": "KidsProgrammingAgent",
+    "LobatoAgent": "KidsProgrammingAgent",
+    "TarsilaAgent": "KidsDesignAgent",
+    "TarsilaDoAmaralAgent": "KidsDesignAgent",
 }
 
 # Agent name to class name mapping (for get_agent function)
@@ -119,6 +129,11 @@ _AGENT_NAME_TO_CLASS = {
     "dandara": "DandaraAgent",
     "santos_dumont": "EducatorAgent",
     "bo_bardi": "FrontendDesignerAgent",
+    # Kids agents
+    "monteiro_lobato": "KidsProgrammingAgent",
+    "lobato": "KidsProgrammingAgent",
+    "tarsila": "KidsDesignAgent",
+    "tarsila_do_amaral": "KidsDesignAgent",
 }
 
 # Cache for imported modules
@@ -241,6 +256,9 @@ __all__ = [
     "CommunicationAgent",
     "EducatorAgent",
     "FrontendDesignerAgent",
+    # Kids Agents (lazy)
+    "KidsProgrammingAgent",
+    "KidsDesignAgent",
     # Agent aliases (lazy)
     "ZumbiAgent",
     "AnitaAgent",
@@ -254,6 +272,11 @@ __all__ = [
     "SantosDumontAgent",
     "BoBardiAgent",
     "LinaBoBardiAgent",
+    # Kids agent aliases (lazy)
+    "MonteiroLobatoAgent",
+    "LobatoAgent",
+    "TarsilaAgent",
+    "TarsilaDoAmaralAgent",
     # Memory Agent (lazy)
     "ContextMemoryAgent",
     "MemoryEntry",
