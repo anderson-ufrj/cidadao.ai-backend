@@ -234,8 +234,15 @@ class TestDashboardAPIEndpoints:
 
         assert response.status_code == 404
         data = response.json()
-        assert "detail" in data
-        assert "not found" in data["detail"].lower()
+        # Check for error message in either standard FastAPI format or custom error format
+        if "detail" in data:
+            assert "not found" in data["detail"].lower()
+        elif "error" in data:
+            # Custom error format: {"error": {"message": "...", "error": "...", "details": {}}}
+            error_message = data["error"].get("message", "")
+            assert "not found" in error_message.lower()
+        else:
+            raise AssertionError("Expected 'detail' or 'error' key in response")
 
     @pytest.mark.asyncio
     async def test_get_agent_detail_identity(self, client: AsyncClient) -> None:

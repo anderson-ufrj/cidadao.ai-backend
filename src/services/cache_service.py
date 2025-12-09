@@ -427,7 +427,11 @@ class CacheService:
 
 # Cache decorator for functions
 def cache_result(prefix: str, ttl: int = 300):
-    """Decorator to cache function results."""
+    """Decorator to cache function results.
+
+    Gracefully handles Redis unavailability by executing the function
+    without caching when Redis is not available.
+    """
 
     def decorator(func):
         @wraps(func)
@@ -441,17 +445,29 @@ def cache_result(prefix: str, ttl: int = 300):
                 prefix, func.__name__, *cache_args, **kwargs
             )
 
-            # Check cache
-            cached = await cache_service.get(key)
-            if cached is not None:
-                logger.debug(f"Cache hit for {func.__name__}")
-                return cached
+            # Try to check cache, but gracefully handle Redis unavailability
+            try:
+                cached = await cache_service.get(key)
+                if cached is not None:
+                    logger.debug(f"Cache hit for {func.__name__}")
+                    return cached
+            except CacheError:
+                # Redis not available, execute function without cache
+                logger.debug(
+                    f"Cache unavailable for {func.__name__}, executing without cache"
+                )
+                return await func(*args, **kwargs)
 
             # Execute function
             result = await func(*args, **kwargs)
 
-            # Cache result
-            await cache_service.set(key, result, ttl)
+            # Try to cache result, ignore errors
+            try:
+                await cache_service.set(key, result, ttl)
+            except CacheError:
+                logger.debug(
+                    f"Cache unavailable, could not store result for {func.__name__}"
+                )
 
             return result
 
