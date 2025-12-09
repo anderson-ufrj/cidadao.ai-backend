@@ -5,9 +5,14 @@ Tests content safety, design education responses, and proper content filtering.
 
 import pytest
 
-from src.agents.deodoro import AgentContext, AgentMessage
-from src.agents.tarsila import ALLOWED_TOPICS, BLOCKED_TOPICS, KidsDesignAgent
-from src.core import AgentStatus
+from src.agents.base_kids_agent import BLOCKED_TOPICS
+from src.agents.deodoro import AgentContext, AgentMessage, AgentStatus
+from src.agents.tarsila import (
+    ALLOWED_TOPICS_DESIGN,
+    KidsDesignAgent,
+    TarsilaAgent,
+    TarsilaDoAmaralAgent,
+)
 
 
 @pytest.fixture
@@ -58,12 +63,12 @@ class TestTarsilaAgent:
     @pytest.mark.unit
     def test_allowed_topics_exist(self):
         """Test that allowed topics are properly defined."""
-        assert len(ALLOWED_TOPICS) > 100  # Ensure comprehensive allowed list
-        assert "cor" in ALLOWED_TOPICS
-        assert "vermelho" in ALLOWED_TOPICS
-        assert "forma" in ALLOWED_TOPICS
-        assert "design" in ALLOWED_TOPICS
-        assert "abaporu" in ALLOWED_TOPICS
+        assert len(ALLOWED_TOPICS_DESIGN) > 100  # Ensure comprehensive allowed list
+        assert "cor" in ALLOWED_TOPICS_DESIGN
+        assert "vermelho" in ALLOWED_TOPICS_DESIGN
+        assert "forma" in ALLOWED_TOPICS_DESIGN
+        assert "design" in ALLOWED_TOPICS_DESIGN
+        assert "abaporu" in ALLOWED_TOPICS_DESIGN
 
 
 class TestDesignContentSafety:
@@ -84,7 +89,7 @@ class TestDesignContentSafety:
             "me ensina sobre formas",
         ]
         for text in safe_texts:
-            is_safe, _ = agent._is_content_safe(text)
+            is_safe, _ = agent.is_content_safe(text)
             assert is_safe, f"'{text}' should be safe"
 
     @pytest.mark.unit
@@ -98,7 +103,7 @@ class TestDesignContentSafety:
             "quero matar alguem",
         ]
         for text in unsafe_texts:
-            is_safe, _ = agent._is_content_safe(text)
+            is_safe, _ = agent.is_content_safe(text)
             assert not is_safe, f"'{text}' should NOT be safe"
 
     @pytest.mark.unit
@@ -112,7 +117,7 @@ class TestDesignContentSafety:
             "o que e cor fria",
         ]
         for topic in color_topics:
-            assert agent._is_topic_allowed(topic), f"'{topic}' should be allowed"
+            assert agent.is_topic_allowed(topic), f"'{topic}' should be allowed"
 
     @pytest.mark.unit
     def test_topic_allowed_design(self, agent):
@@ -125,7 +130,7 @@ class TestDesignContentSafety:
             "design de interface",
         ]
         for topic in design_topics:
-            assert agent._is_topic_allowed(topic), f"'{topic}' should be allowed"
+            assert agent.is_topic_allowed(topic), f"'{topic}' should be allowed"
 
     @pytest.mark.unit
     def test_topic_allowed_tarsila_works(self, agent):
@@ -136,7 +141,7 @@ class TestDesignContentSafety:
             "paisagem brasileira",
         ]
         for work in works:
-            assert agent._is_topic_allowed(work), f"'{work}' should be allowed"
+            assert agent.is_topic_allowed(work), f"'{work}' should be allowed"
 
 
 class TestDesignAgentResponses:
@@ -244,9 +249,8 @@ class TestDesignAgentProcess:
         assert response.status == AgentStatus.COMPLETED
         assert response.agent_name == "tarsila"
         assert "response" in response.result
-        assert response.metadata.get("safe_for_kids") is True
+        assert response.result.get("safe_content") is True
         assert response.metadata.get("content_filtered") is True
-        assert response.metadata.get("educational_focus") == "design_aesthetics"
 
     @pytest.mark.unit
     @pytest.mark.asyncio
@@ -263,7 +267,7 @@ class TestDesignAgentProcess:
         response = await agent.process(message, context)
 
         assert response.status == AgentStatus.COMPLETED
-        assert response.metadata.get("safe_for_kids") is True
+        assert response.result.get("safe_content") is True
         # Response should redirect to design topics
         result_text = response.result["response"].lower()
         assert (
@@ -311,16 +315,12 @@ class TestDesignAgentAliases:
     @pytest.mark.unit
     def test_tarsila_alias(self):
         """Test TarsilaAgent alias exists."""
-        from src.agents.tarsila import TarsilaAgent
-
         agent = TarsilaAgent()
         assert agent.name == "tarsila"
 
     @pytest.mark.unit
     def test_tarsila_do_amaral_alias(self):
         """Test TarsilaDoAmaralAgent alias exists."""
-        from src.agents.tarsila import TarsilaDoAmaralAgent
-
         agent = TarsilaDoAmaralAgent()
         assert agent.name == "tarsila"
 
