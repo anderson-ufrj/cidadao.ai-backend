@@ -154,6 +154,8 @@ AGENT_MAP = {
     "oxossi": ("src.agents.oxossi", "OxossiAgent"),
     "santos_dumont": ("src.agents.santos_dumont", "EducatorAgent"),
     "bo_bardi": ("src.agents.bo_bardi", "FrontendDesignerAgent"),
+    "monteiro_lobato": ("src.agents.monteiro_lobato", "KidsProgrammingAgent"),
+    "tarsila": ("src.agents.tarsila", "KidsDesignAgent"),
 }
 
 # Cache for loaded agents
@@ -1731,9 +1733,13 @@ async def stream_message(request: ChatRequest):
 
             # ================================================================
             # SPECIALIZED AGENTS: Use their process method with knowledge base
-            # Bo Bardi (frontend) and Santos-Dumont (backend) have rich knowledge
+            # Includes: Bo Bardi (frontend), Santos-Dumont (backend), and
+            # Kids educational agents (Monteiro Lobato, Tarsila do Amaral)
             # ================================================================
-            elif agent_id in ["bo_bardi", "santos_dumont"] and request.agent_id:
+            elif (
+                agent_id in ["bo_bardi", "santos_dumont", "monteiro_lobato", "tarsila"]
+                and request.agent_id
+            ):
                 yield f"data: {json_utils.dumps({'type': 'thinking', 'message': f'{agent_name} está consultando a base de conhecimento...'})}\n\n"
 
                 try:
@@ -1758,8 +1764,12 @@ async def stream_message(request: ChatRequest):
                         )
 
                         if response.status == AgentStatus.COMPLETED:
-                            response_text = response.result.get(
-                                "message", "Não encontrei informação específica."
+                            # Try multiple keys: message, response, content
+                            response_text = (
+                                response.result.get("message")
+                                or response.result.get("response")
+                                or response.result.get("content")
+                                or "Não encontrei informação específica."
                             )
 
                             # Stream the response in chunks
