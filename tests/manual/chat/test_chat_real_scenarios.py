@@ -28,8 +28,8 @@ except ImportError:
     print("⚠️  Orchestrator não disponível - alguns testes serão limitados")
 
 
-class TestScenario:
-    """Representa um cenário de teste."""
+class ChatScenario:
+    """Representa um cenário de teste (renamed to avoid pytest collection)."""
 
     def __init__(self, name: str, query: str, expected_entities: dict[str, Any]):
         self.name = name
@@ -48,7 +48,7 @@ async def test_entity_extraction_scenarios():
     integration = ChatDataIntegration()
 
     scenarios = [
-        TestScenario(
+        ChatScenario(
             name="Consulta com estado por extenso + valor em milhão",
             query="Contratos de saúde em Minas Gerais acima de R$ 1 milhão em 2024",
             expected_entities={
@@ -59,7 +59,7 @@ async def test_entity_extraction_scenarios():
                 "categoria": "saúde",
             },
         ),
-        TestScenario(
+        ChatScenario(
             name="Consulta com sigla + valor em mil",
             query="Mostrar despesas de educação em SP maiores que R$ 500 mil",
             expected_entities={
@@ -69,7 +69,7 @@ async def test_entity_extraction_scenarios():
                 "categoria": "educação",
             },
         ),
-        TestScenario(
+        ChatScenario(
             name="Consulta com estado com acento + bilhão",
             query="Obras no Pará acima de R$ 2 bilhões",
             expected_entities={
@@ -79,22 +79,22 @@ async def test_entity_extraction_scenarios():
                 "categoria": "infraestrutura",
             },
         ),
-        TestScenario(
+        ChatScenario(
             name="Consulta com estado composto",
             query="Contratos no Rio de Janeiro em 2023",
             expected_entities={"estado": "RJ", "codigo_uf": "33", "ano": 2023},
         ),
-        TestScenario(
+        ChatScenario(
             name="Consulta com CPF de servidor",
             query="Servidor CPF 123.456.789-00",
             expected_entities={"cpf": "12345678900"},
         ),
-        TestScenario(
+        ChatScenario(
             name="Consulta com CNPJ de fornecedor",
             query="Fornecedor CNPJ 12.345.678/0001-90",
             expected_entities={"cnpj": "12345678000190"},
         ),
-        TestScenario(
+        ChatScenario(
             name="Consulta complexa multi-entidade",
             query="Contratos de infraestrutura em São Paulo acima de R$ 10 milhões em 2023 e 2024",
             expected_entities={
