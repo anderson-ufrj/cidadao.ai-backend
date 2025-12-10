@@ -586,6 +586,80 @@ class DSPyAgentService:
             "success": result.get("success", True),
         }
 
+    async def generate_response(
+        self,
+        agent_name: str,
+        personality_prompt: str,
+        user_message: str,
+        context: dict[str, Any] | None = None,
+    ) -> str | None:
+        """
+        Generate a response for kids educational agents using custom personality prompts.
+
+        This method is designed for agents like Monteiro Lobato and Tarsila that have
+        their own personality_prompt defined, rather than using the predefined
+        AgentPersonality enum.
+
+        Args:
+            agent_name: Name of the agent (e.g., "monteiro_lobato", "tarsila")
+            personality_prompt: The agent's full personality/system prompt
+            user_message: The user's message to respond to
+            context: Optional context dict with settings like target_audience, style, max_words
+
+        Returns:
+            Generated response string, or None if generation fails
+        """
+        if not self.is_available():
+            logger.debug(
+                f"DSPy not available for {agent_name}, returning None for fallback"
+            )
+            return None
+
+        if dspy is None:
+            return None
+
+        context = context or {}
+        target_audience = context.get("target_audience", "general")
+        style = context.get("style", "educational")
+        max_words = context.get("max_words", 150)
+
+        # Build enhanced prompt for kids agents
+        enhanced_prompt = f"""{CIDADAO_AI_CONTEXT}
+
+{personality_prompt}
+
+CONTEXTO ADICIONAL:
+- Público-alvo: {target_audience}
+- Estilo: {style}
+- Máximo de palavras: {max_words}
+"""
+
+        try:
+            # Use DSPy's predict with a simple signature for custom prompts
+            result = self.lm(
+                messages=[
+                    {"role": "system", "content": enhanced_prompt},
+                    {"role": "user", "content": user_message},
+                ]
+            )
+
+            # Extract response from LM output
+            if result and len(result) > 0:
+                response = result[0] if isinstance(result, list) else str(result)
+                # Clean up response if needed
+                if hasattr(response, "content"):
+                    response = response.content
+                elif hasattr(response, "text"):
+                    response = response.text
+                return str(response).strip() if response else None
+
+            return None
+
+        except Exception as e:
+            logger.error(f"DSPy generate_response error for {agent_name}: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return None
+
     def _fallback_response(
         self, personality: AgentPersonality, message: str, intent_type: str
     ) -> dict[str, Any]:
