@@ -211,6 +211,16 @@ class Settings(BaseSettings):
     )
     bcrypt_rounds: int = Field(default=12, description="Bcrypt rounds")
 
+    # API Authentication - Optional, for external API access
+    api_secret_key: SecretStr | None = Field(
+        default=None,
+        description="API secret key for X-API-Key header authentication",
+    )
+    api_keys_allowed: list[str] = Field(
+        default=[],
+        description="Additional allowed API keys (comma-separated in env)",
+    )
+
     # CORS - Can be overridden via ALLOWED_ORIGINS env var (comma-separated)
     cors_origins: list[str] = Field(
         default=[
