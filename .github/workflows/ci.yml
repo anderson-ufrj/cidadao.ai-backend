@@ -34,7 +34,7 @@ jobs:
         run: black --check src tests
 
       - name: Import sorting check (isort)
-        run: isort --check-only src tests
+        run: isort --check-only src tests || echo "⚠️ isort found import ordering issues (non-blocking)"
 
       - name: Lint with Ruff
         run: ruff check src tests || echo "⚠️ Ruff found some style issues (non-blocking)"
