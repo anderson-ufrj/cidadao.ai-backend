@@ -183,11 +183,15 @@ class InvestigatorAgent(BaseAgent):
             )
 
             # Parse investigation request
-            if message.action == "investigate":
-                # NEW: Check if payload contains a text query instead of structured request
-                if "query" in message.payload and isinstance(
-                    message.payload.get("query"), str
-                ):
+            # Support both 'investigate' (direct) and 'process_chat' (from chat API)
+            if message.action in ["investigate", "process_chat"]:
+                # For process_chat, extract query from user_message if needed
+                payload = message.payload.copy()
+                if "user_message" in payload and "query" not in payload:
+                    payload["query"] = payload.pop("user_message")
+
+                # Check if payload contains a text query instead of structured request
+                if "query" in payload and isinstance(payload.get("query"), str):
                     self.logger.info(
                         "Zumbi received text query, converting to investigation request..."
                     )
@@ -198,7 +202,7 @@ class InvestigatorAgent(BaseAgent):
 
                     enriched_data = (
                         await agent_data_integration.enrich_query_with_real_data(
-                            query=message.payload["query"],
+                            query=payload["query"],
                             agent_name="zumbi",
                             user_id=context.user_id,
                             session_id=context.session_id,
@@ -212,21 +216,19 @@ class InvestigatorAgent(BaseAgent):
                         )
                         # Use default investigation request with data from orchestrator
                         request = InvestigationRequest(
-                            query=message.payload["query"],
+                            query=payload["query"],
                             anomaly_types=["price", "vendor", "pattern"],
                         )
                         # Store enriched data for later use
-                        message.payload["_enriched_data"] = enriched_data.get(
-                            "real_data"
-                        )
+                        payload["_enriched_data"] = enriched_data.get("real_data")
                     else:
                         # Use default investigation request
                         request = InvestigationRequest(
-                            query=message.payload["query"],
+                            query=payload["query"],
                             anomaly_types=["price", "vendor"],
                         )
                 else:
-                    request = InvestigationRequest(**message.payload)
+                    request = InvestigationRequest(**payload)
 
                 # Record investigation start
                 INVESTIGATIONS_TOTAL.labels(
