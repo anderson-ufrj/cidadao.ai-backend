@@ -1483,7 +1483,11 @@ async def send_message(
             "is_demo_mode": not has_transparency_key,  # False if API key configured
             # Processing details
             "processing_time_ms": processing_time,
-            "model_used": "maritaca-sabia-3",  # TODO: Get from actual LLM config
+            "model_used": (
+                settings.maritaca_model
+                if settings.llm_provider == "maritaca"
+                else settings.anthropic_model
+            ),
             "tokens_used": (
                 response.metadata.get("tokens_used", 0)
                 if hasattr(response, "metadata")

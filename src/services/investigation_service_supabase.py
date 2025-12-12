@@ -163,10 +163,7 @@ class InvestigationServiceSupabase:
             current_phase="anomaly_detection",
         )
 
-        # Execute with master agent (or directly with investigator)
-        # For now, we'll simulate the investigation
-        # TODO: Replace with actual agent execution
-
+        # Execute investigation with Zumbi agent (InvestigatorAgent)
         from src.agents import InvestigatorAgent
 
         investigator = InvestigatorAgent()
