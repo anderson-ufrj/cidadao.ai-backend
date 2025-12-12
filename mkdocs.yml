@@ -1,0 +1,299 @@
+# Cidadão.AI Backend Documentation
+# https://cidadao-api-production.up.railway.app/
+
+site_name: Cidadão.AI
+site_url: https://anderson-ufrj.github.io/cidadao.ai-backend/
+site_description: Multi-Agent AI System for Brazilian Government Transparency
+site_author: Anderson Henrique da Silva
+repo_url: https://github.com/anderson-ufrj/cidadao.ai-backend
+repo_name: cidadao.ai-backend
+edit_uri: edit/main/docs/
+
+# Copyright
+copyright: Copyright &copy; 2025 Anderson Henrique da Silva
+
+# Theme Configuration
+theme:
+  name: material
+  language: pt-BR
+
+  # Color palette - Brazilian inspired
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: green
+      accent: yellow
+      toggle:
+        icon: material/brightness-7
+        name: Modo escuro
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: green
+      accent: yellow
+      toggle:
+        icon: material/brightness-4
+        name: Modo claro
+
+  # Features
+  features:
+    - navigation.instant
+    - navigation.instant.prefetch
+    - navigation.tracking
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.indexes
+    - navigation.top
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.tabs.link
+    - content.code.copy
+    - content.code.annotate
+    - toc.follow
+    - toc.integrate
+
+  # Icons
+  icon:
+    repo: fontawesome/brands/github
+    logo: material/robot
+
+  # Custom favicon
+  favicon: assets/favicon.ico
+
+# Plugins
+plugins:
+  - search:
+      lang:
+        - pt
+        - en
+      separator: '[\s\-\.]+'
+  # mkdocstrings disabled for now - enable for Python API reference docs
+  # - mkdocstrings:
+  #     default_handler: python
+  #     handlers:
+  #       python:
+  #         options:
+  #           show_source: true
+  #           show_root_heading: true
+  #           show_category_heading: true
+  #           docstring_style: google
+  #           merge_init_into_class: true
+  - tags
+
+# Markdown Extensions
+markdown_extensions:
+  # Python Markdown
+  - abbr
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      toc_depth: 3
+
+  # PyMdown Extensions
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.betterem:
+      smart_enable: all
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink:
+      repo_url_shorthand: true
+      user: anderson-ufrj
+      repo: cidadao.ai-backend
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+# Extra CSS/JS
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/extra.js
+
+# Extra configuration
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/anderson-ufrj/cidadao.ai-backend
+    - icon: fontawesome/brands/linkedin
+      link: https://linkedin.com/in/anderson-henrique-silva
+
+  generator: false
+
+  # Version provider
+  version:
+    provider: mike
+
+  # Analytics (optional - configure if needed)
+  # analytics:
+  #   provider: google
+  #   property: G-XXXXXXXXXX
+
+# Navigation Structure
+nav:
+  - Home:
+    - index.md
+    - Quickstart: QUICKSTART.md
+    - Onboarding: ONBOARDING.md
+    - Frontend Integration: FRONTEND_INTEGRATION_GUIDE.md
+
+  - Agents:
+    - agents/01-README.md
+    - Framework:
+      - Base (Deodoro): agents/02-DEODORO-base-framework.md
+    - Investigation:
+      - Zumbi (Anomaly): agents/03-ZUMBI-anomaly-detection-96pct.md
+      - Anita (Patterns): agents/04-ANITA-pattern-analysis-95pct.md
+      - Oxóssi (Data Hunter): agents/05-OXOSSI-data-hunting-94pct.md
+      - Lampião (Regional): agents/06-LAMPIAO-regional-analysis-94pct.md
+    - Processing:
+      - Ayrton Senna (Router): agents/07-AYRTON-SENNA-semantic-routing-92pct.md
+      - Tiradentes (Reports): agents/08-TIRADENTES-report-generation-92pct.md
+      - Oscar Niemeyer (Aggregation): agents/09-OSCAR-NIEMEYER-data-aggregation-89pct.md
+      - Machado (Text Analysis): agents/10-MACHADO-textual-analysis-88pct.md
+    - Specialized:
+      - Bonifácio (Legal): agents/11-BONIFACIO-legal-analysis-88pct.md
+      - Maria Quitéria (Security): agents/12-MARIA-QUITERIA-security-audit-87pct.md
+      - Abaporu (Orchestrator): agents/13-ABAPORU-master-orchestration-86pct.md
+      - Nanã (Memory): agents/14-NANA-memory-management-85pct.md
+    - Communication:
+      - Drummond (Comms): agents/15-DRUMMOND-communication-83pct.md
+      - Ceuci (ETL/Predictive): agents/16-CEUCI-etl-predictive-83pct.md
+    - Anti-Corruption:
+      - Obaluaiê (Corruption): agents/17-OBALUAIE-corruption-detection-81pct.md
+      - Dandara (Social Equity): agents/18-DANDARA-social-equity-86pct.md
+    - Education:
+      - Monteiro Lobato (Kids): agents/19-MONTEIRO-LOBATO-kids-programming-95pct.md
+      - Tarsila (Design): agents/20-TARSILA-kids-design-95pct.md
+      - Bo Bardi (Frontend): agents/21-BO-BARDI-frontend-mentor-90pct.md
+      - Santos Dumont (Backend): agents/22-SANTOS-DUMONT-backend-educator-90pct.md
+    - Reference:
+      - Inventory: agents/INVENTORY.md
+      - Zumbi Example: agents/zumbi-example.md
+
+  - Architecture:
+    - architecture/README.md
+    - Overview: architecture/00-ARCHITECTURE.md
+    - Multi-Agent System: architecture/01-MULTI-AGENT-architecture.md
+    - Improvement Roadmap: architecture/02-IMPROVEMENT-roadmap-2025.md
+    - Performance:
+      - Lazy Loading: architecture/AGENT_LAZY_LOADING.md
+      - Optimization: architecture/PERFORMANCE_OPTIMIZATION.md
+      - Connection Pooling: architecture/CONNECTION_POOLING.md
+      - Redis Cache: architecture/REDIS_CACHE_IMPLEMENTATION.md
+    - Orchestration:
+      - System Overview: architecture/ORCHESTRATION_SYSTEM.md
+      - Multi-API: architecture/MULTI_API_ORCHESTRATION.md
+      - Chat Flow: architecture/CHAT_TO_APIS_FLOW.md
+    - Infrastructure:
+      - Agent Pool: architecture/AGENT_POOL_ARCHITECTURE.md
+      - Monitoring: architecture/MONITORING_OBSERVABILITY.md
+      - Auto-Investigation: architecture/auto-investigation-system.md
+    - Integrations:
+      - Maritaca: architecture/MARITACA_OPTIMIZATION_GUIDE.md
+      - DSPy: architecture/DSPY_IMPLEMENTATION.md
+
+  - API:
+    - api/02-README-usage-guide.md
+    - Catalog: api/01-INDEX-catalog.md
+    - Endpoints Map: api/04-ENDPOINTS-map-266plus.md
+    - Government APIs: api/05-GOVERNMENT-apis-30plus.md
+    - Streaming:
+      - SSE/WebSocket: api/03-STREAMING-sse-websocket.md
+      - Chat API: api/CHAT_API_DOCUMENTATION.md
+      - WebSocket Docs: api/WEBSOCKET_API_DOCUMENTATION.md
+    - Integration:
+      - Portal Transparência: api/PORTAL_TRANSPARENCIA_INTEGRATION.md
+      - Versioning: api/API_VERSIONING_STRATEGY.md
+      - Status: api/API_INTEGRATION_STATUS.md
+    - Advanced:
+      - GraphQL: api/GRAPHQL_IMPLEMENTATION.md
+      - Admin Endpoints: api/ADMIN_ENDPOINTS.md
+
+  - Development:
+    - development/README.md
+    - Setup:
+      - development/setup/supabase-setup.md
+      - development/setup/supabase-quick-start.md
+      - development/setup/tokens.md
+      - development/setup/alerts.md
+    - Backend:
+      - development/backend/NETWORK_GRAPH_API.md
+      - development/backend/SETUP_NETWORK_GRAPH.md
+    - Features:
+      - Chat Implementation: development/INDEX_CHAT_IMPLEMENTATION.md
+      - Conversational AI: development/CONVERSATIONAL_AI_IMPLEMENTATION.md
+      - CORS Configuration: development/CORS_CONFIGURATION.md
+      - Cursor Pagination: development/CURSOR_PAGINATION_IMPLEMENTATION.md
+      - Gzip Compression: development/GZIP_COMPRESSION_IMPLEMENTATION.md
+    - Best Practices:
+      - Code Duplication: development/CODE_DUPLICATION_ANALYSIS.md
+      - N+1 Prevention: development/N_PLUS_ONE_QUERY_PREVENTION.md
+      - Distributed Tracing: development/DISTRIBUTED_TRACING_GUIDE.md
+    - Contributing:
+      - development/CONTRIBUTING.md
+      - Maritaca Integration: development/maritaca_integration.md
+
+  - Deployment:
+    - deployment/README.md
+    - Railway:
+      - Guide: deployment/RAILWAY_DEPLOYMENT_GUIDE.md
+      - Setup: deployment/railway/RAILWAY_SETUP.md
+      - Multi-Service: deployment/RAILWAY_MULTI_SERVICE_GUIDE.md
+      - PostgreSQL: deployment/MIGRATION_TO_RAILWAY_POSTGRESQL.md
+      - Troubleshooting: deployment/RAILWAY_CLI_TROUBLESHOOTING.md
+    - Docker: deployment/docker.md
+    - Production:
+      - Checklist: deployment/PRODUCTION_DEPLOYMENT_CHECKLIST.md
+      - Security: deployment/SECURITY_HARDENING_GUIDE.md
+      - 24/7 System: deployment/RAILWAY_24_7_COMPLETE_SYSTEM.md
+    - Operations:
+      - Celery Beat: deployment/CELERY_BEAT_RAILWAY_SETUP.md
+      - Google Cloud: deployment/GOOGLE_CLOUD_SETUP.md
+
+  - Project:
+    - project/INDEX.md
+    - Roadmap: project/01-ROADMAP-official-2025-2026.md
+    - Current Status: project/02-STATUS-current-nov-2025.md
+    - December 2025: project/ROADMAP_DECEMBER_2025.md
+    - Privacy Policy: project/PRIVACY.md
+
+  - Testing:
+    - Strategy: testing/TEST_DEVELOPMENT_STRATEGY.md
+    - Performance: testing/PERFORMANCE_TESTING_SUITE.md
+    - Coverage: testing/TEST_COVERAGE_PROGRESS_2025_10_22_FINAL.md
+
+  - Examples:
+    - examples/integrations/README.md
+
+# Watch for changes (development)
+watch:
+  - src

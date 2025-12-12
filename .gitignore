@@ -46,6 +46,9 @@ __pycache__/
 # C extensions
 *.so
 
+# MkDocs build output
+site/
+
 # Distribution / packaging
 .Python
 build/
