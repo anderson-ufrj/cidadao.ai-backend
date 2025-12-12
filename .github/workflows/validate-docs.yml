@@ -26,7 +26,7 @@ jobs:
       - name: Run documentation validation
         id: validate
         run: |
-          python3 scripts/validate_docs.py --json > validation_results.json
+          python3 scripts/validate_documentation.py --json > validation_results.json 2>&1 || true
           cat validation_results.json
         continue-on-error: true
 
@@ -40,12 +40,12 @@ jobs:
 
       - name: Check validation status
         run: |
-          if python3 scripts/validate_docs.py; then
-            echo "✅ Documentation validation passed!"
+          if python3 scripts/validate_documentation.py; then
+            echo "Documentation validation passed!"
             exit 0
           else
-            echo "❌ Documentation validation failed!"
-            echo "📝 See docs/project/DOCUMENTATION_AUDIT_2025_10_24.md for details"
+            echo "Documentation validation failed!"
+            echo "See docs/project/DOCUMENTATION_AUDIT_2025_10_24.md for details"
             exit 1
           fi
 
