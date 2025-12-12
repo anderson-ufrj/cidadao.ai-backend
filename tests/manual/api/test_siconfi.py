@@ -109,7 +109,7 @@ async def test_siconfi():
         try:
             summary = await client.get_municipality_summary(entity_code=code, year=2023)
             results["summary"] = f"✅ {summary['total_records']} total records"
-            print(f"   ✅ Complete summary retrieved:")
+            print("   ✅ Complete summary retrieved:")
             print(
                 f"      - Budget execution: {len(summary['budget_execution'])} records"
             )

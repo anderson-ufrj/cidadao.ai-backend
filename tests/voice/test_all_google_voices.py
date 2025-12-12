@@ -188,7 +188,7 @@ async def discover_all_voices():
                 v for v in voices_by_category["WaveNet"] if v["gender"] == "FEMALE"
             ]
 
-            print(f"\n🔄 Option 2: Mix Neural2 + WaveNet for MORE VARIETY")
+            print("\n🔄 Option 2: Mix Neural2 + WaveNet for MORE VARIETY")
             print(
                 f"   - Add {len(wavenet_male)} male + {len(wavenet_female)} female WaveNet voices"
             )
@@ -233,7 +233,7 @@ async def discover_all_voices():
                 v for v in voices_by_category["WaveNet"] if v["gender"] == "FEMALE"
             ]
 
-            print(f"\nWith WaveNet Addition:")
+            print("\nWith WaveNet Addition:")
             print(
                 f"   - {len(wavenet_male) + 1} male voices (Neural2-B + {len(wavenet_male)} WaveNet)"
             )

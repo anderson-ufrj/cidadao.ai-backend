@@ -34,7 +34,7 @@ async def test_supabase_connection():
 
     service = InvestigationServiceSupabaseRest()
 
-    print(f"✅ Service initialized")
+    print("✅ Service initialized")
     print(f"   URL: {os.getenv('SUPABASE_URL')}")
     print(f"   API Key: {os.getenv('SUPABASE_SERVICE_ROLE_KEY')[:20]}...")
     print()
@@ -49,7 +49,7 @@ async def test_supabase_connection():
             filters={"test": True, "direct_python": True},
         )
 
-        print(f"✅ Investigation created!")
+        print("✅ Investigation created!")
         print(f"   ID: {investigation.id}")
         print(f"   Query: {investigation.query}")
         print(f"   Status: {investigation.status}")
@@ -71,12 +71,12 @@ async def test_supabase_connection():
         retrieved = await service.get(investigation_id)
 
         if retrieved:
-            print(f"✅ Investigation retrieved!")
+            print("✅ Investigation retrieved!")
             print(f"   ID: {retrieved.id}")
             print(f"   Query: {retrieved.query}")
             print(f"   Status: {retrieved.status}")
         else:
-            print(f"❌ Investigation not found!")
+            print("❌ Investigation not found!")
         print()
 
     except Exception as e:
@@ -111,7 +111,7 @@ async def test_supabase_connection():
         )
 
         updated = await service.get(investigation_id)
-        print(f"✅ Investigation updated!")
+        print("✅ Investigation updated!")
         print(f"   Status: {updated.status}")
         print(f"   Results: {len(updated.results)} items")
         print()

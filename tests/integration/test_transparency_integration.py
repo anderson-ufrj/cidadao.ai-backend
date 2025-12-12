@@ -607,35 +607,37 @@ class TestEndToEndTransparencyFlow:
     @pytest.mark.asyncio
     async def test_complete_investigation_flow(self, mock_collector):
         """Test complete flow: REST endpoint → Collector → Agent → Database."""
-        with patch(
-            "src.api.routes.transparency.get_transparency_collector",
-            return_value=mock_collector,
-        ):
-            with patch(
+        with (
+            patch(
+                "src.api.routes.transparency.get_transparency_collector",
+                return_value=mock_collector,
+            ),
+            patch(
                 "src.agents.zumbi.get_transparency_collector",
                 return_value=mock_collector,
-            ):
-                # 1. Client requests contracts via REST API
-                response = client.get(
-                    "/api/v1/transparency/contracts",
-                    params={"state": "PE", "year": 2024},
-                )
+            ),
+        ):
+            # 1. Client requests contracts via REST API
+            response = client.get(
+                "/api/v1/transparency/contracts",
+                params={"state": "PE", "year": 2024},
+            )
 
-                assert response.status_code == 200
-                contracts = response.json()["contracts"]
+            assert response.status_code == 200
+            contracts = response.json()["contracts"]
 
-                # 2. Client requests anomaly analysis
-                analysis_response = client.post(
-                    "/api/v1/transparency/analyze-anomalies", json=contracts
-                )
+            # 2. Client requests anomaly analysis
+            analysis_response = client.post(
+                "/api/v1/transparency/analyze-anomalies", json=contracts
+            )
 
-                assert analysis_response.status_code == 200
-                anomalies = analysis_response.json()
+            assert analysis_response.status_code == 200
+            anomalies = analysis_response.json()
 
-                # 3. Verify complete flow
-                assert len(contracts) == 3
-                assert anomalies["summary"]["anomaly_count"] == 2
-                assert anomalies["anomalies"]["outlier_count"] == 1
+            # 3. Verify complete flow
+            assert len(contracts) == 3
+            assert anomalies["summary"]["anomaly_count"] == 2
+            assert anomalies["anomalies"]["outlier_count"] == 1
 
     @pytest.mark.integration
     def test_health_monitoring_flow(self, mock_health_monitor):

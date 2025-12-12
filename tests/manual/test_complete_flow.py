@@ -35,7 +35,7 @@ async def test_complete_flow():
         print(f"   Intent: {intent}")
 
         if intent.get("intent_type") in ["investigate", "contract_anomaly_detection"]:
-            print(f"   ✅ Intent classification working!\n")
+            print("   ✅ Intent classification working!\n")
         else:
             print(f"   ❌ Wrong intent: {intent}\n")
             return
@@ -51,9 +51,9 @@ async def test_complete_flow():
         print(f"   Entities: {entities}")
 
         if entities.get("state_code") == "31":  # MG
-            print(f"   ✅ Entity extraction working!\n")
+            print("   ✅ Entity extraction working!\n")
         else:
-            print(f"   ⚠️  Estado não extraído corretamente\n")
+            print("   ⚠️  Estado não extraído corretamente\n")
 
         # Test 3: Check if we can import and create Zumbi agent
         print("3️⃣  Testing Zumbi Agent Import...")
@@ -62,7 +62,7 @@ async def test_complete_flow():
         agent = InvestigatorAgent()
         print(f"   Agent: {agent.name}")
         print(f"   Capabilities: {agent.capabilities[:3]}...")
-        print(f"   ✅ Zumbi agent can be imported!\n")
+        print("   ✅ Zumbi agent can be imported!\n")
 
         # Test 4: Create investigation request
         print("4️⃣  Testing Investigation Request Creation...")
@@ -77,7 +77,7 @@ async def test_complete_flow():
         print(f"   Request query: {request.query}")
         print(f"   Date range: {request.date_range}")
         print(f"   Value threshold: R$ {request.value_threshold:,.2f}")
-        print(f"   ✅ Investigation request created!\n")
+        print("   ✅ Investigation request created!\n")
 
         # Test 5: Check Portal API service (without actually calling)
         print("5️⃣  Testing Portal API Service Configuration...")
@@ -88,7 +88,7 @@ async def test_complete_flow():
         print(
             f"   Has API key: {'Yes' if service.api_key else 'No (expected locally)'}"
         )
-        print(f"   ✅ Portal service configured!\n")
+        print("   ✅ Portal service configured!\n")
 
         print("=" * 80)
         print("📊 SUMMARY:")

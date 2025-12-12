@@ -1,6 +1,5 @@
 """Tests for IP whitelist service."""
 
-from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, Mock, patch
 
 import pytest

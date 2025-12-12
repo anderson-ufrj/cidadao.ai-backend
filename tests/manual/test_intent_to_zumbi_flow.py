@@ -8,7 +8,6 @@ from pathlib import Path
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent))
 
-from src.services.orchestration.models.investigation import InvestigationIntent
 from src.services.orchestration.query_planner.intent_classifier import IntentClassifier
 
 
@@ -50,7 +49,7 @@ async def test_zumbi_initialization():
 
         print("📦 Importing ZumbiAgent...")
         agent = ZumbiAgent()
-        print(f"✅ Zumbi initialized successfully")
+        print("✅ Zumbi initialized successfully")
         print(f"   Name: {agent.name}")
         print(f"   Capabilities: {agent.capabilities}\n")
     except Exception as e:
@@ -75,7 +74,7 @@ async def test_entity_extraction():
         print(f"📝 Query: {query}")
         entities = await chat_integration._extract_entities(query)
 
-        print(f"✅ Entities extracted:")
+        print("✅ Entities extracted:")
         for key, value in entities.items():
             print(f"   {key}: {value}")
         print()

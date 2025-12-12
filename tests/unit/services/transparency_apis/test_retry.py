@@ -9,6 +9,7 @@ License: Proprietary - All rights reserved
 """
 
 import asyncio
+import builtins
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -108,7 +109,7 @@ class TestRetryableExceptions:
 
     def test_asyncio_timeout_is_retryable(self):
         """Test asyncio.TimeoutError is retryable."""
-        error = asyncio.TimeoutError()
+        error = builtins.TimeoutError()
         assert should_retry_exception(error) is True
 
     def test_authentication_error_not_retryable(self):
@@ -345,13 +346,15 @@ class TestRetryContext:
     @pytest.mark.asyncio
     async def test_retry_context_wait_before_retry(self):
         """Test RetryContext wait_before_retry calculates delay."""
-        with patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep:
-            with RetryContext("test_operation") as ctx:
-                await ctx.wait_before_retry(attempt=1, base_delay=0.01)
+        with (
+            patch("asyncio.sleep", new_callable=AsyncMock) as mock_sleep,
+            RetryContext("test_operation") as ctx,
+        ):
+            await ctx.wait_before_retry(attempt=1, base_delay=0.01)
 
-                # Should have called asyncio.sleep with calculated backoff
-                assert mock_sleep.called
-                assert ctx.total_delay > 0
+            # Should have called asyncio.sleep with calculated backoff
+            assert mock_sleep.called
+            assert ctx.total_delay > 0
 
     def test_retry_context_completion(self):
         """Test RetryContext records completion."""

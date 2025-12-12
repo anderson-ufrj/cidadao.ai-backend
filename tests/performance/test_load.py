@@ -8,9 +8,7 @@ import random
 import time
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List
 
-import httpx
 import pytest
 from httpx import AsyncClient
 
@@ -35,8 +33,8 @@ class LoadTestResult:
     total_requests: int = 0
     successful_requests: int = 0
     failed_requests: int = 0
-    response_times: List[float] = field(default_factory=list)
-    errors: List[str] = field(default_factory=list)
+    response_times: list[float] = field(default_factory=list)
+    errors: list[str] = field(default_factory=list)
     requests_per_second: float = 0.0
 
     def calculate_metrics(self):
@@ -96,7 +94,7 @@ class VirtualUser:
         if self.client:
             await self.client.aclose()
 
-    async def make_request(self, endpoint: str, method: str = "GET", data: Dict = None):
+    async def make_request(self, endpoint: str, method: str = "GET", data: dict = None):
         """Make a single request."""
         start_time = time.time()
 
@@ -129,7 +127,7 @@ class VirtualUser:
                 "error": str(e),
             }
 
-    async def run_scenario(self) -> List[Dict]:
+    async def run_scenario(self) -> list[dict]:
         """Run a user scenario."""
         results = []
 
@@ -175,7 +173,7 @@ class LoadTest:
         self.result = LoadTestResult(start_time=datetime.now(), end_time=datetime.now())
         self.active_users = []
 
-    async def spawn_user(self, user_id: int) -> List[Dict]:
+    async def spawn_user(self, user_id: int) -> list[dict]:
         """Spawn a virtual user."""
         async with VirtualUser(user_id, self.config) as user:
             return await user.run_scenario()
@@ -201,7 +199,7 @@ class LoadTest:
             if (i + 1) % 10 == 0:
                 print(f"   Spawned {i + 1}/{self.config.num_users} users...")
 
-        print(f"   All users spawned. Running scenarios...")
+        print("   All users spawned. Running scenarios...")
 
         # Wait for all users to complete
         all_results = await asyncio.gather(*tasks)
