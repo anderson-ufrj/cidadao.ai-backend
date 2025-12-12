@@ -7,6 +7,9 @@
 
 > **Multi-Agent AI System** for Brazilian Government Transparency Analysis
 
+<!-- Citation Badge -->
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17911809.svg)](https://doi.org/10.5281/zenodo.17911809)
+
 <!-- Status Badges -->
 [![CI/CD Pipeline](https://github.com/anderson-ufrj/cidadao.ai-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/anderson-ufrj/cidadao.ai-backend/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/anderson-ufrj/cidadao.ai-backend/branch/main/graph/badge.svg)](https://codecov.io/gh/anderson-ufrj/cidadao.ai-backend)

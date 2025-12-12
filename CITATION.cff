@@ -8,7 +8,7 @@ authors:
     affiliation: "Instituto Federal de Educação, Ciência e Tecnologia do Sul de Minas Gerais - Campus Muzambinho"
 title: "Cidadão.AI Backend: Multi-Agent AI System for Brazilian Government Transparency Analysis"
 version: 1.0.0
-doi: 10.5281/zenodo.XXXXXXX
+doi: 10.5281/zenodo.17911809
 date-released: 2025-01-20
 url: "https://github.com/anderson-ufrj/cidadao.ai-backend"
 repository-code: "https://github.com/anderson-ufrj/cidadao.ai-backend"
@@ -79,5 +79,5 @@ preferred-citation:
       orcid: "https://orcid.org/0009-0001-7144-4974"
   title: "Cidadão.AI: Multi-Agent AI System for Brazilian Government Transparency Analysis"
   year: 2025
-  doi: 10.5281/zenodo.XXXXXXX
+  doi: 10.5281/zenodo.17911809
   url: "https://github.com/anderson-ufrj/cidadao.ai-backend"
