@@ -171,7 +171,12 @@ class TransparencyAPIClient:
             max_retries: Maximum number of retries
             rate_limit_per_minute: Maximum requests per minute
         """
-        self.api_key = api_key or settings.transparency_api_key.get_secret_value()
+        if api_key:
+            self.api_key = api_key
+        elif settings.transparency_api_key:
+            self.api_key = settings.transparency_api_key.get_secret_value()
+        else:
+            self.api_key = ""  # Will work in degraded mode without API key
         self.base_url = base_url or settings.transparency_api_base_url
         self.timeout = timeout
         self.max_retries = max_retries
