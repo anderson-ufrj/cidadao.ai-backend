@@ -13,7 +13,7 @@
 **New to the project?** Start here:
 
 1. **[README.md](../README.md)** - Project overview and setup
-2. **[QUICKSTART.md](../QUICKSTART.md)** - Quick installation guide
+2. **[QUICKSTART.md](QUICKSTART.md)** - Quick installation guide
 3. **[CONTRIBUTING.md](../CONTRIBUTING.md)** - How to contribute
 4. **[CLAUDE.md](../CLAUDE.md)** - Development guidelines
 

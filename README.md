@@ -277,7 +277,7 @@ User Query → Intent Detection → Entity Extraction → Execution Planning
 
 **Getting Started**:
 - [Quick Start](#-quick-start) - Installation and setup
-- [QUICKSTART.md](QUICKSTART.md) - Detailed quickstart guide
+- [QUICKSTART.md](docs/QUICKSTART.md) - Detailed quickstart guide
 - [CONTRIBUTING.md](CONTRIBUTING.md) - How to contribute
 
 **Architecture**:
