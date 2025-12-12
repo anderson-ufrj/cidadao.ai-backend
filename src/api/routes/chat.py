@@ -1111,7 +1111,7 @@ async def send_message(
                 )
                 agent_id = "drummond"
                 agent_name = "Carlos Drummond de Andrade"
-        elif target_agent == "abaporu" and (
+        elif target_agent in ["abaporu", "zumbi"] and (
             intent.type == IntentType.INVESTIGATE
             or (
                 intent.type
@@ -1119,9 +1119,10 @@ async def send_message(
                 and should_fetch_data
             )
         ):
-            # Handle investigation requests with Zumbi
+            # Handle investigation requests with Zumbi (with DB persistence)
             # This includes explicit INVESTIGATE intents and QUESTION/UNKNOWN intents
             # that contain data-related keywords (contracts, expenses, etc.)
+            # Note: Both abaporu and zumbi targets use this path to ensure DB persistence
             try:
                 logger.info(
                     f"Routing to Zumbi agent (intent: {intent.type}, has_data_keywords: {should_fetch_data})"
