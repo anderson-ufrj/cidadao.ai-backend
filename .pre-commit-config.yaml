@@ -40,6 +40,7 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+        exclude: mkdocs.yml  # Uses Python tags not supported by check-yaml
       - id: check-toml
       - id: check-json
       - id: check-merge-conflict
