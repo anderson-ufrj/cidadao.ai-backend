@@ -1,0 +1,150 @@
+/* Cidadao.AI Custom Styles */
+
+/* Brazilian-inspired accent colors */
+:root {
+  --md-primary-fg-color: #009739;
+  --md-primary-fg-color--light: #00a843;
+  --md-primary-fg-color--dark: #007a2f;
+  --md-accent-fg-color: #ffdf00;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color: #00a843;
+  --md-accent-fg-color: #ffdf00;
+}
+
+/* Homepage cards styling */
+.md-typeset .grid.cards > ul > li {
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  border-color: var(--md-accent-fg-color);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Agent tier badges */
+.tier-1 {
+  background-color: #28a745;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.tier-2 {
+  background-color: #17a2b8;
+  color: white;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+
+.tier-3 {
+  background-color: #ffc107;
+  color: black;
+  padding: 0.2rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.75rem;
+}
+
+/* Code block improvements */
+.md-typeset pre > code {
+  border-radius: 0.5rem;
+}
+
+/* Table improvements */
+.md-typeset table:not([class]) {
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.md-typeset table:not([class]) th {
+  background-color: var(--md-primary-fg-color);
+  color: white;
+}
+
+/* Mermaid diagrams */
+.mermaid {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+/* Navigation improvements */
+.md-nav__link--active {
+  font-weight: 600;
+}
+
+/* Footer */
+.md-footer-meta {
+  background-color: var(--md-primary-fg-color--dark);
+}
+
+/* Admonition customization */
+.md-typeset .admonition.success,
+.md-typeset details.success {
+  border-color: #28a745;
+}
+
+.md-typeset .success > .admonition-title,
+.md-typeset .success > summary {
+  background-color: rgba(40, 167, 69, 0.1);
+}
+
+/* API endpoint styling */
+.endpoint-get {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.endpoint-post {
+  color: #007bff;
+  font-weight: bold;
+}
+
+.endpoint-put {
+  color: #ffc107;
+  font-weight: bold;
+}
+
+.endpoint-delete {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+/* Status badges */
+.status-operational {
+  background-color: #28a745;
+  color: white;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+}
+
+.status-degraded {
+  background-color: #ffc107;
+  color: black;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+}
+
+.status-down {
+  background-color: #dc3545;
+  color: white;
+  padding: 0.1rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+}
+
+/* Print styles */
+@media print {
+  .md-sidebar,
+  .md-header,
+  .md-footer {
+    display: none;
+  }
+}
