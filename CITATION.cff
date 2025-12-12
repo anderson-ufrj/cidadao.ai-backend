@@ -3,16 +3,16 @@ message: "If you use this software, please cite it as below."
 authors:
   - family-names: "Silva"
     given-names: "Anderson Henrique da"
-    orcid: "https://orcid.org/0000-0000-0000-0000"
+    orcid: "https://orcid.org/0009-0001-7144-4974"
     email: "andersonhs27@gmail.com"
     affiliation: "Instituto Federal de Educação, Ciência e Tecnologia do Sul de Minas Gerais - Campus Muzambinho"
-title: "Cidadão.AI: Multi-Agent AI System for Brazilian Government Transparency Analysis"
+title: "Cidadão.AI Backend: Multi-Agent AI System for Brazilian Government Transparency Analysis"
 version: 1.0.0
-doi: 10.5281/zenodo.0000000
+doi: 10.5281/zenodo.XXXXXXX
 date-released: 2025-01-20
-url: "https://github.com/anderson-ufrj/cidadao.ai"
-repository-code: "https://github.com/anderson-ufrj/cidadao.ai"
-license: Apache-2.0
+url: "https://github.com/anderson-ufrj/cidadao.ai-backend"
+repository-code: "https://github.com/anderson-ufrj/cidadao.ai-backend"
+license: MIT
 type: software
 keywords:
   - artificial-intelligence
@@ -29,16 +29,17 @@ keywords:
   - langchain
   - fastapi
   - machine-learning
+  - natural-language-processing
 abstract: |
-  Cidadão.AI is an innovative platform that uses specialized artificial intelligence
+  Cidadão.AI Backend is an innovative platform that uses specialized artificial intelligence
   to democratize access to Brazilian public data. The system employs a sophisticated
-  multi-agent architecture to analyze government contracts, bidding processes, public
-  expenses, and other government documents. It features eight specialized AI agents
-  working collaboratively to detect anomalies, analyze patterns, and generate
-  comprehensive reports, contributing directly to SDG 16: Peace, Justice and Strong
-  Institutions. The platform provides both web interfaces (Gradio and Streamlit) and
-  a REST API for programmatic access, making government transparency data accessible
-  to citizens, journalists, researchers, and civil society organizations.
+  multi-agent architecture with 17 AI agents (each named after Brazilian historical figures)
+  to analyze government contracts, bidding processes, public expenses, and other government
+  documents. Features include anomaly detection, pattern analysis, report generation, and
+  comprehensive transparency API integration, contributing directly to SDG 16: Peace, Justice
+  and Strong Institutions. The platform provides a REST API for programmatic access, making
+  government transparency data accessible to citizens, journalists, researchers, and civil
+  society organizations.
 references:
   - type: software
     authors:
@@ -75,7 +76,8 @@ preferred-citation:
   authors:
     - family-names: "Silva"
       given-names: "Anderson Henrique da"
+      orcid: "https://orcid.org/0009-0001-7144-4974"
   title: "Cidadão.AI: Multi-Agent AI System for Brazilian Government Transparency Analysis"
   year: 2025
-  doi: 10.5281/zenodo.0000000
-  url: "https://github.com/anderson-ufrj/cidadao.ai"
+  doi: 10.5281/zenodo.XXXXXXX
+  url: "https://github.com/anderson-ufrj/cidadao.ai-backend"
