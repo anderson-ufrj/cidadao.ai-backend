@@ -94,9 +94,13 @@ class InvestigationService:
             if current_phase is not None:
                 investigation.current_phase = current_phase
 
-            # Update other fields
+            # Update other fields, converting timezone-aware datetimes to naive
+            # PostgreSQL TIMESTAMP WITHOUT TIME ZONE doesn't accept timezone-aware datetimes
             for key, value in kwargs.items():
                 if hasattr(investigation, key):
+                    # Convert timezone-aware datetime to naive (UTC)
+                    if isinstance(value, datetime) and value.tzinfo is not None:
+                        value = value.replace(tzinfo=None)
                     setattr(investigation, key, value)
 
             await db.commit()
