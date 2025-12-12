@@ -9,6 +9,7 @@ This script tests the auto-investigation Celery tasks locally.
 
 import asyncio
 import os
+import sys
 from datetime import datetime
 
 # IMPORTANT: Load .env BEFORE any project imports
@@ -32,23 +33,22 @@ try:
     from src.config.system_users import SYSTEM_AUTO_MONITOR_USER_ID
     from src.services.auto_investigation_service import auto_investigation_service
 
-    print(f"   ✅ Imports OK")
+    print("   ✅ Imports OK")
     print(f"   ✅ System User ID: {SYSTEM_AUTO_MONITOR_USER_ID}")
 except Exception as e:
     print(f"   ❌ Erro nos imports: {e}")
-    exit(1)
+    sys.exit(1)
 
 print()
 
 # Test 2: Test investigation service
 print("🗄️  [2/4] Testando Investigation Service...")
 try:
-    from src.services.investigation_service_selector import investigation_service
 
-    print(f"   ✅ Investigation service carregado")
+    print("   ✅ Investigation service carregado")
 except Exception as e:
     print(f"   ❌ Erro ao carregar investigation service: {e}")
-    exit(1)
+    sys.exit(1)
 
 print()
 
@@ -85,7 +85,7 @@ try:
 
 except Exception as e:
     print(f"   ⚠️  Portal da Transparência com problemas: {e}")
-    print(f"   ℹ️  Isso é esperado - 78% dos endpoints retornam 403")
+    print("   ℹ️  Isso é esperado - 78% dos endpoints retornam 403")
 
 print()
 
@@ -150,4 +150,4 @@ except Exception as e:
     import traceback
 
     traceback.print_exc()
-    exit(1)
+    sys.exit(1)

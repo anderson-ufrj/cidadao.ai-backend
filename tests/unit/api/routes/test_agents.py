@@ -69,6 +69,7 @@ class TestAgentRoutes:
     async def test_zumbi_agent_endpoint(self, mock_user, mock_agents):
         """Test Zumbi agent endpoint."""
         from fastapi import FastAPI
+
         from src.api.routes.agents import get_current_user, get_rate_limit_tier
 
         app = FastAPI()
@@ -101,6 +102,7 @@ class TestAgentRoutes:
     async def test_anita_agent_endpoint(self, mock_user, mock_agents):
         """Test Anita agent endpoint."""
         from fastapi import FastAPI
+
         from src.api.routes.agents import get_current_user, get_rate_limit_tier
 
         app = FastAPI()
@@ -133,6 +135,7 @@ class TestAgentRoutes:
     async def test_tiradentes_agent_endpoint(self, mock_user, mock_agents):
         """Test Tiradentes agent endpoint."""
         from fastapi import FastAPI
+
         from src.api.routes.agents import get_current_user, get_rate_limit_tier
 
         app = FastAPI()
@@ -165,6 +168,7 @@ class TestAgentRoutes:
     async def test_bonifacio_agent_endpoint(self, mock_user, mock_agents):
         """Test Bonifacio agent endpoint."""
         from fastapi import FastAPI
+
         from src.api.routes.agents import get_current_user, get_rate_limit_tier
 
         app = FastAPI()
@@ -191,10 +195,7 @@ class TestAgentRoutes:
         assert data["agent"] == "jose_bonifacio"
         assert data["success"] is True
         assert "result" in data
-        assert (
-            data["message"]
-            == "Legal and compliance analysis completed successfully"
-        )
+        assert data["message"] == "Legal and compliance analysis completed successfully"
         assert "metadata" in data
         assert "compliance_issues" in data["metadata"]
         assert "legal_risks" in data["metadata"]
@@ -202,6 +203,7 @@ class TestAgentRoutes:
     def test_agents_status_endpoint(self, mock_user):
         """Test agents status endpoint."""
         from fastapi import FastAPI
+
         from src.api.routes.agents import get_current_user
 
         app = FastAPI()
@@ -266,6 +268,7 @@ class TestAgentRoutes:
     async def test_agent_error_handling(self, mock_user):
         """Test agent error handling."""
         from fastapi import FastAPI
+
         from src.api.routes.agents import get_current_user, get_rate_limit_tier
 
         with patch("src.api.routes.agents.BonifacioAgent") as mock_bonifacio:

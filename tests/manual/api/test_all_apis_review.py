@@ -44,7 +44,7 @@ async def test_federal_apis() -> dict[str, Any]:
             connected = await client.test_connection()
             if connected:
                 entities = await client.get_entities(year=2024, sphere="M", limit=5)
-                print(f"  ✅ Connection: OK")
+                print("  ✅ Connection: OK")
                 print(f"  ✅ Entities: {len(entities)} municipalities found")
                 results["SICONFI"] = {"status": "OK", "entities": len(entities)}
             else:
@@ -64,7 +64,7 @@ async def test_federal_apis() -> dict[str, Any]:
             print(f"  Base URL: {client.base_url}")
             connected = await client.test_connection()
             if connected:
-                print(f"  ✅ Connection: OK")
+                print("  ✅ Connection: OK")
                 # Test get states
                 states = await client.get_states()
                 print(f"  ✅ States: {len(states)} found")
@@ -86,7 +86,7 @@ async def test_federal_apis() -> dict[str, Any]:
             print(f"  Base URL: {client.base_url}")
             connected = await client.test_connection()
             if connected:
-                print(f"  ✅ Connection: OK")
+                print("  ✅ Connection: OK")
                 results["DataSUS"] = {"status": "OK"}
             else:
                 print("  ❌ Connection: FAILED")
@@ -105,7 +105,7 @@ async def test_federal_apis() -> dict[str, Any]:
             print(f"  Base URL: {client.base_url}")
             connected = await client.test_connection()
             if connected:
-                print(f"  ✅ Connection: OK")
+                print("  ✅ Connection: OK")
                 results["INEP"] = {"status": "OK"}
             else:
                 print("  ❌ Connection: FAILED")
@@ -124,7 +124,7 @@ async def test_federal_apis() -> dict[str, Any]:
             print(f"  Base URL: {client.base_url}")
             connected = await client.test_connection()
             if connected:
-                print(f"  ✅ Connection: OK")
+                print("  ✅ Connection: OK")
                 results["PNCP"] = {"status": "OK"}
             else:
                 print("  ❌ Connection: FAILED")
@@ -143,7 +143,7 @@ async def test_federal_apis() -> dict[str, Any]:
             print(f"  Base URL: {client.base_url}")
             connected = await client.test_connection()
             if connected:
-                print(f"  ✅ Connection: OK")
+                print("  ✅ Connection: OK")
                 results["BCB"] = {"status": "OK"}
             else:
                 print("  ❌ Connection: FAILED")
@@ -162,7 +162,7 @@ async def test_federal_apis() -> dict[str, Any]:
             print(f"  Base URL: {client.base_url}")
             connected = await client.test_connection()
             if connected:
-                print(f"  ✅ Connection: OK")
+                print("  ✅ Connection: OK")
                 results["ComprasGov"] = {"status": "OK"}
             else:
                 print("  ❌ Connection: FAILED")
@@ -181,7 +181,7 @@ async def test_federal_apis() -> dict[str, Any]:
             print(f"  Base URL: {client.base_url}")
             connected = await client.test_connection()
             if connected:
-                print(f"  ✅ Connection: OK")
+                print("  ✅ Connection: OK")
                 results["MinhaReceita"] = {"status": "OK"}
             else:
                 print("  ❌ Connection: FAILED")
@@ -252,7 +252,7 @@ async def test_tce_apis() -> dict[str, Any]:
             connected = await client.test_connection()
             if connected:
                 municipalities = await client.get_municipalities()
-                print(f"  ✅ Connection: OK")
+                print("  ✅ Connection: OK")
                 print(f"  ✅ Municipalities: {len(municipalities)} found")
                 results["TCE-SP"] = {
                     "status": "OK",
@@ -276,7 +276,7 @@ async def test_tce_apis() -> dict[str, Any]:
             connected = await client.test_connection()
             if connected:
                 municipalities = await client.get_municipalities()
-                print(f"  ✅ Connection: OK")
+                print("  ✅ Connection: OK")
                 print(f"  ✅ Municipalities: {len(municipalities)} found")
                 results["TCE-CE"] = {
                     "status": "OK",

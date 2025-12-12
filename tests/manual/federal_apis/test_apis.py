@@ -3,7 +3,6 @@ Script para gerar métricas de teste das Federal APIs.
 """
 
 import asyncio
-import sys
 
 
 async def test_federal_apis():
@@ -54,7 +53,7 @@ async def test_federal_apis():
 
             # Get health indicators
             indicators = await datasus.get_health_indicators(state_code="RJ")
-            print(f"  ✅ Indicadores de saúde obtidos")
+            print("  ✅ Indicadores de saúde obtidos")
             results.append(("DataSUS get_health_indicators", "success", 1))
 
     except Exception as e:
@@ -75,7 +74,7 @@ async def test_federal_apis():
 
             # Get indicators
             indicators = await inep.get_education_indicators(state="RJ")
-            print(f"  ✅ Indicadores educacionais obtidos")
+            print("  ✅ Indicadores educacionais obtidos")
             results.append(("INEP get_education_indicators", "success", 1))
 
     except Exception as e:

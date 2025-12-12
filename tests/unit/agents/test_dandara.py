@@ -509,7 +509,9 @@ class TestDandaraAuxiliaryMethods:
         """Test recommendation impact estimation."""
         # Method signature: (gaps: list[dict], recommendation_idx: int) -> float
         gaps = [{"severity": "high", "affected_population": 100000}]
-        impact = dandara_agent._estimate_recommendation_impact(gaps, recommendation_idx=0)
+        impact = dandara_agent._estimate_recommendation_impact(
+            gaps, recommendation_idx=0
+        )
         assert isinstance(impact, float)
         assert 0.0 <= impact <= 1.0
 
@@ -517,7 +519,9 @@ class TestDandaraAuxiliaryMethods:
         """Test resource requirements assessment."""
         # Method signature: (gaps: list[dict], recommendation_idx: int) -> str
         gaps = [{"severity": "high", "affected_population": 100000}]
-        resources = dandara_agent._assess_resource_requirements(gaps, recommendation_idx=0)
+        resources = dandara_agent._assess_resource_requirements(
+            gaps, recommendation_idx=0
+        )
         assert isinstance(resources, str)
         assert resources in ["low", "medium", "high", "very_high"]
 
@@ -526,14 +530,15 @@ class TestDandaraAuxiliaryMethods:
         # Method signature: (current_score: int, violations_count: int) -> int
         current_score = 50
         violations_count = 8
-        target = dandara_agent._calculate_improvement_target(current_score, violations_count)
+        target = dandara_agent._calculate_improvement_target(
+            current_score, violations_count
+        )
         assert isinstance(target, int)
         assert 0 <= target <= 100  # Target should be valid equity score
 
     def test_generate_audit_hash(self, dandara_agent):
         """Test audit hash generation."""
         # Method signature: (analysis: EquityAnalysisResult, request: SocialJusticeRequest) -> str
-        from datetime import datetime
 
         from src.agents.dandara import EquityAnalysisResult, SocialJusticeRequest
 
@@ -589,7 +594,9 @@ class TestDandaraProcessBranchesExtended:
             sender="test",
             recipient="Dandara",
             action="analyze",
-            content={"invalid_field": "test"},  # Will fail SocialJusticeRequest validation
+            content={
+                "invalid_field": "test"
+            },  # Will fail SocialJusticeRequest validation
         )
         context = AgentContext()
 

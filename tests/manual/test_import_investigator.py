@@ -15,7 +15,7 @@ print("Test 1: Direct import from zumbi.py")
 try:
     from src.agents.zumbi import InvestigatorAgent
 
-    print(f"✅ SUCCESS: InvestigatorAgent imported")
+    print("✅ SUCCESS: InvestigatorAgent imported")
     print(f"   Class name: {InvestigatorAgent.__name__}")
     print(f"   Module: {InvestigatorAgent.__module__}\n")
 except Exception as e:
@@ -26,18 +26,18 @@ print("Test 2: Try importing ZumbiAgent from zumbi.py")
 try:
     from src.agents.zumbi import ZumbiAgent  # This should fail
 
-    print(f"✅ ZumbiAgent exists in zumbi.py (unexpected!)")
+    print("✅ ZumbiAgent exists in zumbi.py (unexpected!)")
     print(f"   Class name: {ZumbiAgent.__name__}\n")
 except ImportError as e:
     print(f"❌ EXPECTED FAILURE: {e}")
-    print(f"   (This is correct - zumbi.py only exports InvestigatorAgent)\n")
+    print("   (This is correct - zumbi.py only exports InvestigatorAgent)\n")
 
 # Test 3: Import from src.agents (should use lazy loading)
 print("Test 3: Import from src.agents using lazy loading")
 try:
     from src.agents import InvestigatorAgent as LazyInvestigator
 
-    print(f"✅ SUCCESS: InvestigatorAgent via lazy loading")
+    print("✅ SUCCESS: InvestigatorAgent via lazy loading")
     print(f"   Class name: {LazyInvestigator.__name__}\n")
 except Exception as e:
     print(f"❌ FAILED: {e}\n")
@@ -47,7 +47,7 @@ print("Test 4: Try ZumbiAgent alias from src.agents")
 try:
     from src.agents import ZumbiAgent as AliasedZumbi
 
-    print(f"✅ SUCCESS: ZumbiAgent alias works")
+    print("✅ SUCCESS: ZumbiAgent alias works")
     print(f"   Class name: {AliasedZumbi.__name__}")
     print(f"   Is same as InvestigatorAgent: {AliasedZumbi is InvestigatorAgent}\n")
 except Exception as e:

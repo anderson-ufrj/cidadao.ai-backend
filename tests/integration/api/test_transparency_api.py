@@ -1,13 +1,11 @@
-# TODO: Mock Portal da Transparência API responses for integration tests
-from unittest.mock import AsyncMock, MagicMock, patch
-
-import pytest
-
 #!/usr/bin/env python3
 """
-Script to test Portal da Transparência API integration
+Script to test Portal da Transparência API integration.
+
 Author: Anderson H. Silva
 Date: 2025-01-24
+
+TODO: Mock Portal da Transparência API responses for integration tests
 """
 
 import asyncio

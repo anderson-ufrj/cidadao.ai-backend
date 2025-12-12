@@ -108,7 +108,7 @@ async def test_agent_voices():
     total = len(results)
 
     print(f"✅ Successful: {successful}/{total}")
-    print(f"\n🎧 Generated files:")
+    print("\n🎧 Generated files:")
     for result in results:
         if result["success"]:
             print(f"   - {result['file']}")

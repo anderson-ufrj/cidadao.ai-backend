@@ -45,23 +45,23 @@ async def test_portal_api_fix():
         )
 
         if result:
-            print(f"✅ SUCCESS! Portal API returned data")
+            print("✅ SUCCESS! Portal API returned data")
             print(f"   Total items: {len(result)}")
 
             if result:
-                print(f"\n📋 First contract sample:")
+                print("\n📋 First contract sample:")
                 first = result[0]
                 for key, value in list(first.items())[:5]:
                     print(f"   {key}: {value}")
 
-            print(f"\n🎯 FIX VERIFIED:")
-            print(f"   - Portal API accepted request with default orgao=36000")
-            print(f"   - No more 400 Bad Request errors")
-            print(f"   - Zumbi agent should now return real data!")
+            print("\n🎯 FIX VERIFIED:")
+            print("   - Portal API accepted request with default orgao=36000")
+            print("   - No more 400 Bad Request errors")
+            print("   - Zumbi agent should now return real data!")
         else:
-            print(f"⚠️  Portal API returned empty result (but no 400 error!)")
-            print(f"   This means the fix is working - API accepted the request")
-            print(f"   Empty result might be due to specific filter criteria")
+            print("⚠️  Portal API returned empty result (but no 400 error!)")
+            print("   This means the fix is working - API accepted the request")
+            print("   Empty result might be due to specific filter criteria")
 
     except Exception as e:
         print(f"\n❌ Error: {e}")

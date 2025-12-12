@@ -2,7 +2,6 @@
 Unit tests for agent metrics API endpoints.
 """
 
-import json
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest

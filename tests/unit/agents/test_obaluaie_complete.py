@@ -3,11 +3,9 @@ Additional comprehensive tests for Obaluaiê to achieve 80%+ coverage.
 Tests Benford's Law, cartel detection, nepotism analysis, and risk scoring.
 """
 
-from unittest.mock import AsyncMock
-
 import pytest
 
-from src.agents.deodoro import AgentContext, AgentMessage, AgentStatus
+from src.agents.deodoro import AgentContext, AgentStatus
 from src.agents.obaluaie import (
     CorruptionAlertResult,
     CorruptionDetectorAgent,

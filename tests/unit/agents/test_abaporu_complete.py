@@ -3,7 +3,6 @@ Additional comprehensive tests for Abaporu to achieve 100% coverage.
 Tests full investigation flow, error paths, and edge cases.
 """
 
-import asyncio
 from unittest.mock import AsyncMock
 from uuid import uuid4
 
@@ -349,8 +348,6 @@ class TestAbaporuCompleteCoverage:
     async def test_investigate_with_parallel_steps(self, master_agent, agent_context):
         """Test investigation with parallel execution of multiple steps."""
         from unittest.mock import patch
-
-        from src.agents.parallel_processor import ParallelStrategy
 
         # Setup multiple agents for parallel execution
         master_agent.agent_registry["Zumbi"] = AsyncMock(

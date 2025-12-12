@@ -295,4 +295,6 @@ class TestIntegrationWithFrontend:
         )
 
         # Should use at least 5 different agents
-        assert len(agents_used) >= 5, f"Only {len(agents_used)} agents used, expected >= 5"
+        assert (
+            len(agents_used) >= 5
+        ), f"Only {len(agents_used)} agents used, expected >= 5"

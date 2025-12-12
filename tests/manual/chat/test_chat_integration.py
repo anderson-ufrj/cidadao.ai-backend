@@ -143,9 +143,6 @@ async def test_chat_endpoint_logic():
 
         # Verificar disponibilidade
         try:
-            from src.services.orchestration.orchestrator import (
-                InvestigationOrchestrator,
-            )
 
             print("✅ Orchestrator disponível e pronto para uso")
             return True

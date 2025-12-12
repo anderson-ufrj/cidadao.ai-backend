@@ -4,7 +4,6 @@ Teste em Produção - Chat API
 Testa a API real em produção (Railway)
 """
 import asyncio
-import json
 import sys
 
 import httpx
@@ -66,7 +65,7 @@ async def test_chat_entity_extraction():
 
                 # Mostrar primeiros 500 caracteres da mensagem
                 response_text = data.get("message", "")
-                print(f"\nResposta (preview):")
+                print("\nResposta (preview):")
                 print("-" * 80)
                 print(response_text[:500])
                 if len(response_text) > 500:
@@ -75,7 +74,7 @@ async def test_chat_entity_extraction():
 
                 # Verificar se menciona dados reais (não mock)
                 metadata = data.get("metadata", {})
-                print(f"\nMetadata:")
+                print("\nMetadata:")
                 for key, value in metadata.items():
                     print(f"  {key}: {value}")
 
@@ -213,11 +212,11 @@ async def test_orchestrator_integration():
                 response_text = data.get("response", "")
                 metadata = data.get("metadata", {})
 
-                print(f"\nMetadata recebida:")
+                print("\nMetadata recebida:")
                 for key, value in metadata.items():
                     print(f"  {key}: {value}")
 
-                print(f"\nResposta (preview):")
+                print("\nResposta (preview):")
                 print("-" * 80)
                 print(response_text[:400])
                 print("-" * 80)

@@ -27,7 +27,9 @@ print()
 # Test 1: Health check
 print("📊 [1/3] Testando health check público...")
 try:
-    response = requests.get(f"{base_url}/api/v1/investigations/public/health")
+    response = requests.get(
+        f"{base_url}/api/v1/investigations/public/health", timeout=30
+    )
     print(f"   Status: {response.status_code}")
 
     if response.status_code == 200:
@@ -61,7 +63,7 @@ try:
     }
 
     response = requests.post(
-        f"{base_url}/api/v1/investigations/public/create", json=payload
+        f"{base_url}/api/v1/investigations/public/create", json=payload, timeout=60
     )
 
     print(f"   Status: {response.status_code}")
@@ -69,7 +71,7 @@ try:
     if response.status_code == 200:
         data = response.json()
         investigation_id = data.get("investigation_id")
-        print(f"   ✅ Investigation created!")
+        print("   ✅ Investigation created!")
         print(f"   🆔 ID: {investigation_id}")
         print(f"   👤 System User: {data.get('system_user_id')}")
         print(f"   📝 Status: {data.get('status')}")
@@ -87,11 +89,11 @@ print()
 if investigation_id:
     print("🔍 [3/3] Verificação no Supabase...")
     print(
-        f"   1. Acesse: https://supabase.com/dashboard/project/pbsiyuattnwgohvkkkks/editor"
+        "   1. Acesse: https://supabase.com/dashboard/project/pbsiyuattnwgohvkkkks/editor"
     )
-    print(f"   2. Abra a tabela 'investigations'")
+    print("   2. Abra a tabela 'investigations'")
     print(f"   3. Procure por ID: {investigation_id}")
-    print(f"   4. Filtre por system_created: true")
+    print("   4. Filtre por system_created: true")
     print()
     print("✅ Endpoint público funcionando!")
 else:

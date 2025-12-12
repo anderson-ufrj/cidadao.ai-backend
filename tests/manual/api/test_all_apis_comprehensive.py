@@ -4,7 +4,6 @@ Tests all Federal, State, and TCE APIs
 """
 
 import asyncio
-import sys
 
 
 async def test_all_apis():
@@ -178,7 +177,7 @@ async def test_all_apis():
                             f"TCE-{state}"
                         ] = "⚠️  Client OK, connection test failed"
             else:
-                results["tce"][f"TCE-{state}"] = f"❌ Class not in map"
+                results["tce"][f"TCE-{state}"] = "❌ Class not in map"
         except Exception as e:
             results["tce"][f"TCE-{state}"] = f"❌ {str(e)[:60]}"
 

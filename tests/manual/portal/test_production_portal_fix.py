@@ -20,7 +20,7 @@ async def test_chat_endpoint():
             "session_id": "test-session-portal-fix",
         }
 
-        print(f"📤 Request payload:")
+        print("📤 Request payload:")
         print(f"   {payload}\n")
 
         try:
@@ -36,7 +36,7 @@ async def test_chat_endpoint():
             if response.status_code == 200:
                 data = response.json()
                 print("✅ SUCCESS!")
-                print(f"Response data:")
+                print("Response data:")
                 for key, value in data.items():
                     if isinstance(value, str) and len(value) > 200:
                         print(f"  {key}: {value[:200]}...")

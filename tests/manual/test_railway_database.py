@@ -108,7 +108,7 @@ def main():
         if cursor.rowcount > 0:
             print(f"✅ INSERT bem-sucedido! ID: {test_id}")
         else:
-            print(f"⚠️  Registro já existe (normal se executou antes)")
+            print("⚠️  Registro já existe (normal se executou antes)")
         conn.commit()
         print()
 
@@ -125,13 +125,13 @@ def main():
         result = cursor.fetchone()
 
         if result:
-            print(f"✅ SELECT bem-sucedido!")
+            print("✅ SELECT bem-sucedido!")
             print(f"   ID: {result[0]}")
             print(f"   User: {result[1]}")
             print(f"   Query: {result[2]}")
             print(f"   Status: {result[3]}")
         else:
-            print(f"❌ SELECT falhou - registro não encontrado")
+            print("❌ SELECT falhou - registro não encontrado")
             return 1
         print()
 
@@ -139,7 +139,7 @@ def main():
         print("🧹 Limpando registro de teste...")
         cursor.execute("DELETE FROM investigations WHERE id = %s", (test_id,))
         conn.commit()
-        print(f"✅ Registro de teste removido")
+        print("✅ Registro de teste removido")
         print()
 
         cursor.close()

@@ -98,7 +98,7 @@ async def test_siconfi_comprehensive():
             summary = await client.get_municipality_summary(
                 entity_code="3106200", year=2023
             )
-            print(f"✅ Summary retrieved successfully")
+            print("✅ Summary retrieved successfully")
             print(f"   Budget execution records: {len(summary['budget_execution'])}")
             print(f"   Fiscal management records: {len(summary['fiscal_management'])}")
             print(f"   Annual accounts records: {len(summary['annual_accounts'])}")

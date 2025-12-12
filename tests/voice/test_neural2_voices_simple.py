@@ -77,7 +77,7 @@ async def generate_voice_samples():
 
         # Initialize client
         client = texttospeech.TextToSpeechClient(credentials=credentials)
-        print(f"✅ Connected to Google Cloud Text-to-Speech")
+        print("✅ Connected to Google Cloud Text-to-Speech")
         print(f"   Credentials: {credentials_path.name}")
         print()
 
@@ -141,7 +141,7 @@ async def generate_voice_samples():
         total = len(results)
 
         print(f"✅ Successful: {successful}/{total}")
-        print(f"\n🎧 Generated files:")
+        print("\n🎧 Generated files:")
         for result in results:
             if result["success"]:
                 print(f"   - {result['file']}")
@@ -158,10 +158,10 @@ async def generate_voice_samples():
 
     except Exception as e:
         print(f"❌ Failed to initialize: {e}")
-        print(f"\n🔍 Troubleshooting:")
+        print("\n🔍 Troubleshooting:")
         print(f"   1. Check credentials file exists: {credentials_path}")
-        print(f"   2. Verify GOOGLE_CREDENTIALS_PATH in .env")
-        print(f"   3. Ensure APIs are enabled in Google Cloud Console")
+        print("   2. Verify GOOGLE_CREDENTIALS_PATH in .env")
+        print("   3. Ensure APIs are enabled in Google Cloud Console")
 
 
 if __name__ == "__main__":
