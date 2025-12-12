@@ -1,3 +1,8 @@
+# Railway/deployment setup scripts with secrets (NEVER COMMIT!)
+railway-env-setup.sh
+*-env-setup.sh
+*.env.sh
+
 # Local archive - planning and internal docs
 .local-archive/
 .archive/
