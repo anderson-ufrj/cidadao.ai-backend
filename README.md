@@ -30,12 +30,12 @@
 [![Pre-commit](https://img.shields.io/badge/Pre--commit-Enabled-brightgreen)](https://github.com/pre-commit/pre-commit)
 
 <!-- Project Badges -->
-[![Agents](https://img.shields.io/badge/Agents-20_Operational-blue)](docs/agents/)
+[![Agents](https://img.shields.io/badge/Agents-22_Operational-blue)](docs/agents/)
 [![Endpoints](https://img.shields.io/badge/Endpoints-323-blue)](docs/api/)
 [![Gov APIs](https://img.shields.io/badge/Gov_APIs-30+-green)](docs/api/05-GOVERNMENT-apis-30plus.md)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-**Democratizing access to Brazilian government transparency data through 20 specialized AI agents with Brazilian cultural identities.**
+**Democratizing access to Brazilian government transparency data through 22 specialized AI agents with Brazilian cultural identities.**
 
 ---
 
@@ -122,11 +122,11 @@ This is the **Backend API** of the Cidadão.AI ecosystem, composed of **4 integr
 
 ## 📋 Overview
 
-**Cidadão.AI** analyzes Brazilian government contracts using **20 specialized AI agents** with Brazilian cultural identities. The system runs 24/7 on Railway with PostgreSQL and Redis, autonomously monitoring data sources, detecting anomalies, and providing transparency insights.
+**Cidadão.AI** analyzes Brazilian government contracts using **22 specialized AI agents** with Brazilian cultural identities. The system runs 24/7 on Railway with PostgreSQL and Redis, autonomously monitoring data sources, detecting anomalies, and providing transparency insights.
 
 ### Key Features
 
-✅ **20 Specialized Agents** - Brazilian cultural identities (Zumbi, Anita, Tiradentes, etc.)
+✅ **22 Specialized Agents** - Brazilian cultural identities (Zumbi, Anita, Tiradentes, etc.)
 ✅ **30+ Government APIs** - Federal and state transparency data integrated
 ✅ **Multi-Agent Orchestration** - Coordinated investigation workflows
 ✅ **Real-Time Chat** - SSE streaming responses from agents
@@ -139,7 +139,7 @@ This is the **Backend API** of the Cidadão.AI ecosystem, composed of **4 integr
 
 ## 🤖 Agent System
 
-### 20 Operational Agents
+### 22 Operational Agents
 
 **Tier 1 - Excellent** (10 agents - >75% coverage):
 1. **Zumbi dos Palmares** - Anomaly Detection (96.32%)
@@ -161,11 +161,13 @@ This is the **Backend API** of the Cidadão.AI ecosystem, composed of **4 integr
 15. **Obaluaiê** - Corruption Detection (81.25%)
 16. **Dandara** - Social Equity (86.32%)
 
-**Tier 3 - Educational & Specialized** (4 agents):
+**Tier 3 - Educational & Specialized** (6 agents):
 17. **Santos Dumont** - Technical Education
 18. **Lina Bo Bardi** - Frontend Design
 19. **Monteiro Lobato** - Kids Programming Education
 20. **Tarsila do Amaral** - Kids Art & Design Education
+21. **Base Kids Agent** - Educational Safety Framework
+22. **Céuci ML Models** - Predictive ML Pipelines
 
 **📚 See**: [Agent Documentation](docs/agents/) for detailed information.
 
@@ -187,7 +189,7 @@ User Query → Intent Detection → Entity Extraction → Execution Planning
 
 **Key Components**:
 - **Orchestrator** - Query planning and execution coordination
-- **Agent Pool** - 20 specialized agents with lazy loading (367x faster)
+- **Agent Pool** - 22 specialized agents with lazy loading (367x faster)
 - **Data Federation** - Parallel API calls with circuit breakers
 - **Entity Graph** - NetworkX-based relationship tracking
 - **API Registry** - 30+ transparency APIs catalogued
@@ -289,7 +291,7 @@ User Query → Intent Detection → Entity Extraction → Execution Planning
 - [Improvement Roadmap](docs/architecture/IMPROVEMENT_ROADMAP_2025.md) - Technical improvements
 
 **Agents**:
-- [Agent Documentation](docs/agents/) - All 20 agents documented
+- [Agent Documentation](docs/agents/) - All 22 agents documented
 - [Zumbi](docs/agents/zumbi.md) - Best reference implementation
 
 **Operations**:
@@ -390,7 +392,7 @@ make monitoring-up       # Start Grafana + Prometheus
 
 **Status**: ✅ Production ready
 
-- [x] 20 agents operational
+- [x] 22 agents operational
 - [x] E2E tests passing
 - [x] Production deployment
 - [x] Frontend integration
