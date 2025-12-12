@@ -74,6 +74,7 @@ dependencies = [
     "aiohttp>=3.9.1",
 
     # Monitoring and logging
+    "python-snappy>=0.7.0",  # For Grafana Cloud remote write compression
     "opentelemetry-api>=1.22.0",
     "opentelemetry-sdk>=1.22.0",
     "opentelemetry-instrumentation-fastapi>=0.43b0",

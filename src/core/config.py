@@ -221,6 +221,24 @@ class Settings(BaseSettings):
         description="Additional allowed API keys (comma-separated in env)",
     )
 
+    # Grafana Cloud - Remote Write for metrics
+    grafana_remote_write_url: str | None = Field(
+        default=None,
+        description="Grafana Cloud Prometheus remote write URL",
+    )
+    grafana_remote_write_user: str | None = Field(
+        default=None,
+        description="Grafana Cloud username/instance ID",
+    )
+    grafana_remote_write_token: SecretStr | None = Field(
+        default=None,
+        description="Grafana Cloud API token for remote write",
+    )
+    grafana_metrics_push_interval: int = Field(
+        default=15,
+        description="Interval in seconds to push metrics to Grafana Cloud",
+    )
+
     # CORS - Can be overridden via ALLOWED_ORIGINS env var (comma-separated)
     cors_origins: list[str] = Field(
         default=[
