@@ -175,3 +175,4 @@ make check
 - **Production API**: [cidadao-api-production.up.railway.app](https://cidadao-api-production.up.railway.app/)
 - **API Docs (Swagger)**: [/docs](https://cidadao-api-production.up.railway.app/docs)
 - **GitHub**: [anderson-ufrj/cidadao.ai-backend](https://github.com/anderson-ufrj/cidadao.ai-backend)
+# Documentation Update
