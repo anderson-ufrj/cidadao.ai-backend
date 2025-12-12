@@ -50,6 +50,7 @@ jobs:
           SECRET_KEY: test-secret-key-for-ci
           MARITACA_API_KEY: test-maritaca-key
           ANTHROPIC_API_KEY: test-anthropic-key
+          TRANSPARENCY_API_KEY: ${{ secrets.TRANSPARENCY_API_KEY }}
         run: |
           pytest tests/unit -v --cov=src --cov-report=xml --cov-report=term-missing --cov-report=html --tb=short --cov-fail-under=75
 
