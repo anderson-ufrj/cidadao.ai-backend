@@ -328,7 +328,9 @@ class TestSemanticRouter:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Action 'route_with_fallback' not implemented - planned for fallback routing feature")
+    @pytest.mark.skip(
+        reason="Action 'route_with_fallback' not implemented - planned for fallback routing feature"
+    )
     async def test_fallback_routing_strategies(self, semantic_router, agent_context):
         """Test fallback strategies when primary routing fails."""
         # Mock primary agent as unavailable
@@ -366,7 +368,9 @@ class TestSemanticRouter:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Action 'route_by_rules' not implemented - planned for rule-based routing feature")
+    @pytest.mark.skip(
+        reason="Action 'route_by_rules' not implemented - planned for rule-based routing feature"
+    )
     async def test_rule_based_routing(self, semantic_router, agent_context):
         """Test rule-based routing with custom rules."""
         # Add custom routing rule
@@ -405,7 +409,9 @@ class TestSemanticRouter:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Action 'route_with_context' not implemented - planned for contextual routing feature")
+    @pytest.mark.skip(
+        reason="Action 'route_with_context' not implemented - planned for contextual routing feature"
+    )
     async def test_contextual_routing(self, semantic_router, agent_context):
         """Test routing that considers conversation context."""
         # Set up conversation history
@@ -443,7 +449,9 @@ class TestSemanticRouter:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Action 'match_capabilities' not implemented - planned for capability matching feature")
+    @pytest.mark.skip(
+        reason="Action 'match_capabilities' not implemented - planned for capability matching feature"
+    )
     async def test_agent_capability_matching(self, semantic_router, agent_context):
         """Test routing based on agent capability matching."""
         # Update agent capabilities
@@ -484,7 +492,9 @@ class TestSemanticRouter:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Action 'analyze_query_complexity' not implemented - planned for complexity analysis feature")
+    @pytest.mark.skip(
+        reason="Action 'analyze_query_complexity' not implemented - planned for complexity analysis feature"
+    )
     async def test_query_complexity_analysis(self, semantic_router, agent_context):
         """Test analysis of query complexity for routing decisions."""
         message = AgentMessage(
@@ -511,7 +521,9 @@ class TestSemanticRouter:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Action 'balance_load' not implemented - planned for load balancing feature")
+    @pytest.mark.skip(
+        reason="Action 'balance_load' not implemented - planned for load balancing feature"
+    )
     async def test_load_balancing_routing(self, semantic_router, agent_context):
         """Test load balancing across available agents."""
         message = AgentMessage(
@@ -545,7 +557,9 @@ class TestSemanticRouter:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Action 'validate_routing' not implemented - planned for routing validation feature")
+    @pytest.mark.skip(
+        reason="Action 'validate_routing' not implemented - planned for routing validation feature"
+    )
     async def test_routing_validation_and_feedback(
         self, semantic_router, agent_context
     ):
@@ -578,7 +592,9 @@ class TestSemanticRouter:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Test expects WARNING status for ambiguous queries - ambiguity handling not yet implemented")
+    @pytest.mark.skip(
+        reason="Test expects WARNING status for ambiguous queries - ambiguity handling not yet implemented"
+    )
     async def test_error_handling_ambiguous_query(self, semantic_router, agent_context):
         """Test error handling for ambiguous queries."""
         # Mock low confidence intent detection
@@ -605,7 +621,9 @@ class TestSemanticRouter:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Test uses action 'route_query' but expects specific concurrency handling not yet implemented")
+    @pytest.mark.skip(
+        reason="Test uses action 'route_query' but expects specific concurrency handling not yet implemented"
+    )
     async def test_concurrent_routing_requests(self, semantic_router):
         """Test handling multiple concurrent routing requests."""
         contexts = [AgentContext(investigation_id=f"concurrent-{i}") for i in range(5)]
@@ -636,7 +654,9 @@ class TestSemanticRouter:
 
     @pytest.mark.unit
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Action 'collect_routing_metrics' not implemented - planned for metrics collection feature")
+    @pytest.mark.skip(
+        reason="Action 'collect_routing_metrics' not implemented - planned for metrics collection feature"
+    )
     async def test_routing_performance_metrics(self, semantic_router, agent_context):
         """Test collection of routing performance metrics."""
         message = AgentMessage(
@@ -757,7 +777,9 @@ class TestSemanticRouterIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Action 'route_investigation_query' not implemented - planned for investigation routing feature")
+    @pytest.mark.skip(
+        reason="Action 'route_investigation_query' not implemented - planned for investigation routing feature"
+    )
     async def test_end_to_end_query_routing(self, semantic_router):
         """Test complete end-to-end query routing workflow."""
         context = AgentContext(
@@ -794,7 +816,9 @@ class TestSemanticRouterIntegration:
 
     @pytest.mark.integration
     @pytest.mark.asyncio
-    @pytest.mark.skip(reason="Actions 'route_with_learning' and 'provide_routing_feedback' not implemented - planned for adaptive routing feature")
+    @pytest.mark.skip(
+        reason="Actions 'route_with_learning' and 'provide_routing_feedback' not implemented - planned for adaptive routing feature"
+    )
     async def test_adaptive_routing_based_on_feedback(self, semantic_router):
         """Test adaptive routing that improves based on feedback."""
         context = AgentContext(investigation_id="adaptive-routing-test")

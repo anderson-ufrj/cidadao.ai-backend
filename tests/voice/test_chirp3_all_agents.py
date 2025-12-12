@@ -141,7 +141,7 @@ def test_all_chirp3_agents():
         male_agents = get_agents_by_gender(VoiceGender.MALE)
         female_agents = get_agents_by_gender(VoiceGender.FEMALE)
 
-        print(f"\n👥 Gender Distribution:")
+        print("\n👥 Gender Distribution:")
         print(
             f"   Male: {len([a for a in male_agents if a.agent_id in agent_texts])} agents"
         )
@@ -154,7 +154,7 @@ def test_all_chirp3_agents():
 
         stats = get_voice_statistics()
 
-        print(f"\n⚡ Speed Variation:")
+        print("\n⚡ Speed Variation:")
         print(
             f"   Fastest: {stats['fastest_agent']} ({agent_texts[stats['fastest_agent']]})"
         )
@@ -162,7 +162,7 @@ def test_all_chirp3_agents():
             f"   Slowest: {stats['slowest_agent']} ({agent_texts[stats['slowest_agent']]})"
         )
 
-        print(f"\n🎵 Pitch Variation:")
+        print("\n🎵 Pitch Variation:")
         print(f"   Deepest: {stats['deepest_voice']} (most grave/serious)")
         print(f"   Highest: {stats['highest_voice']} (most energetic)")
 

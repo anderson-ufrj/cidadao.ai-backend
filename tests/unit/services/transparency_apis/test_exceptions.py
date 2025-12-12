@@ -8,7 +8,6 @@ Created: 2025-10-12 15:53:52 -03
 License: Proprietary - All rights reserved
 """
 
-
 from src.services.transparency_apis.federal_apis.exceptions import (
     AuthenticationError,
     CacheError,

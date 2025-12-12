@@ -6,7 +6,7 @@ Date: 2025-01-25
 License: Proprietary - All rights reserved
 """
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi import HTTPException
@@ -73,7 +73,9 @@ class TestExportRoutes:
     ):
         """Test export investigation as Excel."""
         # Setup mocks - use AsyncMock for async methods
-        mock_investigation_service.get_investigation = AsyncMock(return_value=mock_investigation)
+        mock_investigation_service.get_investigation = AsyncMock(
+            return_value=mock_investigation
+        )
         mock_export_service.convert_investigation_to_excel = AsyncMock(
             return_value=b"excel-content"
         )
@@ -108,7 +110,9 @@ class TestExportRoutes:
     ):
         """Test export investigation as CSV."""
         # Setup mocks - use AsyncMock for async methods
-        mock_investigation_service.get_investigation = AsyncMock(return_value=mock_investigation)
+        mock_investigation_service.get_investigation = AsyncMock(
+            return_value=mock_investigation
+        )
         mock_export_service.generate_csv = AsyncMock(return_value=b"csv-content")
 
         # Call function
@@ -133,7 +137,9 @@ class TestExportRoutes:
     ):
         """Test export investigation as PDF."""
         # Setup mocks - use AsyncMock for async methods
-        mock_investigation_service.get_investigation = AsyncMock(return_value=mock_investigation)
+        mock_investigation_service.get_investigation = AsyncMock(
+            return_value=mock_investigation
+        )
         mock_export_service.generate_pdf = AsyncMock(return_value=b"pdf-content")
 
         # Call function
@@ -286,8 +292,12 @@ class TestExportRoutes:
         from src.api.routes.export import BulkExportRequest
 
         # Setup mocks - use AsyncMock for async methods
-        mock_investigation_service.get_investigation = AsyncMock(return_value=mock_investigation)
-        mock_export_service.generate_bulk_export = AsyncMock(return_value=b"zip-content")
+        mock_investigation_service.get_investigation = AsyncMock(
+            return_value=mock_investigation
+        )
+        mock_export_service.generate_bulk_export = AsyncMock(
+            return_value=b"zip-content"
+        )
         mock_json_utils.dumps.return_value = '{"test": "json"}'
 
         # Create request

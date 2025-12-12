@@ -542,7 +542,7 @@ class TestForgetMemories:
     async def test_forget_memories_by_age(self, nana_agent, sample_context):
         """Test forgetting memories by age strategy - Lines 638-660."""
         import json
-        from datetime import datetime, timedelta
+        from datetime import datetime
 
         # Setup: Create old memory in Redis
         old_memory = {

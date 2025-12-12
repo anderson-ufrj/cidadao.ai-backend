@@ -129,7 +129,9 @@ class TestCompressionMiddleware:
                     yield f"Chunk {i}\n" * 10
                     await asyncio.sleep(0.01)
 
-            return await compress_streaming_response(generate(), content_type="text/plain")
+            return await compress_streaming_response(
+                generate(), content_type="text/plain"
+            )
 
         return app
 

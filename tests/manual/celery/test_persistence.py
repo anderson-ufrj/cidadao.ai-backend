@@ -54,7 +54,7 @@ async def create_test_investigation():
             investigation.id if hasattr(investigation, "id") else investigation["id"]
         )
 
-        print(f"   ✅ Investigação criada!")
+        print("   ✅ Investigação criada!")
         print(f"   🆔 ID: {investigation_id}")
         print()
 
@@ -75,7 +75,7 @@ async def create_test_investigation():
             anomalies_found=0,
         )
 
-        print(f"   ✅ Investigação atualizada!")
+        print("   ✅ Investigação atualizada!")
         print()
 
         return investigation_id
@@ -102,9 +102,9 @@ try:
         print()
         print("📊 Verificação:")
         print(
-            f"   1. Acesse: https://supabase.com/dashboard/project/pbsiyuattnwgohvkkkks/editor"
+            "   1. Acesse: https://supabase.com/dashboard/project/pbsiyuattnwgohvkkkks/editor"
         )
-        print(f"   2. Abra a tabela 'investigations'")
+        print("   2. Abra a tabela 'investigations'")
         print(f"   3. Procure por ID: {investigation_id}")
         print(f"   4. Filtre por user_id: {SYSTEM_AUTO_MONITOR_USER_ID}")
         print()

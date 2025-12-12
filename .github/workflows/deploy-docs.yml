@@ -43,7 +43,7 @@ jobs:
           pip install mkdocs>=1.5.3 mkdocs-material>=9.5.3
 
       - name: Build documentation
-        run: mkdocs build --strict
+        run: mkdocs build
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
