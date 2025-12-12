@@ -14,13 +14,23 @@ import time
 from contextlib import suppress
 
 import httpx
-import snappy
 from prometheus_client import REGISTRY, generate_latest
 from prometheus_client.parser import text_string_to_metric_families
 
 from src.core import get_logger, settings
 
 logger = get_logger(__name__)
+
+# Optional snappy compression (requires python-snappy with native libs)
+try:
+    import snappy
+
+    SNAPPY_AVAILABLE = True
+except ImportError:
+    SNAPPY_AVAILABLE = False
+    logger.warning(
+        "snappy not available - Grafana Cloud push will use uncompressed data"
+    )
 
 
 class GrafanaCloudPusher:
@@ -118,7 +128,7 @@ class GrafanaCloudPusher:
                 content=payload,
                 headers={
                     "Content-Type": "application/x-protobuf",
-                    "Content-Encoding": "snappy",
+                    "Content-Encoding": "snappy" if SNAPPY_AVAILABLE else "identity",
                     "X-Prometheus-Remote-Write-Version": "0.1.0",
                 },
                 auth=(self.user, self.token),
@@ -166,9 +176,11 @@ class GrafanaCloudPusher:
         return {"timeseries": timeseries}
 
     def _serialize_write_request(self, write_request: dict) -> bytes:
-        """Serialize write request to protobuf and compress with snappy."""
+        """Serialize write request to protobuf and compress with snappy if available."""
         data = self._encode_write_request(write_request)
-        return snappy.compress(data)
+        if SNAPPY_AVAILABLE:
+            return snappy.compress(data)
+        return data
 
     def _encode_write_request(self, write_request: dict) -> bytes:
         """Encode write request to protobuf wire format."""
