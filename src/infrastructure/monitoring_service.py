@@ -196,6 +196,20 @@ class ObservabilityManager:
         # Performance tracking
         self.request_times: list[float] = []
         self.ml_inference_times: list[float] = []
+        self.db_query_times: list[float] = []
+
+        # Request tracking
+        self.total_requests_count: int = 0
+        self.failed_requests_count: int = 0
+
+        # Anomaly tracking
+        self.anomalies_detected_count: int = 0
+        self.true_positives_count: int = 0
+        self.false_positives_count: int = 0
+
+        # Cache tracking
+        self.cache_hits_count: int = 0
+        self.cache_misses_count: int = 0
 
         self._monitoring_task = None
         self._initialized = False
@@ -527,6 +541,30 @@ class ObservabilityManager:
                 else 0
             )
 
+            # Calculate additional metrics
+            avg_db_query_time = (
+                sum(self.db_query_times[-100:]) / len(self.db_query_times[-100:])
+                if self.db_query_times
+                else 0
+            )
+
+            # Calculate detection accuracy
+            total_detections = self.true_positives_count + self.false_positives_count
+            detection_accuracy = (
+                self.true_positives_count / total_detections
+                if total_detections > 0
+                else 0.0
+            )
+
+            # Calculate cache hit rate
+            total_cache_ops = self.cache_hits_count + self.cache_misses_count
+            cache_hit_rate = (
+                self.cache_hits_count / total_cache_ops if total_cache_ops > 0 else 0.0
+            )
+
+            # Get active database connections from SQLAlchemy pool
+            db_connections_active = await self._get_db_connections_active()
+
             # Create metrics object
             metrics = PerformanceMetrics(
                 cpu_usage_percent=cpu_percent,
@@ -534,15 +572,15 @@ class ObservabilityManager:
                 memory_usage_percent=memory.percent,
                 disk_usage_percent=disk.percent,
                 active_investigations=len(getattr(self, "_active_investigations", [])),
-                total_requests=len(self.request_times),
-                failed_requests=0,  # TODO: track failed requests
+                total_requests=self.total_requests_count,
+                failed_requests=self.failed_requests_count,
                 average_response_time_ms=avg_response_time * 1000,
                 ml_inference_time_ms=avg_ml_time * 1000,
-                anomalies_detected=0,  # TODO: track anomalies
-                detection_accuracy=0.0,  # TODO: track accuracy
-                db_connections_active=0,  # TODO: get from DB manager
-                db_query_time_ms=0.0,  # TODO: track query time
-                cache_hit_rate=0.0,  # TODO: get from cache manager
+                anomalies_detected=self.anomalies_detected_count,
+                detection_accuracy=detection_accuracy,
+                db_connections_active=db_connections_active,
+                db_query_time_ms=avg_db_query_time * 1000,
+                cache_hit_rate=cache_hit_rate,
             )
 
             # Store metrics
@@ -717,8 +755,54 @@ class ObservabilityManager:
 
     def increment_anomaly_count(self, severity: str = "medium"):
         """Incrementar contador de anomalias"""
+        self.anomalies_detected_count += 1
         if "anomalies_detected_total" in self.metrics:
             self.metrics["anomalies_detected_total"].labels(severity=severity).inc()
+
+    def track_request(self, success: bool = True, duration_seconds: float = 0.0):
+        """Track a request completion (success or failure)"""
+        self.total_requests_count += 1
+        if not success:
+            self.failed_requests_count += 1
+        if duration_seconds > 0:
+            self.track_request_time(duration_seconds)
+
+    def track_detection_result(self, is_true_positive: bool):
+        """Track anomaly detection accuracy (true positive or false positive)"""
+        if is_true_positive:
+            self.true_positives_count += 1
+        else:
+            self.false_positives_count += 1
+
+    def track_db_query_time(self, duration_seconds: float):
+        """Track database query execution time"""
+        self.db_query_times.append(duration_seconds)
+
+        # Keep only last 1000
+        if len(self.db_query_times) > 1000:
+            self.db_query_times = self.db_query_times[-1000:]
+
+    def track_cache_operation(self, is_hit: bool):
+        """Track cache hit or miss"""
+        if is_hit:
+            self.cache_hits_count += 1
+        else:
+            self.cache_misses_count += 1
+
+    async def _get_db_connections_active(self) -> int:
+        """Get active database connections from SQLAlchemy pool"""
+        try:
+            from .database import get_database_manager
+
+            db = await get_database_manager()
+            if db.pg_engine and hasattr(db.pg_engine.pool, "checkedout"):
+                return db.pg_engine.pool.checkedout()
+            elif db.pg_engine and hasattr(db.pg_engine.pool, "size"):
+                return db.pg_engine.pool.size()
+            return 0
+        except Exception as e:
+            logger.debug(f"Could not get DB connections: {e}")
+            return 0
 
     async def get_health_summary(self) -> dict[str, Any]:
         """Obter resumo de saúde do sistema"""
