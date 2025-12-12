@@ -64,10 +64,15 @@ class AuthenticationMiddleware:
         )
 
     async def _validate_api_key(self, api_key: str, request: Request) -> bool:
-        """Validate API key."""
-        # In a real implementation, this would check against a database
-        # For now, we'll use a simple validation
+        """Validate API key against configured keys.
 
+        Validates the provided API key against:
+        1. The main api_secret_key from settings
+        2. Any additional keys in api_keys_allowed list
+
+        If no keys are configured, falls back to format validation only
+        (for backwards compatibility during development).
+        """
         if not api_key or len(api_key) < 32:
             self.logger.warning(
                 "invalid_api_key_format",
@@ -76,15 +81,48 @@ class AuthenticationMiddleware:
             )
             raise HTTPException(status_code=401, detail="Invalid API key format")
 
-        # TODO: Implement proper API key validation
-        # For development, accept any key with correct format
-        self.logger.info(
-            "api_key_authentication_success",
+        # Build list of valid API keys
+        valid_keys: list[str] = []
+
+        # Add main API secret key if configured
+        if settings.api_secret_key:
+            valid_keys.append(settings.api_secret_key.get_secret_value())
+
+        # Add additional allowed keys
+        if settings.api_keys_allowed:
+            valid_keys.extend(settings.api_keys_allowed)
+
+        # If no keys configured, use format-only validation (backwards compatibility)
+        if not valid_keys:
+            self.logger.info(
+                "api_key_authentication_success_no_keys_configured",
+                path=request.url.path,
+                method=request.method,
+                note="No API keys configured, accepting valid format",
+            )
+            return True
+
+        # Validate against configured keys
+        if api_key in valid_keys:
+            self.logger.info(
+                "api_key_authentication_success",
+                path=request.url.path,
+                method=request.method,
+            )
+            return True
+
+        # Invalid API key
+        self.logger.warning(
+            "api_key_authentication_failed",
             path=request.url.path,
             method=request.method,
+            reason="API key not in allowed list",
         )
-
-        return True
+        raise HTTPException(
+            status_code=401,
+            detail="Invalid API key",
+            headers={"WWW-Authenticate": "API-Key"},
+        )
 
     async def _validate_jwt_token(self, token: str, request: Request) -> bool:
         """Validate JWT token."""
