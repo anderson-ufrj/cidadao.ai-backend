@@ -133,17 +133,21 @@ class InvestigationService:
             # Update investigation
             investigation.status = "completed"
             investigation.confidence_score = result.confidence_score
-            investigation.completed_at = datetime.now(UTC)
+            # Calculate processing time before converting to naive datetime
+            end_time = datetime.now(UTC)
             investigation.processing_time_ms = (
-                investigation.completed_at - start_time
+                end_time - start_time
             ).total_seconds() * 1000
+            # Convert to naive datetime for PostgreSQL TIMESTAMP WITHOUT TIME ZONE
+            investigation.completed_at = end_time.replace(tzinfo=None)
 
             logger.info(f"Investigation {investigation.id} completed")
 
         except Exception as e:
             logger.error(f"Investigation {investigation.id} failed: {e}")
             investigation.status = "failed"
-            investigation.completed_at = datetime.now(UTC)
+            # Convert to naive datetime for PostgreSQL TIMESTAMP WITHOUT TIME ZONE
+            investigation.completed_at = datetime.now(UTC).replace(tzinfo=None)
 
     async def get_by_id(self, investigation_id: str) -> Investigation | None:
         """Get investigation by ID from database."""
@@ -195,7 +199,8 @@ class InvestigationService:
                 )
 
             investigation.status = "cancelled"
-            investigation.completed_at = datetime.now(UTC)
+            # Convert to naive datetime for PostgreSQL TIMESTAMP WITHOUT TIME ZONE
+            investigation.completed_at = datetime.now(UTC).replace(tzinfo=None)
 
             await db.commit()
             await db.refresh(investigation)
