@@ -1024,3 +1024,118 @@ async def fix_stuck_investigations() -> dict[str, Any]:
         )
 
     return result
+
+
+@router.post("/test-update-status/{investigation_id}")
+async def test_update_status(investigation_id: str) -> dict[str, Any]:
+    """
+    Test update_status to diagnose persistence issues.
+
+    Attempts to update an investigation and returns detailed diagnostics.
+    """
+    result = {
+        "status": "started",
+        "investigation_id": investigation_id,
+        "steps": [],
+        "errors": [],
+    }
+
+    try:
+        from datetime import UTC, datetime
+
+        from sqlalchemy import text
+
+        from src.db.simple_session import get_db_session
+        from src.services.investigation_service_selector import investigation_service
+
+        # Step 1: Get via service
+        result["steps"].append("Step 1: Get via service")
+        try:
+            inv = await investigation_service.get_by_id(investigation_id)
+            if inv:
+                result["current_via_service"] = {
+                    "status": inv.status,
+                    "progress": inv.progress,
+                }
+            else:
+                result["current_via_service"] = "Not found"
+        except Exception as e:
+            result["errors"].append({"step": "get_by_id", "error": str(e)})
+
+        # Step 2: Get via SQL
+        result["steps"].append("Step 2: Get via SQL")
+        try:
+            async with get_db_session() as db:
+                sql_result = await db.execute(
+                    text("SELECT status, progress FROM investigations WHERE id = :id"),
+                    {"id": investigation_id},
+                )
+                row = sql_result.fetchone()
+                result["current_via_sql"] = (
+                    {"status": row[0], "progress": row[1]} if row else "Not found"
+                )
+        except Exception as e:
+            result["errors"].append({"step": "sql_select", "error": str(e)})
+
+        # Step 3: Update via service
+        result["steps"].append("Step 3: Update via service")
+        try:
+            updated = await investigation_service.update_status(
+                investigation_id=investigation_id,
+                status="completed",
+                progress=1.0,
+                current_phase="test_completed",
+                completed_at=datetime.now(UTC),
+            )
+            result["update_via_service"] = {"new_status": updated.status}
+        except Exception as e:
+            result["errors"].append(
+                {
+                    "step": "update_status",
+                    "error": str(e),
+                    "traceback": traceback.format_exc()[:500],
+                }
+            )
+
+        # Step 4: Verify via SQL
+        result["steps"].append("Step 4: Verify via SQL")
+        try:
+            async with get_db_session() as db:
+                sql_result = await db.execute(
+                    text("SELECT status, progress FROM investigations WHERE id = :id"),
+                    {"id": investigation_id},
+                )
+                row = sql_result.fetchone()
+                result["after_service_update"] = (
+                    {"status": row[0], "progress": row[1]} if row else "Not found"
+                )
+        except Exception as e:
+            result["errors"].append({"step": "verify_sql", "error": str(e)})
+
+        # Step 5: Direct SQL update
+        result["steps"].append("Step 5: Direct SQL update")
+        try:
+            async with get_db_session() as db:
+                await db.execute(
+                    text(
+                        "UPDATE investigations SET status = 'test_sql' WHERE id = :id"
+                    ),
+                    {"id": investigation_id},
+                )
+            async with get_db_session() as db:
+                sql_result = await db.execute(
+                    text("SELECT status FROM investigations WHERE id = :id"),
+                    {"id": investigation_id},
+                )
+                row = sql_result.fetchone()
+                result["after_direct_sql"] = {"status": row[0]} if row else "Not found"
+        except Exception as e:
+            result["errors"].append({"step": "direct_sql", "error": str(e)})
+
+        result["status"] = "completed" if not result["errors"] else "with_errors"
+
+    except Exception as e:
+        result["status"] = "error"
+        result["errors"].append({"step": "global", "error": str(e)})
+
+    return result
