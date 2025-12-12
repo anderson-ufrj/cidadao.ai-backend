@@ -324,28 +324,72 @@ async def _check_transparency_api() -> dict[str, Any]:
 
 async def _check_database() -> dict[str, Any]:
     """Check database connectivity."""
-    # Placeholder for database health check
-    # TODO: Implement when database is configured
+    start_time = time.time()
+    try:
+        from sqlalchemy import text
 
-    return {
-        "status": "healthy",
-        "response_time": 0.001,
-        "last_checked": datetime.now(UTC),
-        "note": "Database check not implemented yet",
-    }
+        from src.db.session import get_session
+
+        async with get_session() as session:
+            if session:
+                await session.execute(text("SELECT 1"))
+                response_time = time.time() - start_time
+                return {
+                    "status": "healthy",
+                    "response_time": round(response_time, 4),
+                    "last_checked": datetime.now(UTC),
+                    "connection": "active",
+                }
+            else:
+                return {
+                    "status": "degraded",
+                    "response_time": time.time() - start_time,
+                    "last_checked": datetime.now(UTC),
+                    "note": "No database session available",
+                }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "response_time": time.time() - start_time,
+            "last_checked": datetime.now(UTC),
+            "error": str(e),
+        }
 
 
 async def _check_redis() -> dict[str, Any]:
     """Check Redis connectivity."""
-    # Placeholder for Redis health check
-    # TODO: Implement when Redis is configured
+    start_time = time.time()
+    try:
+        from src.services.cache_service import cache_service
 
-    return {
-        "status": "healthy",
-        "response_time": 0.001,
-        "last_checked": datetime.now(UTC),
-        "note": "Redis check not implemented yet",
-    }
+        if cache_service.redis:
+            # Ping Redis to check connectivity
+            await cache_service.redis.ping()
+            response_time = time.time() - start_time
+
+            # Get some stats
+            info = await cache_service.redis.info("server")
+            return {
+                "status": "healthy",
+                "response_time": round(response_time, 4),
+                "last_checked": datetime.now(UTC),
+                "connection": "active",
+                "redis_version": info.get("redis_version", "unknown"),
+            }
+        else:
+            return {
+                "status": "degraded",
+                "response_time": time.time() - start_time,
+                "last_checked": datetime.now(UTC),
+                "note": "Redis not initialized - using in-memory fallback",
+            }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "response_time": time.time() - start_time,
+            "last_checked": datetime.now(UTC),
+            "error": str(e),
+        }
 
 
 def _format_uptime(uptime_seconds: float) -> str:
