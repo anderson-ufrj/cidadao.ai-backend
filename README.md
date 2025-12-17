@@ -387,7 +387,7 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICE
 | **Código** | Linhas de código | ~133.783 |
 | | Código de testes | ~49.888 linhas |
 | | Total de arquivos | 1.082 |
-| | Commits | 1.079+ |
+| | Commits | 1.229+ |
 | **Desenvolvimento** | Início | 13/08/2025 |
 | | Produção | 07/10/2025 |
 | | Duração | ~3 meses |
