@@ -1,33 +1,43 @@
 # 🚀 Guia de Deployment - Cidadão.AI Backend
 
-**Autor**: Anderson Henrique da Silva  
-**Última Atualização**: 2025-09-25 18:30:00 -03:00 (São Paulo, Brasil)
+**Autor**: Anderson Henrique da Silva
+**Última Atualização**: 2025-12-17
+**Plataforma Atual**: Railway (produção desde 07/10/2025)
 
 [English version below](#-deployment-guide---cidadãoai-backend-english)
 
 ## 📊 Estado Atual
 
-O sistema está **atualmente em produção** no HuggingFace Spaces com configuração simplificada (sem PostgreSQL/Redis).
+O sistema está **em produção** no Railway com PostgreSQL e Redis gerenciados, oferecendo:
+- 99.9% de uptime desde outubro 2025
+- Celery workers para processamento assíncrono
+- Monitoramento com Prometheus/Grafana
+
+**URL de Produção**: https://cidadao-api-production.up.railway.app
 
 ## 🎯 Opções de Deploy
 
-### 1. HuggingFace Spaces (Atual) ✅
+### 1. Railway (Atual - Recomendado) ✅
 
-**Prós**: Gratuito, fácil, CI/CD automático  
-**Contras**: Sem banco de dados persistente, recursos limitados
+**Prós**: PostgreSQL/Redis gerenciados, Celery support, CI/CD via GitHub
+**Contras**: Custo (plano gratuito limitado)
 
 ```bash
-# Deploy automático via push
-git remote add hf https://huggingface.co/spaces/SEU_USUARIO/cidadao-ai
-git push hf main
+# Deploy automático via GitHub
+# Commits na branch main são automaticamente deployed
+git push origin main
 ```
 
-**Configuração no HuggingFace**:
-1. Crie um Space com SDK Docker
-2. Configure as secrets:
-   - `GROQ_API_KEY`
+**Configuração no Railway**:
+1. Conecte seu repositório GitHub
+2. Configure as variáveis de ambiente:
+   - `MARITACA_API_KEY` ou `ANTHROPIC_API_KEY`
    - `JWT_SECRET_KEY`
-   - `TRANSPARENCY_API_KEY` (opcional)
+   - `SECRET_KEY`
+   - `DATABASE_URL` (automático se usar Railway PostgreSQL)
+   - `REDIS_URL` (automático se usar Railway Redis)
+
+Veja: [docs/deployment/railway/README.md](railway/README.md)
 
 ### 2. Docker Local 🐳
 
@@ -55,7 +65,7 @@ ssh usuario@seu-servidor
 sudo apt update && sudo apt install docker.io docker-compose
 
 # 2. Clone o projeto
-git clone https://github.com/seu-usuario/cidadao.ai-backend
+git clone https://github.com/anderson-ufrj/cidadao.ai-backend
 cd cidadao.ai-backend
 
 # 3. Configure variáveis
@@ -89,8 +99,12 @@ kubectl expose deployment cidadao-api --type=LoadBalancer --port=80
 JWT_SECRET_KEY=gere-com-openssl-rand-hex-32
 SECRET_KEY=outra-chave-aleatoria
 
-# LLM Provider
-GROQ_API_KEY=sua-chave-groq
+# LLM Provider (escolha um)
+LLM_PROVIDER=maritaca
+MARITACA_API_KEY=sua-chave-maritaca
+# ou
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=sua-chave-anthropic
 ```
 
 ### Opcionais (Recursos Extras)
@@ -98,7 +112,7 @@ GROQ_API_KEY=sua-chave-groq
 # Portal da Transparência (sem isso usa dados demo)
 TRANSPARENCY_API_KEY=sua-chave-api
 
-# Banco de Dados (sem isso usa memória)
+# Banco de Dados (sem isso usa SQLite em memória)
 DATABASE_URL=postgresql+asyncpg://user:pass@localhost/cidadao
 
 # Cache Redis (sem isso usa memória)
@@ -112,11 +126,13 @@ CACHE_TTL=3600
 
 ## 📋 Checklist de Deploy
 
-### Produção Mínima (HuggingFace)
-- [ ] Configurar secrets no HF Spaces
-- [ ] Verificar app.py está usando configuração minimal
-- [ ] Push para branch hf-fastapi
-- [ ] Testar endpoints básicos
+### Produção Railway (Recomendado)
+- [ ] Repositório GitHub conectado ao Railway
+- [ ] Variáveis de ambiente configuradas
+- [ ] PostgreSQL addon ativado
+- [ ] Redis addon ativado (para cache/Celery)
+- [ ] Domínio customizado (opcional)
+- [ ] Monitoramento configurado
 
 ### Produção Completa (VPS/Cloud)
 - [ ] Servidor com mínimo 2GB RAM
@@ -132,13 +148,13 @@ CACHE_TTL=3600
 ### Endpoints de Health Check
 ```bash
 # Básico
-curl https://seu-dominio/health
+curl https://cidadao-api-production.up.railway.app/health
 
 # Detalhado (requer auth)
-curl -H "Authorization: Bearer $TOKEN" https://seu-dominio/health/detailed
+curl -H "Authorization: Bearer $TOKEN" https://cidadao-api-production.up.railway.app/health/detailed
 
 # Métricas Prometheus
-curl https://seu-dominio/metrics
+curl https://cidadao-api-production.up.railway.app/health/metrics
 ```
 
 ### Grafana Dashboards
@@ -206,32 +222,42 @@ python -c "import secrets; print(secrets.token_urlsafe(32))"
 
 # 🚀 Deployment Guide - Cidadão.AI Backend (English)
 
-**Author**: Anderson Henrique da Silva  
-**Last Updated**: 2025-09-25 18:30:00 -03:00 (São Paulo, Brazil)
+**Author**: Anderson Henrique da Silva
+**Last Updated**: 2025-12-17
+**Current Platform**: Railway (production since 07/10/2025)
 
 ## 📊 Current Status
 
-The system is **currently in production** on HuggingFace Spaces with simplified configuration (no PostgreSQL/Redis).
+The system is **in production** on Railway with managed PostgreSQL and Redis, offering:
+- 99.9% uptime since October 2025
+- Celery workers for async processing
+- Monitoring with Prometheus/Grafana
+
+**Production URL**: https://cidadao-api-production.up.railway.app
 
 ## 🎯 Deployment Options
 
-### 1. HuggingFace Spaces (Current) ✅
+### 1. Railway (Current - Recommended) ✅
 
-**Pros**: Free, easy, automatic CI/CD  
-**Cons**: No persistent database, limited resources
+**Pros**: Managed PostgreSQL/Redis, Celery support, CI/CD via GitHub
+**Cons**: Cost (free tier limited)
 
 ```bash
-# Automatic deployment via push
-git remote add hf https://huggingface.co/spaces/YOUR_USER/cidadao-ai
-git push hf main
+# Automatic deployment via GitHub
+# Commits to main branch are automatically deployed
+git push origin main
 ```
 
-**HuggingFace Configuration**:
-1. Create a Space with Docker SDK
-2. Configure secrets:
-   - `GROQ_API_KEY`
+**Railway Configuration**:
+1. Connect your GitHub repository
+2. Configure environment variables:
+   - `MARITACA_API_KEY` or `ANTHROPIC_API_KEY`
    - `JWT_SECRET_KEY`
-   - `TRANSPARENCY_API_KEY` (optional)
+   - `SECRET_KEY`
+   - `DATABASE_URL` (automatic if using Railway PostgreSQL)
+   - `REDIS_URL` (automatic if using Railway Redis)
+
+See: [docs/deployment/railway/README.md](railway/README.md)
 
 ### 2. Local Docker 🐳
 
@@ -259,7 +285,7 @@ ssh user@your-server
 sudo apt update && sudo apt install docker.io docker-compose
 
 # 2. Clone project
-git clone https://github.com/your-user/cidadao.ai-backend
+git clone https://github.com/anderson-ufrj/cidadao.ai-backend
 cd cidadao.ai-backend
 
 # 3. Configure variables
@@ -293,8 +319,12 @@ kubectl expose deployment cidadao-api --type=LoadBalancer --port=80
 JWT_SECRET_KEY=generate-with-openssl-rand-hex-32
 SECRET_KEY=another-random-key
 
-# LLM Provider
-GROQ_API_KEY=your-groq-key
+# LLM Provider (choose one)
+LLM_PROVIDER=maritaca
+MARITACA_API_KEY=your-maritaca-key
+# or
+LLM_PROVIDER=anthropic
+ANTHROPIC_API_KEY=your-anthropic-key
 ```
 
 ### Optional (Extra Features)
@@ -302,7 +332,7 @@ GROQ_API_KEY=your-groq-key
 # Portal da Transparência (without this uses demo data)
 TRANSPARENCY_API_KEY=your-api-key
 
-# Database (without this uses memory)
+# Database (without this uses in-memory SQLite)
 DATABASE_URL=postgresql+asyncpg://user:pass@localhost/cidadao
 
 # Redis Cache (without this uses memory)
@@ -316,11 +346,13 @@ CACHE_TTL=3600
 
 ## 📋 Deployment Checklist
 
-### Minimum Production (HuggingFace)
-- [ ] Configure secrets in HF Spaces
-- [ ] Verify app.py is using minimal configuration
-- [ ] Push to hf-fastapi branch
-- [ ] Test basic endpoints
+### Railway Production (Recommended)
+- [ ] GitHub repository connected to Railway
+- [ ] Environment variables configured
+- [ ] PostgreSQL addon activated
+- [ ] Redis addon activated (for cache/Celery)
+- [ ] Custom domain (optional)
+- [ ] Monitoring configured
 
 ### Complete Production (VPS/Cloud)
 - [ ] Server with minimum 2GB RAM
@@ -336,13 +368,13 @@ CACHE_TTL=3600
 ### Health Check Endpoints
 ```bash
 # Basic
-curl https://your-domain/health
+curl https://cidadao-api-production.up.railway.app/health
 
 # Detailed (requires auth)
-curl -H "Authorization: Bearer $TOKEN" https://your-domain/health/detailed
+curl -H "Authorization: Bearer $TOKEN" https://cidadao-api-production.up.railway.app/health/detailed
 
 # Prometheus metrics
-curl https://your-domain/metrics
+curl https://cidadao-api-production.up.railway.app/health/metrics
 ```
 
 ### Grafana Dashboards
@@ -405,3 +437,10 @@ openssl rand -hex 32
 # Secret Key
 python -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
+
+## 📚 Additional Resources
+
+- [Railway Deployment Guide](railway/README.md)
+- [Migration from HuggingFace](migration-hf-to-railway.md) (historical reference)
+- [Docker Configuration](docker.md)
+- [Celery Workers Setup](railway/CELERY_SERVICES.md)
