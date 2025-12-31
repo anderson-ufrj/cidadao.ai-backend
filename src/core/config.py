@@ -33,6 +33,14 @@ class Settings(BaseSettings):
     app_name: str = Field(default="cidadao-ai", description="Application name")
     app_env: str = Field(default="development", description="Environment")
     app_version: str = Field(default="1.0.0", description="Version")
+    app_url: str = Field(
+        default="https://cidadao-api-production.up.railway.app",
+        description="Application base URL (for emails, links)",
+    )
+    support_email: str = Field(
+        default="suporte@cidadao.ai",
+        description="Support email address for user assistance",
+    )
     debug: bool = Field(default=False, description="Debug mode")
     log_level: str = Field(default="INFO", description="Logging level")
 
