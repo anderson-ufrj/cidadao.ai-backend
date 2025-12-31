@@ -15,6 +15,7 @@ from typing import Any
 
 from prometheus_client import (
     CONTENT_TYPE_LATEST,
+    REGISTRY,
     CollectorRegistry,
     Counter,
     Gauge,
@@ -74,9 +75,11 @@ class MetricsManager:
         Initialize metrics manager.
 
         Args:
-            registry: Custom registry (uses default if None)
+            registry: Custom registry (uses default Prometheus REGISTRY if None)
         """
-        self.registry = registry or CollectorRegistry()
+        # Use the global Prometheus REGISTRY by default to ensure metrics
+        # are exposed via the /health/metrics endpoint
+        self.registry = registry or REGISTRY
         self._metrics: dict[str, Any] = {}
         self._metric_configs: dict[str, MetricConfig] = {}
 
@@ -270,8 +273,18 @@ class MetricsManager:
             Created metric instance
         """
         if config.name in self._metrics:
-            logger.warning(f"Metric {config.name} already registered")
+            logger.debug(f"Metric {config.name} already registered in manager")
             return self._metrics[config.name]
+
+        # Check if metric already exists in the registry (e.g., from monitoring.py)
+        for collector in list(self.registry._collector_to_names.keys()):
+            if hasattr(collector, "_name") and collector._name == config.name:
+                logger.debug(
+                    f"Metric {config.name} already exists in registry, reusing"
+                )
+                self._metrics[config.name] = collector
+                self._metric_configs[config.name] = config
+                return collector
 
         # Create metric based on type
         if metric_type == MetricType.COUNTER:
