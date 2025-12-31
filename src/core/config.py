@@ -290,6 +290,48 @@ class Settings(BaseSettings):
     rate_limit_per_hour: int = Field(default=1000, description="Rate limit per hour")
     rate_limit_per_day: int = Field(default=10000, description="Rate limit per day")
 
+    # Email/SMTP Configuration
+    smtp_host: str = Field(
+        default="smtp.gmail.com",
+        description="SMTP server hostname",
+    )
+    smtp_port: int = Field(
+        default=587,
+        description="SMTP server port (587 for TLS, 465 for SSL)",
+    )
+    smtp_username: str | None = Field(
+        default=None,
+        description="SMTP authentication username (usually email address)",
+    )
+    smtp_password: SecretStr | None = Field(
+        default=None,
+        description="SMTP authentication password or app password",
+    )
+    smtp_use_tls: bool = Field(
+        default=True,
+        description="Use STARTTLS (port 587). Set False for SSL (port 465)",
+    )
+    smtp_use_ssl: bool = Field(
+        default=False,
+        description="Use SSL connection (port 465). Mutually exclusive with TLS",
+    )
+    smtp_from_email: str = Field(
+        default="noreply@cidadao.ai",
+        description="Default sender email address",
+    )
+    smtp_from_name: str = Field(
+        default="Cidadão.AI",
+        description="Default sender display name",
+    )
+    smtp_timeout: int = Field(
+        default=30,
+        description="SMTP connection timeout in seconds",
+    )
+    email_enabled: bool = Field(
+        default=False,
+        description="Enable email sending (requires valid SMTP config)",
+    )
+
     # IP Whitelist
     ip_whitelist_enabled: bool = Field(
         default=False,
@@ -461,6 +503,8 @@ class Settings(BaseSettings):
             "supabase_service_role_key",
             "google_credentials_path",
             "google_cloud_project_id",
+            "smtp_password",
+            "smtp_username",
         ]
         for field in sensitive_fields:
             if field in data:
