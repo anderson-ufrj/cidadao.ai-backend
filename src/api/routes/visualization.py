@@ -27,8 +27,8 @@ from src.services.agent_lazy_loader import AgentLazyLoader
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/visualization")
 
-# Rate limiter for visualization endpoints
-# viz_rate_limiter = RateLimiter()  # TODO: Configure rate limiter properly
+# Rate limiting is handled by RateLimitMiddleware using
+# endpoint-specific limits configured in infrastructure/rate_limiter.py
 
 # Lazy load agents
 agent_loader = AgentLazyLoader()
