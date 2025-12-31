@@ -6,9 +6,9 @@ groups:
       - alert: APIHighErrorRate
         expr: |
           (
-            sum(rate(cidadao_ai_http_errors_total[5m]))
+            sum(rate(cidadao_ai_requests_total{status_code=~"5.."}[5m]))
             /
-            sum(rate(cidadao_ai_http_requests_total[5m]))
+            sum(rate(cidadao_ai_requests_total[5m]))
           ) > 0.05
         for: 5m
         labels:
@@ -65,23 +65,23 @@ groups:
       - alert: AgentHighFailureRate
         expr: |
           (
-            sum(rate(cidadao_ai_agent_tasks_total{status="failed"}[5m])) by (agent_name)
+            sum(rate(cidadao_ai_agent_tasks_total{status="error"}[5m])) by (agent_type)
             /
-            sum(rate(cidadao_ai_agent_tasks_total[5m])) by (agent_name)
+            sum(rate(cidadao_ai_agent_tasks_total[5m])) by (agent_type)
           ) > 0.10
         for: 5m
         labels:
           severity: warning
           team: ml
         annotations:
-          summary: "Agent {{ $labels.agent_name }} has high failure rate"
-          description: "Agent {{ $labels.agent_name }} failure rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+          summary: "Agent {{ $labels.agent_type }} has high failure rate"
+          description: "Agent {{ $labels.agent_type }} failure rate is {{ $value | humanizePercentage }} over the last 5 minutes"
           runbook_url: "https://wiki.cidadao.ai/runbooks/agent-high-failure-rate"
 
       - alert: AllAgentsFailing
         expr: |
           (
-            sum(rate(cidadao_ai_agent_tasks_total{status="failed"}[5m]))
+            sum(rate(cidadao_ai_agent_tasks_total{status="error"}[5m]))
             /
             sum(rate(cidadao_ai_agent_tasks_total[5m]))
           ) > 0.50
@@ -229,9 +229,9 @@ groups:
         expr: |
           (
             1 - (
-              sum(increase(cidadao_ai_http_errors_total[1h]))
+              sum(increase(cidadao_ai_requests_total{status_code=~"5.."}[1h]))
               /
-              sum(increase(cidadao_ai_http_requests_total[1h]))
+              sum(increase(cidadao_ai_requests_total[1h]))
             )
           ) < 0.99
         for: 5m
