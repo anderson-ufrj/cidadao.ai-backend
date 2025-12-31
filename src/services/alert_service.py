@@ -14,6 +14,7 @@ import httpx
 
 from src.core import get_logger
 from src.core.config import get_settings
+from src.services.email_service import send_template_email
 from src.services.supabase_anomaly_service import supabase_anomaly_service
 
 settings = get_settings()
@@ -211,26 +212,64 @@ class AlertService:
 
     async def _send_email_alert(self, email: str, anomaly_data: dict[str, Any]):
         """
-        Send email alert.
+        Send email alert using the configured email service.
 
-        Note: This requires an email service to be configured.
-        For now, it logs the intent. Integrate with:
-        - SendGrid
-        - AWS SES
-        - Mailgun
-        - Resend
+        Uses the anomaly_alert template for HTML email formatting.
+        Falls back to logging if email is not enabled.
         """
-        # TODO: Integrate with actual email service
-        logger.info(
-            "email_alert_queued",
-            recipient=email,
-            anomaly_id=str(anomaly_data.get("id")),
-            severity=anomaly_data.get("severity"),
+        # Check if email is enabled
+        if not settings.email_enabled:
+            logger.info(
+                "email_alert_skipped",
+                reason="email_disabled",
+                recipient=email,
+                anomaly_id=str(anomaly_data.get("id")),
+            )
+            return
+
+        severity = anomaly_data.get("severity", "medium").upper()
+        title = anomaly_data.get("title", "Anomalia Detectada")
+
+        # Prepare template data
+        template_data = {
+            "anomaly_id": str(anomaly_data.get("id")),
+            "title": title,
+            "severity": severity,
+            "severity_color": self._get_severity_color(severity),
+            "score": float(anomaly_data.get("anomaly_score", 0)),
+            "source": anomaly_data.get("source", "Desconhecido"),
+            "anomaly_type": anomaly_data.get("anomaly_type", "N/A"),
+            "description": anomaly_data.get("description", ""),
+            "indicators": anomaly_data.get("indicators", []),
+            "recommendations": anomaly_data.get("recommendations", []),
+            "contract_data": anomaly_data.get("contract_data", {}),
+            "detected_at": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+        }
+
+        # Send email using template
+        await send_template_email(
+            to=email,
+            subject=f"[{severity}] Alerta de Anomalia: {title}",
+            template="anomaly_alert",
+            template_data=template_data,
         )
 
-        # Placeholder for future email integration
-        # from src.services.email_service import email_service
-        # await email_service.send_anomaly_alert(email, anomaly_data)
+        logger.info(
+            "email_alert_sent",
+            recipient=email,
+            anomaly_id=str(anomaly_data.get("id")),
+            severity=severity,
+        )
+
+    def _get_severity_color(self, severity: str) -> str:
+        """Get color code for severity level."""
+        colors = {
+            "CRITICAL": "#dc3545",  # Red
+            "HIGH": "#fd7e14",  # Orange
+            "MEDIUM": "#ffc107",  # Yellow
+            "LOW": "#28a745",  # Green
+        }
+        return colors.get(severity.upper(), "#6c757d")  # Gray default
 
     def _generate_alert_message(self, anomaly_data: dict[str, Any]) -> str:
         """Generate formatted alert message."""
