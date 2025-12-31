@@ -40,6 +40,13 @@ from src.core import get_logger
 logger = get_logger(__name__)
 
 
+def _normalize_metric_name(name: str) -> str:
+    """Normalize metric name for comparison (Counter strips _total suffix)."""
+    if name.endswith("_total"):
+        return name[:-6]  # Remove _total suffix
+    return name
+
+
 class MetricType(str, Enum):
     """Types of metrics supported."""
 
@@ -277,16 +284,43 @@ class MetricsManager:
             return self._metrics[config.name]
 
         # Check if metric already exists in the registry (e.g., from monitoring.py)
+        # Normalize names for comparison (Counter internally strips _total suffix)
+        normalized_name = _normalize_metric_name(config.name)
         for collector in list(self.registry._collector_to_names.keys()):
-            if hasattr(collector, "_name") and collector._name == config.name:
-                logger.debug(
-                    f"Metric {config.name} already exists in registry, reusing"
-                )
-                self._metrics[config.name] = collector
-                self._metric_configs[config.name] = config
-                return collector
+            if hasattr(collector, "_name"):
+                collector_name = _normalize_metric_name(collector._name)
+                if collector_name == normalized_name:
+                    logger.debug(
+                        f"Metric {config.name} already exists in registry, reusing"
+                    )
+                    self._metrics[config.name] = collector
+                    self._metric_configs[config.name] = config
+                    return collector
 
-        # Create metric based on type
+        # Try to create metric, handle duplicate registration gracefully
+        try:
+            metric = self._create_metric(config, metric_type)
+            self._metrics[config.name] = metric
+            self._metric_configs[config.name] = config
+            logger.debug(f"Registered {metric_type.value} metric: {config.name}")
+            return metric
+        except ValueError as e:
+            if "Duplicated timeseries" in str(e):
+                # Metric was registered by another module, find and reuse it
+                logger.debug(
+                    f"Metric {config.name} already in registry (race condition), reusing"
+                )
+                for collector in list(self.registry._collector_to_names.keys()):
+                    if hasattr(collector, "_name"):
+                        collector_name = _normalize_metric_name(collector._name)
+                        if collector_name == normalized_name:
+                            self._metrics[config.name] = collector
+                            self._metric_configs[config.name] = config
+                            return collector
+            raise
+
+    def _create_metric(self, config: MetricConfig, metric_type: MetricType) -> Any:
+        """Create a new metric instance."""
         if metric_type == MetricType.COUNTER:
             metric = Counter(
                 config.name,
@@ -335,10 +369,6 @@ class MetricsManager:
         else:
             raise ValueError(f"Unsupported metric type: {metric_type}")
 
-        self._metrics[config.name] = metric
-        self._metric_configs[config.name] = config
-
-        logger.debug(f"Registered {metric_type} metric: {config.name}")
         return metric
 
     def get_metric(self, name: str) -> Any | None:
