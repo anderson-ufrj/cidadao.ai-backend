@@ -122,7 +122,7 @@ class MetricsManager:
             MetricConfig(
                 name="cidadao_ai_investigations_total",
                 description="Total number of investigations",
-                labels=["status", "priority", "user_type"],
+                labels=["agent_type", "investigation_type", "status"],
             ),
             MetricType.COUNTER,
         )
@@ -131,7 +131,7 @@ class MetricsManager:
             MetricConfig(
                 name="cidadao_ai_investigation_duration_seconds",
                 description="Duration of investigation processing",
-                labels=["investigation_type"],
+                labels=["agent_type", "investigation_type"],
                 buckets=[1.0, 5.0, 10.0, 30.0, 60.0, 300.0, 600.0],
             ),
             MetricType.HISTOGRAM,
@@ -142,7 +142,7 @@ class MetricsManager:
             MetricConfig(
                 name="cidadao_ai_anomalies_detected_total",
                 description="Total number of anomalies detected",
-                labels=["anomaly_type", "severity", "data_source"],
+                labels=["anomaly_type", "severity", "agent"],
             ),
             MetricType.COUNTER,
         )
@@ -171,7 +171,7 @@ class MetricsManager:
             MetricConfig(
                 name="cidadao_ai_transparency_data_fetched_total",
                 description="Total data records fetched from transparency APIs",
-                labels=["data_type", "source"],
+                labels=["endpoint", "organization", "status"],
             ),
             MetricType.COUNTER,
         )
@@ -609,7 +609,11 @@ class BusinessMetrics:
         """Record investigation creation."""
         metrics_manager.increment_counter(
             "cidadao_ai_investigations_total",
-            {"status": "created", "priority": priority, "user_type": user_type},
+            {
+                "agent_type": "orchestrator",
+                "investigation_type": priority,
+                "status": "created",
+            },
         )
 
     @staticmethod
@@ -619,18 +623,22 @@ class BusinessMetrics:
         """Record investigation completion."""
         metrics_manager.increment_counter(
             "cidadao_ai_investigations_total",
-            {"status": "completed", "priority": priority, "user_type": "regular"},
+            {
+                "agent_type": "orchestrator",
+                "investigation_type": investigation_type,
+                "status": "completed",
+            },
         )
 
         metrics_manager.observe_histogram(
             "cidadao_ai_investigation_duration_seconds",
             duration_seconds,
-            {"investigation_type": investigation_type},
+            {"agent_type": "orchestrator", "investigation_type": investigation_type},
         )
 
     @staticmethod
     def record_anomaly_detected(
-        anomaly_type: str, severity: str, data_source: str, confidence_score: float
+        anomaly_type: str, severity: str, agent: str, confidence_score: float
     ):
         """Record anomaly detection."""
         metrics_manager.increment_counter(
@@ -638,7 +646,7 @@ class BusinessMetrics:
             {
                 "anomaly_type": anomaly_type,
                 "severity": severity,
-                "data_source": data_source,
+                "agent": agent,
             },
         )
 
@@ -665,7 +673,7 @@ class BusinessMetrics:
         if records_fetched > 0:
             metrics_manager.increment_counter(
                 "cidadao_ai_transparency_data_fetched_total",
-                {"data_type": endpoint, "source": api_name},
+                {"endpoint": endpoint, "organization": api_name, "status": "success"},
                 amount=records_fetched,
             )
 
