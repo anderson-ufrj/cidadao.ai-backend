@@ -106,6 +106,16 @@ class RateLimitConfig:
             "per_hour": 100,  # Increased from 50
             "cost": 5,
         },
+        "/api/v1/visualization/*": {
+            "per_minute": 60,  # Visualization endpoints (moderate rate)
+            "per_hour": 500,
+            "cost": 3,
+        },
+        "/api/v1/geographic/*": {
+            "per_minute": 60,  # Geographic endpoints (moderate rate)
+            "per_hour": 500,
+            "cost": 3,
+        },
         "/health": {
             "per_minute": 300,  # Very high limit for health checks
             "per_hour": 3000,
