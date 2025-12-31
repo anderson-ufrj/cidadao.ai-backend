@@ -41,21 +41,45 @@ logger = get_logger(__name__)
 settings = get_settings()
 
 
+def _normalize_metric_name(name: str) -> str:
+    """Normalize metric name for comparison (Counter strips _total suffix)."""
+    if name.endswith("_total"):
+        return name[:-6]  # Remove _total suffix
+    return name
+
+
 def get_or_create_metric(metric_type, name, description, labels=None, **kwargs):
     """Get existing metric or create new one."""
+    # Normalize name for comparison (Counter internally strips _total suffix)
+    normalized_name = _normalize_metric_name(name)
+
     # Check if metric already exists in the default registry
     for collector in REGISTRY._collector_to_names:
-        if hasattr(collector, "_name") and collector._name == name:
-            return collector
+        if hasattr(collector, "_name"):
+            collector_name = _normalize_metric_name(collector._name)
+            if collector_name == normalized_name:
+                return collector
 
-    # Create new metric
-    if metric_type == Counter:
-        return Counter(name, description, labels or [], **kwargs)
-    if metric_type == Histogram:
-        return Histogram(name, description, labels or [], **kwargs)
-    if metric_type == Gauge:
-        return Gauge(name, description, labels or [], **kwargs)
-    raise ValueError(f"Unknown metric type: {metric_type}")
+    # Try to create new metric, handle duplicates gracefully
+    try:
+        if metric_type == Counter:
+            return Counter(name, description, labels or [], **kwargs)
+        if metric_type == Histogram:
+            return Histogram(name, description, labels or [], **kwargs)
+        if metric_type == Gauge:
+            return Gauge(name, description, labels or [], **kwargs)
+        raise ValueError(f"Unknown metric type: {metric_type}")
+    except ValueError as e:
+        if "Duplicated timeseries" in str(e):
+            # Metric was registered by another module, find and return it
+            for collector in REGISTRY._collector_to_names:
+                if hasattr(collector, "_name"):
+                    collector_name = _normalize_metric_name(collector._name)
+                    if collector_name == normalized_name:
+                        return collector
+            # If we can't find it, log warning
+            logger.warning(f"Duplicate metric {name} but couldn't find original")
+        raise
 
 
 # Prometheus Metrics - with duplicate checking
