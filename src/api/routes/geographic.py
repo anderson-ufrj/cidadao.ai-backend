@@ -22,8 +22,8 @@ from src.services.cache_service import CacheService
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/geo")
 
-# Rate limiter for geographic endpoints
-# geo_rate_limiter = RateLimiter()  # TODO: Configure rate limiter properly
+# Rate limiting is handled by RateLimitMiddleware using
+# endpoint-specific limits configured in infrastructure/rate_limiter.py
 
 # Cache service
 cache_service = CacheService()
