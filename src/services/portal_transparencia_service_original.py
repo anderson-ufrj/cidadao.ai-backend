@@ -102,12 +102,12 @@ class PortalTransparenciaService:
         # Build query parameters
         params = {"pagina": page, "tamanhoPagina": min(size, 500)}  # API limit
 
-        # CRITICAL FIX: Portal API requires codigoOrgao parameter (returns 400 without it)
-        # Use Ministério da Saúde (36000) as default for general queries
+        # Portal API requires codigoOrgao parameter (returns 400 without it)
+        # Use Ministério da Saúde (26000) as default for general queries
         if not orgao:
-            orgao = "36000"  # Ministério da Saúde - high volume of contracts
-            logger.info(
-                "Using default orgao=36000 (Ministério da Saúde) for Portal API - codigoOrgao is required"
+            orgao = "26000"  # Ministério da Saúde - default for general queries
+            logger.warning(
+                "No orgao specified, defaulting to 26000 (Ministério da Saúde)"
             )
 
         params["codigoOrgao"] = orgao  # Always include codigoOrgao (required by API)

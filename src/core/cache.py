@@ -478,8 +478,8 @@ class CacheWarming:
 
             # Warm popular contract searches
             popular_queries = [
-                {"orgao": "26000", "ano": 2024},  # Education Ministry
-                {"orgao": "36000", "ano": 2024},  # Health Ministry
+                {"orgao": "25000", "ano": 2024},  # Education Ministry
+                {"orgao": "26000", "ano": 2024},  # Health Ministry
                 {"valor_min": 1000000, "ano": 2024},  # High-value contracts
             ]
 

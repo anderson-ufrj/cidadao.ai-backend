@@ -1,6 +1,6 @@
 """
 Organization name to code mapping for Brazilian government entities
-Enables natural language queries like "Ministério da Saúde" -> code "36000"
+Enables natural language queries like "Ministério da Saúde" -> code "26000"
 """
 
 import re
