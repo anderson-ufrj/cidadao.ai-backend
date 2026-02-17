@@ -38,7 +38,7 @@ class ImprovedPortalTransparenciaService:
             "required_one_of": ["codigoOrgaoLotacao", "codigoOrgaoExercicio", "cpf"],
             "optional_params": ["nome"],
             "max_page_size": 500,
-            "default_orgao_lotacao": "36000",  # Ministério da Saúde
+            "default_orgao_lotacao": "26000",  # Ministério da Saúde
             "description": "Lista servidores públicos federais (requer código SIAPE ou CPF)",
         },
         "servidores_remuneracao": {
@@ -59,7 +59,7 @@ class ImprovedPortalTransparenciaService:
             "required_params": ["codigoOrgao", "pagina"],
             "optional_params": ["dataInicial", "dataFinal"],
             "max_page_size": 500,
-            "default_orgao": "36000",
+            "default_orgao": "26000",
             "description": "Contratos do governo federal",
         },
         # ========== LICITAÇÕES (Bids) ==========
@@ -68,7 +68,7 @@ class ImprovedPortalTransparenciaService:
             "required_params": ["codigoOrgao", "dataInicial", "dataFinal", "pagina"],
             "max_page_size": 500,
             "max_date_range_days": 30,
-            "default_orgao": "36000",
+            "default_orgao": "26000",
             "description": "Licitações públicas (requer período de até 30 dias)",
         },
         # ========== DESPESAS (Expenses) ==========
@@ -76,7 +76,7 @@ class ImprovedPortalTransparenciaService:
             "path": "/despesas/documentos",
             "required_params": ["codigoOrgao", "ano", "dataEmissao", "fase", "pagina"],
             "max_page_size": 500,
-            "default_orgao": "36000",
+            "default_orgao": "26000",
             "default_fase": "3",  # Fase 3: Pagamento
             "description": "Despesas por documento (requer data de emissão e fase)",
         },
@@ -85,7 +85,7 @@ class ImprovedPortalTransparenciaService:
             "required_params": ["ano", "pagina"],
             "required_one_of": ["codigoOrgao", "codigoUnidadeGestora", "mes"],
             "max_page_size": 500,
-            "default_orgao": "36000",
+            "default_orgao": "26000",
             "description": "Despesas agrupadas por órgão (requer ano + (órgão OU UG OU mês))",
         },
         # ========== FORNECEDORES (Suppliers) ==========
@@ -114,7 +114,7 @@ class ImprovedPortalTransparenciaService:
             "required_one_of": ["codigoOrgao", "cpf", "cnpjFavorecido"],
             "max_page_size": 500,
             "max_month_range": 12,
-            "default_orgao": "36000",
+            "default_orgao": "26000",
             "description": "Gastos com cartões corporativos (requer órgão, CPF ou CNPJ favorecido)",
         },
         # ========== VIAGENS (Travel) ==========
@@ -187,11 +187,11 @@ class ImprovedPortalTransparenciaService:
 
     # Known working organization codes
     KNOWN_ORGAOS = {
-        "36000": "Ministério da Saúde",
-        "26000": "Ministério da Educação",
-        "25000": "Ministério da Economia",
+        "26000": "Ministério da Saúde",
+        "25000": "Ministério da Educação",
+        "39000": "Ministério da Fazenda",
         "30000": "Ministério da Justiça",
-        "52000": "Ministério da Defesa",
+        "36000": "Ministério da Defesa",
         "35000": "Ministério das Relações Exteriores",
         "44000": "Ministério do Meio Ambiente",
     }
@@ -392,7 +392,7 @@ class ImprovedPortalTransparenciaService:
 
     def _get_demo_contracts(self, params: dict[str, Any]) -> dict[str, Any]:
         """Get realistic demo contracts when API is unavailable."""
-        orgao = params.get("codigoOrgao", "36000")
+        orgao = params.get("codigoOrgao", "26000")
         orgao_nome = self.KNOWN_ORGAOS.get(orgao, "Órgão Desconhecido")
 
         demo_contracts = [
@@ -425,7 +425,7 @@ class ImprovedPortalTransparenciaService:
         ]
 
         # Filter by orgao if different
-        if orgao != "36000":
+        if orgao != "26000":
             # Generate different demo data for other organs
             demo_contracts = demo_contracts[:2]  # Less data for other organs
 
@@ -726,7 +726,7 @@ class ImprovedPortalTransparenciaService:
 
         # Test contratos endpoint (most reliable)
         try:
-            result = await self.search_contracts(orgao="36000", page=1, size=1)
+            result = await self.search_contracts(orgao="26000", page=1, size=1)
 
             if result.get("api_status") == "ok":
                 status["endpoints_tested"]["contratos"] = "working"

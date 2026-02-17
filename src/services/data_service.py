@@ -110,7 +110,7 @@ class DataService:
 
             # Use a diverse set of organizations for better coverage
             # Pick based on contract_id hash for consistency
-            org_codes = ["26000", "25000", "36000", "53000", "44000", "20000"]
+            org_codes = ["26000", "25000", "36000", "57000", "44000", "20000"]
             org_index = hash(contract_id) % len(org_codes)
             selected_org = org_codes[org_index]
 
@@ -187,13 +187,13 @@ class DataService:
                 # This provides diverse data for cache warming
                 org_codes = [
                     "26000",  # Ministério da Saúde
-                    "25000",  # Ministério da Economia
-                    "36000",  # Ministério da Educação
-                    "53000",  # Ministério da Infraestrutura
+                    "25000",  # Ministério da Educação
+                    "36000",  # Ministério da Defesa
+                    "57000",  # Ministério dos Transportes
                     "44000",  # Ministério do Meio Ambiente
                     "20000",  # Presidência da República
                     "30000",  # Ministério da Justiça
-                    "52000",  # Ministério da Defesa
+                    "39000",  # Ministério da Fazenda
                     "22000",  # Ministério da Agricultura
                     "42000",  # Ministério da Cultura
                 ]

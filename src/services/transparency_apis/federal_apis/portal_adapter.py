@@ -54,14 +54,14 @@ class PortalTransparenciaAdapter(TransparencyAPIClient):
         """
         try:
             # Portal API requires codigoOrgao parameter
-            # Use Ministério da Saúde (36000) as test organization
+            # Use Ministério da Saúde (26000) as test organization
             from datetime import date, timedelta
 
             data_inicial = date.today() - timedelta(days=1)
             data_final = date.today()
 
             result = await self.portal_service.search_contracts(
-                orgao="36000",  # Ministério da Saúde
+                orgao="26000",  # Ministério da Saúde
                 data_inicial=data_inicial,
                 data_final=data_final,
                 page=1,
@@ -141,12 +141,12 @@ class PortalTransparenciaAdapter(TransparencyAPIClient):
             # Extract Portal-specific parameters
             orgao = kwargs.get("codigoOrgao") or kwargs.get("orgao")
 
-            # CRITICAL FIX: Portal API requires codigoOrgao parameter (returns 400 without it)
-            # Use Ministério da Saúde (36000) as default for general queries
+            # Portal API requires codigoOrgao parameter (returns 400 without it)
+            # Use Ministério da Saúde (26000) as default only for general queries
             if not orgao:
-                orgao = "36000"  # Ministério da Saúde - high volume of contracts
-                logger.info(
-                    "Using default orgao=36000 (Ministério da Saúde) for Portal API",
+                orgao = "26000"  # Ministério da Saúde - default for general queries
+                logger.warning(
+                    "No orgao specified, defaulting to 26000 (Ministério da Saúde)",
                     extra={"reason": "codigoOrgao is required by Portal API"},
                 )
 

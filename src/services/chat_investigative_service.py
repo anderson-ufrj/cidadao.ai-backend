@@ -45,31 +45,31 @@ class ChatInvestigativeService:
 
     BASE_URL = "https://api.portaldatransparencia.gov.br/api-de-dados"
 
-    # Organization codes (SIAFI)
+    # Organization codes (SIAFI) - Source: Portal da Transparência Federal API
     ORGAOS = {
-        "saude": "36000",
-        "educacao": "26000",
-        "economia": "25000",
+        "saude": "26000",
+        "educacao": "25000",
+        "fazenda": "39000",
         "justica": "30000",
-        "defesa": "52000",
+        "defesa": "36000",
         "meio_ambiente": "44000",
         "ciencia": "24000",
-        "trabalho": "38000",
+        "trabalho": "41000",
         "agricultura": "22000",
-        "transportes": "39000",
+        "transportes": "57000",
     }
 
     ORGAO_NAMES = {
-        "36000": "Ministério da Saúde",
-        "26000": "Ministério da Educação",
-        "25000": "Ministério da Economia",
+        "26000": "Ministério da Saúde",
+        "25000": "Ministério da Educação",
+        "39000": "Ministério da Fazenda",
         "30000": "Ministério da Justiça",
-        "52000": "Ministério da Defesa",
+        "36000": "Ministério da Defesa",
         "44000": "Ministério do Meio Ambiente",
         "24000": "Ministério da Ciência e Tecnologia",
-        "38000": "Ministério do Trabalho",
+        "41000": "Ministério do Trabalho",
         "22000": "Ministério da Agricultura",
-        "39000": "Ministério dos Transportes",
+        "57000": "Ministério dos Transportes",
     }
 
     def __init__(self) -> None:
@@ -102,7 +102,16 @@ class ChatInvestigativeService:
         )
 
     def _detect_orgao_from_message(self, message: str) -> str | None:
-        """Detect organization code from user message."""
+        """Detect organization code from user message using OrganizationMapper."""
+        # Use the authoritative OrganizationMapper first
+        from src.utils.organization_mapping import get_organization_mapper
+
+        mapper = get_organization_mapper()
+        orgs = mapper.extract_organizations_from_text(message)
+        if orgs:
+            return orgs[0]["code"]
+
+        # Fallback: keyword-based detection
         message_lower = message.lower()
 
         keyword_mapping = {
@@ -115,7 +124,7 @@ class ChatInvestigativeService:
                 "mec",
                 "ensino",
             ],
-            "economia": ["economia", "fazenda", "receita", "impostos", "orçamento"],
+            "fazenda": ["economia", "fazenda", "receita", "impostos", "orçamento"],
             "justica": ["justiça", "justica", "polícia", "policia", "segurança"],
             "defesa": ["defesa", "exército", "exercito", "marinha", "aeronáutica"],
             "meio_ambiente": ["ambiente", "meio ambiente", "ibama", "floresta"],
