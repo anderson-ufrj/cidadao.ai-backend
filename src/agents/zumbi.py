@@ -433,9 +433,9 @@ class InvestigatorAgent(BaseAgent):
 
         demo_contracts = []
         orgaos = [
-            ("36000", "Ministério da Saúde"),
-            ("26000", "Ministério da Educação"),
-            ("52000", "Ministério da Defesa"),
+            ("26000", "Ministério da Saúde"),
+            ("25000", "Ministério da Educação"),
+            ("36000", "Ministério da Defesa"),
             ("30000", "Ministério da Justiça"),
             ("22000", "Ministério da Agricultura"),
         ]
