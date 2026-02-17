@@ -663,29 +663,52 @@ CONTRACT_SEARCH_KEYWORDS = [
     "fazenda",
     "infraestrutura",
     "meio ambiente",
+    # Spending/expense keywords
+    "gasto",
+    "gastos",
+    "despesa",
+    "despesas",
+    "gastos públicos",
+    "gastos publicos",
+    "licitação",
+    "licitacao",
+    "licitações",
+    "licitacoes",
+    "orçamento",
+    "orcamento",
+    # Investigation keywords
+    "suspeito",
+    "suspeitos",
+    "irregularidade",
+    "irregularidades",
+    "fraude",
+    "corrupção",
+    "corrupcao",
+    "anomalia",
+    "desvio",
 ]
 
 
 def _is_contract_search_query(message: str, intent_type: IntentType) -> bool:
     """
-    Detect if the user query is asking to search/list contracts.
+    Detect if the user query is asking to search/list contracts or public spending.
 
     Args:
         message: User message
         intent_type: Detected intent type
 
     Returns:
-        True if this is a contract search query
+        True if this is a contract/spending search query
     """
     message_lower = message.lower()
 
-    # Check if it's an investigation intent AND mentions contracts/organizations
+    # Check if it's an investigation intent AND mentions contracts/organizations/spending
     if intent_type == IntentType.INVESTIGATE:
         for keyword in CONTRACT_SEARCH_KEYWORDS:
             if keyword in message_lower:
                 return True
 
-    # Explicit contract search patterns
+    # Explicit search patterns
     explicit_patterns = [
         "buscar contrato",
         "pesquisar contrato",
@@ -696,6 +719,14 @@ def _is_contract_search_query(message: str, intent_type: IntentType) -> bool:
         "contratos da",
         "contratos de",
         "investigar contrato",
+        "analisar gasto",
+        "analisar despesa",
+        "gastos do",
+        "gastos da",
+        "gastos de",
+        "despesas do",
+        "despesas da",
+        "despesas de",
     ]
 
     for pattern in explicit_patterns:
