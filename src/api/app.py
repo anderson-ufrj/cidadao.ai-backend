@@ -112,12 +112,24 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Run database migrations at startup (Railway runtime has access to internal network)
     try:
         logger.info("running_alembic_migrations")
+        import os
+
         from alembic import command
         from alembic.config import Config
 
-        alembic_cfg = Config("alembic.ini")
-        command.upgrade(alembic_cfg, "head")
-        logger.info("alembic_migrations_completed")
+        # Use absolute path to find alembic.ini regardless of CWD
+        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        alembic_ini = os.path.join(base_dir, "alembic.ini")
+
+        if os.path.exists(alembic_ini):
+            alembic_cfg = Config(alembic_ini)
+            alembic_cfg.set_main_option(
+                "script_location", os.path.join(base_dir, "alembic")
+            )
+            command.upgrade(alembic_cfg, "head")
+            logger.info("alembic_migrations_completed")
+        else:
+            logger.warning("alembic_ini_not_found", path=alembic_ini)
     except Exception as e:
         logger.error(
             "alembic_migrations_failed", error=str(e), error_type=type(e).__name__

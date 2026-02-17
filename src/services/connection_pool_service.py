@@ -96,19 +96,14 @@ class ConnectionPoolService:
             "max_connections": settings.redis_pool_size,
             "decode_responses": True,
             "socket_keepalive": True,
-            "socket_keepalive_options": {
-                1: 1,  # TCP_KEEPIDLE
-                2: 1,  # TCP_KEEPINTVL
-                3: 5,  # TCP_KEEPCNT
-            },
             "retry_on_timeout": True,
             "health_check_interval": 30,
         }
 
     async def initialize(self):
         """Initialize connection pools."""
+        # Initialize database pool first (independent of Redis)
         try:
-            # Initialize main database pool
             await self.create_db_pool(
                 "main",
                 settings.get_database_url(async_mode=True),
@@ -125,8 +120,13 @@ class ConnectionPoolService:
                 await self.create_db_pool(
                     "read", settings.database_read_url, read_config
                 )
+        except Exception as e:
+            logger.error(
+                "database_pool_initialization_failed", error=str(e), exc_info=True
+            )
 
-            # Initialize Redis pools
+        # Initialize Redis pools separately (don't block DB if Redis fails)
+        try:
             await self.create_redis_pool(
                 "main", settings.redis_url, self.DEFAULT_REDIS_POOL_CONFIG
             )
@@ -136,14 +136,12 @@ class ConnectionPoolService:
             cache_config["max_connections"] = settings.redis_pool_size * 2
 
             await self.create_redis_pool("cache", settings.redis_url, cache_config)
-
-            logger.info("connection_pools_initialized")
-
         except Exception as e:
             logger.error(
-                "connection_pool_initialization_failed", error=str(e), exc_info=True
+                "redis_pool_initialization_failed", error=str(e), exc_info=True
             )
-            raise
+
+        logger.info("connection_pools_initialized")
 
     async def create_db_pool(
         self, name: str, url: str, config: dict[str, Any]

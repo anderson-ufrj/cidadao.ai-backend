@@ -93,7 +93,7 @@ class AgentLazyLoader:
         self.register_agent(
             name="Zumbi",
             module_path="src.agents.zumbi",
-            class_name="ZumbiAgent",
+            class_name="InvestigatorAgent",
             description="Anomaly detection investigator",
             capabilities=["anomaly_detection", "fraud_analysis", "pattern_recognition"],
             priority=10,
@@ -103,7 +103,7 @@ class AgentLazyLoader:
         self.register_agent(
             name="Anita",
             module_path="src.agents.anita",
-            class_name="AnitaAgent",
+            class_name="AnalystAgent",
             description="Pattern analysis specialist",
             capabilities=[
                 "pattern_analysis",
@@ -117,7 +117,7 @@ class AgentLazyLoader:
         self.register_agent(
             name="Tiradentes",
             module_path="src.agents.tiradentes",
-            class_name="TiradentesAgent",
+            class_name="ReporterAgent",
             description="Natural language report generation",
             capabilities=["report_generation", "summarization", "natural_language"],
             priority=10,
@@ -126,19 +126,9 @@ class AgentLazyLoader:
 
         # Extended agents - lower priority, lazy load
         self.register_agent(
-            name="MariaCurie",
-            module_path="src.agents.legacy.mariacurie",
-            class_name="MariaCurieAgent",
-            description="Scientific research specialist",
-            capabilities=["research", "data_analysis", "methodology"],
-            priority=5,
-            preload=False,
-        )
-
-        self.register_agent(
             name="Drummond",
-            module_path="src.agents.legacy.drummond",
-            class_name="DrummondAgent",
+            module_path="src.agents.drummond",
+            class_name="CommunicationAgent",
             description="Communication and writing specialist",
             capabilities=["writing", "communication", "poetry"],
             priority=5,
