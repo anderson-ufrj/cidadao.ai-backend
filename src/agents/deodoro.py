@@ -28,7 +28,7 @@ class AgentContext:
     investigation_id: str = field(default_factory=lambda: str(uuid4()))
     user_id: str | None = None
     session_id: str | None = None
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     metadata: dict[str, Any] = field(default_factory=dict)
     memory_context: dict[str, Any] = field(default_factory=dict)
     parent_agent: str | None = None
@@ -62,7 +62,7 @@ class AgentMessage(BaseModel):
     context: dict[str, Any] = PydanticField(
         default_factory=dict, description="Message context"
     )
-    timestamp: datetime = PydanticField(default_factory=datetime.utcnow)
+    timestamp: datetime = PydanticField(default_factory=lambda: datetime.now(UTC))
     message_id: str = PydanticField(default_factory=lambda: str(uuid4()))
     requires_response: bool = PydanticField(
         default=True, description="Whether response is expected"
@@ -81,7 +81,7 @@ class AgentResponse(BaseModel):
     metadata: dict[str, Any] = PydanticField(
         default_factory=dict, description="Response metadata"
     )
-    timestamp: datetime = PydanticField(default_factory=datetime.utcnow)
+    timestamp: datetime = PydanticField(default_factory=lambda: datetime.now(UTC))
     processing_time_ms: float | None = PydanticField(
         default=None, description="Processing time"
     )

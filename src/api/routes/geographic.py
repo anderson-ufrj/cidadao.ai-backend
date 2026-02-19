@@ -22,7 +22,7 @@ from src.services.cache_service import CacheService
 logger = get_logger(__name__)
 router = APIRouter(prefix="/api/v1/geo")
 
-# Rate limiting is handled by RateLimitMiddleware using
+# Rate limiting is handled globally by RateLimitMiddleware (src/api/middleware/rate_limit.py)
 # endpoint-specific limits configured in infrastructure/rate_limiter.py
 
 # Cache service
@@ -191,7 +191,6 @@ BRAZIL_REGIONS = {
 
 
 @router.get("/boundaries/{region_type}", response_model=GeographicBoundary)
-# @rate_limit(geo_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_geographic_boundaries(
     region_type: RegionType = Path(
         ..., description="Type of region boundaries to retrieve"
@@ -284,7 +283,6 @@ async def get_geographic_boundaries(
 
 
 @router.get("/regions", response_model=list[BrazilianRegion])
-# @rate_limit(geo_rate_limiter)  # TODO: Implement rate_limit decorator
 async def list_regions(
     region_type: RegionType = Query(
         RegionType.STATE, description="Type of regions to list"
@@ -362,7 +360,6 @@ async def list_regions(
 
 
 @router.get("/regions/{region_id}", response_model=BrazilianRegion)
-# @rate_limit(geo_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_region_details(
     region_id: str = Path(..., description="Region identifier"),
     include_geometry: bool = Query(False, description="Include GeoJSON geometry"),
@@ -440,7 +437,6 @@ async def get_region_details(
 
 
 @router.get("/data/{metric}", response_model=GeographicDataResponse)
-# @rate_limit(geo_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_geographic_data(
     metric: str = Path(
         ..., description="Metric to retrieve (e.g., contracts, spending)"
@@ -547,7 +543,6 @@ async def get_geographic_data(
 
 
 @router.get("/coordinates/{region_id}")
-# @rate_limit(geo_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_region_coordinates(
     region_id: str = Path(..., description="Region identifier"),
     current_user: dict[str, Any] = Depends(get_current_user),

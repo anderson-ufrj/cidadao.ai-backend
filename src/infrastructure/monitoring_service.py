@@ -133,7 +133,7 @@ class PerformanceMetrics(BaseModel):
     cache_hit_rate: float
 
     # Timestamp
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class AlertSeverity(Enum):
@@ -156,7 +156,7 @@ class Alert(BaseModel):
     metric_name: str
     metric_value: float
     threshold: float
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     resolved: bool = False
     resolution_time: datetime | None = None
 
@@ -168,7 +168,7 @@ class HealthCheck(BaseModel):
     status: HealthStatus
     details: dict[str, Any] = Field(default_factory=dict)
     latency_ms: float | None = None
-    last_check: datetime = Field(default_factory=datetime.utcnow)
+    last_check: datetime = Field(default_factory=lambda: datetime.now(UTC))
     error_message: str | None = None
 
 

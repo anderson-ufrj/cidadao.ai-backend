@@ -9,7 +9,7 @@ This module defines the graph database structure for tracking relationships
 between companies, people, and government agencies across multiple investigations.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import (
     JSON,
@@ -82,8 +82,8 @@ class EntityNode(BaseModel):
     eigenvector_centrality = Column(Float, default=0.0)  # Influence score
 
     # Extra data
-    first_detected = Column(DateTime, default=datetime.utcnow, nullable=False)
-    last_detected = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    first_detected = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
+    last_detected = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
     extra_data = Column(JSON, default={})
 
     # Relationships
@@ -190,8 +190,8 @@ class EntityRelationship(BaseModel):
     confidence = Column(Float, default=1.0)  # 0-1, confidence in the relationship
 
     # Evidence and detection
-    first_detected = Column(DateTime, default=datetime.utcnow, nullable=False)
-    last_detected = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    first_detected = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
+    last_detected = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
     detection_count = Column(Integer, default=1)  # How many times detected
 
     # Investigation references (which investigations found this relationship)
@@ -289,7 +289,7 @@ class EntityInvestigationReference(BaseModel):
     evidence_data = Column(JSON, default={})  # Full entity data from that investigation
 
     # Extra data
-    detected_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    detected_at = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
     extra_data = Column(JSON, default={})
 
     # SQLAlchemy relationship
@@ -348,8 +348,8 @@ class SuspiciousNetwork(BaseModel):
 
     # Investigation references
     investigation_ids = Column(JSON, default=[])  # Investigations that detected this
-    first_detected = Column(DateTime, default=datetime.utcnow)
-    last_detected = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    first_detected = Column(DateTime, default=lambda: datetime.now(UTC))
+    last_detected = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     # Financial impact
     total_contract_value = Column(Float, default=0.0)

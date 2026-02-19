@@ -86,8 +86,8 @@ class Investigation(BaseModel):
     results: dict[str, Any] | None = Field(None, description="Resultados")
     summary: str | None = Field(None, description="Sumário da investigação")
     metadata: dict[str, Any] = Field(default_factory=dict)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     completed_at: datetime | None = None
     error_message: str | None = None
     confidence_score: float | None = None

@@ -73,7 +73,7 @@ class ComponentHealth:
     status: ComponentStatus
     health_score: float = 0.0  # 0-1
     error_message: str | None = None
-    last_check: datetime = field(default_factory=datetime.utcnow)
+    last_check: datetime = field(default_factory=lambda: datetime.now(UTC))
     uptime_seconds: float = 0.0
     metrics: dict[str, Any] = field(default_factory=dict)
 

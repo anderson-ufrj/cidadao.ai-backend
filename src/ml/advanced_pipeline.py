@@ -79,7 +79,7 @@ class ModelMetrics:
     val_loss: float = 0.0
     inference_time_ms: float = 0.0
     model_size_mb: float = 0.0
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -93,7 +93,7 @@ class TrainingRun:
     metrics: ModelMetrics | None = None
     artifacts_path: str | None = None
     error_message: str | None = None
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     started_at: datetime | None = None
     completed_at: datetime | None = None
     experiment_id: str | None = None
