@@ -54,7 +54,7 @@ class HealthCheckResult:
     response_time_ms: float
     message: str
     details: dict[str, Any] = field(default_factory=dict)
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     error: str | None = None
 
     def to_dict(self) -> dict[str, Any]:

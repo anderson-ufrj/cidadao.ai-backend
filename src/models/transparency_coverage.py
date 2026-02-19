@@ -8,7 +8,7 @@ Author: Anderson Henrique da Silva
 Created: 2025-10-23
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 
 from sqlalchemy import Column, DateTime, Float, Index, Integer, String
 from sqlalchemy.dialects.postgresql import JSON
@@ -41,7 +41,7 @@ class TransparencyCoverageSnapshot(Base):
     # Timestamp
     snapshot_date = Column(
         DateTime,
-        default=datetime.utcnow,
+        default=lambda: datetime.now(UTC),
         nullable=False,
         index=True,
         comment="When this snapshot was taken",

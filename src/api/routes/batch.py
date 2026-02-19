@@ -75,7 +75,7 @@ class BatchOperationResult(BaseModel):
     result: dict[str, Any] | None = None
     error: str | None = None
     execution_time: float
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class BatchResponse(BaseModel):

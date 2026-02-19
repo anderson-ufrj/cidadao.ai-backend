@@ -60,7 +60,7 @@ class AgentTask:
     timeout: float | None = None
     retry_count: int = 0
     max_retries: int = 3
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     started_at: datetime | None = None
     completed_at: datetime | None = None
     result: Any = None
@@ -81,8 +81,8 @@ class AgentInstance:
     successful_tasks: int = 0
     failed_tasks: int = 0
     average_task_time: float = 0.0
-    last_activity: datetime = field(default_factory=datetime.utcnow)
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    last_activity: datetime = field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     process_id: int | None = None
     thread_id: int | None = None
 

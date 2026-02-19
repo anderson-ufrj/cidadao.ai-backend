@@ -1,6 +1,6 @@
 """Dashboard schemas for agent metrics visualization."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -140,7 +140,7 @@ class AgentDashboardSummary(BaseModel):
     """Complete dashboard summary response."""
 
     timestamp: datetime = Field(
-        default_factory=datetime.utcnow, description="Response timestamp"
+        default_factory=lambda: datetime.now(UTC), description="Response timestamp"
     )
     period: str = Field(default="24h", description="Time period for metrics")
     overview: DashboardOverview = Field(..., description="Overview metrics")
@@ -194,7 +194,7 @@ class AgentHealthMatrix(BaseModel):
     degraded_count: int = Field(default=0, description="Number of degraded agents")
     unhealthy_count: int = Field(default=0, description="Number of unhealthy agents")
     last_check: datetime = Field(
-        default_factory=datetime.utcnow, description="Last health check time"
+        default_factory=lambda: datetime.now(UTC), description="Last health check time"
     )
 
 
@@ -216,6 +216,6 @@ class StreamMetricsEvent(BaseModel):
 
     event_type: str = Field(default="metrics_update", description="Type of event")
     timestamp: datetime = Field(
-        default_factory=datetime.utcnow, description="Event timestamp"
+        default_factory=lambda: datetime.now(UTC), description="Event timestamp"
     )
     data: AgentDashboardSummary = Field(..., description="Dashboard data")

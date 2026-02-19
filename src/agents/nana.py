@@ -24,7 +24,7 @@ class MemoryEntry(BaseModel):
 
     id: str = PydanticField(..., description="Unique memory ID")
     content: dict[str, Any] = PydanticField(..., description="Memory content")
-    timestamp: datetime = PydanticField(default_factory=datetime.utcnow)
+    timestamp: datetime = PydanticField(default_factory=lambda: datetime.now(UTC))
     importance: MemoryImportance = PydanticField(default=MemoryImportance.MEDIUM)
     tags: list[str] = PydanticField(default_factory=list, description="Memory tags")
     metadata: dict[str, Any] = PydanticField(default_factory=dict)

@@ -5,7 +5,7 @@ This module contains Pydantic models for ML model tracking,
 versioning, and metadata management.
 """
 
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -157,7 +157,7 @@ class AnomalyPrediction(BaseModel):
     prediction_id: str
     model_id: str
     model_version: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
     # Input data
     input_data: dict[str, Any]
@@ -184,7 +184,7 @@ class ModelComparison(BaseModel):
     """Comparison between multiple models."""
 
     comparison_id: str
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     models: list[AnomalyDetectorModel]
 
     # Comparison metrics
@@ -219,8 +219,8 @@ class AnomalyDetectorModelDB(Base):
     # Timestamps
     trained_at = Column(DateTime)
     deployed_at = Column(DateTime)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, default=lambda: datetime.now(UTC))
+    updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     # Paths and references
     model_path = Column(Text)
@@ -250,7 +250,7 @@ class PredictionHistoryDB(Base):
     metadata = Column(JSON)
 
     # Timestamps
-    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    timestamp = Column(DateTime, default=lambda: datetime.now(UTC), index=True)
     inference_time_ms = Column(Float)
 
 

@@ -59,8 +59,8 @@ class CacheEntry:
 
     key: str
     value: Any
-    created_at: datetime = field(default_factory=datetime.utcnow)
-    last_accessed: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
+    last_accessed: datetime = field(default_factory=lambda: datetime.now(UTC))
     access_count: int = 0
     ttl_seconds: int | None = None
     tags: list[str] = field(default_factory=list)

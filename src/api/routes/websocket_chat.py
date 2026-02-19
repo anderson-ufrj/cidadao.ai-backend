@@ -9,7 +9,7 @@ This module provides WebSocket connections for:
 """
 
 import asyncio
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
@@ -32,7 +32,7 @@ class WebSocketMessage(BaseModel):
 
     type: str = Field(..., description="Message type")
     data: dict[str, Any] = Field(default_factory=dict, description="Message data")
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     id: str = Field(default_factory=lambda: str(uuid4()))
 
 

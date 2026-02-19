@@ -28,7 +28,7 @@ class LLMUsage:
     total_tokens: int
     cost_usd: float
     latency_ms: float
-    timestamp: datetime = field(default_factory=datetime.utcnow)
+    timestamp: datetime = field(default_factory=lambda: datetime.now(UTC))
     user_id: str | None = None
     agent_name: str | None = None
     request_id: str | None = None

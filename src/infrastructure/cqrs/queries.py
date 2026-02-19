@@ -25,7 +25,7 @@ class Query(BaseModel):
     """Base class for all queries."""
 
     query_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     user_id: str | None = None
     use_cache: bool = True
     cache_ttl: int | None = None
