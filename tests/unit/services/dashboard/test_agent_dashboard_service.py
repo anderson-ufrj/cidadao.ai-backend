@@ -1,6 +1,6 @@
 """Unit tests for AgentDashboardService."""
 
-from datetime import datetime
+from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -41,7 +41,7 @@ class TestAgentDashboardService:
                 "error_rate": 0.05,
                 "response_time": {"mean": 0.250, "p95": 0.500},
                 "quality": {"mean": 0.9},
-                "last_success_time": datetime.utcnow().isoformat(),
+                "last_success_time": datetime.now(UTC).isoformat(),
             }
         )
         mock.get_all_agents_summary = AsyncMock(

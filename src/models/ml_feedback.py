@@ -10,7 +10,7 @@ and improve machine learning models for anomaly detection.
 """
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 
 from sqlalchemy import JSON, Column, DateTime, Float, ForeignKey, Integer, String
@@ -81,8 +81,8 @@ class InvestigationFeedback(Base):
     reviewed_by = Column(String(255), nullable=True)  # Expert reviewer
 
     # Timestamps
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow, index=True)
-    updated_at = Column(DateTime, nullable=True, onupdate=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC), index=True)
+    updated_at = Column(DateTime, nullable=True, onupdate=lambda: datetime.now(UTC))
 
     # Model version that made the prediction
     model_version = Column(String(50), nullable=True)
@@ -122,7 +122,7 @@ class MLTrainingDataset(Base):
     data_quality_score = Column(Float, nullable=True)
 
     # Metadata
-    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
     created_by = Column(String(255), nullable=True)
 
     # Storage
@@ -156,7 +156,7 @@ class MLModelVersion(Base):
     training_dataset_id = Column(
         UUID(as_uuid=True), ForeignKey("ml_training_datasets.id")
     )
-    trained_at = Column(DateTime, nullable=False, default=datetime.utcnow)
+    trained_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC))
     training_duration_seconds = Column(Float, nullable=True)
 
     # Performance metrics

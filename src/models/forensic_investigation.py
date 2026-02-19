@@ -10,7 +10,7 @@ evidence, legal references, and documentary proof for government transparency.
 """
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import UTC, datetime
 from enum import Enum
 from typing import Any
 
@@ -51,7 +51,7 @@ class OfficialDocument:
     issuing_authority: str | None = None
     legal_basis: str | None = None  # Base legal aplicável
     hash_verification: str | None = None  # Hash para verificação
-    access_date: datetime = field(default_factory=datetime.utcnow)
+    access_date: datetime = field(default_factory=lambda: datetime.now(UTC))
     notes: str | None = None
 
 
@@ -90,7 +90,7 @@ class LegalEntity:
     sanctions: list[dict[str, Any]] = field(default_factory=list)
 
     # Metadata
-    last_updated: datetime = field(default_factory=datetime.utcnow)
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
     data_sources: list[str] = field(default_factory=list)
 
 
@@ -123,7 +123,7 @@ class Evidence:
     statistical_significance: float | None = None  # p-value
 
     # Metadata
-    collected_at: datetime = field(default_factory=datetime.utcnow)
+    collected_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     verified: bool = False
     verification_notes: str | None = None
 
@@ -289,10 +289,10 @@ class ForensicAnomalyResult:
     visualizations_urls: list[str] = field(default_factory=list)
 
     # METADATA
-    created_at: datetime = field(default_factory=datetime.utcnow)
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     analyzed_by: str = "Cidadão.AI"
     analysis_version: str = "1.0"
-    last_updated: datetime = field(default_factory=datetime.utcnow)
+    last_updated: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     # Para Auditoria
     reproducible: bool = True

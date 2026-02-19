@@ -7,7 +7,7 @@ separating them from read queries for better scalability.
 
 import uuid
 from abc import ABC, abstractmethod
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, Field
@@ -24,7 +24,7 @@ class Command(BaseModel):
     """Base class for all commands."""
 
     command_id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(UTC))
     user_id: str | None = None
     metadata: dict[str, Any] = Field(default_factory=dict)
 

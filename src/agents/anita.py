@@ -1076,7 +1076,6 @@ class AnalystAgent(BaseAgent):
     async def _analyze_spectral_patterns(
         self,
         data: list[dict[str, Any]],
-        request: AnalysisRequest,
         context: AgentContext,
     ) -> list[PatternResult]:
         """
@@ -1084,7 +1083,6 @@ class AnalystAgent(BaseAgent):
 
         Args:
             data: Contract data for analysis
-            request: Analysis request parameters
             context: Agent context
 
         Returns:
@@ -1225,7 +1223,6 @@ class AnalystAgent(BaseAgent):
     async def _perform_cross_spectral_analysis(
         self,
         data: list[dict[str, Any]],
-        request: AnalysisRequest,
         context: AgentContext,
     ) -> list[CorrelationResult]:
         """
@@ -1233,7 +1230,6 @@ class AnalystAgent(BaseAgent):
 
         Args:
             data: Contract data for analysis
-            request: Analysis request parameters
             context: Agent context
 
         Returns:

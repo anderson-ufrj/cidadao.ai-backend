@@ -52,7 +52,7 @@ jobs:
           ANTHROPIC_API_KEY: test-anthropic-key
           TRANSPARENCY_API_KEY: ${{ secrets.TRANSPARENCY_API_KEY }}
         run: |
-          pytest tests/unit -v --cov=src --cov-report=xml --cov-report=term-missing --cov-report=html --tb=short --cov-fail-under=40
+          pytest tests/unit -v --cov=src --cov-report=xml --cov-report=term-missing --cov-report=html --tb=short --cov-fail-under=60
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

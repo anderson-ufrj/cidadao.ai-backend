@@ -108,7 +108,6 @@ class VisualizationResponse(BaseModel):
 
 
 @router.post("/chart-data", response_model=VisualizationResponse)
-# @rate_limit(viz_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_chart_data(
     request: ChartDataRequest,
     background_tasks: BackgroundTasks,
@@ -212,7 +211,6 @@ async def get_chart_data(
 
 
 @router.post("/regional-map", response_model=VisualizationResponse)
-# @rate_limit(viz_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_regional_map_data(
     request: RegionalDataRequest,
     current_user: dict[str, Any] = Depends(get_current_user),
@@ -334,7 +332,6 @@ async def get_regional_map_data(
 
 
 @router.post("/time-series", response_model=VisualizationResponse)
-# @rate_limit(viz_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_time_series_data(
     request: TimeSeriesRequest,
     current_user: dict[str, Any] = Depends(get_current_user),
@@ -462,7 +459,6 @@ async def get_time_series_data(
 
 
 @router.get("/dashboard-summary")
-# @rate_limit(viz_rate_limiter)  # TODO: Implement rate_limit decorator
 async def get_dashboard_summary(
     time_range: str = Query("30d", description="Time range for summary"),
     current_user: dict[str, Any] = Depends(get_current_user),

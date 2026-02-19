@@ -84,12 +84,17 @@ class TestFetchDataCoverage:
             mock_collector = AsyncMock()
             # Return data with invalid date format
             mock_collector.collect_contracts = AsyncMock(
-                return_value=[
-                    {
-                        "valorInicial": 100000,
-                        "dataAssinatura": "invalid-date-format",
-                    }
-                ]
+                return_value={
+                    "contracts": [
+                        {
+                            "valorInicial": 100000,
+                            "dataAssinatura": "invalid-date-format",
+                        }
+                    ],
+                    "total": 1,
+                    "sources": ["test"],
+                    "errors": [],
+                }
             )
             mock_get.return_value = mock_collector
 
@@ -112,12 +117,17 @@ class TestFetchDataCoverage:
             mock_collector = AsyncMock()
             # Return data without _org_code but with orgao dict
             mock_collector.collect_contracts = AsyncMock(
-                return_value=[
-                    {
-                        "valorInicial": 100000,
-                        "orgao": {"codigo": "12345", "nome": "Test Org"},
-                    }
-                ]
+                return_value={
+                    "contracts": [
+                        {
+                            "valorInicial": 100000,
+                            "orgao": {"codigo": "12345", "nome": "Test Org"},
+                        }
+                    ],
+                    "total": 1,
+                    "sources": ["test"],
+                    "errors": [],
+                }
             )
             mock_get.return_value = mock_collector
 
@@ -207,10 +217,15 @@ class TestDataProcessing:
         with patch("src.agents.anita.get_transparency_collector") as mock_get:
             mock_collector = AsyncMock()
             mock_collector.collect_contracts = AsyncMock(
-                return_value=[
-                    {"valorInicial": 100000, "fornecedor": "Test1"},
-                    {"valorInicial": 150000, "fornecedor": "Test2"},
-                ]
+                return_value={
+                    "contracts": [
+                        {"valorInicial": 100000, "fornecedor": "Test1"},
+                        {"valorInicial": 150000, "fornecedor": "Test2"},
+                    ],
+                    "total": 2,
+                    "sources": ["test"],
+                    "errors": [],
+                }
             )
             mock_get.return_value = mock_collector
 
