@@ -5,6 +5,7 @@ Stores chat sessions and messages in PostgreSQL so conversations
 survive deploys and restarts.
 """
 
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, JSON, String, Text
@@ -34,7 +35,13 @@ class ChatSession(BaseModel):
         Index("idx_chat_sessions_last_message", "last_message_at"),
     )
 
+    @property
+    def last_activity(self) -> datetime:
+        """Backward-compatible alias used by CachedChatService."""
+        return self.updated_at or self.created_at
+
     def to_dict(self) -> dict[str, Any]:
+        activity = self.updated_at or self.created_at
         return {
             "id": self.id,
             "user_id": self.user_id,
@@ -47,6 +54,7 @@ class ChatSession(BaseModel):
             "last_message_at": (
                 self.last_message_at.isoformat() if self.last_message_at else None
             ),
+            "last_activity": activity.isoformat() if activity else None,
             "created_at": self.created_at.isoformat() if self.created_at else None,
             "updated_at": self.updated_at.isoformat() if self.updated_at else None,
         }
@@ -76,8 +84,9 @@ class ChatMessage(BaseModel):
     # References
     investigation_id = Column(String(36), nullable=True)
 
-    # Extra data
-    metadata = Column(JSON, default=dict)
+    # Extra data (column named "metadata" in DB, mapped as message_metadata to
+    # avoid collision with SQLAlchemy's reserved .metadata attribute)
+    message_metadata = Column("metadata", JSON, default=dict)
 
     __table_args__ = (
         Index("idx_chat_messages_session_created", "session_id", "created_at"),
@@ -92,6 +101,6 @@ class ChatMessage(BaseModel):
             "agent_id": self.agent_id,
             "intent": self.intent,
             "investigation_id": self.investigation_id,
-            "metadata": self.metadata or {},
+            "metadata": self.message_metadata or {},
             "created_at": self.created_at.isoformat() if self.created_at else None,
         }

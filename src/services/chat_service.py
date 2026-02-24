@@ -3,9 +3,13 @@ Chat service for managing conversations and intent detection
 """
 
 import re
-from collections import defaultdict
 from dataclasses import dataclass
 from datetime import UTC, datetime
+
+
+def _utcnow() -> datetime:
+    """Naive UTC datetime compatible with 'timestamp without time zone' columns."""
+    return datetime.now(UTC).replace(tzinfo=None)
 from enum import Enum
 from typing import Any
 
@@ -92,27 +96,6 @@ class Intent:
             "suggested_agent": self.suggested_agent,
         }
 
-
-@dataclass
-class ChatSession:
-    """Chat session data"""
-
-    id: str
-    user_id: str | None
-    created_at: datetime
-    last_activity: datetime
-    current_investigation_id: str | None = None
-    context: dict[str, Any] = None
-
-    def to_dict(self) -> dict[str, Any]:
-        return {
-            "id": self.id,
-            "user_id": self.user_id,
-            "created_at": self.created_at.isoformat(),
-            "last_activity": self.last_activity.isoformat(),
-            "current_investigation_id": self.current_investigation_id,
-            "context": self.context or {},
-        }
 
 
 class IntentDetector:
@@ -593,12 +576,13 @@ class IntentDetector:
 
 
 class ChatService:
-    """Service for managing chat sessions and conversations"""
+    """Service for managing chat sessions and conversations.
+
+    Persists sessions and messages to PostgreSQL via SQLAlchemy.
+    """
 
     def __init__(self) -> None:
         self.cache = cache_service
-        self.sessions: dict[str, ChatSession] = {}
-        self.messages: dict[str, list[dict]] = defaultdict(list)
 
         # Initialize agents lazily to avoid import-time errors
         self.agents = None
@@ -606,57 +590,144 @@ class ChatService:
 
     async def get_or_create_session(
         self, session_id: str, user_id: str | None = None
-    ) -> ChatSession:
-        """Get existing session or create new one"""
-        if session_id in self.sessions:
-            session = self.sessions[session_id]
-            session.last_activity = datetime.now(UTC)
+    ):
+        """Get existing session or create new one (persisted to DB)."""
+        from sqlalchemy import select
+
+        from src.db.simple_session import get_db_session
+        from src.models.chat import ChatSession as DBChatSession
+
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(DBChatSession).where(DBChatSession.id == session_id)
+            )
+            session = result.scalar_one_or_none()
+
+            if session:
+                session.updated_at = _utcnow()
+                return session
+
+            session = DBChatSession(
+                id=session_id,
+                user_id=user_id,
+                status="active",
+                context={},
+                message_count=0,
+            )
+            db.add(session)
+            await db.flush()
+            await db.refresh(session)
             return session
 
-        # Create new session
-        session = ChatSession(
-            id=session_id,
-            user_id=user_id,
-            created_at=datetime.now(UTC),
-            last_activity=datetime.now(UTC),
-            context={},
-        )
+    async def get_session(self, session_id: str):
+        """Get session by ID from DB."""
+        from sqlalchemy import select
 
-        self.sessions[session_id] = session
-        return session
+        from src.db.simple_session import get_db_session
+        from src.models.chat import ChatSession as DBChatSession
 
-    async def get_session(self, session_id: str) -> ChatSession | None:
-        """Get session by ID"""
-        return self.sessions.get(session_id)
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(DBChatSession).where(DBChatSession.id == session_id)
+            )
+            return result.scalar_one_or_none()
 
     async def save_message(
         self, session_id: str, role: str, content: str, agent_id: str | None = None
     ) -> None:
-        """Save message to session history"""
-        message = {
-            "role": role,
-            "content": content,
-            "timestamp": datetime.now(UTC).isoformat(),
-            "agent_id": agent_id,
-        }
+        """Save message to DB and update session metadata."""
+        import json as json_mod
 
-        self.messages[session_id].append(message)
+        from sqlalchemy import select
 
-        # Update session activity
-        if session_id in self.sessions:
-            self.sessions[session_id].last_activity = datetime.now(UTC)
+        from src.db.simple_session import get_db_session
+        from src.models.chat import ChatMessage as DBChatMessage
+        from src.models.chat import ChatSession as DBChatSession
+
+        # Serialize dict content
+        if isinstance(content, dict):
+            content_str = json_mod.dumps(content, ensure_ascii=False, default=str)
+        else:
+            content_str = str(content) if content else ""
+
+        async with get_db_session() as db:
+            message = DBChatMessage(
+                session_id=session_id,
+                role=role,
+                content=content_str,
+                agent_id=agent_id,
+            )
+            db.add(message)
+
+            # Update session metadata
+            result = await db.execute(
+                select(DBChatSession).where(DBChatSession.id == session_id)
+            )
+            session = result.scalar_one_or_none()
+            if session:
+                now = _utcnow()
+                session.last_message_at = now
+                session.updated_at = now
+                session.message_count = (session.message_count or 0) + 1
+
+                # Auto-generate title from first user message
+                if session.message_count == 1 and role == "user":
+                    session.title = self._generate_title(content_str)
 
     async def get_session_messages(
         self, session_id: str, limit: int = 50
     ) -> list[dict[str, Any]]:
-        """Get messages for a session"""
-        messages = self.messages.get(session_id, [])
-        return messages[-limit:] if len(messages) > limit else messages
+        """Get messages for a session from DB, ordered chronologically."""
+        from sqlalchemy import select
+
+        from src.db.simple_session import get_db_session
+        from src.models.chat import ChatMessage as DBChatMessage
+
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(DBChatMessage)
+                .where(DBChatMessage.session_id == session_id)
+                .order_by(DBChatMessage.created_at.asc())
+                .limit(limit)
+            )
+            messages = result.scalars().all()
+
+            return [
+                {
+                    "id": msg.id,
+                    "role": msg.role,
+                    "content": msg.content,
+                    "timestamp": (
+                        msg.created_at.isoformat() if msg.created_at else None
+                    ),
+                    "agent_id": msg.agent_id,
+                }
+                for msg in messages
+            ]
 
     async def clear_session(self, session_id: str) -> None:
-        """Clear session data"""
-        self.sessions.pop(session_id, None)
-        self.messages.pop(session_id, None)
+        """Soft-delete session and remove its messages."""
+        from sqlalchemy import delete, select
+
+        from src.db.simple_session import get_db_session
+        from src.models.chat import ChatMessage as DBChatMessage
+        from src.models.chat import ChatSession as DBChatSession
+
+        async with get_db_session() as db:
+            # Delete messages (FK CASCADE would also handle this)
+            await db.execute(
+                delete(DBChatMessage).where(
+                    DBChatMessage.session_id == session_id
+                )
+            )
+            # Mark session as cleared
+            result = await db.execute(
+                select(DBChatSession).where(DBChatSession.id == session_id)
+            )
+            session = result.scalar_one_or_none()
+            if session:
+                session.status = "cleared"
+                session.message_count = 0
 
     async def get_agent_for_intent(self, intent: Intent) -> BaseAgent:
         """Get the appropriate agent for an intent"""
@@ -669,10 +740,28 @@ class ChatService:
     async def update_session_investigation(
         self, session_id: str, investigation_id: str
     ) -> None:
-        """Update session with current investigation"""
-        if session_id in self.sessions:
-            self.sessions[session_id].current_investigation_id = investigation_id
-            self.sessions[session_id].last_activity = datetime.now(UTC)
+        """Update session with current investigation ID in DB."""
+        from sqlalchemy import select
+
+        from src.db.simple_session import get_db_session
+        from src.models.chat import ChatSession as DBChatSession
+
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(DBChatSession).where(DBChatSession.id == session_id)
+            )
+            session = result.scalar_one_or_none()
+            if session:
+                session.current_investigation_id = investigation_id
+                session.updated_at = _utcnow()
+
+    @staticmethod
+    def _generate_title(content: str) -> str:
+        """Generate a session title from the first user message."""
+        title = content.strip()
+        if len(title) > 80:
+            title = title[:77] + "..."
+        return title
 
     def _ensure_agents_initialized(self) -> None:
         """Initialize agents on first use (lazy loading)"""

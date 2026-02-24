@@ -107,7 +107,7 @@ class CachedChatService(ChatService):
                     "last_intent": intent.dict(),
                     "last_agent": response["agent_id"],
                     "investigation_id": session.current_investigation_id,
-                    "message_count": len(self.messages.get(session_id, [])),
+                    "message_count": session.message_count or 0,
                 },
             )
 
@@ -263,8 +263,8 @@ class CachedChatService(ChatService):
         Returns:
             Paginated response with messages and cursors
         """
-        # Get all messages for session
-        messages = self.messages.get(session_id, [])
+        # Get all messages from DB
+        messages = await self.get_session_messages(session_id, limit=10000)
 
         # Add unique IDs if missing
         for i, msg in enumerate(messages):
