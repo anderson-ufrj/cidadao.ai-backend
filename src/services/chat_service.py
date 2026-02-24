@@ -729,6 +729,47 @@ class ChatService:
                 session.status = "cleared"
                 session.message_count = 0
 
+    async def get_user_sessions(
+        self, user_id: str, limit: int = 20, offset: int = 0
+    ) -> list[dict[str, Any]]:
+        """List sessions for a user, ordered by most recent activity."""
+        from sqlalchemy import select
+
+        from src.db.simple_session import get_db_session
+        from src.models.chat import ChatSession as DBChatSession
+
+        async with get_db_session() as db:
+            result = await db.execute(
+                select(DBChatSession)
+                .where(
+                    DBChatSession.user_id == user_id,
+                    DBChatSession.status != "cleared",
+                )
+                .order_by(DBChatSession.updated_at.desc())
+                .offset(offset)
+                .limit(limit)
+            )
+            sessions = result.scalars().all()
+            return [s.to_dict() for s in sessions]
+
+    async def delete_session(self, session_id: str) -> None:
+        """Hard-delete a session and all its messages."""
+        from sqlalchemy import delete
+
+        from src.db.simple_session import get_db_session
+        from src.models.chat import ChatMessage as DBChatMessage
+        from src.models.chat import ChatSession as DBChatSession
+
+        async with get_db_session() as db:
+            await db.execute(
+                delete(DBChatMessage).where(
+                    DBChatMessage.session_id == session_id
+                )
+            )
+            await db.execute(
+                delete(DBChatSession).where(DBChatSession.id == session_id)
+            )
+
     async def get_agent_for_intent(self, intent: Intent) -> BaseAgent:
         """Get the appropriate agent for an intent"""
         self._ensure_agents_initialized()
