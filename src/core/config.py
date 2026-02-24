@@ -67,6 +67,10 @@ class Settings(BaseSettings):
         default=None,
         description="Supabase service role key (optional, only for HuggingFace Spaces)",
     )
+    supabase_jwt_secret: SecretStr | None = Field(
+        default=None,
+        description="Supabase JWT secret for validating Supabase-issued tokens",
+    )
 
     # Redis
     redis_url: str = Field(
@@ -509,6 +513,7 @@ class Settings(BaseSettings):
             "redis_password",
             "database_url",
             "supabase_service_role_key",
+            "supabase_jwt_secret",
             "google_credentials_path",
             "google_cloud_project_id",
             "smtp_password",
