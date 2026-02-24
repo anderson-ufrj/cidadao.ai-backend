@@ -125,47 +125,71 @@ class AuthenticationMiddleware:
         )
 
     async def _validate_jwt_token(self, token: str, request: Request) -> bool:
-        """Validate JWT token."""
-        try:
-            # Decode JWT token
-            payload = jwt.decode(
-                token,
-                settings.jwt_secret_key.get_secret_value(),
-                algorithms=[settings.jwt_algorithm],
+        """Validate JWT token.
+
+        Tries the backend JWT secret first, then falls back to the
+        Supabase JWT secret so that Supabase OAuth tokens are accepted.
+        """
+        secrets_to_try: list[tuple[str, str]] = [
+            (settings.jwt_secret_key.get_secret_value(), "backend"),
+        ]
+
+        # Add Supabase JWT secret as fallback
+        if settings.supabase_jwt_secret:
+            secrets_to_try.append(
+                (settings.supabase_jwt_secret.get_secret_value(), "supabase")
             )
 
-            # Check expiration
-            exp = payload.get("exp")
-            if exp and datetime.now(UTC).timestamp() > exp:
+        last_error: Exception | None = None
+
+        for secret, source in secrets_to_try:
+            try:
+                payload = jwt.decode(
+                    token,
+                    secret,
+                    algorithms=[settings.jwt_algorithm],
+                    options={"verify_aud": False},
+                )
+
+                # Check expiration
+                exp = payload.get("exp")
+                if exp and datetime.now(UTC).timestamp() > exp:
+                    raise HTTPException(
+                        status_code=401, detail="Token has expired"
+                    )
+
+                # Store user info in request state
+                request.state.user_id = payload.get("sub")
+                request.state.user_email = payload.get("email")
+                request.state.user_roles = payload.get("roles", [])
+
+                self.logger.info(
+                    "jwt_authentication_success",
+                    user_id=request.state.user_id,
+                    path=request.url.path,
+                    method=request.method,
+                    token_source=source,
+                )
+
+                return True
+
+            except jwt.ExpiredSignatureError:
+                self.logger.warning(
+                    "jwt_token_expired",
+                    path=request.url.path,
+                    token_source=source,
+                )
                 raise HTTPException(status_code=401, detail="Token has expired")
+            except jwt.JWTError as e:
+                last_error = e
+                continue
 
-            # Store user info in request state
-            request.state.user_id = payload.get("sub")
-            request.state.user_email = payload.get("email")
-            request.state.user_roles = payload.get("roles", [])
-
-            self.logger.info(
-                "jwt_authentication_success",
-                user_id=request.state.user_id,
-                path=request.url.path,
-                method=request.method,
-            )
-
-            return True
-
-        except jwt.ExpiredSignatureError:
-            self.logger.warning(
-                "jwt_token_expired",
-                path=request.url.path,
-            )
-            raise HTTPException(status_code=401, detail="Token has expired")
-        except jwt.JWTError as e:
-            self.logger.warning(
-                "jwt_validation_failed",
-                error=str(e),
-                path=request.url.path,
-            )
-            raise HTTPException(status_code=401, detail="Invalid token")
+        self.logger.warning(
+            "jwt_validation_failed",
+            error=str(last_error),
+            path=request.url.path,
+        )
+        raise HTTPException(status_code=401, detail="Invalid token")
 
 
 def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
