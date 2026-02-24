@@ -1934,6 +1934,66 @@ async def get_suggestions() -> list[QuickAction]:
     ]
 
 
+@router.get("/sessions")
+async def list_user_sessions(
+    limit: int = 20,
+    offset: int = 0,
+    current_user=Depends(get_current_optional_user),
+) -> dict[str, Any]:
+    """List chat sessions for the authenticated user."""
+    if not current_user:
+        raise HTTPException(status_code=401, detail="Autenticação necessária")
+
+    user_id = current_user.get("id") or current_user.get("user_id")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Usuário inválido")
+
+    sessions = await chat_service.get_user_sessions(
+        user_id=str(user_id),
+        limit=min(limit, 50),
+        offset=offset,
+    )
+
+    return {"sessions": sessions, "count": len(sessions), "limit": limit, "offset": offset}
+
+
+@router.get("/sessions/{session_id}")
+async def get_session_detail(
+    session_id: str,
+    current_user=Depends(get_current_optional_user),
+) -> dict[str, Any]:
+    """Get a single session's details."""
+    session = await chat_service.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessão não encontrada")
+
+    if session.user_id and current_user:
+        user_id = str(current_user.get("id") or current_user.get("user_id", ""))
+        if session.user_id != user_id:
+            raise HTTPException(status_code=403, detail="Acesso negado")
+
+    return session.to_dict()
+
+
+@router.delete("/sessions/{session_id}")
+async def delete_session(
+    session_id: str,
+    current_user=Depends(get_current_optional_user),
+) -> dict[str, str]:
+    """Delete a chat session and all its messages."""
+    session = await chat_service.get_session(session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Sessão não encontrada")
+
+    if session.user_id and current_user:
+        user_id = str(current_user.get("id") or current_user.get("user_id", ""))
+        if session.user_id != user_id:
+            raise HTTPException(status_code=403, detail="Acesso negado")
+
+    await chat_service.delete_session(session_id)
+    return {"message": "Sessão excluída com sucesso"}
+
+
 @router.get("/history/{session_id}")
 async def get_chat_history(
     session_id: str, limit: int = 50, current_user=Depends(get_current_optional_user)
