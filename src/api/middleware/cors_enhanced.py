@@ -137,9 +137,13 @@ class EnhancedCORSMiddleware(BaseHTTPMiddleware):
 
         # Get requested method and headers
         requested_method = request.headers.get("Access-Control-Request-Method")
-        requested_headers = request.headers.get(
-            "Access-Control-Request-Headers", ""
-        ).split(", ")
+        requested_headers = [
+            h.strip()
+            for h in request.headers.get(
+                "Access-Control-Request-Headers", ""
+            ).split(",")
+            if h.strip()
+        ]
 
         # Validate method
         if requested_method and requested_method not in self.allowed_methods:
