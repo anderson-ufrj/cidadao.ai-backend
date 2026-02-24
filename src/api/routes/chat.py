@@ -1942,11 +1942,11 @@ async def list_user_sessions(
 ) -> dict[str, Any]:
     """List chat sessions for the authenticated user."""
     if not current_user:
-        raise HTTPException(status_code=401, detail="Autenticação necessária")
+        return {"sessions": [], "count": 0, "limit": limit, "offset": offset}
 
     user_id = current_user.get("id") or current_user.get("user_id")
     if not user_id:
-        raise HTTPException(status_code=401, detail="Usuário inválido")
+        return {"sessions": [], "count": 0, "limit": limit, "offset": offset}
 
     sessions = await chat_service.get_user_sessions(
         user_id=str(user_id),
