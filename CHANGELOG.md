@@ -3,7 +3,7 @@
 **Author**: Anderson Henrique da Silva
 **Location**: Minas Gerais, Brazil
 **Created**: 2025-08-13
-**Last Updated**: 2025-11-18
+**Last Updated**: 2026-02-25
 
 ---
 
@@ -11,6 +11,45 @@ All notable changes to the Cidadão.AI Backend project will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [1.1.0] - 2026-02-25
+
+### Added
+- **Conversation Persistence for SSE Streaming** (ADR-004 implementation)
+  - Stream endpoint (`/api/v1/chat/stream`) now persists sessions and messages to PostgreSQL
+  - User messages saved before streaming begins via `chat_service.save_message()`
+  - Assistant responses accumulated during stream and saved after completion
+  - `generate_and_persist()` wrapper pattern for async generator persistence
+  - Session ID returned in SSE `start` event for frontend session tracking
+  - Sessions linked to authenticated user when JWT is present
+
+- **Dual JWT Validation** (Backend + Supabase)
+  - `get_current_optional_user` dependency extracts JWT directly from Authorization header
+  - Tries backend `jwt_secret_key` first, falls back to `supabase_jwt_secret`
+  - Enables Supabase OAuth tokens to authenticate against the backend API
+  - Non-blocking: returns `None` for unauthenticated requests instead of raising 401
+
+### Fixed
+- **CORS Preflight Header Parsing** (`cors_enhanced.py`)
+  - `Access-Control-Request-Headers` was split by `", "` (with space) but browsers send without space
+  - Fixed to split by `","` with `.strip()` on each value
+  - Resolves Authorization header being rejected in preflight requests
+
+- **PyJWT Exception Class** (`dependencies.py`, `authentication.py`)
+  - Replaced `jwt.JWTError` (does not exist in PyJWT) with `jwt.PyJWTError`
+  - `AttributeError` was caught by outer `except Exception` causing silent auth failures
+  - Root cause of `user_id=null` in all persisted sessions
+
+- **Auth Dependency Not Working Without Global Middleware**
+  - `get_current_optional_user` relied on `request.state.user_id` set by `AuthenticationMiddleware`
+  - `AuthenticationMiddleware` is not registered as global middleware, so state was never set
+  - Rewrote to extract and decode JWT directly from the Authorization header
+
+- **Hardcoded `user_id` in Stream Endpoint**
+  - `AgentContext` was created with `user_id="stream-user"` instead of actual authenticated user
+  - Now uses real user ID from JWT or falls back to `"anonymous"`
 
 ---
 
