@@ -92,7 +92,7 @@ def get_current_optional_user(request: Request) -> dict[str, Any] | None:
             except jwt.ExpiredSignatureError:
                 _dep_logger.warning("jwt_expired", source=source, path=request.url.path)
                 return None
-            except jwt.JWTError as e:
+            except jwt.PyJWTError as e:
                 _dep_logger.warning(
                     "jwt_decode_failed", source=source, error=str(e), path=request.url.path
                 )

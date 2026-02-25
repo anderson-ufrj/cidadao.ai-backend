@@ -180,7 +180,7 @@ class AuthenticationMiddleware:
                     token_source=source,
                 )
                 raise HTTPException(status_code=401, detail="Token has expired")
-            except jwt.JWTError as e:
+            except jwt.PyJWTError as e:
                 last_error = e
                 continue
 
