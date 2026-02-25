@@ -40,11 +40,6 @@ def get_current_optional_user(request: Request) -> dict[str, Any] | None:
         # Extract JWT from Authorization header directly
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
-            _dep_logger.info(
-                "no_auth_header",
-                path=request.url.path,
-                has_header=bool(auth_header),
-            )
             return None
 
         token = auth_header[7:]
@@ -57,13 +52,6 @@ def get_current_optional_user(request: Request) -> dict[str, Any] | None:
             secrets_to_try.append(
                 (settings.supabase_jwt_secret.get_secret_value(), "supabase")
             )
-
-        _dep_logger.info(
-            "jwt_extraction_attempt",
-            path=request.url.path,
-            secrets_count=len(secrets_to_try),
-            token_length=len(token),
-        )
 
         for secret, source in secrets_to_try:
             try:
@@ -78,12 +66,6 @@ def get_current_optional_user(request: Request) -> dict[str, Any] | None:
                     request.state.user_id = user_id
                     request.state.user_email = payload.get("email")
                     request.state.user_roles = payload.get("roles", [])
-                    _dep_logger.info(
-                        "jwt_extracted_from_header",
-                        user_id=user_id,
-                        source=source,
-                        path=request.url.path,
-                    )
                     return {
                         "user_id": user_id,
                         "email": payload.get("email"),
