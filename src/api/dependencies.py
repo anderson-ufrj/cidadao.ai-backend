@@ -37,21 +37,33 @@ def get_current_optional_user(request: Request) -> dict[str, Any] | None:
         if hasattr(request.state, "user_id") and request.state.user_id:
             return get_current_user(request)
 
-        # Extract JWT from Authorization header
+        # Extract JWT from Authorization header directly
         auth_header = request.headers.get("Authorization")
         if not auth_header or not auth_header.startswith("Bearer "):
+            _dep_logger.info(
+                "no_auth_header",
+                path=request.url.path,
+                has_header=bool(auth_header),
+            )
             return None
 
         token = auth_header[7:]
 
         # Try backend secret first, then Supabase secret
-        secrets_to_try = [
+        secrets_to_try: list[tuple[str, str]] = [
             (settings.jwt_secret_key.get_secret_value(), "backend"),
         ]
         if settings.supabase_jwt_secret:
             secrets_to_try.append(
                 (settings.supabase_jwt_secret.get_secret_value(), "supabase")
             )
+
+        _dep_logger.info(
+            "jwt_extraction_attempt",
+            path=request.url.path,
+            secrets_count=len(secrets_to_try),
+            token_length=len(token),
+        )
 
         for secret, source in secrets_to_try:
             try:
@@ -63,11 +75,10 @@ def get_current_optional_user(request: Request) -> dict[str, Any] | None:
                 )
                 user_id = payload.get("sub")
                 if user_id:
-                    # Store in request state for downstream use
                     request.state.user_id = user_id
                     request.state.user_email = payload.get("email")
                     request.state.user_roles = payload.get("roles", [])
-                    _dep_logger.debug(
+                    _dep_logger.info(
                         "jwt_extracted_from_header",
                         user_id=user_id,
                         source=source,
@@ -79,8 +90,12 @@ def get_current_optional_user(request: Request) -> dict[str, Any] | None:
                         "roles": payload.get("roles", []),
                     }
             except jwt.ExpiredSignatureError:
+                _dep_logger.warning("jwt_expired", source=source, path=request.url.path)
                 return None
-            except jwt.JWTError:
+            except jwt.JWTError as e:
+                _dep_logger.warning(
+                    "jwt_decode_failed", source=source, error=str(e), path=request.url.path
+                )
                 continue
 
         return None
