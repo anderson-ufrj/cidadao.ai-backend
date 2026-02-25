@@ -1596,7 +1596,10 @@ async def send_message(
 
 
 @router.post("/stream")
-async def stream_message(request: ChatRequest):
+async def stream_message(
+    request: ChatRequest,
+    current_user=Depends(get_current_optional_user),
+):
     """
     Stream chat response using Server-Sent Events (SSE)
     """
@@ -1604,6 +1607,25 @@ async def stream_message(request: ChatRequest):
     # Sanitize input message before processing
     validation = sanitize_message(request.message)
     sanitized_message = validation.sanitized_message
+
+    # Extract user_id and prepare session persistence
+    user_id = None
+    if current_user:
+        user_id = str(current_user.get("user_id") or current_user.get("id") or "")
+        if not user_id:
+            user_id = None
+
+    session_id = request.session_id or str(uuid.uuid4())
+
+    # Create/get session and save user message before streaming
+    if chat_service is not None:
+        try:
+            await chat_service.get_or_create_session(session_id, user_id=user_id)
+            await chat_service.save_message(
+                session_id=session_id, role="user", content=sanitized_message
+            )
+        except Exception as e:
+            logger.warning(f"Failed to persist session/message: {e}")
 
     # Handle edge cases with streaming responses
     if validation.status != MessageValidationStatus.VALID:
@@ -1629,12 +1651,28 @@ async def stream_message(request: ChatRequest):
 
                 yield f"data: {json_utils.dumps({'type': 'complete', 'agent_id': 'drummond', 'agent_name': 'Carlos Drummond de Andrade', 'edge_case': True, 'suggested_actions': edge_response.get('suggested_actions', [])})}\n\n"
 
-            return EventSourceResponse(edge_case_generator())
+                # Persist edge case response
+                if chat_service is not None:
+                    try:
+                        await chat_service.save_message(
+                            session_id=session_id,
+                            role="assistant",
+                            content=validation.suggested_response,
+                            agent_id="drummond",
+                        )
+                    except Exception:
+                        pass
+
+            return StreamingResponse(
+                edge_case_generator(),
+                media_type="text/event-stream",
+                headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
+            )
 
     async def generate():
         try:
-            # Send initial event
-            yield f"data: {json_utils.dumps({'type': 'start', 'timestamp': datetime.now(UTC).isoformat()})}\n\n"
+            # Send initial event with session_id so client can track it
+            yield f"data: {json_utils.dumps({'type': 'start', 'timestamp': datetime.now(UTC).isoformat(), 'session_id': session_id})}\n\n"
 
             # Detect intent using NEW keyword-based classifier
             yield f"data: {json_utils.dumps({'type': 'detecting', 'message': 'Analisando sua mensagem...'})}\n\n"
@@ -1790,8 +1828,8 @@ async def stream_message(request: ChatRequest):
                         )
                         agent_context = AgentContext(
                             investigation_id=None,
-                            user_id="stream-user",
-                            session_id=request.session_id or "stream",
+                            user_id=user_id or "anonymous",
+                            session_id=session_id,
                         )
 
                         # Process with specialized agent
@@ -1889,14 +1927,44 @@ async def stream_message(request: ChatRequest):
             logger.error(f"Stream error: {str(e)}", exc_info=True)
             yield f"data: {json_utils.dumps({'type': 'error', 'message': str(e), 'fallback_endpoint': '/api/v1/chat/message'})}\n\n"
 
+    async def generate_and_persist():
+        """Wrap generate() to accumulate chunks and persist assistant response."""
+        chunks: list[str] = []
+        agent_id_captured: str | None = None
+
+        async for event_str in generate():
+            # Parse SSE data to capture chunks and agent_id
+            if event_str.startswith("data: "):
+                try:
+                    payload = json_utils.loads(event_str[6:].strip())
+                    if payload.get("type") == "chunk" and payload.get("content"):
+                        chunks.append(payload["content"])
+                    elif payload.get("type") == "agent_selected" and payload.get("agent_id"):
+                        agent_id_captured = payload["agent_id"]
+                except Exception:
+                    pass
+            yield event_str
+
+        # Persist accumulated assistant response after stream completes
+        if chat_service is not None and chunks:
+            try:
+                full_response = " ".join(chunks)
+                await chat_service.save_message(
+                    session_id=session_id,
+                    role="assistant",
+                    content=full_response,
+                    agent_id=agent_id_captured,
+                )
+            except Exception as e:
+                logger.warning(f"Failed to persist stream response: {e}")
+
     return StreamingResponse(
-        generate(),
+        generate_and_persist(),
         media_type="text/event-stream",
         headers={
             "Cache-Control": "no-cache",
             "Connection": "keep-alive",
             "X-Accel-Buffering": "no",
-            "Access-Control-Allow-Origin": "*",
         },
     )
 
