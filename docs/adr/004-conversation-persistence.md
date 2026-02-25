@@ -1,7 +1,7 @@
 # ADR-004: Conversation Persistence in Railway PostgreSQL
 
-**Status**: Accepted
-**Date**: 2026-02-24
+**Status**: Implemented (Phase 2 complete)
+**Date**: 2026-02-24 (proposed) / 2026-02-25 (implemented)
 **Author**: Anderson Henrique da Silva
 
 ## Context
@@ -93,3 +93,55 @@ Ensure academy routes actually use DB sessions.
 ### Risks
 - Alembic head mismatch if migrations were never properly chained
 - Need to verify current `alembic_version` (`0dba430d74c4`) matches the latest migration
+
+---
+
+## Implementation Log (2026-02-25)
+
+### Phase 2: Stream Persistence - COMPLETE
+
+**Problem**: The `/api/v1/chat/stream` SSE endpoint never called `chat_service.save_message()`, so all streaming conversations were lost on every Railway deploy.
+
+**Root Causes Found (5 bugs)**:
+
+| # | Bug | File | Fix |
+|---|-----|------|-----|
+| 1 | Stream endpoint never persists messages | `api/routes/chat.py` | Added `save_message()` calls + `generate_and_persist()` wrapper |
+| 2 | No auth dependency on stream endpoint | `api/routes/chat.py` | Added `Depends(get_current_optional_user)` |
+| 3 | `get_current_optional_user` always returns None | `api/dependencies.py` | Rewrote to extract JWT from Authorization header directly |
+| 4 | `jwt.JWTError` does not exist in PyJWT | `api/dependencies.py`, `api/middleware/authentication.py` | Changed to `jwt.PyJWTError` |
+| 5 | CORS rejects Authorization in preflight | `api/middleware/cors_enhanced.py` | Fixed header parsing: split by `","` not `", "` |
+
+**Architecture of the fix**:
+
+```
+Frontend (Supabase OAuth)
+    ↓ Bearer token in Authorization header
+Backend stream endpoint
+    ↓ Depends(get_current_optional_user)
+    ↓ Tries jwt_secret_key, then supabase_jwt_secret
+    ↓ Extracts user_id from JWT "sub" claim
+chat_service.get_or_create_session(session_id, user_id)
+chat_service.save_message(session_id, "user", message)
+    ↓ SSE streaming begins
+generate_and_persist() wrapper
+    ↓ Accumulates chunks in list
+    ↓ On stream end:
+chat_service.save_message(session_id, "assistant", full_response)
+```
+
+**Commits**:
+- `dd215f9` - fix(cors): parse preflight request headers correctly
+- `92f2394` - feat(chat): persist streaming conversations to database
+- `163040c` - fix(auth): extract JWT directly in get_current_optional_user
+- `817dcb0` - fix(auth): use jwt.PyJWTError instead of non-existent jwt.JWTError
+
+**Verification**: Tested via curl with JWT token. Sessions created with correct `user_id`, messages persisted (both user and assistant), `GET /sessions` returns user-filtered results.
+
+### Phase 1: Database Tables - Previously Complete
+
+Tables `chat_sessions` and `chat_messages` already existed in Railway PostgreSQL via Alembic migrations.
+
+### Phase 3: Academy Endpoints - Pending
+
+Academy tables still not created. Deferred to future sprint.
