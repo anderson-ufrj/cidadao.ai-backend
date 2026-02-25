@@ -99,7 +99,13 @@ def get_current_optional_user(request: Request) -> dict[str, Any] | None:
                 continue
 
         return None
-    except Exception:
+    except Exception as e:
+        _dep_logger.error(
+            "get_current_optional_user_unexpected_error",
+            error=str(e),
+            error_type=type(e).__name__,
+            path=request.url.path,
+        )
         return None
 
 
