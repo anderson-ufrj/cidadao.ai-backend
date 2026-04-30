@@ -8,6 +8,7 @@ Date: 2025-01-24
 TODO: Mock Portal da Transparência API responses for integration tests
 """
 
+import pytest
 import asyncio
 import sys
 from pathlib import Path
