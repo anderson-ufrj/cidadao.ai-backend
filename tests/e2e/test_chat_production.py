@@ -174,7 +174,7 @@ TEST_SCENARIOS = [
 
 
 @dataclass
-class ChatChatTestResult:
+class ChatTestResult:
     """Result of a single test case (renamed to avoid pytest collection)."""
 
     category: str
