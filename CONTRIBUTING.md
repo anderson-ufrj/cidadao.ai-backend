@@ -109,6 +109,18 @@ graph LR
    JWT_SECRET_KEY=test SECRET_KEY=test make test
    ```
 
+8. **Optional but recommended — install Claude Skills**:
+
+   We maintain a public skill set at [`anderson-ufrj/cidadao-ai-skill`](https://github.com/anderson-ufrj/cidadao-ai-skill) covering agent catalog, architecture patterns, project conventions, data sources and onboarding. If you use Claude Code:
+
+   ```bash
+   git clone https://github.com/anderson-ufrj/cidadao-ai-skill.git ~/cidadao-ai-skill
+   mkdir -p ~/.claude/skills
+   ln -sfn ~/cidadao-ai-skill/cidadao-ai-* ~/.claude/skills/
+   ```
+
+   The skills auto-load when you work on relevant files (agents, services, routes, etc.) and significantly reduce ramp-up time.
+
 ---
 
 ## Development Workflow
