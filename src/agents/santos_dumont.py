@@ -179,7 +179,7 @@ INFRAESTRUTURA (IMPORTANTE!):
 FRONTEND (para referência):
 - Framework: Next.js 15 (NÃO só React!)
 - Deploy: Vercel
-- Repo: https://github.com/anderson-ufrj/cidadao.ai-frontend
+- Repo: https://github.com/anderson-ntlabs/cidadao.ai-frontend
 - Mentora: Lina Bo Bardi (para questões de frontend, redirecione para ela!)
 
 TOM: Amigável mas técnico. Como um sênior explicando para júnior.
@@ -236,7 +236,7 @@ TOM: Amigável mas técnico. Como um sênior explicando para júnior.
                 "frontend": {
                     "name": "Ágora",
                     "framework": "Next.js 15",
-                    "repository": "https://github.com/anderson-ufrj/cidadao.ai-frontend",
+                    "repository": "https://github.com/anderson-ntlabs/cidadao.ai-frontend",
                     "deployment": "Vercel",
                     "mentor": "bo_bardi",
                     "note": "Para questões de frontend, consulte a Bo Bardi!",
@@ -1239,8 +1239,8 @@ Para PostgreSQL, configure `DATABASE_URL` no `.env`.
 - **Local**: http://localhost:8000/docs
 
 ### Repositório GitHub
-- **Backend**: https://github.com/anderson-ufrj/cidadao.ai-backend
-- **Issues**: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
+- **Backend**: https://github.com/anderson-ntlabs/cidadao.ai-backend
+- **Issues**: https://github.com/anderson-ntlabs/cidadao.ai-backend/issues
 
 ### Documentação Interna (no repositório)
 - **Manual completo**: `CLAUDE.md` (na raiz)
@@ -1260,9 +1260,9 @@ Para PostgreSQL, configure `DATABASE_URL` no `.env`.
         elif category == "github" or category == "repositorio":
             content = """## Repositório GitHub
 
-- **Código**: https://github.com/anderson-ufrj/cidadao.ai-backend
-- **Issues**: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
-- **Pull Requests**: https://github.com/anderson-ufrj/cidadao.ai-backend/pulls
+- **Código**: https://github.com/anderson-ntlabs/cidadao.ai-backend
+- **Issues**: https://github.com/anderson-ntlabs/cidadao.ai-backend/issues
+- **Pull Requests**: https://github.com/anderson-ntlabs/cidadao.ai-backend/pulls
 """
         else:
             content = format_links_for_display()
@@ -1349,7 +1349,7 @@ Meu caro, essa é uma pergunta sobre **frontend** - a especialidade da **Lina Bo
 - **State**: Zustand
 - **Styling**: Tailwind CSS
 - **Deploy**: Vercel
-- **Repositório**: https://github.com/anderson-ufrj/cidadao.ai-frontend
+- **Repositório**: https://github.com/anderson-ntlabs/cidadao.ai-frontend
 
 **Recomendo**: Fale com a Bo Bardi para detalhes de frontend!
 Eu sou especialista em **backend** - arquitetura, agentes, API, infraestrutura.

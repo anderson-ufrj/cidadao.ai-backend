@@ -24,7 +24,7 @@ Get up and running with Cidadão.AI backend in **less than 5 minutes**!
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/anderson-ufrj/cidadao.ai-backend.git
+git clone https://github.com/anderson-ntlabs/cidadao.ai-backend.git
 cd cidadao.ai-backend
 
 # 2. Create virtual environment
@@ -316,7 +316,7 @@ docker run -d -p 6379:6379 redis:alpine
 ## 💬 Support
 
 - **Documentation**: Full docs in `docs/` folder
-- **Issues**: [GitHub Issues](https://github.com/anderson-ufrj/cidadao.ai-backend/issues)
+- **Issues**: [GitHub Issues](https://github.com/anderson-ntlabs/cidadao.ai-backend/issues)
 - **Architecture**: See `CLAUDE.md` for comprehensive guide
 - **Status**: Check `docs/project/CURRENT_STATUS_2025_10.md`
 

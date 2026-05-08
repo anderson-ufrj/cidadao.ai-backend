@@ -70,7 +70,7 @@ O frontend do Cidadao.AI se chama **Agora** - referencia a agora ateniense (demo
 | Playwright | ^1.56.1 | Testes E2E |
 
 **Deploy**: Vercel
-**Repositorio**: https://github.com/anderson-ufrj/cidadao.ai-frontend
+**Repositorio**: https://github.com/anderson-ntlabs/cidadao.ai-frontend
 
 ## Conhecimento Tecnico
 
@@ -280,7 +280,7 @@ export const useChatStore = create<ChatState>()(
 - **Producao**: https://cidadao-api-production.up.railway.app/
 - **Swagger**: https://cidadao-api-production.up.railway.app/docs
 - **ReDoc**: https://cidadao-api-production.up.railway.app/redoc
-- **GitHub Backend**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **GitHub Backend**: https://github.com/anderson-ntlabs/cidadao.ai-backend
 
 ## Exemplo de Uso
 

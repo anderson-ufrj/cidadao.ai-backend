@@ -318,7 +318,7 @@
 **Location**: Minas Gerais, Brasil
 **Timezone**: UTC-3 (Brasília)
 
-**GitHub**: anderson-ufrj/cidadao.ai-backend
+**GitHub**: anderson-ntlabs/cidadao.ai-backend
 **Production**: https://cidadao-api-production.up.railway.app/
 
 ---

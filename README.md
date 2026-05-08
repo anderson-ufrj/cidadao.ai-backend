@@ -11,8 +11,8 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17911809.svg)](https://doi.org/10.5281/zenodo.17911809)
 
 <!-- Badges de Status -->
-[![CI/CD Pipeline](https://github.com/anderson-ufrj/cidadao.ai-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/anderson-ufrj/cidadao.ai-backend/actions/workflows/ci.yml)
-[![codecov](https://codecov.io/gh/anderson-ufrj/cidadao.ai-backend/branch/main/graph/badge.svg)](https://codecov.io/gh/anderson-ufrj/cidadao.ai-backend)
+[![CI/CD Pipeline](https://github.com/anderson-ntlabs/cidadao.ai-backend/actions/workflows/ci.yml/badge.svg)](https://github.com/anderson-ntlabs/cidadao.ai-backend/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/anderson-ntlabs/cidadao.ai-backend/branch/main/graph/badge.svg)](https://codecov.io/gh/anderson-ntlabs/cidadao.ai-backend)
 [![Railway Deploy](https://img.shields.io/badge/Railway-Produção-success?logo=railway&logoColor=white)](https://cidadao-api-production.up.railway.app)
 [![Uptime](https://img.shields.io/badge/Uptime-99.9%25-brightgreen)](https://cidadao-api-production.up.railway.app/health)
 [![API Status](https://img.shields.io/badge/API-Online-success)](https://cidadao-api-production.up.railway.app/docs)
@@ -75,7 +75,7 @@
 
 ```bash
 # 1. Clonar repositório
-git clone https://github.com/anderson-ufrj/cidadao.ai-backend
+git clone https://github.com/anderson-ntlabs/cidadao.ai-backend
 cd cidadao.ai-backend
 
 # 2. Instalar dependências
@@ -114,9 +114,9 @@ Este é o **Backend API** do ecossistema Cidadão.AI, composto por **4 repositó
 | Repositório | Status | Descrição | Links |
 |-------------|--------|-----------|-------|
 | **Backend** | Produção | API Multi-Agente (FastAPI) | **[Você está aqui]** |
-| **Frontend** | Produção | PWA App (Next.js 15) | [Repo](https://github.com/anderson-ufrj/cidadao.ai-frontend) |
-| **Hub** | Pronto | Landing Page | [Repo](https://github.com/anderson-ufrj/cidadao.ai-hub) |
-| **Models** | Desenvolvimento | ML Models & MLOps | [Repo](https://github.com/anderson-ufrj/cidadao.ai-models) |
+| **Frontend** | Produção | PWA App (Next.js 15) | [Repo](https://github.com/anderson-ntlabs/cidadao.ai-frontend) |
+| **Hub** | Pronto | Landing Page | [Repo](https://github.com/anderson-ntlabs/cidadao.ai-hub) |
+| **Models** | Desenvolvimento | ML Models & MLOps | [Repo](https://github.com/anderson-ntlabs/cidadao.ai-models) |
 
 ---
 
@@ -369,9 +369,9 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICE
 **Localização**: Minas Gerais, Brasil
 
 **Links**:
-- **GitHub**: https://github.com/anderson-ufrj/cidadao.ai-backend
-- **Issues**: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
-- **Discussions**: https://github.com/anderson-ufrj/cidadao.ai-backend/discussions
+- **GitHub**: https://github.com/anderson-ntlabs/cidadao.ai-backend
+- **Issues**: https://github.com/anderson-ntlabs/cidadao.ai-backend/issues
+- **Discussions**: https://github.com/anderson-ntlabs/cidadao.ai-backend/discussions
 
 **Produção**:
 - **API**: https://cidadao-api-production.up.railway.app
@@ -432,7 +432,7 @@ Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICE
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/anderson-ufrj/cidadao.ai-backend
+git clone https://github.com/anderson-ntlabs/cidadao.ai-backend
 cd cidadao.ai-backend
 
 # 2. Install dependencies
@@ -471,9 +471,9 @@ This is the **Backend API** of the Cidadão.AI ecosystem, composed of **4 integr
 | Repository | Status | Description | Links |
 |------------|--------|-------------|-------|
 | **Backend** | Production | Multi-Agent API (FastAPI) | **[You are here]** |
-| **Frontend** | Production | PWA App (Next.js 15) | [Repo](https://github.com/anderson-ufrj/cidadao.ai-frontend) |
-| **Hub** | Ready | Landing Page | [Repo](https://github.com/anderson-ufrj/cidadao.ai-hub) |
-| **Models** | Development | ML Models & MLOps | [Repo](https://github.com/anderson-ufrj/cidadao.ai-models) |
+| **Frontend** | Production | PWA App (Next.js 15) | [Repo](https://github.com/anderson-ntlabs/cidadao.ai-frontend) |
+| **Hub** | Ready | Landing Page | [Repo](https://github.com/anderson-ntlabs/cidadao.ai-hub) |
+| **Models** | Development | ML Models & MLOps | [Repo](https://github.com/anderson-ntlabs/cidadao.ai-models) |
 
 ---
 
@@ -726,9 +726,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 **Location**: Minas Gerais, Brasil
 
 **Links**:
-- **GitHub**: https://github.com/anderson-ufrj/cidadao.ai-backend
-- **Issues**: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
-- **Discussions**: https://github.com/anderson-ufrj/cidadao.ai-backend/discussions
+- **GitHub**: https://github.com/anderson-ntlabs/cidadao.ai-backend
+- **Issues**: https://github.com/anderson-ntlabs/cidadao.ai-backend/issues
+- **Discussions**: https://github.com/anderson-ntlabs/cidadao.ai-backend/discussions
 
 **Production**:
 - **API**: https://cidadao-api-production.up.railway.app

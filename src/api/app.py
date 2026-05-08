@@ -207,14 +207,14 @@ app = FastAPI(
     version="1.0.0",
     contact={
         "name": "Cidadão.AI",
-        "url": "https://github.com/anderson-ufrj/cidadao.ai",
+        "url": "https://github.com/anderson-ntlabs/cidadao.ai",
         "email": "andersonhs27@gmail.com",
     },
     license_info={
         "name": "Proprietary",
-        "url": "https://github.com/anderson-ufrj/cidadao.ai/blob/main/LICENSE",
+        "url": "https://github.com/anderson-ntlabs/cidadao.ai/blob/main/LICENSE",
     },
-    terms_of_service="https://github.com/anderson-ufrj/cidadao.ai/blob/main/TERMS.md",
+    terms_of_service="https://github.com/anderson-ntlabs/cidadao.ai/blob/main/TERMS.md",
     lifespan=lifespan,
     docs_url=None,  # Disable default docs, using custom endpoint below
     redoc_url="/redoc",

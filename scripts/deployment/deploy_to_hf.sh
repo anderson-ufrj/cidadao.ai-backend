@@ -26,8 +26,8 @@ if [ -z "$HUGGINGFACE_HUB_TOKEN" ]; then
 fi
 
 # Configuration
-MODEL_NAME="${HF_MODEL_NAME:-anderson-ufrj/cidadao-ai}"
-SPACE_NAME="${HF_SPACE_NAME:-anderson-ufrj/cidadao-ai-demo}"
+MODEL_NAME="${HF_MODEL_NAME:-anderson-ntlabs/cidadao-ai}"
+SPACE_NAME="${HF_SPACE_NAME:-anderson-ntlabs/cidadao-ai-demo}"
 LOCAL_MODEL_PATH="${LOCAL_MODEL_PATH:-}"
 
 echo -e "${BLUE}📋 Configuration:${NC}"
@@ -98,7 +98,7 @@ Demo interativo do sistema de análise de transparência pública do Cidadão.AI
 
 ## Links
 
-- 🔗 [Backend Repository](https://github.com/anderson-ufrj/cidadao.ai-backend)
+- 🔗 [Backend Repository](https://github.com/anderson-ntlabs/cidadao.ai-backend)
 - 🌐 [Live Demo](https://cidadao-ai.vercel.app)
 - 📚 [Documentation](https://cidadao-ai-docs.vercel.app)
 EOF
@@ -202,7 +202,7 @@ demo = gr.Interface(
     article="""
     ### 🔗 Links Úteis
     - [📚 Documentação Completa](https://cidadao-ai-docs.vercel.app)
-    - [💻 Código Fonte](https://github.com/anderson-ufrj/cidadao.ai-backend)
+    - [💻 Código Fonte](https://github.com/anderson-ntlabs/cidadao.ai-backend)
     - [🌐 Aplicação Completa](https://cidadao-ai.vercel.app)
 
     ### 🤖 Tecnologias

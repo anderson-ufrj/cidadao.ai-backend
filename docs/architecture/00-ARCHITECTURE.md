@@ -301,7 +301,7 @@ docs/
 
 - **Production API**: https://cidadao-api-production.up.railway.app
 - **API Documentation**: https://cidadao-api-production.up.railway.app/docs
-- **GitHub**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **GitHub**: https://github.com/anderson-ntlabs/cidadao.ai-backend
 - **Full Documentation**: [docs/01-INDEX.md](docs/01-INDEX.md)
 
 ---

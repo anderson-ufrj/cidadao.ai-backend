@@ -157,10 +157,10 @@ prod = [
 cidadao = "src.cli.main:app"
 
 [project.urls]
-"Homepage" = "https://github.com/anderson-ufrj/cidadao.ai"
-"Documentation" = "https://github.com/anderson-ufrj/cidadao.ai/wiki"
-"Repository" = "https://github.com/anderson-ufrj/cidadao.ai"
-"Bug Tracker" = "https://github.com/anderson-ufrj/cidadao.ai/issues"
+"Homepage" = "https://github.com/anderson-ntlabs/cidadao.ai"
+"Documentation" = "https://github.com/anderson-ntlabs/cidadao.ai/wiki"
+"Repository" = "https://github.com/anderson-ntlabs/cidadao.ai"
+"Bug Tracker" = "https://github.com/anderson-ntlabs/cidadao.ai/issues"
 
 [tool.setuptools]
 package-dir = {"" = "."}

@@ -331,9 +331,9 @@ This is your **numbered guide** to getting started with Cidadão.AI Backend. Fol
 - **Health**: https://cidadao-api-production.up.railway.app/health
 
 ### Community
-- **GitHub**: https://github.com/anderson-ufrj/cidadao.ai-backend
-- **Issues**: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
-- **Discussions**: https://github.com/anderson-ufrj/cidadao.ai-backend/discussions
+- **GitHub**: https://github.com/anderson-ntlabs/cidadao.ai-backend
+- **Issues**: https://github.com/anderson-ntlabs/cidadao.ai-backend/issues
+- **Discussions**: https://github.com/anderson-ntlabs/cidadao.ai-backend/discussions
 
 ---
 

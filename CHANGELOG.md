@@ -348,7 +348,7 @@ Special thanks to:
 - **Production API**: https://cidadao-api-production.up.railway.app
 - **Documentation**: https://cidadao-api-production.up.railway.app/docs
 - **Health Check**: https://cidadao-api-production.up.railway.app/health
-- **GitHub**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **GitHub**: https://github.com/anderson-ntlabs/cidadao.ai-backend
 
 ### Next Steps
 

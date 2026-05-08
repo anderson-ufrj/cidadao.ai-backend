@@ -276,13 +276,13 @@ Summary and next steps
 - API Docs: https://cidadao-api-production.up.railway.app/docs
 
 **GitHub**:
-- Backend Repo: https://github.com/anderson-ufrj/cidadao.ai-backend
-- Issues: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
+- Backend Repo: https://github.com/anderson-ntlabs/cidadao.ai-backend
+- Issues: https://github.com/anderson-ntlabs/cidadao.ai-backend/issues
 
 **Related Repos**:
-- Frontend: https://github.com/anderson-ufrj/cidadao.ai-frontend
-- Models: https://github.com/anderson-ufrj/cidadao.ai-models
-- Hub: https://github.com/anderson-ufrj/cidadao.ai-hub
+- Frontend: https://github.com/anderson-ntlabs/cidadao.ai-frontend
+- Models: https://github.com/anderson-ntlabs/cidadao.ai-models
+- Hub: https://github.com/anderson-ntlabs/cidadao.ai-hub
 
 ---
 
@@ -293,7 +293,7 @@ Summary and next steps
 1. Search repo: Use GitHub's search or `grep -r "keyword" docs/`
 2. Check [README.md](../README.md) for overview
 3. Browse category folders in [docs/](.)
-4. Open an issue: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
+4. Open an issue: https://github.com/anderson-ntlabs/cidadao.ai-backend/issues
 
 ---
 

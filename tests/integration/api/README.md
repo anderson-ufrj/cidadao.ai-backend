@@ -194,8 +194,8 @@ Os testes são executados automaticamente no CI/CD:
 ## 📞 Suporte
 
 Para questões sobre os testes:
-- 🐛 **Issues**: [GitHub Issues](https://github.com/anderson-ufrj/cidadao.ai/issues)
-- 💬 **Discussões**: [GitHub Discussions](https://github.com/anderson-ufrj/cidadao.ai/discussions)
+- 🐛 **Issues**: [GitHub Issues](https://github.com/anderson-ntlabs/cidadao.ai/issues)
+- 💬 **Discussões**: [GitHub Discussions](https://github.com/anderson-ntlabs/cidadao.ai/discussions)
 - 📧 **Email**: andersonhs27@gmail.com
 
 ---

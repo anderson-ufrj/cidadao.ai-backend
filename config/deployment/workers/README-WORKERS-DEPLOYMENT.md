@@ -119,7 +119,7 @@ HuggingFace Spaces **NÃO suporta** Celery workers porque:
 ssh root@seu-vps-ip
 
 # 2. Download do script
-wget https://raw.githubusercontent.com/anderson-ufrj/cidadao.ai-backend/main/deploy/celery-workers-only.sh
+wget https://raw.githubusercontent.com/anderson-ntlabs/cidadao.ai-backend/main/deploy/celery-workers-only.sh
 
 # 3. Tornar executável
 chmod +x celery-workers-only.sh
@@ -153,7 +153,7 @@ tail -f /var/log/celery/worker.log
 
 ```bash
 # 1. Clone repo
-git clone https://github.com/anderson-ufrj/cidadao.ai-backend.git
+git clone https://github.com/anderson-ntlabs/cidadao.ai-backend.git
 cd cidadao-ai-backend/deploy
 
 # 2. Criar .env

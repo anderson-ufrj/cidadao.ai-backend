@@ -383,7 +383,7 @@ curl https://your-app.railway.app/health
 - **Community**: https://discord.gg/railway
 
 ### Project
-- **Repository**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **Repository**: https://github.com/anderson-ntlabs/cidadao.ai-backend
 - **Issues**: Use GitHub Issues for bug reports
 - **Maintainer**: Anderson Henrique da Silva
 

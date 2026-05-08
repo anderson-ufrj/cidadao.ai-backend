@@ -418,7 +418,7 @@ After successful deployment:
 - **Docs**: https://docs.railway.app
 
 ### Project Resources
-- **Repository**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **Repository**: https://github.com/anderson-ntlabs/cidadao.ai-backend
 - **Issues**: GitHub Issues for bug reports
 - **Maintainer**: Anderson Henrique da Silva
 

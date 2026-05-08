@@ -341,7 +341,7 @@ done
 ### Project Maintainer
 - **Anderson Henrique da Silva**
 - Minas Gerais, Brasil
-- GitHub: @anderson-ufrj
+- GitHub: @anderson-ntlabs
 
 ---
 

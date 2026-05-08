@@ -395,7 +395,7 @@ Desenvolver e validar um **sistema multi-agente baseado em IA** para detecção 
 
 **Autor**: Anderson Henrique da Silva
 **Email**: anderson@cidadao.ai
-**GitHub**: github.com/anderson-ufrj/cidadao.ai-backend
+**GitHub**: github.com/anderson-ntlabs/cidadao.ai-backend
 **Produção**: https://cidadao-api-production.up.railway.app
 
 ---
