@@ -37,7 +37,7 @@ Adicionar 3 variáveis de ambiente no Railway para que o código use `Investigat
 
 ```
 🌐 URL: https://railway.app
-👤 Login: anderson-ufrj@hotmail.com (ou sua conta)
+👤 Login: anderson-ntlabs@hotmail.com (ou sua conta)
 ```
 
 ### 2. Navegar até o Projeto

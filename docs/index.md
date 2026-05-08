@@ -3,8 +3,8 @@
 **Multi-Agent AI System for Brazilian Government Transparency**
 
 [![Production](https://img.shields.io/badge/Production-Railway-blueviolet)](https://cidadao-api-production.up.railway.app/)
-[![Tests](https://img.shields.io/badge/Tests-1514%20(97.4%25%20pass)-success)](https://github.com/anderson-ufrj/cidadao.ai-backend)
-[![Coverage](https://img.shields.io/badge/Coverage-76.29%25-yellow)](https://github.com/anderson-ufrj/cidadao.ai-backend)
+[![Tests](https://img.shields.io/badge/Tests-1514%20(97.4%25%20pass)-success)](https://github.com/anderson-ntlabs/cidadao.ai-backend)
+[![Coverage](https://img.shields.io/badge/Coverage-76.29%25-yellow)](https://github.com/anderson-ntlabs/cidadao.ai-backend)
 [![Agents](https://img.shields.io/badge/Agents-17%20total-blue)](agents/01-README.md)
 
 ---
@@ -83,7 +83,7 @@ Cidadao.AI is a **production multi-agent AI system** designed to analyze Brazili
 
 ```bash
 # Clone repository
-git clone https://github.com/anderson-ufrj/cidadao.ai-backend.git
+git clone https://github.com/anderson-ntlabs/cidadao.ai-backend.git
 cd cidadao.ai-backend
 
 # Install dependencies
@@ -174,5 +174,5 @@ make check
 
 - **Production API**: [cidadao-api-production.up.railway.app](https://cidadao-api-production.up.railway.app/)
 - **API Docs (Swagger)**: [/docs](https://cidadao-api-production.up.railway.app/docs)
-- **GitHub**: [anderson-ufrj/cidadao.ai-backend](https://github.com/anderson-ufrj/cidadao.ai-backend)
+- **GitHub**: [anderson-ntlabs/cidadao.ai-backend](https://github.com/anderson-ntlabs/cidadao.ai-backend)
 # Documentation Update

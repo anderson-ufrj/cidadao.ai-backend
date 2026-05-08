@@ -638,7 +638,7 @@ The system is **operational, stable, performant, and feature-complete**. Minor i
 - **Production API**: https://cidadao-api-production.up.railway.app
 - **Documentation**: https://cidadao-api-production.up.railway.app/docs
 - **Metrics**: https://cidadao-api-production.up.railway.app/health/metrics
-- **GitHub**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **GitHub**: https://github.com/anderson-ntlabs/cidadao.ai-backend
 
 ### Key Commands
 

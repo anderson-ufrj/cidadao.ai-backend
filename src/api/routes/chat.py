@@ -508,8 +508,8 @@ Como dizia o poeta: "No meio do caminho tinha uma pedra" - mas aqui temos os ata
 - **Health Check**: https://cidadao-api-production.up.railway.app/health
 
 ### 📚 Repositório GitHub
-- **Código**: https://github.com/anderson-ufrj/cidadao.ai-backend
-- **Issues**: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
+- **Código**: https://github.com/anderson-ntlabs/cidadao.ai-backend
+- **Issues**: https://github.com/anderson-ntlabs/cidadao.ai-backend/issues
 
 ### 📖 Documentação Interna
 - **Manual completo**: `CLAUDE.md` (na raiz do projeto)

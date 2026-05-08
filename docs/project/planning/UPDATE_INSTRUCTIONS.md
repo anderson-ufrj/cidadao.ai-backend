@@ -96,7 +96,7 @@ Estrutura básica em `src/agents/arquivo.py`. Implementação em progresso.
 [Lista do que o agente fará quando completo]
 
 ## 🤝 Como Contribuir
-Veja [CONTRIBUTING.md](https://github.com/anderson-ufrj/cidadao.ai-backend/blob/main/CONTRIBUTING.md)
+Veja [CONTRIBUTING.md](https://github.com/anderson-ntlabs/cidadao.ai-backend/blob/main/CONTRIBUTING.md)
 para implementar este agente.
 
 ---

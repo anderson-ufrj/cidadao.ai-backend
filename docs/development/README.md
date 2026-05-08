@@ -77,7 +77,7 @@ This directory contains comprehensive developer guides and implementation refere
 
 ```bash
 # Clone the repository
-git clone https://github.com/anderson-ufrj/cidadao.ai-backend
+git clone https://github.com/anderson-ntlabs/cidadao.ai-backend
 cd cidadao.ai-backend
 
 # Install dependencies

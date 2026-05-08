@@ -433,7 +433,7 @@ class {Nome}Client:
 ### Responsável
 - **Nome**: Anderson Henrique da Silva
 - **Email**: [contato disponível via repositório]
-- **GitHub**: anderson-ufrj
+- **GitHub**: anderson-ntlabs
 
 ### Processo de Atualização
 1. Verificar mudanças na API upstream

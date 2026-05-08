@@ -39,7 +39,7 @@ useradd -m -s /bin/bash cidadao-ai || true
 # Clone repository (or you can scp/rsync your code)
 echo "📥 Cloning repository..."
 cd /opt
-git clone https://github.com/anderson-ufrj/cidadao.ai-backend.git || true
+git clone https://github.com/anderson-ntlabs/cidadao.ai-backend.git || true
 cd cidadao-ai-backend
 chown -R cidadao-ai:cidadao-ai /opt/cidadao-ai-backend
 

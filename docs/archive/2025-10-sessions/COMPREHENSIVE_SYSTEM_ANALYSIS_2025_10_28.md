@@ -880,7 +880,7 @@ make roadmap-progress             # Progresso v1.0
 - **Produção**: https://cidadao-api-production.up.railway.app/
 - **Docs API**: https://cidadao-api-production.up.railway.app/docs
 - **Health Check**: https://cidadao-api-production.up.railway.app/health/
-- **GitHub**: anderson-ufrj/cidadao.ai-backend
+- **GitHub**: anderson-ntlabs/cidadao.ai-backend
 
 ### C. Contatos do Projeto
 

@@ -144,7 +144,7 @@ http://localhost:8000/api/v1/transparency/coverage/map
       "title": "TCE-MG removeu API no redesign do portal",
       "description": "Portal de Dados Abertos do TCE-MG não oferece API REST, apenas visualização web. Violação do Decreto Estadual 48.383/2022.",
       "affected_states": ["MG"],
-      "action": "Pedido LAI protocolado - Acompanhe: github.com/anderson-ufrj/cidadao.ai/issues/MG-TCE",
+      "action": "Pedido LAI protocolado - Acompanhe: github.com/anderson-ntlabs/cidadao.ai/issues/MG-TCE",
       "legal_basis": "Decreto MG 48.383/2022, Art. 22"
     },
     {

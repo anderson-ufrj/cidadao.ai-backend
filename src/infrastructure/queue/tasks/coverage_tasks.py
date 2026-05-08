@@ -415,7 +415,7 @@ def extract_known_issues(states_map: dict, health_report: dict) -> list:
                         "Violação do Decreto Estadual 48.383/2022."
                     ),
                     "affected_states": ["MG"],
-                    "action": "Pedido LAI protocolado - Acompanhe: github.com/anderson-ufrj/cidadao.ai/issues/MG-TCE",
+                    "action": "Pedido LAI protocolado - Acompanhe: github.com/anderson-ntlabs/cidadao.ai/issues/MG-TCE",
                     "legal_basis": "Decreto MG 48.383/2022, Art. 22",
                 }
             )

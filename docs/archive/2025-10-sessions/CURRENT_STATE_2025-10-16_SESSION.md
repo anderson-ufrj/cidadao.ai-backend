@@ -541,7 +541,7 @@ Overall: 80%
 **Documentation**: [docs/README.md](README.md)
 **Railway Guide**: [deployment/railway/README.md](deployment/railway/README.md)
 **Multi-API Guide**: [architecture/MULTI_API_INTEGRATION.md](architecture/MULTI_API_INTEGRATION.md)
-**Repository**: https://github.com/anderson-ufrj/cidadao.ai-backend
+**Repository**: https://github.com/anderson-ntlabs/cidadao.ai-backend
 **Production**: https://cidadao-api-production.up.railway.app
 
 ---

@@ -200,7 +200,7 @@ class AcademyService:
                 "required_level": 2,
                 "prerequisites": ["fix_typo_docs"],
                 "recommended_agent": "anita",
-                "github_issue_url": "https://github.com/anderson-ufrj/cidadao.ai-backend/issues",
+                "github_issue_url": "https://github.com/anderson-ntlabs/cidadao.ai-backend/issues",
                 "is_active": True,
                 "is_featured": True,
                 "times_completed": 0,

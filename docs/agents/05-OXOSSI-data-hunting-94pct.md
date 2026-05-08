@@ -899,7 +899,7 @@ pytest tests/unit/agents/test_oxossi.py --cov=src.agents.oxossi
 **Localização**: Minas Gerais, Brasil
 **Timezone**: UTC-3
 
-**Issues**: [GitHub Issues](https://github.com/anderson-ufrj/cidadao.ai-backend/issues)
+**Issues**: [GitHub Issues](https://github.com/anderson-ntlabs/cidadao.ai-backend/issues)
 
 ---
 

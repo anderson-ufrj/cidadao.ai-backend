@@ -25,7 +25,7 @@ CIDADAO_AI_KNOWLEDGE = {
         "orientadora": "Professora Aracele Garcia de Oliveira Fassbinder",
         "tipo": "Trabalho de Conclusão de Curso (TCC)",
         "producao_url": "https://cidadao-api-production.up.railway.app/",
-        "repositorio": "github.com/anderson-ufrj/cidadao.ai-backend",
+        "repositorio": "github.com/anderson-ntlabs/cidadao.ai-backend",
     },
     # =========================================================================
     # LINKS ÚTEIS
@@ -39,9 +39,9 @@ CIDADAO_AI_KNOWLEDGE = {
             "metricas": "https://cidadao-api-production.up.railway.app/health/metrics",
         },
         "repositorios": {
-            "github_backend": "https://github.com/anderson-ufrj/cidadao.ai-backend",
-            "issues": "https://github.com/anderson-ufrj/cidadao.ai-backend/issues",
-            "pull_requests": "https://github.com/anderson-ufrj/cidadao.ai-backend/pulls",
+            "github_backend": "https://github.com/anderson-ntlabs/cidadao.ai-backend",
+            "issues": "https://github.com/anderson-ntlabs/cidadao.ai-backend/issues",
+            "pull_requests": "https://github.com/anderson-ntlabs/cidadao.ai-backend/pulls",
         },
         "documentacao_interna": {
             "claude_md": "CLAUDE.md (na raiz do projeto)",

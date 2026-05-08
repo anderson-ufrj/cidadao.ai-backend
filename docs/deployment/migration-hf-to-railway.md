@@ -479,7 +479,7 @@ celery_app.conf.task_routes = {
 
 ### HuggingFace (Deprecated)
 - [Space anterior](https://huggingface.co/spaces/neural-thinker/cidadao.ai-backend)
-- [Último commit HF](https://github.com/anderson-ufrj/cidadao.ai-backend/tree/hf-fastapi)
+- [Último commit HF](https://github.com/anderson-ntlabs/cidadao.ai-backend/tree/hf-fastapi)
 
 ### Documentação Interna
 - [Railway Deployment Guide](./railway.md)

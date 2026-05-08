@@ -221,7 +221,7 @@ class TransparencyCoverageSnapshot(Base):
             "legal_basis": "Decreto Estadual MG 48.383/2022 - Art. 22 (Dados Abertos)",
             "evidence": "https://dadosabertos.tce.mg.gov.br/ returns HTML only"
           },
-          "issue_url": "https://github.com/anderson-ufrj/cidadao.ai/issues/MG-TCE-NO-API",
+          "issue_url": "https://github.com/anderson-ntlabs/cidadao.ai/issues/MG-TCE-NO-API",
           "action": "Pedido LAI protocolado em 23/10/2025 - Aguardando resposta (20 dias)",
           "escalation": {
             "step": 1,
@@ -611,7 +611,7 @@ def extract_known_issues(states_map: dict) -> list:
             "title": "TCE-MG removed API in portal redesign",
             "description": "Portal de Dados Abertos do TCE-MG não oferece API REST. Violação do Decreto Estadual 48.383/2022.",
             "affected_states": ["MG"],
-            "action": "Pedido LAI protocolado - Acompanhe: github.com/anderson-ufrj/cidadao.ai/issues/MG-TCE",
+            "action": "Pedido LAI protocolado - Acompanhe: github.com/anderson-ntlabs/cidadao.ai/issues/MG-TCE",
             "legal_basis": "Decreto MG 48.383/2022, Art. 22"
         })
 

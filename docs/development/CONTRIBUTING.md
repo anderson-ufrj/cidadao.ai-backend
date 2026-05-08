@@ -281,4 +281,4 @@ By contributing, you agree that your contributions will be licensed under the MI
 
 **Questions?** Open an issue with the `question` label.
 
-**Ready to contribute?** Check our [good first issue](https://github.com/anderson-ufrj/cidadao.ai-backend/labels/good%20first%20issue) labels!
+**Ready to contribute?** Check our [good first issue](https://github.com/anderson-ntlabs/cidadao.ai-backend/labels/good%20first%20issue) labels!

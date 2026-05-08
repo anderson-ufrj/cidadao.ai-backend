@@ -2,10 +2,10 @@
 # https://cidadao-api-production.up.railway.app/
 
 site_name: Cidadão.AI
-site_url: https://anderson-ufrj.github.io/cidadao.ai-backend/
+site_url: https://anderson-ntlabs.github.io/cidadao.ai-backend/
 site_description: Multi-Agent AI System for Brazilian Government Transparency
 site_author: Anderson Henrique da Silva
-repo_url: https://github.com/anderson-ufrj/cidadao.ai-backend
+repo_url: https://github.com/anderson-ntlabs/cidadao.ai-backend
 repo_name: cidadao.ai-backend
 edit_uri: edit/main/docs/
 
@@ -115,7 +115,7 @@ markdown_extensions:
   - pymdownx.keys
   - pymdownx.magiclink:
       repo_url_shorthand: true
-      user: anderson-ufrj
+      user: anderson-ntlabs
       repo: cidadao.ai-backend
   - pymdownx.mark
   - pymdownx.smartsymbols
@@ -142,7 +142,7 @@ extra_javascript:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/anderson-ufrj/cidadao.ai-backend
+      link: https://github.com/anderson-ntlabs/cidadao.ai-backend
     - icon: fontawesome/brands/linkedin
       link: https://www.linkedin.com/in/anderson-h-silva95/
 

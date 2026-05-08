@@ -157,14 +157,14 @@ O frontend se chama "Ágora" - referência à ágora ateniense (democracia) e te
 - Testing: Vitest (unit) + Playwright (E2E)
 - Deploy: Vercel
 - i18n: Bilingual PT/EN (/pt/* e /en/*)
-- Repositório: https://github.com/anderson-ufrj/cidadao.ai-frontend
+- Repositório: https://github.com/anderson-ntlabs/cidadao.ai-frontend
 
 INTEGRAÇÃO COM BACKEND:
 - Chat SSE: POST /api/v1/chat/stream
 - Eventos: start, detecting, intent, agent_selected, thinking, chunk, complete
 - Base URL: https://cidadao-api-production.up.railway.app
 - Docs: https://cidadao-api-production.up.railway.app/docs
-- GitHub Backend: https://github.com/anderson-ufrj/cidadao.ai-backend
+- GitHub Backend: https://github.com/anderson-ntlabs/cidadao.ai-backend
 
 QUANDO PERGUNTAREM SOBRE FRAMEWORK:
 - SEMPRE responda "Next.js 15" (NÃO diga só "React"!)
@@ -198,7 +198,7 @@ que todos possam usar o que ela projeta. Respostas práticas com alma.
                 "routing": "App Router (app/ directory)",
                 "i18n": "Bilingual PT/EN (/pt/* and /en/*)",
                 "accessibility": "WCAG AAA, VLibras support",
-                "repository": "https://github.com/anderson-ufrj/cidadao.ai-frontend",
+                "repository": "https://github.com/anderson-ntlabs/cidadao.ai-frontend",
             },
             "sse_integration": {
                 "endpoint": "POST /api/v1/chat/stream",
@@ -835,8 +835,8 @@ if (data.type === '{event_type}') {{
 - **Local**: http://localhost:8000/docs
 
 ### Repositório GitHub
-- **Backend**: https://github.com/anderson-ufrj/cidadao.ai-backend
-- **Issues**: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
+- **Backend**: https://github.com/anderson-ntlabs/cidadao.ai-backend
+- **Issues**: https://github.com/anderson-ntlabs/cidadao.ai-backend/issues
 
 ### Documentação Interna
 - **Manual completo**: `CLAUDE.md` (na raiz - leia primeiro!)
@@ -865,9 +865,9 @@ Para desenvolvimento local: `http://localhost:8000/docs`
 
 O projeto é aberto, como a arquitetura deve ser - para todos verem e contribuírem!
 
-- **Código**: https://github.com/anderson-ufrj/cidadao.ai-backend
-- **Issues**: https://github.com/anderson-ufrj/cidadao.ai-backend/issues
-- **Pull Requests**: https://github.com/anderson-ufrj/cidadao.ai-backend/pulls
+- **Código**: https://github.com/anderson-ntlabs/cidadao.ai-backend
+- **Issues**: https://github.com/anderson-ntlabs/cidadao.ai-backend/issues
+- **Pull Requests**: https://github.com/anderson-ntlabs/cidadao.ai-backend/pulls
 
 Quer contribuir? *Ma che bellezza!* Abra uma issue ou PR!
 """
@@ -882,7 +882,7 @@ Aqui está tudo que você precisa para integrar com o backend:
 - **Agents List**: `GET /api/v1/agents/`
 
 ### Código e Referências
-- **GitHub**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **GitHub**: https://github.com/anderson-ntlabs/cidadao.ai-backend
 - **SSE Guide**: `docs/api/STREAMING_IMPLEMENTATION.md`
 
 ### Para Desenvolvimento Local
@@ -1131,7 +1131,7 @@ Conhecimento técnico disponível:
 - Stack: Next.js 15, React 18, TypeScript 5, Zustand, Tailwind CSS
 - Endpoint SSE: POST /api/v1/chat/stream
 - Docs: https://cidadao-api-production.up.railway.app/docs
-- GitHub: https://github.com/anderson-ufrj/cidadao.ai-backend
+- GitHub: https://github.com/anderson-ntlabs/cidadao.ai-backend
 """
                 result = await _dspy_service.chat(
                     agent_id="bo_bardi",
@@ -1161,7 +1161,7 @@ Conhecimento técnico disponível:
 
 ### Links Rápidos:
 - **Docs**: https://cidadao-api-production.up.railway.app/docs
-- **GitHub**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **GitHub**: https://github.com/anderson-ntlabs/cidadao.ai-backend
 
 *Diga-me* o que você precisa e eu projeto a solução!
 

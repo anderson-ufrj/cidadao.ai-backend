@@ -65,7 +65,7 @@ ssh usuario@seu-servidor
 sudo apt update && sudo apt install docker.io docker-compose
 
 # 2. Clone o projeto
-git clone https://github.com/anderson-ufrj/cidadao.ai-backend
+git clone https://github.com/anderson-ntlabs/cidadao.ai-backend
 cd cidadao.ai-backend
 
 # 3. Configure variáveis
@@ -285,7 +285,7 @@ ssh user@your-server
 sudo apt update && sudo apt install docker.io docker-compose
 
 # 2. Clone project
-git clone https://github.com/anderson-ufrj/cidadao.ai-backend
+git clone https://github.com/anderson-ntlabs/cidadao.ai-backend
 cd cidadao.ai-backend
 
 # 3. Configure variables

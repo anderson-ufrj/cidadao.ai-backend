@@ -544,7 +544,7 @@ When deployment fails, check in order:
 ## Contact & Support
 
 For issues specific to this deployment:
-- **Repository**: https://github.com/anderson-ufrj/cidadao.ai-backend
+- **Repository**: https://github.com/anderson-ntlabs/cidadao.ai-backend
 - **Author**: Anderson Henrique da Silva
 - **Location**: Minas Gerais, Brasil
 

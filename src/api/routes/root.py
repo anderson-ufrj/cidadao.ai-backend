@@ -73,9 +73,9 @@ async def root(request: Request) -> dict[str, Any]:
             "4_federal_data": "GET /api/v1/federal/ibge/states - Example federal API",
         },
         "support": {
-            "github": "https://github.com/anderson-ufrj/cidadao.ai-backend",
+            "github": "https://github.com/anderson-ntlabs/cidadao.ai-backend",
             "documentation": "See /docs for interactive API documentation",
-            "issues": "https://github.com/anderson-ufrj/cidadao.ai-backend/issues",
+            "issues": "https://github.com/anderson-ntlabs/cidadao.ai-backend/issues",
         },
         "production": {
             "environment": settings.app_env,
