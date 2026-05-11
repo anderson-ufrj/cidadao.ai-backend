@@ -219,31 +219,38 @@ LEMBRE-SE: Voce e um educador GENTIL e PACIENTE. Criancas podem errar e pergunta
 
 
 class KidsProgrammingAgent(BaseKidsAgent):
-    """
-    Monteiro Lobato - Educador de Programacao para Criancas
+    """Monteiro Lobato — Kids Programming Education Agent for Cidadão.AI.
 
-    MISSAO:
-    Ensinar conceitos de programacao para criancas usando linguagem natural,
-    historias divertidas e referencias ao Sitio do Picapau Amarelo.
+    Teaches programming concepts to children (ages 6-12) through storytelling,
+    using characters from the Sítio do Picapau Amarelo as teaching metaphors
+    (e.g. variables as "Emília's magic boxes", loops as "Saci jumping repeatedly").
 
-    SOBRE MONTEIRO LOBATO:
-    - Jose Bento Renato Monteiro Lobato (1882-1948)
-    - Considerado o pai da literatura infantil brasileira
-    - Criador do Sitio do Picapau Amarelo e personagens iconicos
-    - Revolucionou a forma de falar com criancas sobre temas complexos
-    - Misturava fantasia com educacao de forma natural
+    Routed by Ayrton Senna when a query is classified as a children's education
+    request. All responses are capped at 150 words and use simple language.
 
-    FILOSOFIA:
-    - "Um pais se faz com homens e livros" - educacao como base
-    - Criancas sao inteligentes e merecem respeito intelectual
-    - Aprender deve ser divertido como uma aventura no Sitio
-    - Usar fantasia para explicar conceitos reais
+    About Monteiro Lobato:
+        José Bento Renato Monteiro Lobato (1882–1948) is considered the father
+        of Brazilian children's literature and creator of the Sítio do Picapau
+        Amarelo universe. He revolutionised how complex subjects are explained
+        to children by blending fantasy with education — the same philosophy
+        applied here. As he wrote: "Um país se faz com homens e livros."
 
-    Inherits safety features from BaseKidsAgent:
-    - BLOCKED_TOPICS filtering
-    - is_content_safe() method
-    - is_topic_allowed() method
-    - Safe redirect behavior
+    Philosophy:
+        - Children are intelligent and deserve intellectual respect.
+        - Learning should feel like an adventure at the Sítio.
+        - Fantasy is a vehicle for explaining real concepts.
+
+    Safety:
+        Inherits topic filtering and content-safety checks from ``BaseKidsAgent``
+        (``BLOCKED_TOPICS``, ``is_content_safe()``, ``is_topic_allowed()``).
+        Off-topic messages are redirected, never answered.
+
+    Example:
+        Input:  "O que é uma variável?"
+        Output: Explanation using Emília's colored boxes metaphor, ≤150 words.
+
+        Input:  "Como funciona um loop?"
+        Output: Explanation using Saci jumping repeatedly, ≤150 words.
     """
 
     # Domain-specific allowed topics (inherited from BaseKidsAgent)
@@ -277,7 +284,16 @@ class KidsProgrammingAgent(BaseKidsAgent):
         self.logger.info(f"{self.name} agent shutting down - Ate a proxima aventura!")
 
     def _get_safe_redirect_response(self) -> str:
-        """Get a safe redirect response when content is not appropriate."""
+        """Return a fixed redirect message for off-topic or unsafe content.
+
+        Called by ``BaseKidsAgent`` when ``is_content_safe()`` or
+        ``is_topic_allowed()`` returns False. Gently steers the child back
+        to programming topics without explaining why the question was blocked.
+
+        Returns:
+            A hardcoded Portuguese-language redirect string offering three
+            programming topics the child can choose from.
+        """
         return """Opa, amiguinho! Essa pergunta e bem interessante, mas sabe o que seria mais legal?
 
 Vamos falar sobre programacao! Aqui no Sitio do Picapau Amarelo, a Emilia e eu adoramos criar coisas incriveis com codigo!
