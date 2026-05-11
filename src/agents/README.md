@@ -14,7 +14,8 @@ src/agents/
 ├── anita.py            # Analyst - pattern analysis expert  
 ├── tiradentes.py       # Reporter - natural language generation
 ├── ayrton_senna.py     # Semantic router - intelligent query routing
-├── nana.py             # Memory agent - multi-layer memory management
+├── nana.py             # Memory agent - multi-layer memory management (Nanã)
+├── monteiro_lobato.py  # Kids programming educator - Sítio do Picapau Amarelo storytelling
 ├── machado.py          # Textual analyst - document processing
 ├── bonifacio.py        # Policy analyst - institutional effectiveness
 ├── dandara.py          # Social justice - equity monitoring
@@ -219,7 +220,29 @@ Conversational: Dialog context and user preferences
 - `maintain_conversation()` - Preserve dialog context
 - `consolidate_memory()` - Long-term memory formation
 
-### 7. **Machado de Assis** - Textual Analyst (Document Master)
+### 7. **Monteiro Lobato** - Kids Programming Educator
+
+**Cultural Reference**: José Bento Renato Monteiro Lobato (1882–1948) — father of Brazilian children's literature and creator of the Sítio do Picapau Amarelo universe.
+
+```python
+# Teaching capabilities
+KidsProgrammingAgent:
+- Explains programming concepts through Sítio do Picapau Amarelo storytelling
+- Variables as "Emília's magic boxes", loops as "Saci jumping repeatedly"
+- Functions as "Tia Nastacia's recipes", conditionals as "Pedrinho's decisions"
+- Safe content filtering via BaseKidsAgent (BLOCKED_TOPICS, topic allowlist)
+- Fallback responses for offline/error scenarios
+
+# Routing
+- Invoked by Ayrton Senna for children's education queries
+- Responses capped at 150 words, always in simple language
+```
+
+**Key Methods:**
+- `_get_fallback_response()` - Returns pre-written explanations for common concepts
+- `_get_safe_redirect_response()` - Redirects off-topic or unsafe content
+
+### 8. **Machado de Assis** - Textual Analyst (Document Master)
 **Cultural Reference**: Machado de Assis - greatest Brazilian writer and literary genius
 
 ```python
