@@ -2,29 +2,41 @@
 
 ## 📋 Overview
 
-The **Multi-Agent System** is the cognitive core of Cidadão.AI, featuring **17 specialized AI agents** with Brazilian cultural identities. Each agent embodies specific expertise in transparency analysis, from anomaly detection to policy evaluation, working together through sophisticated **coordination patterns** and **self-reflection mechanisms**.
+The **Multi-Agent System** is the cognitive core of Cidadão.AI, featuring **20 specialized AI agents** with Brazilian cultural identities. Each agent embodies specific expertise in transparency analysis, from anomaly detection to policy evaluation, working together through sophisticated **coordination patterns** and **self-reflection mechanisms**.
 
 ## 🏗️ Architecture
 
 ```
 src/agents/
-├── deodoro.py          # Base agent framework & communication protocols  
-├── abaporu.py          # Master agent - investigation orchestration
-├── zumbi.py            # Investigator - anomaly detection specialist
-├── anita.py            # Analyst - pattern analysis expert  
-├── tiradentes.py       # Reporter - natural language generation
-├── ayrton_senna.py     # Semantic router - intelligent query routing
-├── nana.py             # Memory agent - multi-layer memory management (Nanã)
-├── monteiro_lobato.py  # Kids programming educator - Sítio do Picapau Amarelo storytelling
-├── machado.py          # Textual analyst - document processing
-├── bonifacio.py        # Policy analyst - institutional effectiveness
-├── dandara.py          # Social justice - equity monitoring
-├── drummond.py         # Communication - multi-channel messaging
-├── maria_quiteria.py   # Security auditor - system protection
-├── niemeyer.py         # Visualization - data architecture
-├── ceuci.py            # ETL specialist - data processing
-├── obaluaie.py         # Health monitor - wellness tracking
-└── lampiao.py          # Regional analyst - territorial insights
+├── deodoro.py           # Base agent framework & communication protocols
+├── base_kids_agent.py   # Base framework for Education agents (Monteiro Lobato, Tarsila)
+│
+├── abaporu.py           # Master orchestrator - coordinates multi-agent workflows
+├── ayrton_senna.py      # Semantic router - routes queries to the right specialist
+├── nana.py              # Memory agent - multi-layer memory management (Nanã)
+│
+├── zumbi.py             # Investigator - anomaly detection specialist
+├── zumbi_wrapper.py     # Metrics/cache wrapper for Zumbi
+├── anita.py             # Analyst - pattern analysis expert
+├── tiradentes.py        # Reporter - natural language generation
+├── obaluaie.py          # Corruption detector - financial crime signals
+├── oxossi.py            # Fraud hunter - precision fraud detection
+│
+├── machado.py           # Textual analyst - document processing
+├── bonifacio.py         # Policy analyst - institutional effectiveness
+├── dandara.py           # Social justice - equity and inclusion monitoring
+├── maria_quiteria.py    # Security auditor - system protection
+├── oscar_niemeyer.py    # Data aggregator - visualization architecture
+├── lampiao.py           # Regional analyst - territorial insights
+├── ceuci.py             # ETL specialist + ML predictions
+├── ceuci_ml_models.py   # ML models used by Ceuci
+├── drummond.py          # Communication - conversational interface
+├── drummond_simple.py   # Lightweight version of Drummond
+│
+├── santos_dumont.py     # System educator - onboarding for interns/contributors
+├── bo_bardi.py          # Frontend design guide - SSE/component integration
+├── monteiro_lobato.py   # Kids programming educator - Sítio do Picapau Amarelo
+└── tarsila.py           # Kids design educator - colors, shapes, and aesthetics
 ```
 
 ## 🧠 Agent Coordination Patterns
@@ -263,7 +275,7 @@ TextualAnalyst:
 5. Readability and transparency scoring
 ```
 
-### 8. **José Bonifácio** - Policy Analyst (Institutional Architect)
+### 9. **José Bonifácio** - Policy Analyst (Institutional Architect)
 **Cultural Reference**: José Bonifácio - Patriarch of Independence and institutional architect
 
 ```python
@@ -283,7 +295,7 @@ PolicyAnalyst:
 - Social Impact Measurement: Beneficiary outcome tracking
 ```
 
-### 9. **Dandara** - Social Justice Agent (Equity Guardian)
+### 10. **Dandara** - Social Justice Agent (Equity Guardian)
 **Cultural Reference**: Dandara dos Palmares - warrior for social justice and equality
 
 ```python
@@ -301,6 +313,185 @@ SocialJusticeAgent:
 - Atkinson Index: Inequality aversion measurement
 - Theil Index: Decomposable inequality measure
 - Palma Ratio: Top 10% vs. bottom 40% comparison
+```
+
+### 11. **Obaluaiê** - Corruption Detector (Systemic Pattern Analyst)
+**Cultural Reference**: Obaluaiê — Yoruba deity of disease and healing, associated with uncovering hidden afflictions
+
+```python
+# Corruption detection capabilities
+CorruptionDetectorAgent:
+- Cartel detection via Social Network Analysis (Louvain algorithm)
+- Benford's Law analysis: P(d) = log₁₀(1 + 1/d) for bid manipulation
+- Money laundering detection via Graph Neural Networks
+- Nepotism detection through relationship graph analysis
+- Transparency scoring (Transparency Corruption Index — TCI)
+- Deep Neural Network (LSTM) + Isolation Forest for anomaly detection
+
+# Performance metrics
+- Precision: >92% on known corruption schemes
+- Recall:    >88% on suspicious patterns
+- F1-Score:  >0.90 on alert classification
+- False positives: <5% for CRITICAL alerts
+```
+
+**Data Sources:**
+- Portal da Transparência — contracts, bids, expenditures
+- CNJ — related judicial proceedings
+- TCU — audit reports and irregularities
+- COAF — suspicious financial transaction reports
+
+**Severity Levels:** `LOW` / `MEDIUM` / `HIGH` / `CRITICAL`
+
+### 12. **Oxóssi** - Fraud Hunter (Precision Detector)
+
+**Cultural Reference**: Oxóssi — Yoruba deity of the hunt, known for precision and focus
+
+```python
+# Fraud detection capabilities
+OxossiAgent:
+- Bid rigging detection via contract similarity (threshold: 0.85)
+- Price fixing via standard deviation analysis (threshold: 2.5σ)
+- Phantom vendor detection using activity thresholds
+- Invoice fraud detection with confidence scoring
+- Kickback scheme identification through financial forensics
+- Conflict of interest and money laundering pattern analysis
+
+# Fraud severity levels
+- LOW / MEDIUM / HIGH / CRITICAL
+```
+
+**Fraud Types Detected:**
+- `BID_RIGGING` - Coordinated bidding between supposed competitors
+- `PRICE_FIXING` - Statistical price outliers across vendors
+- `PHANTOM_VENDOR` - Shell companies with no real activity
+- `INVOICE_FRAUD` - Anomalous invoice patterns
+- `KICKBACK_SCHEME` - Circular payment detection
+
+### 13. **Drummond** - Communication Agent (Conversational Interface)
+**Cultural Reference**: Carlos Drummond de Andrade — greatest Brazilian poet, known for clarity and wit
+
+```python
+# Communication capabilities
+DrummondAgent:
+- Multi-channel messaging (chat, email, notifications)
+- Conversational interface for citizen queries
+- Natural language response generation
+- Context-aware dialog management
+
+# Variants
+- drummond.py        — Full agent with LLM-backed responses
+- drummond_simple.py — Lightweight rule-based version for low-latency paths
+```
+
+### 14. **Maria Quitéria** - Security Auditor (System Protector)
+**Cultural Reference**: Maria Quitéria de Jesus — first Brazilian woman to serve in the military, symbol of courage
+
+```python
+# Security capabilities
+MariaQuiteria:
+- Input validation and sanitization across all endpoints
+- Permission and role validation
+- Rate limiting enforcement per agent
+- Audit logging of all sensitive agent actions
+- Compliance checking against security frameworks
+```
+
+### 15. **Oscar Niemeyer** - Data Aggregator (Visualization Architect)
+**Cultural Reference**: Oscar Niemeyer (1907–2012) — architect of Brasília, master of bold structural design
+
+```python
+# Data aggregation capabilities
+OscarNiemeyerAgent:
+- Aggregates results from multiple agents into unified structures
+- Builds visualization-ready data schemas
+- Coordinates data architecture for dashboard consumption
+```
+
+### 16. **Lampião** - Regional Analyst (Territorial Specialist)
+**Cultural Reference**: Virgulino Ferreira da Silva (Lampião) — legendary cangaceiro, deep roots in the Brazilian Northeast
+
+```python
+# Regional analysis capabilities
+LampiaoAgent:
+- State and municipal-level spending analysis
+- Regional inequality detection across Brazilian territories
+- Cross-region pattern comparison
+- Focus on underserved and remote municipalities
+```
+
+### 17. **Ceuci** - ETL Specialist (Data Engineer + ML)
+**Cultural Reference**: Ceuci — indigenous deity of fertility and abundance in Tupi mythology
+
+```python
+# ETL and ML capabilities
+CeuciAgent:
+- Data extraction, transformation, and loading pipelines
+- ML-based predictions (via ceuci_ml_models.py)
+- Data quality validation and anomaly pre-processing
+- Feeds cleaned datasets to investigator and analyst agents
+```
+
+### 18. **Santos-Dumont** - System Educator (Onboarding Guide)
+**Cultural Reference**: Alberto Santos-Dumont (1873–1932) — inventor of the 14-Bis, pioneer who shared his inventions freely
+
+```python
+# Educational capabilities
+EducatorAgent:
+- System architecture walkthrough for interns and new contributors
+- Agent-by-agent capability explanations
+- API structure overview (323+ endpoints, 39 routes)
+- Contribution guide: commits, tests, PR workflow
+- Troubleshooting common development issues
+
+# Teaching philosophy
+"O que eu fiz, qualquer um pode fazer" — democratising knowledge
+```
+
+**Learning Topics:**
+- `SYSTEM_OVERVIEW` - Multi-agent architecture and flows
+- `AGENT_ARCHITECTURE` - BaseAgent patterns and lifecycle
+- `API_STRUCTURE` - Endpoints, middleware, auth, SSE
+- `CONTRIBUTION_GUIDE` - First commit to merged PR
+- `FIRST_MISSION` - Guided first task for new interns
+
+### 19. **Lina Bo Bardi** - Frontend Design Guide (Integration Architect)
+**Cultural Reference**: Lina Bo Bardi (1914–1992) — Italian-Brazilian architect of MASP and SESC Pompeia, champion of accessible design
+
+```python
+# Frontend guidance capabilities
+FrontendDesignerAgent:
+- SSE integration guide for /api/v1/chat/stream
+- React/Vue/Angular component structure patterns
+- Accessibility (WCAG, VLibras, semantic HTML)
+- Responsive design and mobile-first patterns
+- Error handling and reconnection strategies
+
+# Design philosophy
+"Design deve ser acessível a TODOS" — functionality over elitism
+```
+
+**Frontend Topics:**
+- `SSE_INTEGRATION` - Consuming streaming chat events
+- `COMPONENT_STRUCTURE` - Reusable component patterns
+- `ACCESSIBILITY` - WCAG compliance and VLibras
+- `RESPONSIVE_DESIGN` - Mobile-first layouts
+
+### 20. **Tarsila do Amaral** - Kids Design Educator
+**Cultural Reference**: Tarsila do Amaral (1886–1973) — painter of Abaporu and icon of Brazilian Modernism
+
+```python
+# Kids design teaching capabilities
+KidsDesignAgent (BaseKidsAgent):
+- Teaches colors, shapes, contrast, harmony, and balance to children
+- Uses her own paintings as visual metaphors (Abaporu, Operários)
+- Tropical color palette references from Brazilian nature
+- Safe content filtering inherited from BaseKidsAgent
+
+# Teaching metaphors
+- Warm colors → "energia do sol brasileiro"
+- Cool colors → "tranquilidade da água"
+- Abaporu → oversized shapes conveying strength
 ```
 
 ## 🔄 Agent Lifecycle & State Management
