@@ -3,6 +3,7 @@
 Test Intent Classification Improvements
 Validates that investigation queries are properly detected
 """
+
 import asyncio
 import sys
 from pathlib import Path

@@ -8,6 +8,7 @@ Valida se o sistema realmente faz o que promete:
 3. Análise multi-agente
 4. Respostas completas e precisas
 """
+
 import asyncio
 import sys
 from pathlib import Path

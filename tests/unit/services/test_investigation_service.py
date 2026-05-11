@@ -6,7 +6,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from src.models.investigation import Investigation
-from src.services.investigation_service import InvestigationService, investigation_service
+from src.services.investigation_service import (
+    InvestigationService,
+    investigation_service,
+)
 
 
 class TestInvestigationServiceInitialization:
@@ -43,9 +46,7 @@ class TestCreate:
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             # Setup context manager
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
@@ -78,9 +79,7 @@ class TestCreate:
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -135,9 +134,7 @@ class TestUpdateStatus:
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -165,9 +162,7 @@ class TestUpdateStatus:
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -195,9 +190,7 @@ class TestUpdateStatus:
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -224,9 +217,7 @@ class TestUpdateStatus:
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -254,9 +245,7 @@ class TestUpdateStatus:
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock(return_value=mock_result)
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -289,9 +278,7 @@ class TestGetById:
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock(return_value=mock_result)
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -310,9 +297,7 @@ class TestGetById:
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock(return_value=mock_result)
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -348,9 +333,7 @@ class TestSearch:
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock(return_value=mock_result)
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -375,9 +358,7 @@ class TestSearch:
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock(return_value=mock_result)
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -402,9 +383,7 @@ class TestSearch:
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock(return_value=mock_result)
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -428,9 +407,7 @@ class TestSearch:
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock(return_value=mock_result)
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -465,9 +442,7 @@ class TestCancel:
         mock_db.commit = AsyncMock()
         mock_db.refresh = AsyncMock()
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -488,9 +463,7 @@ class TestCancel:
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock(return_value=mock_result)
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -513,9 +486,7 @@ class TestCancel:
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock(return_value=mock_result)
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -538,9 +509,7 @@ class TestCancel:
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock(return_value=mock_result)
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -563,9 +532,7 @@ class TestCancel:
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock(return_value=mock_result)
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)
@@ -588,9 +555,7 @@ class TestCancel:
         mock_db = AsyncMock()
         mock_db.execute = AsyncMock(return_value=mock_result)
 
-        with patch(
-            "src.services.investigation_service.get_db_session"
-        ) as mock_session:
+        with patch("src.services.investigation_service.get_db_session") as mock_session:
             mock_context = AsyncMock()
             mock_context.__aenter__ = AsyncMock(return_value=mock_db)
             mock_context.__aexit__ = AsyncMock(return_value=None)

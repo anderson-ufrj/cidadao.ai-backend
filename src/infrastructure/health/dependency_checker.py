@@ -213,17 +213,13 @@ class DatabaseHealthCheck(BaseHealthCheck):
                 raise Exception("Database query returned unexpected result")
 
             # Get database stats
-            stats_result = await session.execute(
-                text(
-                    """
+            stats_result = await session.execute(text("""
                 SELECT
                     count(*) as active_connections,
                     (SELECT setting FROM pg_settings WHERE name = 'max_connections') as max_connections
                 FROM pg_stat_activity
                 WHERE state = 'active'
-            """
-                )
-            )
+            """))
 
             stats = stats_result.fetchone()
 

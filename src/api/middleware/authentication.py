@@ -154,9 +154,7 @@ class AuthenticationMiddleware:
                 # Check expiration
                 exp = payload.get("exp")
                 if exp and datetime.now(UTC).timestamp() > exp:
-                    raise HTTPException(
-                        status_code=401, detail="Token has expired"
-                    )
+                    raise HTTPException(status_code=401, detail="Token has expired")
 
                 # Store user info in request state
                 request.state.user_id = payload.get("sub")

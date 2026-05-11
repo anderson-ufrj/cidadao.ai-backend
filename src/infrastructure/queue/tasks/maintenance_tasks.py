@@ -269,15 +269,13 @@ async def _warm_cache_async() -> dict[str, Any]:
 
         # 1. Recent investigations
         try:
-            result = await db.execute(
-                """
+            result = await db.execute("""
                 SELECT id, query, status, findings
                 FROM investigations
                 WHERE created_at > NOW() - INTERVAL '7 days'
                 ORDER BY created_at DESC
                 LIMIT 20
-                """
-            )
+                """)
             investigations = result.fetchall()
 
             for inv in investigations:
@@ -299,14 +297,12 @@ async def _warm_cache_async() -> dict[str, Any]:
 
         # 2. Active API keys
         try:
-            result = await db.execute(
-                """
+            result = await db.execute("""
                 SELECT id, key_prefix, client_id, tier, status
                 FROM api_keys
                 WHERE status = 'active'
                 AND (expires_at IS NULL OR expires_at > NOW())
-                """
-            )
+                """)
             api_keys = result.fetchall()
 
             for key in api_keys:

@@ -313,8 +313,7 @@ async def list_all_investigations() -> dict[str, Any]:
         pool = await get_db_pool()
 
         async with pool.acquire() as conn:
-            rows = await conn.fetch(
-                """
+            rows = await conn.fetch("""
                 SELECT
                     id,
                     user_id,
@@ -330,8 +329,7 @@ async def list_all_investigations() -> dict[str, Any]:
                 FROM investigations
                 ORDER BY created_at DESC
                 LIMIT 10
-            """
-            )
+            """)
 
             for row in rows:
                 result["investigations"].append(
@@ -477,13 +475,11 @@ async def check_database_constraints() -> dict[str, Any]:
         # Check constraints on investigations table
         try:
             async with pool.acquire() as conn:
-                rows = await conn.fetch(
-                    """
+                rows = await conn.fetch("""
                     SELECT conname, pg_get_constraintdef(oid) as definition
                     FROM pg_constraint
                     WHERE conrelid = 'investigations'::regclass;
-                    """
-                )
+                    """)
                 result["constraints"] = [
                     {"name": row["conname"], "definition": row["definition"]}
                     for row in rows
@@ -596,35 +592,29 @@ async def fix_database_schema() -> dict[str, Any]:
         try:
             async with pool.acquire() as conn:
                 # First, find the constraint name
-                constraint_row = await conn.fetchrow(
-                    """
+                constraint_row = await conn.fetchrow("""
                     SELECT conname
                     FROM pg_constraint
                     WHERE conrelid = 'investigations'::regclass
                     AND contype = 'c'
                     AND pg_get_constraintdef(oid) LIKE '%status%';
-                    """
-                )
+                    """)
 
                 if constraint_row:
                     constraint_name = constraint_row["conname"]
 
                     # Drop the old constraint
-                    await conn.execute(
-                        f"""
+                    await conn.execute(f"""
                         ALTER TABLE investigations
                         DROP CONSTRAINT {constraint_name};
-                        """
-                    )
+                        """)
 
                     # Create new constraint with 'running' status
-                    await conn.execute(
-                        """
+                    await conn.execute("""
                         ALTER TABLE investigations
                         ADD CONSTRAINT investigations_status_check
                         CHECK (status IN ('pending', 'running', 'completed', 'failed'));
-                        """
-                    )
+                        """)
 
                     result["fixes_applied"].append(
                         {
@@ -649,15 +639,13 @@ async def fix_database_schema() -> dict[str, Any]:
         # Verify the fix
         try:
             async with pool.acquire() as conn:
-                row = await conn.fetchrow(
-                    """
+                row = await conn.fetchrow("""
                     SELECT conname, pg_get_constraintdef(oid) as definition
                     FROM pg_constraint
                     WHERE conrelid = 'investigations'::regclass
                     AND contype = 'c'
                     AND pg_get_constraintdef(oid) LIKE '%status%';
-                """
-                )
+                """)
                 if row:
                     result["verification"] = {
                         "constraint_name": row["conname"],
@@ -968,16 +956,12 @@ async def fix_stuck_investigations() -> dict[str, Any]:
 
         async with engine.begin() as conn:
             # First, get stuck investigations
-            stuck_result = await conn.execute(
-                text(
-                    """
+            stuck_result = await conn.execute(text("""
                     SELECT id, query, created_at
                     FROM investigations
                     WHERE status = 'running'
                     AND created_at < NOW() - INTERVAL '1 hour'
-                    """
-                )
-            )
+                    """))
             stuck_rows = stuck_result.fetchall()
 
             for row in stuck_rows:
@@ -990,9 +974,7 @@ async def fix_stuck_investigations() -> dict[str, Any]:
                 )
 
             # Update stuck investigations
-            update_result = await conn.execute(
-                text(
-                    """
+            update_result = await conn.execute(text("""
                     UPDATE investigations
                     SET status = 'failed',
                         error_message = 'Investigation timed out (stuck in running state for >1 hour)',
@@ -1000,9 +982,7 @@ async def fix_stuck_investigations() -> dict[str, Any]:
                     WHERE status = 'running'
                     AND created_at < NOW() - INTERVAL '1 hour'
                     RETURNING id
-                    """
-                )
-            )
+                    """))
 
             result["fixed_count"] = update_result.rowcount
 

@@ -41,9 +41,7 @@ class TestGetPool:
         """Test pool creation."""
         mock_pool = AsyncMock()
 
-        with patch(
-            "src.services.auth_service.get_db_pool", return_value=mock_pool
-        ):
+        with patch("src.services.auth_service.get_db_pool", return_value=mock_pool):
             pool = await service.get_pool()
 
             assert pool is mock_pool
@@ -223,9 +221,10 @@ class TestAuthenticateUser:
         mock_pool.acquire.return_value.__aenter__ = AsyncMock(return_value=mock_conn)
         mock_pool.acquire.return_value.__aexit__ = AsyncMock(return_value=None)
 
-        with patch.object(
-            service, "_increment_failed_attempts"
-        ) as mock_increment, patch.object(service, "get_pool", return_value=mock_pool):
+        with (
+            patch.object(service, "_increment_failed_attempts") as mock_increment,
+            patch.object(service, "get_pool", return_value=mock_pool),
+        ):
             mock_increment.return_value = None
 
             result = await service.authenticate_user("testuser", "wrongpassword")
@@ -334,9 +333,7 @@ class TestTokenVerification:
             # Create a valid token
             token = service.create_access_token({"sub": "user123"})
 
-            with patch.object(
-                service, "_is_token_blacklisted", return_value=False
-            ):
+            with patch.object(service, "_is_token_blacklisted", return_value=False):
                 payload = await service.verify_token(token, token_type="access")
 
                 assert payload["sub"] == "user123"
@@ -351,9 +348,7 @@ class TestTokenVerification:
             # Create an access token
             token = service.create_access_token({"sub": "user123"})
 
-            with patch.object(
-                service, "_is_token_blacklisted", return_value=False
-            ):
+            with patch.object(service, "_is_token_blacklisted", return_value=False):
                 with pytest.raises(AuthenticationError, match="Invalid token type"):
                     await service.verify_token(token, token_type="refresh")
 
@@ -365,9 +360,7 @@ class TestTokenVerification:
 
             token = service.create_access_token({"sub": "user123"})
 
-            with patch.object(
-                service, "_is_token_blacklisted", return_value=True
-            ):
+            with patch.object(service, "_is_token_blacklisted", return_value=True):
                 with pytest.raises(AuthenticationError, match="revoked"):
                     await service.verify_token(token)
 
@@ -487,9 +480,10 @@ class TestGetCurrentUser:
             )
             mock_pool.acquire.return_value.__aexit__ = AsyncMock(return_value=None)
 
-            with patch.object(
-                service, "_is_token_blacklisted", return_value=False
-            ), patch.object(service, "get_pool", return_value=mock_pool):
+            with (
+                patch.object(service, "_is_token_blacklisted", return_value=False),
+                patch.object(service, "get_pool", return_value=mock_pool),
+            ):
                 result = await service.get_current_user(token)
 
                 assert result is not None
@@ -634,11 +628,11 @@ class TestRefreshAccessToken:
                 "created_at": datetime.now(UTC),
             }
 
-            with patch.object(
-                service, "_is_token_blacklisted", return_value=False
-            ), patch.object(service, "get_current_user", return_value=user_data), patch.object(
-                service, "revoke_token"
-            ) as mock_revoke:
+            with (
+                patch.object(service, "_is_token_blacklisted", return_value=False),
+                patch.object(service, "get_current_user", return_value=user_data),
+                patch.object(service, "revoke_token") as mock_revoke,
+            ):
                 result = await service.refresh_access_token(refresh_token)
 
                 assert "access_token" in result
@@ -656,9 +650,10 @@ class TestRefreshAccessToken:
 
             refresh_token = service.create_refresh_token({"sub": str(user_id)})
 
-            with patch.object(
-                service, "_is_token_blacklisted", return_value=False
-            ), patch.object(service, "get_current_user", return_value=None):
+            with (
+                patch.object(service, "_is_token_blacklisted", return_value=False),
+                patch.object(service, "get_current_user", return_value=None),
+            ):
                 with pytest.raises(AuthenticationError, match="not found"):
                     await service.refresh_access_token(refresh_token)
 
