@@ -1666,7 +1666,11 @@ async def stream_message(
             return StreamingResponse(
                 edge_case_generator(),
                 media_type="text/event-stream",
-                headers={"Cache-Control": "no-cache", "Connection": "keep-alive", "X-Accel-Buffering": "no"},
+                headers={
+                    "Cache-Control": "no-cache",
+                    "Connection": "keep-alive",
+                    "X-Accel-Buffering": "no",
+                },
             )
 
     async def generate():
@@ -1939,7 +1943,9 @@ async def stream_message(
                     payload = json_utils.loads(event_str[6:].strip())
                     if payload.get("type") == "chunk" and payload.get("content"):
                         chunks.append(payload["content"])
-                    elif payload.get("type") == "agent_selected" and payload.get("agent_id"):
+                    elif payload.get("type") == "agent_selected" and payload.get(
+                        "agent_id"
+                    ):
                         agent_id_captured = payload["agent_id"]
                 except Exception:
                     pass
@@ -2022,7 +2028,12 @@ async def list_user_sessions(
         offset=offset,
     )
 
-    return {"sessions": sessions, "count": len(sessions), "limit": limit, "offset": offset}
+    return {
+        "sessions": sessions,
+        "count": len(sessions),
+        "limit": limit,
+        "offset": offset,
+    }
 
 
 @router.get("/sessions/{session_id}")

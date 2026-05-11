@@ -81,7 +81,9 @@ class InvestigationFeedback(Base):
     reviewed_by = Column(String(255), nullable=True)  # Expert reviewer
 
     # Timestamps
-    created_at = Column(DateTime, nullable=False, default=lambda: datetime.now(UTC), index=True)
+    created_at = Column(
+        DateTime, nullable=False, default=lambda: datetime.now(UTC), index=True
+    )
     updated_at = Column(DateTime, nullable=True, onupdate=lambda: datetime.now(UTC))
 
     # Model version that made the prediction

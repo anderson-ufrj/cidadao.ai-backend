@@ -3,6 +3,7 @@
 Teste em Produção - Chat API
 Testa a API real em produção (Railway)
 """
+
 import asyncio
 import sys
 
@@ -94,7 +95,9 @@ async def test_chat_entity_extraction():
                     print("✅ Resposta parece conter dados reais (não apenas R$ 0.00)")
                     checks.append(True)
                 else:
-                    print("⚠️  Resposta pode conter dados mockados (R$ 0.00 encontrado)")
+                    print(
+                        "⚠️  Resposta pode conter dados mockados (R$ 0.00 encontrado)"
+                    )
                     checks.append(False)
 
                 # Check 3: Sistema entendeu a query

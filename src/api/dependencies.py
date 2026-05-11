@@ -76,7 +76,10 @@ def get_current_optional_user(request: Request) -> dict[str, Any] | None:
                 return None
             except jwt.PyJWTError as e:
                 _dep_logger.warning(
-                    "jwt_decode_failed", source=source, error=str(e), path=request.url.path
+                    "jwt_decode_failed",
+                    source=source,
+                    error=str(e),
+                    path=request.url.path,
                 )
                 continue
 

@@ -308,7 +308,9 @@ class CidadaoAIOrchestrator:
                     return True
 
                 except Exception as e:
-                    logger.warning(f"⚠️ Tentativa {attempt + 1} falhou para {name}: {e}")
+                    logger.warning(
+                        f"⚠️ Tentativa {attempt + 1} falhou para {name}: {e}"
+                    )
 
                     if attempt < self.config.max_retries - 1:
                         await asyncio.sleep(self.config.retry_delay)

@@ -2,6 +2,7 @@
 """
 Teste rápido de vozes Chirp3-HD - 4 agentes para demonstração
 """
+
 import os
 import sys
 from pathlib import Path
