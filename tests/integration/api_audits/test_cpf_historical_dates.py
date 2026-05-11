@@ -221,7 +221,9 @@ async def main():
         print(f"{Colors.OKGREEN}Conseguimos encontrar dados de salário!{Colors.ENDC}")
         print(f"{Colors.OKGREEN}Sistema está funcionando perfeitamente!{Colors.ENDC}")
     else:
-        print(f"{Colors.WARNING}{Colors.BOLD}⚠️  TESTE COMPLETO: SEM DADOS{Colors.ENDC}")
+        print(
+            f"{Colors.WARNING}{Colors.BOLD}⚠️  TESTE COMPLETO: SEM DADOS{Colors.ENDC}"
+        )
         print(f"{Colors.WARNING}Nenhuma data testada retornou dados{Colors.ENDC}")
         print_info("Possíveis causas:")
         print_info("  1. CPF não está na base federal (pode ser estadual/municipal)")

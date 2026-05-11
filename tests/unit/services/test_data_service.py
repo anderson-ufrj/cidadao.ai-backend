@@ -120,9 +120,7 @@ class TestFetchContracts:
         """Test error handling returns empty list."""
         with patch.object(service, "_get_api_client") as mock_get_client:
             mock_client = AsyncMock()
-            mock_client.get_contracts = AsyncMock(
-                side_effect=Exception("API Error")
-            )
+            mock_client.get_contracts = AsyncMock(side_effect=Exception("API Error"))
             mock_get_client.return_value = mock_client
 
             result = await service.fetch_contracts()
@@ -268,9 +266,7 @@ class TestGetRecentContractIds:
     async def test_get_recent_ids_fetches_when_empty(self, service):
         """Test fetching when cache is empty."""
         mock_response = MagicMock()
-        mock_response.data = [
-            {"id": f"new-{i}"} for i in range(10)
-        ]
+        mock_response.data = [{"id": f"new-{i}"} for i in range(10)]
 
         with patch.object(service, "_get_api_client") as mock_get_client:
             mock_client = AsyncMock()
@@ -287,9 +283,7 @@ class TestGetRecentContractIds:
         """Test error handling returns empty list."""
         with patch.object(service, "_get_api_client") as mock_get_client:
             mock_client = AsyncMock()
-            mock_client.get_contracts = AsyncMock(
-                side_effect=Exception("Timeout")
-            )
+            mock_client.get_contracts = AsyncMock(side_effect=Exception("Timeout"))
             mock_get_client.return_value = mock_client
 
             result = await service.get_recent_contract_ids()
@@ -343,9 +337,7 @@ class TestFetchExpenses:
         """Test error handling returns empty list."""
         with patch.object(service, "_get_api_client") as mock_get_client:
             mock_client = AsyncMock()
-            mock_client.get_expenses = AsyncMock(
-                side_effect=Exception("API Error")
-            )
+            mock_client.get_expenses = AsyncMock(side_effect=Exception("API Error"))
             mock_get_client.return_value = mock_client
 
             result = await service.fetch_expenses()
@@ -384,9 +376,7 @@ class TestFetchAgreements:
         """Test error handling returns empty list."""
         with patch.object(service, "_get_api_client") as mock_get_client:
             mock_client = AsyncMock()
-            mock_client.get_agreements = AsyncMock(
-                side_effect=Exception("API Error")
-            )
+            mock_client.get_agreements = AsyncMock(side_effect=Exception("API Error"))
             mock_get_client.return_value = mock_client
 
             result = await service.fetch_agreements()

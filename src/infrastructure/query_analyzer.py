@@ -81,8 +81,7 @@ class QueryAnalyzer:
                 return []
 
             # Get slow queries
-            query = text(
-                """
+            query = text("""
                 SELECT
                     query,
                     calls,
@@ -100,8 +99,7 @@ class QueryAnalyzer:
                     AND query NOT LIKE 'BEGIN%'
                 ORDER BY mean_exec_time DESC
                 LIMIT :limit
-            """
-            )
+            """)
 
             result = await session.execute(
                 query, {"threshold": self.slow_query_threshold_ms, "limit": limit}
@@ -139,8 +137,7 @@ class QueryAnalyzer:
 
         try:
             # Find tables with sequential scans
-            query = text(
-                """
+            query = text("""
                 SELECT
                     schemaname,
                     tablename,
@@ -153,8 +150,7 @@ class QueryAnalyzer:
                     AND seq_tup_read > 100000
                     AND schemaname = 'public'
                 ORDER BY seq_tup_read DESC
-            """
-            )
+            """)
 
             result = await session.execute(query)
 
@@ -175,8 +171,7 @@ class QueryAnalyzer:
                         )
 
             # Check for foreign keys without indexes
-            fk_query = text(
-                """
+            fk_query = text("""
                 SELECT
                     tc.table_name,
                     kcu.column_name
@@ -192,8 +187,7 @@ class QueryAnalyzer:
                         WHERE tablename = tc.table_name
                             AND indexdef LIKE '%' || kcu.column_name || '%'
                     )
-            """
-            )
+            """)
 
             fk_result = await session.execute(fk_query)
 
@@ -287,8 +281,7 @@ class QueryAnalyzer:
     ) -> dict[str, Any]:
         """Get statistics for a specific table."""
         try:
-            stats_query = text(
-                """
+            stats_query = text("""
                 SELECT
                     n_live_tup as row_count,
                     n_dead_tup as dead_rows,
@@ -298,8 +291,7 @@ class QueryAnalyzer:
                     last_autoanalyze
                 FROM pg_stat_user_tables
                 WHERE tablename = :table
-            """
-            )
+            """)
 
             result = await session.execute(stats_query, {"table": table})
             row = result.first()

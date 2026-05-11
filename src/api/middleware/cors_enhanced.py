@@ -139,9 +139,9 @@ class EnhancedCORSMiddleware(BaseHTTPMiddleware):
         requested_method = request.headers.get("Access-Control-Request-Method")
         requested_headers = [
             h.strip()
-            for h in request.headers.get(
-                "Access-Control-Request-Headers", ""
-            ).split(",")
+            for h in request.headers.get("Access-Control-Request-Headers", "").split(
+                ","
+            )
             if h.strip()
         ]
 

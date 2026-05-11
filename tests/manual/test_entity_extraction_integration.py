@@ -3,6 +3,7 @@
 Test Entity Extraction Integration with Zumbi
 Validates that entities are correctly passed to InvestigationRequest
 """
+
 import asyncio
 import sys
 from pathlib import Path

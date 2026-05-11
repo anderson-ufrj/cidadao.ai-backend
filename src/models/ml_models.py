@@ -220,7 +220,9 @@ class AnomalyDetectorModelDB(Base):
     trained_at = Column(DateTime)
     deployed_at = Column(DateTime)
     created_at = Column(DateTime, default=lambda: datetime.now(UTC))
-    updated_at = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+    updated_at = Column(
+        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
 
     # Paths and references
     model_path = Column(Text)

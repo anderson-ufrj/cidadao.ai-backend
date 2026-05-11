@@ -332,8 +332,7 @@ async def _cleanup_stuck_investigations_async(
         async with engine.begin() as conn:
             # Find and update stuck investigations using parameterized query
             update_result = await conn.execute(
-                text(
-                    """
+                text("""
                     UPDATE investigations
                     SET status = 'failed',
                         error_message = :error_message,
@@ -341,8 +340,7 @@ async def _cleanup_stuck_investigations_async(
                     WHERE status = 'running'
                     AND created_at < :threshold_time
                     RETURNING id, query, created_at
-                    """
-                ),
+                    """),
                 {"error_message": error_msg, "threshold_time": threshold_time},
             )
 
@@ -431,27 +429,19 @@ async def _generate_metrics_report_async() -> dict[str, Any]:
 
         async with engine.begin() as conn:
             # Total investigations in last 24h
-            total_result = await conn.execute(
-                text(
-                    """
+            total_result = await conn.execute(text("""
                     SELECT COUNT(*) FROM investigations
                     WHERE created_at > NOW() - INTERVAL '24 hours'
-                    """
-                )
-            )
+                    """))
             report["total_investigations"] = total_result.scalar() or 0
 
             # By status
-            status_result = await conn.execute(
-                text(
-                    """
+            status_result = await conn.execute(text("""
                     SELECT status, COUNT(*) as count
                     FROM investigations
                     WHERE created_at > NOW() - INTERVAL '24 hours'
                     GROUP BY status
-                    """
-                )
-            )
+                    """))
             report["by_status"] = {row[0]: row[1] for row in status_result.fetchall()}
 
             # Success rate
@@ -460,32 +450,24 @@ async def _generate_metrics_report_async() -> dict[str, Any]:
             report["success_rate"] = completed / total if total > 0 else 0
 
             # Average processing time for completed investigations
-            time_result = await conn.execute(
-                text(
-                    """
+            time_result = await conn.execute(text("""
                     SELECT AVG(EXTRACT(EPOCH FROM (completed_at - created_at))) as avg_seconds
                     FROM investigations
                     WHERE status = 'completed'
                     AND created_at > NOW() - INTERVAL '24 hours'
                     AND completed_at IS NOT NULL
-                    """
-                )
-            )
+                    """))
             avg_time = time_result.scalar()
             report["avg_processing_time_seconds"] = (
                 round(avg_time, 2) if avg_time else None
             )
 
             # Stuck investigations (still running after 1 hour)
-            stuck_result = await conn.execute(
-                text(
-                    """
+            stuck_result = await conn.execute(text("""
                     SELECT COUNT(*) FROM investigations
                     WHERE status = 'running'
                     AND created_at < NOW() - INTERVAL '1 hour'
-                    """
-                )
-            )
+                    """))
             report["currently_stuck"] = stuck_result.scalar() or 0
 
             report["status"] = "completed"

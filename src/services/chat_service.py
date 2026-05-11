@@ -10,6 +10,8 @@ from datetime import UTC, datetime
 def _utcnow() -> datetime:
     """Naive UTC datetime compatible with 'timestamp without time zone' columns."""
     return datetime.now(UTC).replace(tzinfo=None)
+
+
 from enum import Enum
 from typing import Any
 
@@ -95,7 +97,6 @@ class Intent:
             "confidence": self.confidence,
             "suggested_agent": self.suggested_agent,
         }
-
 
 
 class IntentDetector:
@@ -588,9 +589,7 @@ class ChatService:
         self.agents = None
         self._agents_initialized = False
 
-    async def get_or_create_session(
-        self, session_id: str, user_id: str | None = None
-    ):
+    async def get_or_create_session(self, session_id: str, user_id: str | None = None):
         """Get existing session or create new one (persisted to DB)."""
         from sqlalchemy import select
 
@@ -716,9 +715,7 @@ class ChatService:
         async with get_db_session() as db:
             # Delete messages (FK CASCADE would also handle this)
             await db.execute(
-                delete(DBChatMessage).where(
-                    DBChatMessage.session_id == session_id
-                )
+                delete(DBChatMessage).where(DBChatMessage.session_id == session_id)
             )
             # Mark session as cleared
             result = await db.execute(
@@ -762,9 +759,7 @@ class ChatService:
 
         async with get_db_session() as db:
             await db.execute(
-                delete(DBChatMessage).where(
-                    DBChatMessage.session_id == session_id
-                )
+                delete(DBChatMessage).where(DBChatMessage.session_id == session_id)
             )
             await db.execute(
                 delete(DBChatSession).where(DBChatSession.id == session_id)
