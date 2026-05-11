@@ -9,8 +9,7 @@ License: Proprietary - All rights reserved
 from dataclasses import dataclass
 from typing import Any
 
-from pydantic import BaseModel
-from pydantic import Field as PydanticField
+from pydantic import BaseModel, Field as PydanticField
 
 from src.core import get_logger, settings
 from src.llm.providers import LLMRequest, create_llm_manager

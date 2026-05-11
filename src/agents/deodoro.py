@@ -13,8 +13,7 @@ from datetime import UTC, datetime
 from typing import Any
 from uuid import uuid4
 
-from pydantic import BaseModel
-from pydantic import Field as PydanticField
+from pydantic import BaseModel, Field as PydanticField
 
 from src.core import AgentStatus, get_logger
 from src.core.exceptions import AgentExecutionError

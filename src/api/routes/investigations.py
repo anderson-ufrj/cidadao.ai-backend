@@ -13,8 +13,7 @@ from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel, field_validator
-from pydantic import Field as PydanticField
+from pydantic import BaseModel, Field as PydanticField, field_validator
 
 from src.agents import AgentContext, InvestigatorAgent
 from src.agents.zumbi_wrapper import patch_investigator_agent

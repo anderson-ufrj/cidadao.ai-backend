@@ -1,8 +1,5 @@
 """Tests for notification service."""
 
-from datetime import UTC, datetime
-from unittest.mock import AsyncMock, patch
-
 import pytest
 
 from src.services.notification_service import (

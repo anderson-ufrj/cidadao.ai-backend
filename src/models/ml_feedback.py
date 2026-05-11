@@ -13,8 +13,16 @@ import uuid
 from datetime import UTC, datetime
 from enum import Enum
 
-from sqlalchemy import JSON, Column, DateTime, Float, ForeignKey, Integer, String
-from sqlalchemy import Enum as SQLEnum
+from sqlalchemy import (
+    JSON,
+    Column,
+    DateTime,
+    Enum as SQLEnum,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+)
 from sqlalchemy.dialects.postgresql import UUID
 
 from src.db.base import Base

@@ -11,8 +11,7 @@ from typing import Any
 from uuid import uuid4
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
-from pydantic import BaseModel, field_validator
-from pydantic import Field as PydanticField
+from pydantic import BaseModel, Field as PydanticField, field_validator
 
 from src.agents import AgentContext, AnalystAgent
 from src.api.middleware.authentication import get_current_user

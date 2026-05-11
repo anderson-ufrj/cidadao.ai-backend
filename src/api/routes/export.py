@@ -12,8 +12,7 @@ from uuid import uuid4
 
 import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
-from pydantic import BaseModel, field_validator
-from pydantic import Field as PydanticField
+from pydantic import BaseModel, Field as PydanticField, field_validator
 
 from src.api.middleware.authentication import get_current_user
 from src.core import get_logger, json_utils

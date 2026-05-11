@@ -18,13 +18,13 @@ from prometheus_client import (
     REGISTRY,
     CollectorRegistry,
     Counter,
+    Enum as PrometheusEnum,
     Gauge,
     Histogram,
     Info,
     Summary,
     generate_latest,
 )
-from prometheus_client import Enum as PrometheusEnum
 
 # Try to import OpenMetricsHandler - not available in all versions
 try:

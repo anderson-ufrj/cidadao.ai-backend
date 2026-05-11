@@ -8,7 +8,7 @@ survive deploys and restarts.
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import Column, DateTime, ForeignKey, Index, Integer, JSON, String, Text
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Index, Integer, String, Text
 
 from src.models.base import BaseModel
 

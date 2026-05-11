@@ -13,8 +13,7 @@ from datetime import UTC, datetime
 from typing import Any
 
 import numpy as np
-from pydantic import BaseModel
-from pydantic import Field as PydanticField
+from pydantic import BaseModel, Field as PydanticField
 
 from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
 from src.core import get_logger

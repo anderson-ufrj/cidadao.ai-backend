@@ -10,8 +10,7 @@ License: Proprietary - All rights reserved
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
-from pydantic import BaseModel
-from pydantic import Field as PydanticField
+from pydantic import BaseModel, Field as PydanticField
 
 from src.core import AgentStatus, MemoryImportance, json_utils
 from src.core.exceptions import MemoryError, MemoryRetrievalError, MemoryStorageError

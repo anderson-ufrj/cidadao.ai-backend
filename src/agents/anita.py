@@ -14,8 +14,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from pydantic import BaseModel
-from pydantic import Field as PydanticField
+from pydantic import BaseModel, Field as PydanticField
 
 from src.agents.deodoro import AgentContext, AgentMessage, AgentResponse, BaseAgent
 from src.core import AgentStatus

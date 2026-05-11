@@ -8,10 +8,11 @@ Date: 2025-01-24
 TODO: Mock Portal da Transparência API responses for integration tests
 """
 
-import pytest
 import asyncio
 import sys
 from pathlib import Path
+
+import pytest
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent))

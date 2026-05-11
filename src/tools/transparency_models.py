@@ -10,8 +10,7 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
 
-from pydantic import BaseModel, field_validator
-from pydantic import Field as PydanticField
+from pydantic import BaseModel, Field as PydanticField, field_validator
 
 
 class Organization(BaseModel):

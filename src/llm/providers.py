@@ -15,8 +15,7 @@ from enum import Enum
 from typing import Any
 
 import httpx
-from pydantic import BaseModel
-from pydantic import Field as PydanticField
+from pydantic import BaseModel, Field as PydanticField
 
 from src.core import get_llm_pool, get_logger, settings
 from src.core.exceptions import LLMError, LLMRateLimitError

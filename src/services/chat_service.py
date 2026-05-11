@@ -640,8 +640,10 @@ class ChatService:
         from sqlalchemy import select
 
         from src.db.simple_session import get_db_session
-        from src.models.chat import ChatMessage as DBChatMessage
-        from src.models.chat import ChatSession as DBChatSession
+        from src.models.chat import (
+            ChatMessage as DBChatMessage,
+            ChatSession as DBChatSession,
+        )
 
         # Serialize dict content
         if isinstance(content, dict):
@@ -709,8 +711,10 @@ class ChatService:
         from sqlalchemy import delete, select
 
         from src.db.simple_session import get_db_session
-        from src.models.chat import ChatMessage as DBChatMessage
-        from src.models.chat import ChatSession as DBChatSession
+        from src.models.chat import (
+            ChatMessage as DBChatMessage,
+            ChatSession as DBChatSession,
+        )
 
         async with get_db_session() as db:
             # Delete messages (FK CASCADE would also handle this)
@@ -754,8 +758,10 @@ class ChatService:
         from sqlalchemy import delete
 
         from src.db.simple_session import get_db_session
-        from src.models.chat import ChatMessage as DBChatMessage
-        from src.models.chat import ChatSession as DBChatSession
+        from src.models.chat import (
+            ChatMessage as DBChatMessage,
+            ChatSession as DBChatSession,
+        )
 
         async with get_db_session() as db:
             await db.execute(

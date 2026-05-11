@@ -460,12 +460,14 @@ app.include_router(notifications.router, tags=["Notifications"])
 from src.api.routes import api_keys
 
 # Import and include admin routes
-from src.api.routes.admin import agent_lazy_loading as admin_lazy_loading
-from src.api.routes.admin import cache_warming as admin_cache_warming
-from src.api.routes.admin import compression as admin_compression
-from src.api.routes.admin import connection_pools as admin_conn_pools
-from src.api.routes.admin import database_optimization as admin_db_optimization
-from src.api.routes.admin import ip_whitelist as admin_ip_whitelist
+from src.api.routes.admin import (
+    agent_lazy_loading as admin_lazy_loading,
+    cache_warming as admin_cache_warming,
+    compression as admin_compression,
+    connection_pools as admin_conn_pools,
+    database_optimization as admin_db_optimization,
+    ip_whitelist as admin_ip_whitelist,
+)
 
 app.include_router(admin_ip_whitelist.router, prefix="/api/v1/admin", tags=["Admin"])
 

@@ -42,8 +42,7 @@ Example:
 from datetime import UTC, datetime
 from typing import Any
 
-from pydantic import BaseModel
-from pydantic import Field as PydanticField
+from pydantic import BaseModel, Field as PydanticField
 
 from src.core import AgentStatus, ReflectionType
 from src.core.exceptions import AgentExecutionError, InvestigationError

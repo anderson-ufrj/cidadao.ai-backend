@@ -10,8 +10,7 @@ License: Proprietary - All rights reserved
 import re
 from typing import Any
 
-from pydantic import BaseModel
-from pydantic import Field as PydanticField
+from pydantic import BaseModel, Field as PydanticField
 
 from src.core import AgentStatus
 from src.core.exceptions import AgentError, ValidationError

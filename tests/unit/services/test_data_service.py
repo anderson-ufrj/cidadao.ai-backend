@@ -1,7 +1,5 @@
 """Tests for data service."""
 
-import hashlib
-import json
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
