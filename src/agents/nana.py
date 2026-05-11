@@ -67,11 +67,22 @@ class ConversationMemory(MemoryEntry):
 
 
 class ContextMemoryAgent(BaseAgent):
-    """
-    Agent responsible for managing different types of memory:
-    - Episodic: Specific investigations and their results
-    - Semantic: General knowledge about patterns and anomalies
-    - Conversational: Context from ongoing conversations
+    """Nanã — Context Memory Agent for Cidadão.AI.
+
+    Manages three memory layers to preserve state across interactions:
+    - Episodic: specific investigation results, stored in Redis + ChromaDB
+    - Semantic: general knowledge about patterns and anomalies, stored in ChromaDB
+    - Conversational: ongoing dialog context, stored in Redis with a 24h TTL
+
+    Invoked automatically by Abaporu after each investigation to persist results,
+    and consulted by Ayrton Senna when routing queries that require historical context.
+
+    Example:
+        Input:  action="store_episodic", payload={"memory_entry": {...}}
+        Output: {"status": "stored", "memory_id": "mem_inv_123_..."}
+
+        Input:  action="get_relevant_context", payload={"query": "emergency contract"}
+        Output: {"episodic": [...], "semantic": [...], "conversation": [...]}
     """
 
     def __init__(
@@ -309,7 +320,20 @@ class ContextMemoryAgent(BaseAgent):
         payload: dict[str, Any],
         context: AgentContext,
     ) -> dict[str, Any]:
-        """Store episodic memory."""
+        """Store an episodic memory entry in Redis and the vector store.
+
+        Args:
+            payload: Must contain a ``memory_entry`` dict with at least
+                ``investigation_id``, ``query``, and ``result`` fields.
+            context: Current agent context used for logging.
+
+        Returns:
+            A dict with ``status`` ("stored") and ``memory_id``.
+
+        Raises:
+            MemoryStorageError: If ``memory_entry`` is missing or the
+                underlying storage operations fail.
+        """
         try:
             memory_entry = payload.get("memory_entry")
             if not memory_entry:
@@ -372,7 +396,22 @@ class ContextMemoryAgent(BaseAgent):
         payload: dict[str, Any],
         context: AgentContext,
     ) -> dict[str, Any]:
-        """Retrieve episodic memories."""
+        """Retrieve episodic memories matching a query via semantic search.
+
+        If ``query`` is omitted, returns the most recent memories up to
+        ``limit``. Otherwise performs a vector similarity search in ChromaDB,
+        then fetches the full memory data from Redis.
+
+        Args:
+            payload: May contain ``query`` (str) and ``limit`` (int, default 5).
+            context: Current agent context used for logging.
+
+        Returns:
+            A dict with a ``memories`` list of episodic memory dicts.
+
+        Raises:
+            MemoryRetrievalError: If the vector store or Redis lookup fails.
+        """
         try:
             query = payload.get("query", "")
             limit = payload.get("limit", 5)
@@ -415,7 +454,25 @@ class ContextMemoryAgent(BaseAgent):
         payload: dict[str, Any],
         context: AgentContext,
     ) -> dict[str, Any]:
-        """Store semantic memory."""
+        """Store a semantic memory entry representing a general knowledge concept.
+
+        Semantic memories use a 2× longer TTL than episodic ones since they
+        encode durable knowledge (patterns, anomaly signatures) rather than
+        one-off events.
+
+        Args:
+            payload: Must contain ``concept`` (str) and ``content`` (dict or str).
+                Optional fields: ``relationships`` (list[str]), ``evidence``
+                (list[str]), and ``confidence`` (float, default 0.5).
+            context: Current agent context used for logging.
+
+        Returns:
+            A dict with ``status`` ("stored") and ``memory_id``.
+
+        Raises:
+            MemoryStorageError: If ``concept`` or ``content`` is missing, or if
+                storage operations fail.
+        """
         try:
             concept = payload.get("concept", "")
             content = payload.get("content", {})
@@ -478,7 +535,18 @@ class ContextMemoryAgent(BaseAgent):
         payload: dict[str, Any],
         context: AgentContext,
     ) -> dict[str, Any]:
-        """Retrieve semantic memories."""
+        """Retrieve semantic memories matching a query via vector similarity search.
+
+        Args:
+            payload: May contain ``query`` (str) and ``limit`` (int, default 5).
+            context: Current agent context used for logging.
+
+        Returns:
+            A dict with a ``concepts`` list of semantic memory dicts.
+
+        Raises:
+            MemoryRetrievalError: If the vector store or Redis lookup fails.
+        """
         try:
             query = payload.get("query", "")
             limit = payload.get("limit", 5)
@@ -514,7 +582,25 @@ class ContextMemoryAgent(BaseAgent):
         payload: dict[str, Any],
         context: AgentContext,
     ) -> dict[str, Any]:
-        """Store conversation memory."""
+        """Store a single conversation turn in Redis with a 24-hour TTL.
+
+        Automatically increments the turn counter for the conversation and
+        trims older turns if the conversation exceeds ``max_conversation_turns``.
+
+        Args:
+            payload: Must contain ``message`` (str) and optionally
+                ``conversation_id`` (str, falls back to ``context.session_id``),
+                ``speaker`` (str, default "user"), and ``intent`` (str).
+            context: Current agent context; ``session_id`` is used as the
+                fallback conversation ID.
+
+        Returns:
+            A dict with ``status`` ("stored") and ``turn_number`` (int).
+
+        Raises:
+            MemoryStorageError: If ``conversation_id`` or ``message`` is missing,
+                or if Redis operations fail.
+        """
         try:
             conversation_id = payload.get("conversation_id", context.session_id)
             message = payload.get("message", "")
@@ -572,7 +658,21 @@ class ContextMemoryAgent(BaseAgent):
         payload: dict[str, Any],
         context: AgentContext,
     ) -> dict[str, Any]:
-        """Get conversation context."""
+        """Retrieve recent turns from a conversation, ordered chronologically.
+
+        Args:
+            payload: May contain ``conversation_id`` (str, falls back to
+                ``context.session_id``) and ``limit`` (int, default 10).
+            context: Current agent context; ``session_id`` is used as the
+                fallback conversation ID.
+
+        Returns:
+            A dict with a ``conversation`` list of turn dicts in ascending
+            turn-number order.
+
+        Raises:
+            MemoryRetrievalError: If Redis key scanning or data retrieval fails.
+        """
         try:
             conversation_id = payload.get("conversation_id", context.session_id)
             limit = payload.get("limit", 10)
@@ -612,7 +712,19 @@ class ContextMemoryAgent(BaseAgent):
         payload: dict[str, Any],
         context: AgentContext,
     ) -> dict[str, Any]:
-        """Get all relevant context for a query."""
+        """Dispatch to ``get_relevant_context`` from a message payload.
+
+        Thin adapter between the action-dispatch loop in ``process()`` and the
+        public ``get_relevant_context`` method.
+
+        Args:
+            payload: May contain ``query`` (str) and ``limit`` (int, default 5).
+            context: Current agent context forwarded to sub-retrievals.
+
+        Returns:
+            Combined context dict with ``episodic``, ``semantic``, and
+            ``conversation`` keys plus the original ``query`` and a timestamp.
+        """
         return await self.get_relevant_context(
             payload.get("query", ""), context, payload.get("limit", 5)
         )
@@ -921,7 +1033,18 @@ class ContextMemoryAgent(BaseAgent):
         return consolidated
 
     def _calculate_importance(self, investigation_result: Any) -> MemoryImportance:
-        """Calculate importance of an investigation result."""
+        """Derive a ``MemoryImportance`` level from an investigation result.
+
+        Uses confidence score and findings count as a two-dimensional heuristic:
+        high confidence + many findings → CRITICAL, low confidence → LOW.
+
+        Args:
+            investigation_result: Any object with ``confidence_score`` (float)
+                and ``findings`` (list) attributes.
+
+        Returns:
+            A ``MemoryImportance`` enum value (CRITICAL, HIGH, MEDIUM, or LOW).
+        """
         confidence = getattr(investigation_result, "confidence_score", 0.0)
         findings_count = len(getattr(investigation_result, "findings", []))
 
@@ -934,8 +1057,15 @@ class ContextMemoryAgent(BaseAgent):
         return MemoryImportance.LOW
 
     def _extract_tags(self, text: str) -> list[str]:
-        """Extract tags from text for better organization."""
-        # Simple tag extraction - could be enhanced with NLP
+        """Extract domain-relevant tags from text using keyword matching.
+
+        Args:
+            text: Raw text to scan (query, concept, or message).
+
+        Returns:
+            A list of matched keywords from the predefined domain vocabulary.
+        """
+        # Simple keyword match — could be enhanced with NLP
         keywords = [
             "contrato",
             "licitação",
@@ -953,7 +1083,7 @@ class ContextMemoryAgent(BaseAgent):
         return [keyword for keyword in keywords if keyword in text_lower]
 
     async def _manage_memory_size(self) -> None:
-        """Manage memory size by removing old/unimportant memories."""
+        """Evict oldest episodic memories when the store exceeds ``max_episodic_memories``."""
         # Get count of episodic memories
         pattern = f"{self.episodic_key}:*"
         keys = await self.redis_client.keys(pattern)
@@ -972,7 +1102,7 @@ class ContextMemoryAgent(BaseAgent):
             )
 
     async def _manage_conversation_size(self, conversation_id: str) -> None:
-        """Manage conversation memory size."""
+        """Evict oldest turns when a conversation exceeds ``max_conversation_turns``."""
         pattern = f"{self.conversation_key}:{conversation_id}:*"
         keys = await self.redis_client.keys(pattern)
 
@@ -991,7 +1121,14 @@ class ContextMemoryAgent(BaseAgent):
             )
 
     async def _get_recent_memories(self, limit: int) -> list[dict[str, Any]]:
-        """Get recent episodic memories."""
+        """Return the most recent episodic memories sorted by timestamp descending.
+
+        Args:
+            limit: Maximum number of memories to return.
+
+        Returns:
+            A list of episodic memory dicts, newest first, capped at ``limit``.
+        """
         pattern = f"{self.episodic_key}:*"
         keys = await self.redis_client.keys(pattern)
 
