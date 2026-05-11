@@ -2,6 +2,7 @@
 """
 Test Railway PostgreSQL Connection and Investigations Table
 """
+
 import sys
 
 import psycopg2
@@ -26,12 +27,10 @@ def main():
 
         # Check investigations table
         print("🔍 Verificando tabela investigations...")
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT COUNT(*) FROM information_schema.tables
             WHERE table_name = 'investigations'
-        """
-        )
+        """)
         table_exists = cursor.fetchone()[0]
 
         if table_exists:
@@ -43,15 +42,13 @@ def main():
 
         # Get table structure
         print("📋 Estrutura da tabela:")
-        cursor.execute(
-            """
+        cursor.execute("""
             SELECT column_name, data_type, is_nullable
             FROM information_schema.columns
             WHERE table_name = 'investigations'
             ORDER BY ordinal_position
             LIMIT 10
-        """
-        )
+        """)
         columns = cursor.fetchall()
         for col_name, col_type, nullable in columns:
             null_str = "NULL" if nullable == "YES" else "NOT NULL"
@@ -69,14 +66,12 @@ def main():
         # Show recent investigations
         if total > 0:
             print("🔍 Últimas 5 investigações:")
-            cursor.execute(
-                """
+            cursor.execute("""
                 SELECT id, user_id, status, total_records_analyzed, anomalies_found, created_at
                 FROM investigations
                 ORDER BY created_at DESC
                 LIMIT 5
-            """
-            )
+            """)
             investigations = cursor.fetchall()
             for inv_id, user_id, status, records, anomalies, created in investigations:
                 print(

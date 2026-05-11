@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Test Drummond initialization locally"""
+
 import os
 import sys
 

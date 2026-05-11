@@ -83,7 +83,9 @@ class EntityNode(BaseModel):
 
     # Extra data
     first_detected = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
-    last_detected = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+    last_detected = Column(
+        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
     extra_data = Column(JSON, default={})
 
     # Relationships
@@ -191,7 +193,9 @@ class EntityRelationship(BaseModel):
 
     # Evidence and detection
     first_detected = Column(DateTime, default=lambda: datetime.now(UTC), nullable=False)
-    last_detected = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+    last_detected = Column(
+        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
     detection_count = Column(Integer, default=1)  # How many times detected
 
     # Investigation references (which investigations found this relationship)
@@ -349,7 +353,9 @@ class SuspiciousNetwork(BaseModel):
     # Investigation references
     investigation_ids = Column(JSON, default=[])  # Investigations that detected this
     first_detected = Column(DateTime, default=lambda: datetime.now(UTC))
-    last_detected = Column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
+    last_detected = Column(
+        DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC)
+    )
 
     # Financial impact
     total_contract_value = Column(Float, default=0.0)

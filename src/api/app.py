@@ -118,7 +118,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         from alembic.config import Config
 
         # Use absolute path to find alembic.ini regardless of CWD
-        base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        base_dir = os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        )
         alembic_ini = os.path.join(base_dir, "alembic.ini")
 
         if os.path.exists(alembic_ini):

@@ -786,8 +786,7 @@ class ReporterAgent(BaseAgent):
         html_parts = []
 
         # HTML header
-        html_parts.append(
-            """
+        html_parts.append("""
         <!DOCTYPE html>
         <html lang="pt-BR">
         <head>
@@ -805,22 +804,19 @@ class ReporterAgent(BaseAgent):
             </style>
         </head>
         <body>
-        """
-        )
+        """)
 
         # Report content
         html_parts.append(
             f"<h1>Relatório: {request.report_type.value.replace('_', ' ').title()}</h1>"
         )
-        html_parts.append(
-            f"""
+        html_parts.append(f"""
         <div class="metadata">
             <strong>Data:</strong> {datetime.now(UTC).strftime('%d/%m/%Y %H:%M')}<br>
             <strong>ID da Investigação:</strong> {context.investigation_id}<br>
             <strong>Público-alvo:</strong> {request.target_audience}
         </div>
-        """
-        )
+        """)
 
         # Render sections
         for section in sorted(sections, key=lambda s: s.importance, reverse=True):
@@ -835,14 +831,12 @@ class ReporterAgent(BaseAgent):
             html_parts.append("</div>")
 
         # HTML footer
-        html_parts.append(
-            """
+        html_parts.append("""
         <hr>
         <p><em>Relatório gerado automaticamente pelo sistema Cidadão.AI</em></p>
         </body>
         </html>
-        """
-        )
+        """)
 
         return "\n".join(html_parts)
 

@@ -7,6 +7,7 @@ Testa:
 2. Integração com Orchestrator
 3. Busca real em APIs governamentais
 """
+
 import asyncio
 import sys
 from pathlib import Path

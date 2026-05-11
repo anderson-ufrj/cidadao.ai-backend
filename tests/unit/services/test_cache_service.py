@@ -7,7 +7,12 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from redis.exceptions import RedisError
 
-from src.services.cache_service import CacheService, CacheTTL, cache_result, cache_service
+from src.services.cache_service import (
+    CacheService,
+    CacheTTL,
+    cache_result,
+    cache_service,
+)
 
 
 class TestCacheTTL:
@@ -106,9 +111,7 @@ class TestCacheServiceOperations:
         """Test cache miss returns None."""
         service.redis.get = AsyncMock(return_value=None)
 
-        with patch(
-            "src.services.cache_service.metrics_manager.increment_counter"
-        ):
+        with patch("src.services.cache_service.metrics_manager.increment_counter"):
             result = await service.get("cidadao:test:nonexistent")
 
             assert result is None
@@ -120,9 +123,7 @@ class TestCacheServiceOperations:
         compressed = zlib.compress(original)
         service.redis.get = AsyncMock(return_value=compressed)
 
-        with patch(
-            "src.services.cache_service.metrics_manager.increment_counter"
-        ):
+        with patch("src.services.cache_service.metrics_manager.increment_counter"):
             result = await service.get("cidadao:test:key", decompress=True)
 
             assert result == {"data": "test"}
@@ -132,9 +133,7 @@ class TestCacheServiceOperations:
         """Test Redis error handling in get."""
         service.redis.get = AsyncMock(side_effect=RedisError("Connection failed"))
 
-        with patch(
-            "src.services.cache_service.metrics_manager.increment_counter"
-        ):
+        with patch("src.services.cache_service.metrics_manager.increment_counter"):
             result = await service.get("cidadao:test:key")
 
             assert result is None
@@ -159,12 +158,8 @@ class TestCacheServiceOperations:
         """Test setting dict value."""
         service.redis.setex = AsyncMock()
 
-        with patch(
-            "src.services.cache_service.metrics_manager.observe_histogram"
-        ):
-            result = await service.set(
-                "cidadao:test:key", {"data": "value"}, ttl=300
-            )
+        with patch("src.services.cache_service.metrics_manager.observe_histogram"):
+            result = await service.set("cidadao:test:key", {"data": "value"}, ttl=300)
 
             assert result is True
             service.redis.setex.assert_called_once()
@@ -175,9 +170,7 @@ class TestCacheServiceOperations:
         service.redis.setex = AsyncMock()
         large_value = {"data": "x" * 2000}
 
-        with patch(
-            "src.services.cache_service.metrics_manager.observe_histogram"
-        ):
+        with patch("src.services.cache_service.metrics_manager.observe_histogram"):
             result = await service.set(
                 "cidadao:test:key", large_value, ttl=300, compress=True
             )
@@ -189,9 +182,7 @@ class TestCacheServiceOperations:
         """Test setting without TTL."""
         service.redis.set = AsyncMock()
 
-        with patch(
-            "src.services.cache_service.metrics_manager.observe_histogram"
-        ):
+        with patch("src.services.cache_service.metrics_manager.observe_histogram"):
             result = await service.set("cidadao:test:key", "value")
 
             assert result is True
@@ -202,10 +193,9 @@ class TestCacheServiceOperations:
         """Test Redis error handling in set."""
         service.redis.setex = AsyncMock(side_effect=RedisError("Write failed"))
 
-        with patch(
-            "src.services.cache_service.metrics_manager.observe_histogram"
-        ), patch(
-            "src.services.cache_service.metrics_manager.increment_counter"
+        with (
+            patch("src.services.cache_service.metrics_manager.observe_histogram"),
+            patch("src.services.cache_service.metrics_manager.increment_counter"),
         ):
             result = await service.set("cidadao:test:key", "value", ttl=300)
 
@@ -274,9 +264,10 @@ class TestChatCaching:
             "hit_count": 5,
         }
 
-        with patch.object(service, "get") as mock_get, patch.object(
-            service, "set"
-        ) as mock_set:
+        with (
+            patch.object(service, "get") as mock_get,
+            patch.object(service, "set") as mock_set,
+        ):
             mock_get.return_value = cached_data
             mock_set.return_value = True
 
@@ -336,9 +327,10 @@ class TestSessionCaching:
     @pytest.mark.asyncio
     async def test_update_session_field_existing(self, service):
         """Test updating field in existing session."""
-        with patch.object(service, "get_session_state") as mock_get, patch.object(
-            service, "save_session_state"
-        ) as mock_save:
+        with (
+            patch.object(service, "get_session_state") as mock_get,
+            patch.object(service, "save_session_state") as mock_save,
+        ):
             mock_get.return_value = {"existing": "data"}
             mock_save.return_value = True
 
@@ -354,15 +346,14 @@ class TestSessionCaching:
     @pytest.mark.asyncio
     async def test_update_session_field_new_session(self, service):
         """Test updating field in new session."""
-        with patch.object(service, "get_session_state") as mock_get, patch.object(
-            service, "save_session_state"
-        ) as mock_save:
+        with (
+            patch.object(service, "get_session_state") as mock_get,
+            patch.object(service, "save_session_state") as mock_save,
+        ):
             mock_get.return_value = None
             mock_save.return_value = True
 
-            result = await service.update_session_field(
-                "session-new", "field", "value"
-            )
+            result = await service.update_session_field("session-new", "field", "value")
 
             assert result is True
 
@@ -563,9 +554,7 @@ class TestStampedeProtection:
         mock_pipeline.execute = AsyncMock(return_value=[None, -2])
         service.redis.pipeline = MagicMock(return_value=mock_pipeline)
 
-        result = await service.get_with_stampede_protection(
-            "cidadao:test:key", ttl=300
-        )
+        result = await service.get_with_stampede_protection("cidadao:test:key", ttl=300)
 
         assert result is None
 
@@ -575,14 +564,10 @@ class TestStampedeProtection:
         mock_pipeline = AsyncMock()
         mock_pipeline.get = MagicMock()
         mock_pipeline.ttl = MagicMock()
-        mock_pipeline.execute = AsyncMock(
-            return_value=['{"data": "value"}', 250]
-        )
+        mock_pipeline.execute = AsyncMock(return_value=['{"data": "value"}', 250])
         service.redis.pipeline = MagicMock(return_value=mock_pipeline)
 
-        result = await service.get_with_stampede_protection(
-            "cidadao:test:key", ttl=300
-        )
+        result = await service.get_with_stampede_protection("cidadao:test:key", ttl=300)
 
         assert result == {"data": "value"}
 
@@ -598,8 +583,9 @@ class TestCacheDecorator:
         async def expensive_function(x):
             return x * 2
 
-        with patch.object(CacheService, "get") as mock_get, patch.object(
-            CacheService, "set"
+        with (
+            patch.object(CacheService, "get") as mock_get,
+            patch.object(CacheService, "set"),
         ):
             mock_get.return_value = 10
 
@@ -615,9 +601,10 @@ class TestCacheDecorator:
         async def expensive_function(x):
             return x * 2
 
-        with patch.object(CacheService, "get") as mock_get, patch.object(
-            CacheService, "set"
-        ) as mock_set:
+        with (
+            patch.object(CacheService, "get") as mock_get,
+            patch.object(CacheService, "set") as mock_set,
+        ):
             mock_get.return_value = None
             mock_set.return_value = True
 
@@ -635,9 +622,10 @@ class TestCacheServiceLifecycle:
         """Test successful initialization."""
         service = CacheService()
 
-        with patch(
-            "src.services.cache_service.ConnectionPool.from_url"
-        ) as mock_pool, patch("src.services.cache_service.redis.Redis") as mock_redis:
+        with (
+            patch("src.services.cache_service.ConnectionPool.from_url") as mock_pool,
+            patch("src.services.cache_service.redis.Redis") as mock_redis,
+        ):
             mock_redis_instance = AsyncMock()
             mock_redis_instance.ping = AsyncMock()
             mock_redis.return_value = mock_redis_instance
@@ -654,9 +642,7 @@ class TestCacheServiceLifecycle:
         service = CacheService()
         service._initialized = True
 
-        with patch(
-            "src.services.cache_service.ConnectionPool.from_url"
-        ) as mock_pool:
+        with patch("src.services.cache_service.ConnectionPool.from_url") as mock_pool:
             await service.initialize()
 
             mock_pool.assert_not_called()
@@ -666,9 +652,7 @@ class TestCacheServiceLifecycle:
         """Test initialization failure."""
         service = CacheService()
 
-        with patch(
-            "src.services.cache_service.ConnectionPool.from_url"
-        ) as mock_pool:
+        with patch("src.services.cache_service.ConnectionPool.from_url") as mock_pool:
             mock_pool.side_effect = Exception("Connection failed")
 
             with pytest.raises(Exception):
