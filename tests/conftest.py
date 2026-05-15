@@ -16,6 +16,8 @@ from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 # Set test environment
 os.environ["ENVIRONMENT"] = "testing"
 os.environ["TESTING"] = "true"
+os.environ.setdefault("JWT_SECRET_KEY", "test-jwt-secret-key-do-not-use-in-production")
+os.environ.setdefault("SECRET_KEY", "test-secret-key-do-not-use-in-production")
 
 from src.api.app import app as app_instance  # noqa: E402
 from src.core.config import Settings  # noqa: E402
