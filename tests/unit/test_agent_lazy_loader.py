@@ -41,6 +41,18 @@ class TestAgentLazyLoader:
         """Create a lazy loader instance."""
         loader = AgentLazyLoader(unload_after_minutes=1, max_loaded_agents=3)
         await loader.start()
+        # Isolate each test from the default agents preloaded by start():
+        # keep the registry intact (available-agents tests rely on it) but drop
+        # the preloaded classes and reset the load/unload counters to zero.
+        for metadata in loader._registry.values():
+            metadata.loaded_class = None
+        loader._stats = {
+            "total_loads": 0,
+            "cache_hits": 0,
+            "cache_misses": 0,
+            "total_unloads": 0,
+            "avg_load_time_ms": 0.0,
+        }
         yield loader
         await loader.stop()
 
