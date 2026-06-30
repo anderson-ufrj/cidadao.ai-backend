@@ -433,16 +433,16 @@ class AgentLazyLoader:
             )
             return
 
-        # Unload the module
+        # Unload the agent class
         try:
-            # Remove class reference
+            # Drop the loader's reference to the class so it can be garbage
+            # collected once no other references remain. We deliberately do NOT
+            # delete the module from sys.modules: re-importing it later would
+            # re-execute the module and create duplicate class/function objects,
+            # breaking isinstance checks, unittest.mock patches, and any cached
+            # module-level singletons (e.g. the transparency collector) without
+            # actually reclaiming meaningful memory.
             metadata.loaded_class = None
-
-            # Try to remove from sys.modules
-            import sys
-
-            if metadata.module_path in sys.modules:
-                del sys.modules[metadata.module_path]
 
             self._stats["total_unloads"] += 1
 
