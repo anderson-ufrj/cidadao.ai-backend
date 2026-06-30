@@ -44,12 +44,12 @@ async def test_maritaca():
         from src.services.maritaca_client import MaritacaClient, MaritacaModel
 
         print(f"  API Key: {GREEN}{api_key[:20]}...{RESET}")
-        print(f"  Model: {GREEN}{os.getenv('MARITACA_MODEL', 'sabiazinho-3')}{RESET}")
+        print(f"  Model: {GREEN}{os.getenv('MARITACA_MODEL', 'sabiazinho-4')}{RESET}")
 
         # Initialize client
         client = MaritacaClient(
             api_key=api_key,
-            model=MaritacaModel(os.getenv("MARITACA_MODEL", "sabiazinho-3")),
+            model=MaritacaModel(os.getenv("MARITACA_MODEL", "sabiazinho-4")),
         )
 
         # Test prompt (Portuguese)

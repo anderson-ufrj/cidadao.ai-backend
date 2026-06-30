@@ -289,10 +289,10 @@ LEMBRE: "No meio do caminho tinha uma pedra" - vá direto ao essencial."""
             if api_key:
                 self.llm_client = MaritacaClient(
                     api_key=api_key,
-                    model=MaritacaModel.SABIAZINHO_3,  # Usando o modelo mais econômico
+                    model=MaritacaModel.SABIAZINHO_4,  # Usando o modelo mais econômico
                     timeout=30,
                 )
-                self.logger.info("Maritaca AI client initialized with Sabiazinho-3")
+                self.logger.info("Maritaca AI client initialized with Sabiazinho-4")
             else:
                 self.logger.warning(
                     "No MARITACA_API_KEY found, using fallback responses"

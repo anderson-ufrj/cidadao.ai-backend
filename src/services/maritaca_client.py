@@ -23,9 +23,8 @@ from src.core.exceptions import LLMError, LLMRateLimitError
 class MaritacaModel(str, Enum):
     """Available Maritaca AI models."""
 
-    SABIAZINHO_3 = "sabiazinho-3"  # Fast and economical (R$ 1.00/R$ 3.00 per 1M tokens)
-    SABIA_3 = "sabia-3"  # Legacy model (R$ 5.00/R$ 10.00 per 1M tokens)
-    SABIA_3_1 = "sabia-3.1"  # Latest and most advanced (R$ 5.00/R$ 10.00 per 1M tokens) - RECOMMENDED
+    SABIAZINHO_4 = "sabiazinho-4"  # Fast and economical
+    SABIA_4 = "sabia-4"  # Latest and most advanced - RECOMMENDED
 
 
 @dataclass
@@ -52,7 +51,7 @@ class MaritacaRequest(BaseModel):
     """Request format for Maritaca AI."""
 
     messages: list[MaritacaMessage] = Field(description="Conversation messages")
-    model: str = Field(default=MaritacaModel.SABIA_3, description="Model to use")
+    model: str = Field(default=MaritacaModel.SABIA_4, description="Model to use")
     temperature: float = Field(
         default=0.7, ge=0.0, le=2.0, description="Sampling temperature"
     )
@@ -88,7 +87,7 @@ class MaritacaClient:
         self,
         api_key: str,
         base_url: str = "https://chat.maritaca.ai/api",
-        model: str = MaritacaModel.SABIA_3_1,
+        model: str = MaritacaModel.SABIA_4,
         timeout: int = 60,
         max_retries: int = 3,
         circuit_breaker_threshold: int = 5,
@@ -594,7 +593,7 @@ class MaritacaClient:
 
 # Factory function for easy client creation
 def create_maritaca_client(
-    api_key: str, model: str = MaritacaModel.SABIA_3_1, **kwargs
+    api_key: str, model: str = MaritacaModel.SABIA_4, **kwargs
 ) -> MaritacaClient:
     """
     Create a Maritaca AI client with specified configuration.

@@ -2359,7 +2359,7 @@ async def chat_with_maritaca_direct(
     ```json
     {
       "id": "maritaca-1234567890",
-      "model": "sabiazinho-3",
+      "model": "sabia-4",
       "content": "Licitações públicas são processos...",
       "usage": {
         "prompt_tokens": 25,
@@ -2500,7 +2500,7 @@ async def maritaca_health_check() -> dict[str, Any]:
     ```json
     {
       "status": "healthy",
-      "model": "sabiazinho-3",
+      "model": "sabia-4",
       "api_base": "https://chat.maritaca.ai/api",
       "response_received": true,
       "checked_at": "2025-10-28T15:30:00Z"
@@ -2543,8 +2543,8 @@ async def list_maritaca_models() -> dict[str, Any]:
     {
       "models": [
         {
-          "id": "sabiazinho-3",
-          "name": "Sabiazinho-3",
+          "id": "sabiazinho-4",
+          "name": "Sabiazinho-4",
           "description": "Fast, efficient model for general use",
           "context_window": 8192,
           "recommended_for": ["chat", "quick_responses", "general_qa"],
@@ -2552,8 +2552,8 @@ async def list_maritaca_models() -> dict[str, Any]:
           "is_default": true
         },
         {
-          "id": "sabia-3",
-          "name": "Sabiá-3",
+          "id": "sabia-4",
+          "name": "Sabiá-4",
           "description": "Most capable model with advanced reasoning",
           "context_window": 32768,
           "recommended_for": ["analysis", "complex_reasoning", "long_context"],
@@ -2561,7 +2561,7 @@ async def list_maritaca_models() -> dict[str, Any]:
           "is_default": false
         }
       ],
-      "default_model": "sabiazinho-3"
+      "default_model": "sabia-4"
     }
     ```
 
@@ -2575,24 +2575,24 @@ async def list_maritaca_models() -> dict[str, Any]:
 
     models = [
         {
-            "id": "sabiazinho-3",
-            "name": "Sabiazinho-3",
+            "id": "sabiazinho-4",
+            "name": "Sabiazinho-4",
             "description": "Modelo rápido e eficiente para uso geral",
             "context_window": 8192,
             "recommended_for": ["chat", "respostas_rapidas", "perguntas_gerais"],
             "tier": "standard",
-            "is_default": settings.maritaca_model == "sabiazinho-3",
+            "is_default": settings.maritaca_model == "sabiazinho-4",
             "icon": "⚡",
             "color": "#00D9FF",
         },
         {
-            "id": "sabia-3",
-            "name": "Sabiá-3",
+            "id": "sabia-4",
+            "name": "Sabiá-4",
             "description": "Modelo mais avançado com raciocínio complexo",
             "context_window": 32768,
             "recommended_for": ["analise", "raciocinio_complexo", "contexto_longo"],
             "tier": "premium",
-            "is_default": settings.maritaca_model == "sabia-3",
+            "is_default": settings.maritaca_model == "sabia-4",
             "icon": "🧠",
             "color": "#FF6B35",
         },

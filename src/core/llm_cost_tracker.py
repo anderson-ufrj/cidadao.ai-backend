@@ -38,18 +38,14 @@ class LLMUsage:
 LLM_COSTS = {
     # Maritaca AI (Brazilian provider) - Prices in BRL converted to USD (~5.5 BRL/USD)
     "maritaca": {
-        "sabiazinho-3": {
+        "sabiazinho-4": {
             "input": 0.18,
             "output": 0.55,
-        },  # R$ 1.00/R$ 3.00 per 1M tokens - Fast and economical
-        "sabia-3": {
+        },  # Fast and economical — TODO: confirm official sabiazinho-4 pricing (carried over from sabiazinho-3)
+        "sabia-4": {
             "input": 0.91,
             "output": 1.82,
-        },  # R$ 5.00/R$ 10.00 per 1M tokens - Legacy model
-        "sabia-3.1": {
-            "input": 0.91,
-            "output": 1.82,
-        },  # R$ 5.00/R$ 10.00 per 1M tokens - Latest and most advanced (RECOMMENDED)
+        },  # Latest and most advanced (RECOMMENDED) — TODO: confirm official sabia-4 pricing (carried over from sabia-3.1)
     },
     # Anthropic Claude
     "anthropic": {

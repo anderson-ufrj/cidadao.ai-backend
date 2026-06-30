@@ -21,7 +21,7 @@ os.environ["SECRET_KEY"] = "test_secret"
 
 # Forçar o uso do Maritaca como provider
 os.environ["LLM_PROVIDER"] = "maritaca"
-os.environ["LLM_MODEL_NAME"] = "sabiazinho-3"  # Modelo mais econômico
+os.environ["LLM_MODEL_NAME"] = "sabiazinho-4"  # Modelo mais econômico
 
 
 async def test_maritaca_provider():
@@ -241,7 +241,7 @@ Para usar em produção (Railway):
 1. Configure no Railway Dashboard:
    - LLM_PROVIDER=maritaca
    - MARITACA_API_KEY=sk-xxxxx
-   - LLM_MODEL_NAME=sabiazinho-3
+   - LLM_MODEL_NAME=sabiazinho-4
 
 2. Reinicie o serviço no Railway
 
