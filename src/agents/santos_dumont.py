@@ -1413,7 +1413,7 @@ Quer conhecer algum em detalhe?
 # .env
 LLM_PROVIDER=maritaca
 MARITACA_API_KEY=sua-chave
-MARITACA_MODEL=sabia-3.1  # ou sabiazinho-3 (mais rápido)
+MARITACA_MODEL=sabia-4  # ou sabiazinho-4 (mais rápido)
 
 # Backup (opcional)
 ANTHROPIC_API_KEY=sua-chave-backup

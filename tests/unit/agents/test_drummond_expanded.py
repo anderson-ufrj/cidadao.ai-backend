@@ -369,7 +369,7 @@ class TestNotificationSystem:
         # Mock LLM response
         mock_response = Mock()
         mock_response.content = "Summary generated"
-        mock_response.model = "sabiazinho-3"
+        mock_response.model = "sabiazinho-4"
         mock_response.usage = {"total_tokens": 100}
 
         with patch.object(
@@ -390,7 +390,7 @@ class TestNotificationSystem:
 
         mock_response = Mock()
         mock_response.content = "Hello, this is a translation test."
-        mock_response.model = "sabiazinho-3"
+        mock_response.model = "sabiazinho-4"
         mock_response.usage = {"total_tokens": 50}
 
         with patch.object(
@@ -661,7 +661,7 @@ class TestEdgeCases:
         # Mock LLM response for contextual generation
         mock_response = Mock()
         mock_response.content = "Esta é uma resposta contextual."
-        mock_response.model = "sabiazinho-3"
+        mock_response.model = "sabiazinho-4"
         mock_response.usage = {"total_tokens": 50}
 
         with patch.object(

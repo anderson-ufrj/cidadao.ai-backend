@@ -215,7 +215,7 @@ if __name__ == "__main__":
    - Confirme que existe:
      • LLM_PROVIDER=maritaca
      • MARITACA_API_KEY=sk-xxxxx
-     • LLM_MODEL_NAME=sabiazinho-3
+     • LLM_MODEL_NAME=sabiazinho-4
 
 2. VERIFICAR LOGS DO RAILWAY:
    - Procure por erros relacionados a:

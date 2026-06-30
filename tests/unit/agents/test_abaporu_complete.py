@@ -36,7 +36,7 @@ def master_agent():
         )
     )
     mock_maritaca.health_check = AsyncMock(
-        return_value={"status": "healthy", "model": "sabiazinho-3"}
+        return_value={"status": "healthy", "model": "sabiazinho-4"}
     )
     mock_maritaca.shutdown = AsyncMock()
 

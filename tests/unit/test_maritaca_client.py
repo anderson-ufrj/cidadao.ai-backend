@@ -51,7 +51,7 @@ def mock_response_data():
         "id": "test-123",
         "object": "chat.completion",
         "created": 1234567890,
-        "model": "sabia-3",
+        "model": "sabia-4",
         "choices": [
             {
                 "index": 0,
@@ -75,18 +75,18 @@ class TestMaritacaClient:
         # Default initialization
         client = MaritacaClient(api_key=mock_api_key)
         assert client.api_key == mock_api_key
-        assert client.default_model == MaritacaModel.SABIA_3_1
+        assert client.default_model == MaritacaModel.SABIA_4
         assert client.timeout == 60
         assert client.max_retries == 3
 
         # Custom initialization
         custom_client = MaritacaClient(
             api_key=mock_api_key,
-            model=MaritacaModel.SABIA_3,
+            model=MaritacaModel.SABIAZINHO_4,
             timeout=30,
             max_retries=5,
         )
-        assert custom_client.default_model == MaritacaModel.SABIA_3
+        assert custom_client.default_model == MaritacaModel.SABIAZINHO_4
         assert custom_client.timeout == 30
         assert custom_client.max_retries == 5
 
@@ -113,7 +113,7 @@ class TestMaritacaClient:
                 response.content
                 == "Olá! Estou bem, obrigado por perguntar. Como posso ajudá-lo hoje?"
             )
-            assert response.model == "sabia-3"
+            assert response.model == "sabia-4"
             assert response.usage["total_tokens"] == 35
             assert response.finish_reason == "stop"
 
@@ -210,7 +210,7 @@ class TestMaritacaClient:
         with patch.object(maritaca_client, "chat_completion") as mock_completion:
             mock_completion.return_value = MaritacaResponse(
                 content="Olá",
-                model="sabia-3",
+                model="sabia-4",
                 usage={"total_tokens": 10},
                 metadata={},
                 response_time=0.5,
@@ -238,12 +238,12 @@ class TestMaritacaClient:
     def test_factory_function(self, mock_api_key):
         """Test factory function for client creation."""
         client = create_maritaca_client(
-            api_key=mock_api_key, model=MaritacaModel.SABIAZINHO_3, timeout=45
+            api_key=mock_api_key, model=MaritacaModel.SABIAZINHO_4, timeout=45
         )
 
         assert isinstance(client, MaritacaClient)
         assert client.api_key == mock_api_key
-        assert client.default_model == MaritacaModel.SABIAZINHO_3
+        assert client.default_model == MaritacaModel.SABIAZINHO_4
         assert client.timeout == 45
 
 

@@ -841,7 +841,7 @@ class TestDrummondAgent:
 
         if drummond_agent.llm_client:
             mock_response = Mock(
-                content="Resposta com contexto", model="sabiazinho-3", usage={}
+                content="Resposta com contexto", model="sabiazinho-4", usage={}
             )
             drummond_agent.llm_client.chat = AsyncMock(return_value=mock_response)
 

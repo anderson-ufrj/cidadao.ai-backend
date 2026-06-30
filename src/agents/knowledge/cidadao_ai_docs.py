@@ -87,7 +87,7 @@ User Query → IntentClassifier → EntityExtractor → ExecutionPlanner
             "framework_web": "FastAPI",
             "banco_dados": "PostgreSQL (SQLAlchemy async)",
             "cache": "Redis",
-            "llm_primario": "Maritaca AI (sabia-3)",
+            "llm_primario": "Maritaca AI (sabia-4)",
             "llm_backup": "Anthropic Claude",
             "orquestracao_llm": "DSPy",
             "task_queue": "Celery",
@@ -485,7 +485,7 @@ cp .env.example .env
             "llm": {
                 "LLM_PROVIDER": "maritaca ou anthropic",
                 "MARITACA_API_KEY": "Chave da Maritaca AI (primário)",
-                "MARITACA_MODEL": "sabia-3 ou sabiazinho-3",
+                "MARITACA_MODEL": "sabia-4 ou sabiazinho-4",
                 "ANTHROPIC_API_KEY": "Chave da Anthropic (backup)",
             },
             "opcionais": {
