@@ -85,7 +85,7 @@ def master_agent(mock_agent_registry):
     )
     # Mock health_check
     mock_maritaca.health_check = AsyncMock(
-        return_value={"status": "healthy", "model": "sabiazinho-3"}
+        return_value={"status": "healthy", "model": "sabiazinho-4"}
     )
     # Mock shutdown
     mock_maritaca.shutdown = AsyncMock()

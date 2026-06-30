@@ -464,14 +464,14 @@ class DSPyAgentService:
             # Maritaca uses OpenAI-compatible API
             # Use openai/ prefix for LiteLLM to recognize it as OpenAI-compatible
             self.lm = dspy.LM(
-                model="openai/sabia-3",
+                model="openai/sabia-4",
                 api_key=api_key,
                 api_base="https://chat.maritaca.ai/api",
                 temperature=0.7,
                 max_tokens=1024,
             )
             dspy.configure(lm=self.lm)
-            logger.info("DSPy configured with Maritaca LLM (sabia-3)")
+            logger.info("DSPy configured with Maritaca LLM (sabia-4)")
 
         except Exception as e:
             logger.error(f"Failed to configure DSPy with Maritaca: {e}")

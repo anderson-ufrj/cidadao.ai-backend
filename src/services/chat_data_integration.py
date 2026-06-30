@@ -34,7 +34,7 @@ class ChatDataIntegration:
                 else api_key
             )
             self.ai_client = MaritacaClient(
-                api_key=api_key_value, model=MaritacaModel.SABIAZINHO_3
+                api_key=api_key_value, model=MaritacaModel.SABIAZINHO_4
             )
 
     async def process_user_query(
