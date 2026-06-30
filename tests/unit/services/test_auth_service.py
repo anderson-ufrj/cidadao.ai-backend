@@ -367,8 +367,11 @@ class TestTokenVerification:
     @pytest.mark.asyncio
     async def test_verify_token_invalid(self, service):
         """Test verifying invalid token."""
-        with pytest.raises(AuthenticationError, match="Invalid token"):
-            await service.verify_token("invalid.token.here")
+        with patch("src.services.auth_service.settings") as mock_settings:
+            mock_settings.JWT_SECRET_KEY = "test-secret-key"
+
+            with pytest.raises(AuthenticationError, match="Invalid token"):
+                await service.verify_token("invalid.token.here")
 
 
 class TestTokenBlacklist:
