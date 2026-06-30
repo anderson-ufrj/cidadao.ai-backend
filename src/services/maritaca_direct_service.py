@@ -33,7 +33,7 @@ class MaritacaChatRequest(BaseModel):
     max_tokens: int = Field(default=2048, ge=1, le=8192)
     stream: bool = Field(default=False)
     model: str | None = Field(
-        default=None, description="Override default model (sabiazinho-3)"
+        default=None, description="Override default model (sabia-4)"
     )
 
 

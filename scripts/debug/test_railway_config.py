@@ -90,7 +90,7 @@ Se a investigação está falhando:
    - Confirme que existe:
      • LLM_PROVIDER=maritaca
      • MARITACA_API_KEY=sk-... (sua chave real)
-     • LLM_MODEL_NAME=sabiazinho-3
+     • LLM_MODEL_NAME=sabiazinho-4
 
 2. VERIFICAR LOGS NO RAILWAY:
    - Vá em Logs

@@ -105,8 +105,8 @@ class Settings(BaseSettings):
         description="LLM provider (maritaca, anthropic, groq, together, huggingface)",
     )
     llm_model_name: str = Field(
-        default="sabia-3.1",
-        description="LLM model name (maritaca: sabia-3.1, sabiazinho-3; anthropic: claude-sonnet-4-20250514)",
+        default="sabia-4",
+        description="LLM model name (maritaca: sabia-4, sabiazinho-4; anthropic: claude-sonnet-4-20250514)",
     )
     llm_temperature: float = Field(default=0.7, description="LLM temperature")
     llm_max_tokens: int = Field(default=2048, description="Max tokens")
@@ -141,8 +141,8 @@ class Settings(BaseSettings):
         default="https://chat.maritaca.ai/api", description="Maritaca AI base URL"
     )
     maritaca_model: str = Field(
-        default="sabia-3.1",
-        description="Default Maritaca AI model (sabia-3.1 latest/recommended, sabia-3 legacy, sabiazinho-3 for speed)",
+        default="sabia-4",
+        description="Default Maritaca AI model (sabia-4 latest/recommended, sabiazinho-4 for speed)",
     )
 
     # Anthropic Claude Configuration
