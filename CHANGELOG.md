@@ -3,7 +3,7 @@
 **Author**: Anderson Henrique da Silva
 **Location**: Minas Gerais, Brazil
 **Created**: 2025-08-13
-**Last Updated**: 2026-02-25
+**Last Updated**: 2026-06-30
 
 ---
 
@@ -11,6 +11,24 @@ All notable changes to the Cidadão.AI Backend project will be documented in thi
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
+## [Unreleased]
+
+### Fixed
+- **Agent lazy loader no longer deletes modules from `sys.modules` on unload** (`agent_lazy_loader.py`)
+  - `_unload_agent` removed the agent's module from `sys.modules`, so any later import re-executed it and produced duplicate class/function objects
+  - Broke `isinstance` checks, `unittest.mock` patches targeting the module, and module-level singletons (e.g. the transparency collector) after any agent unload
+  - Now only drops the class reference (`loaded_class = None`), which already releases memory
+  - Root cause of 10 ordering-dependent unit-test failures (Zumbi, Anita) that passed in isolation but failed once the agent pool triggered an unload
+- **Investigation execution crashed building `AgentContext`** (`investigation_service.py`)
+  - `data_sources` was passed as a constructor kwarg, but `AgentContext` has no such field, raising `TypeError` on every investigation
+  - Now passed through `AgentContext.metadata`
+- **`json_utils.dumps` rejected `sort_keys`** (`json_utils.py`)
+  - `cache_service` built deterministic cache keys with `sort_keys=True`, crashing the search-cache path
+  - Added `sort_keys` keyword (maps to `orjson.OPT_SORT_KEYS`)
+- **Realigned drifted unit tests with current code** — Anita spectral-analysis signature `(data, context)`, `test_verify_token_invalid` settings mock, and lazy-loader fixture isolation from default-agent preloading
 
 ---
 
