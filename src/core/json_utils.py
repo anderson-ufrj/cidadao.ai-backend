@@ -31,13 +31,14 @@ def default(obj: Any) -> Any:
     raise TypeError(f"Type {type(obj)} not serializable")
 
 
-def dumps(obj: Any, *, indent: bool = False) -> str:
+def dumps(obj: Any, *, indent: bool = False, sort_keys: bool = False) -> str:
     """
     Serialize obj to a JSON formatted string using orjson.
 
     Args:
         obj: Object to serialize
         indent: Whether to indent the output (slower but prettier)
+        sort_keys: Whether to sort object keys (recursive, deterministic output)
 
     Returns:
         JSON string
@@ -45,6 +46,8 @@ def dumps(obj: Any, *, indent: bool = False) -> str:
     options = orjson.OPT_NON_STR_KEYS | orjson.OPT_SERIALIZE_NUMPY
     if indent:
         options |= orjson.OPT_INDENT_2
+    if sort_keys:
+        options |= orjson.OPT_SORT_KEYS
 
     return orjson.dumps(obj, default=default, option=options).decode("utf-8")
 

@@ -121,7 +121,9 @@ class InvestigationService:
             context = AgentContext(
                 investigation_id=investigation.id,
                 user_id=investigation.user_id,
-                data_sources=investigation.metadata.get("data_sources", []),
+                metadata={
+                    "data_sources": investigation.metadata.get("data_sources", []),
+                },
             )
 
             # Execute with master agent
