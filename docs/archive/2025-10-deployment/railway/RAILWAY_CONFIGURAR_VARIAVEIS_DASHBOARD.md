@@ -43,7 +43,7 @@ Você vai **DELETAR** as Shared Variables que não funcionam e criar as variáve
 4. **Procure a variável `DATABASE_URL`**
    O valor será algo como:
    ```
-   postgresql://postgres:***REDACTED-PG-PASSWORD***@postgres.railway.internal:5432/railway
+   postgresql://postgres:<POSTGRES_PASSWORD>@postgres.railway.internal:5432/railway
    ```
 
 5. **Clique no ícone de COPIAR** 📋 ao lado do valor
@@ -63,7 +63,7 @@ Você vai **DELETAR** as Shared Variables que não funcionam e criar as variáve
 4. **Procure a variável `REDIS_URL`**
    O valor será algo como:
    ```
-   redis://default:***REDACTED-REDIS-PASSWORD***@cidadao-redis.railway.internal:6379
+   redis://default:<REDIS_PASSWORD>@cidadao-redis.railway.internal:6379
    ```
 
 5. **Clique no ícone de COPIAR** 📋

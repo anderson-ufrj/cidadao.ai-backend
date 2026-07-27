@@ -74,7 +74,7 @@
 
 ### 1. API Key tem Permissões Limitadas
 
-Nossa API key (`***REDACTED-TRANSPARENCY-KEY***`) tem acesso a:
+Nossa API key (`<YOUR_TRANSPARENCY_API_KEY>`) tem acesso a:
 - ✅ Dados de programas sociais (Bolsa Família)
 - ✅ Provavelmente outros dados agregados
 - ❌ **NÃO tem acesso a dados individuais de servidores públicos**
@@ -154,7 +154,7 @@ BASE_URL = "https://api.portaldatransparencia.gov.br/api-de-dados"
 
 # Nossa chamada
 GET /servidores/09842860639/remuneracao?mesAno=08/2024
-Headers: chave-api-dados: ***REDACTED-TRANSPARENCY-KEY***
+Headers: chave-api-dados: <YOUR_TRANSPARENCY_API_KEY>
 
 # Resposta da API
 403 Forbidden
