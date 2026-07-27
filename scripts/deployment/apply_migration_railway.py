@@ -2,12 +2,13 @@
 """
 Apply investigations table migration to Railway PostgreSQL
 """
+import os
 import sys
 
 import psycopg2
 
 # Railway PostgreSQL connection
-DATABASE_URL = "postgresql://postgres:ymDpsVmsGYUCTVSNHJXVnHszSAKHCevH@centerbeam.proxy.rlwy.net:38094/railway"
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 SQL_MIGRATION = """
 -- Create investigations table

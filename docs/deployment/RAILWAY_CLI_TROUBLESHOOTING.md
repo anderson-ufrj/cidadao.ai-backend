@@ -111,7 +111,7 @@ $ railway login
 
 ### Erro 2: Token não persiste
 ```bash
-$ export RAILWAY_TOKEN=4ad776e7-c7f9-42d5-a259-4b586c944af1
+$ export RAILWAY_TOKEN=<YOUR_RAILWAY_TOKEN>
 $ railway whoami
 Error: Unauthorized
 ```

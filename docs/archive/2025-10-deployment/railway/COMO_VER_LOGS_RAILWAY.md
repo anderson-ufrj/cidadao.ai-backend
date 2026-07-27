@@ -45,7 +45,7 @@ O Railway CLI v4.10.0 tem um **bug de autenticação** conhecido:
 
 ```bash
 # ❌ Não funciona
-export RAILWAY_TOKEN=9c8d2a3d-bf20-454e-8fe1-8296c5e57fa7
+export RAILWAY_TOKEN=<YOUR_RAILWAY_TOKEN>
 railway logs
 
 # ❌ Não funciona
@@ -64,7 +64,7 @@ Unauthorized. Please login with `railway login`
 
 **1. Ver status do projeto:**
 ```bash
-export RAILWAY_TOKEN=9c8d2a3d-bf20-454e-8fe1-8296c5e57fa7
+export RAILWAY_TOKEN=<YOUR_RAILWAY_TOKEN>
 railway status
 ```
 
@@ -77,7 +77,7 @@ Service: None
 
 **2. Ver variáveis de ambiente:**
 ```bash
-export RAILWAY_TOKEN=9c8d2a3d-bf20-454e-8fe1-8296c5e57fa7
+export RAILWAY_TOKEN=<YOUR_RAILWAY_TOKEN>
 railway run --service Postgres env | grep DATABASE
 ```
 
@@ -106,7 +106,7 @@ import asyncpg
 
 async def main():
     conn = await asyncpg.connect(
-        "postgresql://postgres:ymDpsVmsGYUCTVSNHJXVnHszSAKHCevH@centerbeam.proxy.rlwy.net:38094/railway"
+        "postgresql://postgres:<POSTGRES_PASSWORD>@centerbeam.proxy.rlwy.net:38094/railway"
     )
     count = await conn.fetchval("SELECT COUNT(*) FROM investigations")
     print(f"Total investigations: {count}")
@@ -216,7 +216,7 @@ echo "3. PostgreSQL Railway:"
 venv/bin/python -c "
 import asyncio, asyncpg
 async def main():
-    conn = await asyncpg.connect('postgresql://postgres:ymDpsVmsGYUCTVSNHJXVnHszSAKHCevH@centerbeam.proxy.rlwy.net:38094/railway')
+    conn = await asyncpg.connect('postgresql://postgres:<POSTGRES_PASSWORD>@centerbeam.proxy.rlwy.net:38094/railway')
     count = await conn.fetchval('SELECT COUNT(*) FROM investigations')
     print(f'   Investigações: {count}')
     await conn.close()

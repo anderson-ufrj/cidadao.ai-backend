@@ -10,13 +10,14 @@ Date: 2025-11-21
 
 import asyncio
 import json
+import os
 import sys
 from datetime import datetime
 
 import httpx
 
 # API Configuration
-API_KEY = "e24f842355f7211a2f4895e301aa5bca"
+API_KEY = os.getenv("TRANSPARENCY_API_KEY", "")
 BASE_URL = "https://api.portaldatransparencia.gov.br/api-de-dados"
 
 

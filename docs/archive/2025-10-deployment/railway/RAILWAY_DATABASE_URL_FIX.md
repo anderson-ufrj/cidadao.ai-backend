@@ -52,7 +52,7 @@ postgresql://postgres:SENHA@HOST:PORTA/railway
 
 **Via Railway CLI:**
 ```bash
-export RAILWAY_TOKEN=9c8d2a3d-bf20-454e-8fe1-8296c5e57fa7
+export RAILWAY_TOKEN=<YOUR_RAILWAY_TOKEN>
 
 # Listar variáveis do Postgres
 railway variables --service Postgres
@@ -73,14 +73,14 @@ railway variables --service Postgres
 
 **Opção B: Via Railway CLI**
 ```bash
-export RAILWAY_TOKEN=9c8d2a3d-bf20-454e-8fe1-8296c5e57fa7
+export RAILWAY_TOKEN=<YOUR_RAILWAY_TOKEN>
 
 # Vincular ao projeto e serviço
 railway link 56a814f2-e891-4b63-b20f-1dd8f8b356fc
 railway service cidadao-api
 
 # Adicionar variável (substitua pela URL real)
-railway variables set DATABASE_URL="postgresql://postgres:ymDpsVmsGYUCTVSNHJXVnHszSAKHCevH@centerbeam.proxy.rlwy.net:38094/railway"
+railway variables set DATABASE_URL="postgresql://postgres:<POSTGRES_PASSWORD>@centerbeam.proxy.rlwy.net:38094/railway"
 
 # Forçar redeploy
 railway up

@@ -28,7 +28,7 @@ O backend **TEM** a `TRANSPARENCY_API_KEY` configurada e a chave **FUNCIONA**, m
 ### 1. API Key Funciona ✅
 
 ```bash
-curl -H 'chave-api-dados: e24f842355f7211a2f4895e301aa5bca' \
+curl -H 'chave-api-dados: <YOUR_TRANSPARENCY_API_KEY>' \
   'https://api.portaldatransparencia.gov.br/api-de-dados/contratos?codigoOrgao=26000&pagina=1'
 ```
 

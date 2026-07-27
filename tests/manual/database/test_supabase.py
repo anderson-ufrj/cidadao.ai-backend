@@ -23,9 +23,7 @@ async def test_supabase_connection():
 
     # Set environment variables
     os.environ["SUPABASE_URL"] = "https://pbsiyuattnwgohvkkkks.supabase.co"
-    os.environ["SUPABASE_SERVICE_ROLE_KEY"] = (
-        "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBic2l5dWF0dG53Z29odmtra2tzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzU1NTg3MCwiZXhwIjoyMDUzMTMxODcwfQ.aCtc21nAF5aw23FiP9z-fmUQMfjptW93gXD9oZfqRoE"
-    )
+    os.environ.setdefault("SUPABASE_SERVICE_ROLE_KEY", "")
 
     # Import service
     from src.services.investigation_service_supabase_rest import (

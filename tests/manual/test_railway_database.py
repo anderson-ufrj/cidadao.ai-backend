@@ -3,12 +3,13 @@
 Test Railway PostgreSQL Connection and Investigations Table
 """
 
+import os
 import sys
 
 import psycopg2
 
 # Railway PostgreSQL connection
-DATABASE_URL = "postgresql://postgres:ymDpsVmsGYUCTVSNHJXVnHszSAKHCevH@centerbeam.proxy.rlwy.net:38094/railway"
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 
 
 def main():

@@ -43,7 +43,7 @@ Host: centerbeam.proxy.rlwy.net
 Port: 38094
 Database: railway
 User: postgres
-Password: ymDpsVmsGYUCTVSNHJXVnHszSAKHCevH
+Password: <POSTGRES_PASSWORD>
 ```
 
 ---
@@ -75,22 +75,22 @@ SUPABASE_MAX_CONNECTIONS
 **MANTER (não mexer):**
 ```bash
 # LLM Providers
-MARITACA_API_KEY=114276428450504196312_22f92d14b8c6e836
+MARITACA_API_KEY=<YOUR_MARITACA_API_KEY>
 MARITACA_MODEL=sabiazinho-3
 LLM_PROVIDER=maritaca
-ANTHROPIC_API_KEY=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
+ANTHROPIC_API_KEY=sk-ant-api03-REDACTED
 ANTHROPIC_MODEL=claude-sonnet-4-20250514
 
 # Security
-JWT_SECRET_KEY=TOE5pPSfQRNqoQigSZmXS6xwYV4-giADkDClR-584jCUocothaIEsJbAW5vT7F8YbIXP0fcxOSVBtD_GWRT9Pg
-SECRET_KEY=CPE3OM2D2Qn2ie4-lI4fqmMCm_-pCIDPduLnfe7mX-4mZowcgaaJ7YDiwF5dHH0HrKYD2YSvqRnCZXj-NRwRIQ
+JWT_SECRET_KEY=<YOUR_JWT_SECRET_KEY>
+SECRET_KEY=<YOUR_SECRET_KEY>
 
 # Environment
 ENVIRONMENT=production
 DEBUG=false
 
 # APIs
-TRANSPARENCY_API_KEY=e24f842355f7211a2f4895e301aa5bca
+TRANSPARENCY_API_KEY=<YOUR_TRANSPARENCY_API_KEY>
 DADOS_GOV_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 # System
@@ -160,7 +160,7 @@ SELECT * FROM investigations ORDER BY created_at DESC LIMIT 5;
 1. Verifique se DATABASE_URL=${{Postgres.DATABASE_URL}}
 2. Execute novamente o script de criação:
    ```bash
-   export RAILWAY_TOKEN=9c8d2a3d-bf20-454e-8fe1-8296c5e57fa7
+   export RAILWAY_TOKEN=<YOUR_RAILWAY_TOKEN>
    railway run --service Postgres venv/bin/python scripts/deployment/setup_railway_database.py
    ```
 

@@ -354,7 +354,7 @@ async def _search_contracts(self, message: str, entities: dict) -> dict:
   - [ ] Análise multi-agente (Zumbi + Oxóssi + Bonifácio + etc.)
 
 - [ ] **3. Verificar API key do Portal**
-  - [ ] Testar se key `e24f842355f7211a2f4895e301aa5bca` funciona
+  - [ ] Testar se key `<YOUR_TRANSPARENCY_API_KEY>` funciona
   - [ ] Fazer chamada HTTP direta para validar
   - [ ] Se não funcionar, usar PNCP como alternativa
 
@@ -378,7 +378,7 @@ async def _search_contracts(self, message: str, entities: dict) -> dict:
 ```bash
 # Testar se API key funciona
 curl -X GET "https://api.portaldatransparencia.gov.br/api-de-dados/contratos" \
-  -H "chave-api-dados: e24f842355f7211a2f4895e301aa5bca" \
+  -H "chave-api-dados: <YOUR_TRANSPARENCY_API_KEY>" \
   -d "codigoOrgao=26000&dataInicial=01/01/2024&dataFinal=31/12/2024"
 ```
 

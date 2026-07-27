@@ -61,7 +61,7 @@ REDIS_URL=redis://...
 GROQ_API_KEY=gsk_...
 
 # Portal da Transparência (OPCIONAL)
-TRANSPARENCY_API_KEY=e24f842355f7211a2f4895e301aa5bca
+TRANSPARENCY_API_KEY=<YOUR_TRANSPARENCY_API_KEY>
 ```
 
 #### 2.3. Verificar Health
