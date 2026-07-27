@@ -65,10 +65,10 @@ Você precisa adicionar as variáveis em **TODOS os 3 serviços**:
 SUPABASE_URL=https://pbsiyuattnwgohvkkkks.supabase.co
 
 # Variável 2
-SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBic2l5dWF0dG53Z29odmtra2tzIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTczNzU1NTg3MCwiZXhwIjoyMDUzMTMxODcwfQ.aCtc21nAF5aw23FiP9z-fmUQMfjptW93gXD9oZfqRoE
+SUPABASE_SERVICE_ROLE_KEY=<YOUR_SUPABASE_SERVICE_ROLE_KEY>
 
 # Variável 3 (opcional mas recomendado)
-SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBic2l5dWF0dG53Z29odmtra2tzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzc1NTU4NzAsImV4cCI6MjA1MzEzMTg3MH0.lCIslpyNJZ0bv3dDuZ9AKM-SHw2mYiITNc4lzPJlY04
+SUPABASE_ANON_KEY=<YOUR_SUPABASE_ANON_KEY>
 ```
 
 5. **Salvar**: Railway vai automaticamente redesplegar

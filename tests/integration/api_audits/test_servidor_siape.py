@@ -10,11 +10,12 @@ Date: 2025-11-21
 
 import asyncio
 import json
+import os
 import sys
 
 import httpx
 
-API_KEY = "***REDACTED-TRANSPARENCY-KEY***"
+API_KEY = os.getenv("TRANSPARENCY_API_KEY", "")
 BASE_URL = "https://api.portaldatransparencia.gov.br/api-de-dados"
 
 

@@ -73,18 +73,18 @@ REDIS_URL=${{cidadao-redis.REDIS_URL}}
 # ============================================================================
 # LLM PROVIDERS (manter como está)
 # ============================================================================
-MARITACA_API_KEY=114276428450504196312_22f92d14b8c6e836
+MARITACA_API_KEY=<YOUR_MARITACA_API_KEY>
 MARITACA_MODEL=sabiazinho-3
 LLM_PROVIDER=maritaca
 
-ANTHROPIC_API_KEY=***REDACTED-ANTHROPIC-KEY***
+ANTHROPIC_API_KEY=sk-ant-api03-REDACTED
 ANTHROPIC_MODEL=claude-sonnet-4-20250514
 
 # ============================================================================
 # SECURITY (manter como está)
 # ============================================================================
-JWT_SECRET_KEY=TOE5pPSfQRNqoQigSZmXS6xwYV4-giADkDClR-584jCUocothaIEsJbAW5vT7F8YbIXP0fcxOSVBtD_GWRT9Pg
-SECRET_KEY=CPE3OM2D2Qn2ie4-lI4fqmMCm_-pCIDPduLnfe7mX-4mZowcgaaJ7YDiwF5dHH0HrKYD2YSvqRnCZXj-NRwRIQ
+JWT_SECRET_KEY=<YOUR_JWT_SECRET_KEY>
+SECRET_KEY=<YOUR_SECRET_KEY>
 
 # ============================================================================
 # ENVIRONMENT (manter como está)
@@ -95,7 +95,7 @@ DEBUG=false
 # ============================================================================
 # APIS GOVERNAMENTAIS (manter como está)
 # ============================================================================
-TRANSPARENCY_API_KEY=***REDACTED-TRANSPARENCY-KEY***
+TRANSPARENCY_API_KEY=<YOUR_TRANSPARENCY_API_KEY>
 DADOS_GOV_API_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
 
 # ============================================================================

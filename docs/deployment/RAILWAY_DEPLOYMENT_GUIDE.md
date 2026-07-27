@@ -39,7 +39,7 @@ The project uses a **Project Token** for authentication, configured in `~/.bashr
 
 ```bash
 # Railway CLI - Project Token (cidadao.ai)
-export RAILWAY_TOKEN=d2d7c6a7-e999-4d3e-b11d-67b76e4e5678
+export RAILWAY_TOKEN=<YOUR_RAILWAY_TOKEN>
 ```
 
 ### Essential Commands
