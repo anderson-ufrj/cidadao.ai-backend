@@ -100,7 +100,7 @@ else:
 **Direct Portal API Call** (using our configured key):
 ```bash
 curl "https://api.portaldatransparencia.gov.br/api-de-dados/contratos?codigoOrgao=36000&pagina=1" \
-  -H "chave-api-dados: ***REDACTED-TRANSPARENCY-KEY***"
+  -H "chave-api-dados: <YOUR_TRANSPARENCY_API_KEY>"
 ```
 
 **Result**: ✅ **WORKING** - Returns real government contracts:

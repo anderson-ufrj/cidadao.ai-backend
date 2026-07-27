@@ -65,10 +65,10 @@ Você precisa adicionar as variáveis em **TODOS os 3 serviços**:
 SUPABASE_URL=https://pbsiyuattnwgohvkkkks.supabase.co
 
 # Variável 2
-SUPABASE_SERVICE_ROLE_KEY=***REMOVED-JWT***
+SUPABASE_SERVICE_ROLE_KEY=<YOUR_SUPABASE_SERVICE_ROLE_KEY>
 
 # Variável 3 (opcional mas recomendado)
-SUPABASE_ANON_KEY=***REMOVED-JWT***
+SUPABASE_ANON_KEY=<YOUR_SUPABASE_ANON_KEY>
 ```
 
 5. **Salvar**: Railway vai automaticamente redesplegar

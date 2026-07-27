@@ -53,7 +53,7 @@ Retorna: Metadata de portais CKAN (links para Excel)
 
 ```bash
 # Teste direto na API do Portal (com nossa key do Railway)
-curl -H 'chave-api-dados: ***REDACTED-TRANSPARENCY-KEY***' \
+curl -H 'chave-api-dados: <YOUR_TRANSPARENCY_API_KEY>' \
   'https://api.portaldatransparencia.gov.br/api-de-dados/contratos?codigoOrgao=26000&pagina=1'
 ```
 

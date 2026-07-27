@@ -3,7 +3,6 @@
 # Railway Service and Variable Discovery
 # Helps find the correct service names and variable names for Shared Variables
 
-export RAILWAY_TOKEN=9c8d2a3d-bf20-454e-8fe1-8296c5e57fa7
 
 echo "🔍 Descobrindo serviços e variáveis do Railway..."
 echo "=" * 80

@@ -8,7 +8,7 @@
 ### 📊 Seu Token
 
 ```
-Token: ***REMOVED-JWT***
+Token: <YOUR_DADOS_GOV_API_KEY>
 Usuário: ANDERSON HENRIQUE DA SILVA (@andersonhs90@hotmail.com)
 CPF: 109.472.466-14
 Criado em: 02/10/2025 15:17:09
@@ -17,7 +17,7 @@ Criado em: 02/10/2025 15:17:09
 ### ✅ Já Configurado no `.env`
 
 ```bash
-DADOS_GOV_API_KEY=***REMOVED-JWT***
+DADOS_GOV_API_KEY=<YOUR_DADOS_GOV_API_KEY>
 ```
 
 ## 🎯 Tokens Configurados
@@ -25,7 +25,7 @@ DADOS_GOV_API_KEY=***REMOVED-JWT***
 | Token | Status | Observação |
 |-------|--------|------------|
 | **DADOS_GOV_API_KEY** | ✅ Configurado | Token JWT do Portal Brasileiro de Dados Abertos |
-| **TRANSPARENCY_API_KEY** | ✅ Configurado | Chave ***REDACTED-TRANSPARENCY-KEY*** |
+| **TRANSPARENCY_API_KEY** | ✅ Configurado | Chave <YOUR_TRANSPARENCY_API_KEY> |
 | **GROQ_API_KEY** | ⚠️ Pendente | Necessário para agentes IA funcionarem |
 
 ## 🚀 Próximo Passo: Configurar GROQ

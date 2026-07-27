@@ -46,11 +46,11 @@ Você vai ver no log:
    - Se a variável existe mas está vazia: Clique na caixa VALUE
    - Se não existe: Clique em "+ New Variable"
    - **Nome**: `DATABASE_URL`
-   - **Valor**: `postgresql://postgres:***REDACTED-PG-PASSWORD***@postgres.railway.internal:5432/railway`
+   - **Valor**: `postgresql://postgres:<POSTGRES_PASSWORD>@postgres.railway.internal:5432/railway`
 
 5. **Configure REDIS_URL:**
    - **Nome**: `REDIS_URL`
-   - **Valor**: `redis://default:***REDACTED-REDIS-PASSWORD***@cidadao-redis.railway.internal:6379`
+   - **Valor**: `redis://default:<REDIS_PASSWORD>@cidadao-redis.railway.internal:6379`
 
 6. **NÃO clique em Redeploy ainda!**
 
@@ -115,8 +115,8 @@ Quando cidadao-api estiver funcionando com PostgreSQL:
 Se você tiver os serviços `cidadao.ai-worker` e `cidadao.ai-beat`:
 
 1. **cidadao.ai-worker** → Variables:
-   - DATABASE_URL = `postgresql://postgres:***REDACTED-PG-PASSWORD***@postgres.railway.internal:5432/railway`
-   - REDIS_URL = `redis://default:***REDACTED-REDIS-PASSWORD***@cidadao-redis.railway.internal:6379`
+   - DATABASE_URL = `postgresql://postgres:<POSTGRES_PASSWORD>@postgres.railway.internal:5432/railway`
+   - REDIS_URL = `redis://default:<REDIS_PASSWORD>@cidadao-redis.railway.internal:6379`
 
 2. **cidadao.ai-beat** → Variables:
    - Mesmas configurações acima
@@ -130,7 +130,7 @@ Se você tiver os serviços `cidadao.ai-worker` e `cidadao.ai-beat`:
 Verifique que as variáveis foram salvas:
 
 ```bash
-export RAILWAY_TOKEN=9c8d2a3d-bf20-454e-8fe1-8296c5e57fa7
+export RAILWAY_TOKEN=<YOUR_RAILWAY_TOKEN>
 railway variables --service cidadao-api | grep -E "(DATABASE_URL|REDIS_URL)"
 ```
 
