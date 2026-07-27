@@ -4,7 +4,7 @@
 class AnalysisService:
     """Service for data analysis operations."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self._analysis_cache = {}
 
     async def analyze_spending_patterns(self, data: list[dict]) -> dict:
