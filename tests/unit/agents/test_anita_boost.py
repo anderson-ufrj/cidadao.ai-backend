@@ -267,15 +267,8 @@ class TestSpectralPatterns:
             )
 
         # Create request object required by method signature
-        request = AnalysisRequest(
-            query="test spectral patterns",
-            analysis_types=["spectral_patterns"],
-        )
-
         # Call method directly to ensure it's tested (lines 1087-1217)
-        patterns = await agent._analyze_spectral_patterns(
-            contracts, request, agent_context
-        )
+        patterns = await agent._analyze_spectral_patterns(contracts, agent_context)
 
         # Verify patterns were found (or method completed successfully)
         assert isinstance(patterns, list)
@@ -299,15 +292,8 @@ class TestSpectralPatterns:
             )
 
         # Create request object
-        request = AnalysisRequest(
-            query="test insufficient data",
-            analysis_types=["spectral_patterns"],
-        )
-
         # Call method directly to test insufficient data handling
-        patterns = await agent._analyze_spectral_patterns(
-            contracts, request, agent_context
-        )
+        patterns = await agent._analyze_spectral_patterns(contracts, agent_context)
 
         # Should return empty list (insufficient data - only 10 contracts < 30 minimum)
         assert isinstance(patterns, list)
@@ -336,15 +322,8 @@ class TestSpectralPatterns:
                 )
 
         # Create request object
-        request = AnalysisRequest(
-            query="test multiple orgs",
-            analysis_types=["spectral_patterns"],
-        )
-
         # Call method directly to ensure it's tested
-        patterns = await agent._analyze_spectral_patterns(
-            contracts, request, agent_context
-        )
+        patterns = await agent._analyze_spectral_patterns(contracts, agent_context)
 
         # Should process multiple organizations and find patterns
         assert isinstance(patterns, list)
@@ -384,15 +363,8 @@ class TestSpectralPatterns:
             )
 
         # Create request object
-        request = AnalysisRequest(
-            query="test strong periodicity",
-            analysis_types=["spectral_patterns"],
-        )
-
         # Call method to test lines 1125-1166 (PatternResult creation for strong patterns)
-        patterns = await agent._analyze_spectral_patterns(
-            contracts, request, agent_context
-        )
+        patterns = await agent._analyze_spectral_patterns(contracts, agent_context)
 
         # Should return patterns (may be empty if amplitude threshold not met, but method executes)
         assert isinstance(patterns, list)
@@ -427,15 +399,8 @@ class TestSpectralPatterns:
             )
 
         # Create request object
-        request = AnalysisRequest(
-            query="test regular data",
-            analysis_types=["spectral_patterns"],
-        )
-
         # Call method to test lines 1172-1206 (PatternResult creation for low entropy)
-        patterns = await agent._analyze_spectral_patterns(
-            contracts, request, agent_context
-        )
+        patterns = await agent._analyze_spectral_patterns(contracts, agent_context)
 
         # Should return patterns (may be empty if entropy threshold not met, but method executes)
         assert isinstance(patterns, list)
@@ -492,15 +457,8 @@ class TestSpectralPatterns:
                 return_value=mock_features,
             ),
         ):
-            request = AnalysisRequest(
-                query="test high amplitude",
-                analysis_types=["spectral_patterns"],
-            )
-
             # This should execute lines 1125-1166 (PatternResult creation for high amplitude)
-            patterns = await agent._analyze_spectral_patterns(
-                contracts, request, agent_context
-            )
+            patterns = await agent._analyze_spectral_patterns(contracts, agent_context)
 
             # Should create PatternResult objects for high amplitude patterns
             assert isinstance(patterns, list)
