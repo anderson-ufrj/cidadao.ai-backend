@@ -2,7 +2,7 @@
 
 **Data**: 2025-11-21 18:29
 **Endpoints Testados**: 17
-**API Key**: `e24f842355f7211a2f4895e301aa5bca`
+**API Key**: `<YOUR_TRANSPARENCY_API_KEY>`
 
 ---
 

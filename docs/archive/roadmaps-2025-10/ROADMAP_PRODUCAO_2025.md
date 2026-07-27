@@ -183,7 +183,7 @@ railway variables | grep DATABASE_URL
 **Opção B: Usar Supabase PostgreSQL**
 ```bash
 # Usar a connection string do .env
-railway variables set DATABASE_URL="postgresql://postgres:12356890%21%21%40%40Cidadao@db.pbsiyuattnwgohvkkkks.supabase.co:5432/postgres"
+railway variables set DATABASE_URL="postgresql://postgres:<POSTGRES_PASSWORD>@db.pbsiyuattnwgohvkkkks.supabase.co:5432/postgres"
 ```
 
 #### 2.5. Rodar Migrations

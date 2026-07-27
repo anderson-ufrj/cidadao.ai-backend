@@ -5,15 +5,14 @@
 #
 # USO: ./scripts/railway_configure_database.sh
 
-export RAILWAY_TOKEN=9c8d2a3d-bf20-454e-8fe1-8296c5e57fa7
 
 echo "🚀 Configurando DATABASE_URL e REDIS_URL no cidadao-api..."
 echo "=" * 80
 echo ""
 
 # URLs dos serviços (Railway internal network - mais rápido)
-DATABASE_URL="postgresql://postgres:ymDpsVmsGYUCTVSNHJXVnHszSAKHCevH@postgres.railway.internal:5432/railway"
-REDIS_URL="redis://default:ixPHfkkBJfSZgIVmmAFnQxTSWzqFipEm@cidadao-redis.railway.internal:6379"
+DATABASE_URL="postgresql://postgres:$POSTGRES_PASSWORD@postgres.railway.internal:5432/railway"
+REDIS_URL="redis://default:$REDIS_PASSWORD@cidadao-redis.railway.internal:6379"
 
 echo "📋 1. Configurando DATABASE_URL no cidadao-api..."
 railway variables --service cidadao-api --set "DATABASE_URL=$DATABASE_URL"
