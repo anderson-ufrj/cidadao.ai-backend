@@ -340,7 +340,7 @@ INSTANT_GOODBYE_RESPONSES = [
 # VERIFIED AGENT LIST - Dec 2025 (Prevents LLM hallucination)
 # This is the AUTHORITATIVE list of agents in the system
 # ================================================================
-INSTANT_AGENTS_RESPONSE = """Nossa trupe conta com **16 agentes especializados**, cada um com sua missão na transparência:
+INSTANT_AGENTS_RESPONSE = """Nossa trupe conta com **17 agentes especializados**, cada um com sua missão na transparência:
 
 🎨 **Abaporu** - Orquestrador Master, coordena investigações complexas
 🔍 **Zumbi dos Palmares** - Investigador, detecta anomalias e irregularidades
@@ -1117,7 +1117,7 @@ async def send_message(
                         "**Contexto Acadêmico:** Este projeto é um Trabalho de Conclusão de Curso (TCC) "
                         "desenvolvido no Instituto Federal do Sul de Minas Gerais (IFSULDEMINAS), "
                         "sob orientação da Professora Aracele Garcia de Oliveira Fassbinder.\n\n"
-                        "**O que fazemos:** Temos 16 agentes especializados com identidades culturais brasileiras "
+                        "**O que fazemos:** Temos 17 agentes especializados com identidades culturais brasileiras "
                         "(Zumbi, Anita Garibaldi, Tiradentes, Drummond, entre outros) que trabalham juntos para "
                         "investigar contratos públicos, detectar anomalias, analisar gastos e promover a "
                         "transparência governamental.\n\n"

@@ -38,7 +38,7 @@ async def root(request: Request) -> dict[str, Any]:
             "orchestration": "/api/v1/orchestration",
         },
         "features": {
-            "multi_agent_system": "16 specialized AI agents with Brazilian identities",
+            "multi_agent_system": "20 specialized AI agents with Brazilian identities",
             "government_apis": "30+ federal and state transparency APIs integrated",
             "real_time_chat": "Server-Sent Events (SSE) streaming responses",
             "investigation_engine": "Automated anomaly detection and pattern analysis",

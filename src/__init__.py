@@ -5,7 +5,7 @@ for analyzing Brazilian government transparency data. Built with enterprise-grad
 architecture and sophisticated AI capabilities.
 
 Key Features:
-- 17 specialized AI agents with Brazilian cultural identities
+- 20 routable AI agents with Brazilian cultural identities (17 on transparency)
 - Advanced anomaly detection in government contracts
 - Multi-provider LLM support (Groq, Together, HuggingFace)
 - Enterprise security with HashiCorp Vault integration
@@ -13,7 +13,7 @@ Key Features:
 - Comprehensive audit logging and compliance tracking
 
 Modules:
-- agents: Multi-agent system with 17 specialized agents
+- agents: Multi-agent system with 20 routable agents
 - api: FastAPI-based REST API with enterprise security
 - core: Core configuration, logging, and utilities
 - infrastructure: System orchestration and management
