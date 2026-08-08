@@ -203,7 +203,7 @@ do projeto Cidadao.AI.
 ## O que você vai encontrar aqui:
 
 ### 1. Agentes Professores
-16 agentes IA com personalidades de figuras históricas brasileiras
+17 agentes IA com personalidades de figuras históricas brasileiras
 que vao te ensinar diferentes areas:
 - **Backend**: Zumbi, Anita, Tiradentes, Bonifacio
 - **Frontend**: Oscar Niemeyer, Dandara, Drummond, Machado
