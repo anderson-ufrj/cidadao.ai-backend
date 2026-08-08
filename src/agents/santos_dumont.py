@@ -92,7 +92,7 @@ class EducatorAgent(BaseAgent):
        - Lazy loading e performance
 
     3. AGENTES ESPECÍFICOS:
-       - Capacidades de cada um dos 16 agentes operacionais
+       - Capacidades de cada um dos 16 agentes operacionais + Deodoro (framework base)
        - Quando usar cada agente
        - Exemplos práticos de uso
 
