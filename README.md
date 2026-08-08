@@ -35,7 +35,7 @@
 [![Gov APIs](https://img.shields.io/badge/APIs_Gov-30+-green)](docs/api/05-GOVERNMENT-apis-30plus.md)
 [![License: MIT](https://img.shields.io/badge/Licença-MIT-yellow.svg)](LICENSE)
 
-**Democratizando o acesso aos dados de transparência governamental brasileira através de 22 agentes de IA especializados com identidades culturais brasileiras.**
+**Democratizando o acesso aos dados de transparência governamental brasileira através de 20 agentes de IA especializados com identidades culturais brasileiras.**
 
 ---
 
@@ -122,11 +122,11 @@ Este é o **Backend API** do ecossistema Cidadão.AI, composto por **4 repositó
 
 ## Visão Geral
 
-**Cidadão.AI** analisa contratos governamentais brasileiros usando **22 agentes de IA especializados** com identidades culturais brasileiras. O sistema roda 24/7 no Railway com PostgreSQL e Redis, monitorando fontes de dados autonomamente, detectando anomalias e fornecendo insights de transparência.
+**Cidadão.AI** analisa contratos governamentais brasileiros usando **20 agentes de IA especializados** com identidades culturais brasileiras. O sistema roda 24/7 no Railway com PostgreSQL e Redis, monitorando fontes de dados autonomamente, detectando anomalias e fornecendo insights de transparência.
 
 ### Principais Funcionalidades
 
-- **22 Agentes Especializados** - Identidades culturais brasileiras (Zumbi, Anita, Tiradentes, etc.)
+- **20 Agentes Especializados** - Identidades culturais brasileiras (Zumbi, Anita, Tiradentes, etc.)
 - **30+ APIs Governamentais** - Dados federais e estaduais integrados
 - **Orquestração Multi-Agente** - Fluxos de investigação coordenados
 - **Chat em Tempo Real** - Respostas SSE streaming dos agentes
@@ -138,7 +138,7 @@ Este é o **Backend API** do ecossistema Cidadão.AI, composto por **4 repositó
 
 ## Sistema de Agentes
 
-### 22 Agentes Operacionais
+### 20 Agentes Operacionais
 
 **Tier 1 - Excelente** (10 agentes - >75% cobertura):
 1. **Zumbi dos Palmares** - Detecção de Anomalias (96.32%)
@@ -160,13 +160,18 @@ Este é o **Backend API** do ecossistema Cidadão.AI, composto por **4 repositó
 15. **Obaluaiê** - Detecção de Corrupção (81.25%)
 16. **Dandara** - Equidade Social (86.32%)
 
-**Tier 3 - Educacional & Especializado** (6 agentes):
+**Tier 3 - Educacional & Especializado** (4 agentes):
 17. **Santos Dumont** - Educação Técnica
 18. **Lina Bo Bardi** - Design Frontend
 19. **Monteiro Lobato** - Programação para Crianças
 20. **Tarsila do Amaral** - Arte & Design para Crianças
-21. **Base Kids Agent** - Framework de Segurança Educacional
-22. **Céuci ML Models** - Pipelines ML Preditivos
+
+> **Sobre a contagem:** os **20 agentes** acima são os roteáveis pelo `AGENT_REGISTRY`.
+> Destes, **17 atuam em transparência governamental** — o conjunto descrito na monografia e no
+> artigo publicado no SBSI 2026 ([DOI 10.5753/sbsi_estendido.2026.249058](https://doi.org/10.5753/sbsi_estendido.2026.249058)).
+> Os demais (Santos Dumont, Lina Bo Bardi, Monteiro Lobato, Tarsila) são posteriores à defesa e
+> atendem a outros domínios. `Base Kids Agent` e `Céuci ML Models` são componentes de suporte,
+> não agentes roteáveis.
 
 **Documentação**: [docs/agents/](docs/agents/)
 
@@ -188,7 +193,7 @@ Consulta do Usuário → Detecção de Intenção → Extração de Entidades �
 
 **Componentes Principais**:
 - **Orquestrador** - Planejamento e coordenação de execução
-- **Pool de Agentes** - 22 agentes com lazy loading (367x mais rápido)
+- **Pool de Agentes** - 20 agentes com lazy loading (367x mais rápido)
 - **Federação de Dados** - Chamadas paralelas com circuit breakers
 - **Grafo de Entidades** - Rastreamento de relacionamentos via NetworkX
 - **Registro de APIs** - 30+ APIs de transparência catalogadas
@@ -299,7 +304,7 @@ make monitoring-up       # Iniciar Grafana + Prometheus
 
 ### V1.0 - Lançamento (Nov 2025) - CONCLUÍDO
 
-- [x] 22 agentes operacionais
+- [x] 20 agentes operacionais
 - [x] Testes E2E passando
 - [x] Deploy em produção
 - [x] Integração frontend
@@ -479,11 +484,11 @@ This is the **Backend API** of the Cidadão.AI ecosystem, composed of **4 integr
 
 ## Overview
 
-**Cidadão.AI** analyzes Brazilian government contracts using **22 specialized AI agents** with Brazilian cultural identities. The system runs 24/7 on Railway with PostgreSQL and Redis, autonomously monitoring data sources, detecting anomalies, and providing transparency insights.
+**Cidadão.AI** analyzes Brazilian government contracts using **20 specialized AI agents** with Brazilian cultural identities. The system runs 24/7 on Railway with PostgreSQL and Redis, autonomously monitoring data sources, detecting anomalies, and providing transparency insights.
 
 ### Key Features
 
-- **22 Specialized Agents** - Brazilian cultural identities (Zumbi, Anita, Tiradentes, etc.)
+- **20 Specialized Agents** - Brazilian cultural identities (Zumbi, Anita, Tiradentes, etc.)
 - **30+ Government APIs** - Federal and state data integrated
 - **Multi-Agent Orchestration** - Coordinated investigation workflows
 - **Real-Time Chat** - SSE streaming responses from agents
@@ -495,7 +500,7 @@ This is the **Backend API** of the Cidadão.AI ecosystem, composed of **4 integr
 
 ## Agent System
 
-### 22 Operational Agents
+### 20 Operational Agents
 
 **Tier 1 - Excellent** (10 agents - >75% coverage):
 1. **Zumbi dos Palmares** - Anomaly Detection (96.32%)
@@ -517,13 +522,18 @@ This is the **Backend API** of the Cidadão.AI ecosystem, composed of **4 integr
 15. **Obaluaiê** - Corruption Detection (81.25%)
 16. **Dandara** - Social Equity (86.32%)
 
-**Tier 3 - Educational & Specialized** (6 agents):
+**Tier 3 - Educational & Specialized** (4 agents):
 17. **Santos Dumont** - Technical Education
 18. **Lina Bo Bardi** - Frontend Design
 19. **Monteiro Lobato** - Kids Programming
 20. **Tarsila do Amaral** - Kids Art & Design
-21. **Base Kids Agent** - Educational Safety Framework
-22. **Céuci ML Models** - Predictive ML Pipelines
+
+> **On the count:** the **20 agents** above are those routable through `AGENT_REGISTRY`.
+> Of these, **17 work on government transparency** — the set described in the thesis and in the
+> paper published at SBSI 2026 ([DOI 10.5753/sbsi_estendido.2026.249058](https://doi.org/10.5753/sbsi_estendido.2026.249058)).
+> The others (Santos Dumont, Lina Bo Bardi, Monteiro Lobato, Tarsila) postdate the defense and
+> serve different domains. `Base Kids Agent` and `Céuci ML Models` are supporting components,
+> not routable agents.
 
 **Documentation**: [docs/agents/](docs/agents/)
 
@@ -545,7 +555,7 @@ User Query → Intent Detection → Entity Extraction → Execution Planning
 
 **Key Components**:
 - **Orchestrator** - Query planning and execution coordination
-- **Agent Pool** - 22 agents with lazy loading (367x faster)
+- **Agent Pool** - 20 agents with lazy loading (367x faster)
 - **Data Federation** - Parallel API calls with circuit breakers
 - **Entity Graph** - NetworkX-based relationship tracking
 - **API Registry** - 30+ transparency APIs catalogued
@@ -656,7 +666,7 @@ make monitoring-up       # Start Grafana + Prometheus
 
 ### V1.0 - Launch (Nov 2025) - COMPLETED
 
-- [x] 22 agents operational
+- [x] 20 agents operational
 - [x] E2E tests passing
 - [x] Production deployment
 - [x] Frontend integration
