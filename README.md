@@ -1,5 +1,16 @@
 # Cidadao.AI Backend
 
+> ## ⚠️ Repositório descontinuado
+>
+> O Cidadão.AI segue ativo, mas **não é mais desenvolvido aqui**.
+> A plataforma vive em **https://cidadao.ntlabs.dev**.
+>
+> Este repositório permanece público e arquivado como **referência histórica do
+> artigo publicado no SBSI 2026**
+> ([DOI 10.5753/sbsi_estendido.2026.249058](https://doi.org/10.5753/sbsi_estendido.2026.249058)),
+> que descreve a versão aqui contida. O código atual não está mais neste espelho —
+> issues e pull requests não serão respondidos.
+
 **Autor**: Anderson Henrique da Silva
 **Localização**: Minas Gerais, Brasil
 **Última Atualização**: 2025-12-17
