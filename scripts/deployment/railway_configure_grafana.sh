@@ -48,7 +48,15 @@ echo "   ✅ GRAFANA_CLOUD_URL configurado"
 railway variables set GRAFANA_CLOUD_USER="2768861"
 echo "   ✅ GRAFANA_CLOUD_USER=2768861"
 
-railway variables set GRAFANA_CLOUD_KEY="***REDACTED-GRAFANA-KEY***"
+if [ -z "$GRAFANA_CLOUD_KEY" ]; then
+    echo "❌ GRAFANA_CLOUD_KEY não definida no ambiente!"
+    echo ""
+    echo "Gere um access policy token em https://grafana.com e exporte antes de rodar:"
+    echo "  export GRAFANA_CLOUD_KEY='glc_...'"
+    exit 1
+fi
+
+railway variables set GRAFANA_CLOUD_KEY="$GRAFANA_CLOUD_KEY"
 echo "   ✅ GRAFANA_CLOUD_KEY configurado"
 
 # Variáveis opcionais
