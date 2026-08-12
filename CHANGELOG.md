@@ -3,7 +3,7 @@
 **Author**: Anderson Henrique da Silva
 **Location**: Minas Gerais, Brazil
 **Created**: 2025-08-13
-**Last Updated**: 2026-06-30
+**Last Updated**: 2026-08-12
 
 ---
 
@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 
 ## [Unreleased]
+
+### Security
+- **Rotated every credential exposed in the public git history** — PostgreSQL, Redis, Grafana Cloud and Portal da Transparência keys were replaced; the leaked values are now rejected by their services
+- **Purged six leaked secrets from the whole history** with `git filter-repo` — branches and tags no longer carry any live credential. The original commits remain reachable through `refs/pull/*`, which only GitHub can garbage-collect
+- **`railway_configure_grafana.sh` reads `GRAFANA_CLOUD_KEY` from the environment** instead of shipping the token in plaintext, with a fail-fast check when the variable is unset
+- **Dropped `ANTHROPIC_API_KEY` and `TRANSPARENCY_API_KEY` from the PostgreSQL and Redis services** — neither used them, and their presence widened the blast radius of a leak
 
 ### Fixed
 - **Agent lazy loader no longer deletes modules from `sys.modules` on unload** (`agent_lazy_loader.py`)
