@@ -1,0 +1,16 @@
+query,gold_intent,gold_agent,source,notes
+"Contratos de saúde acima de R$ 1 milhão em 2025",contract_anomaly_detection,InvestigatorAgent,handwritten,keyword-rich
+"Tem algo estranho nos maiores pagamentos da prefeitura?",contract_anomaly_detection,InvestigatorAgent,handwritten,no-keyword (stress LLM)
+"CNPJ 12.345.678/0001-90 recebeu quanto do governo federal?",supplier_investigation,InvestigatorAgent,handwritten,cnpj
+"Quanto ganha o servidor João da Silva Pereira?",supplier_investigation,InvestigatorAgent,handwritten,salary+name
+"Como está distribuído o orçamento da educação municipal?",budget_analysis,AnalystAgent,handwritten,budget
+"Qual a verba do SUS para hospitais este ano?",health_budget_analysis,AnalystAgent,handwritten,health
+"Desempenho das escolas no ENEM por região",education_performance,AnalystAgent,handwritten,education
+"Detectar padrões de fraude em licitações",corruption_indicators,InvestigatorAgent,handwritten,corruption
+"Olá, tudo bem?",greeting,MasterAgent,handwritten,conversational
+"Obrigado pela ajuda!",thanks,MasterAgent,handwritten,conversational
+"O que é o Cidadão.AI?",about_system,MasterAgent,handwritten,about
+"Preciso de ajuda, não sei como usar",help_request,MasterAgent,handwritten,help
+"Como funciona a busca de dados?",general_query,MasterAgent,handwritten,general
+"Compare os gastos de 2023 e 2024 ao longo do tempo",budget_analysis,AnalystAgent,handwritten,temporal+ambiguous
+"Gere um relatório dos contratos suspeitos do Ministério da Saúde",contract_anomaly_detection,ReporterAgent,handwritten,report+investigation (ambiguous agent)
