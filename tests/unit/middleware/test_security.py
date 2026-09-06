@@ -410,20 +410,24 @@ class TestRequestValidatorBody:
             b'{"path": "../../etc/passwd"}',
         ],
     )
+    @pytest.mark.asyncio
     async def test_malicious_body_is_rejected(self, body):
         valid, error = await RequestValidator().scan_request_body(body)
 
         assert valid is False
         assert error == "Suspicious pattern in request body"
 
+    @pytest.mark.asyncio
     async def test_clean_body_is_accepted(self):
         body = b'{"query": "gastos com merenda escolar em 2024"}'
 
         assert await RequestValidator().scan_request_body(body) == (True, None)
 
+    @pytest.mark.asyncio
     async def test_empty_body_is_accepted(self):
         assert await RequestValidator().scan_request_body(b"") == (True, None)
 
+    @pytest.mark.asyncio
     async def test_invalid_utf8_bytes_do_not_raise(self):
         valid, _ = await RequestValidator().scan_request_body(b"\xff\xfe\x00clean")
 
@@ -436,6 +440,7 @@ class TestRequestValidatorBody:
 
 
 class TestSecurityMiddlewareDenies:
+    @pytest.mark.asyncio
     async def test_blocked_ip_gets_403_and_the_app_is_never_reached(
         self, middleware, audit_spy
     ):
@@ -449,6 +454,7 @@ class TestSecurityMiddlewareDenies:
         call_next.assert_not_awaited()
         audit_spy.assert_awaited()
 
+    @pytest.mark.asyncio
     async def test_rate_limited_request_gets_429_with_retry_headers(
         self, middleware, audit_spy
     ):
@@ -462,6 +468,7 @@ class TestSecurityMiddlewareDenies:
         assert response.headers["X-RateLimit-Remaining"] == "0"
         call_next.assert_not_awaited()
 
+    @pytest.mark.asyncio
     async def test_rate_limited_request_counts_as_a_failed_attempt(
         self, middleware, audit_spy
     ):
@@ -471,6 +478,7 @@ class TestSecurityMiddlewareDenies:
 
         assert middleware.ip_blocklist.get_failed_attempts_count(PUBLIC_IP) == 1
 
+    @pytest.mark.asyncio
     async def test_repeated_rate_limiting_eventually_blocks_the_ip(
         self, middleware, audit_spy
     ):
@@ -482,6 +490,7 @@ class TestSecurityMiddlewareDenies:
         response = await middleware.dispatch(build_request(), AsyncMock())
         assert response.status_code == 403, "rate-limit abuse must escalate to a block"
 
+    @pytest.mark.asyncio
     async def test_oversized_request_gets_413(self, middleware, audit_spy):
         request = build_request(
             headers={"content-length": str(SecurityConfig.MAX_REQUEST_SIZE + 1)}
@@ -493,6 +502,7 @@ class TestSecurityMiddlewareDenies:
         assert response.status_code == 413
         call_next.assert_not_awaited()
 
+    @pytest.mark.asyncio
     async def test_suspicious_header_gets_400(self, middleware, audit_spy):
         request = build_request(headers={"x-note": "<script>alert(1)</script>"})
         call_next = AsyncMock()
@@ -502,6 +512,7 @@ class TestSecurityMiddlewareDenies:
         assert response.status_code == 400
         call_next.assert_not_awaited()
 
+    @pytest.mark.asyncio
     async def test_sql_injection_in_query_string_gets_400(self, middleware, audit_spy):
         request = build_request(
             path="/api/v1/contracts", query="id=1+union+select+password+from+users"
@@ -513,6 +524,7 @@ class TestSecurityMiddlewareDenies:
         assert response.status_code == 400
         call_next.assert_not_awaited()
 
+    @pytest.mark.asyncio
     async def test_unsupported_content_type_gets_415(self, middleware, audit_spy):
         request = build_request(
             method="POST", headers={"content-type": "application/xml"}
@@ -524,6 +536,7 @@ class TestSecurityMiddlewareDenies:
         assert response.status_code == 415
         call_next.assert_not_awaited()
 
+    @pytest.mark.asyncio
     async def test_malicious_post_body_gets_400(self, middleware, audit_spy):
         request = build_request(
             path="/api/v1/chat",
@@ -538,6 +551,7 @@ class TestSecurityMiddlewareDenies:
         assert response.status_code == 400
         call_next.assert_not_awaited()
 
+    @pytest.mark.asyncio
     async def test_every_denial_is_audited(self, middleware, audit_spy):
         request = build_request(path="/api/v1/x/../../etc/passwd")
 
@@ -550,6 +564,7 @@ class TestSecurityMiddlewareDenies:
 
 
 class TestSecurityMiddlewareAllows:
+    @pytest.mark.asyncio
     async def test_legitimate_request_reaches_the_app_with_security_headers(
         self, middleware, audit_spy
     ):
@@ -571,6 +586,7 @@ class TestSecurityMiddlewareAllows:
         )
         audit_spy.assert_not_awaited()
 
+    @pytest.mark.asyncio
     async def test_middleware_fails_open_when_a_security_check_crashes(
         self, middleware, audit_spy
     ):
@@ -589,6 +605,7 @@ class TestSecurityMiddlewareAllows:
 
 
 class TestClientIpResolution:
+    @pytest.mark.asyncio
     async def test_first_x_forwarded_for_entry_wins(self, middleware):
         request = build_request(
             headers={"x-forwarded-for": "198.51.100.5, 10.0.0.1, 10.0.0.2"}
@@ -596,6 +613,7 @@ class TestClientIpResolution:
 
         assert middleware._get_client_ip(request) == "198.51.100.5"
 
+    @pytest.mark.asyncio
     async def test_spoofed_x_forwarded_for_falls_back_to_x_real_ip(self, middleware):
         request = build_request(
             headers={
@@ -606,11 +624,13 @@ class TestClientIpResolution:
 
         assert middleware._get_client_ip(request) == "198.51.100.6"
 
+    @pytest.mark.asyncio
     async def test_falls_back_to_the_socket_peer(self, middleware):
         request = build_request(headers={"x-forwarded-for": "<script>"})
 
         assert middleware._get_client_ip(request) == PUBLIC_IP
 
+    @pytest.mark.asyncio
     async def test_returns_unknown_when_there_is_no_peer(self, middleware):
         request = build_request(client_host=None)
 

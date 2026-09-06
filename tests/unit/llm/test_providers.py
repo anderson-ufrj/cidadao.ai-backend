@@ -115,6 +115,7 @@ def no_sleep():
 
 
 class TestLLMManagerCompletionFallback:
+    @pytest.mark.asyncio
     async def test_primary_success_never_touches_the_fallbacks(self, request_obj):
         primary = RecordingProvider("groq")
         fallback = RecordingProvider("maritaca")
@@ -130,6 +131,7 @@ class TestLLMManagerCompletionFallback:
         assert primary.complete_calls == 1
         assert fallback.complete_calls == 0
 
+    @pytest.mark.asyncio
     async def test_primary_failure_is_served_by_the_next_provider(self, request_obj):
         primary = RecordingProvider("groq", error=LLMError("groq is down"))
         fallback = RecordingProvider("maritaca")
@@ -145,6 +147,7 @@ class TestLLMManagerCompletionFallback:
         assert primary.complete_calls == 1, "the primary must have been tried first"
         assert fallback.complete_calls == 1
 
+    @pytest.mark.asyncio
     async def test_maritaca_primary_still_falls_back_with_the_default_chain(
         self, request_obj
     ):
@@ -170,6 +173,7 @@ class TestLLMManagerCompletionFallback:
         assert maritaca.complete_calls == 1
         assert together.complete_calls == 1
 
+    @pytest.mark.asyncio
     async def test_a_provider_is_never_retried_twice_in_one_chain(self, request_obj):
         maritaca = RecordingProvider("maritaca", error=LLMError("down"))
         together = RecordingProvider("together", error=LLMError("down"))
@@ -189,6 +193,7 @@ class TestLLMManagerCompletionFallback:
 
         assert maritaca.complete_calls == 1, "duplicated provider must not be re-tried"
 
+    @pytest.mark.asyncio
     async def test_fallback_order_is_respected(self, request_obj):
         first = RecordingProvider("together", error=LLMError("down"))
         second = RecordingProvider("huggingface")
@@ -208,6 +213,7 @@ class TestLLMManagerCompletionFallback:
         assert response.provider == "huggingface"
         assert first.complete_calls == 1
 
+    @pytest.mark.asyncio
     async def test_all_providers_down_raises_instead_of_returning_empty(
         self, request_obj
     ):
@@ -231,6 +237,7 @@ class TestLLMManagerCompletionFallback:
         assert exc_info.value.details == {"provider": "all"}
         assert fallback.complete_calls == 1
 
+    @pytest.mark.asyncio
     async def test_fallback_disabled_means_the_backup_is_never_contacted(
         self, request_obj
     ):
@@ -249,6 +256,7 @@ class TestLLMManagerCompletionFallback:
         assert fallback.complete_calls == 0
         assert fallback.enter_calls == 0
 
+    @pytest.mark.asyncio
     async def test_context_manager_is_exited_even_when_the_provider_fails(
         self, request_obj
     ):
@@ -265,6 +273,7 @@ class TestLLMManagerCompletionFallback:
         assert primary.enter_calls == 1
         assert primary.exit_calls == 1, "a failed provider must still be closed"
 
+    @pytest.mark.asyncio
     async def test_a_crashing_provider_is_treated_as_a_failure_not_propagated(
         self, request_obj
     ):
@@ -284,6 +293,7 @@ class TestLLMManagerCompletionFallback:
 
 
 class TestLLMManagerStreamingFallback:
+    @pytest.mark.asyncio
     async def test_stream_uses_the_primary_when_it_works(self, request_obj):
         primary = RecordingProvider("groq", chunks=["a", "b"])
         fallback = RecordingProvider("maritaca")
@@ -298,6 +308,7 @@ class TestLLMManagerStreamingFallback:
         assert chunks == ["a", "b"]
         assert fallback.stream_calls == 0
 
+    @pytest.mark.asyncio
     async def test_stream_falls_back_when_the_primary_fails(self, request_obj):
         primary = RecordingProvider("groq", error=LLMError("stream down"))
         fallback = RecordingProvider("maritaca", chunks=["oi", " mundo"])
@@ -312,6 +323,7 @@ class TestLLMManagerStreamingFallback:
         assert chunks == ["oi", " mundo"]
         assert primary.stream_calls == 1
 
+    @pytest.mark.asyncio
     async def test_stream_with_all_providers_down_raises(self, request_obj):
         primary = RecordingProvider("groq", error=LLMError("down"))
         fallback = RecordingProvider("maritaca", error=LLMError("also down"))
@@ -327,6 +339,7 @@ class TestLLMManagerStreamingFallback:
         assert "All LLM providers failed for streaming" in str(exc_info.value)
         assert "also down" in str(exc_info.value)
 
+    @pytest.mark.asyncio
     async def test_stream_with_fallback_disabled_does_not_contact_the_backup(
         self, request_obj
     ):
@@ -346,6 +359,7 @@ class TestLLMManagerStreamingFallback:
 
 
 class TestLLMManagerLifecycle:
+    @pytest.mark.asyncio
     async def test_close_closes_every_provider(self):
         providers = {
             LLMProvider.GROQ: RecordingProvider("groq"),
@@ -413,6 +427,7 @@ def groq_without_pool():
 
 
 class TestNonStreamRequest:
+    @pytest.mark.asyncio
     async def test_successful_response_is_parsed_and_not_retried(
         self, groq_without_pool, no_sleep
     ):
@@ -426,6 +441,7 @@ class TestNonStreamRequest:
         assert client.post.await_count == 1
         no_sleep.assert_not_awaited()
 
+    @pytest.mark.asyncio
     async def test_persistent_server_error_raises_after_exhausting_retries(
         self, groq_without_pool, no_sleep
     ):
@@ -439,6 +455,7 @@ class TestNonStreamRequest:
         assert "500" in str(exc_info.value)
         assert client.post.await_count == groq_without_pool.max_retries + 1
 
+    @pytest.mark.asyncio
     async def test_transient_server_error_is_retried_and_then_succeeds(
         self, groq_without_pool, no_sleep
     ):
@@ -456,6 +473,7 @@ class TestNonStreamRequest:
         assert result == {"ok": True}
         assert client.post.await_count == 2
 
+    @pytest.mark.asyncio
     async def test_rate_limit_raises_a_dedicated_error_with_retry_after(
         self, groq_without_pool, no_sleep
     ):
@@ -475,6 +493,7 @@ class TestNonStreamRequest:
             no_sleep.await_args_list[0].args[0] == 7
         ), "the server-provided Retry-After must drive the backoff"
 
+    @pytest.mark.asyncio
     async def test_rate_limit_followed_by_success_is_transparent(
         self, groq_without_pool, no_sleep
     ):
@@ -489,6 +508,7 @@ class TestNonStreamRequest:
 
         assert await groq_without_pool._non_stream_request("/x", {}) == {"ok": True}
 
+    @pytest.mark.asyncio
     async def test_timeout_is_retried_then_reported_as_llm_error(
         self, groq_without_pool, no_sleep
     ):
@@ -502,6 +522,7 @@ class TestNonStreamRequest:
         assert "timeout" in str(exc_info.value).lower()
         assert client.post.await_count == groq_without_pool.max_retries + 1
 
+    @pytest.mark.asyncio
     async def test_timeout_then_success_recovers(self, groq_without_pool, no_sleep):
         client = AsyncMock()
         client.post = AsyncMock(
@@ -514,6 +535,7 @@ class TestNonStreamRequest:
 
         assert await groq_without_pool._non_stream_request("/x", {}) == {"ok": True}
 
+    @pytest.mark.asyncio
     async def test_connection_error_is_wrapped_in_llm_error(
         self, groq_without_pool, no_sleep
     ):
@@ -527,6 +549,7 @@ class TestNonStreamRequest:
         assert "dns failure" in str(exc_info.value)
         assert exc_info.value.details["provider"] == "GroqProvider"
 
+    @pytest.mark.asyncio
     async def test_auth_header_carries_the_configured_key(self, groq_without_pool):
         headers = groq_without_pool._get_headers()
 
@@ -535,6 +558,7 @@ class TestNonStreamRequest:
 
 
 class TestConnectionPoolPath:
+    @pytest.mark.asyncio
     async def test_pool_is_used_when_available(self, no_sleep):
         provider = GroqProvider(api_key="gsk-unit-test")
         client = AsyncMock()
@@ -549,6 +573,7 @@ class TestConnectionPoolPath:
         pool.post.assert_awaited_once_with("groq", "/chat/completions", {"a": 1})
         client.post.assert_not_awaited()
 
+    @pytest.mark.asyncio
     async def test_pool_failure_degrades_to_the_direct_client(self, no_sleep):
         provider = GroqProvider(api_key="gsk-unit-test")
         client = AsyncMock()
@@ -610,6 +635,7 @@ class FakeStreamingClient:
 
 
 class TestStreamRequest:
+    @pytest.mark.asyncio
     async def test_sse_chunks_are_parsed_and_done_terminates_the_stream(
         self, groq_without_pool, no_sleep
     ):
@@ -636,6 +662,7 @@ class TestStreamRequest:
             " Brasil",
         ]
 
+    @pytest.mark.asyncio
     async def test_streaming_rate_limit_keeps_its_type(
         self, groq_without_pool, no_sleep
     ):
@@ -646,6 +673,7 @@ class TestStreamRequest:
         with pytest.raises(LLMRateLimitError):
             [c async for c in groq_without_pool._stream_request("/x", {})]
 
+    @pytest.mark.asyncio
     async def test_streaming_upstream_error_raises_after_retries(
         self, groq_without_pool, no_sleep
     ):
@@ -658,6 +686,7 @@ class TestStreamRequest:
         assert "502" in str(exc_info.value)
         assert client.calls == groq_without_pool.max_retries + 1
 
+    @pytest.mark.asyncio
     async def test_streaming_timeout_raises_a_dedicated_message(
         self, groq_without_pool, no_sleep
     ):
@@ -670,6 +699,7 @@ class TestStreamRequest:
 
         assert "Stream request timeout" in str(exc_info.value)
 
+    @pytest.mark.asyncio
     async def test_streaming_recovers_after_a_transient_failure(
         self, groq_without_pool, no_sleep
     ):
@@ -688,6 +718,7 @@ class TestStreamRequest:
 
 
 class TestProviderLifecycle:
+    @pytest.mark.asyncio
     async def test_close_releases_the_http_client(self):
         provider = GroqProvider(api_key="k")
         client = AsyncMock()
@@ -697,12 +728,14 @@ class TestProviderLifecycle:
 
         client.aclose.assert_awaited_once()
 
+    @pytest.mark.asyncio
     async def test_close_is_safe_when_no_client_was_created(self):
         provider = GroqProvider(api_key="k")
         provider.client = None
 
         await provider.close()  # must not raise
 
+    @pytest.mark.asyncio
     async def test_context_manager_builds_a_client_when_the_pool_is_disabled(self):
         provider = GroqProvider(api_key="k")
         provider._use_pool = False
@@ -767,6 +800,7 @@ class TestGroqProvider:
         assert response.metadata["response_id"] == "resp-1"
         assert response.response_time == 1.5
 
+    @pytest.mark.asyncio
     async def test_complete_goes_through_the_http_layer(self, request_obj):
         provider = GroqProvider(api_key="k")
         payload = {
@@ -781,6 +815,7 @@ class TestGroqProvider:
         assert response.content == "ok"
         assert provider._make_request.await_args.args[0] == "/chat/completions"
 
+    @pytest.mark.asyncio
     async def test_stream_yields_only_content_deltas(self, request_obj):
         provider = GroqProvider(api_key="k")
 
@@ -826,6 +861,7 @@ class TestTogetherProvider:
         assert data["messages"][0]["role"] == "system"
         assert data["model"] == provider.default_model
 
+    @pytest.mark.asyncio
     async def test_complete_posts_to_the_chat_endpoint(self, request_obj):
         provider = TogetherProvider(api_key="k")
         provider._make_request = AsyncMock(
@@ -841,6 +877,7 @@ class TestTogetherProvider:
         assert response.provider == "together"
         assert provider._make_request.await_args.args[0] == "/chat/completions"
 
+    @pytest.mark.asyncio
     async def test_stream_yields_content_deltas(self, request_obj):
         provider = TogetherProvider(api_key="k")
 
@@ -899,6 +936,7 @@ class TestHuggingFaceProvider:
 
         assert response.content == "resposta"
 
+    @pytest.mark.asyncio
     async def test_complete_targets_the_model_specific_endpoint(self):
         provider = HuggingFaceProvider(api_key="k")
         provider._make_request = AsyncMock(return_value=[{"generated_text": "ok"}])
@@ -917,6 +955,7 @@ class TestHuggingFaceProvider:
 
         assert headers["Authorization"] == "Bearer hf-key"
 
+    @pytest.mark.asyncio
     async def test_streaming_degrades_to_a_single_chunk(self, request_obj):
         provider = HuggingFaceProvider(api_key="k")
         provider.complete = AsyncMock(return_value=make_response("huggingface", "tudo"))
@@ -983,6 +1022,7 @@ class TestMaritacaProviderCompletion:
             client_cls.return_value.chat_completion = chat_completion
             return MaritacaProvider(api_key="k")
 
+    @pytest.mark.asyncio
     async def test_client_response_is_mapped_to_the_common_shape(self, request_obj):
         client_response = MagicMock(
             content="tres contratos suspeitos",
@@ -1001,6 +1041,7 @@ class TestMaritacaProviderCompletion:
         assert response.model == "sabia-4"
         assert response.usage == {"total_tokens": 120}
 
+    @pytest.mark.asyncio
     async def test_system_prompt_is_sent_first(self):
         provider = self._provider(
             AsyncMock(
@@ -1027,12 +1068,14 @@ class TestMaritacaProviderCompletion:
         assert messages[0]["role"] == "system"
         assert messages[1]["content"] == "oi"
 
+    @pytest.mark.asyncio
     async def test_client_failure_is_not_swallowed(self, request_obj):
         provider = self._provider(AsyncMock(side_effect=LLMError("maritaca 500")))
 
         with pytest.raises(LLMError, match="maritaca 500"):
             await provider.complete(request_obj)
 
+    @pytest.mark.asyncio
     async def test_rate_limit_from_the_client_keeps_its_type(self, request_obj):
         provider = self._provider(
             AsyncMock(side_effect=LLMRateLimitError("too many requests"))
@@ -1041,6 +1084,7 @@ class TestMaritacaProviderCompletion:
         with pytest.raises(LLMRateLimitError):
             await provider.complete(request_obj)
 
+    @pytest.mark.asyncio
     async def test_streaming_degrades_to_a_single_chunk(self, request_obj):
         provider = self._provider(AsyncMock())
         provider.complete = AsyncMock(return_value=make_response("maritaca", "texto"))
