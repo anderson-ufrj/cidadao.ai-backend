@@ -3,7 +3,7 @@
 **Author**: Anderson Henrique da Silva
 **Location**: Minas Gerais, Brazil
 **Created**: 2025-08-13
-**Last Updated**: 2026-08-12
+**Last Updated**: 2026-09-06
 
 ---
 
@@ -17,9 +17,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Unit tests for the security middleware** (`tests/unit/middleware/test_security.py`, 81 tests)
+  - `src/api/middleware/security.py` had zero coverage: 254 statements of IP blocking, rate limiting, request scanning and CSRF with no test at all
+  - Tests concentrate on the deny paths — blocked IP (403), exhausted rate limit (429 with `Retry-After`), oversized body (413), suspicious header/URL (400), unsupported content type (415) — and assert that the downstream app is never reached
+  - Coverage of the module went from 0% to 96%
+
+- **Unit tests for the LLM provider fallback chain** (`tests/unit/llm/test_providers.py`, 70 tests)
+  - `src/llm/providers.py` had zero coverage despite being the single path every agent takes to reach a model
+  - Tests assert *which* providers were contacted, not only the returned value, so a chain that silently stops early fails the test
+  - Covers retry/backoff on 429, 5xx and timeout; pool degradation to the direct client; the dummy-key path when `MARITACA_API_KEY` is unset
+  - Coverage of the module went from 0% to 89%
+
 - **Regression tests for the mounted GraphQL router** (`tests/unit/api/test_graphql.py::TestGraphQLRouterMounted`)
   - The pre-existing GraphQL tests assert `status_code in [200, 400, 503]`, and 503 is the stub router's own "GraphQL not available" status — they tolerate the outage by design and cannot be the guard
   - The new tests assert that `src.api.graphql.schema` imports, that `GraphQLRouter` (not the stub) is mounted, that `POST /graphql` returns exactly 200, and that a swallowed import failure still reaches the log
+
+### Fixed
+- **URL-encoded payloads no longer bypass the request scanner** (`src/api/middleware/security.py`)
+  - Every suspicious pattern that relies on `\s` (`union select`, `drop table`, `insert into`, `delete from`, ...) was matched against the raw query string, where a space is `+` or `%20`
+  - `?id=1+union+select+password+from+users` therefore passed the scanner untouched, while the same payload with literal spaces was blocked
+  - The validator now also scans the `unquote_plus`-decoded path and query
+
+- **The LLM fallback chain no longer collapses when the primary is also a fallback** (`src/llm/providers.py`)
+  - The loop ended on `provider == providers_to_try[-1]`, a value comparison. With Maritaca as primary — the documented production setting — the default fallback list `[together, huggingface, maritaca]` made the first element equal to the last, so a Maritaca outage broke out of the loop immediately and raised "All LLM providers failed" without ever contacting a fallback
+  - `_build_provider_chain` now de-duplicates the chain and the loop ends on the index, so no provider is tried twice and the last one is identified positionally
+
+- **`LLMRateLimitError` is no longer downgraded to a generic `LLMError`** (`src/llm/providers.py`)
+  - `_handle_error_response` classified a 429 correctly, but the broad `except Exception` in `_non_stream_request`/`_stream_request` caught it and re-raised it as `LLMError("Unexpected error: Rate limit exceeded")`
+  - Callers could not distinguish a quota exhaustion that should be retried later from a permanent failure. `LLMError` subclasses are now re-raised unchanged
 
 ### Security
 - **Rotated every credential exposed in the public git history** — PostgreSQL, Redis, Grafana Cloud and Portal da Transparência keys were replaced; the leaked values are now rejected by their services

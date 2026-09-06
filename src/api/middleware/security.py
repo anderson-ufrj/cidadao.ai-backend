@@ -13,6 +13,7 @@ import re
 import time
 from collections import defaultdict, deque
 from datetime import UTC, datetime, timedelta
+from urllib.parse import unquote_plus
 
 from fastapi import Request, status
 from fastapi.responses import JSONResponse
@@ -359,9 +360,12 @@ class RequestValidator:
 
         # Check if path is exempt from pattern checking
         if request.url.path not in SecurityConfig.PATTERN_CHECK_EXEMPT_PATHS:
-            # Check for suspicious patterns in path and query only
+            # Percent- and plus-encoded spaces would otherwise defeat every
+            # pattern that relies on \s ("union select", "drop table", ...),
+            # so scan the decoded form as well as the raw one.
+            decoded = unquote_plus(path_and_query)
             for pattern in self.suspicious_patterns:
-                if pattern.search(path_and_query):
+                if pattern.search(path_and_query) or pattern.search(decoded):
                     return False, "Suspicious pattern in URL"
 
         # Check for double encoding

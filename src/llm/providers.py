@@ -227,6 +227,12 @@ class BaseLLMProvider(ABC):
                     details={"provider": self.__class__.__name__},
                 )
 
+            except LLMError:
+                # Already classified by _handle_error_response (rate limit,
+                # upstream status). Re-wrapping it here would erase the type
+                # the caller needs to decide between backing off and failing.
+                raise
+
             except Exception as e:
                 self.logger.error(
                     "llm_request_error",
@@ -300,6 +306,10 @@ class BaseLLMProvider(ABC):
                     f"Stream request timeout after {self.timeout} seconds",
                     details={"provider": self.__class__.__name__},
                 )
+
+            except LLMError:
+                # Keep the classified error type (see _non_stream_request).
+                raise
 
             except Exception as e:
                 self.logger.error(
@@ -790,6 +800,24 @@ class LLMManager:
             enable_fallback=enable_fallback,
         )
 
+    def _build_provider_chain(self) -> list[LLMProvider]:
+        """
+        Build the ordered list of providers to try.
+
+        The primary provider may also appear in the fallback list (the default
+        fallback list contains Maritaca, which is the configured primary in
+        production). Duplicates are dropped so a failing primary does not
+        short-circuit the whole chain and is not contacted twice.
+        """
+        chain = [self.primary_provider]
+
+        if self.enable_fallback:
+            for provider in self.fallback_providers:
+                if provider not in chain:
+                    chain.append(provider)
+
+        return chain
+
     async def complete(self, request: LLMRequest) -> LLMResponse:
         """
         Complete text generation with fallback support.
@@ -800,13 +828,11 @@ class LLMManager:
         Returns:
             LLM response
         """
-        providers_to_try = [self.primary_provider]
-        if self.enable_fallback:
-            providers_to_try.extend(self.fallback_providers)
+        providers_to_try = self._build_provider_chain()
 
         last_error = None
 
-        for provider in providers_to_try:
+        for index, provider in enumerate(providers_to_try):
             try:
                 self.logger.info(
                     "llm_completion_attempt",
@@ -835,7 +861,7 @@ class LLMManager:
                     fallback_available=len(providers_to_try) > 1,
                 )
 
-                if not self.enable_fallback or provider == providers_to_try[-1]:
+                if not self.enable_fallback or index == len(providers_to_try) - 1:
                     break
 
                 continue
@@ -862,13 +888,11 @@ class LLMManager:
         Yields:
             Text chunks
         """
-        providers_to_try = [self.primary_provider]
-        if self.enable_fallback:
-            providers_to_try.extend(self.fallback_providers)
+        providers_to_try = self._build_provider_chain()
 
         last_error = None
 
-        for provider in providers_to_try:
+        for index, provider in enumerate(providers_to_try):
             try:
                 self.logger.info(
                     "llm_stream_attempt",
@@ -890,7 +914,7 @@ class LLMManager:
                     fallback_available=len(providers_to_try) > 1,
                 )
 
-                if not self.enable_fallback or provider == providers_to_try[-1]:
+                if not self.enable_fallback or index == len(providers_to_try) - 1:
                     break
 
                 continue
