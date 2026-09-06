@@ -39,7 +39,7 @@ def ceuci_agent():
 @pytest.fixture
 def sample_time_series_data():
     """Create sample time series data for testing."""
-    dates = pd.date_range(start="2024-01-01", periods=24, freq="M")
+    dates = pd.date_range(start="2024-01-01", periods=24, freq="ME")
     values = [100 + i * 5 + np.random.normal(0, 10) for i in range(24)]  # Trend + noise
     return pd.DataFrame({"date": dates, "value": values})
 
@@ -560,7 +560,7 @@ class TestCeuciPrivateMethods:
         """Test trend analysis."""
         data = pd.DataFrame(
             {
-                "date": pd.date_range("2024-01-01", periods=24, freq="M"),
+                "date": pd.date_range("2024-01-01", periods=24, freq="ME"),
                 "value": [100 + i * 5 for i in range(24)],
             }
         )
