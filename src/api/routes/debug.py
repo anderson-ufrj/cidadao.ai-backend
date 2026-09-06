@@ -1,18 +1,50 @@
 """
-Debug routes for diagnosing issues in production.
+Diagnostic routes for troubleshooting a running deployment.
+
+These endpoints expose infrastructure internals (connection status, agent import
+diagnostics, schema constraints), so they are guarded twice over:
+
+- ``app.py`` mounts this router only when ``DEBUG_ENDPOINTS_ENABLED`` is true;
+  the setting defaults to false, so a deployment that says nothing gets nothing.
+- Every route requires an authenticated admin, so turning the flag on by mistake
+  still does not hand the diagnostics to an anonymous caller.
+
+Endpoints that imported arbitrary modules, ran migrations, altered the schema or
+returned other users' investigations were removed rather than guarded: they had
+no legitimate use on an internet-facing API.
 """
 
-import importlib
 import os
 import sys
 import traceback
 from typing import Any
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, HTTPException, status
 
-from src.core import settings
+from src.api.dependencies import get_current_optional_user
 
-router = APIRouter(tags=["debug"])
+
+def require_debug_admin(
+    user: dict[str, Any] | None = Depends(get_current_optional_user),
+) -> dict[str, Any]:
+    """Allow only authenticated admins through. Fails closed on anything else."""
+    if not user or not user.get("user_id"):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Authentication required",
+        )
+
+    roles = [str(role).lower() for role in (user.get("roles") or [])]
+    if "admin" not in roles:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Admin privileges required",
+        )
+
+    return user
+
+
+router = APIRouter(tags=["debug"], dependencies=[Depends(require_debug_admin)])
 
 
 @router.get("/drummond-status")
@@ -104,357 +136,6 @@ async def drummond_status() -> dict[str, Any]:
     return result
 
 
-@router.get("/llm-config")
-async def llm_config_status() -> dict[str, Any]:
-    """Check LLM configuration and provider status."""
-
-    result = {
-        "environment": os.getenv("ENVIRONMENT", "unknown"),
-        "configuration": {},
-        "environment_variables": {},
-        "provider_status": {},
-    }
-
-    # Check configuration from settings
-    result["configuration"] = {
-        "llm_provider": settings.llm_provider,
-        "llm_model_name": settings.llm_model_name,
-        "llm_temperature": settings.llm_temperature,
-        "llm_max_tokens": settings.llm_max_tokens,
-    }
-
-    # Check environment variables directly
-    result["environment_variables"] = {
-        "LLM_PROVIDER": os.getenv("LLM_PROVIDER"),
-        "MARITACA_API_KEY": (
-            "***" + os.getenv("MARITACA_API_KEY", "")[-4:]
-            if os.getenv("MARITACA_API_KEY")
-            else None
-        ),
-        "MARITACA_MODEL": os.getenv("MARITACA_MODEL"),
-        "GROQ_API_KEY": (
-            "***" + os.getenv("GROQ_API_KEY", "")[-4:]
-            if os.getenv("GROQ_API_KEY")
-            else None
-        ),
-        "ANTHROPIC_API_KEY": (
-            "***" + os.getenv("ANTHROPIC_API_KEY", "")[-4:]
-            if os.getenv("ANTHROPIC_API_KEY")
-            else None
-        ),
-    }
-
-    # Check if Maritaca is configured in settings
-    result["provider_status"]["maritaca"] = {
-        "api_key_configured": bool(settings.maritaca_api_key),
-        "model": (
-            settings.maritaca_model if hasattr(settings, "maritaca_model") else None
-        ),
-        "base_url": (
-            settings.maritaca_api_base_url
-            if hasattr(settings, "maritaca_api_base_url")
-            else None
-        ),
-    }
-
-    # Test LLM provider initialization
-    try:
-        from src.llm.providers import create_llm_manager
-
-        manager = create_llm_manager(
-            primary_provider=settings.llm_provider, enable_fallback=False
-        )
-
-        result["provider_status"]["initialization"] = {
-            "status": "success",
-            "primary_provider": str(manager.primary_provider),
-            "providers_available": (
-                list(manager.providers.keys()) if hasattr(manager, "providers") else []
-            ),
-        }
-    except Exception as e:
-        result["provider_status"]["initialization"] = {
-            "status": "failed",
-            "error": str(e),
-            "type": type(e).__name__,
-        }
-
-    # Test actual LLM call
-    try:
-        from src.llm.services import LLMService
-
-        service = LLMService()
-        test_response = await service.generate_text(
-            prompt="Responda em português: Olá", max_tokens=50
-        )
-
-        result["provider_status"]["test_call"] = {
-            "status": "success",
-            "response_preview": test_response[:100] if test_response else None,
-            "provider_used": service.config.primary_provider,
-        }
-    except Exception as e:
-        result["provider_status"]["test_call"] = {
-            "status": "failed",
-            "error": str(e),
-            "type": type(e).__name__,
-        }
-
-    return result
-
-
-@router.get("/investigation/{investigation_id}/logs")
-async def investigation_logs(investigation_id: str) -> dict[str, Any]:
-    """Get detailed logs for a specific investigation."""
-
-    result = {
-        "investigation_id": investigation_id,
-        "status": {},
-        "llm_calls": [],
-        "errors": [],
-    }
-
-    # Try to get investigation from database
-    try:
-        from src.services.investigation_service import InvestigationService
-
-        service = InvestigationService()
-        investigation = await service.get_by_id(investigation_id)
-
-        if investigation:
-            result["status"] = {
-                "current_status": investigation.status,
-                "progress": (
-                    investigation.progress if hasattr(investigation, "progress") else 0
-                ),
-                "current_phase": (
-                    investigation.current_phase
-                    if hasattr(investigation, "current_phase")
-                    else None
-                ),
-                "created_at": (
-                    str(investigation.created_at)
-                    if hasattr(investigation, "created_at")
-                    else None
-                ),
-                "updated_at": (
-                    str(investigation.updated_at)
-                    if hasattr(investigation, "updated_at")
-                    else None
-                ),
-                "anomalies_found": (
-                    investigation.anomalies_found
-                    if hasattr(investigation, "anomalies_found")
-                    else 0
-                ),
-                "error_message": (
-                    investigation.error_message
-                    if hasattr(investigation, "error_message")
-                    else None
-                ),
-            }
-
-            # Check investigation metadata for LLM info
-            metadata = (
-                investigation.investigation_metadata
-                if hasattr(investigation, "investigation_metadata")
-                else {}
-            )
-            if metadata:
-                result["llm_info"] = {
-                    "provider": (
-                        metadata.get("llm_provider")
-                        if isinstance(metadata, dict)
-                        else None
-                    ),
-                    "model": (
-                        metadata.get("llm_model")
-                        if isinstance(metadata, dict)
-                        else None
-                    ),
-                    "total_time": (
-                        metadata.get("total_time")
-                        if isinstance(metadata, dict)
-                        else None
-                    ),
-                    "llm_response_time": (
-                        metadata.get("llm_response_time")
-                        if isinstance(metadata, dict)
-                        else None
-                    ),
-                }
-        else:
-            result["error"] = "Investigation not found"
-
-    except Exception as e:
-        result["errors"].append(
-            {"phase": "database_lookup", "error": str(e), "type": type(e).__name__}
-        )
-
-    # Add current LLM configuration for comparison
-    result["current_llm_config"] = {
-        "provider": settings.llm_provider,
-        "model": settings.llm_model_name,
-        "maritaca_configured": bool(settings.maritaca_api_key),
-    }
-
-    return result
-
-
-@router.get("/list-all-investigations")
-async def list_all_investigations() -> dict[str, Any]:
-    """List all investigations from database (debug only)."""
-
-    result = {"status": "started", "investigations": [], "errors": []}
-
-    try:
-        from src.infrastructure.database import get_db_pool
-
-        pool = await get_db_pool()
-
-        async with pool.acquire() as conn:
-            rows = await conn.fetch("""
-                SELECT
-                    id,
-                    user_id,
-                    query,
-                    status,
-                    progress,
-                    current_phase,
-                    created_at,
-                    completed_at,
-                    anomalies_found,
-                    records_processed,
-                    confidence_score
-                FROM investigations
-                ORDER BY created_at DESC
-                LIMIT 10
-            """)
-
-            for row in rows:
-                result["investigations"].append(
-                    {
-                        "id": row["id"],
-                        "user_id": row["user_id"],
-                        "query": row["query"][:100],
-                        "status": row["status"],
-                        "progress": (
-                            row["progress"] if "progress" in row.keys() else None
-                        ),
-                        "current_phase": (
-                            row["current_phase"]
-                            if "current_phase" in row.keys()
-                            else None
-                        ),
-                        "created_at": str(row["created_at"]),
-                        "completed_at": (
-                            str(row["completed_at"]) if row["completed_at"] else None
-                        ),
-                        "anomalies_found": row["anomalies_found"],
-                        "records_processed": (
-                            row["records_processed"]
-                            if "records_processed" in row.keys()
-                            else None
-                        ),
-                        "confidence_score": row["confidence_score"],
-                    }
-                )
-
-        result["status"] = "completed"
-        result["total"] = len(result["investigations"])
-
-    except Exception as e:
-        result["status"] = "error"
-        result["errors"].append(
-            {
-                "error": str(e),
-                "type": type(e).__name__,
-                "traceback": traceback.format_exc(),
-            }
-        )
-
-    return result
-
-
-@router.get("/module-info/{module_path}")
-async def module_info(module_path: str) -> dict[str, Any]:
-    """Get information about a specific module."""
-
-    try:
-        module = importlib.import_module(module_path)
-
-        return {
-            "module": module_path,
-            "file": getattr(module, "__file__", "unknown"),
-            "attributes": [attr for attr in dir(module) if not attr.startswith("_")],
-            "status": "loaded",
-        }
-    except Exception as e:
-        return {
-            "module": module_path,
-            "status": "error",
-            "error": str(e),
-            "traceback": traceback.format_exc(),
-        }
-
-
-@router.post("/run-migration")
-async def run_migration() -> dict[str, Any]:
-    """Run pending database migrations (USE WITH CAUTION IN PRODUCTION)."""
-
-    result = {"status": "started", "migrations_applied": [], "errors": []}
-
-    try:
-        import subprocess
-
-        # Check current migration version
-        alembic_cmd = (
-            "venv/bin/alembic" if os.path.exists("venv/bin/alembic") else "alembic"
-        )
-
-        current_cmd = subprocess.run(
-            [alembic_cmd, "current"],
-            capture_output=True,
-            text=True,
-            timeout=30,
-            check=False,
-        )
-
-        result["current_version"] = current_cmd.stdout.strip()
-
-        # Run upgrade
-        upgrade_cmd = subprocess.run(
-            [alembic_cmd, "upgrade", "head"],
-            capture_output=True,
-            text=True,
-            timeout=120,
-            check=False,
-        )
-
-        result["upgrade_output"] = upgrade_cmd.stdout
-        result["upgrade_errors"] = upgrade_cmd.stderr
-
-        if upgrade_cmd.returncode == 0:
-            result["status"] = "success"
-            result["message"] = "Migrations applied successfully"
-        else:
-            result["status"] = "failed"
-            result["message"] = "Migration failed"
-            result["return_code"] = upgrade_cmd.returncode
-
-    except Exception as e:
-        result["status"] = "error"
-        result["errors"].append(
-            {
-                "error": str(e),
-                "type": type(e).__name__,
-                "traceback": traceback.format_exc(),
-            }
-        )
-
-    return result
-
-
 @router.get("/check-constraints")
 async def check_database_constraints() -> dict[str, Any]:
     """Check database constraints for investigations table and list recent investigations."""
@@ -487,173 +168,6 @@ async def check_database_constraints() -> dict[str, Any]:
         except Exception as e:
             result["errors"].append(
                 {"check": "constraints", "error": str(e), "type": type(e).__name__}
-            )
-
-        result["status"] = (
-            "completed" if not result["errors"] else "completed_with_errors"
-        )
-
-    except Exception as e:
-        result["status"] = "error"
-        result["errors"].append(
-            {
-                "phase": "database_connection",
-                "error": str(e),
-                "type": type(e).__name__,
-                "traceback": traceback.format_exc(),
-            }
-        )
-
-    return result
-
-
-@router.post("/add-investigation-columns")
-async def add_investigation_columns() -> dict[str, Any]:
-    """Add missing investigation tracking columns (SAFE - uses IF NOT EXISTS)."""
-
-    result = {"status": "started", "columns_added": [], "errors": []}
-
-    try:
-        from src.infrastructure.database import get_db_pool
-
-        pool = await get_db_pool()
-
-        # SQL commands to add missing columns
-        columns_to_add = [
-            (
-                "progress",
-                "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS progress FLOAT DEFAULT 0.0",
-            ),
-            (
-                "current_phase",
-                "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS current_phase VARCHAR(100) DEFAULT 'pending'",
-            ),
-            (
-                "summary",
-                "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS summary TEXT",
-            ),
-            (
-                "records_processed",
-                "ALTER TABLE investigations ADD COLUMN IF NOT EXISTS records_processed INTEGER DEFAULT 0",
-            ),
-        ]
-
-        async with pool.acquire() as conn:
-            for column_name, sql in columns_to_add:
-                try:
-                    await conn.execute(sql)
-                    result["columns_added"].append(
-                        {
-                            "column": column_name,
-                            "status": "success",
-                            "message": f"Column '{column_name}' added successfully",
-                        }
-                    )
-                except Exception as e:
-                    result["errors"].append(
-                        {
-                            "column": column_name,
-                            "error": str(e),
-                            "type": type(e).__name__,
-                        }
-                    )
-
-        result["status"] = (
-            "completed" if not result["errors"] else "completed_with_errors"
-        )
-
-    except Exception as e:
-        result["status"] = "error"
-        result["errors"].append(
-            {
-                "phase": "database_connection",
-                "error": str(e),
-                "type": type(e).__name__,
-                "traceback": traceback.format_exc(),
-            }
-        )
-
-    return result
-
-
-@router.post("/fix-database")
-async def fix_database_schema() -> dict[str, Any]:
-    """Fix database schema issues (USE WITH CAUTION IN PRODUCTION)."""
-
-    result = {"status": "started", "fixes_applied": [], "errors": []}
-
-    try:
-        from src.infrastructure.database import get_db_pool
-
-        # Get database pool
-        pool = await get_db_pool()
-
-        # Fix 1: Drop existing status CHECK constraint and recreate with 'running'
-        try:
-            async with pool.acquire() as conn:
-                # First, find the constraint name
-                constraint_row = await conn.fetchrow("""
-                    SELECT conname
-                    FROM pg_constraint
-                    WHERE conrelid = 'investigations'::regclass
-                    AND contype = 'c'
-                    AND pg_get_constraintdef(oid) LIKE '%status%';
-                    """)
-
-                if constraint_row:
-                    constraint_name = constraint_row["conname"]
-
-                    # Drop the old constraint
-                    await conn.execute(f"""
-                        ALTER TABLE investigations
-                        DROP CONSTRAINT {constraint_name};
-                        """)
-
-                    # Create new constraint with 'running' status
-                    await conn.execute("""
-                        ALTER TABLE investigations
-                        ADD CONSTRAINT investigations_status_check
-                        CHECK (status IN ('pending', 'running', 'completed', 'failed'));
-                        """)
-
-                    result["fixes_applied"].append(
-                        {
-                            "fix": "status_constraint",
-                            "description": f"Dropped constraint '{constraint_name}' and recreated with 'running' status",
-                            "status": "success",
-                        }
-                    )
-                else:
-                    result["errors"].append(
-                        {
-                            "fix": "status_constraint",
-                            "error": "No status constraint found",
-                            "type": "NotFound",
-                        }
-                    )
-        except Exception as e:
-            result["errors"].append(
-                {"fix": "status_constraint", "error": str(e), "type": type(e).__name__}
-            )
-
-        # Verify the fix
-        try:
-            async with pool.acquire() as conn:
-                row = await conn.fetchrow("""
-                    SELECT conname, pg_get_constraintdef(oid) as definition
-                    FROM pg_constraint
-                    WHERE conrelid = 'investigations'::regclass
-                    AND contype = 'c'
-                    AND pg_get_constraintdef(oid) LIKE '%status%';
-                """)
-                if row:
-                    result["verification"] = {
-                        "constraint_name": row["conname"],
-                        "definition": row["definition"],
-                    }
-        except Exception as e:
-            result["errors"].append(
-                {"phase": "verification", "error": str(e), "type": type(e).__name__}
             )
 
         result["status"] = (
@@ -707,18 +221,12 @@ async def database_config() -> dict[str, Any]:
                 if raw_db_url and "postgres" in raw_db_url
                 else "SQLite" if raw_db_url else "Not configured"
             ),
-            "DATABASE_URL_preview": (
-                f"{raw_db_url[:20]}...{raw_db_url[-20:]}"
-                if raw_db_url and len(raw_db_url) > 60
-                else "Not set"
-            ),
+            # Never echo the URL itself: it carries user, password and host.
         }
 
         # Check actual DATABASE_URL being used
         result["database"] = {
-            "active_url_preview": (
-                f"{DATABASE_URL[:30]}..." if len(DATABASE_URL) > 30 else DATABASE_URL
-            ),
+            "url_configured": bool(DATABASE_URL),
             "database_type": (
                 "PostgreSQL"
                 if "postgres" in DATABASE_URL
@@ -819,7 +327,7 @@ async def infrastructure_status() -> dict[str, Any]:
     result["environment"] = {
         "REDIS_URL_configured": bool(os.getenv("REDIS_URL")),
         "DATABASE_URL_configured": bool(os.getenv("DATABASE_URL")),
-        "CELERY_BROKER_URL": os.getenv("CELERY_BROKER_URL", "Not set"),
+        "CELERY_BROKER_URL_configured": bool(os.getenv("CELERY_BROKER_URL")),
     }
 
     # Check Redis
@@ -829,9 +337,7 @@ async def infrastructure_status() -> dict[str, Any]:
         from src.core import settings
 
         redis_url = settings.redis_url
-        result["redis"]["url_preview"] = (
-            f"{redis_url[:20]}..." if len(redis_url) > 20 else redis_url
-        )
+        result["redis"]["url_configured"] = bool(redis_url)
 
         client = aioredis.from_url(redis_url, decode_responses=True)
         ping_result = await client.ping()
@@ -854,11 +360,7 @@ async def infrastructure_status() -> dict[str, Any]:
         active_workers = inspect.active()
         registered_tasks = inspect.registered()
 
-        result["celery"]["broker_url"] = (
-            f"{celery_app.conf.broker_url[:30]}..."
-            if celery_app.conf.broker_url
-            else "Not configured"
-        )
+        result["celery"]["broker_configured"] = bool(celery_app.conf.broker_url)
 
         if active_workers:
             result["celery"]["status"] = "✅ Workers running"
@@ -929,193 +431,5 @@ async def infrastructure_status() -> dict[str, Any]:
     )
 
     result["status"] = "✅ All systems operational" if all_ok else "⚠️ Issues detected"
-
-    return result
-
-
-@router.post("/fix-stuck-investigations")
-async def fix_stuck_investigations() -> dict[str, Any]:
-    """
-    Fix stuck investigations by marking old 'running' ones as 'failed'.
-
-    This is safe to run - only affects investigations stuck for >1 hour.
-    """
-    result = {
-        "status": "started",
-        "fixed_count": 0,
-        "fixed_ids": [],
-        "errors": [],
-    }
-
-    try:
-        from sqlalchemy import text
-
-        from src.db.simple_session import _get_engine
-
-        engine = _get_engine()
-
-        async with engine.begin() as conn:
-            # First, get stuck investigations
-            stuck_result = await conn.execute(text("""
-                    SELECT id, query, created_at
-                    FROM investigations
-                    WHERE status = 'running'
-                    AND created_at < NOW() - INTERVAL '1 hour'
-                    """))
-            stuck_rows = stuck_result.fetchall()
-
-            for row in stuck_rows:
-                result["fixed_ids"].append(
-                    {
-                        "id": row[0],
-                        "query": row[1][:50] if row[1] else "",
-                        "created_at": str(row[2]),
-                    }
-                )
-
-            # Update stuck investigations
-            update_result = await conn.execute(text("""
-                    UPDATE investigations
-                    SET status = 'failed',
-                        error_message = 'Investigation timed out (stuck in running state for >1 hour)',
-                        completed_at = NOW()
-                    WHERE status = 'running'
-                    AND created_at < NOW() - INTERVAL '1 hour'
-                    RETURNING id
-                    """))
-
-            result["fixed_count"] = update_result.rowcount
-
-        result["status"] = "completed"
-        result["message"] = (
-            f"Fixed {result['fixed_count']} stuck investigations"
-            if result["fixed_count"] > 0
-            else "No stuck investigations found"
-        )
-
-    except Exception as e:
-        result["status"] = "error"
-        result["errors"].append(
-            {
-                "error": str(e),
-                "type": type(e).__name__,
-                "traceback": traceback.format_exc(),
-            }
-        )
-
-    return result
-
-
-@router.post("/test-update-status/{investigation_id}")
-async def test_update_status(investigation_id: str) -> dict[str, Any]:
-    """
-    Test update_status to diagnose persistence issues.
-
-    Attempts to update an investigation and returns detailed diagnostics.
-    """
-    result = {
-        "status": "started",
-        "investigation_id": investigation_id,
-        "steps": [],
-        "errors": [],
-    }
-
-    try:
-        from datetime import UTC, datetime
-
-        from sqlalchemy import text
-
-        from src.db.simple_session import get_db_session
-        from src.services.investigation_service_selector import investigation_service
-
-        # Step 1: Get via service
-        result["steps"].append("Step 1: Get via service")
-        try:
-            inv = await investigation_service.get_by_id(investigation_id)
-            if inv:
-                result["current_via_service"] = {
-                    "status": inv.status,
-                    "progress": inv.progress,
-                }
-            else:
-                result["current_via_service"] = "Not found"
-        except Exception as e:
-            result["errors"].append({"step": "get_by_id", "error": str(e)})
-
-        # Step 2: Get via SQL
-        result["steps"].append("Step 2: Get via SQL")
-        try:
-            async with get_db_session() as db:
-                sql_result = await db.execute(
-                    text("SELECT status, progress FROM investigations WHERE id = :id"),
-                    {"id": investigation_id},
-                )
-                row = sql_result.fetchone()
-                result["current_via_sql"] = (
-                    {"status": row[0], "progress": row[1]} if row else "Not found"
-                )
-        except Exception as e:
-            result["errors"].append({"step": "sql_select", "error": str(e)})
-
-        # Step 3: Update via service
-        result["steps"].append("Step 3: Update via service")
-        try:
-            updated = await investigation_service.update_status(
-                investigation_id=investigation_id,
-                status="completed",
-                progress=1.0,
-                current_phase="test_completed",
-                completed_at=datetime.now(UTC),
-            )
-            result["update_via_service"] = {"new_status": updated.status}
-        except Exception as e:
-            result["errors"].append(
-                {
-                    "step": "update_status",
-                    "error": str(e),
-                    "traceback": traceback.format_exc()[:500],
-                }
-            )
-
-        # Step 4: Verify via SQL
-        result["steps"].append("Step 4: Verify via SQL")
-        try:
-            async with get_db_session() as db:
-                sql_result = await db.execute(
-                    text("SELECT status, progress FROM investigations WHERE id = :id"),
-                    {"id": investigation_id},
-                )
-                row = sql_result.fetchone()
-                result["after_service_update"] = (
-                    {"status": row[0], "progress": row[1]} if row else "Not found"
-                )
-        except Exception as e:
-            result["errors"].append({"step": "verify_sql", "error": str(e)})
-
-        # Step 5: Direct SQL update
-        result["steps"].append("Step 5: Direct SQL update")
-        try:
-            async with get_db_session() as db:
-                await db.execute(
-                    text(
-                        "UPDATE investigations SET status = 'test_sql' WHERE id = :id"
-                    ),
-                    {"id": investigation_id},
-                )
-            async with get_db_session() as db:
-                sql_result = await db.execute(
-                    text("SELECT status FROM investigations WHERE id = :id"),
-                    {"id": investigation_id},
-                )
-                row = sql_result.fetchone()
-                result["after_direct_sql"] = {"status": row[0]} if row else "Not found"
-        except Exception as e:
-            result["errors"].append({"step": "direct_sql", "error": str(e)})
-
-        result["status"] = "completed" if not result["errors"] else "with_errors"
-
-    except Exception as e:
-        result["status"] = "error"
-        result["errors"].append({"step": "global", "error": str(e)})
 
     return result

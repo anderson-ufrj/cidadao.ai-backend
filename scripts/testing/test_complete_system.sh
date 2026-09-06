@@ -2,6 +2,11 @@
 
 API_URL="https://cidadao-api-production.up.railway.app"
 
+# Test 2 reads /api/v1/debug/database-config. That router is off unless the
+# deployment sets DEBUG_ENDPOINTS_ENABLED=true, and it then requires an admin
+# bearer token, so export DEBUG_TOKEN before running against a live API.
+AUTH_HEADER=(-H "Authorization: Bearer ${DEBUG_TOKEN:-}")
+
 echo "🎯 TESTE COMPLETO DO SISTEMA CIDADÃO.AI"
 echo "========================================"
 echo "API: $API_URL"
@@ -40,7 +45,7 @@ echo ""
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${BLUE}TEST 2: Database Configuration${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-DB_CONFIG=$(curl -s "${API_URL}/api/v1/debug/database-config")
+DB_CONFIG=$(curl -s "${AUTH_HEADER[@]}" "${API_URL}/api/v1/debug/database-config")
 DB_TYPE=$(echo "$DB_CONFIG" | jq -r '.database.database_type')
 TABLE_EXISTS=$(echo "$DB_CONFIG" | jq -r '.tables.investigations_exists')
 INV_COUNT=$(echo "$DB_CONFIG" | jq -r '.investigations.total_count')
@@ -89,7 +94,7 @@ echo -e "${BLUE}TEST 4: Zumbi Agent - Investigation + Persistence${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 # Get initial count
-INITIAL_COUNT=$(curl -s "${API_URL}/api/v1/debug/database-config" | jq -r '.investigations.total_count')
+INITIAL_COUNT=$(curl -s "${AUTH_HEADER[@]}" "${API_URL}/api/v1/debug/database-config" | jq -r '.investigations.total_count')
 echo "Initial investigation count: $INITIAL_COUNT"
 
 # Create investigation
@@ -111,7 +116,7 @@ echo "Message preview: ${ZUMBI_MESSAGE:0:150}..."
 sleep 5
 
 # Check if persisted
-FINAL_COUNT=$(curl -s "${API_URL}/api/v1/debug/database-config" | jq -r '.investigations.total_count')
+FINAL_COUNT=$(curl -s "${AUTH_HEADER[@]}" "${API_URL}/api/v1/debug/database-config" | jq -r '.investigations.total_count')
 echo "Final investigation count: $FINAL_COUNT"
 
 if [[ "$ZUMBI_AGENT" == "Zumbi"* ]] && [ "$FINAL_COUNT" -gt "$INITIAL_COUNT" ]; then
@@ -129,7 +134,7 @@ echo ""
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 echo -e "${BLUE}TEST 5: Recent Investigations Query${NC}"
 echo -e "${BLUE}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-RECENT=$(curl -s "${API_URL}/api/v1/debug/database-config" | jq '.investigations.recent_investigations')
+RECENT=$(curl -s "${AUTH_HEADER[@]}" "${API_URL}/api/v1/debug/database-config" | jq '.investigations.recent_investigations')
 RECENT_COUNT=$(echo "$RECENT" | jq 'length')
 
 if [ "$RECENT_COUNT" -gt 0 ]; then
