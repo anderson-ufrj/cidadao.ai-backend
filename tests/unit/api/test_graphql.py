@@ -376,3 +376,88 @@ class TestGraphQLSchema:
         )
 
         assert response.status_code in [200, 400, 503]
+
+
+class TestGraphQLRouterMounted:
+    """Regression guard for the strawberry API-removal outage.
+
+    strawberry-graphql 0.322.0 removed the deprecated `Extension` alias from
+    `strawberry.extensions`. `src/api/routes/graphql.py` wraps the schema
+    import in a bare `except ImportError` written for a genuinely absent
+    optional dependency, so the breaking change was swallowed: the router
+    silently degraded to a stub and POST /graphql answered 405.
+
+    The tests above tolerate that state (they accept 503, the stub's own
+    "GraphQL not available" status), so they cannot be the guard. These
+    assert the mounted, working endpoint and nothing weaker.
+    """
+
+    @pytest.mark.unit
+    def test_schema_module_imports(self):
+        """The GraphQL schema module must import cleanly.
+
+        Fails loudly with the real traceback when a strawberry release drops
+        or renames an API we use, instead of degrading POST /graphql to 405.
+        """
+        import importlib
+
+        module = importlib.import_module("src.api.graphql.schema")
+        assert module.schema is not None
+
+    @pytest.mark.unit
+    def test_strawberry_router_is_mounted(self):
+        """The real GraphQLRouter must be mounted, not the 503 stub."""
+        from strawberry.fastapi import GraphQLRouter
+
+        from src.api.routes import graphql as graphql_route
+
+        assert graphql_route.STRAWBERRY_AVAILABLE is True
+        assert isinstance(graphql_route.router, GraphQLRouter)
+
+    @pytest.mark.unit
+    def test_post_graphql_returns_200(self, client):
+        """POST /graphql must be served by strawberry.
+
+        This is the exact symptom of the outage: with the stub router mounted,
+        /graphql has no POST handler and FastAPI answers 405.
+        """
+        response = client.post("/graphql", json={"query": "{ __typename }"})
+
+        assert response.status_code == 200, (
+            f"POST /graphql returned {response.status_code}; "
+            "405 means the strawberry router was not mounted"
+        )
+        assert response.json()["data"]["__typename"] == "Query"
+
+    @pytest.mark.unit
+    def test_import_failure_is_not_silent(self, monkeypatch):
+        """A failed schema import must be logged, never swallowed silently."""
+        import builtins
+        import importlib
+        import sys
+
+        import src.core
+
+        fake_logger = MagicMock()
+        monkeypatch.setattr(src.core, "get_logger", lambda *args, **kwargs: fake_logger)
+
+        real_import = builtins.__import__
+
+        def failing_import(name, globals=None, locals=None, fromlist=(), level=0):
+            if name == "src.api.graphql.schema":
+                raise ImportError("simulated: strawberry removed a public API")
+            return real_import(name, globals, locals, fromlist, level)
+
+        monkeypatch.setattr(builtins, "__import__", failing_import)
+
+        cached = sys.modules.pop("src.api.routes.graphql", None)
+        try:
+            reloaded = importlib.import_module("src.api.routes.graphql")
+            assert reloaded.STRAWBERRY_AVAILABLE is False
+            assert (
+                fake_logger.exception.called
+            ), "import failure was swallowed without a log line"
+        finally:
+            sys.modules.pop("src.api.routes.graphql", None)
+            if cached is not None:
+                sys.modules["src.api.routes.graphql"] = cached

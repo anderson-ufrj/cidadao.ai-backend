@@ -110,12 +110,19 @@ async def get_context(request: Request, user=Depends(get_current_optional_user))
 
 #### Performance Monitoring
 ```python
-class PerformanceExtension(Extension):
+class PerformanceExtension(SchemaExtension):
     """Track GraphQL query performance."""
-    async def on_request_end(self):
-        duration = (datetime.utcnow() - self.start_time).total_seconds() * 1000
+    async def on_operation(self):
+        start_time = datetime.now(UTC)
+        yield
+        duration = (datetime.now(UTC) - start_time).total_seconds() * 1000
         logger.info(f"GraphQL request completed in {duration:.2f}ms")
 ```
+
+> Use `SchemaExtension` with the `on_operation` generator hook. The `Extension`
+> alias and the `on_request_start`/`on_request_end` hooks were removed in
+> strawberry-graphql 0.322.0; importing them raises `ImportError`, which
+> silently disables the whole GraphQL router.
 
 #### Query Caching
 ```python
