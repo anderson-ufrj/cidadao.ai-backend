@@ -16,6 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Regression tests for the mounted GraphQL router** (`tests/unit/api/test_graphql.py::TestGraphQLRouterMounted`)
+  - The pre-existing GraphQL tests assert `status_code in [200, 400, 503]`, and 503 is the stub router's own "GraphQL not available" status — they tolerate the outage by design and cannot be the guard
+  - The new tests assert that `src.api.graphql.schema` imports, that `GraphQLRouter` (not the stub) is mounted, that `POST /graphql` returns exactly 200, and that a swallowed import failure still reaches the log
+
 ### Security
 - **Rotated every credential exposed in the public git history** — PostgreSQL, Redis, Grafana Cloud and Portal da Transparência keys were replaced; the leaked values are now rejected by their services
 - **Purged six leaked secrets from the whole history** with `git filter-repo` — branches and tags no longer carry any live credential. The original commits remain reachable through `refs/pull/*`, which only GitHub can garbage-collect
@@ -23,6 +28,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Dropped `ANTHROPIC_API_KEY` and `TRANSPARENCY_API_KEY` from the PostgreSQL and Redis services** — neither used them, and their presence widened the blast radius of a leak
 
 ### Fixed
+- **`POST /graphql` no longer degrades to 405 on a fresh dependency install** (`src/api/graphql/schema.py`, `src/api/routes/graphql.py`)
+  - strawberry-graphql 0.322.0 (2026-07-18) removed the deprecated `Extension` alias and the `on_request_start`/`on_request_end` hooks; `schema.py` now uses `SchemaExtension` with the `on_operation` generator
+  - The bare `except ImportError` in `routes/graphql.py` was written for a genuinely absent optional dependency, so it also swallowed this breaking change: `STRAWBERRY_AVAILABLE` became `False`, the stub router was mounted in place of `GraphQLRouter`, and `POST /graphql` answered 405 with no log line
+  - Added `logger.exception` to that except block so an import failure can never be silent again
+  - `requirements.txt` still declares `strawberry-graphql[fastapi]>=0.284.0` with no upper bound, so any environment resolving dependencies afresh picks up the breaking release
+
 - **Agent lazy loader no longer deletes modules from `sys.modules` on unload** (`agent_lazy_loader.py`)
   - `_unload_agent` removed the agent's module from `sys.modules`, so any later import re-executed it and produced duplicate class/function objects
   - Broke `isinstance` checks, `unittest.mock` patches targeting the module, and module-level singletons (e.g. the transparency collector) after any agent unload

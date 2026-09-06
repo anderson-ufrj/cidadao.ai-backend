@@ -72,4 +72,14 @@ google-cloud-texttospeech>=2.33.0
 google-cloud-speech>=2.34.0
 
 # GraphQL support (Added 2025-10-31)
-strawberry-graphql[fastapi]>=0.284.0
+# The upper bound is deliberate. 0.322.0 dropped the `Extension` alias from
+# strawberry.extensions with no major version bump, and routes/graphql.py
+# catches ImportError to treat strawberry as an optional dependency, so the
+# removal silently left GraphQL unmounted and POST /graphql answering 405
+# without a log line. The schema now targets the current API
+# (SchemaExtension + on_operation), so this cap excludes nothing published:
+# 0.327.3 is the latest release as of 2026-09-06 and both bounds were run
+# against tests/unit/api/test_graphql.py::TestGraphQLRouterMounted. It is a
+# guardrail, not a workaround, and the next silent API removal has to clear
+# that test before it can reach production. Run it when raising the cap.
+strawberry-graphql[fastapi]>=0.284.0,<0.328.0

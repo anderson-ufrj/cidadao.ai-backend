@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 
 import strawberry
 from strawberry import ID
-from strawberry.extensions import Extension
+from strawberry.extensions import SchemaExtension
 from strawberry.types import Info
 
 from src.agents import get_agent_pool
@@ -442,14 +442,13 @@ class Subscription:
 
 
 # Performance monitoring extension
-class PerformanceExtension(Extension):
+class PerformanceExtension(SchemaExtension):
     """Track GraphQL query performance."""
 
-    async def on_request_start(self):
-        self.start_time = datetime.now(UTC)
-
-    async def on_request_end(self):
-        duration = (datetime.now(UTC) - self.start_time).total_seconds() * 1000
+    async def on_operation(self):
+        start_time = datetime.now(UTC)
+        yield
+        duration = (datetime.now(UTC) - start_time).total_seconds() * 1000
         logger.info(f"GraphQL request completed in {duration:.2f}ms")
 
 

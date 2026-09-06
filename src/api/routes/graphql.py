@@ -11,6 +11,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request, WebSocket
 
 from src.core import get_logger
 
+logger = get_logger(__name__)
+
 # Try to import strawberry - optional dependency
 try:
     from strawberry.fastapi import GraphQLRouter
@@ -23,6 +25,19 @@ try:
 
     STRAWBERRY_AVAILABLE = True
 except ImportError:
+    # Logged at error level (not silently swallowed): this except is meant to
+    # catch a genuinely absent 'strawberry-graphql' package, but a broken
+    # import inside our own schema module (e.g. a removed/renamed API after
+    # a dependency upgrade) raises ImportError too and would otherwise
+    # disable GraphQL without any trace. See incident: strawberry-graphql
+    # dropped the deprecated `Extension` alias, which silently took
+    # POST /graphql from 200 to 405 for months without a log line.
+    logger.exception(
+        "GraphQL disabled: failed to import strawberry-graphql or "
+        "src.api.graphql.schema. If 'strawberry-graphql' is installed, "
+        "this is likely a breaking API change in a newer release, not a "
+        "missing dependency."
+    )
     STRAWBERRY_AVAILABLE = False
     GraphQLRouter = None
     GRAPHQL_TRANSPORT_WS_PROTOCOL = None
@@ -30,8 +45,6 @@ except ImportError:
     schema = None
 
 from src.api.dependencies import get_current_optional_user
-
-logger = get_logger(__name__)
 
 
 # Context getter for GraphQL
