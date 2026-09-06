@@ -356,7 +356,7 @@ class ProphetModel:
             elif time_diff.days >= 7:  # Weekly
                 self.freq = "W"
             elif time_diff.hours >= 1:  # Hourly
-                self.freq = "H"
+                self.freq = "h"
             else:  # Daily
                 self.freq = "D"
 

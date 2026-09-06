@@ -539,7 +539,7 @@ class OxossiAgent(BaseAgent):
             df = df.sort_values("date")
 
             # Group by time periods and check for uniform increases
-            monthly_avg = df.groupby(pd.Grouper(key="date", freq="M"))["price"].mean()
+            monthly_avg = df.groupby(pd.Grouper(key="date", freq="ME"))["price"].mean()
             if len(monthly_avg) > 3:
                 price_changes = monthly_avg.pct_change().dropna()
                 if (price_changes > 0.05).sum() > 1:  # Multiple 5%+ increases
