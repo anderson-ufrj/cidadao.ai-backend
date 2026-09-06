@@ -28,6 +28,7 @@ PUBLIC_IP = "203.0.113.7"  # TEST-NET-3, never whitelisted
 
 def build_request(
     path: str = "/api/v1/investigations",
+    *,
     method: str = "GET",
     headers: dict[str, str] | None = None,
     query: str = "",
@@ -90,9 +91,9 @@ class TestIPBlockList:
 
         for _ in range(SecurityConfig.MAX_FAILED_ATTEMPTS - 1):
             blocklist.record_failed_attempt(PUBLIC_IP)
-        assert blocklist.is_blocked(PUBLIC_IP) is False, (
-            "IP must stay allowed below the threshold"
-        )
+        assert (
+            blocklist.is_blocked(PUBLIC_IP) is False
+        ), "IP must stay allowed below the threshold"
 
         blocklist.record_failed_attempt(PUBLIC_IP)
         assert blocklist.is_blocked(PUBLIC_IP) is True
@@ -109,9 +110,9 @@ class TestIPBlockList:
 
         assert blocklist.is_whitelisted(ip) is True
         assert blocklist.is_blocked(ip) is False
-        assert blocklist.failed_attempts[ip] == [], (
-            "whitelisted IPs must not accumulate failed attempts"
-        )
+        assert (
+            blocklist.failed_attempts[ip] == []
+        ), "whitelisted IPs must not accumulate failed attempts"
 
     def test_block_expires_after_the_configured_duration(self):
         blocklist = IPBlockList()

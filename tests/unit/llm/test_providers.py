@@ -225,9 +225,9 @@ class TestLLMManagerCompletionFallback:
             await manager.complete(request_obj)
 
         assert "All LLM providers failed" in str(exc_info.value)
-        assert "maritaca quota exhausted" in str(exc_info.value), (
-            "the last error must survive so the outage is diagnosable"
-        )
+        assert "maritaca quota exhausted" in str(
+            exc_info.value
+        ), "the last error must survive so the outage is diagnosable"
         assert exc_info.value.details == {"provider": "all"}
         assert fallback.complete_calls == 1
 
@@ -471,9 +471,9 @@ class TestNonStreamRequest:
             await groq_without_pool._non_stream_request("/chat/completions", {})
 
         assert exc_info.value.details["retry_after"] == 7
-        assert no_sleep.await_args_list[0].args[0] == 7, (
-            "the server-provided Retry-After must drive the backoff"
-        )
+        assert (
+            no_sleep.await_args_list[0].args[0] == 7
+        ), "the server-provided Retry-After must drive the backoff"
 
     async def test_rate_limit_followed_by_success_is_transparent(
         self, groq_without_pool, no_sleep
