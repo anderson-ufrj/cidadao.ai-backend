@@ -452,6 +452,16 @@ class Settings(BaseSettings):
     )
     enable_ethics_guard: bool = Field(default=True, description="Enable ethics guard")
 
+    # Diagnostics
+    debug_endpoints_enabled: bool = Field(
+        default=False,
+        description=(
+            "Expose the /api/v1/debug diagnostic endpoints. Off by default: they "
+            "reveal infrastructure internals and must never be reachable by "
+            "anonymous callers. Even when on, the router requires an admin token."
+        ),
+    )
+
     # Development
     enable_debug_toolbar: bool = Field(default=True, description="Debug toolbar")
     enable_sql_echo: bool = Field(default=False, description="SQL echo")

@@ -403,8 +403,16 @@ app.include_router(health.router, prefix="/health", tags=["Health Check"])
 # API root endpoint - Welcome message
 app.include_router(root.router, prefix="/api/v1", tags=["Root"])
 
-# Debug endpoints for troubleshooting
-app.include_router(debug.router, prefix="/api/v1/debug", tags=["Debug"])
+# Diagnostic endpoints, disabled by default (set DEBUG_ENDPOINTS_ENABLED=true).
+# They expose infrastructure internals, so they stay off unless someone asks for
+# them, and the router itself still demands an admin token once mounted.
+if settings.debug_endpoints_enabled:
+    app.include_router(debug.router, prefix="/api/v1/debug", tags=["Debug"])
+    logger.warning(
+        "Debug endpoints enabled (admin only) - do not leave this on in production"
+    )
+else:
+    logger.info("Debug endpoints disabled (set DEBUG_ENDPOINTS_ENABLED=true to enable)")
 
 app.include_router(auth.router, tags=["Authentication"])
 
